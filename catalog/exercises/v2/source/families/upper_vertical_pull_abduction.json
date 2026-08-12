@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren superior · deltoid · vertical pull abduction",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Un tirón vertical que ensancha el hombro, siempre con un rango cómodo para la articulación."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
@@ -230,7 +230,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo al Mentón",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "deltoides_remo_menton__default",
                   "definitionId": "deltoides_remo_menton",
                   "familyId": "upper_vertical_pull_abduction",

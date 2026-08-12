@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Step-Up a Cajón",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La medida exacta de la fuerza de cada pierna por separado."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -237,7 +237,7 @@
                 },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "step_up__barbell",
                   "definitionId": "step_up",
                   "familyId": "lower_step_up",
@@ -334,7 +334,7 @@
                 "La medida exacta de la fuerza de cada pierna por separado."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -544,7 +544,7 @@
                 },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "step_up__smith_machine",
                   "definitionId": "step_up",
                   "familyId": "lower_step_up",
@@ -641,7 +641,7 @@
                 "La medida exacta de la fuerza de cada pierna por separado."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -851,7 +851,7 @@
                 },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "step_up__dumbbells",
                   "definitionId": "step_up",
                   "familyId": "lower_step_up",
@@ -948,7 +948,7 @@
                 "La medida exacta de la fuerza de cada pierna por separado."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -1158,7 +1158,7 @@
                 },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "step_up__kettlebell",
                   "definitionId": "step_up",
                   "familyId": "lower_step_up",
@@ -1255,7 +1255,7 @@
                 "La medida exacta de la fuerza de cada pierna por separado."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -1465,7 +1465,7 @@
                 },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "step_up__cable",
                   "definitionId": "step_up",
                   "familyId": "lower_step_up",

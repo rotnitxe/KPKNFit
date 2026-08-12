@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Core · core · anti rotation trunk",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El seguro anti-torsiones que sentadillas y pesos muertos agradecen cada semana."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Arquear la espalda, girar con la carga o perder la tensión al final."
@@ -199,7 +199,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Pallof",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "core_press_pallof__default",
                   "definitionId": "core_press_pallof",
                   "familyId": "core_anti_rotation_trunk",

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · hamstrings · hip hinge deficit",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El déficit que convierte un buen arranque en uno imparable."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -227,7 +227,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional en Déficit",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hams_peso_muerto_convencional_deficit__default",
                   "definitionId": "hams_peso_muerto_convencional_deficit",
                   "familyId": "lower_hip_hinge_deficit",
@@ -343,7 +343,7 @@
                 "Solo para quien ya tiene movilidad y control de sobra."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -543,7 +543,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas en Déficit",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hams_peso_muerto_piernas_rigidas_deficit__default",
                   "definitionId": "hams_peso_muerto_piernas_rigidas_deficit",
                   "familyId": "lower_hip_hinge_deficit",
@@ -659,7 +659,7 @@
                 "Una prueba avanzada para los que ya dominan el sumo convencional."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -859,7 +859,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Sumo en Déficit",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hams_peso_muerto_sumo_deficit__default",
                   "definitionId": "hams_peso_muerto_sumo_deficit",
                   "familyId": "lower_hip_hinge_deficit",

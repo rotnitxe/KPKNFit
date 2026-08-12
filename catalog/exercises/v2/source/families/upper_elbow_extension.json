@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren superior · triceps · elbow extension",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Tríceps serio colgado de una puerta, sin más hierro que tu cuerpo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -207,7 +207,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps en TRX",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "triceps_extension__default",
                   "definitionId": "triceps_extension",
                   "familyId": "upper_elbow_extension",
@@ -324,7 +324,7 @@
                 "El estiramiento profundo que hace crecer la parte larga del tríceps."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -504,7 +504,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps PJR con Mancuerna",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "triceps_extension_pjr_mancuerna__default",
                   "definitionId": "triceps_extension_pjr_mancuerna",
                   "familyId": "upper_elbow_extension",
@@ -619,7 +619,7 @@
                 "La flexión de los que quieren tríceps sin tocar una pesa."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -793,7 +793,7 @@
                 },
                 "identity": {
                   "canonicalName": "Flexiones Esfinge",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "triceps_flexiones_esfinge__default",
                   "definitionId": "triceps_flexiones_esfinge",
                   "familyId": "upper_elbow_extension",
@@ -908,7 +908,7 @@
                 "El clásico de casa que llena brazos décadas después."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -1099,7 +1099,7 @@
                 },
                 "identity": {
                   "canonicalName": "Fondos Entre Bancos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "triceps_fondos_entre_bancos__default",
                   "definitionId": "triceps_fondos_entre_bancos",
                   "familyId": "upper_elbow_extension",
@@ -1217,7 +1217,7 @@
                 "El estiramiento bajo carga del tríceps en su forma más clásica."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -1393,7 +1393,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Francés",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "triceps_press_frances__dumbbells",
                   "definitionId": "triceps_press_frances",
                   "familyId": "upper_elbow_extension",
@@ -1490,7 +1490,7 @@
                 "El estiramiento bajo carga del tríceps en su forma más clásica."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -1666,7 +1666,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Francés",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "triceps_press_frances__barbell",
                   "definitionId": "triceps_press_frances",
                   "familyId": "upper_elbow_extension",
@@ -1763,7 +1763,7 @@
                 "El estiramiento bajo carga del tríceps en su forma más clásica."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -1939,7 +1939,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Francés",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "triceps_press_frances__ez_bar",
                   "definitionId": "triceps_press_frances",
                   "familyId": "upper_elbow_extension",
@@ -2036,7 +2036,7 @@
                 "El estiramiento bajo carga del tríceps en su forma más clásica."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -2212,7 +2212,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Francés",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "triceps_press_frances__cable",
                   "definitionId": "triceps_press_frances",
                   "familyId": "upper_elbow_extension",
@@ -2309,7 +2309,7 @@
                 "El estiramiento bajo carga del tríceps en su forma más clásica."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -2485,7 +2485,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Francés",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "triceps_press_frances__kettlebell",
                   "definitionId": "triceps_press_frances",
                   "familyId": "upper_elbow_extension",
@@ -2608,7 +2608,7 @@
                 "La vía directa y segura para congestionar el tríceps al final de la rutina."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -2782,7 +2782,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Tríceps en Máquina",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "triceps_press_maquina__default",
                   "definitionId": "triceps_press_maquina",
                   "familyId": "upper_elbow_extension",
@@ -2893,7 +2893,7 @@
                 "El básico que todo brazo serio conoce bien."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -3070,7 +3070,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "triceps_pushdown__bilateral__cable",
                   "definitionId": "triceps_pushdown",
                   "familyId": "upper_elbow_extension",
@@ -3167,7 +3167,7 @@
                 "El básico que todo brazo serio conoce bien."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -3344,7 +3344,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "triceps_pushdown__unilateral__cable",
                   "definitionId": "triceps_pushdown",
                   "familyId": "upper_elbow_extension",
@@ -3441,7 +3441,7 @@
                 "El básico que todo brazo serio conoce bien."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -3618,7 +3618,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "triceps_pushdown__bilateral__machine",
                   "definitionId": "triceps_pushdown",
                   "familyId": "upper_elbow_extension",
@@ -3715,7 +3715,7 @@
                 "El básico que todo brazo serio conoce bien."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -3892,7 +3892,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "triceps_pushdown__unilateral__machine",
                   "definitionId": "triceps_pushdown",
                   "familyId": "upper_elbow_extension",
@@ -3989,7 +3989,7 @@
                 "El básico que todo brazo serio conoce bien."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -4166,7 +4166,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "triceps_pushdown__bilateral__band",
                   "definitionId": "triceps_pushdown",
                   "familyId": "upper_elbow_extension",
@@ -4263,7 +4263,7 @@
                 "El básico que todo brazo serio conoce bien."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -4440,7 +4440,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "triceps_pushdown__unilateral__band",
                   "definitionId": "triceps_pushdown",
                   "familyId": "upper_elbow_extension",
@@ -4565,7 +4565,7 @@
                 "Una variante con rodaje, literalmente, para el brazo completo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -4739,7 +4739,7 @@
                 },
                 "identity": {
                   "canonicalName": "Rolling Extension de Tríceps",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "triceps_rolling_extension__default",
                   "definitionId": "triceps_rolling_extension",
                   "familyId": "upper_elbow_extension",

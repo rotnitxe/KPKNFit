@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Elevación Lateral",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La versión estricta para sentir el hombro trabajar de verdad."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -225,7 +225,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "seated_lateral_raise__dumbbells",
                   "definitionId": "seated_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -324,7 +324,7 @@
                 "La versión estricta para sentir el hombro trabajar de verdad."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -522,7 +522,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "seated_lateral_raise__cable",
                   "definitionId": "seated_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -621,7 +621,7 @@
                 "La versión estricta para sentir el hombro trabajar de verdad."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -819,7 +819,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "seated_lateral_raise__machine",
                   "definitionId": "seated_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -918,7 +918,7 @@
                 "La versión estricta para sentir el hombro trabajar de verdad."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -1116,7 +1116,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "seated_lateral_raise__kettlebell",
                   "definitionId": "seated_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -1242,7 +1242,7 @@
                 "El gesto que separa unos hombros normales de unos que enmarcan el torso."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -1440,7 +1440,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "standing_lateral_raise__dumbbells",
                   "definitionId": "standing_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -1539,7 +1539,7 @@
                 "El gesto que separa unos hombros normales de unos que enmarcan el torso."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -1737,7 +1737,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "standing_lateral_raise__cable",
                   "definitionId": "standing_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -1836,7 +1836,7 @@
                 "El gesto que separa unos hombros normales de unos que enmarcan el torso."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -2034,7 +2034,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "standing_lateral_raise__machine",
                   "definitionId": "standing_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -2133,7 +2133,7 @@
                 "El gesto que separa unos hombros normales de unos que enmarcan el torso."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -2331,7 +2331,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "standing_lateral_raise__kettlebell",
                   "definitionId": "standing_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -2457,7 +2457,7 @@
                 "La evolución del clásico para quien ya exprimió el gesto estándar."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -2655,7 +2655,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Super ROM",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "lateral_raise_super_rom__cable",
                   "definitionId": "lateral_raise_super_rom",
                   "familyId": "shoulder_lateral_raise",
@@ -2753,7 +2753,7 @@
                 "La evolución del clásico para quien ya exprimió el gesto estándar."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -2951,7 +2951,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Super ROM",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "lateral_raise_super_rom__dumbbells",
                   "definitionId": "lateral_raise_super_rom",
                   "familyId": "shoulder_lateral_raise",
@@ -3049,7 +3049,7 @@
                 "La evolución del clásico para quien ya exprimió el gesto estándar."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -3247,7 +3247,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Super ROM",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "lateral_raise_super_rom__machine",
                   "definitionId": "lateral_raise_super_rom",
                   "familyId": "shoulder_lateral_raise",

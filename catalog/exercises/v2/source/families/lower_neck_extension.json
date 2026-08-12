@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · neck · neck extension",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Un seguro barato para el cuello de cualquiera que entrene o trabaje sentado."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Usar velocidad, llevar la cabeza al extremo del recorrido o encoger los hombros."
@@ -177,7 +177,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensiones de Cuello",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "neck_extension_cuello__cable",
                   "definitionId": "neck_extension_cuello",
                   "familyId": "lower_neck_extension",
@@ -272,7 +272,7 @@
                 "Un seguro barato para el cuello de cualquiera que entrene o trabaje sentado."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Usar velocidad, llevar la cabeza al extremo del recorrido o encoger los hombros."
@@ -422,7 +422,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensiones de Cuello",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "neck_extension_cuello__plate",
                   "definitionId": "neck_extension_cuello",
                   "familyId": "lower_neck_extension",

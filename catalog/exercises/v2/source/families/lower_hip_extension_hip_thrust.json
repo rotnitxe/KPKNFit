@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Hip Thrust",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El constructor de glúteos número uno del mundo moderno."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -236,7 +236,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hip_thrust__bilateral__barbell",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -334,7 +334,7 @@
                 "El constructor de glúteos número uno del mundo moderno."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -543,7 +543,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hip_thrust__unilateral__barbell",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -641,7 +641,7 @@
                 "El constructor de glúteos número uno del mundo moderno."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -850,7 +850,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hip_thrust__bilateral__smith_machine",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -948,7 +948,7 @@
                 "El constructor de glúteos número uno del mundo moderno."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -1157,7 +1157,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hip_thrust__unilateral__smith_machine",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -1256,7 +1256,7 @@
                 "El constructor de glúteos número uno del mundo moderno."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -1465,7 +1465,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hip_thrust__bilateral__machine",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -1564,7 +1564,7 @@
                 "El constructor de glúteos número uno del mundo moderno."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -1773,7 +1773,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hip_thrust__unilateral__machine",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -1871,7 +1871,7 @@
                 "El constructor de glúteos número uno del mundo moderno."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -2080,7 +2080,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hip_thrust__bilateral__band",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -2178,7 +2178,7 @@
                 "El constructor de glúteos número uno del mundo moderno."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -2387,7 +2387,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hip_thrust__unilateral__band",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",

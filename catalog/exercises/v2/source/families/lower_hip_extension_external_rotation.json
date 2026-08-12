@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · gluteus maximus · hip extension external rotation",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El finalizador que deja el glúteo congestionado en dos minutos."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -216,7 +216,7 @@
                 },
                 "identity": {
                   "canonicalName": "Frog Pumps",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_frog_pumps__default",
                   "definitionId": "glutes_frog_pumps",
                   "familyId": "lower_hip_extension_external_rotation",

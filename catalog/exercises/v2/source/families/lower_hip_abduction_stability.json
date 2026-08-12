@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · gluteus maximus · hip abduction stability",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El activador favorito antes de sentadillas y pesos muertos."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
@@ -198,7 +198,7 @@
                 },
                 "identity": {
                   "canonicalName": "Caminata del Monstruo (Monster Walk) con Banda",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_monster_walk_banda__default",
                   "definitionId": "glutes_monster_walk_banda",
                   "familyId": "lower_hip_abduction_stability",

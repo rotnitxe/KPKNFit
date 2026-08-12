@@ -17,11 +17,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -102,6 +103,7 @@ import com.example.kpkn.screens.sessioneditor.components.sheets.SessionEditorShe
 import com.example.kpkn.screens.sessioneditor.components.sheets.AssistantGlassOverlay
 import com.example.kpkn.screens.sessioneditor.components.HeroGlassFab
 import com.example.kpkn.screens.sessioneditor.components.HeroTimeFab
+import com.example.kpkn.screens.sessioneditor.components.DraggableHeroFabGroup
 import com.example.kpkn.screens.sessioneditor.components.CompetitionConfigSheet
 import com.example.kpkn.screens.sessioneditor.components.CompetitionSessionEditor
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -715,39 +717,47 @@ fun SessionEditorScreen(
             )
         }
 
-        // Assistant FAB: sibling OVER hazeSource (never nested inside Scaffold FAB slot).
-        HeroGlassFab(
-            summary = uiState.augeSummary,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .navigationBarsPadding()
-                .padding(end = 16.dp, bottom = fabBottomPadding)
-                .zIndex(260f),
-            hazeState = hazeState,
-            onClick = { viewModel.openSheet(SessionEditorSheet.AUGE) },
-        )
-
+        // Assistant FAB + Time FAB: sibling OVER hazeSource (never nested inside
+        // Scaffold FAB slot). Draggable group, moves together across the screen.
         val showTimeFab =
             session.targetDurationMinutes != null ||
                 allExercisesForUi.isNotEmpty() ||
                 uiState.estimatedDurationMinutes > 0
-        if (showTimeFab) {
-            val estimated = uiState.sessionTimeBreakdown?.totalMinutes
-                ?: uiState.estimatedDurationMinutes
-            HeroTimeFab(
-                estimatedMinutes = estimated,
-                limitMinutes = session.targetDurationMinutes,
-                hasSuggestions = session.targetDurationMinutes != null &&
-                    estimated > (session.targetDurationMinutes ?: Int.MAX_VALUE),
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .navigationBarsPadding()
-                    .padding(end = 80.dp, bottom = fabBottomPadding)
-                    .zIndex(260f),
-                hazeState = hazeState,
-                onClick = { viewModel.openRulesSheet(initialTab = 1) },
-            )
-        }
+        val estimated = uiState.sessionTimeBreakdown?.totalMinutes
+            ?: uiState.estimatedDurationMinutes
+        val navBarBottomPx = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+        val screenWidthPx = editorRootBounds?.width?.roundToInt() ?: 0
+        val screenHeightPx = editorRootBounds?.height?.roundToInt() ?: 0
+        DraggableHeroFabGroup(
+            screenWidthPx = screenWidthPx,
+            screenHeightPx = screenHeightPx,
+            navBarBottomPx = with(density) { navBarBottomPx.toPx() }.roundToInt(),
+            fabBottomPadding = fabBottomPadding,
+            modifier = Modifier.zIndex(260f),
+            assistantFab = { fabModifier ->
+                HeroGlassFab(
+                    summary = uiState.augeSummary,
+                    modifier = fabModifier,
+                    hazeState = hazeState,
+                    onClick = { viewModel.openSheet(SessionEditorSheet.AUGE) },
+                )
+            },
+            timeFab = if (showTimeFab) {
+                { fabModifier ->
+                    HeroTimeFab(
+                        estimatedMinutes = estimated,
+                        limitMinutes = session.targetDurationMinutes,
+                        hasSuggestions = session.targetDurationMinutes != null &&
+                            estimated > (session.targetDurationMinutes ?: Int.MAX_VALUE),
+                        modifier = fabModifier,
+                        hazeState = hazeState,
+                        onClick = { viewModel.openRulesSheet(initialTab = 1) },
+                    )
+                }
+            } else {
+                null
+            },
+        )
 
         val previewExercise = draggingExerciseId?.let { activeId -> allExercisesForUi.firstOrNull { it.id == activeId } }
         val previewPartId = draggingExercisePartId

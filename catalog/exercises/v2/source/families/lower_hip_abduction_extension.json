@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · gluteus maximus · hip abduction extension",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La herramienta precisa para el lateral del glúteo y una pelvis que no baila."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
@@ -200,7 +200,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Glúteo Lateral",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_patada_gluteo_lateral__cable",
                   "definitionId": "glutes_patada_gluteo_lateral",
                   "familyId": "lower_hip_abduction_extension",
@@ -296,7 +296,7 @@
                 "La herramienta precisa para el lateral del glúteo y una pelvis que no baila."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
@@ -469,7 +469,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Glúteo Lateral",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_patada_gluteo_lateral__dumbbells",
                   "definitionId": "glutes_patada_gluteo_lateral",
                   "familyId": "lower_hip_abduction_extension",
@@ -565,7 +565,7 @@
                 "La herramienta precisa para el lateral del glúteo y una pelvis que no baila."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
@@ -738,7 +738,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Glúteo Lateral",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_patada_gluteo_lateral__band",
                   "definitionId": "glutes_patada_gluteo_lateral",
                   "familyId": "lower_hip_abduction_extension",

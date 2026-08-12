@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Remo con Pecho Apoyado",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -247,7 +247,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "chest_supported_row__dumbbells__wide",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -348,7 +348,7 @@
                 "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -568,7 +568,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "chest_supported_row__kettlebell__wide",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -669,7 +669,7 @@
                 "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -889,7 +889,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "chest_supported_row__machine__wide",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -990,7 +990,7 @@
                 "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -1211,7 +1211,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "chest_supported_row__cable__high__wide",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -1313,7 +1313,7 @@
                 "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -1534,7 +1534,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "chest_supported_row__cable__mid__wide",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -1636,7 +1636,7 @@
                 "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -1857,7 +1857,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "chest_supported_row__cable__low__wide",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -1959,7 +1959,7 @@
                 "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -2179,7 +2179,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "chest_supported_row__dumbbells__medium",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -2280,7 +2280,7 @@
                 "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -2500,7 +2500,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "chest_supported_row__kettlebell__medium",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -2601,7 +2601,7 @@
                 "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -2821,7 +2821,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "chest_supported_row__machine__medium",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -2922,7 +2922,7 @@
                 "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -3143,7 +3143,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "chest_supported_row__cable__high__medium",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -3245,7 +3245,7 @@
                 "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -3466,7 +3466,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "chest_supported_row__cable__mid__medium",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -3568,7 +3568,7 @@
                 "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -3789,7 +3789,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "chest_supported_row__cable__low__medium",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -3891,7 +3891,7 @@
                 "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -4106,7 +4106,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "chest_supported_row__dumbbells__close",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -4206,7 +4206,7 @@
                 "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -4421,7 +4421,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "chest_supported_row__kettlebell__close",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -4521,7 +4521,7 @@
                 "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -4736,7 +4736,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "chest_supported_row__machine__close",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -4836,7 +4836,7 @@
                 "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -5052,7 +5052,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "chest_supported_row__cable__high__close",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -5153,7 +5153,7 @@
                 "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -5369,7 +5369,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "chest_supported_row__cable__mid__close",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",
@@ -5470,7 +5470,7 @@
                 "La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -5686,7 +5686,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "chest_supported_row__cable__low__close",
                   "definitionId": "chest_supported_row",
                   "familyId": "back_chest_supported_row",

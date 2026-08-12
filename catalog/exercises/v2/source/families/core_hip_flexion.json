@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Core · abdominals · hip flexion",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El escalón que separa el abdomen de principiante del que impone respeto."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Inclinar el tronco, redondear la espalda o levantar la pierna con impulso."
@@ -204,7 +204,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Piernas Colgado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "core_elevacion_piernas__default",
                   "definitionId": "core_elevacion_piernas",
                   "familyId": "core_hip_flexion",

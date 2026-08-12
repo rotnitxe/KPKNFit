@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren superior · deltoid · shoulder abduction diagonal",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Un ejercicio de precisión para la salud escapular y la parte trasera del hombro."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -223,7 +223,7 @@
                 },
                 "identity": {
                   "canonicalName": "Y-Raises Sentado en Banco Inclinado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "deltoides_y_raises_sentado_banco_inclinado__default",
                   "definitionId": "deltoides_y_raises_sentado_banco_inclinado",
                   "familyId": "upper_shoulder_abduction_diagonal",

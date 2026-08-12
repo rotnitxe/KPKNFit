@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Remo en Barra T",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Grosor de espalda media garantizado, con sabor a gimnasio de siempre."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -247,7 +247,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "t_bar_row__machine__wide",
                   "definitionId": "t_bar_row",
                   "familyId": "back_t_bar_row",
@@ -348,7 +348,7 @@
                 "Grosor de espalda media garantizado, con sabor a gimnasio de siempre."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -568,7 +568,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "t_bar_row__t_bar__wide",
                   "definitionId": "t_bar_row",
                   "familyId": "back_t_bar_row",
@@ -669,7 +669,7 @@
                 "Grosor de espalda media garantizado, con sabor a gimnasio de siempre."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -889,7 +889,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "t_bar_row__machine__medium",
                   "definitionId": "t_bar_row",
                   "familyId": "back_t_bar_row",
@@ -990,7 +990,7 @@
                 "Grosor de espalda media garantizado, con sabor a gimnasio de siempre."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -1210,7 +1210,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "t_bar_row__t_bar__medium",
                   "definitionId": "t_bar_row",
                   "familyId": "back_t_bar_row",
@@ -1311,7 +1311,7 @@
                 "Grosor de espalda media garantizado, con sabor a gimnasio de siempre."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -1526,7 +1526,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "t_bar_row__machine__close",
                   "definitionId": "t_bar_row",
                   "familyId": "back_t_bar_row",
@@ -1626,7 +1626,7 @@
                 "Grosor de espalda media garantizado, con sabor a gimnasio de siempre."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -1841,7 +1841,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "t_bar_row__t_bar__close",
                   "definitionId": "t_bar_row",
                   "familyId": "back_t_bar_row",

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Jalón al Pecho",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La fábrica de espalda ancha para quien aún no domina la barra fija."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
@@ -245,7 +245,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "lat_pulldown__bilateral__cable",
                   "definitionId": "lat_pulldown",
                   "familyId": "upper_vertical_pull_lat_pulldown",
@@ -345,7 +345,7 @@
                 "La fábrica de espalda ancha para quien aún no domina la barra fija."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
@@ -563,7 +563,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "lat_pulldown__unilateral__cable",
                   "definitionId": "lat_pulldown",
                   "familyId": "upper_vertical_pull_lat_pulldown",
@@ -663,7 +663,7 @@
                 "La fábrica de espalda ancha para quien aún no domina la barra fija."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
@@ -881,7 +881,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "lat_pulldown__bilateral__machine",
                   "definitionId": "lat_pulldown",
                   "familyId": "upper_vertical_pull_lat_pulldown",
@@ -981,7 +981,7 @@
                 "La fábrica de espalda ancha para quien aún no domina la barra fija."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
@@ -1199,7 +1199,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "lat_pulldown__unilateral__machine",
                   "definitionId": "lat_pulldown",
                   "familyId": "upper_vertical_pull_lat_pulldown",
@@ -1299,7 +1299,7 @@
                 "La fábrica de espalda ancha para quien aún no domina la barra fija."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
@@ -1517,7 +1517,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "lat_pulldown__bilateral__band",
                   "definitionId": "lat_pulldown",
                   "familyId": "upper_vertical_pull_lat_pulldown",
@@ -1617,7 +1617,7 @@
                 "La fábrica de espalda ancha para quien aún no domina la barra fija."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
@@ -1835,7 +1835,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "lat_pulldown__unilateral__band",
                   "definitionId": "lat_pulldown",
                   "familyId": "upper_vertical_pull_lat_pulldown",

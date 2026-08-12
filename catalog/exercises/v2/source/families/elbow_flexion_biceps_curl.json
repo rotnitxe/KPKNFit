@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Curl de Bíceps",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La joya oculta del trabajo de bíceps para quien busca estímulo nuevo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -228,7 +228,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Bayesian",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "biceps_curl_bayesian__dumbbells__supinated",
                   "definitionId": "biceps_curl_bayesian",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -325,7 +325,7 @@
                 "La joya oculta del trabajo de bíceps para quien busca estímulo nuevo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -526,7 +526,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Bayesian",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "biceps_curl_bayesian__dumbbells__neutral",
                   "definitionId": "biceps_curl_bayesian",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -623,7 +623,7 @@
                 "La joya oculta del trabajo de bíceps para quien busca estímulo nuevo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -824,7 +824,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Bayesian",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "biceps_curl_bayesian__dumbbells__pronated",
                   "definitionId": "biceps_curl_bayesian",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -921,7 +921,7 @@
                 "La joya oculta del trabajo de bíceps para quien busca estímulo nuevo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -1122,7 +1122,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Bayesian",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "biceps_curl_bayesian__cable__supinated",
                   "definitionId": "biceps_curl_bayesian",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -1219,7 +1219,7 @@
                 "La joya oculta del trabajo de bíceps para quien busca estímulo nuevo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -1420,7 +1420,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Bayesian",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "biceps_curl_bayesian__cable__neutral",
                   "definitionId": "biceps_curl_bayesian",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -1517,7 +1517,7 @@
                 "La joya oculta del trabajo de bíceps para quien busca estímulo nuevo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -1718,7 +1718,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Bayesian",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "biceps_curl_bayesian__cable__pronated",
                   "definitionId": "biceps_curl_bayesian",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -1842,7 +1842,7 @@
                 "Un acabado de brazo tan estético como exigente."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -2046,7 +2046,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Crucifijo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "biceps_curl_crucifijo__default",
                   "definitionId": "biceps_curl_crucifijo",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -2165,7 +2165,7 @@
                 "Un recurso fino para cargar el bíceps sin que nada más intervenga."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -2363,7 +2363,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Drag",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "biceps_curl_drag__barbell__supinated",
                   "definitionId": "biceps_curl_drag",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -2478,7 +2478,7 @@
                 "La versión limpia del curl, perfecta para aprender a apretar de verdad."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -2678,7 +2678,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Bíceps Sentado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "biceps_curl_sentado_banco_plano__dumbbells",
                   "definitionId": "biceps_curl_sentado_banco_plano",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -2774,7 +2774,7 @@
                 "La versión limpia del curl, perfecta para aprender a apretar de verdad."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -2974,7 +2974,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Bíceps Sentado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "biceps_curl_sentado_banco_plano__cable",
                   "definitionId": "biceps_curl_sentado_banco_plano",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -3096,7 +3096,7 @@
                 "Un curl poco visto que deja el brazo lleno como pocos."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -3300,7 +3300,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Superman",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "biceps_curl_superman__default",
                   "definitionId": "biceps_curl_superman",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -3417,7 +3417,7 @@
                 "Bíceps serio sin pesas, donde haya un TRX colgado."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -3620,7 +3620,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Bíceps en TRX",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "biceps_curl_trx__supinated",
                   "definitionId": "biceps_curl_trx",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -3734,7 +3734,7 @@
                 "Un agarre distinto que refresca el curl y refuerza la muñeca."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -3932,7 +3932,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Waiter",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "biceps_curl_waiter__plate",
                   "definitionId": "biceps_curl_waiter",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -4047,7 +4047,7 @@
                 "La elección de los clásicos para un brazo completo con un solo movimiento."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -4245,7 +4245,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Zottman",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "biceps_curl_zottman__dumbbells",
                   "definitionId": "biceps_curl_zottman",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -4360,7 +4360,7 @@
                 "El favorito de Arnold para esculpir el pico, y se nota por qué."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -4560,7 +4560,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Concentrado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "concentration_curl__dumbbells",
                   "definitionId": "concentration_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -4656,7 +4656,7 @@
                 "El favorito de Arnold para esculpir el pico, y se nota por qué."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -4856,7 +4856,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Concentrado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "concentration_curl__cable",
                   "definitionId": "concentration_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -4978,7 +4978,7 @@
                 "El aislamiento de bíceps más honesto del gimnasio."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -5184,7 +5184,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Predicador",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "preacher_curl__barbell",
                   "definitionId": "preacher_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -5281,7 +5281,7 @@
                 "El aislamiento de bíceps más honesto del gimnasio."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -5487,7 +5487,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Predicador",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "preacher_curl__ez_bar",
                   "definitionId": "preacher_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -5584,7 +5584,7 @@
                 "El aislamiento de bíceps más honesto del gimnasio."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -5790,7 +5790,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Predicador",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "preacher_curl__dumbbells",
                   "definitionId": "preacher_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -5887,7 +5887,7 @@
                 "El aislamiento de bíceps más honesto del gimnasio."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -6093,7 +6093,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Predicador",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "preacher_curl__machine",
                   "definitionId": "preacher_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -6216,7 +6216,7 @@
                 "Estricto, incómodo y terriblemente efectivo para la parte frontal del brazo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -6417,7 +6417,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Araña",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "spider_curl__dumbbells__supinated",
                   "definitionId": "spider_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -6515,7 +6515,7 @@
                 "Estricto, incómodo y terriblemente efectivo para la parte frontal del brazo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -6716,7 +6716,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Araña",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "spider_curl__dumbbells__neutral",
                   "definitionId": "spider_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -6814,7 +6814,7 @@
                 "Estricto, incómodo y terriblemente efectivo para la parte frontal del brazo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -7015,7 +7015,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Araña",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "spider_curl__dumbbells__pronated",
                   "definitionId": "spider_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -7113,7 +7113,7 @@
                 "Estricto, incómodo y terriblemente efectivo para la parte frontal del brazo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -7314,7 +7314,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Araña",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "spider_curl__cable__supinated",
                   "definitionId": "spider_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -7412,7 +7412,7 @@
                 "Estricto, incómodo y terriblemente efectivo para la parte frontal del brazo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -7613,7 +7613,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Araña",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "spider_curl__cable__neutral",
                   "definitionId": "spider_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -7711,7 +7711,7 @@
                 "Estricto, incómodo y terriblemente efectivo para la parte frontal del brazo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -7912,7 +7912,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Araña",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "spider_curl__cable__pronated",
                   "definitionId": "spider_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -8010,7 +8010,7 @@
                 "Estricto, incómodo y terriblemente efectivo para la parte frontal del brazo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -8211,7 +8211,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Araña",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "spider_curl__barbell__supinated",
                   "definitionId": "spider_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -8309,7 +8309,7 @@
                 "Estricto, incómodo y terriblemente efectivo para la parte frontal del brazo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -8510,7 +8510,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Araña",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "spider_curl__barbell__neutral",
                   "definitionId": "spider_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -8608,7 +8608,7 @@
                 "Estricto, incómodo y terriblemente efectivo para la parte frontal del brazo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -8809,7 +8809,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Araña",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "spider_curl__barbell__pronated",
                   "definitionId": "spider_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -8934,7 +8934,7 @@
                 "El constructor clásico de bíceps: simple de aprender, difícil de dominar con carga."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -9140,7 +9140,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Bíceps de Pie",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "standing_biceps_curl__barbell",
                   "definitionId": "standing_biceps_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -9238,7 +9238,7 @@
                 "El constructor clásico de bíceps: simple de aprender, difícil de dominar con carga."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -9444,7 +9444,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Bíceps de Pie",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "standing_biceps_curl__ez_bar",
                   "definitionId": "standing_biceps_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -9542,7 +9542,7 @@
                 "El constructor clásico de bíceps: simple de aprender, difícil de dominar con carga."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -9748,7 +9748,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Bíceps de Pie",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "standing_biceps_curl__dumbbells",
                   "definitionId": "standing_biceps_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -9846,7 +9846,7 @@
                 "El constructor clásico de bíceps: simple de aprender, difícil de dominar con carga."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -10052,7 +10052,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Bíceps de Pie",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "standing_biceps_curl__cable",
                   "definitionId": "standing_biceps_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -10177,7 +10177,7 @@
                 "El grosor del brazo se construye también aquí, no solo en los curls de palmas arriba."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -10378,7 +10378,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Martillo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hammer_curl__h_bar",
                   "definitionId": "hammer_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -10478,7 +10478,7 @@
                 "El grosor del brazo se construye también aquí, no solo en los curls de palmas arriba."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -10679,7 +10679,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Martillo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hammer_curl__dumbbells",
                   "definitionId": "hammer_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -10779,7 +10779,7 @@
                 "El grosor del brazo se construye también aquí, no solo en los curls de palmas arriba."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -10980,7 +10980,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Martillo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hammer_curl__cable",
                   "definitionId": "hammer_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -11080,7 +11080,7 @@
                 "El grosor del brazo se construye también aquí, no solo en los curls de palmas arriba."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -11281,7 +11281,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Martillo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hammer_curl__band",
                   "definitionId": "hammer_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -11381,7 +11381,7 @@
                 "El grosor del brazo se construye también aquí, no solo en los curls de palmas arriba."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -11582,7 +11582,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Martillo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hammer_curl__kettlebell",
                   "definitionId": "hammer_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -11709,7 +11709,7 @@
                 "El equilibrador del brazo: antebrazos que combinan con unos buenos bíceps."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -11910,7 +11910,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Invertido",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "reverse_curl__h_bar",
                   "definitionId": "reverse_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -12010,7 +12010,7 @@
                 "El equilibrador del brazo: antebrazos que combinan con unos buenos bíceps."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -12211,7 +12211,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Invertido",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "reverse_curl__dumbbells",
                   "definitionId": "reverse_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -12311,7 +12311,7 @@
                 "El equilibrador del brazo: antebrazos que combinan con unos buenos bíceps."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -12512,7 +12512,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Invertido",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "reverse_curl__cable",
                   "definitionId": "reverse_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -12612,7 +12612,7 @@
                 "El equilibrador del brazo: antebrazos que combinan con unos buenos bíceps."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -12813,7 +12813,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Invertido",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "reverse_curl__band",
                   "definitionId": "reverse_curl",
                   "familyId": "elbow_flexion_biceps_curl",
@@ -12913,7 +12913,7 @@
                 "El equilibrador del brazo: antebrazos que combinan con unos buenos bíceps."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.6,
               "commonMistakes": [
                 "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
@@ -13114,7 +13114,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Invertido",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "reverse_curl__kettlebell",
                   "definitionId": "reverse_curl",
                   "familyId": "elbow_flexion_biceps_curl",

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Peso Muerto Piernas Rígidas",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El estirón cargado definitivo para la parte trasera del muslo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -237,7 +237,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "stiff_leg_deadlift__bilateral__barbell",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -337,7 +337,7 @@
                 "El estirón cargado definitivo para la parte trasera del muslo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -547,7 +547,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "stiff_leg_deadlift__unilateral__barbell",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -647,7 +647,7 @@
                 "El estirón cargado definitivo para la parte trasera del muslo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -857,7 +857,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "stiff_leg_deadlift__bilateral__smith_machine",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -957,7 +957,7 @@
                 "El estirón cargado definitivo para la parte trasera del muslo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -1167,7 +1167,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "stiff_leg_deadlift__unilateral__smith_machine",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -1267,7 +1267,7 @@
                 "El estirón cargado definitivo para la parte trasera del muslo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -1477,7 +1477,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "stiff_leg_deadlift__bilateral__dumbbells",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -1577,7 +1577,7 @@
                 "El estirón cargado definitivo para la parte trasera del muslo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -1787,7 +1787,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "stiff_leg_deadlift__unilateral__dumbbells",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -1887,7 +1887,7 @@
                 "El estirón cargado definitivo para la parte trasera del muslo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -2097,7 +2097,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "stiff_leg_deadlift__bilateral__hex_bar",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",
@@ -2197,7 +2197,7 @@
                 "El estirón cargado definitivo para la parte trasera del muslo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -2407,7 +2407,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "stiff_leg_deadlift__unilateral__hex_bar",
                   "definitionId": "stiff_leg_deadlift",
                   "familyId": "lower_hip_hinge_lengthened",

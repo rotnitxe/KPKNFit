@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Curl de Isquiosurales",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La opción casera para la parte trasera de la pierna cuando no hay gimnasio a mano."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -228,7 +228,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales con Balón",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "curl_isquios_con_balon__default",
                   "definitionId": "curl_isquios_con_balon",
                   "familyId": "lower_knee_flexion",
@@ -347,7 +347,7 @@
                 "La alternativa de suelo más exigente para la cadena posterior."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -542,7 +542,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales con Sliders",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "curl_isquios_con_sliders__default",
                   "definitionId": "curl_isquios_con_sliders",
                   "familyId": "lower_knee_flexion",
@@ -659,7 +659,7 @@
                 "El constructor básico de isquiosurales, cómodo y medible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
@@ -808,7 +808,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "lying_leg_curl__bilateral__machine",
                   "definitionId": "lying_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -908,7 +908,7 @@
                 "El constructor básico de isquiosurales, cómodo y medible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
@@ -1057,7 +1057,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "lying_leg_curl__unilateral__machine",
                   "definitionId": "lying_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -1157,7 +1157,7 @@
                 "El constructor básico de isquiosurales, cómodo y medible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
@@ -1306,7 +1306,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "lying_leg_curl__bilateral__cable",
                   "definitionId": "lying_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -1406,7 +1406,7 @@
                 "El constructor básico de isquiosurales, cómodo y medible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
@@ -1555,7 +1555,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "lying_leg_curl__unilateral__cable",
                   "definitionId": "lying_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -1655,7 +1655,7 @@
                 "El constructor básico de isquiosurales, cómodo y medible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
@@ -1799,7 +1799,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "lying_leg_curl__bilateral__dumbbells",
                   "definitionId": "lying_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -1898,7 +1898,7 @@
                 "El constructor básico de isquiosurales, cómodo y medible."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
@@ -2042,7 +2042,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "lying_leg_curl__unilateral__dumbbells",
                   "definitionId": "lying_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -2169,7 +2169,7 @@
                 "La postura cómoda para la espalda y dura para la parte trasera."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
@@ -2307,7 +2307,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "seated_leg_curl__bilateral__machine",
                   "definitionId": "seated_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -2404,7 +2404,7 @@
                 "La postura cómoda para la espalda y dura para la parte trasera."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
@@ -2542,7 +2542,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "seated_leg_curl__unilateral__machine",
                   "definitionId": "seated_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -2639,7 +2639,7 @@
                 "La postura cómoda para la espalda y dura para la parte trasera."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
@@ -2777,7 +2777,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "seated_leg_curl__bilateral__cable",
                   "definitionId": "seated_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -2874,7 +2874,7 @@
                 "La postura cómoda para la espalda y dura para la parte trasera."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
@@ -3012,7 +3012,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "seated_leg_curl__unilateral__cable",
                   "definitionId": "seated_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -3137,7 +3137,7 @@
                 "El detector y corrector de desequilibrios en los isquiosurales."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
@@ -3281,7 +3281,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "standing_leg_curl__bilateral__machine",
                   "definitionId": "standing_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -3380,7 +3380,7 @@
                 "El detector y corrector de desequilibrios en los isquiosurales."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
@@ -3524,7 +3524,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "standing_leg_curl__unilateral__machine",
                   "definitionId": "standing_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -3623,7 +3623,7 @@
                 "El detector y corrector de desequilibrios en los isquiosurales."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
@@ -3767,7 +3767,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "standing_leg_curl__bilateral__cable",
                   "definitionId": "standing_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -3866,7 +3866,7 @@
                 "El detector y corrector de desequilibrios en los isquiosurales."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
@@ -4010,7 +4010,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "standing_leg_curl__unilateral__cable",
                   "definitionId": "standing_leg_curl",
                   "familyId": "lower_knee_flexion",

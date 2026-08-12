@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Press California",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Un híbrido con mucha historia que llena el brazo como pocos."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -209,7 +209,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press California",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "california_press__barbell",
                   "definitionId": "california_press",
                   "familyId": "triceps_california_press",
@@ -305,7 +305,7 @@
                 "Un híbrido con mucha historia que llena el brazo como pocos."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -487,7 +487,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press California",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "california_press__ez_bar",
                   "definitionId": "california_press",
                   "familyId": "triceps_california_press",
@@ -583,7 +583,7 @@
                 "Un híbrido con mucha historia que llena el brazo como pocos."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -765,7 +765,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press California",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "california_press__dumbbells",
                   "definitionId": "california_press",
                   "familyId": "triceps_california_press",

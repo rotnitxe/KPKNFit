@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Press de Hombros Sentado",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El press de hombro limpio para concentrarse solo en empujar."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -225,7 +225,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "seated_shoulder_press__barbell",
                   "definitionId": "seated_shoulder_press",
                   "familyId": "upper_vertical_push_seated_press",
@@ -321,7 +321,7 @@
                 "El press de hombro limpio para concentrarse solo en empujar."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -519,7 +519,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "seated_shoulder_press__dumbbells",
                   "definitionId": "seated_shoulder_press",
                   "familyId": "upper_vertical_push_seated_press",
@@ -615,7 +615,7 @@
                 "El press de hombro limpio para concentrarse solo en empujar."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -813,7 +813,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "seated_shoulder_press__smith_machine",
                   "definitionId": "seated_shoulder_press",
                   "familyId": "upper_vertical_push_seated_press",
@@ -909,7 +909,7 @@
                 "El press de hombro limpio para concentrarse solo en empujar."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -1107,7 +1107,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "seated_shoulder_press__machine",
                   "definitionId": "seated_shoulder_press",
                   "familyId": "upper_vertical_push_seated_press",
@@ -1203,7 +1203,7 @@
                 "El press de hombro limpio para concentrarse solo en empujar."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -1401,7 +1401,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "seated_shoulder_press__cable",
                   "definitionId": "seated_shoulder_press",
                   "familyId": "upper_vertical_push_seated_press",
@@ -1497,7 +1497,7 @@
                 "El press de hombro limpio para concentrarse solo en empujar."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -1695,7 +1695,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "seated_shoulder_press__kettlebell",
                   "definitionId": "seated_shoulder_press",
                   "familyId": "upper_vertical_push_seated_press",

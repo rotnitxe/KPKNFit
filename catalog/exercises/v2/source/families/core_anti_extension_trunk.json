@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Core · abdominals · anti extension trunk",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Uno de los constructores de pared abdominal más exigentes que caben en una mochila."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Arquear la espalda, girar con la carga o perder la tensión al final."
@@ -204,7 +204,7 @@
                 },
                 "identity": {
                   "canonicalName": "Rueda Abdominal",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "core_rueda_abdominal__default",
                   "definitionId": "core_rueda_abdominal",
                   "familyId": "core_anti_extension_trunk",

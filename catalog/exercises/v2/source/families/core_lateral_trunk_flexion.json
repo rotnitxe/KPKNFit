@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Core · abdominals · lateral trunk flexion",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Un detalle de cintura que solo funciona con cargas pacientes y técnica limpia."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Girar en vez de inclinar, desplazar la pelvis o acelerar la vuelta."
@@ -193,7 +193,7 @@
                 },
                 "identity": {
                   "canonicalName": "Inclinación Lateral",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "core_inclinacion_lateral__default",
                   "definitionId": "core_inclinacion_lateral",
                   "familyId": "core_lateral_trunk_flexion",

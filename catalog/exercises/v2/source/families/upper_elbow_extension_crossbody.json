@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Extensión de tríceps cruzada",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Un matiz de polea que el tríceps nota desde la primera serie."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -203,7 +203,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Cruzada en Polea Alta",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "crossbody_triceps__cable__bilateral",
                   "definitionId": "crossbody_triceps_extension",
                   "familyId": "upper_elbow_extension_crossbody",
@@ -297,7 +297,7 @@
                 "Un matiz de polea que el tríceps nota desde la primera serie."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -473,7 +473,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Cruzada en Polea Alta",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "crossbody_triceps__cable__unilateral",
                   "definitionId": "crossbody_triceps_extension",
                   "familyId": "upper_elbow_extension_crossbody",

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Curl de muñeca sentado",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Un gesto antiguo que construye muñecas de acero como siempre."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
@@ -204,7 +204,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Muñeca de Pie Tras Espalda con Barra",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forearms_curl_muneca_de_pie_tras_espalda_barra__default",
                   "definitionId": "forearms_curl_muneca_de_pie_tras_espalda_barra",
                   "familyId": "lower_wrist_flexion",
@@ -317,7 +317,7 @@
                 "Antebrazos densos a golpe de muñeca, sin atajos."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
@@ -490,7 +490,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forearms_curl_muneca_sentado__dumbbells",
                   "definitionId": "forearms_curl_muneca_sentado",
                   "familyId": "lower_wrist_flexion",
@@ -586,7 +586,7 @@
                 "Antebrazos densos a golpe de muñeca, sin atajos."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
@@ -759,7 +759,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forearms_curl_muneca_sentado__barbell",
                   "definitionId": "forearms_curl_muneca_sentado",
                   "familyId": "lower_wrist_flexion",
@@ -855,7 +855,7 @@
                 "Antebrazos densos a golpe de muñeca, sin atajos."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
@@ -1028,7 +1028,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forearms_curl_muneca_sentado__ez_bar",
                   "definitionId": "forearms_curl_muneca_sentado",
                   "familyId": "lower_wrist_flexion",
@@ -1124,7 +1124,7 @@
                 "Antebrazos densos a golpe de muñeca, sin atajos."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
@@ -1297,7 +1297,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forearms_curl_muneca_sentado__cable",
                   "definitionId": "forearms_curl_muneca_sentado",
                   "familyId": "lower_wrist_flexion",

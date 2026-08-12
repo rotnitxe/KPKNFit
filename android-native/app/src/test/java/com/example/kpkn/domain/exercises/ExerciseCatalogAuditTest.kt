@@ -3,6 +3,7 @@ package com.example.kpkn.domain.exercises
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Resolver
+import com.example.kpkn.domain.exercises.catalogv2.InMemoryExerciseCatalogRepositoryV2
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -98,6 +99,43 @@ class ExerciseCatalogAuditTest {
             listOf("implement", "laterality"),
             byId.getValue("reverse_pec_fly").optionAxes,
         )
+    }
+
+    @Test
+    fun hip_abduction_and_adduction_have_standing_machine_variants() {
+        val byId = definitions.associateBy { it.id }
+        val abduction = byId.getValue("hip_abduction")
+        val adduction = byId.getValue("hip_adduction")
+
+        assertEquals(8, abduction.configurations.size)
+        assertEquals(8, adduction.configurations.size)
+        listOf(abduction, adduction).forEach { definition ->
+            val machineStanding = definition.configurations.filter { config ->
+                config.selectedOptions["implement"] == "machine" &&
+                    config.selectedOptions["station"] == "standing"
+            }
+            assertEquals(
+                setOf("bilateral", "unilateral"),
+                machineStanding.map { it.selectedOptions["laterality"] }.toSet(),
+            )
+            assertTrue(machineStanding.isNotEmpty())
+        }
+    }
+
+    @Test
+    fun hip_abduction_machine_selection_exposes_both_stations_enabled() {
+        val repository = InMemoryExerciseCatalogRepositoryV2(catalog)
+
+        val compatibility = repository.compatibility(
+            definitionId = "hip_abduction",
+            selectedOptions = mapOf("implement" to "machine"),
+        )
+
+        assertEquals(null, compatibility.exactConfigurationId)
+        val stationAxis = compatibility.axes.single { it.axis == "station" }
+        val stationValues = stationAxis.options.map { it.value }.toSet()
+        assertEquals(setOf("seated", "standing"), stationValues)
+        assertTrue(stationAxis.options.all { it.enabled })
     }
 
     @Test

@@ -1,8 +1,8 @@
 # Índice del catálogo de ejercicios v2
 
-Revisión: `v2-approved-2026-08-10-c` · Ontología: `wikilab-v3-2026-08-08`
-96 familias · 196 definiciones · 517 configuraciones
-Hash canónico: `2ca8794efe1955e4…`
+Revisión: `v2-approved-2026-08-12-a` · Ontología: `wikilab-v3-2026-08-08`
+96 familias · 196 definiciones · 521 configuraciones
+Hash canónico: `920eaa6e9b2da4ab…`
 
 Artefacto informativo generado por `scripts/merge_catalog_v2_families.py`.
 No editar a mano: se regenera en cada merge.
@@ -55,9 +55,9 @@ No editar a mano: se regenera en cada merge.
 | hinge_good_morning | good_morning_zercher | Buenos Días Zercher |  | 1 |
 | hinge_rdl | romanian_deadlift | Peso Muerto Rumano | implement, stance | 8 |
 | hinge_rdl | romanian_sumo_deadlift | Peso Muerto Rumano Sumo | implement, stance | 8 |
-| hip_abduction | hip_abduction | Abducciones de Pierna | implement, station, laterality | 6 |
+| hip_abduction | hip_abduction | Abducciones de Pierna | implement, station, laterality | 8 |
 | hip_adduction | copenhagen_plank | Plancha Copenhague |  | 1 |
-| hip_adduction | hip_adduction | Aducciones de Pierna | implement, station, laterality | 6 |
+| hip_adduction | hip_adduction | Aducciones de Pierna | implement, station, laterality | 8 |
 | hip_adduction | copenhagen_plank_dynamic | Plancha Copenhague Dinámica |  | 1 |
 | lower_ankle_dorsiflexion | calves_tibial_anterior | Tibial Anterior |  | 1 |
 | lower_biarticular_lengthened | quads_reverse_nordic_peso_corporal | Curl Nórdico Inverso (Reverse Nordic Curl) |  | 1 |

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Extensión de cuádriceps",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El remate clásico para dejar el cuádriceps congestionado al final de la sesión."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -218,7 +218,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Cuádriceps en Máquina",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_extension_cuadriceps__machine__bilateral",
                   "definitionId": "quads_extension_cuadriceps",
                   "familyId": "lower_knee_extension",
@@ -311,7 +311,7 @@
                 "El remate clásico para dejar el cuádriceps congestionado al final de la sesión."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -502,7 +502,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Cuádriceps en Máquina",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_extension_cuadriceps__machine__unilateral",
                   "definitionId": "quads_extension_cuadriceps",
                   "familyId": "lower_knee_extension",
@@ -621,7 +621,7 @@
                 "Una alternativa fresca a la versión sentada para sentir el cuádriceps de otro modo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -812,7 +812,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Cuádriceps de Pie en Polea",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_extension_cuadriceps_pie_polea__bilateral",
                   "definitionId": "quads_extension_cuadriceps_pie_polea",
                   "familyId": "lower_knee_extension",
@@ -905,7 +905,7 @@
                 "Una alternativa fresca a la versión sentada para sentir el cuádriceps de otro modo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -1096,7 +1096,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Cuádriceps de Pie en Polea",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_extension_cuadriceps_pie_polea__unilateral",
                   "definitionId": "quads_extension_cuadriceps_pie_polea",
                   "familyId": "lower_knee_extension",

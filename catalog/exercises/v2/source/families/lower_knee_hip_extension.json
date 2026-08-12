@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Glute-Ham Raise",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El rito de paso de los que entrenan la parte trasera en serio."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -228,7 +228,7 @@
                 },
                 "identity": {
                   "canonicalName": "Glute Ham Raise",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glute_ham_raise__default",
                   "definitionId": "glute_ham_raise",
                   "familyId": "lower_knee_hip_extension",

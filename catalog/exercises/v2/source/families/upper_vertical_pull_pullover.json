@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Pull Over",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El expansor de la caja torácica con más historia del fisicoculturismo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
@@ -238,7 +238,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over en Banca",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "lying_pullover__dumbbells",
                   "definitionId": "lying_pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -337,7 +337,7 @@
                 "El expansor de la caja torácica con más historia del fisicoculturismo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
@@ -548,7 +548,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over en Banca",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "lying_pullover__barbell",
                   "definitionId": "lying_pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -647,7 +647,7 @@
                 "El expansor de la caja torácica con más historia del fisicoculturismo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
@@ -858,7 +858,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over en Banca",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "lying_pullover__kettlebell",
                   "definitionId": "lying_pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -958,7 +958,7 @@
                 "El expansor de la caja torácica con más historia del fisicoculturismo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
@@ -1169,7 +1169,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over en Banca",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "lying_pullover__cable",
                   "definitionId": "lying_pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -1269,7 +1269,7 @@
                 "El expansor de la caja torácica con más historia del fisicoculturismo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
@@ -1480,7 +1480,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over en Banca",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "lying_pullover__machine",
                   "definitionId": "lying_pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -1607,7 +1607,7 @@
                 "El aislador del dorsal que da amplitud sin necesidad de colgarse de nada."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
@@ -1819,7 +1819,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "pullover__bilateral__cable",
                   "definitionId": "pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -1919,7 +1919,7 @@
                 "El aislador del dorsal que da amplitud sin necesidad de colgarse de nada."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
@@ -2131,7 +2131,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "pullover__unilateral__cable",
                   "definitionId": "pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -2231,7 +2231,7 @@
                 "El aislador del dorsal que da amplitud sin necesidad de colgarse de nada."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
@@ -2443,7 +2443,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "pullover__bilateral__machine",
                   "definitionId": "pullover",
                   "familyId": "upper_vertical_pull_pullover",
@@ -2543,7 +2543,7 @@
                 "El aislador del dorsal que da amplitud sin necesidad de colgarse de nada."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
@@ -2755,7 +2755,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull Over",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "pullover__unilateral__machine",
                   "definitionId": "pullover",
                   "familyId": "upper_vertical_pull_pullover",

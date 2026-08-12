@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Press Arnold",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La firma de Arnold: más recorrido, más estímulo, más hombro."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -225,7 +225,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Arnold",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "arnold_press__dumbbells",
                   "definitionId": "arnold_press",
                   "familyId": "shoulder_arnold_press",
@@ -321,7 +321,7 @@
                 "La firma de Arnold: más recorrido, más estímulo, más hombro."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -519,7 +519,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Arnold",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "arnold_press__kettlebell",
                   "definitionId": "arnold_press",
                   "familyId": "shoulder_arnold_press",
@@ -615,7 +615,7 @@
                 "La firma de Arnold: más recorrido, más estímulo, más hombro."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -813,7 +813,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Arnold",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "arnold_press__cable",
                   "definitionId": "arnold_press",
                   "familyId": "shoulder_arnold_press",

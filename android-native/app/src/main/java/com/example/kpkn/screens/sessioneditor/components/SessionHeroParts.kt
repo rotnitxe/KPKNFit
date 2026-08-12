@@ -174,7 +174,7 @@ internal fun HeroGlassFab(
     }
     Box(
         modifier = modifier
-            .size(56.dp)
+            .size(67.dp)
             .then(glassModifier)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
@@ -183,7 +183,7 @@ internal fun HeroGlassFab(
             imageVector = Icons.Default.Visibility,
             contentDescription = "Abrir Asistente de sesión",
             tint = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.size(24.dp),
+            modifier = Modifier.size(28.dp),
         )
     }
 }

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Aducciones de Pierna",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La plancha más dura por centímetro cuadrado y la mejor protección de ingle que existe."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
@@ -204,7 +204,7 @@
                 },
                 "identity": {
                   "canonicalName": "Plancha Copenhague",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "copenhagen_plank__default",
                   "definitionId": "copenhagen_plank",
                   "familyId": "hip_adduction",
@@ -321,7 +321,7 @@
                 "Equilibrio muscular real para una cadera a prueba de giros."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
@@ -496,7 +496,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hip_adduction__seated__machine__bilateral",
                   "definitionId": "hip_adduction",
                   "familyId": "hip_adduction",
@@ -593,7 +593,7 @@
                 "Equilibrio muscular real para una cadera a prueba de giros."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
@@ -768,7 +768,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hip_adduction__seated__machine__unilateral",
                   "definitionId": "hip_adduction",
                   "familyId": "hip_adduction",
@@ -845,6 +845,550 @@
             }
           },
           {
+            "displaySummary": "machine · standing · bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#adductors_aduccion_cadera_sentado_maquina",
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
+              ],
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hip_adduction__standing__machine__bilateral",
+            "profile": {
+              "articulationType": "AISLADO",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "benefits": [
+                "La máquina fija la línea del cierre y el trabajo de los aductores se concentra sin compensaciones. De pie, el lado que sostiene el cuerpo estabiliza la pelvis mientras la otra pierna cruza hacia dentro.",
+                "Equilibrio muscular real para una cadera a prueba de giros."
+              ],
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-12-a",
+              "cnc": 1.5,
+              "commonMistakes": [
+                "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
+              ],
+              "description": "Con máquina, a dos lados y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. La máquina guía la trayectoria del muslo y el apoyo de pie exige que la cadera de apoyo estabilice la pelvis mientras la otra pierna cierra. Los aductores concentran el esfuerzo y la carga se dosifica sin distracciones.",
+              "efc": 2.0,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Máquina de pie con ambas piernas: la pierna cruza hacia dentro contra la almohadilla con los aductores concentrados y la pelvis estable. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline."
+              ],
+              "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna cruza.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Control De Pelvis"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna cruza.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna cruza.",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "hip_adduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "adductors",
+                  "note": "Principal: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. En la configuración Máquina · Trabajo Bilateral · Posición De Pie, la cadera de apoyo estabiliza mientras la otra pierna cruza. Su función define cuánto contribuye la serie al estímulo muscular total."
+                }
+              ],
+              "performanceProfileId": "hip_adduction__machine__adduccion_de_cadera",
+              "primaryMuscles": [
+                "adductors"
+              ],
+              "replacementGroup": "adductor_hip_adduction",
+              "replacementPriority": 1,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Aducción",
+                    "Control De Pelvis",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna cruza.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Control De Pelvis"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna cruza.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna cruza.",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "adductors"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "adductors"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "hip_adduction",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
+                  ],
+                  "relevantTendons": [
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
+                  ],
+                  "cues": [
+                    "Máquina de pie con ambas piernas: la pierna cruza hacia dentro contra la almohadilla con los aductores concentrados y la pelvis estable. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline."
+                  ],
+                  "execution": [
+                    "Máquina de pie con ambas piernas: la pierna cruza hacia dentro contra la almohadilla con los aductores concentrados y la pelvis estable. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline."
+                  ],
+                  "progressions": [
+                    "Aumentar la carga o el ángulo solo cuando fortalecer aductores y control de la cadera en un recorrido localizado siga siendo perceptible sin compensaciones."
+                  ],
+                  "regressions": [
+                    "Reducir la carga o el rango y conservar acercamiento de la pierna y estabilidad de la pelvis como referencia técnica."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Preparación: Máquina de pie con ambas piernas: coloca las almohadillas a la altura de la rodilla y afirma el apoyo antes de cerrar."
+                  ]
+                },
+                "display": {
+                  "displayName": "Aducciones de Pierna",
+                  "displaySummary": "machine · standing · bilateral",
+                  "selectedOptions": {
+                    "implement": "machine",
+                    "laterality": "bilateral",
+                    "station": "standing"
+                  }
+                },
+                "editorial": {
+                  "benefits": [
+                    "La máquina fija la línea del cierre y el trabajo de los aductores se concentra sin compensaciones. De pie, el lado que sostiene el cuerpo estabiliza la pelvis mientras la otra pierna cruza hacia dentro.",
+                    "Equilibrio muscular real para una cadera a prueba de giros."
+                  ],
+                  "description": "Con máquina, a dos lados y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. La máquina guía la trayectoria del muslo y el apoyo de pie exige que la cadera de apoyo estabilice la pelvis mientras la otra pierna cierra. Los aductores concentran el esfuerzo y la carga se dosifica sin distracciones.",
+                  "technique": "Máquina de pie con ambas piernas: la pierna cruza hacia dentro contra la almohadilla con los aductores concentrados y la pelvis estable. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline.",
+                  "variantRationale": "Máquina de pie con ambas piernas: la pierna cruza hacia dentro contra la almohadilla con los aductores concentrados y la pelvis estable. La versión de pie de la máquina de aducción."
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.8,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Aducciones de Pierna",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "configurationId": "hip_adduction__standing__machine__bilateral",
+                  "definitionId": "hip_adduction",
+                  "familyId": "hip_adduction",
+                  "kind": "PARENT",
+                  "performanceProfileId": "hip_adduction__machine__adduccion_de_cadera",
+                  "searchTerms": [
+                    "adductors aduccion cadera",
+                    "aducción de cadera",
+                    "aducción de cadera sentado en máquina"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar los aductores mediante Aducciones de Pierna en la variante Máquina · Trabajo Bilateral · Posición De Pie.",
+                    "Priorizar fortalecer aductores y control de la cadera en un recorrido localizado con la línea de resistencia elegida."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine",
+                    "cable",
+                    "band"
+                  ],
+                  "preservesIntent": [
+                    "Conserva acercamiento de la pierna y estabilidad de la pelvis y el objetivo de los aductores.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
+                  ],
+                  "replacementGroup": "adductor_hip_adduction",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Preparación: Máquina de pie con ambas piernas: coloca las almohadillas a la altura de la rodilla y afirma el apoyo antes de cerrar."
+              ],
+              "setupTimeSeconds": 45,
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.8,
+              "techniqueSummary": "Máquina de pie con ambas piernas: la pierna cruza hacia dentro contra la almohadilla con los aductores concentrados y la pelvis estable. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline.",
+              "ttc": 1.5,
+              "variantRationale": "Máquina de pie con ambas piernas: la pierna cruza hacia dentro contra la almohadilla con los aductores concentrados y la pelvis estable. La versión de pie de la máquina de aducción."
+            },
+            "selectedOptions": {
+              "implement": "machine",
+              "laterality": "bilateral",
+              "station": "standing"
+            }
+          },
+          {
+            "displaySummary": "machine · standing · unilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#adductors_aduccion_cadera_sentado_maquina",
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
+              ],
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hip_adduction__standing__machine__unilateral",
+            "profile": {
+              "articulationType": "AISLADO",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "benefits": [
+                "La máquina fija la línea del cierre y el trabajo a una pierna aísla cada aductor para corregir asimetrías. De pie, la cadera de apoyo estabiliza la pelvis mientras la otra pierna cruza hacia dentro.",
+                "Equilibrio muscular real para una cadera a prueba de giros."
+              ],
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-12-a",
+              "cnc": 1.5,
+              "commonMistakes": [
+                "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
+              ],
+              "description": "Con máquina, a un lado y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. La máquina guía la trayectoria y el trabajo a una pierna deja al descubierto las diferencias entre muslos. El apoyo de pie exige estabilizar la pelvis mientras el aductor de la pierna que cierra concentra el esfuerzo.",
+              "efc": 2.0,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Máquina de pie de un lado a la vez: la pierna cruza hacia dentro contra la almohadilla con el aductor concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline."
+              ],
+              "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Control De Pelvis"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "hip_adduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "adductors",
+                  "note": "Principal: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido, y el apoyo de pie suma sostener el tronco. Su función define cuánto contribuye la serie al estímulo muscular total."
+                }
+              ],
+              "performanceProfileId": "hip_adduction__machine__adduccion_de_cadera_unilateral",
+              "primaryMuscles": [
+                "adductors"
+              ],
+              "replacementGroup": "adductor_hip_adduction",
+              "replacementPriority": 1,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Aducción",
+                    "Control De Pelvis",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Control De Pelvis"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "adductors"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "adductors"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "hip_adduction",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
+                  ],
+                  "relevantTendons": [
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
+                  ],
+                  "cues": [
+                    "Máquina de pie de un lado a la vez: la pierna cruza hacia dentro contra la almohadilla con el aductor concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline."
+                  ],
+                  "execution": [
+                    "Máquina de pie de un lado a la vez: la pierna cruza hacia dentro contra la almohadilla con el aductor concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline."
+                  ],
+                  "progressions": [
+                    "Aumentar la carga o el ángulo solo cuando fortalecer aductores y control de la cadera en un recorrido localizado siga siendo perceptible sin compensaciones."
+                  ],
+                  "regressions": [
+                    "Reducir la carga o el rango y conservar acercamiento de la pierna y estabilidad de la pelvis como referencia técnica."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Preparación: Máquina de pie de un lado a la vez: ajusta la almohadilla a la altura de la rodilla y afirma el apoyo antes de cerrar."
+                  ]
+                },
+                "display": {
+                  "displayName": "Aducciones de Pierna",
+                  "displaySummary": "machine · standing · unilateral",
+                  "selectedOptions": {
+                    "implement": "machine",
+                    "laterality": "unilateral",
+                    "station": "standing"
+                  }
+                },
+                "editorial": {
+                  "benefits": [
+                    "La máquina fija la línea del cierre y el trabajo a una pierna aísla cada aductor para corregir asimetrías. De pie, la cadera de apoyo estabiliza la pelvis mientras la otra pierna cruza hacia dentro.",
+                    "Equilibrio muscular real para una cadera a prueba de giros."
+                  ],
+                  "description": "Con máquina, a un lado y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. La máquina guía la trayectoria y el trabajo a una pierna deja al descubierto las diferencias entre muslos. El apoyo de pie exige estabilizar la pelvis mientras el aductor de la pierna que cierra concentra el esfuerzo.",
+                  "technique": "Máquina de pie de un lado a la vez: la pierna cruza hacia dentro contra la almohadilla con el aductor concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline.",
+                  "variantRationale": "Máquina de pie de un lado a la vez: la pierna cruza hacia dentro contra la almohadilla con el aductor concentrado y comparas cada lado. Ideal para corregir asimetrías del muslo interno."
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.5,
+                  "efc": 2.0,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.8,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Aducciones de Pierna",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "configurationId": "hip_adduction__standing__machine__unilateral",
+                  "definitionId": "hip_adduction",
+                  "familyId": "hip_adduction",
+                  "kind": "PARENT",
+                  "performanceProfileId": "hip_adduction__machine__adduccion_de_cadera_unilateral",
+                  "searchTerms": [
+                    "adductors aduccion cadera",
+                    "aducción de cadera",
+                    "aducción de cadera sentado en máquina"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "objectives": [
+                    "Desarrollar los aductores mediante Aducciones de Pierna en la variante Máquina · Trabajo Unilateral · Posición De Pie.",
+                    "Priorizar fortalecer aductores y control de la cadera en un recorrido localizado con la línea de resistencia elegida."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine",
+                    "cable",
+                    "band"
+                  ],
+                  "preservesIntent": [
+                    "Conserva acercamiento de la pierna y estabilidad de la pelvis y el objetivo de los aductores.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
+                  ],
+                  "replacementGroup": "adductor_hip_adduction",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Preparación: Máquina de pie de un lado a la vez: ajusta la almohadilla a la altura de la rodilla y afirma el apoyo antes de cerrar."
+              ],
+              "setupTimeSeconds": 45,
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.8,
+              "techniqueSummary": "Máquina de pie de un lado a la vez: la pierna cruza hacia dentro contra la almohadilla con el aductor concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline.",
+              "ttc": 1.5,
+              "variantRationale": "Máquina de pie de un lado a la vez: la pierna cruza hacia dentro contra la almohadilla con el aductor concentrado y comparas cada lado. Ideal para corregir asimetrías del muslo interno."
+            },
+            "selectedOptions": {
+              "implement": "machine",
+              "laterality": "unilateral",
+              "station": "standing"
+            }
+          },
+          {
             "displaySummary": "cable · standing · bilateral",
             "evidence": {
               "confidence": "MEDIUM",
@@ -865,7 +1409,7 @@
                 "Equilibrio muscular real para una cadera a prueba de giros."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
@@ -1040,7 +1584,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hip_adduction__standing__cable__bilateral",
                   "definitionId": "hip_adduction",
                   "familyId": "hip_adduction",
@@ -1137,7 +1681,7 @@
                 "Equilibrio muscular real para una cadera a prueba de giros."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
@@ -1312,7 +1856,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hip_adduction__standing__cable__unilateral",
                   "definitionId": "hip_adduction",
                   "familyId": "hip_adduction",
@@ -1409,7 +1953,7 @@
                 "Equilibrio muscular real para una cadera a prueba de giros."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
@@ -1584,7 +2128,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hip_adduction__standing__band__bilateral",
                   "definitionId": "hip_adduction",
                   "familyId": "hip_adduction",
@@ -1681,7 +2225,7 @@
                 "Equilibrio muscular real para una cadera a prueba de giros."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
@@ -1856,7 +2400,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hip_adduction__standing__band__unilateral",
                   "definitionId": "hip_adduction",
                   "familyId": "hip_adduction",
@@ -1981,7 +2525,7 @@
                 "La progresión para quien la versión estática ya respira tranquila."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Cerrar la pierna con impulso, despegar la pelvis o girar la cadera."
@@ -2158,7 +2702,7 @@
                 },
                 "identity": {
                   "canonicalName": "Plancha Copenhague Dinámica",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "copenhagen_plank_dynamic__default",
                   "definitionId": "copenhagen_plank_dynamic",
                   "familyId": "hip_adduction",

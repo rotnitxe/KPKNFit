@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · hamstrings · hip hinge explosive",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El movimiento que enseña potencia de cadera y quema energía a partes iguales."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Convertir el gesto en una sentadilla, levantar la carga solo con los brazos o arquear la espalda."
@@ -228,7 +228,7 @@
                 },
                 "identity": {
                   "canonicalName": "Swing con Kettlebell a Dos Manos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hams_swing_kettlebell_dos_manos__default",
                   "definitionId": "hams_swing_kettlebell_dos_manos",
                   "familyId": "lower_hip_hinge_explosive",
@@ -342,7 +342,7 @@
                 "La progresión natural cuando el swing básico ya se domina."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Convertir el gesto en una sentadilla, levantar la carga solo con los brazos o arquear la espalda."
@@ -543,7 +543,7 @@
                 },
                 "identity": {
                   "canonicalName": "Swing con Kettlebell a Una Mano",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hams_swing_kettlebell_unilateral__default",
                   "definitionId": "hams_swing_kettlebell_unilateral",
                   "familyId": "lower_hip_hinge_explosive",

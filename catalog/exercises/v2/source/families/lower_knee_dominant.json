@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Sentadillas y Prensa de Piernas",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La sentadilla de los que buscan cuádriceps con la espalda tranquila."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -235,7 +235,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Frontal",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "front_squat__barbell",
                   "definitionId": "front_squat",
                   "familyId": "lower_knee_dominant",
@@ -331,7 +331,7 @@
                 "La sentadilla de los que buscan cuádriceps con la espalda tranquila."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -539,7 +539,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Frontal",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "front_squat__smith_machine",
                   "definitionId": "front_squat",
                   "familyId": "lower_knee_dominant",
@@ -635,7 +635,7 @@
                 "La sentadilla de los que buscan cuádriceps con la espalda tranquila."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -843,7 +843,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Frontal",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "front_squat__dumbbells",
                   "definitionId": "front_squat",
                   "familyId": "lower_knee_dominant",
@@ -939,7 +939,7 @@
                 "La sentadilla de los que buscan cuádriceps con la espalda tranquila."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -1147,7 +1147,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Frontal",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "front_squat__kettlebell",
                   "definitionId": "front_squat",
                   "familyId": "lower_knee_dominant",
@@ -1243,7 +1243,7 @@
                 "La sentadilla de los que buscan cuádriceps con la espalda tranquila."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -1451,7 +1451,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Frontal",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "front_squat__cable",
                   "definitionId": "front_squat",
                   "familyId": "lower_knee_dominant",
@@ -1573,7 +1573,7 @@
                 "El estándar de la fuerza de piernas, simple y brutal."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -1781,7 +1781,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Trasera con Barra Alta",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "high_bar_back_squat__barbell",
                   "definitionId": "high_bar_back_squat",
                   "familyId": "lower_knee_dominant",
@@ -1878,7 +1878,7 @@
                 "El estándar de la fuerza de piernas, simple y brutal."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -2086,7 +2086,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Trasera con Barra Alta",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "high_bar_back_squat__smith_machine",
                   "definitionId": "high_bar_back_squat",
                   "familyId": "lower_knee_dominant",
@@ -2183,7 +2183,7 @@
                 "El estándar de la fuerza de piernas, simple y brutal."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -2386,7 +2386,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Trasera con Barra Alta",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "high_bar_back_squat__safety_bar",
                   "definitionId": "high_bar_back_squat",
                   "familyId": "lower_knee_dominant",
@@ -2513,7 +2513,7 @@
                 "La sentadilla de los números grandes y del ego bien puesto."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -2721,7 +2721,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Trasera con Barra Baja",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "low_bar_back_squat__barbell",
                   "definitionId": "low_bar_back_squat",
                   "familyId": "lower_knee_dominant",
@@ -2818,7 +2818,7 @@
                 "La sentadilla de los números grandes y del ego bien puesto."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -3026,7 +3026,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Trasera con Barra Baja",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "low_bar_back_squat__smith_machine",
                   "definitionId": "low_bar_back_squat",
                   "familyId": "lower_knee_dominant",
@@ -3150,7 +3150,7 @@
                 "El acumulador de volumen de piernas más cómodo del gimnasio."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -3353,7 +3353,7 @@
                 },
                 "identity": {
                   "canonicalName": "Prensa de Piernas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_prensa_piernas__bilateral",
                   "definitionId": "quads_prensa_piernas",
                   "familyId": "lower_knee_dominant",
@@ -3448,7 +3448,7 @@
                 "El acumulador de volumen de piernas más cómodo del gimnasio."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -3651,7 +3651,7 @@
                 },
                 "identity": {
                   "canonicalName": "Prensa de Piernas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_prensa_piernas__unilateral",
                   "definitionId": "quads_prensa_piernas",
                   "familyId": "lower_knee_dominant",
@@ -3772,7 +3772,7 @@
                 "La escuela de la fuerza desde cero, humilde y demoledora."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -3972,7 +3972,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Anderson",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_sentadilla_anderson__default",
                   "definitionId": "quads_sentadilla_anderson",
                   "familyId": "lower_knee_dominant",
@@ -4088,7 +4088,7 @@
                 "Una de las sentadillas más exigentes que se pueden cargar en una barra."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -4283,7 +4283,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Anderson Frontal",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_sentadilla_anderson_frontal_barra_recta__default",
                   "definitionId": "quads_sentadilla_anderson_frontal_barra_recta",
                   "familyId": "lower_knee_dominant",
@@ -4400,7 +4400,7 @@
                 "La herramienta de detalle para dar forma exterior al cuádriceps."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -4600,7 +4600,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Bazuca",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_sentadilla_bazuca__default",
                   "definitionId": "quads_sentadilla_bazuca",
                   "familyId": "lower_knee_dominant",
@@ -4716,7 +4716,7 @@
                 "La puerta de entrada perfecta al mundo de las sentadillas."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -4911,7 +4911,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Copa",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_sentadilla_copa__default",
                   "definitionId": "quads_sentadilla_copa",
                   "familyId": "lower_knee_dominant",
@@ -5026,7 +5026,7 @@
                 "La fábrica de cuádriceps que nunca pasa de moda."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -5223,7 +5223,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Hack",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_sentadilla_hack__machine",
                   "definitionId": "quads_sentadilla_hack",
                   "familyId": "lower_knee_dominant",
@@ -5320,7 +5320,7 @@
                 "La fábrica de cuádriceps que nunca pasa de moda."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -5517,7 +5517,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Hack",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_sentadilla_hack__barbell",
                   "definitionId": "quads_sentadilla_hack",
                   "familyId": "lower_knee_dominant",
@@ -5614,7 +5614,7 @@
                 "La fábrica de cuádriceps que nunca pasa de moda."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -5811,7 +5811,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Hack",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_sentadilla_hack__smith_machine",
                   "definitionId": "quads_sentadilla_hack",
                   "familyId": "lower_knee_dominant",
@@ -5934,7 +5934,7 @@
                 "Una vuelta de tuerca para romper la monotonía del raíl."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -6129,7 +6129,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Invertida en Máquina Hack",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_sentadilla_hack_invertida_maquina__default",
                   "definitionId": "quads_sentadilla_hack_invertida_maquina",
                   "familyId": "lower_knee_dominant",
@@ -6242,7 +6242,7 @@
                 "Una rareza útil para quien no encuentra cómodo el rack frontal."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -6437,7 +6437,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Somersault",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_sentadilla_somersault__default",
                   "definitionId": "quads_sentadilla_somersault",
                   "familyId": "lower_knee_dominant",
@@ -6554,7 +6554,7 @@
                 "Una de las máquinas de pierna más duras y más queridas."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -6749,7 +6749,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla en \"V-Squat\"",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_sentadilla_v_squat__default",
                   "definitionId": "quads_sentadilla_v_squat",
                   "familyId": "lower_knee_dominant",
@@ -6866,7 +6866,7 @@
                 "La variante que refresca la máquina de siempre."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -7061,7 +7061,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Invertida en Máquina V-Squat",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_sentadilla_v_squat_invertida_maquina__default",
                   "definitionId": "quads_sentadilla_v_squat_invertida_maquina",
                   "familyId": "lower_knee_dominant",
@@ -7174,7 +7174,7 @@
                 "La sentadilla que fortalece piernas y carácter al mismo tiempo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -7374,7 +7374,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Zercher con Barra Recta",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_sentadilla_zercher_barra_recta__default",
                   "definitionId": "quads_sentadilla_zercher_barra_recta",
                   "familyId": "lower_knee_dominant",
@@ -7488,7 +7488,7 @@
                 "La postura ancha que da protagonismo al interior del muslo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -7697,7 +7697,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Sumo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "sumo_squat__barbell",
                   "definitionId": "sumo_squat",
                   "familyId": "lower_knee_dominant",
@@ -7794,7 +7794,7 @@
                 "La postura ancha que da protagonismo al interior del muslo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -8003,7 +8003,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Sumo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "sumo_squat__dumbbells",
                   "definitionId": "sumo_squat",
                   "familyId": "lower_knee_dominant",
@@ -8100,7 +8100,7 @@
                 "La postura ancha que da protagonismo al interior del muslo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -8309,7 +8309,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Sumo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "sumo_squat__kettlebell",
                   "definitionId": "sumo_squat",
                   "familyId": "lower_knee_dominant",

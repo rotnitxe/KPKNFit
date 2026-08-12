@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren superior · deltoid · shoulder abduction full rom",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Un movimiento poco común que alcanza zonas del hombro que los gestos normales no tocan."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -223,7 +223,7 @@
                 },
                 "identity": {
                   "canonicalName": "LU-Raises",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "deltoides_lu_raises__default",
                   "definitionId": "deltoides_lu_raises",
                   "familyId": "upper_shoulder_abduction_full_rom",

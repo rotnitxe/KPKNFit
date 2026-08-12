@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren superior · deltoid · shoulder flexion",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -225,7 +225,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Frontales",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "deltoides_elevaciones_frontales__cable",
                   "definitionId": "deltoides_elevaciones_frontales",
                   "familyId": "upper_shoulder_flexion",
@@ -324,7 +324,7 @@
                 "El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -522,7 +522,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Frontales",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "deltoides_elevaciones_frontales__barbell",
                   "definitionId": "deltoides_elevaciones_frontales",
                   "familyId": "upper_shoulder_flexion",
@@ -621,7 +621,7 @@
                 "El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -819,7 +819,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Frontales",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "deltoides_elevaciones_frontales__dumbbells",
                   "definitionId": "deltoides_elevaciones_frontales",
                   "familyId": "upper_shoulder_flexion",
@@ -918,7 +918,7 @@
                 "El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -1116,7 +1116,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Frontales",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "deltoides_elevaciones_frontales__kettlebell",
                   "definitionId": "deltoides_elevaciones_frontales",
                   "familyId": "upper_shoulder_flexion",

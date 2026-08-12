@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "JM press",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El secreto de los grandes preseros para unos tríceps que empujen de verdad."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -209,7 +209,7 @@
                 },
                 "identity": {
                   "canonicalName": "JM Press",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "jm_press__barbell",
                   "definitionId": "jm_press",
                   "familyId": "triceps_jm_press",
@@ -307,7 +307,7 @@
                 "El secreto de los grandes preseros para unos tríceps que empujen de verdad."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -489,7 +489,7 @@
                 },
                 "identity": {
                   "canonicalName": "JM Press",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "jm_press__ez_bar",
                   "definitionId": "jm_press",
                   "familyId": "triceps_jm_press",
@@ -587,7 +587,7 @@
                 "El secreto de los grandes preseros para unos tríceps que empujen de verdad."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -769,7 +769,7 @@
                 },
                 "identity": {
                   "canonicalName": "JM Press",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "jm_press__dumbbells",
                   "definitionId": "jm_press",
                   "familyId": "triceps_jm_press",
@@ -867,7 +867,7 @@
                 "El secreto de los grandes preseros para unos tríceps que empujen de verdad."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -1049,7 +1049,7 @@
                 },
                 "identity": {
                   "canonicalName": "JM Press",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "jm_press__smith_machine",
                   "definitionId": "jm_press",
                   "familyId": "triceps_jm_press",
@@ -1147,7 +1147,7 @@
                 "El secreto de los grandes preseros para unos tríceps que empujen de verdad."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -1329,7 +1329,7 @@
                 },
                 "identity": {
                   "canonicalName": "JM Press",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "jm_press__cable",
                   "definitionId": "jm_press",
                   "familyId": "triceps_jm_press",

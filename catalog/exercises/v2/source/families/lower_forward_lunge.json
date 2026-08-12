@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Zancada Frontal",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El básico unilateral que no puede faltar en ninguna pierna completa."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -237,7 +237,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forward_lunge__barbell",
                   "definitionId": "forward_lunge",
                   "familyId": "lower_forward_lunge",
@@ -334,7 +334,7 @@
                 "El básico unilateral que no puede faltar en ninguna pierna completa."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -544,7 +544,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forward_lunge__smith_machine",
                   "definitionId": "forward_lunge",
                   "familyId": "lower_forward_lunge",
@@ -641,7 +641,7 @@
                 "El básico unilateral que no puede faltar en ninguna pierna completa."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -851,7 +851,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forward_lunge__dumbbells",
                   "definitionId": "forward_lunge",
                   "familyId": "lower_forward_lunge",
@@ -948,7 +948,7 @@
                 "El básico unilateral que no puede faltar en ninguna pierna completa."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -1158,7 +1158,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forward_lunge__kettlebell",
                   "definitionId": "forward_lunge",
                   "familyId": "lower_forward_lunge",
@@ -1255,7 +1255,7 @@
                 "El básico unilateral que no puede faltar en ninguna pierna completa."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -1465,7 +1465,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forward_lunge__cable",
                   "definitionId": "forward_lunge",
                   "familyId": "lower_forward_lunge",

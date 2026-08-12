@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · gluteus maximus · hip extension abduction",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El toque final para redondear el trabajo de glúteo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -216,7 +216,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Glúteos Diagonal en Polea",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_patada_gluteo_polea_diagonal__default",
                   "definitionId": "glutes_patada_gluteo_polea_diagonal",
                   "familyId": "lower_hip_extension_abduction",

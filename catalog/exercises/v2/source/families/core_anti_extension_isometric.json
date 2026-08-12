@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Core · core · anti extension isometric",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Una medida honesta de la fortaleza de la zona media que cabe en cualquier rutina."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Arquear la espalda, girar con la carga o perder la tensión al final."
@@ -199,7 +199,7 @@
                 },
                 "identity": {
                   "canonicalName": "Plancha Abdominal",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "core_plancha__default",
                   "definitionId": "core_plancha",
                   "familyId": "core_anti_extension_isometric",

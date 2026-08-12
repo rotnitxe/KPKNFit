@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Press Militar",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La medida clásica de la fuerza de hombros, dura y honesta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -231,7 +231,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "military_press__barbell",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -329,7 +329,7 @@
                 "La medida clásica de la fuerza de hombros, dura y honesta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -533,7 +533,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "military_press__dumbbells",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -631,7 +631,7 @@
                 "La medida clásica de la fuerza de hombros, dura y honesta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -835,7 +835,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "military_press__smith_machine",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -933,7 +933,7 @@
                 "La medida clásica de la fuerza de hombros, dura y honesta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -1137,7 +1137,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "military_press__machine",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -1235,7 +1235,7 @@
                 "La medida clásica de la fuerza de hombros, dura y honesta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -1439,7 +1439,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "military_press__cable",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -1537,7 +1537,7 @@
                 "La medida clásica de la fuerza de hombros, dura y honesta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -1741,7 +1741,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "military_press__kettlebell",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",

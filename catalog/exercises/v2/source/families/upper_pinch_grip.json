@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren superior · forearm · pinch grip",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El agarre de pinza que separa las manos normales de las manos de acero."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Arquear la espalda, girar con la carga o perder la tensión al final."
@@ -193,7 +193,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pinza de Discos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forearms_pinza_de_discos__default",
                   "definitionId": "forearms_pinza_de_discos",
                   "familyId": "upper_pinch_grip",

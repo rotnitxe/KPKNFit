@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Peso Muerto Rumano",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La referencia mundial para construir unos isquiosurales de acero."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -236,7 +236,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "romanian_deadlift__bilateral__barbell",
                   "definitionId": "romanian_deadlift",
                   "familyId": "hinge_rdl",
@@ -336,7 +336,7 @@
                 "La referencia mundial para construir unos isquiosurales de acero."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -550,7 +550,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "romanian_deadlift__unilateral__barbell",
                   "definitionId": "romanian_deadlift",
                   "familyId": "hinge_rdl",
@@ -651,7 +651,7 @@
                 "La referencia mundial para construir unos isquiosurales de acero."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -860,7 +860,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "romanian_deadlift__bilateral__smith_machine",
                   "definitionId": "romanian_deadlift",
                   "familyId": "hinge_rdl",
@@ -960,7 +960,7 @@
                 "La referencia mundial para construir unos isquiosurales de acero."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -1174,7 +1174,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "romanian_deadlift__unilateral__smith_machine",
                   "definitionId": "romanian_deadlift",
                   "familyId": "hinge_rdl",
@@ -1275,7 +1275,7 @@
                 "La referencia mundial para construir unos isquiosurales de acero."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -1484,7 +1484,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "romanian_deadlift__bilateral__dumbbells",
                   "definitionId": "romanian_deadlift",
                   "familyId": "hinge_rdl",
@@ -1584,7 +1584,7 @@
                 "La referencia mundial para construir unos isquiosurales de acero."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -1798,7 +1798,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "romanian_deadlift__unilateral__dumbbells",
                   "definitionId": "romanian_deadlift",
                   "familyId": "hinge_rdl",
@@ -1899,7 +1899,7 @@
                 "La referencia mundial para construir unos isquiosurales de acero."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -2108,7 +2108,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "romanian_deadlift__bilateral__hex_bar",
                   "definitionId": "romanian_deadlift",
                   "familyId": "hinge_rdl",
@@ -2208,7 +2208,7 @@
                 "La referencia mundial para construir unos isquiosurales de acero."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -2422,7 +2422,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "romanian_deadlift__unilateral__hex_bar",
                   "definitionId": "romanian_deadlift",
                   "familyId": "hinge_rdl",
@@ -2553,7 +2553,7 @@
                 "Una combinación refrescante cuando el rumano tradicional pide aire nuevo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -2763,7 +2763,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano Sumo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "romanian_sumo_deadlift__bilateral__barbell",
                   "definitionId": "romanian_sumo_deadlift",
                   "familyId": "hinge_rdl",
@@ -2865,7 +2865,7 @@
                 "Una combinación refrescante cuando el rumano tradicional pide aire nuevo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -3075,7 +3075,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano Sumo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "romanian_sumo_deadlift__unilateral__barbell",
                   "definitionId": "romanian_sumo_deadlift",
                   "familyId": "hinge_rdl",
@@ -3177,7 +3177,7 @@
                 "Una combinación refrescante cuando el rumano tradicional pide aire nuevo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -3387,7 +3387,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano Sumo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "romanian_sumo_deadlift__bilateral__smith_machine",
                   "definitionId": "romanian_sumo_deadlift",
                   "familyId": "hinge_rdl",
@@ -3489,7 +3489,7 @@
                 "Una combinación refrescante cuando el rumano tradicional pide aire nuevo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -3699,7 +3699,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano Sumo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "romanian_sumo_deadlift__unilateral__smith_machine",
                   "definitionId": "romanian_sumo_deadlift",
                   "familyId": "hinge_rdl",
@@ -3801,7 +3801,7 @@
                 "Una combinación refrescante cuando el rumano tradicional pide aire nuevo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -4011,7 +4011,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano Sumo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "romanian_sumo_deadlift__bilateral__dumbbells",
                   "definitionId": "romanian_sumo_deadlift",
                   "familyId": "hinge_rdl",
@@ -4113,7 +4113,7 @@
                 "Una combinación refrescante cuando el rumano tradicional pide aire nuevo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -4323,7 +4323,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano Sumo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "romanian_sumo_deadlift__unilateral__dumbbells",
                   "definitionId": "romanian_sumo_deadlift",
                   "familyId": "hinge_rdl",
@@ -4425,7 +4425,7 @@
                 "Una combinación refrescante cuando el rumano tradicional pide aire nuevo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -4635,7 +4635,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano Sumo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "romanian_sumo_deadlift__bilateral__hex_bar",
                   "definitionId": "romanian_sumo_deadlift",
                   "familyId": "hinge_rdl",
@@ -4737,7 +4737,7 @@
                 "Una combinación refrescante cuando el rumano tradicional pide aire nuevo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -4947,7 +4947,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano Sumo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "romanian_sumo_deadlift__unilateral__hex_bar",
                   "definitionId": "romanian_sumo_deadlift",
                   "familyId": "hinge_rdl",

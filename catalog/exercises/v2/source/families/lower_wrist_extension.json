@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · forearm · wrist extension",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El equilibrante que previene el codo de tenista."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
@@ -200,7 +200,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forearms_curl_muneca_inverso_sentado__cable",
                   "definitionId": "forearms_curl_muneca_inverso_sentado",
                   "familyId": "lower_wrist_extension",
@@ -296,7 +296,7 @@
                 "El equilibrante que previene el codo de tenista."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
@@ -469,7 +469,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forearms_curl_muneca_inverso_sentado__dumbbells",
                   "definitionId": "forearms_curl_muneca_inverso_sentado",
                   "familyId": "lower_wrist_extension",
@@ -565,7 +565,7 @@
                 "El equilibrante que previene el codo de tenista."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
@@ -738,7 +738,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forearms_curl_muneca_inverso_sentado__barbell",
                   "definitionId": "forearms_curl_muneca_inverso_sentado",
                   "familyId": "lower_wrist_extension",
@@ -834,7 +834,7 @@
                 "El equilibrante que previene el codo de tenista."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
@@ -1007,7 +1007,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forearms_curl_muneca_inverso_sentado__ez_bar",
                   "definitionId": "forearms_curl_muneca_inverso_sentado",
                   "familyId": "lower_wrist_extension",

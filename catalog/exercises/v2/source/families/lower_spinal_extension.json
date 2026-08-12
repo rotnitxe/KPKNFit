@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · erector spinae · spinal extension",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La base de una zona lumbar fuerte y resistente al día a día."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Buscar altura con hiperextensión, mover solo la zona lumbar o perder el apoyo."
@@ -200,7 +200,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hiperextensiones de Espalda Baja",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_extension_lumbar__default",
                   "definitionId": "back_extension_lumbar",
                   "familyId": "lower_spinal_extension",
@@ -317,7 +317,7 @@
                 "El punto de partida perfecto para cuidar la espalda antes de atreverse con el banco romano."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Buscar altura con hiperextensión, mover solo la zona lumbar o perder el apoyo."
@@ -495,7 +495,7 @@
                 },
                 "identity": {
                   "canonicalName": "Superman en Suelo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_superman_suelo__default",
                   "definitionId": "back_superman_suelo",
                   "familyId": "lower_spinal_extension",
@@ -609,7 +609,7 @@
                 "Una carga distinta para el banco de 45 grados, con el tronco entero comprometido."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Buscar altura con hiperextensión, mover solo la zona lumbar o perder el apoyo."
@@ -782,7 +782,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hiperextensión a 45 Zercher para Espalda Baja",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_hiperextension_45_zercher_espalda_baja__default",
                   "definitionId": "back_hiperextension_45_zercher_espalda_baja",
                   "familyId": "lower_spinal_extension",

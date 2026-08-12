@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Empuje horizontal",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La base de la fuerza de empuje, disponible en cualquier suelo del planeta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 3.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -241,7 +241,7 @@
                 },
                 "identity": {
                   "canonicalName": "Flexiones de Brazos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "push_up__flat",
                   "definitionId": "push_up",
                   "familyId": "upper_horizontal_push",
@@ -342,7 +342,7 @@
                 "La base de la fuerza de empuje, disponible en cualquier suelo del planeta."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.8,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -556,7 +556,7 @@
                 },
                 "identity": {
                   "canonicalName": "Flexiones de Brazos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "push_up__feet_elevated",
                   "definitionId": "push_up",
                   "familyId": "upper_horizontal_push",
@@ -682,7 +682,7 @@
                 "El finalizador que congestiona el pecho como ningún press puede."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -886,7 +886,7 @@
                 },
                 "identity": {
                   "canonicalName": "Cruce de Poleas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "tren_superior_cruce_poleas__high",
                   "definitionId": "tren_superior_cruce_poleas",
                   "familyId": "upper_horizontal_push",
@@ -984,7 +984,7 @@
                 "El finalizador que congestiona el pecho como ningún press puede."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -1188,7 +1188,7 @@
                 },
                 "identity": {
                   "canonicalName": "Cruce de Poleas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "tren_superior_cruce_poleas__mid",
                   "definitionId": "tren_superior_cruce_poleas",
                   "familyId": "upper_horizontal_push",
@@ -1286,7 +1286,7 @@
                 "El finalizador que congestiona el pecho como ningún press puede."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -1490,7 +1490,7 @@
                 },
                 "identity": {
                   "canonicalName": "Cruce de Poleas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "tren_superior_cruce_poleas__low",
                   "definitionId": "tren_superior_cruce_poleas",
                   "familyId": "upper_horizontal_push",
@@ -1617,7 +1617,7 @@
                 "El constructor del pecho bajo y la prueba de fuerza relativa del empuje."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 3.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -1829,7 +1829,7 @@
                 },
                 "identity": {
                   "canonicalName": "Fondos en Paralelas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "tren_superior_fondos__default",
                   "definitionId": "tren_superior_fondos",
                   "familyId": "upper_horizontal_push",
@@ -1953,7 +1953,7 @@
                 "La herramienta de los avanzados para romper estancamientos en el press."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 3.8,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -2159,7 +2159,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca con Cadenas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "tren_superior_press_banca_cadenas__default",
                   "definitionId": "tren_superior_press_banca_cadenas",
                   "familyId": "upper_horizontal_push",
@@ -2275,7 +2275,7 @@
                 "El press de viaje y de calentamiento, siempre listo en la mochila."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 3.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -2481,7 +2481,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press con Banda de Resistencia",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "tren_superior_press_banda_resistencia__default",
                   "definitionId": "tren_superior_press_banda_resistencia",
                   "familyId": "upper_horizontal_push",
@@ -2597,7 +2597,7 @@
                 "La máquina que permite fallar a salvo y cargar el pecho sin miedo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.8,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -2803,7 +2803,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Plano en Máquina Convergente",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "tren_superior_press_pecho_maquina_convergente__default",
                   "definitionId": "tren_superior_press_pecho_maquina_convergente",
                   "familyId": "upper_horizontal_push",
@@ -2923,7 +2923,7 @@
                 "La pausa que convierte un press normal en una forja de potencia."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 3.8,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -3129,7 +3129,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Spoto con Barra",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "tren_superior_press_spoto_barra__default",
                   "definitionId": "tren_superior_press_spoto_barra",
                   "familyId": "upper_horizontal_push",
@@ -3245,7 +3245,7 @@
                 "El empuje que entrena pecho y estabilidad en la misma repetición."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.5,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -3451,7 +3451,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Unilateral en Polea",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "tren_superior_press_unilateral_polea__default",
                   "definitionId": "tren_superior_press_unilateral_polea",
                   "familyId": "upper_horizontal_push",
@@ -3565,7 +3565,7 @@
                 "El ejercicio de conexión con el pectoral por encima de todos."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.5,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -3771,7 +3771,7 @@
                 },
                 "identity": {
                   "canonicalName": "Squeeze Press con Mancuernas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "tren_superior_squeeze_press_mancuernas__default",
                   "definitionId": "tren_superior_squeeze_press_mancuernas",
                   "familyId": "upper_horizontal_push",
@@ -3885,7 +3885,7 @@
                 "El camino seguro para cargar el pecho alto con volumen serio."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.8,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -4091,7 +4091,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Inclinado en Máquina Convergente",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "tren_superior_press_inclinado_maquina_convergente__default",
                   "definitionId": "tren_superior_press_inclinado_maquina_convergente",
                   "familyId": "upper_horizontal_push",

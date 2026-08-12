@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Aperturas de Pecho",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El acabado inferior del pectoral tiene aquí su herramienta específica."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -230,7 +230,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Declinadas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "decline_chest_fly__dumbbells",
                   "definitionId": "decline_chest_fly",
                   "familyId": "chest_fly",
@@ -325,7 +325,7 @@
                 "El acabado inferior del pectoral tiene aquí su herramienta específica."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -528,7 +528,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Declinadas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "decline_chest_fly__cable",
                   "definitionId": "decline_chest_fly",
                   "familyId": "chest_fly",
@@ -623,7 +623,7 @@
                 "El acabado inferior del pectoral tiene aquí su herramienta específica."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -826,7 +826,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Declinadas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "decline_chest_fly__machine",
                   "definitionId": "decline_chest_fly",
                   "familyId": "chest_fly",
@@ -947,7 +947,7 @@
                 "El modelador del pecho por excelencia y su mejor estiramiento cargado."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -1150,7 +1150,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Planas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "flat_chest_fly__dumbbells",
                   "definitionId": "flat_chest_fly",
                   "familyId": "chest_fly",
@@ -1245,7 +1245,7 @@
                 "El modelador del pecho por excelencia y su mejor estiramiento cargado."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -1448,7 +1448,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Planas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "flat_chest_fly__cable",
                   "definitionId": "flat_chest_fly",
                   "familyId": "chest_fly",
@@ -1543,7 +1543,7 @@
                 "El modelador del pecho por excelencia y su mejor estiramiento cargado."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -1746,7 +1746,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Planas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "flat_chest_fly__machine",
                   "definitionId": "flat_chest_fly",
                   "familyId": "chest_fly",
@@ -1867,7 +1867,7 @@
                 "Detalle fino para un pecho completo visto de frente."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -2070,7 +2070,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Inclinadas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "incline_chest_fly__dumbbells",
                   "definitionId": "incline_chest_fly",
                   "familyId": "chest_fly",
@@ -2165,7 +2165,7 @@
                 "Detalle fino para un pecho completo visto de frente."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -2368,7 +2368,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Inclinadas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "incline_chest_fly__cable",
                   "definitionId": "incline_chest_fly",
                   "familyId": "chest_fly",
@@ -2463,7 +2463,7 @@
                 "Detalle fino para un pecho completo visto de frente."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -2666,7 +2666,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Inclinadas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "incline_chest_fly__machine",
                   "definitionId": "incline_chest_fly",
                   "familyId": "chest_fly",
@@ -2787,7 +2787,7 @@
                 "El seguro de postura y equilibrio de hombros que todo programa necesita."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -2991,7 +2991,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Inversas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "reverse_pec_fly__bilateral__machine",
                   "definitionId": "reverse_pec_fly",
                   "familyId": "chest_fly",
@@ -3093,7 +3093,7 @@
                 "El seguro de postura y equilibrio de hombros que todo programa necesita."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -3297,7 +3297,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Inversas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "reverse_pec_fly__unilateral__machine",
                   "definitionId": "reverse_pec_fly",
                   "familyId": "chest_fly",
@@ -3399,7 +3399,7 @@
                 "El seguro de postura y equilibrio de hombros que todo programa necesita."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -3603,7 +3603,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Inversas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "reverse_pec_fly__bilateral__cable",
                   "definitionId": "reverse_pec_fly",
                   "familyId": "chest_fly",
@@ -3705,7 +3705,7 @@
                 "El seguro de postura y equilibrio de hombros que todo programa necesita."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -3909,7 +3909,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Inversas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "reverse_pec_fly__unilateral__cable",
                   "definitionId": "reverse_pec_fly",
                   "familyId": "chest_fly",
@@ -4011,7 +4011,7 @@
                 "El seguro de postura y equilibrio de hombros que todo programa necesita."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -4215,7 +4215,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Inversas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "reverse_pec_fly__bilateral__dumbbells",
                   "definitionId": "reverse_pec_fly",
                   "familyId": "chest_fly",
@@ -4317,7 +4317,7 @@
                 "El seguro de postura y equilibrio de hombros que todo programa necesita."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -4521,7 +4521,7 @@
                 },
                 "identity": {
                   "canonicalName": "Aperturas Inversas",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "reverse_pec_fly__unilateral__dumbbells",
                   "definitionId": "reverse_pec_fly",
                   "familyId": "chest_fly",

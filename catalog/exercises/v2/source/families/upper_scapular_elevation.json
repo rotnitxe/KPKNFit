@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren superior · trapezius · scapular elevation",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Trapecios que se ven desde lejos, construidos un centímetro cada vez."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
@@ -205,7 +205,7 @@
                 },
                 "identity": {
                   "canonicalName": "Encogimientos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_encogimientos__dumbbells",
                   "definitionId": "back_encogimientos",
                   "familyId": "upper_scapular_elevation",
@@ -305,7 +305,7 @@
                 "Trapecios que se ven desde lejos, construidos un centímetro cada vez."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
@@ -483,7 +483,7 @@
                 },
                 "identity": {
                   "canonicalName": "Encogimientos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_encogimientos__smith_machine",
                   "definitionId": "back_encogimientos",
                   "familyId": "upper_scapular_elevation",
@@ -583,7 +583,7 @@
                 "Trapecios que se ven desde lejos, construidos un centímetro cada vez."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
@@ -761,7 +761,7 @@
                 },
                 "identity": {
                   "canonicalName": "Encogimientos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_encogimientos__cable",
                   "definitionId": "back_encogimientos",
                   "familyId": "upper_scapular_elevation",
@@ -861,7 +861,7 @@
                 "Trapecios que se ven desde lejos, construidos un centímetro cada vez."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
@@ -1039,7 +1039,7 @@
                 },
                 "identity": {
                   "canonicalName": "Encogimientos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_encogimientos__kettlebell",
                   "definitionId": "back_encogimientos",
                   "familyId": "upper_scapular_elevation",
@@ -1139,7 +1139,7 @@
                 "Trapecios que se ven desde lejos, construidos un centímetro cada vez."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
@@ -1317,7 +1317,7 @@
                 },
                 "identity": {
                   "canonicalName": "Encogimientos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_encogimientos__barbell",
                   "definitionId": "back_encogimientos",
                   "familyId": "upper_scapular_elevation",
@@ -1444,7 +1444,7 @@
                 "El encogimiento para quien quiere grosor en la espalda alta, no solo cuello."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
@@ -1622,7 +1622,7 @@
                 },
                 "identity": {
                   "canonicalName": "Kelso Shrugs",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_encogimientos_kelso__barbell",
                   "definitionId": "back_encogimientos_kelso",
                   "familyId": "upper_scapular_elevation",
@@ -1721,7 +1721,7 @@
                 "El encogimiento para quien quiere grosor en la espalda alta, no solo cuello."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
@@ -1899,7 +1899,7 @@
                 },
                 "identity": {
                   "canonicalName": "Kelso Shrugs",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_encogimientos_kelso__machine",
                   "definitionId": "back_encogimientos_kelso",
                   "familyId": "upper_scapular_elevation",
@@ -1998,7 +1998,7 @@
                 "El encogimiento para quien quiere grosor en la espalda alta, no solo cuello."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
@@ -2176,7 +2176,7 @@
                 },
                 "identity": {
                   "canonicalName": "Kelso Shrugs",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_encogimientos_kelso__cable",
                   "definitionId": "back_encogimientos_kelso",
                   "familyId": "upper_scapular_elevation",
@@ -2275,7 +2275,7 @@
                 "El encogimiento para quien quiere grosor en la espalda alta, no solo cuello."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
@@ -2453,7 +2453,7 @@
                 },
                 "identity": {
                   "canonicalName": "Kelso Shrugs",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_encogimientos_kelso__kettlebell",
                   "definitionId": "back_encogimientos_kelso",
                   "familyId": "upper_scapular_elevation",
@@ -2552,7 +2552,7 @@
                 "El encogimiento para quien quiere grosor en la espalda alta, no solo cuello."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
@@ -2730,7 +2730,7 @@
                 },
                 "identity": {
                   "canonicalName": "Kelso Shrugs",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_encogimientos_kelso__smith_machine",
                   "definitionId": "back_encogimientos_kelso",
                   "familyId": "upper_scapular_elevation",
@@ -2855,7 +2855,7 @@
                 "La pieza de postura que completa los hombros sanos."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Encoger el cuello, doblar los codos o balancear el tronco."
@@ -3047,7 +3047,7 @@
                 },
                 "identity": {
                   "canonicalName": "Y-Raises",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_y_raises__default",
                   "definitionId": "back_y_raises",
                   "familyId": "upper_scapular_elevation",

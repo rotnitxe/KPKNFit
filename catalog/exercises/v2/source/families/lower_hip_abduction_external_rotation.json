@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · gluteus maximus · hip abduction external rotation",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El calentamiento que prepara la cadera antes de cargar en serio."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
@@ -198,7 +198,7 @@
                 },
                 "identity": {
                   "canonicalName": "Clamshells (Almejas) con Banda Elástica",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_clamshells_banda__default",
                   "definitionId": "glutes_clamshells_banda",
                   "familyId": "lower_hip_abduction_external_rotation",

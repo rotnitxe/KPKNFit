@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Extensión Katana",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Elegante y distinto, con una congestión final sorprendente."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -204,7 +204,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión Katana",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "katana_extension__cable__bilateral",
                   "definitionId": "katana_extension",
                   "familyId": "triceps_katana_extension",
@@ -299,7 +299,7 @@
                 "Elegante y distinto, con una congestión final sorprendente."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -476,7 +476,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión Katana",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "katana_extension__cable__unilateral",
                   "definitionId": "katana_extension",
                   "familyId": "triceps_katana_extension",
@@ -571,7 +571,7 @@
                 "Elegante y distinto, con una congestión final sorprendente."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -748,7 +748,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión Katana",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "katana_extension__band__bilateral",
                   "definitionId": "katana_extension",
                   "familyId": "triceps_katana_extension",

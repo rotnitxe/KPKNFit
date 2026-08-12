@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren superior · deltoid · diagonal push",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La puerta de entrada al empuje unilateral con barra."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -223,7 +223,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Landmine Unilateral",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "deltoides_press_landmine_unilateral__default",
                   "definitionId": "deltoides_press_landmine_unilateral",
                   "familyId": "upper_diagonal_push",

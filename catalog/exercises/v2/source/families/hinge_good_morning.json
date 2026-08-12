@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Buenos Días",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -236,7 +236,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "good_morning__bilateral__barbell",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -340,7 +340,7 @@
                 "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -549,7 +549,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "good_morning__unilateral__barbell",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -653,7 +653,7 @@
                 "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -862,7 +862,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "good_morning__bilateral__safety_bar",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -966,7 +966,7 @@
                 "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -1175,7 +1175,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "good_morning__unilateral__safety_bar",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -1279,7 +1279,7 @@
                 "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -1488,7 +1488,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "good_morning__bilateral__smith_machine",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -1592,7 +1592,7 @@
                 "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -1801,7 +1801,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "good_morning__unilateral__smith_machine",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -1905,7 +1905,7 @@
                 "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -2114,7 +2114,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "good_morning__bilateral__machine",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -2218,7 +2218,7 @@
                 "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -2427,7 +2427,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "good_morning__unilateral__machine",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -2531,7 +2531,7 @@
                 "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -2740,7 +2740,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "good_morning__bilateral__cable",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -2844,7 +2844,7 @@
                 "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -3053,7 +3053,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "good_morning__unilateral__cable",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -3185,7 +3185,7 @@
                 "La versión acotada que enseña dónde debe vivir el esfuerzo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -3393,7 +3393,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días Sentado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "good_morning_seated__barbell",
                   "definitionId": "good_morning_seated",
                   "familyId": "hinge_good_morning",
@@ -3492,7 +3492,7 @@
                 "La versión acotada que enseña dónde debe vivir el esfuerzo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -3700,7 +3700,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días Sentado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "good_morning_seated__smith_machine",
                   "definitionId": "good_morning_seated",
                   "familyId": "hinge_good_morning",
@@ -3799,7 +3799,7 @@
                 "La versión acotada que enseña dónde debe vivir el esfuerzo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -4007,7 +4007,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días Sentado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "good_morning_seated__safety_bar",
                   "definitionId": "good_morning_seated",
                   "familyId": "hinge_good_morning",
@@ -4131,7 +4131,7 @@
                 "Una especialidad dura para quien ya exprimió las variantes convencionales."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -4337,7 +4337,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días Zercher",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "good_morning_zercher__default",
                   "definitionId": "good_morning_zercher",
                   "familyId": "hinge_good_morning",

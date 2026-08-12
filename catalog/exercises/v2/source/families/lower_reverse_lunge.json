@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Zancada Inversa",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La zancada amable con las articulaciones que no perdona el músculo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -237,7 +237,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "reverse_lunge__barbell",
                   "definitionId": "reverse_lunge",
                   "familyId": "lower_reverse_lunge",
@@ -334,7 +334,7 @@
                 "La zancada amable con las articulaciones que no perdona el músculo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -544,7 +544,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "reverse_lunge__smith_machine",
                   "definitionId": "reverse_lunge",
                   "familyId": "lower_reverse_lunge",
@@ -641,7 +641,7 @@
                 "La zancada amable con las articulaciones que no perdona el músculo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -851,7 +851,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "reverse_lunge__dumbbells",
                   "definitionId": "reverse_lunge",
                   "familyId": "lower_reverse_lunge",
@@ -948,7 +948,7 @@
                 "La zancada amable con las articulaciones que no perdona el músculo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -1158,7 +1158,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "reverse_lunge__kettlebell",
                   "definitionId": "reverse_lunge",
                   "familyId": "lower_reverse_lunge",
@@ -1255,7 +1255,7 @@
                 "La zancada amable con las articulaciones que no perdona el músculo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -1465,7 +1465,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "reverse_lunge__cable",
                   "definitionId": "reverse_lunge",
                   "familyId": "lower_reverse_lunge",

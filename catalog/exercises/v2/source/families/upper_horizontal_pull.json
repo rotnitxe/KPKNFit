@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren superior · trapezius · horizontal pull",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El antídoto portátil contra los hombros adelantados por el teclado."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -228,7 +228,7 @@
                 },
                 "identity": {
                   "canonicalName": "Band Pull-Apart",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_band_pull_apart__default",
                   "definitionId": "back_band_pull_apart",
                   "familyId": "upper_horizontal_pull",
@@ -341,7 +341,7 @@
                 "El remo que viaja en la mochila y se monta en cualquier hotel."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -558,7 +558,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Banda Elástica",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_remo_banda__default",
                   "definitionId": "back_remo_banda",
                   "familyId": "upper_horizontal_pull",
@@ -673,7 +673,7 @@
                 "Potencia de espalda con un punto de picardía en cada brazada."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -881,7 +881,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Gorilla",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_remo_gorilla_mancuernas__dumbbells",
                   "definitionId": "back_remo_gorilla_mancuernas",
                   "familyId": "upper_horizontal_pull",
@@ -981,7 +981,7 @@
                 "Potencia de espalda con un punto de picardía en cada brazada."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -1189,7 +1189,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Gorilla",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_remo_gorilla_mancuernas__kettlebell",
                   "definitionId": "back_remo_gorilla_mancuernas",
                   "familyId": "upper_horizontal_pull",
@@ -1289,7 +1289,7 @@
                 "Potencia de espalda con un punto de picardía en cada brazada."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -1497,7 +1497,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Gorilla",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_remo_gorilla_mancuernas__cable",
                   "definitionId": "back_remo_gorilla_mancuernas",
                   "familyId": "upper_horizontal_pull",
@@ -1623,7 +1623,7 @@
                 "La dominada de quien todavía no hace dominadas, y un remo serio para quien ya las hace."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -1839,7 +1839,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Invertido",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_remo_invertido__default",
                   "definitionId": "back_remo_invertido",
                   "familyId": "upper_horizontal_pull",
@@ -1955,7 +1955,7 @@
                 "Espalda y abdomen en un solo gesto, eficiencia pura."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -2169,7 +2169,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Renegado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_remo_renegado_mancuernas__dumbbells",
                   "definitionId": "back_remo_renegado_mancuernas",
                   "familyId": "upper_horizontal_pull",
@@ -2270,7 +2270,7 @@
                 "Espalda y abdomen en un solo gesto, eficiencia pura."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -2484,7 +2484,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Renegado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_remo_renegado_mancuernas__kettlebell",
                   "definitionId": "back_remo_renegado_mancuernas",
                   "familyId": "upper_horizontal_pull",
@@ -2611,7 +2611,7 @@
                 "La vitamina diaria de la salud del hombro, cortesía de la polea."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -2817,7 +2817,7 @@
                 },
                 "identity": {
                   "canonicalName": "Face Pull",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "deltoides_face_pull__default",
                   "definitionId": "deltoides_face_pull",
                   "familyId": "upper_horizontal_pull",

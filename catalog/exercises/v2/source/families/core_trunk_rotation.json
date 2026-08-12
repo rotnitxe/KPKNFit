@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Core · abdominals · trunk rotation",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Potencia rotacional que traslada directamente a cualquier deporte con giros."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Girar solo desde la zona lumbar, lanzar la carga o perder la base de apoyo."
@@ -195,7 +195,7 @@
                 },
                 "identity": {
                   "canonicalName": "Leñador en Polea",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "core_lenador_polea__default",
                   "definitionId": "core_lenador_polea",
                   "familyId": "core_trunk_rotation",

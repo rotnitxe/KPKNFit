@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · hamstrings · hip hinge",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Una variante compacta que convierte un ejercicio de piernas en un reto de torso entero."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -232,7 +232,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano Zercher",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hams_peso_muerto_rumano_zercher__default",
                   "definitionId": "hams_peso_muerto_rumano_zercher",
                   "familyId": "lower_hip_hinge",
@@ -349,7 +349,7 @@
                 "La vía amable para aprender el patrón que mueve todo lo demás."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -538,7 +538,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pull-Through",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hams_pull_through__default",
                   "definitionId": "hams_pull_through",
                   "familyId": "lower_hip_hinge",

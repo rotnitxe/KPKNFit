@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · quadriceps · knee hip dominant",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El maestro silencioso que enseña a bajar de verdad."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -227,7 +227,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla a Cajón",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_sentadilla_cajon__default",
                   "definitionId": "quads_sentadilla_cajon",
                   "familyId": "lower_knee_hip_dominant",
@@ -343,7 +343,7 @@
                 "Una combinación que junta lo mejor de dos mundos exigentes."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -548,7 +548,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Sumo Frontal",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_sentadilla_sumo_frontal__default",
                   "definitionId": "quads_sentadilla_sumo_frontal",
                   "familyId": "lower_knee_hip_dominant",
@@ -665,7 +665,7 @@
                 "Para quien ya domina las versiones por separado y busca un reto serio."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -870,7 +870,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Sumo Zercher",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_sentadilla_sumo_zercher__default",
                   "definitionId": "quads_sentadilla_sumo_zercher",
                   "familyId": "lower_knee_hip_dominant",

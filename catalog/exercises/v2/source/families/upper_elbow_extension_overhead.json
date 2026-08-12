@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Extensión de tríceps overhead",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -203,7 +203,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Overhead",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "overhead_triceps__barbell",
                   "definitionId": "overhead_triceps_extension",
                   "familyId": "upper_elbow_extension_overhead",
@@ -296,7 +296,7 @@
                 "El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -472,7 +472,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Overhead",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "overhead_triceps__machine",
                   "definitionId": "overhead_triceps_extension",
                   "familyId": "upper_elbow_extension_overhead",
@@ -566,7 +566,7 @@
                 "El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -742,7 +742,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Overhead",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "overhead_triceps__dumbbells",
                   "definitionId": "overhead_triceps_extension",
                   "familyId": "upper_elbow_extension_overhead",
@@ -836,7 +836,7 @@
                 "El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -1012,7 +1012,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Overhead",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "overhead_triceps__cable",
                   "definitionId": "overhead_triceps_extension",
                   "familyId": "upper_elbow_extension_overhead",

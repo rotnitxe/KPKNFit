@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · neck · neck flexion",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El equilibrio cervical que completa la salud de la zona."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Usar velocidad, llevar la cabeza al extremo del recorrido o encoger los hombros."
@@ -177,7 +177,7 @@
                 },
                 "identity": {
                   "canonicalName": "Flexiones de Cuello",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "neck_flexion_cuello__cable",
                   "definitionId": "neck_flexion_cuello",
                   "familyId": "lower_neck_flexion",
@@ -272,7 +272,7 @@
                 "El equilibrio cervical que completa la salud de la zona."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Usar velocidad, llevar la cabeza al extremo del recorrido o encoger los hombros."
@@ -422,7 +422,7 @@
                 },
                 "identity": {
                   "canonicalName": "Flexiones de Cuello",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "neck_flexion_cuello__plate",
                   "definitionId": "neck_flexion_cuello",
                   "familyId": "lower_neck_flexion",

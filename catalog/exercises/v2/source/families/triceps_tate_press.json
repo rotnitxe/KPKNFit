@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tate press",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El favorito de Dave Tate para llenar la parte trasera del brazo desde otro ángulo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -203,7 +203,7 @@
                 },
                 "identity": {
                   "canonicalName": "Tate Press",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "tate_press__dumbbells",
                   "definitionId": "tate_press",
                   "familyId": "triceps_tate_press",
@@ -296,7 +296,7 @@
                 "El favorito de Dave Tate para llenar la parte trasera del brazo desde otro ángulo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -472,7 +472,7 @@
                 },
                 "identity": {
                   "canonicalName": "Tate Press",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "tate_press__cable",
                   "definitionId": "tate_press",
                   "familyId": "triceps_tate_press",

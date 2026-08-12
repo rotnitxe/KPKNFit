@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · quadriceps · unilateral knee dominant",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Una variante ingeniosa para quien la búlgara clásica le incomoda en las manos."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -223,7 +223,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara Somersault",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_sentadilla_bulgara_somersault__default",
                   "definitionId": "quads_sentadilla_bulgara_somersault",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -340,7 +340,7 @@
                 "La cima de la calistenia de piernas, al alcance de muy pocos."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -541,7 +541,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Pistola",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_sentadilla_pistola__default",
                   "definitionId": "quads_sentadilla_pistola",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -659,7 +659,7 @@
                 "El puente honesto entre la zancada y la pistola libre."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -855,7 +855,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Pistola Asistida en TRX",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_sentadilla_pistola_asistida_trx__default",
                   "definitionId": "quads_sentadilla_pistola_asistida_trx",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -970,7 +970,7 @@
                 "Una forma exigente de mezclar fuerza unilateral y trabajo de torso."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -1166,7 +1166,7 @@
                 },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón Frontal",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_step_up_cajon_frontal__default",
                   "definitionId": "quads_step_up_cajon_frontal",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -1281,7 +1281,7 @@
                 "La versión del step-up para quien quiere pierna y abdomen en el mismo paquete."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -1477,7 +1477,7 @@
                 },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón Zercher",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_step_up_cajon_zercher__default",
                   "definitionId": "quads_step_up_cajon_zercher",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -1592,7 +1592,7 @@
                 "Caminar con peso nunca fue tan productivo para el muslo frontal."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -1788,7 +1788,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Caminando Frontal con Barra Recta",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_zancada_caminando_frontal_barra_recta__default",
                   "definitionId": "quads_zancada_caminando_frontal_barra_recta",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -1901,7 +1901,7 @@
                 "Una prueba integral que deja huella en todo el cuerpo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -2097,7 +2097,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Caminando Zercher con Barra Recta",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_zancada_caminando_zercher_barra_recta__default",
                   "definitionId": "quads_zancada_caminando_zercher_barra_recta",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -2210,7 +2210,7 @@
                 "Una zancada con carácter para quien domina la versión con pesos a los lados."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -2406,7 +2406,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Frontal Zercher",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_zancada_frontal_zercher__default",
                   "definitionId": "quads_zancada_frontal_zercher",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -2521,7 +2521,7 @@
                 "Una combinación elegante de pierna unilateral y trabajo del tronco."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -2717,7 +2717,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa Frontal",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_zancada_inversa_frontal__default",
                   "definitionId": "quads_zancada_inversa_frontal",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -2832,7 +2832,7 @@
                 "La opción guiada para exprimir el cuádriceps pierna a pierna."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -3028,7 +3028,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa en Máquina Hack",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_zancada_inversa_maquina_hack__default",
                   "definitionId": "quads_zancada_inversa_maquina_hack",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -3141,7 +3141,7 @@
                 "La zancada unilateral más cómoda para la espalda y más dura para el cuádriceps."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -3337,7 +3337,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa en Máquina V-Squat",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_zancada_inversa_maquina_v_squat__default",
                   "definitionId": "quads_zancada_inversa_maquina_v_squat",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -3450,7 +3450,7 @@
                 "Una especialidad completa para pierna y tronco al mismo tiempo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -3646,7 +3646,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa Zercher",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_zancada_inversa_zercher__default",
                   "definitionId": "quads_zancada_inversa_zercher",
                   "familyId": "lower_unilateral_knee_dominant",

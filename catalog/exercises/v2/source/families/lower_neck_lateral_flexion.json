@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · neck · neck lateral flexion",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El detalle que redondea un cuello fuerte por todos sus lados."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Usar velocidad, llevar la cabeza al extremo del recorrido o encoger los hombros."
@@ -175,7 +175,7 @@
                 },
                 "identity": {
                   "canonicalName": "Flexión Lateral de Cuello",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "neck_flexion_lateral_cuello__default",
                   "definitionId": "neck_flexion_lateral_cuello",
                   "familyId": "lower_neck_lateral_flexion",

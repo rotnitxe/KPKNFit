@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Press Z",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La escuela de la fuerza de hombro pura y la postura impecable."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -230,7 +230,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Z",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "z_press__barbell",
                   "definitionId": "z_press",
                   "familyId": "shoulder_z_press",
@@ -328,7 +328,7 @@
                 "La escuela de la fuerza de hombro pura y la postura impecable."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -531,7 +531,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Z",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "z_press__ez_bar",
                   "definitionId": "z_press",
                   "familyId": "shoulder_z_press",
@@ -629,7 +629,7 @@
                 "La escuela de la fuerza de hombro pura y la postura impecable."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -832,7 +832,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Z",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "z_press__dumbbells",
                   "definitionId": "z_press",
                   "familyId": "shoulder_z_press",
@@ -930,7 +930,7 @@
                 "La escuela de la fuerza de hombro pura y la postura impecable."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -1133,7 +1133,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Z",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "z_press__kettlebell",
                   "definitionId": "z_press",
                   "familyId": "shoulder_z_press",

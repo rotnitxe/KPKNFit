@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Core · abdominals · trunk flexion",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El crunch que da frutos cuando el suelo se quedó corto."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
@@ -195,7 +195,7 @@
                 },
                 "identity": {
                   "canonicalName": "Crunch Abdominal en Banco Declinado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "core_crunch_banco_declinado_lastrado_disco__default",
                   "definitionId": "core_crunch_banco_declinado_lastrado_disco",
                   "familyId": "core_trunk_flexion",
@@ -310,7 +310,7 @@
                 "La forma más precisa de dosificar el trabajo abdominal semana a semana."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
@@ -478,7 +478,7 @@
                 },
                 "identity": {
                   "canonicalName": "Crunch Abdominal de Rodillas en Polea Alta",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "core_crunch_en_polea_alta__default",
                   "definitionId": "core_crunch_en_polea_alta",
                   "familyId": "core_trunk_flexion",
@@ -589,7 +589,7 @@
                 "La vía más cómoda para acumular series de abdomen con carga progresiva."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
@@ -757,7 +757,7 @@
                 },
                 "identity": {
                   "canonicalName": "Crunch Abdominal en Máquina",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "core_crunch_maquina__default",
                   "definitionId": "core_crunch_maquina",
                   "familyId": "core_trunk_flexion",
@@ -868,7 +868,7 @@
                 "La base donde se aprende a sentir el abdomen antes de pedirle cargas."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
@@ -1036,7 +1036,7 @@
                 },
                 "identity": {
                   "canonicalName": "Crunch Abdominal en Suelo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "core_crunch_suelo_peso_corporal__default",
                   "definitionId": "core_crunch_suelo_peso_corporal",
                   "familyId": "core_trunk_flexion",

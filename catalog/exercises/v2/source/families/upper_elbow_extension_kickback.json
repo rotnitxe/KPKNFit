@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Patada de tríceps",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El acabado clásico que deja el tríceps ardiendo en pocas repeticiones."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -204,7 +204,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Tríceps",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "triceps_patada__dumbbells__bilateral",
                   "definitionId": "triceps_patada",
                   "familyId": "upper_elbow_extension_kickback",
@@ -299,7 +299,7 @@
                 "El acabado clásico que deja el tríceps ardiendo en pocas repeticiones."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -476,7 +476,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Tríceps",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "triceps_patada__cable__bilateral",
                   "definitionId": "triceps_patada",
                   "familyId": "upper_elbow_extension_kickback",
@@ -571,7 +571,7 @@
                 "El acabado clásico que deja el tríceps ardiendo en pocas repeticiones."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
@@ -748,7 +748,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Tríceps",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "triceps_patada__dumbbells__unilateral",
                   "definitionId": "triceps_patada",
                   "familyId": "upper_elbow_extension_kickback",

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · quadriceps · biarticular lengthened",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El estiramiento cargado del cuádriceps que nadie hace y todos deberían."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
@@ -222,7 +222,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Nórdico Inverso (Reverse Nordic Curl)",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_reverse_nordic_peso_corporal__default",
                   "definitionId": "quads_reverse_nordic_peso_corporal",
                   "familyId": "lower_biarticular_lengthened",

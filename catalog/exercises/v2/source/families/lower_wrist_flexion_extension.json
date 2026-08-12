@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · forearm · wrist flexion extension",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El agarre que forjaba a los levantadores de antes, incómodo y eficaz."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
@@ -198,7 +198,7 @@
                 },
                 "identity": {
                   "canonicalName": "Enrollamiento de Muñeca con Rodillo y Cuerda",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forearms_enrollamiento_muneca_rodillo__default",
                   "definitionId": "forearms_enrollamiento_muneca_rodillo",
                   "familyId": "lower_wrist_flexion_extension",

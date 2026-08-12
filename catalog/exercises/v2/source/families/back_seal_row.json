@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Remo Seal",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Aislamiento de espalda en estado puro, sin lugar donde esconderse."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -245,7 +245,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Seal",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "seal_row__barbell",
                   "definitionId": "seal_row",
                   "familyId": "back_seal_row",
@@ -345,7 +345,7 @@
                 "Aislamiento de espalda en estado puro, sin lugar donde esconderse."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -563,7 +563,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Seal",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "seal_row__dumbbells",
                   "definitionId": "seal_row",
                   "familyId": "back_seal_row",

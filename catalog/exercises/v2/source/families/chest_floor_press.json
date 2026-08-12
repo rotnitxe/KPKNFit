@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Floor press",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Fuerza de empuje segura para quien entrena sin banco o cuida sus hombros."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 3.2,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -235,7 +235,7 @@
                 },
                 "identity": {
                   "canonicalName": "Floor Press",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "floor_press__barbell",
                   "definitionId": "floor_press",
                   "familyId": "chest_floor_press",
@@ -332,7 +332,7 @@
                 "Fuerza de empuje segura para quien entrena sin banco o cuida sus hombros."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.8,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -540,7 +540,7 @@
                 },
                 "identity": {
                   "canonicalName": "Floor Press",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "floor_press__dumbbells",
                   "definitionId": "floor_press",
                   "familyId": "chest_floor_press",

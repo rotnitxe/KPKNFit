@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Elevaciones posteriores",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El equilibrante postural que todo trabajador de escritorio necesita."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -230,7 +230,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Posteriores",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "rear_delt_raise__dumbbells",
                   "definitionId": "rear_delt_raise",
                   "familyId": "shoulder_rear_delt_raise",
@@ -329,7 +329,7 @@
                 "El equilibrante postural que todo trabajador de escritorio necesita."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -532,7 +532,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Posteriores",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "rear_delt_raise__cable",
                   "definitionId": "rear_delt_raise",
                   "familyId": "shoulder_rear_delt_raise",
@@ -631,7 +631,7 @@
                 "El equilibrante postural que todo trabajador de escritorio necesita."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
@@ -834,7 +834,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Posteriores",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "rear_delt_raise__machine",
                   "definitionId": "rear_delt_raise",
                   "familyId": "shoulder_rear_delt_raise",

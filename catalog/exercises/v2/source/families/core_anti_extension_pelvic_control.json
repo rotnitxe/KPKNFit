@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Core · abdominals · anti extension pelvic control",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El nivel al que aspiran los que dominan los crunches y buscan algo serio."
               ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Arquear la espalda, girar con la carga o perder la tensión al final."
@@ -199,7 +199,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dragon Flag",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "core_dragon_flag_banco_plano__default",
                   "definitionId": "core_dragon_flag_banco_plano",
                   "familyId": "core_anti_extension_pelvic_control",

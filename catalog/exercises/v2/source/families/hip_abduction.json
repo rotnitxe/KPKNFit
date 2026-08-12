@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Abducciones de Pierna",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
@@ -208,7 +208,7 @@
                 },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hip_abduction__seated__machine__bilateral",
                   "definitionId": "hip_abduction",
                   "familyId": "hip_abduction",
@@ -308,7 +308,7 @@
                 "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
@@ -489,7 +489,7 @@
                 },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hip_abduction__seated__machine__unilateral",
                   "definitionId": "hip_abduction",
                   "familyId": "hip_abduction",
@@ -569,6 +569,568 @@
             }
           },
           {
+            "displaySummary": "machine · standing · bilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#glutes_abduccion_cadera",
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
+              ],
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hip_abduction__standing__machine__bilateral",
+            "profile": {
+              "articulationType": "AISLADO",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "benefits": [
+                "La máquina fija la línea de la apertura y el trabajo del glúteo medio se concentra sin compensaciones. De pie, el lado que sostiene el cuerpo estabiliza la pelvis mientras la otra pierna abre.",
+                "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
+              ],
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-12-a",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
+              ],
+              "description": "Con máquina, a dos lados y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. La máquina guía la trayectoria del muslo y el apoyo de pie exige que la cadera de apoyo estabilice la pelvis mientras la otra pierna abre. El glúteo medio concentra el esfuerzo y la carga se dosifica sin distracciones.",
+              "efc": 2.8,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Máquina de pie con ambas piernas: la pierna se separa contra la almohadilla con el glúteo medio concentrado y la pelvis estable. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Abducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna se abre.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Pélvica"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna se abre.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna se abre.",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "hip_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_medius",
+                  "note": "Principal: El glúteo medio separa el muslo y evita que la pelvis caiga durante el apoyo. En la configuración Máquina · Trabajo Bilateral · Posición De Pie, la cadera de apoyo estabiliza mientras la otra pierna abre. Su función define cuánto contribuye la serie al estímulo muscular total."
+                },
+                {
+                  "muscleId": "tensor_fasciae_latae",
+                  "note": "Secundaria: El tensor de la fascia lata asiste la abducción y ayuda a estabilizar la cadera en el plano frontal. En la configuración Máquina · Trabajo Bilateral · Posición De Pie, la cadera de apoyo estabiliza mientras la otra pierna abre. Su función define cuánto contribuye la serie al estímulo muscular total."
+                }
+              ],
+              "performanceProfileId": "hip_abduction__machine__abduccion_de_cadera",
+              "primaryMuscles": [
+                "gluteus_medius"
+              ],
+              "replacementGroup": "glute_med_abduction",
+              "replacementPriority": 1,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Abducción",
+                    "Estabilidad Pélvica",
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Abducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna se abre.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Pélvica"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna se abre.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación Del Miembro Inferior"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna se abre.",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "gluteus_medius"
+                  ],
+                  "secondaryMuscles": [
+                    "tensor_fasciae_latae"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "gluteus_medius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "hip_abduction",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
+                  ],
+                  "relevantTendons": [
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
+                  ],
+                  "cues": [
+                    "Máquina de pie con ambas piernas: la pierna se separa contra la almohadilla con el glúteo medio concentrado y la pelvis estable. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline."
+                  ],
+                  "execution": [
+                    "Máquina de pie con ambas piernas: la pierna se separa contra la almohadilla con el glúteo medio concentrado y la pelvis estable. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline."
+                  ],
+                  "progressions": [
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadera lateral y mejorar el control de la pelvis siga siendo perceptible sin compensaciones."
+                  ],
+                  "regressions": [
+                    "Reducir la carga o el rango y conservar separación de la pierna y estabilidad pélvica como referencia técnica."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Preparación: Máquina de pie con ambas piernas: coloca las almohadillas a la altura de la rodilla y afirma el apoyo antes de abrir."
+                  ]
+                },
+                "display": {
+                  "displayName": "Abducciones de Pierna",
+                  "displaySummary": "machine · standing · bilateral",
+                  "selectedOptions": {
+                    "implement": "machine",
+                    "laterality": "bilateral",
+                    "station": "standing"
+                  }
+                },
+                "editorial": {
+                  "benefits": [
+                    "La máquina fija la línea de la apertura y el trabajo del glúteo medio se concentra sin compensaciones. De pie, el lado que sostiene el cuerpo estabiliza la pelvis mientras la otra pierna abre.",
+                    "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
+                  ],
+                  "description": "Con máquina, a dos lados y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. La máquina guía la trayectoria del muslo y el apoyo de pie exige que la cadera de apoyo estabilice la pelvis mientras la otra pierna abre. El glúteo medio concentra el esfuerzo y la carga se dosifica sin distracciones.",
+                  "technique": "Máquina de pie con ambas piernas: la pierna se separa contra la almohadilla con el glúteo medio concentrado y la pelvis estable. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline.",
+                  "variantRationale": "Máquina de pie con ambas piernas: la pierna se separa contra la almohadilla con el glúteo medio concentrado y la pelvis estable. La versión de pie de la máquina de abducción."
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.5,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Abducciones de Pierna",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "configurationId": "hip_abduction__standing__machine__bilateral",
+                  "definitionId": "hip_abduction",
+                  "familyId": "hip_abduction",
+                  "kind": "PARENT",
+                  "performanceProfileId": "hip_abduction__machine__abduccion_de_cadera",
+                  "searchTerms": [
+                    "abducción de cadera",
+                    "abducción de cadera en máquina",
+                    "abducción de cadera sentado en máquina",
+                    "glutes abduccion cadera"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar el glúteo medio mediante Abducciones de Pierna en la variante Máquina · Trabajo Bilateral · Posición De Pie.",
+                    "Priorizar fortalecer la cadera lateral y mejorar el control de la pelvis con la línea de resistencia elegida."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine",
+                    "cable",
+                    "band"
+                  ],
+                  "preservesIntent": [
+                    "Conserva separación de la pierna y estabilidad pélvica y el objetivo de el glúteo medio.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
+                  ],
+                  "replacementGroup": "glute_med_abduction",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "tensor_fasciae_latae"
+              ],
+              "setupCues": [
+                "Preparación: Máquina de pie con ambas piernas: coloca las almohadillas a la altura de la rodilla y afirma el apoyo antes de abrir."
+              ],
+              "setupTimeSeconds": 45,
+              "ssc": 0.5,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.5,
+              "techniqueSummary": "Máquina de pie con ambas piernas: la pierna se separa contra la almohadilla con el glúteo medio concentrado y la pelvis estable. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline.",
+              "ttc": 2.0,
+              "variantRationale": "Máquina de pie con ambas piernas: la pierna se separa contra la almohadilla con el glúteo medio concentrado y la pelvis estable. La versión de pie de la máquina de abducción."
+            },
+            "selectedOptions": {
+              "implement": "machine",
+              "laterality": "bilateral",
+              "station": "standing"
+            }
+          },
+          {
+            "displaySummary": "machine · standing · unilateral",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#glutes_abduccion_cadera",
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
+              ],
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "hip_abduction__standing__machine__unilateral",
+            "profile": {
+              "articulationType": "AISLADO",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "benefits": [
+                "La máquina fija la línea de la apertura y el trabajo a una pierna aísla cada glúteo medio para corregir asimetrías. De pie, la cadera de apoyo estabiliza la pelvis mientras la otra pierna abre.",
+                "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
+              ],
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-12-a",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
+              ],
+              "description": "Con máquina, a un lado y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. La máquina guía la trayectoria y el trabajo a una pierna deja al descubierto las diferencias entre caderas. El apoyo de pie exige estabilizar la pelvis mientras el glúteo medio de la pierna que abre concentra el esfuerzo.",
+              "efc": 2.8,
+              "equipmentId": "machine",
+              "executionCues": [
+                "Máquina de pie de un lado a la vez: la pierna se separa contra la almohadilla con el glúteo medio concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Abducción"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Pélvica"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "UNILATERAL",
+              "loadMode": "guided_external_load",
+              "movementPatternId": "hip_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_medius",
+                  "note": "Principal: El glúteo medio separa el muslo y evita que la pelvis caiga durante el apoyo. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido, y el apoyo de pie suma sostener el tronco. Su función define cuánto contribuye la serie al estímulo muscular total."
+                },
+                {
+                  "muscleId": "tensor_fasciae_latae",
+                  "note": "Secundaria: El tensor de la fascia lata asiste la abducción y ayuda a estabilizar la cadera en el plano frontal. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido, y el apoyo de pie suma sostener el tronco. Su función define cuánto contribuye la serie al estímulo muscular total."
+                }
+              ],
+              "performanceProfileId": "hip_abduction__machine__abduccion_de_cadera_unilateral",
+              "primaryMuscles": [
+                "gluteus_medius"
+              ],
+              "replacementGroup": "glute_med_abduction",
+              "replacementPriority": 1,
+              "resistanceProfile": "guided_constant",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Abducción",
+                    "Estabilidad Pélvica",
+                    "Alineación Del Miembro Inferior"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Abducción"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Pélvica"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación Del Miembro Inferior"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "gluteus_medius"
+                  ],
+                  "secondaryMuscles": [
+                    "tensor_fasciae_latae"
+                  ],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [],
+                  "targetRegions": [
+                    "gluteus_medius"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "machine",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "UNILATERAL",
+                  "loadMode": "guided_external_load",
+                  "movementPatternId": "hip_abduction",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "cadera",
+                    "sacroiliaca",
+                    "rodilla"
+                  ],
+                  "relevantTendons": [
+                    "tendon-iliopsoas",
+                    "tendon-rotuliano",
+                    "tendon-cuádriceps",
+                    "tendon-isquiotibiales"
+                  ],
+                  "resistanceProfile": "guided_constant",
+                  "stability": "guided"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
+                  ],
+                  "cues": [
+                    "Máquina de pie de un lado a la vez: la pierna se separa contra la almohadilla con el glúteo medio concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline."
+                  ],
+                  "execution": [
+                    "Máquina de pie de un lado a la vez: la pierna se separa contra la almohadilla con el glúteo medio concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline."
+                  ],
+                  "progressions": [
+                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadera lateral y mejorar el control de la pelvis siga siendo perceptible sin compensaciones."
+                  ],
+                  "regressions": [
+                    "Reducir la carga o el rango y conservar separación de la pierna y estabilidad pélvica como referencia técnica."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Preparación: Máquina de pie de un lado a la vez: ajusta la almohadilla a la altura de la rodilla y afirma el apoyo antes de abrir."
+                  ]
+                },
+                "display": {
+                  "displayName": "Abducciones de Pierna",
+                  "displaySummary": "machine · standing · unilateral",
+                  "selectedOptions": {
+                    "implement": "machine",
+                    "laterality": "unilateral",
+                    "station": "standing"
+                  }
+                },
+                "editorial": {
+                  "benefits": [
+                    "La máquina fija la línea de la apertura y el trabajo a una pierna aísla cada glúteo medio para corregir asimetrías. De pie, la cadera de apoyo estabiliza la pelvis mientras la otra pierna abre.",
+                    "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
+                  ],
+                  "description": "Con máquina, a un lado y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. La máquina guía la trayectoria y el trabajo a una pierna deja al descubierto las diferencias entre caderas. El apoyo de pie exige estabilizar la pelvis mientras el glúteo medio de la pierna que abre concentra el esfuerzo.",
+                  "technique": "Máquina de pie de un lado a la vez: la pierna se separa contra la almohadilla con el glúteo medio concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline.",
+                  "variantRationale": "Máquina de pie de un lado a la vez: la pierna se separa contra la almohadilla con el glúteo medio concentrado y comparas cada lado. Ideal para corregir asimetrías de cadera."
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.5,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Abducciones de Pierna",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "configurationId": "hip_abduction__standing__machine__unilateral",
+                  "definitionId": "hip_abduction",
+                  "familyId": "hip_abduction",
+                  "kind": "PARENT",
+                  "performanceProfileId": "hip_abduction__machine__abduccion_de_cadera_unilateral",
+                  "searchTerms": [
+                    "abducción de cadera",
+                    "abducción de cadera en máquina",
+                    "abducción de cadera sentado en máquina",
+                    "glutes abduccion cadera"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar el glúteo medio mediante Abducciones de Pierna en la variante Máquina · Trabajo Unilateral · Posición De Pie.",
+                    "Priorizar fortalecer la cadera lateral y mejorar el control de la pelvis con la línea de resistencia elegida."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "machine"
+                  ],
+                  "role": "accessory_isolation",
+                  "setupTransitionCost": "high",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "machine",
+                    "cable",
+                    "band"
+                  ],
+                  "preservesIntent": [
+                    "Conserva separación de la pierna y estabilidad pélvica y el objetivo de el glúteo medio.",
+                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
+                  ],
+                  "replacementGroup": "glute_med_abduction",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": []
+                }
+              },
+              "secondaryMuscles": [
+                "tensor_fasciae_latae"
+              ],
+              "setupCues": [
+                "Preparación: Máquina de pie de un lado a la vez: ajusta la almohadilla a la altura de la rodilla y afirma el apoyo antes de abrir."
+              ],
+              "setupTimeSeconds": 45,
+              "ssc": 0.5,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.5,
+              "techniqueSummary": "Máquina de pie de un lado a la vez: la pierna se separa contra la almohadilla con el glúteo medio concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline.",
+              "ttc": 2.0,
+              "variantRationale": "Máquina de pie de un lado a la vez: la pierna se separa contra la almohadilla con el glúteo medio concentrado y comparas cada lado. Ideal para corregir asimetrías de cadera."
+            },
+            "selectedOptions": {
+              "implement": "machine",
+              "laterality": "unilateral",
+              "station": "standing"
+            }
+          },
+          {
             "displaySummary": "cable · standing · bilateral",
             "evidence": {
               "confidence": "MEDIUM",
@@ -589,7 +1151,7 @@
                 "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
@@ -770,7 +1332,7 @@
                 },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hip_abduction__standing__cable__bilateral",
                   "definitionId": "hip_abduction",
                   "familyId": "hip_abduction",
@@ -870,7 +1432,7 @@
                 "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
@@ -1051,7 +1613,7 @@
                 },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hip_abduction__standing__cable__unilateral",
                   "definitionId": "hip_abduction",
                   "familyId": "hip_abduction",
@@ -1151,7 +1713,7 @@
                 "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
@@ -1332,7 +1894,7 @@
                 },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hip_abduction__standing__band__bilateral",
                   "definitionId": "hip_abduction",
                   "familyId": "hip_abduction",
@@ -1432,7 +1994,7 @@
                 "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
@@ -1613,7 +2175,7 @@
                 },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hip_abduction__standing__band__unilateral",
                   "definitionId": "hip_abduction",
                   "familyId": "hip_abduction",

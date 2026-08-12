@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Sentadilla péndulo",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Una de las máquinas más intensas que existen para el muslo frontal."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -224,7 +224,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla en Máquina Pendular",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "pendulum_squat__bilateral",
                   "definitionId": "pendulum_squat",
                   "familyId": "lower_knee_dominant_pendulum",
@@ -319,7 +319,7 @@
                 "Una de las máquinas más intensas que existen para el muslo frontal."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -517,7 +517,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla en Máquina Pendular",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "pendulum_squat__unilateral",
                   "definitionId": "pendulum_squat",
                   "familyId": "lower_knee_dominant_pendulum",

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Press de Banca",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -241,7 +241,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Plano",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "bench_press__barbell",
                   "definitionId": "bench_press",
                   "familyId": "chest_press",
@@ -349,7 +349,7 @@
                 "El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -563,7 +563,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Plano",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "bench_press__dumbbells",
                   "definitionId": "bench_press",
                   "familyId": "chest_press",
@@ -671,7 +671,7 @@
                 "El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -885,7 +885,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Plano",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "bench_press__smith_machine",
                   "definitionId": "bench_press",
                   "familyId": "chest_press",
@@ -993,7 +993,7 @@
                 "El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -1201,7 +1201,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Plano",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "bench_press__machine",
                   "definitionId": "bench_press",
                   "familyId": "chest_press",
@@ -1307,7 +1307,7 @@
                 "El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -1521,7 +1521,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Plano",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "bench_press__cable",
                   "definitionId": "bench_press",
                   "familyId": "chest_press",
@@ -1629,7 +1629,7 @@
                 "El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -1843,7 +1843,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Plano",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "bench_press__kettlebell",
                   "definitionId": "bench_press",
                   "familyId": "chest_press",
@@ -1985,7 +1985,7 @@
                 "El especialista en dar densidad a la parte inferior del torso."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -2199,7 +2199,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Declinado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "decline_bench_press__barbell",
                   "definitionId": "decline_bench_press",
                   "familyId": "chest_press",
@@ -2299,7 +2299,7 @@
                 "El especialista en dar densidad a la parte inferior del torso."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -2513,7 +2513,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Declinado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "decline_bench_press__dumbbells",
                   "definitionId": "decline_bench_press",
                   "familyId": "chest_press",
@@ -2613,7 +2613,7 @@
                 "El especialista en dar densidad a la parte inferior del torso."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -2827,7 +2827,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Declinado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "decline_bench_press__smith_machine",
                   "definitionId": "decline_bench_press",
                   "familyId": "chest_press",
@@ -2927,7 +2927,7 @@
                 "El especialista en dar densidad a la parte inferior del torso."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -3135,7 +3135,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Declinado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "decline_bench_press__machine",
                   "definitionId": "decline_bench_press",
                   "familyId": "chest_press",
@@ -3233,7 +3233,7 @@
                 "El especialista en dar densidad a la parte inferior del torso."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -3447,7 +3447,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Declinado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "decline_bench_press__cable",
                   "definitionId": "decline_bench_press",
                   "familyId": "chest_press",
@@ -3547,7 +3547,7 @@
                 "El especialista en dar densidad a la parte inferior del torso."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -3761,7 +3761,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Declinado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "decline_bench_press__kettlebell",
                   "definitionId": "decline_bench_press",
                   "familyId": "chest_press",
@@ -3887,7 +3887,7 @@
                 "El complemento obligado para que el torso no se desarrolle solo por abajo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -4101,7 +4101,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Inclinado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "incline_bench_press__barbell",
                   "definitionId": "incline_bench_press",
                   "familyId": "chest_press",
@@ -4201,7 +4201,7 @@
                 "El complemento obligado para que el torso no se desarrolle solo por abajo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -4415,7 +4415,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Inclinado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "incline_bench_press__dumbbells",
                   "definitionId": "incline_bench_press",
                   "familyId": "chest_press",
@@ -4515,7 +4515,7 @@
                 "El complemento obligado para que el torso no se desarrolle solo por abajo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -4729,7 +4729,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Inclinado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "incline_bench_press__smith_machine",
                   "definitionId": "incline_bench_press",
                   "familyId": "chest_press",
@@ -4829,7 +4829,7 @@
                 "El complemento obligado para que el torso no se desarrolle solo por abajo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -5037,7 +5037,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Inclinado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "incline_bench_press__machine",
                   "definitionId": "incline_bench_press",
                   "familyId": "chest_press",
@@ -5135,7 +5135,7 @@
                 "El complemento obligado para que el torso no se desarrolle solo por abajo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -5349,7 +5349,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Inclinado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "incline_bench_press__cable",
                   "definitionId": "incline_bench_press",
                   "familyId": "chest_press",
@@ -5449,7 +5449,7 @@
                 "El complemento obligado para que el torso no se desarrolle solo por abajo."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 4.0,
               "commonMistakes": [
                 "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
@@ -5663,7 +5663,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press de Banca Inclinado",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "incline_bench_press__kettlebell",
                   "definitionId": "incline_bench_press",
                   "familyId": "chest_press",

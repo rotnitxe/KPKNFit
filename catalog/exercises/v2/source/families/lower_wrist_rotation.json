@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Rotaciones de Antebrazo",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El detalle que protege el codo en curls y dominadas."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
@@ -206,7 +206,7 @@
                 },
                 "identity": {
                   "canonicalName": "Supinaciones",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "supination__dumbbells",
                   "definitionId": "supination",
                   "familyId": "lower_wrist_rotation",
@@ -303,7 +303,7 @@
                 "El detalle que protege el codo en curls y dominadas."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
@@ -482,7 +482,7 @@
                 },
                 "identity": {
                   "canonicalName": "Supinaciones",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "supination__cable",
                   "definitionId": "supination",
                   "familyId": "lower_wrist_rotation",
@@ -606,7 +606,7 @@
                 "El complemento que cierra el círculo de la salud del antebrazo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
@@ -779,7 +779,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pronaciones",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "pronation__dumbbells",
                   "definitionId": "pronation",
                   "familyId": "lower_wrist_rotation",
@@ -874,7 +874,7 @@
                 "El complemento que cierra el círculo de la salud del antebrazo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
@@ -1047,7 +1047,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pronaciones",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "pronation__cable",
                   "definitionId": "pronation",
                   "familyId": "lower_wrist_rotation",

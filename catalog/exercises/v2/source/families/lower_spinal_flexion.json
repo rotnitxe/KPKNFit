@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · erector spinae · spinal flexion",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La lección de movilidad de la columna que pocos practican y muchos necesitan."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
@@ -209,7 +209,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jefferson Curl",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_jefferson_curl__barbell",
                   "definitionId": "back_jefferson_curl",
                   "familyId": "lower_spinal_flexion",
@@ -310,7 +310,7 @@
                 "La lección de movilidad de la columna que pocos practican y muchos necesitan."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
@@ -492,7 +492,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jefferson Curl",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_jefferson_curl__dumbbells",
                   "definitionId": "back_jefferson_curl",
                   "familyId": "lower_spinal_flexion",
@@ -593,7 +593,7 @@
                 "La lección de movilidad de la columna que pocos practican y muchos necesitan."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
@@ -775,7 +775,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jefferson Curl",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_jefferson_curl__smith_machine",
                   "definitionId": "back_jefferson_curl",
                   "familyId": "lower_spinal_flexion",
@@ -876,7 +876,7 @@
                 "La lección de movilidad de la columna que pocos practican y muchos necesitan."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
@@ -1058,7 +1058,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jefferson Curl",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "back_jefferson_curl__cable",
                   "definitionId": "back_jefferson_curl",
                   "familyId": "lower_spinal_flexion",

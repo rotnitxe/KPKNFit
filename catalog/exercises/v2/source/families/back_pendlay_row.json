@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Remo Pendlay",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El remo de los que entrenan fuerza explosiva, sin concesiones."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -257,7 +257,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "pendlay_row__barbell",
                   "definitionId": "pendlay_row",
                   "familyId": "back_pendlay_row",
@@ -359,7 +359,7 @@
                 "El remo de los que entrenan fuerza explosiva, sin concesiones."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -589,7 +589,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "pendlay_row__dumbbells",
                   "definitionId": "pendlay_row",
                   "familyId": "back_pendlay_row",
@@ -689,7 +689,7 @@
                 "El remo de los que entrenan fuerza explosiva, sin concesiones."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -919,7 +919,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "pendlay_row__machine",
                   "definitionId": "pendlay_row",
                   "familyId": "back_pendlay_row",
@@ -1021,7 +1021,7 @@
                 "El remo de los que entrenan fuerza explosiva, sin concesiones."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -1251,7 +1251,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "pendlay_row__smith_machine",
                   "definitionId": "pendlay_row",
                   "familyId": "back_pendlay_row",
@@ -1353,7 +1353,7 @@
                 "El remo de los que entrenan fuerza explosiva, sin concesiones."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -1583,7 +1583,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "pendlay_row__kettlebell",
                   "definitionId": "pendlay_row",
                   "familyId": "back_pendlay_row",
@@ -1685,7 +1685,7 @@
                 "El remo de los que entrenan fuerza explosiva, sin concesiones."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -1915,7 +1915,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "pendlay_row__cable",
                   "definitionId": "pendlay_row",
                   "familyId": "back_pendlay_row",

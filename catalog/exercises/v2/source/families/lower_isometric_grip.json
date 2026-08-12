@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · forearm · isometric grip",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La base de todo agarre fuerte y una descompresión de columna de regalo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Arquear la espalda, girar con la carga o perder la tensión al final."
@@ -199,7 +199,7 @@
                 },
                 "identity": {
                   "canonicalName": "Suspensión Isométrica en Barra Fija (Dead Hang)",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forearms_suspension_isometrica_barra_fija__default",
                   "definitionId": "forearms_suspension_isometrica_barra_fija",
                   "familyId": "lower_isometric_grip",
@@ -312,7 +312,7 @@
                 "La prueba de agarre más honesta y más simple del mundo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Arquear la espalda, girar con la carga o perder la tensión al final."
@@ -492,7 +492,7 @@
                 },
                 "identity": {
                   "canonicalName": "Paseo del Granjero",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forearms_paseo_del_granjero__dumbbells",
                   "definitionId": "forearms_paseo_del_granjero",
                   "familyId": "lower_isometric_grip",
@@ -592,7 +592,7 @@
                 "La prueba de agarre más honesta y más simple del mundo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Arquear la espalda, girar con la carga o perder la tensión al final."
@@ -772,7 +772,7 @@
                 },
                 "identity": {
                   "canonicalName": "Paseo del Granjero",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forearms_paseo_del_granjero__kettlebell",
                   "definitionId": "forearms_paseo_del_granjero",
                   "familyId": "lower_isometric_grip",
@@ -872,7 +872,7 @@
                 "La prueba de agarre más honesta y más simple del mundo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Arquear la espalda, girar con la carga o perder la tensión al final."
@@ -1052,7 +1052,7 @@
                 },
                 "identity": {
                   "canonicalName": "Paseo del Granjero",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forearms_paseo_del_granjero__plate",
                   "definitionId": "forearms_paseo_del_granjero",
                   "familyId": "lower_isometric_grip",
@@ -1152,7 +1152,7 @@
                 "La prueba de agarre más honesta y más simple del mundo."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Arquear la espalda, girar con la carga o perder la tensión al final."
@@ -1332,7 +1332,7 @@
                 },
                 "identity": {
                   "canonicalName": "Paseo del Granjero",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "forearms_paseo_del_granjero__hex_bar",
                   "definitionId": "forearms_paseo_del_granjero",
                   "familyId": "lower_isometric_grip",

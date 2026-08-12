@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren superior · deltoid · vertical push",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El puente explosivo entre la fuerza de piernas y la potencia del tren superior."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.8,
               "commonMistakes": [
                 "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
@@ -228,7 +228,7 @@
                 },
                 "identity": {
                   "canonicalName": "Push Press",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "deltoides_push_press__default",
                   "definitionId": "deltoides_push_press",
                   "familyId": "upper_vertical_push",

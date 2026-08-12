@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · hamstrings · eccentric knee flexion",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La referencia mundial para proteger los isquiosurales de lesiones."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
@@ -222,7 +222,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Nórdico (Nordic Hamstring Curl)",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "hams_curl_nordic_peso_corporal__default",
                   "definitionId": "hams_curl_nordic_peso_corporal",
                   "familyId": "lower_eccentric_knee_flexion",

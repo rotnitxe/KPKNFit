@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Elevación de talones",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El camino más corto a unas pantorrillas que se noten."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
@@ -201,7 +201,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "calf_raise__bilateral__machine",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -299,7 +299,7 @@
                 "El camino más corto a unas pantorrillas que se noten."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
@@ -473,7 +473,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "calf_raise__unilateral__machine",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -571,7 +571,7 @@
                 "El camino más corto a unas pantorrillas que se noten."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
@@ -745,7 +745,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "calf_raise__bilateral__barbell",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -843,7 +843,7 @@
                 "El camino más corto a unas pantorrillas que se noten."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
@@ -1017,7 +1017,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "calf_raise__unilateral__barbell",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -1115,7 +1115,7 @@
                 "El camino más corto a unas pantorrillas que se noten."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
@@ -1289,7 +1289,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "calf_raise__bilateral__smith_machine",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -1387,7 +1387,7 @@
                 "El camino más corto a unas pantorrillas que se noten."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
@@ -1561,7 +1561,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "calf_raise__unilateral__smith_machine",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -1659,7 +1659,7 @@
                 "El camino más corto a unas pantorrillas que se noten."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
@@ -1833,7 +1833,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "calf_raise__bilateral__cable",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",
@@ -1931,7 +1931,7 @@
                 "El camino más corto a unas pantorrillas que se noten."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
@@ -2105,7 +2105,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "calf_raise__unilateral__cable",
                   "definitionId": "calf_raise",
                   "familyId": "lower_plantar_flexion",

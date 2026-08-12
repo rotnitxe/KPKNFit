@@ -29,12 +29,12 @@ class ExerciseCatalogContractTest {
     @Test
     fun approved_catalog_has_stable_schema_and_unique_exact_identities() {
         assertEquals(2, catalog.schemaVersion)
-        assertEquals("v2-approved-2026-08-10-c", catalog.catalogRevision)
+        assertEquals("v2-approved-2026-08-12-a", catalog.catalogRevision)
         assertEquals(catalog.families.size, catalog.families.map { it.id }.distinct().size)
         assertEquals(definitions.size, definitions.map { it.id }.distinct().size)
         assertEquals(configurations.size, configurations.map { it.id }.distinct().size)
         assertEquals(196, definitions.size)
-        assertEquals(518, configurations.size)
+        assertEquals(521, configurations.size)
     }
 
     @Test

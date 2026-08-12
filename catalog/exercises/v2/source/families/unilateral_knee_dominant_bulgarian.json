@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Sentadilla Búlgara",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El ejercicio unilateral más temido y más efectivo para las piernas."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -231,7 +231,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "bulgarian_split_squat__barbell",
                   "definitionId": "bulgarian_split_squat",
                   "familyId": "unilateral_knee_dominant_bulgarian",
@@ -326,7 +326,7 @@
                 "El ejercicio unilateral más temido y más efectivo para las piernas."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -530,7 +530,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "bulgarian_split_squat__smith_machine",
                   "definitionId": "bulgarian_split_squat",
                   "familyId": "unilateral_knee_dominant_bulgarian",
@@ -625,7 +625,7 @@
                 "El ejercicio unilateral más temido y más efectivo para las piernas."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -829,7 +829,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "bulgarian_split_squat__machine",
                   "definitionId": "bulgarian_split_squat",
                   "familyId": "unilateral_knee_dominant_bulgarian",
@@ -924,7 +924,7 @@
                 "El ejercicio unilateral más temido y más efectivo para las piernas."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -1128,7 +1128,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "bulgarian_split_squat__dumbbells",
                   "definitionId": "bulgarian_split_squat",
                   "familyId": "unilateral_knee_dominant_bulgarian",
@@ -1223,7 +1223,7 @@
                 "El ejercicio unilateral más temido y más efectivo para las piernas."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -1427,7 +1427,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "bulgarian_split_squat__cable",
                   "definitionId": "bulgarian_split_squat",
                   "familyId": "unilateral_knee_dominant_bulgarian",
@@ -1522,7 +1522,7 @@
                 "El ejercicio unilateral más temido y más efectivo para las piernas."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -1726,7 +1726,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "bulgarian_split_squat__kettlebell",
                   "definitionId": "bulgarian_split_squat",
                   "familyId": "unilateral_knee_dominant_bulgarian",
@@ -1847,7 +1847,7 @@
                 "La búlgara más incómoda y una de las más completas que existen."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -2048,7 +2048,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara Zercher",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "bulgarian_zercher__barbell__zercher",
                   "definitionId": "bulgarian_zercher",
                   "familyId": "unilateral_knee_dominant_bulgarian",

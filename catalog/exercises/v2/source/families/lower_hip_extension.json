@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · gluteus maximus · hip extension",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El clásico del banco romano pensado para el trasero."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -230,7 +230,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hiperextensiones a 45° para Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_hiperextension_45__dumbbells",
                   "definitionId": "glutes_hiperextension_45",
                   "familyId": "lower_hip_extension",
@@ -331,7 +331,7 @@
                 "El clásico del banco romano pensado para el trasero."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -534,7 +534,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hiperextensiones a 45° para Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_hiperextension_45__barbell",
                   "definitionId": "glutes_hiperextension_45",
                   "familyId": "lower_hip_extension",
@@ -635,7 +635,7 @@
                 "El clásico del banco romano pensado para el trasero."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -838,7 +838,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hiperextensiones a 45° para Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_hiperextension_45__plate",
                   "definitionId": "glutes_hiperextension_45",
                   "familyId": "lower_hip_extension",
@@ -939,7 +939,7 @@
                 "El clásico del banco romano pensado para el trasero."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -1142,7 +1142,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hiperextensiones a 45° para Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_hiperextension_45__smith_machine",
                   "definitionId": "glutes_hiperextension_45",
                   "familyId": "lower_hip_extension",
@@ -1270,7 +1270,7 @@
                 "El conector mente-glúteo por excelencia."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -1461,7 +1461,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Glúteo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_patada_gluteo__cable",
                   "definitionId": "glutes_patada_gluteo",
                   "familyId": "lower_hip_extension",
@@ -1557,7 +1557,7 @@
                 "El conector mente-glúteo por excelencia."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -1748,7 +1748,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Glúteo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_patada_gluteo__dumbbells",
                   "definitionId": "glutes_patada_gluteo",
                   "familyId": "lower_hip_extension",
@@ -1844,7 +1844,7 @@
                 "El conector mente-glúteo por excelencia."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -2035,7 +2035,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Glúteo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_patada_gluteo__band",
                   "definitionId": "glutes_patada_gluteo",
                   "familyId": "lower_hip_extension",
@@ -2158,7 +2158,7 @@
                 "El primer escalón del desarrollo glúteo y un bálsamo lumbar."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -2350,7 +2350,7 @@
                 },
                 "identity": {
                   "canonicalName": "Puente de Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_puente_gluteos__bilateral__barbell",
                   "definitionId": "glutes_puente_gluteos",
                   "familyId": "lower_hip_extension",
@@ -2447,7 +2447,7 @@
                 "El primer escalón del desarrollo glúteo y un bálsamo lumbar."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -2639,7 +2639,7 @@
                 },
                 "identity": {
                   "canonicalName": "Puente de Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_puente_gluteos__unilateral__barbell",
                   "definitionId": "glutes_puente_gluteos",
                   "familyId": "lower_hip_extension",
@@ -2736,7 +2736,7 @@
                 "El primer escalón del desarrollo glúteo y un bálsamo lumbar."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -2928,7 +2928,7 @@
                 },
                 "identity": {
                   "canonicalName": "Puente de Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_puente_gluteos__bilateral__dumbbells",
                   "definitionId": "glutes_puente_gluteos",
                   "familyId": "lower_hip_extension",
@@ -3025,7 +3025,7 @@
                 "El primer escalón del desarrollo glúteo y un bálsamo lumbar."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -3217,7 +3217,7 @@
                 },
                 "identity": {
                   "canonicalName": "Puente de Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_puente_gluteos__unilateral__dumbbells",
                   "definitionId": "glutes_puente_gluteos",
                   "familyId": "lower_hip_extension",
@@ -3314,7 +3314,7 @@
                 "El primer escalón del desarrollo glúteo y un bálsamo lumbar."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -3506,7 +3506,7 @@
                 },
                 "identity": {
                   "canonicalName": "Puente de Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_puente_gluteos__bilateral__smith_machine",
                   "definitionId": "glutes_puente_gluteos",
                   "familyId": "lower_hip_extension",
@@ -3603,7 +3603,7 @@
                 "El primer escalón del desarrollo glúteo y un bálsamo lumbar."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -3795,7 +3795,7 @@
                 },
                 "identity": {
                   "canonicalName": "Puente de Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_puente_gluteos__unilateral__smith_machine",
                   "definitionId": "glutes_puente_gluteos",
                   "familyId": "lower_hip_extension",
@@ -3920,7 +3920,7 @@
                 "El secreto de los powerlifters para una lumbar que dura décadas."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -4120,7 +4120,7 @@
                 },
                 "identity": {
                   "canonicalName": "Reverse Hyper",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "reverse_hyper__machine",
                   "definitionId": "reverse_hyper",
                   "familyId": "lower_hip_extension",
@@ -4240,7 +4240,7 @@
                 "Otra manera de cargar el banco romano, con el torso trabajando el doble."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -4441,7 +4441,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hiperextensión a 45 Zercher para Glúteos",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_hiperextension_45_zercher__default",
                   "definitionId": "glutes_hiperextension_45_zercher",
                   "familyId": "lower_hip_extension",

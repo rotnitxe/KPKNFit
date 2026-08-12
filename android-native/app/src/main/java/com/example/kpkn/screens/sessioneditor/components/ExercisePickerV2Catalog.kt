@@ -155,6 +155,42 @@ internal fun catalogSearchResultsAreCurrent(
     isSettled: Boolean,
 ): Boolean = query == committedQuery && isSettled
 
+/**
+ * Lista visible del catálogo para una consulta.
+ *
+ * Mientras la búsqueda no está asentada se conserva la última lista estable:
+ * vaciar la lista en cada tecla pintaba la pantalla de negro durante el
+ * debounce (fondo opaco + tarjetas transparentes = flash negro).
+ */
+internal fun visibleDefinitionsForQuery(
+    catalog: ExerciseCatalogV2,
+    query: String,
+    searchSettled: Boolean,
+    searchHits: List<ExerciseSearchHitV2>,
+    filterRegion: String?,
+    filterMuscle: String?,
+    definitionsById: Map<String, ExerciseDefinitionV2>,
+    previousStable: List<ExerciseDefinitionV2>,
+): List<ExerciseDefinitionV2> {
+    fun definitionMatchesFilter(definition: ExerciseDefinitionV2): Boolean {
+        val configs = definition.configurations
+        if (filterRegion != null && configs.none { it.profile.bodyRegion.name == filterRegion }) return false
+        if (filterMuscle != null && configs.none { config -> config.profile.primaryMuscles.contains(filterMuscle) }) return false
+        return true
+    }
+
+    return when {
+        query.isBlank() -> catalog.families
+            .flatMap { it.definitions }
+            .filter(::definitionMatchesFilter)
+            .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.canonicalName })
+        searchSettled -> searchHits
+            .mapNotNull { hit -> definitionsById[hit.definitionId] }
+            .distinctBy { it.id }
+        else -> previousStable
+    }
+}
+
 internal fun toggleCatalogDefinitionExpansion(
     currentDefinitionId: String?,
     tappedDefinitionId: String,
@@ -356,6 +392,7 @@ private fun CatalogFoldedVariantChips(
     values: List<String>,
     selectedValue: String?,
     singleLine: Boolean,
+    onVariantSelected: (String) -> Unit,
 ) {
     if (values.isEmpty()) return
 
@@ -375,6 +412,7 @@ private fun CatalogFoldedVariantChips(
                     if (selected) Color.White.copy(alpha = 0.92f)
                     else Color.White.copy(alpha = 0.10f),
                 )
+                .clickable { onVariantSelected(value) }
                 .padding(horizontal = 8.dp, vertical = 3.dp),
         ) {
             Text(
@@ -863,12 +901,6 @@ private fun ColumnScope.CatalogReadyContent(
             muscleIds = filterMuscle?.let { setOf(it) }.orEmpty(),
         )
     }
-    fun definitionMatchesFilter(definition: ExerciseDefinitionV2): Boolean {
-        val configs = definition.configurations
-        if (filterRegion != null && configs.none { it.profile.bodyRegion.name == filterRegion }) return false
-        if (filterMuscle != null && configs.none { config -> config.profile.primaryMuscles.contains(filterMuscle) }) return false
-        return true
-    }
     // Debounced search: one fuzzy pass per ~150 ms pause on Dispatchers.Default
     // instead of a synchronous stemming pass on the main thread per keystroke.
     // Keep the query that produced the hits alongside them; otherwise a new
@@ -889,9 +921,14 @@ private fun ColumnScope.CatalogReadyContent(
                         isSettled = true,
                     )
                 } else {
+                    val hasActiveFilters = searchFilters.bodyRegions.isNotEmpty() || searchFilters.muscleIds.isNotEmpty()
                     val (filteredHits, globalHits) = withContext(Dispatchers.Default) {
-                        repository.search(committedQuery, searchFilters) to
-                            repository.search(committedQuery)
+                        if (hasActiveFilters) {
+                            repository.search(committedQuery, searchFilters) to
+                                repository.search(committedQuery)
+                        } else {
+                            repository.search(committedQuery, searchFilters).let { it to it }
+                        }
                     }
                     value = CatalogSearchResultState(
                         committedQuery = committedQuery,
@@ -909,23 +946,19 @@ private fun ColumnScope.CatalogReadyContent(
     )
     val searchHits = if (searchSettled) searchState.filteredHits else emptyList()
     val globalSearchHits = if (searchSettled) searchState.globalHits else emptyList()
-    val definitions = remember(catalog, query, searchHits, searchSettled, filterRegion, filterMuscle) {
-        if (query.isBlank() || !searchSettled) {
-            catalog.families
-                .flatMap { it.definitions }
-                .filter(::definitionMatchesFilter)
-                .takeIf { query.isBlank() }
-                .orEmpty()
-                .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.canonicalName })
-        } else {
-            // The repository search already orders hits by relevance. Keep that order
-            // instead of alphabetizing it again: an exact parent match must
-            // never be displaced by a weak token match from a secondary alias
-            // (for example, "peso corporal" + "bicho muerto").
-            searchHits
-                .mapNotNull { hit -> definitionsById[hit.definitionId] }
-                .distinctBy { it.id }
-        }
+    var lastStableDefinitions by remember { mutableStateOf<List<ExerciseDefinitionV2>>(emptyList()) }
+    val definitions = visibleDefinitionsForQuery(
+        catalog = catalog,
+        query = query,
+        searchSettled = searchSettled,
+        searchHits = searchHits,
+        filterRegion = filterRegion,
+        filterMuscle = filterMuscle,
+        definitionsById = definitionsById,
+        previousStable = lastStableDefinitions,
+    )
+    LaunchedEffect(definitions, searchSettled, query) {
+        if (searchSettled || query.isBlank()) lastStableDefinitions = definitions
     }
     val initialDraftByDefinition = remember(
         catalog,
@@ -1013,7 +1046,7 @@ private fun ColumnScope.CatalogReadyContent(
     }
 
     val listState = rememberLazyListState()
-    LaunchedEffect(query, searchHits) {
+    LaunchedEffect(searchHits) {
         if (query.isNotBlank()) listState.scrollToItem(0)
     }
 
@@ -1104,6 +1137,7 @@ private fun ColumnScope.CatalogReadyContent(
             }
             val selectedOptions = draftByDefinition.value[definition.id]
                 ?: default?.selectedOptions.orEmpty()
+            val hasExplicitDraft = draftByDefinition.value.containsKey(definition.id)
             // Memoized: typing, selection and expansion recompose every visible
             // card; without remember this matcher would re-run for all of them.
             val compatibility = remember(repository, definition.id, selectedOptions) {
@@ -1263,16 +1297,6 @@ private fun ColumnScope.CatalogReadyContent(
                                         }
                                     }
                                 }
-                                if (defaultMuscles.isNotEmpty()) {
-                                    Spacer(Modifier.width(8.dp))
-                                    Text(
-                                        defaultMuscles.joinToString(" · ") { exerciseCatalogMuscleLabel(it) },
-                                        color = Color.White.copy(alpha = 0.55f),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
-                                }
                             }
 
                             if (!isExpanded) {
@@ -1286,11 +1310,22 @@ private fun ColumnScope.CatalogReadyContent(
                                 CatalogFoldedVariantChips(
                                     definitionId = definition.id,
                                     values = variantValues,
-                                    selectedValue = firstAxis?.let(effectiveSelectedOptions::get),
+                                    selectedValue = if (hasExplicitDraft) firstAxis?.let(effectiveSelectedOptions::get) else null,
                                     singleLine = imageVariants.isNotEmpty(),
+                                    onVariantSelected = { value -> selectOption("implement", value) },
                                 )
                             }
                         }
+                    }
+
+                    if (!isExpanded && defaultMuscles.isNotEmpty()) {
+                        Text(
+                            defaultMuscles.joinToString(" · ") { exerciseCatalogMuscleLabel(it) },
+                            color = Color.White.copy(alpha = 0.55f),
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     }
 
                     if (isExpanded) {
@@ -1337,7 +1372,7 @@ private fun ColumnScope.CatalogReadyContent(
                                             AxisChip(
                                                 value = option.value,
                                                 definitionId = definition.id,
-                                                selected = effectiveSelectedOptions[axis.axis] == option.value,
+                                                selected = hasExplicitDraft && effectiveSelectedOptions[axis.axis] == option.value,
                                                 enabled = option.enabled,
                                                 onClick = { selectOption(axis.axis, option.value) },
                                             )

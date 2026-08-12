@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Remo Convencional",
     "definitions": [
@@ -27,7 +27,7 @@
                 "Un constructor de espalda completa que exige respeto por la postura."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -257,7 +257,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Convencional",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "conventional_row__barbell",
                   "definitionId": "conventional_row",
                   "familyId": "back_conventional_row",
@@ -361,7 +361,7 @@
                 "Un constructor de espalda completa que exige respeto por la postura."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -591,7 +591,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Convencional",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "conventional_row__dumbbells",
                   "definitionId": "conventional_row",
                   "familyId": "back_conventional_row",
@@ -695,7 +695,7 @@
                 "Un constructor de espalda completa que exige respeto por la postura."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -925,7 +925,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Convencional",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "conventional_row__machine",
                   "definitionId": "conventional_row",
                   "familyId": "back_conventional_row",
@@ -1029,7 +1029,7 @@
                 "Un constructor de espalda completa que exige respeto por la postura."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -1259,7 +1259,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Convencional",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "conventional_row__smith_machine",
                   "definitionId": "conventional_row",
                   "familyId": "back_conventional_row",
@@ -1363,7 +1363,7 @@
                 "Un constructor de espalda completa que exige respeto por la postura."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -1593,7 +1593,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Convencional",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "conventional_row__kettlebell",
                   "definitionId": "conventional_row",
                   "familyId": "back_conventional_row",
@@ -1697,7 +1697,7 @@
                 "Un constructor de espalda completa que exige respeto por la postura."
               ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.0,
               "commonMistakes": [
                 "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
@@ -1927,7 +1927,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Convencional",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "conventional_row__cable",
                   "definitionId": "conventional_row",
                   "familyId": "back_conventional_row",

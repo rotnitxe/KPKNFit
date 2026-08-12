@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · gluteus maximus · unilateral hip dominant",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El ajuste fino para que el glúteo se lleve el trabajo que le corresponde."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -222,7 +222,7 @@
                 },
                 "identity": {
                   "canonicalName": "Step-Up de Glúteo",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_step_up_gluteo__default",
                   "definitionId": "glutes_step_up_gluteo",
                   "familyId": "lower_unilateral_hip_dominant",
@@ -337,7 +337,7 @@
                 "La zancada olvidada que redondea lo que las demás dejan."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
@@ -532,7 +532,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Cruzada",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "glutes_zancada_cruzada__default",
                   "definitionId": "glutes_zancada_cruzada",
                   "familyId": "lower_unilateral_hip_dominant",

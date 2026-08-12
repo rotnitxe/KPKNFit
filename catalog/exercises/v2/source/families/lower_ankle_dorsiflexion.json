@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · tibialis anterior · ankle dorsiflexion",
     "definitions": [
@@ -27,7 +27,7 @@
                 "El guardián contra las molestias de la espinilla y el complemento de unos gemelos completos."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 1.5,
               "commonMistakes": [
                 "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
@@ -198,7 +198,7 @@
                 },
                 "identity": {
                   "canonicalName": "Tibial Anterior",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "calves_tibial_anterior__default",
                   "definitionId": "calves_tibial_anterior",
                   "familyId": "lower_ankle_dorsiflexion",

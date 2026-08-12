@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "family": {
     "canonicalName": "Tren inferior · quadriceps · lateral knee dominant",
     "definitions": [
@@ -27,7 +27,7 @@
                 "La sentadilla lateral que revela lo que falta por trabajar."
               ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-10-c",
+              "catalogRevision": "v2-approved-2026-08-12-a",
               "cnc": 2.2,
               "commonMistakes": [
                 "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
@@ -223,7 +223,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Cosaca",
-                  "catalogRevision": "v2-approved-2026-08-10-c",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "quads_sentadilla_cosaca__default",
                   "definitionId": "quads_sentadilla_cosaca",
                   "familyId": "lower_lateral_knee_dominant",

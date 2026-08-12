@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-10-c",
+  "catalogRevision": "v2-approved-2026-08-12-a",
   "definitions": {
     "arnold_press": {
       "configurations": {
@@ -3983,6 +3983,36 @@
           "techniqueSummary": "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
           "variantRationale": "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas. Muy útil para quien entrena asimétrico."
         },
+        "hip_abduction__standing__machine__bilateral": {
+          "benefits": [
+            "La máquina fija la línea de la apertura y el trabajo del glúteo medio se concentra sin compensaciones. De pie, el lado que sostiene el cuerpo estabiliza la pelvis mientras la otra pierna abre.",
+            "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
+          ],
+          "description": "Con máquina, a dos lados y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. La máquina guía la trayectoria del muslo y el apoyo de pie exige que la cadera de apoyo estabilice la pelvis mientras la otra pierna abre. El glúteo medio concentra el esfuerzo y la carga se dosifica sin distracciones.",
+          "executionCues": [
+            "Máquina de pie con ambas piernas: la pierna se separa contra la almohadilla con el glúteo medio concentrado y la pelvis estable. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline."
+          ],
+          "setupCues": [
+            "Preparación: Máquina de pie con ambas piernas: coloca las almohadillas a la altura de la rodilla y afirma el apoyo antes de abrir."
+          ],
+          "techniqueSummary": "Máquina de pie con ambas piernas: la pierna se separa contra la almohadilla con el glúteo medio concentrado y la pelvis estable. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline.",
+          "variantRationale": "Máquina de pie con ambas piernas: la pierna se separa contra la almohadilla con el glúteo medio concentrado y la pelvis estable. La versión de pie de la máquina de abducción."
+        },
+        "hip_abduction__standing__machine__unilateral": {
+          "benefits": [
+            "La máquina fija la línea de la apertura y el trabajo a una pierna aísla cada glúteo medio para corregir asimetrías. De pie, la cadera de apoyo estabiliza la pelvis mientras la otra pierna abre.",
+            "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
+          ],
+          "description": "Con máquina, a un lado y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. La máquina guía la trayectoria y el trabajo a una pierna deja al descubierto las diferencias entre caderas. El apoyo de pie exige estabilizar la pelvis mientras el glúteo medio de la pierna que abre concentra el esfuerzo.",
+          "executionCues": [
+            "Máquina de pie de un lado a la vez: la pierna se separa contra la almohadilla con el glúteo medio concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline."
+          ],
+          "setupCues": [
+            "Preparación: Máquina de pie de un lado a la vez: ajusta la almohadilla a la altura de la rodilla y afirma el apoyo antes de abrir."
+          ],
+          "techniqueSummary": "Máquina de pie de un lado a la vez: la pierna se separa contra la almohadilla con el glúteo medio concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline.",
+          "variantRationale": "Máquina de pie de un lado a la vez: la pierna se separa contra la almohadilla con el glúteo medio concentrado y comparas cada lado. Ideal para corregir asimetrías de cadera."
+        },
         "hip_abduction__standing__band__bilateral": {
           "benefits": [
             "Con la banda, la resistencia crece a medida que avanza el trabajo del glúteo medio. A dos lados, el trabajo del glúteo medio admite más carga total. De pie, el equilibrio y la zona media participan más en el trabajo del glúteo medio.",
@@ -4077,6 +4107,36 @@
           ],
           "techniqueSummary": "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
           "variantRationale": "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios. Útil para piernas parejas."
+        },
+        "hip_adduction__standing__machine__bilateral": {
+          "benefits": [
+            "La máquina fija la línea del cierre y el trabajo de los aductores se concentra sin compensaciones. De pie, el lado que sostiene el cuerpo estabiliza la pelvis mientras la otra pierna cruza hacia dentro.",
+            "Equilibrio muscular real para una cadera a prueba de giros."
+          ],
+          "description": "Con máquina, a dos lados y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. La máquina guía la trayectoria del muslo y el apoyo de pie exige que la cadera de apoyo estabilice la pelvis mientras la otra pierna cierra. Los aductores concentran el esfuerzo y la carga se dosifica sin distracciones.",
+          "executionCues": [
+            "Máquina de pie con ambas piernas: la pierna cruza hacia dentro contra la almohadilla con los aductores concentrados y la pelvis estable. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline."
+          ],
+          "setupCues": [
+            "Preparación: Máquina de pie con ambas piernas: coloca las almohadillas a la altura de la rodilla y afirma el apoyo antes de cerrar."
+          ],
+          "techniqueSummary": "Máquina de pie con ambas piernas: la pierna cruza hacia dentro contra la almohadilla con los aductores concentrados y la pelvis estable. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline.",
+          "variantRationale": "Máquina de pie con ambas piernas: la pierna cruza hacia dentro contra la almohadilla con los aductores concentrados y la pelvis estable. La versión de pie de la máquina de aducción."
+        },
+        "hip_adduction__standing__machine__unilateral": {
+          "benefits": [
+            "La máquina fija la línea del cierre y el trabajo a una pierna aísla cada aductor para corregir asimetrías. De pie, la cadera de apoyo estabiliza la pelvis mientras la otra pierna cruza hacia dentro.",
+            "Equilibrio muscular real para una cadera a prueba de giros."
+          ],
+          "description": "Con máquina, a un lado y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. La máquina guía la trayectoria y el trabajo a una pierna deja al descubierto las diferencias entre muslos. El apoyo de pie exige estabilizar la pelvis mientras el aductor de la pierna que cierra concentra el esfuerzo.",
+          "executionCues": [
+            "Máquina de pie de un lado a la vez: la pierna cruza hacia dentro contra la almohadilla con el aductor concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline."
+          ],
+          "setupCues": [
+            "Preparación: Máquina de pie de un lado a la vez: ajusta la almohadilla a la altura de la rodilla y afirma el apoyo antes de cerrar."
+          ],
+          "techniqueSummary": "Máquina de pie de un lado a la vez: la pierna cruza hacia dentro contra la almohadilla con el aductor concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline.",
+          "variantRationale": "Máquina de pie de un lado a la vez: la pierna cruza hacia dentro contra la almohadilla con el aductor concentrado y comparas cada lado. Ideal para corregir asimetrías del muslo interno."
         },
         "hip_adduction__standing__band__bilateral": {
           "benefits": [
