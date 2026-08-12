@@ -212,8 +212,13 @@ object TemplateCatalogFilterLogic {
 
         // Zona y duración necesitan facetas reales de la sesión.
         if (facets == null) {
-            return filters.zone == TemplateSessionZone.ALL &&
-                filters.duration == SessionTemplateDurationBucket.ALL
+            if (filters.zone != TemplateSessionZone.ALL) return false
+            if (filters.duration == SessionTemplateDurationBucket.ALL) return true
+            val declaredDuration = template.estimatedDurationMinutes
+            val range = filters.duration.range ?: return true
+            // Mientras los detalles avanzados siguen bajo demanda, conservar el
+            // catálogo navegable usando la duración declarada como fallback.
+            return declaredDuration == null || declaredDuration in range
         }
         return matchesZone(facets, filters.zone) &&
             SessionTemplateFacetsBuilder.matchesDuration(facets, filters.duration)

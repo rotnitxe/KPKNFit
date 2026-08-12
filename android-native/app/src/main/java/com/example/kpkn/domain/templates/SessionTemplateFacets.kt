@@ -2,6 +2,7 @@ package com.example.kpkn.domain.templates
 
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.PredictedDrain
+import com.example.kpkn.data.exercises.buildCatalogExerciseNameLookup
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.splits.Difficulty
 import com.example.kpkn.domain.exercises.ExerciseCatalogRegion
@@ -62,6 +63,14 @@ object SessionTemplateFacetsBuilder {
     fun build(
         template: SessionTemplate,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
+    ): SessionTemplateFacets = buildPrepared(
+        template = template,
+        exerciseIndex = buildCatalogExerciseNameLookup(exerciseIndex),
+    )
+
+    private fun buildPrepared(
+        template: SessionTemplate,
+        exerciseIndex: Map<String, ExerciseMuscleInfo>,
     ): SessionTemplateFacets {
         val audit = SessionTemplateAudit.audit(template, exerciseIndex)
 
@@ -71,7 +80,8 @@ object SessionTemplateFacetsBuilder {
         val equipment = linkedSetOf<String>()
 
         audit.exercises.forEach { exercise ->
-            val info = SessionTemplateAudit.resolveCatalogInfo(exercise, exerciseIndex) ?: return@forEach
+            val info = SessionTemplateAudit.resolveCatalogInfoNormalized(exercise, exerciseIndex)
+                ?: return@forEach
             val region = resolveExerciseRegion(info)
             if (region != ExerciseCatalogRegion.ALL) {
                 regions += region
@@ -108,8 +118,10 @@ object SessionTemplateFacetsBuilder {
     fun buildAll(
         templates: List<SessionTemplate>,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
-    ): Map<String, SessionTemplateFacets> =
-        templates.associate { it.id to build(it, exerciseIndex) }
+    ): Map<String, SessionTemplateFacets> {
+        val preparedIndex = buildCatalogExerciseNameLookup(exerciseIndex)
+        return templates.associate { it.id to buildPrepared(it, preparedIndex) }
+    }
 
     fun dominantRegion(regions: Set<ExerciseCatalogRegion>): ExerciseCatalogRegion {
         val meaningful = regions.filter { it != ExerciseCatalogRegion.ALL }

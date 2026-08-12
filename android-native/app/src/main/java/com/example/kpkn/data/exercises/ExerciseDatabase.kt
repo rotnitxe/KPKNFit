@@ -156,12 +156,40 @@ internal fun resolveCatalogExerciseInfoInIndex(
 
     val normalizedName = normalizeCatalogSearchText(exerciseName.orEmpty())
     if (normalizedName.isBlank()) return null
+    index[normalizedName]?.let { return it }
     return index.values.firstOrNull { info ->
         normalizeCatalogSearchText(info.name) == normalizedName ||
             info.alias.orEmpty()
                 .split(',')
                 .any { normalizeCatalogSearchText(it) == normalizedName }
     }
+}
+
+/**
+ * Adds normalized exercise names and aliases as lookup keys without changing
+ * the canonical id entries. Template faceting resolves many exercises in a
+ * row; keeping this index beside the id map avoids scanning the whole catalog
+ * for every name-based fallback.
+ */
+internal fun buildCatalogExerciseNameLookup(
+    index: Map<String, ExerciseMuscleInfo>,
+): Map<String, ExerciseMuscleInfo> {
+    val lookup = index
+        .mapKeys { (key, _) -> key.trim().lowercase() }
+        .toMutableMap()
+
+    fun addName(raw: String?, info: ExerciseMuscleInfo) {
+        val normalized = normalizeCatalogSearchText(raw.orEmpty())
+        if (normalized.isNotBlank()) lookup.putIfAbsent(normalized, info)
+    }
+
+    index.values.forEach { info ->
+        addName(info.name, info)
+        info.alias.orEmpty()
+            .split(',')
+            .forEach { alias -> addName(alias, info) }
+    }
+    return lookup
 }
 
 /**

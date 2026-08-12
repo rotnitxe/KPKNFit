@@ -242,6 +242,25 @@ class TemplateCatalogFilterLogicTest {
     }
 
     @Test
+    fun duracionDeclaradaMantieneResultadosMientrasFacetasCargan() {
+        val base = templates.first { it.estimatedDurationMinutes != null }
+        val shortTemplate = base.copy(estimatedDurationMinutes = 30)
+        val longTemplate = base.copy(estimatedDurationMinutes = 90)
+        val filters = TemplateCatalogFilters(duration = SessionTemplateDurationBucket.SHORT)
+
+        assertTrue(TemplateCatalogFilterLogic.matchesFilters(shortTemplate, null, filters))
+        assertFalse(TemplateCatalogFilterLogic.matchesFilters(longTemplate, null, filters))
+        assertTrue(
+            "Una plantilla sin duración declarada no debe desaparecer mientras se calculan facetas",
+            TemplateCatalogFilterLogic.matchesFilters(
+                base.copy(estimatedDurationMinutes = null),
+                null,
+                filters,
+            ),
+        )
+    }
+
+    @Test
     fun agrupacionPorGrupoMuscularParticionaSinDuplicados() {
         val filtered = TemplateCatalogFilterLogic.filterTemplates(
             templates,

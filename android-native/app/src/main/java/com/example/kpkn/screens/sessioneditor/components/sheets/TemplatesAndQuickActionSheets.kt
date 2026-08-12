@@ -47,6 +47,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,11 +56,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.models.discomfortLabel
@@ -70,6 +73,11 @@ import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.screens.sessioneditor.CatalogSearchField
 import com.example.kpkn.screens.sessioneditor.CompactCatalogFilterChip
 import com.example.kpkn.screens.sessioneditor.components.TemplateCatalogBrowser
+import com.example.kpkn.screens.sessioneditor.components.CatalogDescription
+import com.example.kpkn.screens.sessioneditor.components.CatalogInvolvementAccordions
+import com.example.kpkn.screens.sessioneditor.components.resolveCatalogExerciseV2
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import com.example.kpkn.ui.components.KpknAlertDialog
@@ -269,6 +277,24 @@ internal fun ExerciseQuickActionsSheet(
     val selectedInfo = remember(exercise.id, catalogLookup) {
         resolveCatalogExerciseInfo(exercise, catalogLookup)
     }
+    val context = LocalContext.current
+    var catalogEntry by remember { mutableStateOf(CatalogV2ProcessCache.peek()) }
+    LaunchedEffect(context) {
+        if (catalogEntry == null) {
+            catalogEntry = runCatching {
+                withContext(Dispatchers.IO) {
+                    CatalogV2ProcessCache.getOrLoad(context)
+                }
+            }.getOrNull()
+        }
+    }
+    val resolvedV2 = remember(exercise.id, selectedInfo, catalogEntry) {
+        resolveCatalogExerciseV2(
+            exercise = exercise,
+            catalog = catalogEntry?.catalog,
+            legacyInfo = selectedInfo,
+        )
+    }
     val involvedMuscles = remember(exercise.id, exercise.effectiveMuscles, selectedInfo) {
         (exercise.effectiveMuscles?.takeIf { it.isNotEmpty() }
             ?: selectedInfo?.involvedMuscles.orEmpty())
@@ -339,20 +365,32 @@ internal fun ExerciseQuickActionsSheet(
             }
         }
 
-        QuickInfoBlock(
-            title = "Descripción",
-            value = selectedInfo?.let { adaptedExerciseDescription(it, exercise.selectedAspects.orEmpty()) }
-                ?.takeIf { it.isNotBlank() }
-                ?: "No hay una descripción editorial disponible para esta configuración.",
-        )
-        QuickInfoBlock(
-            title = "Músculos involucrados",
-            value = muscleInvolvement.ifBlank { "Información muscular no disponible" },
-        )
-        QuickInfoBlock(
-            title = "Involucramiento articular",
-            value = articularProfile.joinToString(" · ").ifBlank { "Perfil articular no disponible" },
-        )
+        if (resolvedV2 != null) {
+            CatalogDescription(
+                definition = resolvedV2.definition,
+                configuration = resolvedV2.configuration,
+                initiallyExpanded = true,
+            )
+            CatalogInvolvementAccordions(
+                info = resolvedV2.legacyInfo.takeIf { it.involvedMuscles.isNotEmpty() },
+                joints = resolvedV2.configuration.profile.jointInvolvement,
+            )
+        } else {
+            QuickInfoBlock(
+                title = "Descripción",
+                value = selectedInfo?.let { adaptedExerciseDescription(it, exercise.selectedAspects.orEmpty()) }
+                    ?.takeIf { it.isNotBlank() }
+                    ?: "No hay una descripción editorial disponible para esta configuración.",
+            )
+            QuickInfoBlock(
+                title = "Músculos involucrados",
+                value = muscleInvolvement.ifBlank { "Información muscular no disponible" },
+            )
+            QuickInfoBlock(
+                title = "Involucramiento articular",
+                value = articularProfile.joinToString(" · ").ifBlank { "Perfil articular no disponible" },
+            )
+        }
 
         FilledTonalButton(
             onClick = onOpenPicker,

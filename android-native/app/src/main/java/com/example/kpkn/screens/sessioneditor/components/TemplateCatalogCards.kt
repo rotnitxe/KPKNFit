@@ -33,9 +33,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,13 +52,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.splits.Difficulty
 import com.example.kpkn.domain.templates.RingBudgetPolicy
 import com.example.kpkn.domain.templates.SessionTemplateCatalogPolicy
 import com.example.kpkn.domain.templates.SessionTemplateFacets
+import com.example.kpkn.domain.templates.SessionTemplateFacetsBuilder
 import com.example.kpkn.domain.templates.TemplateCatalogFilterLogic
 import com.example.kpkn.screens.sessioneditor.formatEditorOneDecimal
+
+private data class TemplateExpandedDetailsLoadState(
+    val facets: SessionTemplateFacets? = null,
+    val estimatedVolume: Map<String, Double> = emptyMap(),
+    val isLoading: Boolean = true,
+)
 
 @Composable
 internal fun CompactTemplateCard(
@@ -329,17 +341,41 @@ internal fun TemplateExpandedDetails(
     val mutedColor = if (glassDark) Color.White.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurfaceVariant
     val dividerColor = if (glassDark) Color.White.copy(alpha = 0.12f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
 
-    val estimatedVol = remember(template, exerciseIndex) {
-        SessionTemplateCatalogPolicy.calculateSessionMuscleVolume(template.session, exerciseIndex)
+    val detailsState by produceState(
+        initialValue = TemplateExpandedDetailsLoadState(
+            facets = facets,
+            isLoading = facets == null,
+        ),
+        template.id,
+        exerciseIndex.size,
+        facets?.templateId,
+    ) {
+        try {
+            val details = withContext(Dispatchers.Default) {
+                val resolvedFacets = facets ?: SessionTemplateFacetsBuilder.build(template, exerciseIndex)
+                val estimatedVolume = SessionTemplateCatalogPolicy.calculateSessionMuscleVolume(
+                    template.session,
+                    exerciseIndex,
+                )
+                TemplateExpandedDetailsLoadState(
+                    facets = resolvedFacets,
+                    estimatedVolume = estimatedVolume,
+                    isLoading = false,
+                )
+            }
+            value = details
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Throwable) {
+            value = TemplateExpandedDetailsLoadState(facets = facets, isLoading = false)
+        }
     }
+    val resolvedFacets = detailsState.facets ?: facets
+    val estimatedVol = detailsState.estimatedVolume
+    val drain = resolvedFacets?.drain ?: PredictedDrain(cns = 0, muscular = 0, spinal = 0)
 
-    val drain = remember(facets, template, exerciseIndex) {
-        val settings = com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.value
-        facets?.drain ?: SessionTemplateCatalogPolicy.evaluateTemplateRings(template, exerciseIndex, settings)
-    }
-
-    val warnings = remember(template, drain, advanced) {
-        if (!advanced) emptyList()
+    val warnings = remember(template, drain, advanced, detailsState.isLoading) {
+        if (!advanced || (detailsState.isLoading && resolvedFacets == null)) emptyList()
         else {
             val list = mutableListOf<String>()
             val isPl = SessionTemplateCatalogPolicy.isPowerliftingTemplate(template)
@@ -456,22 +492,30 @@ internal fun TemplateExpandedDetails(
                     fontWeight = FontWeight.Bold,
                     color = titleColor,
                 )
-                CompactFatigueMeters(
-                    energy = drain.cns,
-                    muscular = drain.muscular,
-                    spinal = drain.spinal,
-                    glassDark = glassDark,
-                )
-                facets?.averageTargetRpe?.let { rpe ->
+                if (detailsState.isLoading && resolvedFacets == null) {
+                    Text(
+                        text = "Calculando detalles…",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = mutedColor,
+                    )
+                } else {
+                    CompactFatigueMeters(
+                        energy = drain.cns,
+                        muscular = drain.muscular,
+                        spinal = drain.spinal,
+                        glassDark = glassDark,
+                    )
+                }
+                resolvedFacets?.averageTargetRpe?.let { rpe ->
                     Text(
                         text = "RPE medio objetivo: ${formatEditorOneDecimal(rpe)}",
                         style = MaterialTheme.typography.labelSmall,
                         color = mutedColor,
                     )
                 }
-                if (facets != null && facets.primaryMuscles.isNotEmpty()) {
+                if (resolvedFacets != null && resolvedFacets.primaryMuscles.isNotEmpty()) {
                     Text(
-                        text = "Enfoque: ${facets.primaryMuscles.sortedBy { it.lowercase() }.joinToString(" · ")}",
+                        text = "Enfoque: ${resolvedFacets.primaryMuscles.sortedBy { it.lowercase() }.joinToString(" · ")}",
                         style = MaterialTheme.typography.labelSmall,
                         color = mutedColor,
                     )

@@ -178,20 +178,22 @@ object SessionTemplateAudit {
     fun resolveCatalogInfo(
         exercise: Exercise,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
-    ): ExerciseMuscleInfo? {
-        val index = if (exerciseIndex.keys.any { it != it.lowercase() }) {
-            normalizeIndex(exerciseIndex)
-        } else {
-            exerciseIndex
-        }
-        return resolveCatalogExerciseInfoInIndex(
-            index = index,
-            catalogConfigurationId = exercise.catalogConfigurationId,
-            exerciseDbId = exercise.exerciseDbId,
-            exerciseId = exercise.exerciseId,
-            exerciseName = exercise.name,
-        )
-    }
+    ): ExerciseMuscleInfo? = resolveCatalogInfoNormalized(
+        exercise = exercise,
+        exerciseIndex = normalizeIndex(exerciseIndex),
+    )
+
+    /** Resolves against an index that has already been normalized once by [normalizeIndex]. */
+    internal fun resolveCatalogInfoNormalized(
+        exercise: Exercise,
+        exerciseIndex: Map<String, ExerciseMuscleInfo>,
+    ): ExerciseMuscleInfo? = resolveCatalogExerciseInfoInIndex(
+        index = exerciseIndex,
+        catalogConfigurationId = exercise.catalogConfigurationId,
+        exerciseDbId = exercise.exerciseDbId,
+        exerciseId = exercise.exerciseId,
+        exerciseName = exercise.name,
+    )
 
     private fun computeMetrics(
         session: Session,
@@ -205,7 +207,7 @@ object SessionTemplateAudit {
         var durationSeconds = 0
 
         exercises.forEach { exercise ->
-            val info = resolveCatalogInfo(exercise, exerciseIndex)
+            val info = resolveCatalogInfoNormalized(exercise, exerciseIndex)
             val resolvedId = info?.id?.trim()?.lowercase()
                 ?: listOfNotNull(
                     exercise.exerciseDbId,
@@ -271,6 +273,8 @@ object SessionTemplateAudit {
 
     private fun normalizeIndex(
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
-    ): Map<String, ExerciseMuscleInfo> =
-        exerciseIndex.mapKeys { it.key.trim().lowercase() }
+    ): Map<String, ExerciseMuscleInfo> {
+        if (exerciseIndex.keys.all { it == it.trim().lowercase() }) return exerciseIndex
+        return exerciseIndex.mapKeys { it.key.trim().lowercase() }
+    }
 }
