@@ -95,9 +95,9 @@ fun WorkoutMobilityOverlay(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .navigationBarsPadding()
                 .verticalScroll(scrollState)
-                .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding, vertical = 20.dp),
+                .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding)
+                .padding(top = 20.dp, bottom = 110.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // ─── 1. Cabecera y Contexto de Fase ───
@@ -536,23 +536,40 @@ fun WorkoutMobilityOverlay(
                     }
                 }
             }
+        }
 
-            Spacer(Modifier.height(10.dp))
-
-            // ─── 6. Botones de Acción Final ───
+        // ─── 6. Botones Sticky Inferiores con Desvanecido Suave ───
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .background(
+                    brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color(0xFF0C1017).copy(alpha = 0.70f),
+                            Color(0xFF0C1017).copy(alpha = 0.94f),
+                            Color(0xFF0C1017),
+                        ),
+                    ),
+                )
+                .navigationBarsPadding()
+                .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding, vertical = 12.dp),
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 OutlinedButton(
                     onClick = onClose,
                     modifier = Modifier.weight(1f).height(48.dp),
                     shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White.copy(alpha = 0.70f)),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.14f)),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White.copy(alpha = 0.75f)),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.16f)),
                 ) {
                     Text(
-                        if (allDone) "Cerrar" else "Saltar movilidad",
+                        "Saltar",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                     )

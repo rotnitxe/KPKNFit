@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
@@ -43,7 +44,8 @@ import kotlin.math.roundToInt
 /**
  * Full-screen blur overlay for approximation (warm-up) sets in live sessions.
  * Features a circular progression ramp, prominent percentages, inline rest timers,
- * editable actual load, effort rating, and real-time auto-regulation via WarmupCalibrationEngine.
+ * clean direct load input, effort rating, sticky bottom actions with soft fade,
+ * and real-time auto-regulation via WarmupCalibrationEngine.
  */
 @Composable
 fun WorkoutWarmupOverlay(
@@ -126,13 +128,14 @@ fun WorkoutWarmupOverlay(
             .zIndex(6f)
             .background(Color(0xFF0C1017).copy(alpha = 0.88f)),
     ) {
+        // Scrolleable content with bottom padding for the sticky bottom bar
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .navigationBarsPadding()
                 .verticalScroll(scrollState)
-                .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding, vertical = 20.dp),
+                .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding)
+                .padding(top = 20.dp, bottom = 110.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // ─── 1. Cabecera Limpia (Sin icono de fuego) ───
@@ -432,7 +435,7 @@ fun WorkoutWarmupOverlay(
                     )
                 }
 
-                // ─── 5. Botón para Añadir más aproximaciones ───
+                // ─── 5. Botón para Añadir más aproximaciones (sin doble +) ───
                 OutlinedButton(
                     onClick = onAddWarmupSet,
                     modifier = Modifier.fillMaxWidth().height(44.dp),
@@ -447,29 +450,46 @@ fun WorkoutWarmupOverlay(
                     )
                     Spacer(Modifier.width(6.dp))
                     Text(
-                        "+ Agregar serie de aproximación",
+                        "Agregar serie de aproximación",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                     )
                 }
             }
+        }
 
-            Spacer(Modifier.height(10.dp))
-
-            // ─── 6. Acciones Inferiores ───
+        // ─── 6. Botones Sticky Inferiores con Desvanecido Suave (Sin bloques negros) ───
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color(0xFF0C1017).copy(alpha = 0.70f),
+                            Color(0xFF0C1017).copy(alpha = 0.94f),
+                            Color(0xFF0C1017),
+                        ),
+                    ),
+                )
+                .navigationBarsPadding()
+                .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding, vertical = 12.dp),
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 OutlinedButton(
                     onClick = onClose,
                     modifier = Modifier.weight(1f).height(48.dp),
                     shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White.copy(alpha = 0.70f)),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.14f)),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White.copy(alpha = 0.75f)),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.16f)),
                 ) {
                     Text(
-                        if (allDone) "Cerrar" else "Saltar aproximación",
+                        "Saltar",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                     )
@@ -477,15 +497,18 @@ fun WorkoutWarmupOverlay(
 
                 Button(
                     onClick = onClose,
+                    enabled = allDone,
                     modifier = Modifier.weight(1.3f).height(48.dp),
                     shape = RoundedCornerShape(999.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = sessionAccentColor,
                         contentColor = Color.Black,
+                        disabledContainerColor = Color.White.copy(alpha = 0.08f),
+                        disabledContentColor = Color.White.copy(alpha = 0.30f),
                     ),
                 ) {
                     Text(
-                        if (allDone) "Comenzar 1ª serie" else "Continuar",
+                        if (allDone) "Comenzar 1ª serie" else "Completa las series",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Black,
                     )
@@ -496,7 +519,7 @@ fun WorkoutWarmupOverlay(
 }
 
 /**
- * Detailed card for one warm-up set with prominent percentage, editable load,
+ * Detailed card for one warm-up set with prominent percentage, direct load input,
  * effort selector and "Registrar aproximación" button.
  */
 @Composable
@@ -518,8 +541,9 @@ private fun WarmupSetDetailedCard(
     onTogglePauseInlineRest: () -> Unit,
     onSkipInlineRest: () -> Unit,
 ) {
-    var textValue by remember(actualWeightKg) {
-        mutableStateOf(actualWeightKg?.toTrimmedNumberString() ?: "")
+    var textValue by remember(actualWeightKg, suggestedWeightKg) {
+        val initial = actualWeightKg ?: suggestedWeightKg
+        mutableStateOf(initial?.toTrimmedNumberString() ?: "")
     }
 
     var selectedEffort by remember(currentEffort) {
@@ -605,37 +629,29 @@ private fun WarmupSetDetailedCard(
                 }
             }
 
-            // Input de Carga Real Utilizada
+            // Input Directo de Carga (Limpio, sin frases obvias)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Column {
-                    Text(
-                        "Carga sugerida vs real:",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.70f),
-                    )
-                    suggestedWeightKg?.takeIf { it > 0.0 }?.let {
-                        Text(
-                            "Sugerido: ${it.toTrimmedNumberString()} kg",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = sessionAccentColor.copy(alpha = 0.85f),
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                    }
-                }
+                Text(
+                    "Carga utilizada:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White.copy(alpha = 0.85f),
+                )
 
                 Surface(
                     shape = RoundedCornerShape(10.dp),
                     color = Color.White.copy(alpha = 0.08f),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)),
-                    modifier = Modifier.width(100.dp).height(38.dp),
+                    border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.35f)),
+                    modifier = Modifier.width(110.dp).height(40.dp),
                 ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
+                    Row(
+                        modifier = Modifier.fillMaxSize().padding(horizontal = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
                     ) {
                         BasicTextField(
                             value = textValue,
@@ -645,7 +661,7 @@ private fun WarmupSetDetailedCard(
                             },
                             textStyle = TextStyle(
                                 color = Color.White,
-                                fontSize = 16.sp,
+                                fontSize = 17.sp,
                                 fontWeight = FontWeight.Black,
                                 textAlign = TextAlign.Center,
                                 fontFamily = FontFamily.Monospace,
@@ -656,7 +672,13 @@ private fun WarmupSetDetailedCard(
                                 imeAction = ImeAction.Done,
                             ),
                             singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.weight(1f),
+                        )
+                        Text(
+                            "kg",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.60f),
                         )
                     }
                 }
