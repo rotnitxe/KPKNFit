@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
@@ -35,7 +36,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -106,19 +109,44 @@ private fun SheetMiniField(
     keyboardType: KeyboardType = KeyboardType.Text,
     onCommit: (String) -> Unit,
 ) {
-    var local by remember(label, value) { mutableStateOf(value) }
+    // Estado local desacoplado del prop: permite vaciar el campo mientras se
+    // edita sin que el fallback del padre (defaults.*) regenere el número.
+    // El prop solo se re-sincroniza al confirmar o perder el foco.
+    var local by remember(label) { mutableStateOf(value) }
+    var focused by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+
+    LaunchedEffect(value) {
+        if (!focused) {
+            local = value
+        }
+    }
     OutlinedTextField(
         value = local,
-        onValueChange = {
-            local = it
-            onCommit(it)
+        onValueChange = { local = it },
+        modifier = modifier.onFocusChanged { focusState ->
+            val nowFocused = focusState.isFocused
+            if (focused && !nowFocused) {
+                // Pierde el foco: aplica el valor (o vacío) al padre.
+                onCommit(local)
+            }
+            focused = nowFocused
         },
         label = {
             Text(label, color = KpknSheetTokens.GlassControlLabelMuted)
         },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        modifier = modifier,
+        keyboardActions = KeyboardActions(
+            onDone = {
+                onCommit(local)
+                focusManager.clearFocus()
+            },
+            onNext = {
+                onCommit(local)
+                focusManager.clearFocus()
+            },
+        ),
         shape = RoundedCornerShape(KpknSheetTokens.ControlRadius),
         textStyle = MaterialTheme.typography.bodySmall.copy(
             fontWeight = FontWeight.Bold,
@@ -572,7 +600,7 @@ internal fun RulesSheet(
                             color = Color.White,
                         )
                         Text(
-                            "Configura una regla para básicos y otra para aislamientos.",
+                            "Configura una regla para compuestos y otra para aislamientos.",
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White.copy(alpha = 0.55f),
                         )
@@ -585,7 +613,7 @@ internal fun RulesSheet(
                 }
                 if (compoundIsolationExpanded) {
                     Text(
-                        "Básicos",
+                        "Compuestos",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = Color.White.copy(alpha = 0.85f),

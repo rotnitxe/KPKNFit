@@ -100,6 +100,63 @@ class ExerciseCatalogV2ResolverTest {
                 ),
                 evidence = evidence(),
             ),
+            ExerciseFamilyV2(
+                id = "chest_crossover",
+                canonicalName = "Cruces de Poleas",
+                description = "Familia de cruces en polea.",
+                definitions = listOf(
+                    ExerciseDefinitionV2(
+                        id = "cable_crossover",
+                        familyId = "chest_crossover",
+                        kind = ExerciseDefinitionKindV2.PARENT,
+                        canonicalName = "Cruces en Polea",
+                        description = "Cruce de poleas con altura ajustable.",
+                        searchTerms = listOf("cruces", "crossover", "cruce de poleas"),
+                        optionAxes = listOf("implement", "pulley_height"),
+                        configurations = listOf(
+                            ExerciseConfigurationV2(
+                                id = "cable_crossover__high",
+                                selectedOptions = mapOf("implement" to "cable", "pulley_height" to "high"),
+                                displaySummary = "cable · high",
+                                profile = profile(
+                                    movementPatternId = "horizontal_abduction",
+                                    equipmentId = "cable",
+                                    primary = listOf("pectoralis"),
+                                    secondary = listOf("deltoid"),
+                                ),
+                                evidence = evidence(),
+                            ),
+                            ExerciseConfigurationV2(
+                                id = "cable_crossover__mid",
+                                selectedOptions = mapOf("implement" to "cable", "pulley_height" to "mid"),
+                                displaySummary = "cable · mid",
+                                profile = profile(
+                                    movementPatternId = "horizontal_abduction",
+                                    equipmentId = "cable",
+                                    primary = listOf("pectoralis"),
+                                    secondary = listOf("deltoid"),
+                                ),
+                                evidence = evidence(),
+                            ),
+                            ExerciseConfigurationV2(
+                                id = "cable_crossover__low",
+                                selectedOptions = mapOf("implement" to "cable", "pulley_height" to "low"),
+                                displaySummary = "cable · low",
+                                profile = profile(
+                                    movementPatternId = "horizontal_abduction",
+                                    equipmentId = "cable",
+                                    primary = listOf("pectoralis"),
+                                    secondary = listOf("deltoid"),
+                                ),
+                                evidence = evidence(),
+                            ),
+                        ),
+                        defaultConfigurationId = "cable_crossover__mid",
+                        evidence = evidence(),
+                    ),
+                ),
+                evidence = evidence(),
+            ),
         ),
     )
 
@@ -233,8 +290,27 @@ class ExerciseCatalogV2ResolverTest {
     }
 
     @Test
-    fun search_muscle_alias_pecho_finds_chest_fly() {
+    fun search_muscle_alias_pecho_finds_chest_exercises() {
         val result = ExerciseCatalogV2Resolver(catalog).search("pecho")
-        assertEquals(listOf("cable_chest_fly"), result.map { it.definitionId })
+        assertEquals(
+            setOf("cable_chest_fly", "cable_crossover"),
+            result.map { it.definitionId }.toSet(),
+        )
+    }
+
+    @Test
+    fun cable_crossover_low_pulley_suggests_low_configuration() {
+        val result = ExerciseCatalogV2Resolver(catalog).search("Cruces en Polea Baja")
+
+        assertEquals("cable_crossover", result.single().definitionId)
+        assertEquals("cable_crossover__low", result.single().suggestedConfigurationId)
+    }
+
+    @Test
+    fun cable_crossover_high_pulley_suggests_high_configuration() {
+        val result = ExerciseCatalogV2Resolver(catalog).search("cruces polea alta")
+
+        assertEquals("cable_crossover", result.single().definitionId)
+        assertEquals("cable_crossover__high", result.single().suggestedConfigurationId)
     }
 }

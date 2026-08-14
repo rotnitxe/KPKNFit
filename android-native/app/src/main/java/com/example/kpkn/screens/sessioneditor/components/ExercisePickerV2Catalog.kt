@@ -12,7 +12,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -83,8 +82,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalDensity
@@ -454,68 +451,17 @@ private fun CatalogFoldedVariantChips(
         return
     }
 
-    // Las tarjetas con imagen tienen una sola fila. Se reserva el ancho del
-    // contador antes de añadir cada chip para que el +N siempre quede visible.
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val textMeasurer = rememberTextMeasurer()
-        val density = LocalDensity.current
-        val chipStyle = MaterialTheme.typography.labelSmall
-        val gapPx = with(density) { 6.dp.roundToPx() }
-        val horizontalPaddingPx = with(density) { 16.dp.roundToPx() }
-        val availableWidthPx = with(density) { maxWidth.roundToPx() }
-
-        fun measuredWidth(text: String): Int =
-            textMeasurer.measure(AnnotatedString(text), style = chipStyle).size.width + horizontalPaddingPx
-
-        val visibleCount = remember(orderedValues, definitionId, availableWidthPx) {
-            var usedWidth = 0
-            var count = 0
-            for (index in orderedValues.indices) {
-                val value = orderedValues[index]
-                val remainingAfter = orderedValues.size - index - 1
-                val leadingGap = if (count == 0) 0 else gapPx
-                val overflowWidth = if (remainingAfter > 0) measuredWidth("+$remainingAfter") else 0
-                val overflowGap = if (remainingAfter > 0) gapPx else 0
-                val requiredWidth = leadingGap + measuredWidth(
-                    exerciseCatalogVariantTagLabel(value, definitionId),
-                ) + overflowGap + overflowWidth
-                if (count == 0 || usedWidth + requiredWidth <= availableWidthPx) {
-                    usedWidth += leadingGap + measuredWidth(
-                        exerciseCatalogVariantTagLabel(value, definitionId),
-                    )
-                    count++
-                } else {
-                    break
-                }
-            }
-            count
-        }
-        val visibleValues = orderedValues.take(visibleCount)
-        val extraCount = (orderedValues.size - visibleValues.size).coerceAtLeast(0)
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            visibleValues.forEach { value ->
-                VariantChip(value = value, selected = value == selectedValue)
-            }
-            if (extraCount > 0) {
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(Color.White.copy(alpha = 0.06f))
-                        .padding(horizontal = 8.dp, vertical = 3.dp),
-                ) {
-                    Text(
-                        "+$extraCount",
-                        color = Color.White.copy(alpha = 0.60f),
-                        style = MaterialTheme.typography.labelSmall,
-                        maxLines = 1,
-                    )
-                }
-            }
+    // Las tarjetas con imagen usan una sola fila con scroll horizontal:
+    // todos los chips caben en un carrusel sin desbordar ni ocupar varias líneas.
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        orderedValues.forEach { value ->
+            VariantChip(value = value, selected = value == selectedValue)
         }
     }
 }
@@ -1135,9 +1081,16 @@ private fun ColumnScope.CatalogReadyContent(
             val default = remember(definition) {
                 definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }
             }
-            val selectedOptions = draftByDefinition.value[definition.id]
-                ?: default?.selectedOptions.orEmpty()
             val hasExplicitDraft = draftByDefinition.value.containsKey(definition.id)
+            // Sin seleccion explicita, el draft parte VACIO para que el panel
+            // expandido muestre TODOS los implementos del primer eje. Si se
+            // usara el default (maquina), los demas chips quedarian
+            // incompatibles y el filtro del UI los ocultaria.
+            val selectedOptions = if (hasExplicitDraft) {
+                draftByDefinition.value[definition.id].orEmpty()
+            } else {
+                emptyMap()
+            }
             // Memoized: typing, selection and expansion recompose every visible
             // card; without remember this matcher would re-run for all of them.
             val compatibility = remember(repository, definition.id, selectedOptions) {
@@ -1216,115 +1169,128 @@ private fun ColumnScope.CatalogReadyContent(
                     },
             ) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // Músculos que trabaja: arriba del título, texto pequeño y cian tenue.
+                    if (!isExpanded && defaultMuscles.isNotEmpty()) {
+                        Text(
+                            defaultMuscles.joinToString(" · ") { exerciseCatalogMuscleLabel(it) },
+                            color = Color(0xFF67E8F9).copy(alpha = 0.85f),
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+
+                    // Título del ejercicio: ancho completo, por encima de imagen y descripción.
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        if (!isExpanded && imageVariants.isNotEmpty()) {
-                            CatalogExerciseImageCarousel(
-                                definitionId = definition.id,
-                                selectedImplementation = selectedImplementation,
-                                expanded = false,
-                                modifier = Modifier.size(132.dp),
-                                onImplementationSettled = { implementation ->
-                                    selectOption("implement", implementation)
-                                },
+                        Text(
+                            definition.canonicalName,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            style = if (isExpanded) {
+                                MaterialTheme.typography.titleLarge
+                            } else {
+                                MaterialTheme.typography.titleSmall
+                            },
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f),
+                        )
+                        if (isSelected) {
+                            Icon(
+                                Icons.Default.Check,
+                                contentDescription = "Seleccionado",
+                                tint = Color(0xFF4ADE80),
+                                modifier = Modifier.size(16.dp),
                             )
                         }
-                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    }
+
+                    // Chips de búsqueda: fila propia debajo del título, nunca pegados a él.
+                    if (!isExpanded && query.isNotBlank()) {
+                        val searchChips = searchMatchChips[definition.id].orEmpty()
+                        if (searchChips.isNotEmpty()) {
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.Top,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                searchChips.take(3).forEach { label ->
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(Color.White.copy(alpha = 0.14f))
+                                            .padding(horizontal = 5.dp, vertical = 1.dp),
+                                    ) {
                                         Text(
-                                            definition.canonicalName,
-                                            color = Color.White,
-                                            fontWeight = FontWeight.Bold,
+                                            label,
+                                            color = Color.White.copy(alpha = 0.92f),
                                             style = MaterialTheme.typography.titleSmall,
                                             maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            modifier = Modifier.weight(1f, fill = false),
                                         )
-                                        // Chips del título: opciones coincidentes de la búsqueda,
-                                        // pequeñas y de-duplicadas (solo la más específica).
-                                        if (!isExpanded && query.isNotBlank()) {
-                                            val searchChips = searchMatchChips[definition.id].orEmpty()
-                                            if (searchChips.isNotEmpty()) {
-                                                Spacer(Modifier.width(6.dp))
-                                                Row(
-                                                    modifier = Modifier
-                                                        .weight(1f)
-                                                        .horizontalScroll(rememberScrollState()),
-                                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                ) {
-                                                    searchChips.take(3).forEach { label ->
-                                                        Box(
-                                                            modifier = Modifier
-                                                                .clip(RoundedCornerShape(6.dp))
-                                                                .background(Color.White.copy(alpha = 0.14f))
-                                                                .padding(horizontal = 5.dp, vertical = 1.dp),
-                                                        ) {
-                                                            Text(
-                                                                label,
-                                                                color = Color.White.copy(alpha = 0.92f),
-                                                                style = MaterialTheme.typography.titleSmall,
-                                                                maxLines = 1,
-                                                            )
-                                                        }
-                                                    }
-                                                    if (searchChips.size > 3) {
-                                                        Text(
-                                                            "+${searchChips.size - 3}",
-                                                            color = Color.White.copy(alpha = 0.55f),
-                                                            style = MaterialTheme.typography.labelSmall,
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        if (isSelected) {
-                                            Spacer(Modifier.width(6.dp))
-                                            Icon(
-                                                Icons.Default.Check,
-                                                contentDescription = "Seleccionado",
-                                                tint = Color(0xFF4ADE80),
-                                                modifier = Modifier.size(16.dp),
-                                            )
-                                        }
                                     }
                                 }
+                                if (searchChips.size > 3) {
+                                    Text(
+                                        "+${searchChips.size - 3}",
+                                        color = Color.White.copy(alpha = 0.55f),
+                                        style = MaterialTheme.typography.labelSmall,
+                                    )
+                                }
                             }
+                        }
+                    }
 
-                            if (!isExpanded) {
+                    if (!isExpanded) {
+                        if (imageVariants.isNotEmpty()) {
+                            // Zona central: imagen a la izquierda, descripción a la derecha.
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                verticalAlignment = Alignment.Top,
+                            ) {
+                                CatalogExerciseImageCarousel(
+                                    definitionId = definition.id,
+                                    selectedImplementation = selectedImplementation,
+                                    expanded = false,
+                                    modifier = Modifier.size(132.dp),
+                                    onImplementationSettled = { implementation ->
+                                        selectOption("implement", implementation)
+                                    },
+                                )
                                 Text(
                                     definition.description,
                                     color = Color.White.copy(alpha = 0.62f),
                                     style = MaterialTheme.typography.bodySmall,
                                     maxLines = 3,
                                     overflow = TextOverflow.Ellipsis,
-                                )
-                                CatalogFoldedVariantChips(
-                                    definitionId = definition.id,
-                                    values = variantValues,
-                                    selectedValue = if (hasExplicitDraft) firstAxis?.let(effectiveSelectedOptions::get) else null,
-                                    singleLine = imageVariants.isNotEmpty(),
-                                    onVariantSelected = { value -> selectOption("implement", value) },
+                                    modifier = Modifier.weight(1f),
                                 )
                             }
+                        } else {
+                            Text(
+                                definition.description,
+                                color = Color.White.copy(alpha = 0.62f),
+                                style = MaterialTheme.typography.bodySmall,
+                                maxLines = 3,
+                                overflow = TextOverflow.Ellipsis,
+                            )
                         }
                     }
 
-                    if (!isExpanded && defaultMuscles.isNotEmpty()) {
-                        Text(
-                            defaultMuscles.joinToString(" · ") { exerciseCatalogMuscleLabel(it) },
-                            color = Color.White.copy(alpha = 0.55f),
-                            style = MaterialTheme.typography.labelSmall,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                    // Chips técnicos: abajo de todo, una sola fila con scroll horizontal.
+                    if (!isExpanded) {
+                        CatalogFoldedVariantChips(
+                            definitionId = definition.id,
+                            values = variantValues,
+                            selectedValue = if (hasExplicitDraft) firstAxis?.let(effectiveSelectedOptions::get) else null,
+                            singleLine = true,
+                            onVariantSelected = { value -> selectOption("implement", value) },
                         )
                     }
 
@@ -2188,7 +2154,7 @@ private fun SelectedExercisesAppendix(
                         Icon(
                             Icons.Default.KeyboardArrowUp,
                             contentDescription = "Subir en el orden",
-                            tint = Color.White.copy(alpha = 0.75f),
+                            tint = if (index > 0) Color.White.copy(alpha = 0.75f) else Color.White.copy(alpha = 0.20f),
                             modifier = Modifier.size(15.dp),
                         )
                     }
@@ -2200,7 +2166,7 @@ private fun SelectedExercisesAppendix(
                         Icon(
                             Icons.Default.KeyboardArrowDown,
                             contentDescription = "Bajar en el orden",
-                            tint = Color.White.copy(alpha = 0.75f),
+                            tint = if (index < selected.lastIndex) Color.White.copy(alpha = 0.75f) else Color.White.copy(alpha = 0.20f),
                             modifier = Modifier.size(15.dp),
                         )
                     }

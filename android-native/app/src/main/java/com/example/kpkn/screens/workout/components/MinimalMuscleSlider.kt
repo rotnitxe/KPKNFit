@@ -1,7 +1,7 @@
 package com.example.kpkn.screens.workout.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -79,7 +79,9 @@ fun MinimalMuscleSlider(
                     }
                 }
                 .pointerInput(Unit) {
-                    detectDragGestures { change, _ ->
+                    // Solo gestos horizontales: los verticales pasan al scroll
+                    // del padre (fix scroll en recalibración de músculos).
+                    detectHorizontalDragGestures { change, dragAmount ->
                         val newValue = ((change.position.x / barWidth) * 100f).toInt().coerceIn(0, 100)
                         onValueChange(newValue)
                     }

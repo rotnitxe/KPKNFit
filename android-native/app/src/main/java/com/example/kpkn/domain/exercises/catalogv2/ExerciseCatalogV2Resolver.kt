@@ -349,6 +349,17 @@ class ExerciseCatalogV2Resolver(
         "supinated" -> "supino"
         "pronated" -> "prono"
         "neutral" -> "neutro"
+        // Alturas de polea
+        "low" -> "baja bajo"
+        "mid" -> "media medio"
+        "high" -> "alta alto"
+        // Ángulos de banco
+        "flat" -> "plano plana"
+        "incline" -> "inclinado inclinada"
+        "decline" -> "declinado declinada"
+        // Anchos de agarre
+        "wide" -> "amplio ancha ancho"
+        "close" -> "cerrado estrecha estrecho"
         else -> value
     }
 

@@ -42,6 +42,7 @@ import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.repository.CustomExerciseRepository
 import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.auge.getAugeMuscleDisplayId
+import com.example.kpkn.domain.auge.lookupMuscleValue
 import com.example.kpkn.screens.sessioneditor.components.SessionBackgroundLayer
 import com.example.kpkn.ui.components.SectionHeader
 
@@ -303,7 +304,9 @@ private fun SessionCard(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
-                            val avgRecovery = sessionMuscles.mapNotNull { perMuscle[it]?.recoveryScore }.average()
+                            val avgRecovery = sessionMuscles
+                                .map { lookupMuscleValue(perMuscle, it)?.recoveryScore ?: 100 }
+                                .average()
                             Text(
                                 if (avgRecovery.isNaN()) "--%" else "${avgRecovery.toInt()}%",
                                 style = MaterialTheme.typography.labelSmall,
@@ -344,7 +347,7 @@ private fun SessionCard(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
                                 row.forEach { muscle ->
-                                    val score = perMuscle[muscle]?.recoveryScore ?: 100
+                                    val score = lookupMuscleValue(perMuscle, muscle)?.recoveryScore ?: 100
                                     Surface(
                                         modifier = Modifier.weight(1f),
                                         shape = RoundedCornerShape(12.dp),
