@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell",
+      "Shell(powershell -NoProfile -File .opencode/scripts/run-gradle.ps1 -Tasks \"testBaseDebugUnitTest --tests *ExerciseCatalogV2RepositoryTest --tests *ExercisePickerConfigFallbackTest --tests *ExerciseCatalogAuditTest\")"
+    ],
+    "ask": [
+      "Shell(git reset*)",
+      "Shell(git stash*)",
+      "Shell(git clean*)",
+      "Shell(git restore*)",
+      "Shell(git checkout --*)",
+      "Shell(git rebase*)",
+      "Shell(git push --force*)"
+    ],
+    "deny": [],
+    "defaultMode": "auto-accept"
+  }
+}
