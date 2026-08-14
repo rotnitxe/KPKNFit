@@ -248,7 +248,15 @@ object WorkoutVoiceCommandParser {
                 base += FATIGUE_KEYWORDS
                 base += DRAINAGE_QUERY_KEYWORDS
                 base += CURRENT_SET_QUERY_KEYWORDS
-                base += setOf("reemplaza", "reemplazar", "reemplazá", "sustituye", "sustituir", "por")
+                base += setOf(
+                    "reemplaza", "reemplazar", "reemplazá", "sustituye", "sustituir", "cambia", "cambiar", "cambiá", "por", "en vez de", "en lugar de",
+                    "agrega", "agregar", "agregá", "anade", "añade", "anadir", "añadir", "añadí", "suma", "sumar", "sumá",
+                    "al final", "después", "despues", "después de este", "despues de este", "ejercicio",
+                    "press", "banca", "inclinado", "declinado", "plano", "mancuerna", "mancuernas", "barra", "polea", "poleas",
+                    "sentadilla", "peso muerto", "rumano", "dominadas", "fondos", "remo", "curl", "biceps", "bíceps", "triceps", "tríceps",
+                    "elevaciones", "laterales", "frontales", "prensa", "extensiones", "hip thrust", "gemelos", "zancadas", "jalon", "jalón",
+                    "aperturas", "peck deck", "contractor", "hack", "pullover", "abductores", "aductores", "crunch", "plancha",
+                )
                 base += PENDING_SIDE_QUERY_KEYWORDS
                 base += PACE_STATUS_KEYWORDS
                 base += PACING_MODE_KEYWORDS.values.flatten()
@@ -486,6 +494,7 @@ object WorkoutVoiceCommandParser {
             ?.trim()?.takeIf(String::isNotBlank)?.let { return VoiceSessionCommand.GoToExercise(it) }
 
         parseReplaceExercise(lower)?.let { return it }
+        parseAddExercise(lower)?.let { return it }
 
         if (APPLY_SUGGESTED_LOAD_KEYWORDS.any { lower.contains(it) }) {
             return VoiceSessionCommand.ApplySuggestedLoad
@@ -554,24 +563,149 @@ object WorkoutVoiceCommandParser {
         return VoiceSessionCommand.ApplyTag(knownTagNames.firstOrNull { normalizeText(it) == spoken } ?: spoken)
     }
 
-        /**
-     * "reemplaza X por Y" / "reemplazar el press por curl martillo con polea" /
-     * "sustituye X por Y". [targetName] vacío cuando se dice "este/el actual".
+    /**
+     * "reemplaza X por Y" / "reemplazar por Y" / "cambia este ejercicio por Y" /
+     * "sustituye X por Y" / "pon Y en vez de X". [targetName] vacío cuando se refiere al actual.
      */
     fun parseReplaceExercise(normalized: String): VoiceSessionCommand.ReplaceExercise? {
-        val match = Regex("(?:reemplaza|reemplazar|reemplazá|sustituye|sustituir)\\s+(.+?)\\s+por\\s+(.+)")
-            .find(normalized) ?: return null
-        val rawTarget = match.groupValues[1].trim()
-        val replacement = match.groupValues[2].trim()
-        if (replacement.isBlank()) return null
-        val target = rawTarget
-            .removePrefix("el ")
-            .removePrefix("al ")
-            .removePrefix("ejercicio ")
-            .trim()
-            .takeUnless { it in setOf("este", "actual", "el actual", "este ejercicio", "el ejercicio actual") }
-            .orEmpty()
-        return VoiceSessionCommand.ReplaceExercise(targetName = target, replacementPhrase = replacement)
+        val lower = normalizeText(normalized)
+
+        // 1. Patrón directo: "reemplaza por Y", "cambia este ejercicio por Y", "sustituye por Y"
+        val directPattern = Regex(
+            """(?:reemplaza|reemplazar|reemplazá|sustituye|sustituir|cambia|cambiar|cambiá)\s+(?:este\s+ejercicio|el\s+ejercicio\s+actual|este|el\s+actual)?\s*por\s+(.+)""",
+        ).find(lower)
+        if (directPattern != null) {
+            val replacement = directPattern.groupValues[1].trim()
+            if (replacement.isNotBlank() && !replacement.startsWith("este") && !replacement.startsWith("el actual")) {
+                return VoiceSessionCommand.ReplaceExercise(targetName = "", replacementPhrase = replacement)
+            }
+        }
+
+        // 2. Patrón de pares: "reemplaza X por Y", "cambia X por Y", "sustituye X por Y"
+        val pairPattern = Regex(
+            """(?:reemplaza|reemplazar|reemplazá|sustituye|sustituir|cambia|cambiar|cambiá)\s+(.+?)\s+por\s+(.+)""",
+        ).find(lower)
+        if (pairPattern != null) {
+            val rawTarget = pairPattern.groupValues[1].trim()
+            val replacement = pairPattern.groupValues[2].trim()
+            if (replacement.isNotBlank()) {
+                val target = rawTarget
+                    .removePrefix("el ")
+                    .removePrefix("al ")
+                    .removePrefix("ejercicio ")
+                    .trim()
+                    .takeUnless { it in setOf("este", "actual", "el actual", "este ejercicio", "el ejercicio actual") }
+                    .orEmpty()
+                return VoiceSessionCommand.ReplaceExercise(targetName = target, replacementPhrase = replacement)
+            }
+        }
+
+        // 3. Patrón alternativo: "pon Y en vez de X" o "pon Y en lugar de X"
+        val insteadPattern = Regex(
+            """(?:pon|poner|pone|poné)\s+(.+?)\s+en\s+(?:vez|lugar)\s+de\s+(.+)""",
+        ).find(lower)
+        if (insteadPattern != null) {
+            val replacement = insteadPattern.groupValues[1].trim()
+            val rawTarget = insteadPattern.groupValues[2].trim()
+            if (replacement.isNotBlank()) {
+                val target = rawTarget
+                    .removePrefix("el ")
+                    .removePrefix("al ")
+                    .removePrefix("ejercicio ")
+                    .trim()
+                    .takeUnless { it in setOf("este", "actual", "el actual", "este ejercicio", "el ejercicio actual") }
+                    .orEmpty()
+                return VoiceSessionCommand.ReplaceExercise(targetName = target, replacementPhrase = replacement)
+            }
+        }
+        return null
+    }
+
+    /**
+     * "agrega X" / "añade X al final" / "añadir el ejercicio X" / "agrega X después de este".
+     */
+    fun parseAddExercise(normalized: String): VoiceSessionCommand.AddExercise? {
+        val lower = normalizeText(normalized)
+
+        // Excluir comandos de serie que pertenecen a AddSet o métricas
+        if (ADD_SET_KEYWORDS.any { lower.contains(it) } ||
+            lower.contains("serie") || lower.contains("set") ||
+            lower.contains("repeticion") || lower.contains("repetición")) {
+            return null
+        }
+
+        // 1. Patrón explícito: "agrega el ejercicio X", "añadir ejercicio X"
+        val explicitExPattern = Regex(
+            """(?:agrega|agregar|agregá|anade|añade|anadir|añadir|añadí|suma|sumar|sumá)\s+(?:el\s+)?ejercicio\s+(.+)""",
+        ).find(lower)
+        if (explicitExPattern != null) {
+            val rawPhrase = explicitExPattern.groupValues[1].trim()
+            if (rawPhrase.isNotBlank()) {
+                val atEnd = rawPhrase.endsWith("al final") || rawPhrase.contains("al final")
+                val cleanPhrase = rawPhrase
+                    .removeSuffix("al final")
+                    .removeSuffix("después de este")
+                    .removeSuffix("despues de este")
+                    .removeSuffix("después")
+                    .removeSuffix("despues")
+                    .trim()
+                if (cleanPhrase.isNotBlank()) {
+                    return VoiceSessionCommand.AddExercise(
+                        exercisePhrase = cleanPhrase,
+                        targetExerciseId = null,
+                        atEnd = atEnd,
+                    )
+                }
+            }
+        }
+
+        // 2. Patrón con posicionador: "agrega X al final", "añade X después de este"
+        val positionedPattern = Regex(
+            """(?:agrega|agregar|agregá|anade|añade|anadir|añadir|añadí|suma|sumar|sumá)\s+(.+?)\s+(al\s+final|despues\s+de\s+este|después\s+de\s+este|despues|después)$""",
+        ).find(lower)
+        if (positionedPattern != null) {
+            val rawPhrase = positionedPattern.groupValues[1].trim()
+            val position = positionedPattern.groupValues[2].trim()
+            val atEnd = position == "al final"
+            val cleanPhrase = rawPhrase
+                .removePrefix("el ")
+                .removePrefix("un ")
+                .removePrefix("una ")
+                .removePrefix("ejercicio ")
+                .trim()
+            if (cleanPhrase.isNotBlank() && cleanPhrase.length >= 3) {
+                return VoiceSessionCommand.AddExercise(
+                    exercisePhrase = cleanPhrase,
+                    targetExerciseId = null,
+                    atEnd = atEnd,
+                )
+            }
+        }
+
+        // 3. Patrón genérico: "agrega X", "añadir X", "suma X"
+        val genericPattern = Regex(
+            """^(?:agrega|agregar|agregá|anade|añade|anadir|añadir|añadí|suma|sumar|sumá)\s+(.+)""",
+        ).find(lower)
+        if (genericPattern != null) {
+            val rawPhrase = genericPattern.groupValues[1].trim()
+            val cleanPhrase = rawPhrase
+                .removePrefix("el ")
+                .removePrefix("un ")
+                .removePrefix("una ")
+                .removePrefix("ejercicio ")
+                .trim()
+            val nonExerciseKeywords = setOf("peso", "kilo", "kilos", "kg", "rep", "reps", "repeticion", "repeticiones", "serie", "series", "set", "sets", "descanso", "timer", "temporizador", "nota", "comentario", "mas", "más", "menos")
+            if (cleanPhrase.isNotBlank() && cleanPhrase.length >= 3 &&
+                cleanPhrase.split(' ').none { it in nonExerciseKeywords }) {
+                return VoiceSessionCommand.AddExercise(
+                    exercisePhrase = cleanPhrase,
+                    targetExerciseId = null,
+                    atEnd = false,
+                )
+            }
+        }
+
+        return null
     }
 
     fun parseEditLastSet(normalized: String): VoiceSessionCommand.EditLastSet? {
@@ -844,6 +978,18 @@ object WorkoutVoiceCommandParser {
         // Patrones de serie ("8 por 12") NUNCA se tragan: se detectan y van al parseo normal.
         if (technicalQuality == null && bareNumberIsQuality && isBareQualityNumber(lower)) {
             technicalQuality = extractNumberFromText(lower)?.toInt()?.takeIf { it in 1..10 }
+        }
+        // Respuestas naturales directas al prompt de calidad ("buena", "regular", "ocho")
+        // sin repetir la palabra "calidad": el usuario responde la pregunta del TTS.
+        if (technicalQuality == null && bareNumberIsQuality) {
+            technicalQuality = when {
+                lower.contains("excelente") || lower.contains("perfecta") -> 10
+                lower.contains("muy buena") -> 9
+                lower.contains("buena") -> 8
+                lower.contains("regular") || lower.contains("mas o menos") -> 6
+                lower.contains("mala") || lower.contains("pesima") -> 3
+                else -> null
+            }
         }
 
         var perceivedIntensity: Double? = null

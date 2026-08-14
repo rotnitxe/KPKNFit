@@ -81,6 +81,13 @@ sealed interface VoicePendingAction {
         val replacementName: String,
     ) : VoicePendingAction
 
+    data class ExerciseAddition(
+        override val baseInterpretation: WorkoutVoiceInterpretation = WorkoutVoiceInterpretation(""),
+        val command: VoiceSessionCommand.ConfirmAddExercise,
+        val exerciseName: String,
+        val positionDescription: String = "",
+    ) : VoicePendingAction
+
     data class DiscomfortSelection(
         override val baseInterpretation: WorkoutVoiceInterpretation = WorkoutVoiceInterpretation(""),
         val candidates: Map<String, String>,
@@ -163,6 +170,20 @@ sealed class VoiceSessionCommand {
     data class ConfirmReplaceExercise(
         val targetExerciseId: String,
         val replacement: com.example.kpkn.data.models.ExerciseMuscleInfo,
+    ) : VoiceSessionCommand()
+    /** Agrega un ejercicio a la sesión por voz.
+     *  [targetExerciseId] nulo o [atEnd] true = al final de la sesión, de lo contrario después del target. */
+    data class AddExercise(
+        val exercisePhrase: String,
+        val targetExerciseId: String? = null,
+        val atEnd: Boolean = false,
+    ) : VoiceSessionCommand()
+    /** Confirmación de adición de ejercicio por voz; [exercise] es la configuración
+     *  exacta del catálogo ya resuelta. */
+    data class ConfirmAddExercise(
+        val exercise: com.example.kpkn.data.models.ExerciseMuscleInfo,
+        val targetExerciseId: String? = null,
+        val atEnd: Boolean = false,
     ) : VoiceSessionCommand()
     data object TurnOffVoice : VoiceSessionCommand()
     data object FinishSession : VoiceSessionCommand()

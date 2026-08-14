@@ -387,4 +387,53 @@ internal fun WorkoutSessionOverlaysHost(
                 }
         }
     }
+
+    // ─── Overlay preventivo: molestia persistente (≥3 sesiones en el patrón) ───
+    val currentExerciseForAlert = remember(uiState.currentExerciseIdx, visibleExercises) {
+        visibleExercises.getOrNull(uiState.currentExerciseIdx)
+    }
+    val persistentDiscomfortLabel = remember(currentExerciseForAlert?.id) {
+        currentExerciseForAlert?.let { viewModel.persistentDiscomfortForExercise(it) }
+    }
+    var dismissedPersistentDiscomfortExercise by remember { mutableStateOf<String?>(null) }
+    val showPersistentDiscomfortAlert = persistentDiscomfortLabel != null &&
+        dismissedPersistentDiscomfortExercise != currentExerciseForAlert?.id &&
+        !showReadinessSheet &&
+        !uiState.showPostExerciseSheet &&
+        !uiState.showFinishSheet
+
+    if (showPersistentDiscomfortAlert && currentExerciseForAlert != null && persistentDiscomfortLabel != null) {
+        KpknGlassDialog(
+            onDismissRequest = { dismissedPersistentDiscomfortExercise = currentExerciseForAlert.id },
+            shape = RoundedCornerShape(KpknGlass.DialogCornerRadius),
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(
+                    "Aviso preventivo",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    "En este ejercicio reportaste $persistentDiscomfortLabel. " +
+                        "Preocúpate por hacer una correcta técnica y manejar cargas adecuadas para ti. " +
+                        "Si la molestia persiste en el tiempo, te recomendamos que cambies de ejercicio y " +
+                        "que te asesores con un kinesiólogo.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+                Button(
+                    onClick = { dismissedPersistentDiscomfortExercise = currentExerciseForAlert.id },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Entendido, continuar")
+                }
+            }
+        }
+    }
 }

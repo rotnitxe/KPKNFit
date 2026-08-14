@@ -89,13 +89,12 @@ class WorkoutVoiceForegroundService : Service() {
             )
             val stage = VoicePipelineStage.entries.getOrElse(stageOrdinal) { VoicePipelineStage.LISTENING }
             val profile = VoiceNoiseProfile.entries.getOrElse(noiseProfileOrdinal) { VoiceNoiseProfile.GYM }
+            val captureMode = VoiceCaptureMode.entries.getOrElse(captureModeOrdinal) { VoiceCaptureMode.HANDS_FREE }
             engine.setNoiseProfile(profile)
-            engine.updateCaptureMode(
-                VoiceCaptureMode.entries.getOrElse(captureModeOrdinal) { VoiceCaptureMode.HANDS_FREE },
-            )
+            engine.updateCaptureMode(captureMode)
             grammarJson?.let { engine.updateGrammarOverride(it, stage) }
             acquireWakeLock()
-            engine.start(serviceScope, holdMicRouteAcrossPause)
+            engine.start(serviceScope, holdMicRouteAcrossPause, captureMode)
         }
 
         override fun updateCaptureMode(generation: Long, captureModeOrdinal: Int) {

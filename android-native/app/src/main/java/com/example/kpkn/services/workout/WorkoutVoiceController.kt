@@ -450,6 +450,7 @@ class WorkoutVoiceController(
             if (!allows(VoiceAnnouncementKind.ESSENTIAL)) return
             speakWhilePaused {
                 ttsManager.speakAskTechnicalQuality()
+                ttsManager.speakAskDiscomfort()
             }
         } else {
             if (announcedPostFeedbackPrompt) return
@@ -457,6 +458,7 @@ class WorkoutVoiceController(
             if (!allows(VoiceAnnouncementKind.ESSENTIAL)) return
             speakWhilePaused {
                 ttsManager.speakAskTechnicalQuality()
+                ttsManager.speakAskDiscomfort()
             }
         }
     }
@@ -690,6 +692,44 @@ class WorkoutVoiceController(
                 scope?.let(::startEngineForCurrentInputMode)
             },
             speak = { ttsManager.speakError("¿Reemplazo $targetName por $replacementName?") },
+        )
+    }
+
+    fun requestExerciseAdditionConfirmation(
+        exercise: ExerciseMuscleInfo,
+        targetExerciseId: String?,
+        atEnd: Boolean,
+        positionDescription: String = "",
+    ) {
+        confirmedOrCancelled = false
+        val exerciseName = spokenExerciseReplacementName(exercise)
+        _state.update {
+            it.copy(
+                pendingAction = VoicePendingAction.ExerciseAddition(
+                    command = VoiceSessionCommand.ConfirmAddExercise(
+                        exercise = exercise,
+                        targetExerciseId = targetExerciseId,
+                        atEnd = atEnd,
+                    ),
+                    exerciseName = exerciseName,
+                    positionDescription = positionDescription,
+                ),
+            )
+        }
+        val promptText = if (atEnd) {
+            "¿Agrego $exerciseName al final del entrenamiento?"
+        } else if (positionDescription.isNotBlank()) {
+            "¿Agrego $exerciseName después de $positionDescription?"
+        } else {
+            "¿Agrego $exerciseName al entrenamiento?"
+        }
+        runSpeakingOrSkip(
+            onComplete = {
+                updateStage(VoicePipelineStage.CONFIRM_WAIT)
+                pushGrammar(VoicePipelineStage.CONFIRM_WAIT)
+                scope?.let(::startEngineForCurrentInputMode)
+            },
+            speak = { ttsManager.speakError(promptText) },
         )
     }
 
@@ -1783,6 +1823,7 @@ class WorkoutVoiceController(
             }
             is VoicePendingAction.ExerciseNavigation -> null
             is VoicePendingAction.ExerciseReplacement -> null
+            is VoicePendingAction.ExerciseAddition -> null
             is VoicePendingAction.DiscomfortSelection -> WorkoutVoiceCommandParser
                 .resolveDiscomfortCandidateId(transcript, pendingClarification.candidates)
                 ?.let { VoiceSessionCommand.LogFeedback(null, it, null) }
@@ -2071,6 +2112,35 @@ class WorkoutVoiceController(
                         mapOf(
                             "target" to pendingClarification.targetName,
                             "replacement" to pendingClarification.replacementName,
+                            "confirmed" to false,
+                        ),
+                    )
+                    runSpeakingOrSkip(
+                        onComplete = { resumeListening() },
+                        speak = { ttsManager.speakError("Cancelado.") },
+                    )
+                }
+                return
+            }
+            is VoicePendingAction.ExerciseAddition -> {
+                if (isAffirmativeReply(transcript)) {
+                    _state.update { it.copy(pendingAction = null) }
+                    WorkoutVoiceDiagnosticLogger.event(
+                        "voice_exercise_addition",
+                        mapOf(
+                            "exercise" to pendingClarification.exerciseName,
+                            "confirmed" to true,
+                        ),
+                    )
+                    onCommandDetected?.invoke(pendingClarification.command)
+                    releaseDucking()
+                    resumeListening()
+                } else {
+                    _state.update { it.copy(pendingAction = null) }
+                    WorkoutVoiceDiagnosticLogger.event(
+                        "voice_exercise_addition",
+                        mapOf(
+                            "exercise" to pendingClarification.exerciseName,
                             "confirmed" to false,
                         ),
                     )
@@ -3303,6 +3373,14 @@ class WorkoutVoiceController(
         if (replacement != null) {
             _state.update { it.copy(pendingAction = null) }
             onCommandDetected?.invoke(replacement.command)
+            releaseDucking()
+            resumeListening()
+            return
+        }
+        val addition = _state.value.pendingAction as? VoicePendingAction.ExerciseAddition
+        if (addition != null) {
+            _state.update { it.copy(pendingAction = null) }
+            onCommandDetected?.invoke(addition.command)
             releaseDucking()
             resumeListening()
             return

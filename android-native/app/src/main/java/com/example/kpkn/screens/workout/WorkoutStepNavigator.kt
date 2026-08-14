@@ -356,6 +356,7 @@ class WorkoutStepNavigator(
                     postExerciseTargetIdx = state.currentExerciseIdx,
                     postExerciseFeedbackTarget = feedbackTarget.takeIf { shouldShowFeedback },
                     pendingPostExerciseIdx = -2,
+                    showFinishSheet = !shouldShowFeedback,
                     editingState = if (shouldShowFeedback) it.editingState else null,
                     continuityTransitionTarget = null,
                     continuityFeedbackExerciseId = null,
@@ -364,6 +365,8 @@ class WorkoutStepNavigator(
             ports.persistOngoingState()
             if (shouldShowFeedback && state.voiceSessionEnabled) {
                 ports.announceFinalPostExerciseFeedback(feedbackTarget.unrecordedFeedbackExerciseIds(state))
+            } else if (!shouldShowFeedback) {
+                ports.openFinishSheet()
             }
             return
         }

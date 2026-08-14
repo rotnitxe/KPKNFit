@@ -72,6 +72,16 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.UnilateralSideOrder
 import com.example.kpkn.data.models.UnilateralTarget
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.ui.draw.clip
+import com.example.kpkn.data.models.PrReference
+import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
+import com.example.kpkn.domain.calculations.calculateHybrid1RM
+import com.example.kpkn.screens.sessioneditor.components.ExerciseSmartLoadDialog
+import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.data.models.WorkoutContextProfile
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.effectiveSupersetGroupFor
@@ -211,26 +221,44 @@ internal fun WorkoutStructureSheetsHost(
     ) {
         val open = onOpenCatalog ?: return@LaunchedEffect
         val request = when {
-            state.addCatalogToSupersetGroupId != null -> CatalogLaunchRequest(
-                origin = CatalogLaunchOrigin.SUPERSET,
-                selectionMode = CatalogSelectionMode.SUPERSET,
-                targetExerciseId = state.addCatalogToSupersetGroupId,
-                selectedExerciseIds = state.addCatalogSelectedIds.toList(),
-                initialQuery = state.addCatalogSearchQuery,
-            )
-            state.addExerciseAfterId != null -> CatalogLaunchRequest(
-                origin = CatalogLaunchOrigin.LIVE_SESSION,
-                selectionMode = CatalogSelectionMode.MULTIPLE,
-                targetExerciseId = state.addExerciseAfterId,
-                selectedExerciseIds = state.addExerciseSelectedIds.toList(),
-                initialQuery = state.addExerciseSearchQuery,
-            )
-            state.showReplaceExercisePicker && state.replaceTargetExerciseId != null -> CatalogLaunchRequest(
-                origin = CatalogLaunchOrigin.REPLACEMENT,
-                selectionMode = CatalogSelectionMode.REPLACEMENT,
-                targetExerciseId = state.replaceTargetExerciseId,
-                initialQuery = state.replaceSearchQuery,
-            )
+            state.addCatalogToSupersetGroupId != null -> {
+                val req = CatalogLaunchRequest(
+                    origin = CatalogLaunchOrigin.SUPERSET,
+                    selectionMode = CatalogSelectionMode.SUPERSET,
+                    targetExerciseId = state.addCatalogToSupersetGroupId,
+                    selectedExerciseIds = state.addCatalogSelectedIds.toList(),
+                    initialQuery = state.addCatalogSearchQuery,
+                )
+                state.addCatalogToSupersetGroupId = null
+                state.addCatalogSearchQuery = ""
+                state.addCatalogSelectedIds = emptySet()
+                req
+            }
+            state.addExerciseAfterId != null -> {
+                val req = CatalogLaunchRequest(
+                    origin = CatalogLaunchOrigin.LIVE_SESSION,
+                    selectionMode = CatalogSelectionMode.MULTIPLE,
+                    targetExerciseId = state.addExerciseAfterId,
+                    selectedExerciseIds = state.addExerciseSelectedIds.toList(),
+                    initialQuery = state.addExerciseSearchQuery,
+                )
+                state.addExerciseAfterId = null
+                state.addExerciseSearchQuery = ""
+                state.addExerciseSelectedIds = emptySet()
+                req
+            }
+            state.showReplaceExercisePicker && state.replaceTargetExerciseId != null -> {
+                val req = CatalogLaunchRequest(
+                    origin = CatalogLaunchOrigin.REPLACEMENT,
+                    selectionMode = CatalogSelectionMode.REPLACEMENT,
+                    targetExerciseId = state.replaceTargetExerciseId,
+                    initialQuery = state.replaceSearchQuery,
+                )
+                state.showReplaceExercisePicker = false
+                state.replaceTargetExerciseId = null
+                state.replaceSearchQuery = ""
+                req
+            }
             else -> null
         }
         request?.let(open)
@@ -739,6 +767,35 @@ internal fun WorkoutStructureSheetsHost(
                     draftExercise = editEx
                 }
             }
+
+            var showSmartLoadDialog by remember { mutableStateOf(false) }
+            var rmInputMode by remember(draftExercise.id) {
+                mutableStateOf(if (draftExercise.prFor1RM != null) "pr" else "direct")
+            }
+            var directRmInput by remember(draftExercise.id, draftExercise.reference1RM) {
+                mutableStateOf(formatEditableNumber(draftExercise.reference1RM))
+            }
+            var prWeightInput by remember(draftExercise.id, draftExercise.prFor1RM?.weight) {
+                mutableStateOf(formatEditableNumber(draftExercise.prFor1RM?.weight))
+            }
+            var prRepsInput by remember(draftExercise.id, draftExercise.prFor1RM?.reps) {
+                mutableStateOf(draftExercise.prFor1RM?.reps?.toString().orEmpty())
+            }
+            val localPrEstimatedRm = remember(prWeightInput, prRepsInput, draftExercise.trainingMode) {
+                val w = prWeightInput.toDoubleOrNull()
+                val r = prRepsInput.toIntOrNull()
+                if (w != null && w > 0 && r != null && r > 0) {
+                    if (draftExercise.trainingMode == TrainingMode.TIME || draftExercise.trainingMode == TrainingMode.DISTANCE || draftExercise.trainingMode == TrainingMode.CUSTOM) {
+                        calculateGeneralizedCapacity(w, r.toDouble())
+                    } else {
+                        calculateHybrid1RM(w, r)
+                    }
+                } else null
+            }
+            val resolved1RM = remember(draftExercise.trainingMode, draftExercise.reference1RM, draftExercise.prFor1RM, localPrEstimatedRm) {
+                draftExercise.reference1RM ?: localPrEstimatedRm ?: draftExercise.consolidatedWeight?.weightKg
+            }
+
             WorkoutDrawer(
                 title = "${draftExercise.name} · ${if (draftExercise.cardioDetails != null) "Editar cardio" else "Editar series"}",
                 onDismiss = { state.editSheetExerciseId = null },
@@ -810,9 +867,90 @@ internal fun WorkoutStructureSheetsHost(
                         )
                     }
 
+                    if (draftExercise.cardioDetails == null) {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(44.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { showSmartLoadDialog = true },
+                            shape = RoundedCornerShape(12.dp),
+                            color = sessionAccentColor.copy(alpha = 0.10f),
+                            border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.30f)),
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
+                                    Icon(
+                                        Icons.Default.FitnessCenter,
+                                        contentDescription = null,
+                                        tint = sessionAccentColor,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                    Text(
+                                        "Carga inteligente",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = sessionAccentColor,
+                                    )
+                                }
+                                if (resolved1RM != null && resolved1RM > 0.0) {
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = sessionAccentColor.copy(alpha = 0.18f),
+                                    ) {
+                                        Text(
+                                            "1RM: ${formatEditableNumber(resolved1RM)} kg",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Black,
+                                            color = sessionAccentColor,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                        )
+                                    }
+                                } else {
+                                    Text(
+                                        "Configurar",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    if (showSmartLoadDialog) {
+                        ExerciseSmartLoadDialog(
+                            exercise = draftExercise,
+                            rmInputMode = rmInputMode,
+                            onRmInputModeChange = { rmInputMode = it },
+                            directRmInput = directRmInput,
+                            onDirectRmInputChange = { directRmInput = it },
+                            prWeightInput = prWeightInput,
+                            onPrWeightInputChange = { prWeightInput = it },
+                            prRepsInput = prRepsInput,
+                            onPrRepsInputChange = { prRepsInput = it },
+                            customUnitInput = draftExercise.customUnit.orEmpty(),
+                            localPrEstimatedRm = localPrEstimatedRm,
+                            resolved1RM = resolved1RM,
+                            onUpdateExercise = { transform ->
+                                draftExercise = transform(draftExercise)
+                            },
+                            onDismiss = { showSmartLoadDialog = false },
+                        )
+                    }
+
                     ExerciseSetsCarousel(
                         exercise = draftExercise,
-                        reference1RM = draftExercise.reference1RM ?: draftExercise.calculated1RM ?: draftExercise.consolidatedWeight?.weightKg,
+                        reference1RM = resolved1RM,
                         trainingMode = draftExercise.trainingMode,
                         customUnit = draftExercise.customUnit,
                         predictedMetrics = emptyMap(),

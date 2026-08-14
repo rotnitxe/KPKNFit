@@ -557,17 +557,11 @@ fun WorkoutScreen(
         structureSheets.selectedExerciseContextTab = null
     }
 
-    val liveCatalogIndex = remember { catalogExerciseIndex().values.associateBy { it.id.lowercase() } }
     LaunchedEffect(catalogResult?.requestId) {
         val result = catalogResult ?: return@LaunchedEffect
         val request = pendingCatalogRequest ?: return@LaunchedEffect
-        val infos = result.selectedExerciseIds.mapNotNull { id ->
-            liveCatalogIndex[id.lowercase()]
-                ?: liveCatalogIndex.values.firstOrNull { info ->
-                    info.id.equals(id, ignoreCase = true) ||
-                        info.catalogConfigurationId == id
-                }
-        }.distinctBy { it.id }
+        val exerciseInfoById = catalogExerciseIndex()
+        val infos = result.resolveSelectedInfos(exerciseInfoById)
         if (!result.canceled) {
             when (request.origin) {
                 CatalogLaunchOrigin.SUPERSET -> {
@@ -579,8 +573,11 @@ fun WorkoutScreen(
                     structureSheets.addCatalogSelectedIds = emptySet()
                 }
                 CatalogLaunchOrigin.LIVE_SESSION -> {
-                    request.targetExerciseId?.let { targetId ->
-                        infos.asReversed().forEach { info -> viewModel.addExerciseAfter(targetId, info) }
+                    val targetId = request.targetExerciseId
+                    if (targetId != null) {
+                        viewModel.addExercisesAfter(targetId, infos)
+                    } else if (infos.isNotEmpty()) {
+                        viewModel.addExercisesAtEnd(infos)
                     }
                     structureSheets.addExerciseAfterId = null
                     structureSheets.addExerciseSearchQuery = ""
@@ -1042,7 +1039,6 @@ fun WorkoutScreen(
                     notes = notes,
                     fatigueLevel = fatigue,
                     closingFeedback = closingFeedback,
-                    onPendingQuestionnaire = { q -> augeViewModel.schedulePendingQuestionnaire(q) },
                     onComplete = {
                         val anyRingEdit = closingFeedback.neuralEdited ||
                             closingFeedback.spinalEdited ||

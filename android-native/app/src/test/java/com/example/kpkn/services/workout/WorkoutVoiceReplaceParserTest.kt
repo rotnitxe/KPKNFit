@@ -49,6 +49,27 @@ class WorkoutVoiceReplaceParserTest {
     }
 
     @Test
+    fun reemplaza_por_sin_target() {
+        val command = parse("reemplaza por press inclinado")!!
+        assertEquals("", command.targetName)
+        assertEquals("press inclinado", command.replacementPhrase)
+    }
+
+    @Test
+    fun cambia_este_ejercicio_por() {
+        val command = parse("cambia este ejercicio por remo con barra")!!
+        assertEquals("", command.targetName)
+        assertEquals("remo con barra", command.replacementPhrase)
+    }
+
+    @Test
+    fun pon_en_vez_de() {
+        val command = parse("pon dominadas en vez de press de banca")!!
+        assertEquals("press de banca", command.targetName)
+        assertEquals("dominadas", command.replacementPhrase)
+    }
+
+    @Test
     fun navegacion_no_colisiona() {
         assertNull(parse("cambiar a press de banca"))
     }

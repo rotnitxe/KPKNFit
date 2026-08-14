@@ -138,6 +138,10 @@ class WorkoutVoiceCommandHandler(
         fun moveCurrentExercise(direction: Int)
         /** Reemplaza el ejercicio indicado por la configuración exacta del catálogo. */
         fun replaceExerciseById(exerciseId: String, replacement: ExerciseMuscleInfo)
+        /** Agrega un ejercicio después del target o al final si es nulo. */
+        fun addExerciseAfter(targetExerciseId: String, exercise: ExerciseMuscleInfo)
+        /** Agrega un ejercicio al final de la sesión. */
+        fun addExerciseAtEnd(exercise: ExerciseMuscleInfo)
         /** Crea superserie en vivo con los miembros indicados. */
         fun createLiveSuperset(memberIds: List<String>)
         /** Disuelve la superserie del ejercicio actual. */
@@ -499,9 +503,20 @@ class WorkoutVoiceCommandHandler(
                     speakCurrentStepAnnouncementIfEnabled()
                 }
             }
+            is VoiceSessionCommand.AddExercise -> handleVoiceAddExercise(command)
+            is VoiceSessionCommand.ConfirmAddExercise -> {
+                if (command.atEnd || command.targetExerciseId == null) {
+                    ports.addExerciseAtEnd(command.exercise)
+                } else {
+                    ports.addExerciseAfter(command.targetExerciseId, command.exercise)
+                }
+                voiceController.speakFeedbackUpdated("Agregado ${command.exercise.name}")
+                speakCurrentStepAnnouncementIfEnabled()
+            }
             is VoiceSessionCommand.ReplaceExercise -> handleVoiceReplaceExercise(command)
             is VoiceSessionCommand.ConfirmReplaceExercise -> {
                 ports.replaceExerciseById(command.targetExerciseId, command.replacement)
+                voiceController.speakFeedbackUpdated("Ejercicio reemplazado por ${command.replacement.name}")
                 speakCurrentStepAnnouncementIfEnabled()
             }
             is VoiceSessionCommand.TurnOffVoice -> disableVoice()
@@ -1413,18 +1428,44 @@ class WorkoutVoiceCommandHandler(
         )
     }
 
+    private fun handleVoiceAddExercise(command: VoiceSessionCommand.AddExercise) {
+        val state = getState()
+        val exercises = ports.visibleExercises(state)
+        val target = if (command.atEnd) {
+            null
+        } else if (!command.targetExerciseId.isNullOrBlank()) {
+            exercises.firstOrNull { it.id == command.targetExerciseId }
+        } else {
+            exercises.getOrNull(state.currentExerciseIdx)
+        }
+        val candidate = resolveVoiceCatalogCandidate(command.exercisePhrase)
+        if (candidate == null) {
+            voiceController.speakFeedbackUpdated("No encontré ese ejercicio en el catálogo.")
+            return
+        }
+        voiceController.requestExerciseAdditionConfirmation(
+            exercise = candidate,
+            targetExerciseId = target?.id,
+            atEnd = command.atEnd || target == null,
+            positionDescription = target?.let(::spokenWorkoutExerciseName).orEmpty(),
+        )
+    }
+
     /** Resuelve la frase hablada contra el catálogo y devuelve la configuración
      *  exacta cuyo chips coinciden con las opciones mencionadas (ej. "con
      *  mancuernas", "en polea alta"); si no se menciona ninguna, la default. */
     private fun resolveVoiceCatalogCandidate(phrase: String): ExerciseMuscleInfo? {
         val index = catalogExerciseIndex()
-        val definitions = index.values.filter { it.id == it.catalogDefinitionId }
+        val definitions = index.values
+            .filter { it.catalogDefinitionId == null || it.id == it.catalogDefinitionId }
+            .distinctBy { it.id }
         val ranked = WorkoutVoiceExerciseAliasMatcher.rank(
             phrase,
             definitions.map { it.id to it.name },
-            emptyMap(),
+            ports.voiceExerciseAliases(),
         ).firstOrNull() ?: return null
         val definition = definitions.firstOrNull { it.id == ranked.exerciseId } ?: return null
+        if (definition.catalogDefinitionId == null) return definition
         val normalized = normalizeVoiceReplaceText(phrase)
         val configs = index.values.filter { it.catalogDefinitionId == definition.id && it.id == it.catalogConfigurationId }
         return configs.maxByOrNull { config ->

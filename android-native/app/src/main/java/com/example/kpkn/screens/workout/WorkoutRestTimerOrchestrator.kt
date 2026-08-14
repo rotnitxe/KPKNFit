@@ -243,20 +243,29 @@ class WorkoutRestTimerOrchestrator(
     private suspend fun handleNaturalFinish(advanceOnFinish: Boolean) {
         val stateBeforeFinish = getState()
         val exercise = ports.visibleExercises(stateBeforeFinish).getOrNull(stateBeforeFinish.currentExerciseIdx)
-        stateBeforeFinish.restModalState?.exerciseName?.let { nextExerciseName ->
-            if (exercise != null) {
-                voiceController.onRestTimerFinishedWithStep(
-                    exerciseName = nextExerciseName,
-                    suggestedWeight = suggestedWeightForVoiceAfterRest(),
-                    setNumber = stateBeforeFinish.currentSetIdx + 1,
-                    totalSets = exercise.sets.size,
-                    round = null,
-                )
-            } else {
-                voiceController.onRestTimerFinished(
-                    exerciseName = nextExerciseName,
-                    suggestedWeight = suggestedWeightForVoiceAfterRest(),
-                )
+        // Si hay un sheet de feedback post-ejercicio pendiente (última serie ya
+        // registrada), NO anunciar "Ejercicio X, Serie Y": la serie se completó
+        // y el prompt de calidad/molestias ya está en curso (fix timers fantasma
+        // con anuncio duplicado al finalizar el descanso).
+        val feedbackPending = stateBeforeFinish.pendingPostExerciseIdx >= 0 ||
+            stateBeforeFinish.showPostExerciseSheet ||
+            stateBeforeFinish.showFinishSheet
+        if (!feedbackPending) {
+            stateBeforeFinish.restModalState?.exerciseName?.let { nextExerciseName ->
+                if (exercise != null) {
+                    voiceController.onRestTimerFinishedWithStep(
+                        exerciseName = nextExerciseName,
+                        suggestedWeight = suggestedWeightForVoiceAfterRest(),
+                        setNumber = stateBeforeFinish.currentSetIdx + 1,
+                        totalSets = exercise.sets.size,
+                        round = null,
+                    )
+                } else {
+                    voiceController.onRestTimerFinished(
+                        exerciseName = nextExerciseName,
+                        suggestedWeight = suggestedWeightForVoiceAfterRest(),
+                    )
+                }
             }
         }
         restTimer.clearReferences()

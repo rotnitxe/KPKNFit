@@ -494,6 +494,12 @@ class WorkoutViewModel(
                 override fun replaceExerciseById(exerciseId: String, replacement: ExerciseMuscleInfo) {
                     replaceExercise(exerciseId = exerciseId, replacement = replacement, deferPersistencePrompt = true)
                 }
+                override fun addExerciseAfter(targetExerciseId: String, exercise: ExerciseMuscleInfo) {
+                    addExerciseAfter(exerciseId = targetExerciseId, info = exercise)
+                }
+                override fun addExerciseAtEnd(exercise: ExerciseMuscleInfo) {
+                    addExerciseAtEnd(info = exercise)
+                }
                 override fun createLiveSuperset(memberIds: List<String>) {
                     createLiveSuperset(memberIds, partId = null, restBetween = 60, restAfter = 120)
                 }
@@ -2272,6 +2278,72 @@ class WorkoutViewModel(
         )}
     }
 
+    fun addExercisesAfter(exerciseId: String, infos: List<ExerciseMuscleInfo>) {
+        if (infos.isEmpty()) return
+        if (infos.size == 1) {
+            addExerciseAfter(exerciseId, infos.first())
+            return
+        }
+        val state = _uiState.value
+        val base = state.session ?: return
+        var lastInsertedId = exerciseId
+        var firstNewId: String? = null
+        var updated = base
+        for (info in infos) {
+            val newId = UUID.randomUUID().toString()
+            if (firstNewId == null) firstNewId = newId
+            val curTarget = lastInsertedId
+            updated = withModeSession(updated, state.activeMode) { modeSession ->
+                val template = modeSession.allExercises().firstOrNull { it.id == curTarget }
+                    ?: modeSession.allExercises().lastOrNull()
+                    ?: Exercise(id = newId, name = info.name, exerciseDbId = info.id)
+                val newExercise = structuralPersistence.buildReplacementExercise(template.copy(id = newId), info).copy(
+                    id = newId,
+                    sets = listOf(ExerciseSet(id = UUID.randomUUID().toString())),
+                )
+                structuralPersistence.insertExerciseAfter(modeSession, curTarget, newExercise)
+            }
+            lastInsertedId = newId
+        }
+        if (updated == base) return
+        applySessionMutation(updated, preferredExerciseId = firstNewId, persistToProgram = false)
+        _uiState.update { it.copy(pendingEditSheetExerciseId = firstNewId) }
+    }
+
+    fun addExerciseAtEnd(info: ExerciseMuscleInfo) {
+        val state = _uiState.value
+        val base = state.session ?: return
+        val lastEx = sessionForActiveMode(base, state.activeMode).allExercises().lastOrNull()
+        if (lastEx != null) {
+            addExerciseAfter(lastEx.id, info)
+        } else {
+            val newId = UUID.randomUUID().toString()
+            val updated = withModeSession(base, state.activeMode) { modeSession ->
+                val dummy = Exercise(id = newId, name = info.name, exerciseDbId = info.id)
+                val newExercise = structuralPersistence.buildReplacementExercise(dummy, info).copy(
+                    id = newId,
+                    sets = listOf(ExerciseSet(id = UUID.randomUUID().toString())),
+                )
+                structuralPersistence.insertExerciseAtEnd(modeSession, newExercise)
+            }
+            if (updated == base) return
+            applySessionMutation(updated, preferredExerciseId = newId, persistToProgram = false)
+            _uiState.update { it.copy(pendingEditSheetExerciseId = newId) }
+        }
+    }
+
+    fun addExercisesAtEnd(infos: List<ExerciseMuscleInfo>) {
+        if (infos.isEmpty()) return
+        val state = _uiState.value
+        val base = state.session ?: return
+        val lastEx = sessionForActiveMode(base, state.activeMode).allExercises().lastOrNull()
+        if (lastEx != null) {
+            addExercisesAfter(lastEx.id, infos)
+        } else {
+            infos.forEach { addExerciseAtEnd(it) }
+        }
+    }
+
     fun clearPendingEditSheetExerciseId() {
         _uiState.update { it.copy(pendingEditSheetExerciseId = null) }
     }
@@ -3587,7 +3659,6 @@ class WorkoutViewModel(
         notes: String,
         fatigueLevel: Int,
         closingFeedback: SessionClosingFeedback,
-        onPendingQuestionnaire: ((PendingQuestionnaire) -> Unit)? = null,
         onComplete: () -> Unit = {},
         onFailure: (Exception) -> Unit = {},
     ) {
@@ -3596,7 +3667,6 @@ class WorkoutViewModel(
             notes = notes,
             fatigueLevel = fatigueLevel,
             closingFeedback = closingFeedback,
-            onPendingQuestionnaire = onPendingQuestionnaire,
             onComplete = onComplete,
             onFailure = onFailure,
         )
@@ -3844,6 +3914,57 @@ class WorkoutViewModel(
 
     private fun getTagMultiplier(tag: String?): Double =
         LoadSuggestionEngine.tagMultiplier(tag)
+
+    /**
+     * Analiza el historial (más reciente primero) buscando la misma molestia
+     * reportada en al menos [minConsecutiveSessions] sesiones consecutivas que
+     * contengan este ejercicio/patrón de movimiento. Devuelve el label de la
+     * molestia persistente, o null si no hay patrón.
+     */
+    fun persistentDiscomfortForExercise(
+        exercise: Exercise,
+        minConsecutiveSessions: Int = 3,
+    ): String? {
+        val matchKeys = buildSet {
+            exercise.exerciseId?.let(::add)
+            exercise.exerciseDbId?.let(::add)
+            exercise.canonicalExerciseId?.let(::add)
+            exercise.relativeToCanonicalExerciseId?.let(::add)
+        }
+        val sessionsWithDiscomfort = repository.history.value
+            .sortedByDescending { it.date }
+            .mapNotNull { log ->
+                val reports = log.postExerciseReports.filter { report ->
+                    report.discomfortIds.isNotEmpty() &&
+                        (
+                            report.exerciseId in matchKeys ||
+                                report.canonicalExerciseId in matchKeys ||
+                                report.exerciseDbId in matchKeys
+                            )
+                }
+                if (reports.isEmpty()) null else reports
+            }
+        if (sessionsWithDiscomfort.isEmpty()) return null
+
+        // Contar concurrencia consecutiva (la sesión más reciente primero).
+        val firstSessionDiscomforts = sessionsWithDiscomfort.first()
+            .flatMap { it.discomfortIds }
+            .filter { it != "none" }
+            .toSet()
+        if (firstSessionDiscomforts.isEmpty()) return null
+        val consecutive = firstSessionDiscomforts.mapNotNull { discomfortId ->
+            var count = 1
+            for (next in sessionsWithDiscomfort.drop(1)) {
+                val ids = next.flatMap { it.discomfortIds }.filter { it != "none" }.toSet()
+                if (discomfortId in ids) count++ else break
+            }
+            if (count >= minConsecutiveSessions) discomfortId else null
+        }
+        if (consecutive.isEmpty()) return null
+        return consecutive.firstNotNullOfOrNull { id ->
+            DISCOMFORT_CATALOG.find { it.id == id }?.label ?: id
+        }
+    }
 
     fun latestCompletedSessionSnapshot(): WorkoutShareSnapshot? {
         val last = repository.getLogsForSession(sessionId)

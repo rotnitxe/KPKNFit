@@ -503,9 +503,16 @@ class WorkoutStructuralPersistenceController(
             )
         }
 
+        val activeVisible = ports.visibleExercises(state)
+        val replacingCurrent = activeVisible.getOrNull(state.currentExerciseIdx)?.id == exerciseId
+        val clampedSetIdx = if (replacingCurrent) 0 else state.currentSetIdx
+
+        val normalizedUpdatedSession = ports.normalizeSupersetsForWorkout(updatedSession)
+
         updateState {
             it.copy(
-                session = updatedSession,
+                session = normalizedUpdatedSession,
+                currentSetIdx = clampedSetIdx,
                 completedSets = cleanedCompleted,
                 setAdvancedFeedback = cleanedAdvanced,
                 postExerciseFeedbackByExerciseId = cleanedFeedback,
@@ -622,17 +629,32 @@ class WorkoutStructuralPersistenceController(
 
     fun insertExerciseAfter(session: Session, currentExerciseId: String, newExercise: Exercise): Session {
         if (session.parts.isNotEmpty()) {
-            return session.copy(parts = session.parts.map { part ->
+            var found = false
+            val newParts = session.parts.map { part ->
                 val idx = part.exercises.indexOfFirst { it.id == currentExerciseId }
                 if (idx == -1) part
                 else {
+                    found = true
                     part.copy(exercises = part.exercises.toMutableList().apply { add(idx + 1, newExercise) })
                 }
-            })
+            }
+            if (found) return session.copy(parts = newParts)
+            return insertExerciseAtEnd(session, newExercise)
         }
         val idx = session.exercises.indexOfFirst { it.id == currentExerciseId }
         if (idx == -1) return insertExerciseAtEnd(session, newExercise)
         return session.copy(exercises = session.exercises.toMutableList().apply { add(idx + 1, newExercise) })
+    }
+
+    fun insertExerciseAtEnd(session: Session, newExercise: Exercise): Session {
+        if (session.parts.isNotEmpty()) {
+            return session.copy(parts = session.parts.mapIndexed { idx, part ->
+                if (idx == session.parts.lastIndex) {
+                    part.copy(exercises = part.exercises + newExercise)
+                } else part
+            })
+        }
+        return session.copy(exercises = session.exercises + newExercise)
     }
 
     private fun withModeSession(base: Session, mode: WeekVariant, update: (Session) -> Session): Session =
@@ -900,17 +922,6 @@ class WorkoutStructuralPersistenceController(
                 ReplacementPersistenceScopeV2.BLOCK_MATCHING
             } else ReplacementPersistenceScopeV2.SESSION_ONLY
         }
-    }
-
-    private fun insertExerciseAtEnd(session: Session, newExercise: Exercise): Session {
-        if (session.parts.isNotEmpty()) {
-            return session.copy(parts = session.parts.mapIndexed { idx, part ->
-                if (idx == session.parts.lastIndex) {
-                    part.copy(exercises = part.exercises + newExercise)
-                } else part
-            })
-        }
-        return session.copy(exercises = session.exercises + newExercise)
     }
 
     private fun Program.updateWeekSessions(
