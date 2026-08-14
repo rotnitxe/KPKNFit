@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -15,10 +14,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -32,6 +29,7 @@ import androidx.compose.ui.zIndex
 import com.example.kpkn.data.exercises.displayNameWithSelectedChips
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.WarmupSetDefinition
 import com.example.kpkn.domain.workout.WarmupCalibrationEngine
 import com.example.kpkn.domain.workout.WarmupEffort
 import com.example.kpkn.domain.workout.WarmupEffortReport
@@ -39,11 +37,13 @@ import com.example.kpkn.screens.workout.toTrimmedNumberString
 import com.example.kpkn.ui.components.kpknGlassStyle
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
+import kotlinx.coroutines.delay
+import kotlin.math.roundToInt
 
 /**
  * Full-screen blur overlay for approximation (warm-up) sets in live sessions.
- * Features a visual progression ramp, editable weight inputs for actual load used,
- * RPE/heaviness perception rating, and real-time auto-regulation via WarmupCalibrationEngine.
+ * Features a circular progression ramp, prominent percentages, inline rest timers,
+ * editable actual load, effort rating, and real-time auto-regulation via WarmupCalibrationEngine.
  */
 @Composable
 fun WorkoutWarmupOverlay(
@@ -55,13 +55,37 @@ fun WorkoutWarmupOverlay(
     onToggleSet: (warmupSetId: String, completed: Boolean) -> Unit,
     onRecordWarmupWeight: (warmupSetId: String, weightKg: Double) -> Unit,
     onRecordWarmupHeaviness: (warmupSetId: String, effort: WarmupEffort) -> Unit,
-    onStartRestTimer: ((seconds: Int) -> Unit)? = null,
+    onAddWarmupSet: () -> Unit = {},
+    onSetTargetWorkingWeight: (Double) -> Unit = {},
     onClose: () -> Unit,
     hazeState: HazeState,
     sessionAccentColor: Color = Color(0xFFFFB300),
 ) {
     val scrollState = rememberScrollState()
-    val focusManager = LocalFocusManager.current
+
+    var manualTargetWeight by remember(baseWorkingWeightKg) {
+        mutableStateOf(baseWorkingWeightKg?.takeIf { it > 0.0 })
+    }
+
+    val activeBaseLoad = manualTargetWeight ?: baseWorkingWeightKg
+
+    // Active inline rest timer state: warmupSetId to remaining seconds
+    var inlineRestActiveSetId by remember { mutableStateOf<String?>(null) }
+    var inlineRestRemainingSeconds by remember { mutableStateOf(0) }
+    var inlineRestTotalSeconds by remember { mutableStateOf(60) }
+    var inlineRestIsPaused by remember { mutableStateOf(false) }
+
+    LaunchedEffect(inlineRestActiveSetId, inlineRestIsPaused) {
+        if (inlineRestActiveSetId != null && !inlineRestIsPaused) {
+            while (inlineRestRemainingSeconds > 0) {
+                delay(1000L)
+                inlineRestRemainingSeconds -= 1
+            }
+            if (inlineRestRemainingSeconds <= 0) {
+                inlineRestActiveSetId = null
+            }
+        }
+    }
 
     // Build effort reports from completed sets for real-time calibration
     val effortReports = remember(exercise.id, exercise.warmupSets, completedSets) {
@@ -81,16 +105,16 @@ fun WorkoutWarmupOverlay(
     }
 
     // Run WarmupCalibrationEngine to evaluate live auto-regulation adjustments
-    val calibrationResult = remember(exercise.warmupSets, baseWorkingWeightKg, effortReports) {
+    val calibrationResult = remember(exercise.warmupSets, activeBaseLoad, effortReports) {
         val programmedPercentages = exercise.warmupSets.map { it.percentageOfWorkingWeight }
         WarmupCalibrationEngine.calibrateWorkingLoad(
             programmedPercentages = programmedPercentages,
-            workingLoadKg = baseWorkingWeightKg,
+            workingLoadKg = activeBaseLoad,
             reports = effortReports,
         )
     }
 
-    val effectiveTargetKg = calibrationResult.firstEffectiveLoadKg ?: baseWorkingWeightKg
+    val effectiveTargetKg = calibrationResult.firstEffectiveLoadKg ?: activeBaseLoad
     val allDone = exercise.warmupSets.isNotEmpty() && exercise.warmupSets.all { set ->
         exercise.id in completedKeys || "${exercise.id}_warmup_${set.id}" in completedKeys
     }
@@ -111,44 +135,28 @@ fun WorkoutWarmupOverlay(
                 .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // ─── 1. Cabecera y Contexto ───
+            // ─── 1. Cabecera Limpia (Sin icono de fuego) ───
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = sessionAccentColor.copy(alpha = 0.16f),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.LocalFireDepartment,
-                            contentDescription = null,
-                            tint = sessionAccentColor,
-                            modifier = Modifier.padding(8.dp).size(22.dp),
-                        )
-                    }
-                    Column {
-                        Text(
-                            text = "SERIES DE APROXIMACIÓN",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = sessionAccentColor,
-                            letterSpacing = 1.2.sp,
-                        )
-                        Text(
-                            text = exercise.displayNameWithSelectedChips(),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
-                            color = Color.White,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "SERIES DE APROXIMACIÓN",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = sessionAccentColor,
+                        letterSpacing = 1.2.sp,
+                    )
+                    Text(
+                        text = exercise.displayNameWithSelectedChips(),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
 
                 Surface(
@@ -165,7 +173,18 @@ fun WorkoutWarmupOverlay(
                 }
             }
 
-            // ─── 2. Rampa de Progresión Hacia Serie Efectiva ───
+            // ─── 2. Selector Guiado de Carga Efectiva Objetivo si no existe ───
+            if (activeBaseLoad == null || activeBaseLoad <= 0.0) {
+                TargetWeightGuidanceCard(
+                    sessionAccentColor = sessionAccentColor,
+                    onSetWeight = { weight ->
+                        manualTargetWeight = weight
+                        onSetTargetWorkingWeight(weight)
+                    },
+                )
+            }
+
+            // ─── 3. Progresión Neural Circular ───
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -188,115 +207,144 @@ fun WorkoutWarmupOverlay(
                             color = Color.White.copy(alpha = 0.70f),
                         )
                         if (effectiveTargetKg != null && effectiveTargetKg > 0) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = sessionAccentColor.copy(alpha = 0.15f),
                             ) {
                                 Text(
-                                    "Objetivo 1ª Efectiva:",
+                                    "Objetivo: ${effectiveTargetKg.toTrimmedNumberString()} kg",
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White.copy(alpha = 0.60f),
+                                    fontWeight = FontWeight.Black,
+                                    color = sessionAccentColor,
                                 )
-                                Surface(
-                                    shape = RoundedCornerShape(6.dp),
-                                    color = sessionAccentColor.copy(alpha = 0.18f),
-                                ) {
-                                    Text(
-                                        "${effectiveTargetKg.toTrimmedNumberString()} kg",
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = FontWeight.Black,
-                                        color = sessionAccentColor,
-                                    )
-                                }
                             }
                         }
                     }
 
-                    // Stepper visual de aproximación
+                    // Nodos Circulares Conectados
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            .horizontalScroll(rememberScrollState())
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         exercise.warmupSets.forEachIndexed { index, warmup ->
                             val isCompleted = exercise.id in completedKeys || "${exercise.id}_warmup_${warmup.id}" in completedKeys
                             val displaySet = warmupSets.getOrNull(index)
-                            val rawLoad = displaySet?.targetWeight ?: (baseWorkingWeightKg?.let { it * warmup.percentageOfWorkingWeight / 100.0 })
+                            val pctFraction = if (warmup.percentageOfWorkingWeight > 1.0) warmup.percentageOfWorkingWeight / 100.0 else warmup.percentageOfWorkingWeight
+                            val calculatedLoad = displaySet?.targetWeight ?: (effectiveTargetKg?.let { it * pctFraction })
 
-                            Surface(
-                                shape = RoundedCornerShape(10.dp),
-                                color = if (isCompleted) Color(0xFF66BB6A).copy(alpha = 0.15f) else Color.White.copy(alpha = 0.05f),
-                                border = BorderStroke(
-                                    1.dp,
-                                    if (isCompleted) Color(0xFF66BB6A).copy(alpha = 0.40f) else Color.White.copy(alpha = 0.10f),
-                                ),
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
                             ) {
-                                Column(
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                Surface(
+                                    shape = CircleShape,
+                                    color = when {
+                                        isCompleted -> Color(0xFF66BB6A).copy(alpha = 0.20f)
+                                        else -> Color.White.copy(alpha = 0.06f)
+                                    },
+                                    border = BorderStroke(
+                                        1.5.dp,
+                                        when {
+                                            isCompleted -> Color(0xFF66BB6A)
+                                            else -> Color.White.copy(alpha = 0.15f)
+                                        },
+                                    ),
+                                    modifier = Modifier.size(44.dp),
                                 ) {
-                                    Text(
-                                        "A${index + 1}",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Black,
-                                        color = if (isCompleted) Color(0xFF66BB6A) else Color.White.copy(alpha = 0.85f),
-                                    )
-                                    Text(
-                                        "${rawLoad?.toTrimmedNumberString() ?: "-"} kg",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = sessionAccentColor,
-                                    )
+                                    Box(contentAlignment = Alignment.Center) {
+                                        if (isCompleted) {
+                                            Icon(
+                                                Icons.Default.Check,
+                                                contentDescription = null,
+                                                tint = Color(0xFF66BB6A),
+                                                modifier = Modifier.size(20.dp),
+                                            )
+                                        } else {
+                                            Text(
+                                                "A${index + 1}",
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = FontWeight.Black,
+                                                color = Color.White,
+                                            )
+                                        }
+                                    }
                                 }
+
+                                Text(
+                                    formatWarmupPercent(warmup.percentageOfWorkingWeight),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = sessionAccentColor,
+                                    fontSize = 11.sp,
+                                )
+                                Text(
+                                    "${calculatedLoad?.toTrimmedNumberString() ?: "-"}k",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White.copy(alpha = 0.70f),
+                                    fontSize = 10.sp,
+                                )
                             }
 
                             if (index < exercise.warmupSets.size - 1) {
-                                Icon(
-                                    Icons.Default.ArrowForward,
-                                    contentDescription = null,
-                                    tint = Color.White.copy(alpha = 0.25f),
-                                    modifier = Modifier.size(14.dp),
+                                Box(
+                                    modifier = Modifier
+                                        .width(16.dp)
+                                        .height(1.5.dp)
+                                        .background(Color.White.copy(alpha = 0.18f)),
                                 )
                             }
                         }
 
-                        // Indicador de Serie Efectiva al final
-                        Icon(
-                            Icons.Default.ArrowForward,
-                            contentDescription = null,
-                            tint = sessionAccentColor.copy(alpha = 0.50f),
-                            modifier = Modifier.size(14.dp),
+                        // Nodo circular final: Serie Efectiva
+                        Box(
+                            modifier = Modifier
+                                .width(16.dp)
+                                .height(1.5.dp)
+                                .background(sessionAccentColor.copy(alpha = 0.40f)),
                         )
-                        Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = sessionAccentColor.copy(alpha = 0.14f),
-                            border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.35f)),
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
-                            Column(
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
+                            Surface(
+                                shape = CircleShape,
+                                color = sessionAccentColor.copy(alpha = 0.18f),
+                                border = BorderStroke(2.dp, sessionAccentColor),
+                                modifier = Modifier.size(44.dp),
                             ) {
-                                Text(
-                                    "EFECTIVA",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Black,
-                                    color = sessionAccentColor,
-                                    fontSize = 9.sp,
-                                )
-                                Text(
-                                    "${effectiveTargetKg?.toTrimmedNumberString() ?: "-"} kg",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Black,
-                                    color = Color.White,
-                                )
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        Icons.Default.FitnessCenter,
+                                        contentDescription = null,
+                                        tint = sessionAccentColor,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                }
                             }
+                            Text(
+                                "100%",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Black,
+                                color = sessionAccentColor,
+                                fontSize = 11.sp,
+                            )
+                            Text(
+                                "${effectiveTargetKg?.toTrimmedNumberString() ?: "-"}k",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Black,
+                                color = Color.White,
+                                fontSize = 10.sp,
+                            )
                         }
                     }
 
-                    // Nota de calibración / auto-regulación si hay reporte inusual
+                    // Nota de auto-regulación viva
                     if (!calibrationResult.note.isNullOrBlank() && effortReports.isNotEmpty()) {
                         Surface(
                             shape = RoundedCornerShape(8.dp),
@@ -325,10 +373,10 @@ fun WorkoutWarmupOverlay(
                 }
             }
 
-            // ─── 3. Tarjetas Detalladas de Cada Aproximación ───
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            // ─── 4. Tarjetas Detalladas por Serie de Aproximación ───
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    "Detalle y Registro de Carga",
+                    "Registro de Carga y Esfuerzo",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Black,
                     color = Color.White,
@@ -340,8 +388,8 @@ fun WorkoutWarmupOverlay(
                     val key = "${exercise.id}_warmup_${warmup.id}"
                     val loggedSet = completedSets[key] ?: completedSets[exercise.id]
 
-                    // Suggested load vs actual load
-                    val suggestedWeight = displaySet?.targetWeight ?: (baseWorkingWeightKg?.let { it * warmup.percentageOfWorkingWeight / 100.0 })
+                    val pctFraction = if (warmup.percentageOfWorkingWeight > 1.0) warmup.percentageOfWorkingWeight / 100.0 else warmup.percentageOfWorkingWeight
+                    val suggestedWeight = displaySet?.targetWeight ?: (effectiveTargetKg?.let { it * pctFraction })
                     val currentWeightKg = loggedSet?.weight ?: suggestedWeight
 
                     val currentEffort = loggedSet?.rpe?.let { rpe ->
@@ -352,6 +400,8 @@ fun WorkoutWarmupOverlay(
                         }
                     }
 
+                    val isInlineRestActive = inlineRestActiveSetId == warmup.id && inlineRestRemainingSeconds > 0
+
                     WarmupSetDetailedCard(
                         index = index,
                         warmup = warmup,
@@ -360,17 +410,53 @@ fun WorkoutWarmupOverlay(
                         isCompleted = isCompleted,
                         currentEffort = currentEffort,
                         sessionAccentColor = sessionAccentColor,
-                        onToggle = { onToggleSet(warmup.id, !isCompleted) },
                         onWeightChanged = { newWeight -> onRecordWarmupWeight(warmup.id, newWeight) },
                         onEffortSelected = { effort -> onRecordWarmupHeaviness(warmup.id, effort) },
-                        onStartRest = { warmup.restBetween?.takeIf { it > 0 }?.let { onStartRestTimer?.invoke(it) } },
+                        onRegisterSet = { weight, effort ->
+                            onRecordWarmupWeight(warmup.id, weight)
+                            onRecordWarmupHeaviness(warmup.id, effort)
+                            if (!isCompleted) onToggleSet(warmup.id, true)
+                            // Iniciar descanso inline local (no overlay completo)
+                            val restTime = (warmup.restBetween?.takeIf { it > 0 }) ?: 60
+                            inlineRestTotalSeconds = restTime
+                            inlineRestRemainingSeconds = restTime
+                            inlineRestActiveSetId = warmup.id
+                            inlineRestIsPaused = false
+                        },
+                        isInlineRestActive = isInlineRestActive,
+                        inlineRestRemainingSeconds = inlineRestRemainingSeconds,
+                        inlineRestTotalSeconds = inlineRestTotalSeconds,
+                        inlineRestIsPaused = inlineRestIsPaused,
+                        onTogglePauseInlineRest = { inlineRestIsPaused = !inlineRestIsPaused },
+                        onSkipInlineRest = { inlineRestActiveSetId = null; inlineRestRemainingSeconds = 0 },
+                    )
+                }
+
+                // ─── 5. Botón para Añadir más aproximaciones ───
+                OutlinedButton(
+                    onClick = onAddWarmupSet,
+                    modifier = Modifier.fillMaxWidth().height(44.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = sessionAccentColor),
+                    border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.35f)),
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        "+ Agregar serie de aproximación",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
                     )
                 }
             }
 
             Spacer(Modifier.height(10.dp))
 
-            // ─── 4. Acciones Inferiores ───
+            // ─── 6. Acciones Inferiores ───
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -409,26 +495,39 @@ fun WorkoutWarmupOverlay(
     }
 }
 
+/**
+ * Detailed card for one warm-up set with prominent percentage, editable load,
+ * effort selector and "Registrar aproximación" button.
+ */
 @Composable
 private fun WarmupSetDetailedCard(
     index: Int,
-    warmup: com.example.kpkn.data.models.WarmupSetDefinition,
+    warmup: WarmupSetDefinition,
     suggestedWeightKg: Double?,
     actualWeightKg: Double?,
     isCompleted: Boolean,
     currentEffort: WarmupEffort?,
     sessionAccentColor: Color,
-    onToggle: () -> Unit,
     onWeightChanged: (Double) -> Unit,
     onEffortSelected: (WarmupEffort) -> Unit,
-    onStartRest: () -> Unit,
+    onRegisterSet: (weight: Double, effort: WarmupEffort) -> Unit,
+    isInlineRestActive: Boolean,
+    inlineRestRemainingSeconds: Int,
+    inlineRestTotalSeconds: Int,
+    inlineRestIsPaused: Boolean,
+    onTogglePauseInlineRest: () -> Unit,
+    onSkipInlineRest: () -> Unit,
 ) {
     var textValue by remember(actualWeightKg) {
         mutableStateOf(actualWeightKg?.toTrimmedNumberString() ?: "")
     }
 
+    var selectedEffort by remember(currentEffort) {
+        mutableStateOf(currentEffort ?: WarmupEffort.NORMAL)
+    }
+
     Surface(
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(18.dp),
         color = if (isCompleted) Color(0xFF66BB6A).copy(alpha = 0.07f) else Color.White.copy(alpha = 0.04f),
         border = BorderStroke(
             1.dp,
@@ -440,7 +539,7 @@ private fun WarmupSetDetailedCard(
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            // Header del Set
+            // Header del Set con Porcentaje Prominente
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -448,18 +547,23 @@ private fun WarmupSetDetailedCard(
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Checkbox(
-                        checked = isCompleted,
-                        onCheckedChange = { onToggle() },
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = sessionAccentColor,
-                            uncheckedColor = Color.White.copy(alpha = 0.30f),
-                            checkmarkColor = Color.Black,
-                        ),
-                        modifier = Modifier.size(24.dp),
-                    )
+                    Surface(
+                        shape = CircleShape,
+                        color = if (isCompleted) Color(0xFF66BB6A).copy(alpha = 0.18f) else sessionAccentColor.copy(alpha = 0.15f),
+                        modifier = Modifier.size(32.dp),
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                "A${index + 1}",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Black,
+                                color = if (isCompleted) Color(0xFF66BB6A) else sessionAccentColor,
+                            )
+                        }
+                    }
+
                     Text(
                         "Aproximación ${index + 1}",
                         style = MaterialTheme.typography.bodyLarge,
@@ -468,54 +572,66 @@ private fun WarmupSetDetailedCard(
                     )
                 }
 
+                // Porcentaje Prominente + Reps
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = sessionAccentColor.copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(8.dp),
+                        color = sessionAccentColor.copy(alpha = 0.16f),
                     ) {
                         Text(
-                            "${warmup.percentageOfWorkingWeight.toTrimmedNumberString()}%",
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
+                            formatWarmupPercent(warmup.percentageOfWorkingWeight),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Black,
                             color = sessionAccentColor,
                         )
                     }
+
                     Surface(
-                        shape = RoundedCornerShape(6.dp),
+                        shape = RoundedCornerShape(8.dp),
                         color = Color.White.copy(alpha = 0.06f),
                     ) {
                         Text(
                             "${warmup.targetReps} reps",
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.White.copy(alpha = 0.80f),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.85f),
                         )
                     }
                 }
             }
 
-            // Input de Carga Real Usada
+            // Input de Carga Real Utilizada
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text(
-                    "Carga utilizada (kg):",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.70f),
-                )
+                Column {
+                    Text(
+                        "Carga sugerida vs real:",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.70f),
+                    )
+                    suggestedWeightKg?.takeIf { it > 0.0 }?.let {
+                        Text(
+                            "Sugerido: ${it.toTrimmedNumberString()} kg",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = sessionAccentColor.copy(alpha = 0.85f),
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                }
 
                 Surface(
                     shape = RoundedCornerShape(10.dp),
                     color = Color.White.copy(alpha = 0.08f),
                     border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)),
-                    modifier = Modifier.width(96.dp).height(38.dp),
+                    modifier = Modifier.width(100.dp).height(38.dp),
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
@@ -529,8 +645,8 @@ private fun WarmupSetDetailedCard(
                             },
                             textStyle = TextStyle(
                                 color = Color.White,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Black,
                                 textAlign = TextAlign.Center,
                                 fontFamily = FontFamily.Monospace,
                             ),
@@ -566,11 +682,11 @@ private fun WarmupSetDetailedCard(
                     )
 
                     efforts.forEach { (effort, label, accent) ->
-                        val isSelected = currentEffort == effort
+                        val isSelected = selectedEffort == effort
                         Surface(
                             onClick = {
+                                selectedEffort = effort
                                 onEffortSelected(effort)
-                                if (!isCompleted) onToggle()
                             },
                             shape = RoundedCornerShape(10.dp),
                             color = if (isSelected) accent.copy(alpha = 0.20f) else Color.White.copy(alpha = 0.04f),
@@ -595,6 +711,211 @@ private fun WarmupSetDetailedCard(
                     }
                 }
             }
+
+            // Botón "Registrar aproximación"
+            Button(
+                onClick = {
+                    val finalWeight = textValue.toDoubleOrNull() ?: suggestedWeightKg ?: 0.0
+                    onRegisterSet(finalWeight, selectedEffort)
+                },
+                modifier = Modifier.fillMaxWidth().height(42.dp),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isCompleted) Color(0xFF66BB6A) else sessionAccentColor,
+                    contentColor = Color.Black,
+                ),
+            ) {
+                Icon(
+                    imageVector = if (isCompleted) Icons.Default.Check else Icons.Default.CheckCircleOutline,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = if (isCompleted) "Aproximación registrada" else "Registrar aproximación",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Black,
+                )
+            }
+
+            // Descanso Inline si está activo para esta aproximación
+            if (isInlineRestActive) {
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color.White.copy(alpha = 0.05f),
+                    border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.30f)),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Icon(
+                                Icons.Default.Timer,
+                                contentDescription = null,
+                                tint = sessionAccentColor,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Text(
+                                "Descanso: %02d:%02d".format(inlineRestRemainingSeconds / 60, inlineRestRemainingSeconds % 60),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Black,
+                                fontFamily = FontFamily.Monospace,
+                                color = Color.White,
+                            )
+                        }
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            TextButton(
+                                onClick = onTogglePauseInlineRest,
+                                colors = ButtonDefaults.textButtonColors(contentColor = Color.White.copy(alpha = 0.80f)),
+                            ) {
+                                Text(if (inlineRestIsPaused) "Reanudar" else "Pausar", style = MaterialTheme.typography.labelSmall)
+                            }
+                            TextButton(
+                                onClick = onSkipInlineRest,
+                                colors = ButtonDefaults.textButtonColors(contentColor = sessionAccentColor),
+                            ) {
+                                Text("Saltar", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
+}
+
+/**
+ * Guidance card to pick/set the target effective working weight when no baseline is available.
+ */
+@Composable
+private fun TargetWeightGuidanceCard(
+    sessionAccentColor: Color,
+    onSetWeight: (Double) -> Unit,
+) {
+    var customText by remember { mutableStateOf("") }
+
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = sessionAccentColor.copy(alpha = 0.08f),
+        border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.25f)),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Icon(
+                    Icons.Default.HelpOutline,
+                    contentDescription = null,
+                    tint = sessionAccentColor,
+                    modifier = Modifier.size(18.dp),
+                )
+                Text(
+                    "Define la Carga de tu 1ª Serie Efectiva",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White,
+                )
+            }
+
+            Text(
+                "Ingresa el peso objetivo de tu primera serie para calcular automáticamente la rampa de aproximaciones.",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White.copy(alpha = 0.70f),
+            )
+
+            // Preset Chips rápidos
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                listOf(20.0, 40.0, 60.0, 80.0, 100.0, 120.0).forEach { weight ->
+                    Surface(
+                        onClick = { onSetWeight(weight) },
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color.White.copy(alpha = 0.06f),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+                    ) {
+                        Text(
+                            "${weight.toTrimmedNumberString()} kg",
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                        )
+                    }
+                }
+            }
+
+            // Input manual libre
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = Color.White.copy(alpha = 0.08f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)),
+                    modifier = Modifier.weight(1f).height(38.dp),
+                ) {
+                    Box(
+                        contentAlignment = Alignment.CenterStart,
+                        modifier = Modifier.fillMaxSize().padding(horizontal = 10.dp),
+                    ) {
+                        if (customText.isEmpty()) {
+                            Text(
+                                "Otro peso (ej. 75)...",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.White.copy(alpha = 0.40f),
+                            )
+                        }
+                        BasicTextField(
+                            value = customText,
+                            onValueChange = { customText = it },
+                            textStyle = TextStyle(
+                                color = Color.White,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                            ),
+                            cursorBrush = SolidColor(sessionAccentColor),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
+
+                Button(
+                    onClick = { customText.toDoubleOrNull()?.let { onSetWeight(it) } },
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = sessionAccentColor,
+                        contentColor = Color.Black,
+                    ),
+                    modifier = Modifier.height(38.dp),
+                ) {
+                    Text("Aplicar", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black)
+                }
+            }
+        }
+    }
+}
+
+private fun formatWarmupPercent(raw: Double): String {
+    val pct = if (raw <= 1.0) raw * 100.0 else raw
+    return "${pct.roundToInt()}%"
 }

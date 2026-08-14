@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
@@ -831,23 +832,19 @@ internal fun WorkoutV2Body(
                                     Column(
                                         modifier = Modifier.padding(16.dp),
                                         horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                                        verticalArrangement = Arrangement.spacedBy(10.dp),
                                     ) {
-                                        Surface(
-                                            shape = CircleShape,
-                                            color = sessionAccentColor.copy(alpha = 0.15f),
-                                        ) {
-                                            Icon(
-                                                Icons.Default.SelfImprovement,
-                                                contentDescription = null,
-                                                tint = sessionAccentColor,
-                                                modifier = Modifier.padding(10.dp).size(26.dp),
-                                            )
-                                        }
                                         Text(
-                                            "Fase de Movilidad Articular",
-                                            style = MaterialTheme.typography.titleMedium,
+                                            "FASE DE MOVILIDAD ARTICULAR",
+                                            style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
+                                            color = sessionAccentColor,
+                                            letterSpacing = 1.2.sp,
+                                        )
+                                        Text(
+                                            currentExercise.name,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Black,
                                             color = Color.White,
                                         )
                                         Text(
@@ -868,7 +865,7 @@ internal fun WorkoutV2Body(
                                                 containerColor = sessionAccentColor,
                                                 contentColor = Color.Black,
                                             ),
-                                            modifier = Modifier.fillMaxWidth().height(46.dp),
+                                            modifier = Modifier.fillMaxWidth().height(44.dp),
                                         ) {
                                             Text("Abrir Preparación de Movilidad", fontWeight = FontWeight.Black)
                                         }
@@ -885,23 +882,19 @@ internal fun WorkoutV2Body(
                                     Column(
                                         modifier = Modifier.padding(16.dp),
                                         horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                                        verticalArrangement = Arrangement.spacedBy(10.dp),
                                     ) {
-                                        Surface(
-                                            shape = CircleShape,
-                                            color = Color(0xFFFFB300).copy(alpha = 0.15f),
-                                        ) {
-                                            Icon(
-                                                Icons.Default.LocalFireDepartment,
-                                                contentDescription = null,
-                                                tint = Color(0xFFFFB300),
-                                                modifier = Modifier.padding(10.dp).size(26.dp),
-                                            )
-                                        }
                                         Text(
-                                            "Series de Aproximación",
-                                            style = MaterialTheme.typography.titleMedium,
+                                            "SERIES DE APROXIMACIÓN",
+                                            style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
+                                            color = Color(0xFFFFB300),
+                                            letterSpacing = 1.2.sp,
+                                        )
+                                        Text(
+                                            currentExercise.name,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Black,
                                             color = Color.White,
                                         )
                                         Text(
@@ -922,7 +915,7 @@ internal fun WorkoutV2Body(
                                                 containerColor = Color(0xFFFFB300),
                                                 contentColor = Color.Black,
                                             ),
-                                            modifier = Modifier.fillMaxWidth().height(46.dp),
+                                            modifier = Modifier.fillMaxWidth().height(44.dp),
                                         ) {
                                             Text("Abrir Series de Aproximación", fontWeight = FontWeight.Black)
                                         }

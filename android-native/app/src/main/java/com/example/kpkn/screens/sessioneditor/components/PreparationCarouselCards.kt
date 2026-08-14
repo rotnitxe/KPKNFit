@@ -130,107 +130,44 @@ private fun MobilityPreparationCard(
     onRemove: () -> Unit,
 ) {
     Surface(
-        modifier = Modifier.width(268.dp),
+        modifier = Modifier.width(220.dp),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
         color = accentColor.copy(alpha = 0.11f),
         border = BorderStroke(1.dp, accentColor.copy(alpha = 0.38f)),
     ) {
-        Column(
-            modifier = Modifier.padding(10.dp),
-            verticalArrangement = Arrangement.spacedBy(7.dp),
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    mobility.name,
+                    color = Color.White.copy(alpha = 0.94f),
+                    fontWeight = FontWeight.Black,
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (!mobility.notes.isNullOrBlank()) {
                     Text(
-                        mobility.name,
-                        color = Color.White.copy(alpha = 0.94f),
-                        fontWeight = FontWeight.Black,
-                        style = MaterialTheme.typography.labelMedium,
-                        maxLines = 2,
+                        mobility.notes,
+                        color = Color.White.copy(alpha = 0.60f),
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    Text(
-                        "Movilidad",
-                        color = accentColor,
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
-                IconButton(onClick = onRemove) {
-                    Icon(
-                        Icons.Default.Close,
-                        contentDescription = "Quitar movilidad",
-                        tint = accentColor,
-                    )
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                EditorMiniField(
-                    label = "Series",
-                    value = mobility.sets.toString(),
-                    stateKey = "mobility-sets-${mobility.id}",
-                    keyboardType = KeyboardType.Number,
-                    accentColor = accentColor,
-                    modifier = Modifier.weight(1f),
-                ) { input ->
-                    input.toIntOrNull()?.let { value ->
-                        onUpdate { it.copy(sets = value.coerceAtLeast(1)) }
-                    }
-                }
-                val unit = mobility.unit ?: if (mobility.durationSeconds != null) MobilityUnit.SECONDS else MobilityUnit.REPS
-                if (unit == MobilityUnit.SECONDS) {
-                    EditorMiniField(
-                        label = "Segundos",
-                        value = mobility.durationSeconds.toString(),
-                        stateKey = "mobility-duration-${mobility.id}",
-                        keyboardType = KeyboardType.Number,
-                        accentColor = accentColor,
-                        modifier = Modifier.weight(1f),
-                    ) { input ->
-                        input.toIntOrNull()?.let { value ->
-                            onUpdate { it.copy(unit = MobilityUnit.SECONDS, durationSeconds = value.coerceAtLeast(1), reps = null) }
-                        }
-                    }
-                } else {
-                    EditorMiniField(
-                        label = "Reps",
-                        value = mobility.reps.orEmpty(),
-                        stateKey = "mobility-reps-${mobility.id}",
-                        keyboardType = KeyboardType.Text,
-                        accentColor = accentColor,
-                        modifier = Modifier.weight(1f),
-                    ) { input ->
-                        onUpdate { it.copy(unit = MobilityUnit.REPS, reps = input.trim().ifBlank { null }, durationSeconds = null) }
-                    }
-                }
-            }
-            run {
-                val unit = mobility.unit ?: if (mobility.durationSeconds != null) MobilityUnit.SECONDS else MobilityUnit.REPS
-                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                    FilterChip(
-                        selected = unit == MobilityUnit.SECONDS,
-                        onClick = {
-                            onUpdate {
-                                it.copy(
-                                    unit = MobilityUnit.SECONDS,
-                                    durationSeconds = it.durationSeconds ?: 1,
-                                    reps = null,
-                                )
-                            }
-                        },
-                        label = { Text("Segundos") },
-                    )
-                    FilterChip(
-                        selected = unit == MobilityUnit.REPS,
-                        onClick = {
-                            onUpdate { it.copy(unit = MobilityUnit.REPS, durationSeconds = null) }
-                        },
-                        label = { Text("Repeticiones") },
-                    )
-                }
+            IconButton(onClick = onRemove, modifier = Modifier.size(28.dp)) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Quitar movilidad",
+                    tint = accentColor,
+                    modifier = Modifier.size(16.dp),
+                )
             }
         }
     }

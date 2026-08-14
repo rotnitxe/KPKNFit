@@ -2570,6 +2570,34 @@ class WorkoutViewModel(
         recordWarmupHeaviness(exerciseId, warmupSetId, rpe)
     }
 
+    fun addWarmupSetToExercise(exerciseId: String) {
+        val exercise = visibleExercises(_uiState.value).firstOrNull { it.id == exerciseId } ?: return
+        val lastPercentage = exercise.warmupSets.lastOrNull()?.percentageOfWorkingWeight ?: 0.5
+        val nextPercentage = if (lastPercentage < 0.9) (lastPercentage + 0.15).coerceAtMost(0.9) else 0.9
+        val nextReps = ((exercise.warmupSets.lastOrNull()?.targetReps ?: 6) - 1).coerceAtLeast(1)
+        val newWarmup = com.example.kpkn.data.models.WarmupSetDefinition(
+            id = java.util.UUID.randomUUID().toString(),
+            percentageOfWorkingWeight = nextPercentage,
+            targetReps = nextReps,
+            restBetween = 60,
+        )
+        updateExerciseDefinition(exerciseId, persistToProgram = false) { ex ->
+            ex.copy(warmupSets = ex.warmupSets + newWarmup)
+        }
+    }
+
+    fun setInitialTargetWorkingWeight(exerciseId: String, weightKg: Double) {
+        val safeWeight = weightKg.coerceAtLeast(0.0)
+        updateExerciseDefinition(exerciseId, persistToProgram = false) { ex ->
+            ex.copy(
+                sets = ex.sets.mapIndexed { idx, s ->
+                    if (idx == 0 && (s.weight == null || (s.weight ?: 0.0) <= 0.0)) s.copy(weight = safeWeight) else s
+                },
+                reference1RM = ex.reference1RM ?: (safeWeight * 1.2),
+            )
+        }
+    }
+
     fun addMobilityToCurrentExercise(exerciseId: String, mobility: com.example.kpkn.data.models.MobilityExercise) {
         val newSeries = com.example.kpkn.data.models.MobilitySeries(
             id = java.util.UUID.randomUUID().toString(),

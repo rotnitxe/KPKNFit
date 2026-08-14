@@ -106,38 +106,22 @@ fun WorkoutMobilityOverlay(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = sessionAccentColor.copy(alpha = 0.16f),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.SelfImprovement,
-                            contentDescription = null,
-                            tint = sessionAccentColor,
-                            modifier = Modifier.padding(8.dp).size(22.dp),
-                        )
-                    }
-                    Column {
-                        Text(
-                            text = "PREPARACIÓN DE MOVILIDAD",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = sessionAccentColor,
-                            letterSpacing = 1.2.sp,
-                        )
-                        Text(
-                            text = exercise.displayNameWithSelectedChips(),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
-                            color = Color.White,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "PREPARACIÓN DE MOVILIDAD",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = sessionAccentColor,
+                        letterSpacing = 1.2.sp,
+                    )
+                    Text(
+                        text = exercise.displayNameWithSelectedChips(),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
 
                 Surface(
@@ -164,7 +148,7 @@ fun WorkoutMobilityOverlay(
                 Column(
                     modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -205,17 +189,19 @@ fun WorkoutMobilityOverlay(
                         }
                     }
 
-                    // Contador digital prominente
+                    // Contador digital prominente (números más grandes)
                     Text(
                         text = formatTimerMinutesSeconds(remainingSeconds),
-                        style = MaterialTheme.typography.displayMedium,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace,
-                        color = if (remainingSeconds <= 10 && remainingSeconds > 0) Color(0xFFFF5252) else Color.White,
-                        letterSpacing = 2.sp,
+                        style = androidx.compose.ui.text.TextStyle(
+                            fontSize = 54.sp,
+                            fontWeight = FontWeight.Black,
+                            fontFamily = FontFamily.Monospace,
+                            color = if (remainingSeconds <= 10 && remainingSeconds > 0) Color(0xFFFF5252) else Color.White,
+                            letterSpacing = 2.5.sp,
+                        ),
                     )
 
-                    // Controles de tiempo
+                    // Controles de tiempo compactos
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -223,18 +209,20 @@ fun WorkoutMobilityOverlay(
                     ) {
                         OutlinedButton(
                             onClick = { onAddTimerSeconds(30) },
-                            modifier = Modifier.weight(1f).height(40.dp),
-                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.weight(1f).height(36.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White.copy(alpha = 0.85f)),
                             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
                         ) {
-                            Text("+30s", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                            Text("+30s", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                         }
 
                         Button(
                             onClick = if (globalTimerRunning) onPauseGlobalTimer else onStartGlobalTimer,
-                            modifier = Modifier.weight(1.4f).height(40.dp),
-                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.weight(1.3f).height(36.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = sessionAccentColor,
                                 contentColor = Color.Black,
@@ -243,24 +231,25 @@ fun WorkoutMobilityOverlay(
                             Icon(
                                 imageVector = if (globalTimerRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
                                 contentDescription = null,
-                                modifier = Modifier.size(18.dp),
+                                modifier = Modifier.size(16.dp),
                             )
-                            Spacer(Modifier.width(6.dp))
+                            Spacer(Modifier.width(4.dp))
                             Text(
                                 if (globalTimerRunning) "Pausar" else "Iniciar",
-                                style = MaterialTheme.typography.labelMedium,
+                                style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Black,
                             )
                         }
 
                         OutlinedButton(
                             onClick = onResetGlobalTimer,
-                            modifier = Modifier.weight(1f).height(40.dp),
-                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.weight(1f).height(36.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White.copy(alpha = 0.60f)),
                             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
                         ) {
-                            Text("Reiniciar", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Medium)
+                            Text("Reset", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Medium)
                         }
                     }
                 }

@@ -208,8 +208,11 @@ internal fun WorkoutWarmupOverlayHost(
         onRecordWarmupHeaviness = { warmupSetId, effort ->
             viewModel.recordWarmupEffort(currentExercise.id, warmupSetId, effort)
         },
-        onStartRestTimer = { seconds ->
-            viewModel.startRestTimer(seconds)
+        onAddWarmupSet = {
+            viewModel.addWarmupSetToExercise(currentExercise.id)
+        },
+        onSetTargetWorkingWeight = { targetWeight ->
+            viewModel.setInitialTargetWorkingWeight(currentExercise.id, targetWeight)
         },
         onClose = { viewModel.skipWarmupPreparation(currentExercise.id) },
         hazeState = hazeState,
