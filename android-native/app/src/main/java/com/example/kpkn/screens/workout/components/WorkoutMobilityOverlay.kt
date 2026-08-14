@@ -207,13 +207,16 @@ fun WorkoutMobilityOverlay(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        OutlinedButton(
+                        Button(
                             onClick = { onAddTimerSeconds(30) },
                             modifier = Modifier.weight(1f).height(36.dp),
                             shape = RoundedCornerShape(10.dp),
                             contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White.copy(alpha = 0.85f)),
-                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF19212C).copy(alpha = 0.85f),
+                                contentColor = Color.White,
+                            ),
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)),
                         ) {
                             Text("+30s", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                         }
@@ -241,13 +244,16 @@ fun WorkoutMobilityOverlay(
                             )
                         }
 
-                        OutlinedButton(
+                        Button(
                             onClick = onResetGlobalTimer,
                             modifier = Modifier.weight(1f).height(36.dp),
                             shape = RoundedCornerShape(10.dp),
                             contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White.copy(alpha = 0.60f)),
-                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF19212C).copy(alpha = 0.85f),
+                                contentColor = Color.White.copy(alpha = 0.75f),
+                            ),
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
                         ) {
                             Text("Reset", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Medium)
                         }
@@ -538,7 +544,7 @@ fun WorkoutMobilityOverlay(
             }
         }
 
-        // ─── 6. Botones Sticky Inferiores con Desvanecido Suave ───
+        // ─── 6. Botones Sticky Inferiores con Efecto KPKN Glass y Desvanecido Suave ───
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -546,8 +552,8 @@ fun WorkoutMobilityOverlay(
                 .background(
                     brush = androidx.compose.ui.graphics.Brush.verticalGradient(
                         0.0f to Color.Transparent,
-                        0.30f to Color(0xFF0C1017).copy(alpha = 0.65f),
-                        0.60f to Color(0xFF0C1017).copy(alpha = 0.95f),
+                        0.25f to Color(0xFF0C1017).copy(alpha = 0.70f),
+                        0.55f to Color(0xFF0C1017).copy(alpha = 0.96f),
                         1.0f to Color(0xFF0C1017),
                     ),
                 )
@@ -557,20 +563,24 @@ fun WorkoutMobilityOverlay(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                OutlinedButton(
+                Button(
                     onClick = onClose,
                     modifier = Modifier.weight(1f).height(48.dp),
                     shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White.copy(alpha = 0.75f)),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.16f)),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF1B232E).copy(alpha = 0.90f),
+                        contentColor = Color.White,
+                    ),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.20f)),
                 ) {
                     Text(
                         "Saltar",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
+                        color = Color.White,
                     )
                 }
 
@@ -582,9 +592,10 @@ fun WorkoutMobilityOverlay(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = sessionAccentColor,
                         contentColor = Color.Black,
-                        disabledContainerColor = Color.White.copy(alpha = 0.08f),
-                        disabledContentColor = Color.White.copy(alpha = 0.30f),
+                        disabledContainerColor = Color(0xFF151B24).copy(alpha = 0.85f),
+                        disabledContentColor = Color.White.copy(alpha = 0.38f),
                     ),
+                    border = if (!allDone) BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)) else null,
                 ) {
                     Text(
                         if (allDone) "Listo" else "Completa la movilidad",

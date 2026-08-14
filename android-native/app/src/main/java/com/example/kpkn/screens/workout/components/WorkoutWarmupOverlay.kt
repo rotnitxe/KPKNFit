@@ -435,13 +435,16 @@ fun WorkoutWarmupOverlay(
                     )
                 }
 
-                // ─── 5. Botón para Añadir más aproximaciones (sin doble +) ───
-                OutlinedButton(
+                // ─── 5. Botón para Añadir más aproximaciones (KPKN Glass) ───
+                Button(
                     onClick = onAddWarmupSet,
                     modifier = Modifier.fillMaxWidth().height(44.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = sessionAccentColor),
-                    border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.35f)),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = sessionAccentColor.copy(alpha = 0.14f),
+                        contentColor = sessionAccentColor,
+                    ),
+                    border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.40f)),
                 ) {
                     Icon(
                         Icons.Default.Add,
@@ -458,7 +461,7 @@ fun WorkoutWarmupOverlay(
             }
         }
 
-        // ─── 6. Botones Sticky Inferiores con Desvanecido Suave (Sin bloques negros) ───
+        // ─── 6. Botones Sticky Inferiores con Efecto KPKN Glass y Desvanecido Suave ───
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -466,8 +469,8 @@ fun WorkoutWarmupOverlay(
                 .background(
                     brush = Brush.verticalGradient(
                         0.0f to Color.Transparent,
-                        0.30f to Color(0xFF0C1017).copy(alpha = 0.65f),
-                        0.60f to Color(0xFF0C1017).copy(alpha = 0.95f),
+                        0.25f to Color(0xFF0C1017).copy(alpha = 0.70f),
+                        0.55f to Color(0xFF0C1017).copy(alpha = 0.96f),
                         1.0f to Color(0xFF0C1017),
                     ),
                 )
@@ -477,20 +480,24 @@ fun WorkoutWarmupOverlay(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                OutlinedButton(
+                Button(
                     onClick = onClose,
                     modifier = Modifier.weight(1f).height(48.dp),
                     shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White.copy(alpha = 0.75f)),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.16f)),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF1B232E).copy(alpha = 0.90f),
+                        contentColor = Color.White,
+                    ),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.20f)),
                 ) {
                     Text(
                         "Saltar",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
+                        color = Color.White,
                     )
                 }
 
@@ -502,9 +509,10 @@ fun WorkoutWarmupOverlay(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = sessionAccentColor,
                         contentColor = Color.Black,
-                        disabledContainerColor = Color.White.copy(alpha = 0.08f),
-                        disabledContentColor = Color.White.copy(alpha = 0.30f),
+                        disabledContainerColor = Color(0xFF151B24).copy(alpha = 0.85f),
+                        disabledContentColor = Color.White.copy(alpha = 0.38f),
                     ),
+                    border = if (!allDone) BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)) else null,
                 ) {
                     Text(
                         if (allDone) "Comenzar 1ª serie" else "Completa las series",
