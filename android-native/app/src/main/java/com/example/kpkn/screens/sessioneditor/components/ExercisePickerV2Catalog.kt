@@ -84,6 +84,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -393,29 +394,22 @@ private fun CatalogFoldedVariantChips(
 ) {
     if (values.isEmpty()) return
 
-    val orderedValues = remember(values, selectedValue) {
-        buildList {
-            selectedValue?.takeIf(values::contains)?.let(::add)
-            values.filterNot { it == selectedValue }.forEach(::add)
-        }
-    }
-
     @Composable
     fun VariantChip(value: String, selected: Boolean) {
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(999.dp))
                 .background(
-                    if (selected) Color.White.copy(alpha = 0.92f)
+                    if (selected) Color.White.copy(alpha = 0.95f)
                     else Color.White.copy(alpha = 0.10f),
                 )
                 .clickable { onVariantSelected(value) }
-                .padding(horizontal = 8.dp, vertical = 3.dp),
+                .padding(horizontal = 9.dp, vertical = 4.dp),
         ) {
             Text(
                 exerciseCatalogVariantTagLabel(value, definitionId),
-                color = if (selected) Color(0xFF101214) else Color.White.copy(alpha = 0.82f),
-                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                color = if (selected) Color(0xFF101214) else Color.White.copy(alpha = 0.85f),
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                 style = MaterialTheme.typography.labelSmall,
                 maxLines = 1,
             )
@@ -423,8 +417,8 @@ private fun CatalogFoldedVariantChips(
     }
 
     if (!singleLine) {
-        val visibleValues = orderedValues.take(4)
-        val extraCount = (orderedValues.size - visibleValues.size).coerceAtLeast(0)
+        val visibleValues = values.take(4)
+        val extraCount = (values.size - visibleValues.size).coerceAtLeast(0)
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -452,7 +446,7 @@ private fun CatalogFoldedVariantChips(
     }
 
     // Las tarjetas con imagen usan una sola fila con scroll horizontal:
-    // todos los chips caben en un carrusel sin desbordar ni ocupar varias líneas.
+    // conserva el orden estable de variantes y solo mueve el énfasis blanco.
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -460,7 +454,7 @@ private fun CatalogFoldedVariantChips(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        orderedValues.forEach { value ->
+        values.forEach { value ->
             VariantChip(value = value, selected = value == selectedValue)
         }
     }
@@ -1248,7 +1242,7 @@ private fun ColumnScope.CatalogReadyContent(
 
                     if (!isExpanded) {
                         if (imageVariants.isNotEmpty()) {
-                            // Zona central: imagen a la izquierda, descripción a la derecha.
+                            // Zona central: imagen a la izquierda, descripción a la derecha aprovechando el espacio vertical.
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -1265,9 +1259,10 @@ private fun ColumnScope.CatalogReadyContent(
                                 )
                                 Text(
                                     definition.description,
-                                    color = Color.White.copy(alpha = 0.62f),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    maxLines = 3,
+                                    color = Color.White.copy(alpha = 0.85f),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    maxLines = 6,
+                                    lineHeight = 19.sp,
                                     overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.weight(1f),
                                 )
@@ -1275,9 +1270,10 @@ private fun ColumnScope.CatalogReadyContent(
                         } else {
                             Text(
                                 definition.description,
-                                color = Color.White.copy(alpha = 0.62f),
-                                style = MaterialTheme.typography.bodySmall,
-                                maxLines = 3,
+                                color = Color.White.copy(alpha = 0.85f),
+                                style = MaterialTheme.typography.bodyMedium,
+                                maxLines = 5,
+                                lineHeight = 19.sp,
                                 overflow = TextOverflow.Ellipsis,
                             )
                         }
@@ -1739,68 +1735,112 @@ private fun JointInvolvementSection(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = if (showHeader) 4.dp else 0.dp),
-        verticalArrangement = Arrangement.spacedBy(3.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         if (showHeader) {
-            Text("Involucramiento Articular", color = Color.White, fontWeight = FontWeight.Bold)
+            Text("Involucramiento Articular", color = Color.White, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleSmall)
             Text(
-                "Qué articulación mueve, transmite o estabiliza la carga en la configuración elegida.",
-                color = Color.White.copy(alpha = 0.62f),
+                "Articulaciones que transmiten, generan o estabilizan la carga en la configuración elegida.",
+                color = Color.White.copy(alpha = 0.65f),
                 style = MaterialTheme.typography.labelSmall,
             )
         }
         joints.forEach { joint ->
             val isExpanded = expandedJoint.value == joint.jointId
-            Column(
+            val isPrimary = joint.role == JointRoleV2.PRIMARY
+            val accentColor = when (joint.role) {
+                JointRoleV2.PRIMARY -> Color(0xFFF59E0B)
+                JointRoleV2.SECONDARY -> Color(0xFF38BDF8)
+                JointRoleV2.STABILIZER -> Color(0xFFA78BFA)
+            }
+            Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable { expandedJoint.value = if (isExpanded) null else joint.jointId }
-                    .background(Color.White.copy(alpha = 0.05f))
-                    .padding(horizontal = 10.dp, vertical = 7.dp),
-                verticalArrangement = Arrangement.spacedBy(3.dp),
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable { expandedJoint.value = if (isExpanded) null else joint.jointId },
+                shape = RoundedCornerShape(12.dp),
+                color = if (isPrimary) accentColor.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.04f),
+                border = BorderStroke(
+                    1.dp,
+                    if (isPrimary) accentColor.copy(alpha = 0.35f) else Color.White.copy(alpha = 0.08f),
+                ),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
+                Column(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFFF59E0B)),
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        jointLabel(joint.jointId),
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        jointRoleLabel(joint.role),
-                        color = Color(0xFFFBBF24),
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                    Spacer(Modifier.weight(1f))
-                    Text(
-                        if (isExpanded) "▴" else "▾",
-                        color = Color.White.copy(alpha = 0.5f),
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
-                    Text(
-                        joint.actions.joinToString(" · ") { catalogTitleLabel(it) },
-                        color = Color.White.copy(alpha = 0.64f),
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                if (isExpanded) {
-                    Text(
-                        joint.note,
-                        color = Color.White.copy(alpha = 0.76f),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(accentColor),
+                        )
+                        Text(
+                            jointLabel(joint.jointId),
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Surface(
+                            shape = RoundedCornerShape(999.dp),
+                            color = accentColor.copy(alpha = 0.18f),
+                        ) {
+                            Text(
+                                jointRoleLabel(joint.role),
+                                color = accentColor,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
+                            )
+                        }
+                        Spacer(Modifier.weight(1f))
+                        Icon(
+                            imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.5f),
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+
+                    if (joint.actions.isNotEmpty()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(5.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            joint.actions.forEach { action ->
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(Color.White.copy(alpha = 0.08f))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp),
+                                ) {
+                                    Text(
+                                        catalogTitleLabel(action),
+                                        color = Color.White.copy(alpha = 0.85f),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Medium,
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    if (isExpanded && joint.note.isNotBlank()) {
+                        Text(
+                            joint.note,
+                            color = Color.White.copy(alpha = 0.80f),
+                            style = MaterialTheme.typography.bodySmall,
+                            lineHeight = 18.sp,
+                        )
+                    }
                 }
             }
         }
@@ -1814,78 +1854,239 @@ private fun MuscleInvolvementSection(
 ) {
     val expandedMuscle = remember { mutableStateOf<String?>(null) }
     val contributions = remember(exercise) { oneSeriesVolumeContributions(exercise) }
+    val primaries = remember(contributions) { contributions.filter { it.role == MuscleRole.PRIMARY } }
+    val secondaries = remember(contributions) { contributions.filter { it.role == MuscleRole.SECONDARY } }
+    val stabilizers = remember(contributions) { contributions.filter { it.role != MuscleRole.PRIMARY && it.role != MuscleRole.SECONDARY } }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = if (showHeader) 4.dp else 0.dp),
-        verticalArrangement = Arrangement.spacedBy(3.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         if (showHeader) {
-            Text("Involucramiento Muscular", color = Color.White, fontWeight = FontWeight.Bold)
+            Text("Involucramiento Muscular", color = Color.White, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleSmall)
         }
-        contributions.forEach { contribution ->
-            val muscleName = contribution.muscle
-            val involvement = contribution.sourceInvolvement
-            val isExpanded = expandedMuscle.value == muscleName
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable { expandedMuscle.value = if (isExpanded) null else muscleName }
-                    .background(Color.White.copy(alpha = 0.05f))
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
+
+        // 1. Músculos Principales / Motores Primarios (Tarjetas destacadas con jerarquía primaria)
+        if (primaries.isNotEmpty()) {
+            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text(
+                        "Motores Principales",
+                        color = Color(0xFF67E8F9),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(999.dp),
+                        color = Color(0xFF67E8F9).copy(alpha = 0.15f),
+                    ) {
+                        Text(
+                            "${primaries.size}",
+                            color = Color(0xFF67E8F9),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Black,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp),
+                        )
+                    }
+                }
+
+                primaries.forEach { contribution ->
+                    val muscleName = contribution.muscle
+                    val muscleColor = wikilabMuscleColor(muscleName)
+                    val involvement = contribution.sourceInvolvement
+                    val isExpanded = expandedMuscle.value == muscleName
+
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable { expandedMuscle.value = if (isExpanded) null else muscleName },
+                        shape = RoundedCornerShape(12.dp),
+                        color = muscleColor.copy(alpha = 0.08f),
+                        border = BorderStroke(1.dp, muscleColor.copy(alpha = 0.35f)),
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(10.dp)
+                                        .clip(CircleShape)
+                                        .background(muscleColor),
+                                )
+                                Text(
+                                    catalogTitleLabel(muscleName),
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                                val emphasisCode = contribution.emphasis?.trim()?.lowercase()?.takeIf { it.isNotBlank() }
+                                val emphasisLabel = emphasisCode?.let(::catalogTitleLabel)
+                                if (emphasisLabel != null && !muscleName.lowercase().contains(emphasisCode)) {
+                                    EmphasisChip(emphasisLabel)
+                                }
+                                Spacer(Modifier.weight(1f))
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = Color.White.copy(alpha = 0.12f),
+                                ) {
+                                    Text(
+                                        formatSeriesEquivalent(contribution.seriesEquivalent),
+                                        color = Color.White.copy(alpha = 0.90f),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    )
+                                }
+                                Icon(
+                                    imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                    contentDescription = null,
+                                    tint = Color.White.copy(alpha = 0.5f),
+                                    modifier = Modifier.size(16.dp),
+                                )
+                            }
+                            if (isExpanded) {
+                                val explanation = involvement?.biomechanicalReason
+                                    ?.takeIf { it.isNotBlank() }
+                                    ?: involvement?.let { explainMuscleContribution(exercise, it) }
+                                if (explanation != null) {
+                                    Text(
+                                        explanation,
+                                        color = Color.White.copy(alpha = 0.80f),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        lineHeight = 18.sp,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. Músculos Secundarios & Sinergistas
+        if (secondaries.isNotEmpty()) {
+            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text(
+                    "Sinergistas y Secundarios",
+                    color = Color.White.copy(alpha = 0.70f),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+                secondaries.forEach { contribution ->
+                    val muscleName = contribution.muscle
+                    val muscleColor = wikilabMuscleColor(muscleName)
+                    val involvement = contribution.sourceInvolvement
+                    val isExpanded = expandedMuscle.value == muscleName
+
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable { expandedMuscle.value = if (isExpanded) null else muscleName },
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color.White.copy(alpha = 0.04f),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+                            verticalArrangement = Arrangement.spacedBy(3.dp),
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .clip(CircleShape)
+                                        .background(muscleColor.copy(alpha = 0.8f)),
+                                )
+                                Text(
+                                    catalogTitleLabel(muscleName),
+                                    color = Color.White.copy(alpha = 0.90f),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                                Spacer(Modifier.weight(1f))
+                                Text(
+                                    formatSeriesEquivalent(contribution.seriesEquivalent),
+                                    color = Color.White.copy(alpha = 0.70f),
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            }
+                            if (isExpanded) {
+                                val explanation = involvement?.biomechanicalReason
+                                    ?.takeIf { it.isNotBlank() }
+                                    ?: involvement?.let { explainMuscleContribution(exercise, it) }
+                                if (explanation != null) {
+                                    Text(
+                                        explanation,
+                                        color = Color.White.copy(alpha = 0.75f),
+                                        style = MaterialTheme.typography.bodySmall,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3. Estabilizadores / Neutralizadores
+        if (stabilizers.isNotEmpty()) {
+            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text(
+                    "Estabilizadores",
+                    color = Color.White.copy(alpha = 0.60f),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .clip(CircleShape)
-                            .background(wikilabMuscleColor(muscleName)),
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        catalogTitleLabel(muscleName),
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    val emphasisCode = contribution.emphasis?.trim()?.lowercase()?.takeIf { it.isNotBlank() }
-                    val emphasisLabel = emphasisCode?.let(::catalogTitleLabel)
-                    if (emphasisLabel != null && !muscleName.lowercase().contains(emphasisCode)) {
-                        Spacer(Modifier.width(6.dp))
-                        EmphasisChip(emphasisLabel)
-                    }
-                    Spacer(Modifier.weight(1f))
-                    Text(
-                        formatSeriesEquivalent(contribution.seriesEquivalent),
-                        color = Color.White.copy(alpha = 0.72f),
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                    Text(
-                        if (isExpanded) " ▴" else " ▾",
-                        color = Color.White.copy(alpha = 0.5f),
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
-                if (isExpanded) {
-                    Text(
-                        roleVolumeLabel(contribution.role),
-                        color = Color.White.copy(alpha = 0.7f),
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                    val explanation = involvement?.biomechanicalReason
-                        ?.takeIf { it.isNotBlank() }
-                        ?: involvement?.let { explainMuscleContribution(exercise, it) }
-                    if (explanation != null) {
-                        Text(
-                            explanation,
-                            color = Color.White.copy(alpha = 0.72f),
-                            style = MaterialTheme.typography.bodySmall,
-                        )
+                    stabilizers.forEach { contribution ->
+                        val muscleName = contribution.muscle
+                        val muscleColor = wikilabMuscleColor(muscleName)
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color.White.copy(alpha = 0.05f),
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .clip(CircleShape)
+                                        .background(muscleColor),
+                                )
+                                Text(
+                                    catalogTitleLabel(muscleName),
+                                    color = Color.White.copy(alpha = 0.80f),
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            }
+                        }
                     }
                 }
             }

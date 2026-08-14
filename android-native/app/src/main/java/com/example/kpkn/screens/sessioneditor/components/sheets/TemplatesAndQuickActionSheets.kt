@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.sessioneditor.components.sheets
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.AlertDialog
@@ -365,30 +367,55 @@ internal fun ExerciseQuickActionsSheet(
             }
         }
 
-        if (resolvedV2 != null) {
-            CatalogDescription(
-                definition = resolvedV2.definition,
-                configuration = resolvedV2.configuration,
-                initiallyExpanded = true,
-            )
+        // Descripción exacta del catálogo (no sintetizada ni paralela)
+        val exactDescription = resolvedV2?.definition?.description?.takeIf { it.isNotBlank() }
+            ?: selectedInfo?.description?.takeIf { it.isNotBlank() }
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            color = Color.White.copy(alpha = 0.06f),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
+        ) {
+            Column(
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Icon(
+                        Icons.Default.MenuBook,
+                        contentDescription = null,
+                        tint = Color.White.copy(alpha = 0.85f),
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Text(
+                        "Descripción del ejercicio",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White.copy(alpha = 0.95f),
+                    )
+                }
+                Text(
+                    exactDescription ?: "No hay una descripción editorial disponible para este ejercicio.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    lineHeight = 20.sp,
+                    color = Color.White.copy(alpha = 0.88f),
+                )
+            }
+        }
+
+        // Involucramiento muscular y articular con jerarquía visual de alto contraste
+        val infoForInvolvement = resolvedV2?.legacyInfo?.takeIf { it.involvedMuscles.isNotEmpty() }
+            ?: selectedInfo?.takeIf { it.involvedMuscles.isNotEmpty() }
+        val jointsForInvolvement = resolvedV2?.configuration?.profile?.jointInvolvement.orEmpty()
+
+        if (infoForInvolvement != null || jointsForInvolvement.isNotEmpty()) {
             CatalogInvolvementAccordions(
-                info = resolvedV2.legacyInfo.takeIf { it.involvedMuscles.isNotEmpty() },
-                joints = resolvedV2.configuration.profile.jointInvolvement,
-            )
-        } else {
-            QuickInfoBlock(
-                title = "Descripción",
-                value = selectedInfo?.let { adaptedExerciseDescription(it, exercise.selectedAspects.orEmpty()) }
-                    ?.takeIf { it.isNotBlank() }
-                    ?: "No hay una descripción editorial disponible para esta configuración.",
-            )
-            QuickInfoBlock(
-                title = "Músculos involucrados",
-                value = muscleInvolvement.ifBlank { "Información muscular no disponible" },
-            )
-            QuickInfoBlock(
-                title = "Involucramiento articular",
-                value = articularProfile.joinToString(" · ").ifBlank { "Perfil articular no disponible" },
+                info = infoForInvolvement,
+                joints = jointsForInvolvement,
             )
         }
 

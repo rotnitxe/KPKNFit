@@ -38,26 +38,53 @@ internal fun resolveCatalogExerciseV2(
     val definitionId = exercise.catalogDefinitionId
         ?.takeIf { it.isNotBlank() }
         ?: legacyInfo?.catalogDefinitionId?.takeIf { it.isNotBlank() }
-        ?: return null
     val configurationId = exercise.catalogConfigurationId
         ?.takeIf { it.isNotBlank() }
         ?: legacyInfo?.catalogConfigurationId?.takeIf { it.isNotBlank() }
+
+    val definition = if (definitionId != null) {
+        catalog.families
+            .asSequence()
+            .flatMap { it.definitions.asSequence() }
+            .firstOrNull { it.id == definitionId }
+    } else {
+        val lookupKeys = listOfNotNull(exercise.exerciseDbId, exercise.id, legacyInfo?.id)
+            .map { it.trim().lowercase() }
+        catalog.families
+            .asSequence()
+            .flatMap { it.definitions.asSequence() }
+            .firstOrNull { def ->
+                def.id.lowercase() in lookupKeys || def.configurations.any { it.id.lowercase() in lookupKeys }
+            } ?: run {
+                val cleanTargetName = exercise.name.trim().lowercase()
+                catalog.families
+                    .asSequence()
+                    .flatMap { it.definitions.asSequence() }
+                    .firstOrNull { def ->
+                        def.canonicalName.trim().lowercase() == cleanTargetName
+                    }
+            }
+    } ?: return null
+
+    val configuration = (if (configurationId != null) {
+        definition.configurations.firstOrNull { it.id == configurationId }
+    } else null)
+        ?: definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }
+        ?: definition.configurations.firstOrNull()
         ?: return null
 
-    val definition = catalog.families
-        .asSequence()
-        .flatMap { it.definitions.asSequence() }
-        .firstOrNull { it.id == definitionId }
-        ?: return null
-    val configuration = definition.configurations.firstOrNull { it.id == configurationId }
-        ?: return null
     val exactInfo = catalog.toLegacySelection(
         ExerciseSelectionV2(
             definitionId = definition.id,
             configurationId = configuration.id,
             catalogRevision = catalog.catalogRevision,
         ),
-    ) ?: legacyInfo ?: return null
+    ) ?: legacyInfo ?: ExerciseMuscleInfo(
+        id = configuration.id,
+        name = definition.canonicalName,
+        description = definition.description,
+        involvedMuscles = emptyList(),
+    )
 
     return ResolvedCatalogExerciseV2(
         definition = definition,
