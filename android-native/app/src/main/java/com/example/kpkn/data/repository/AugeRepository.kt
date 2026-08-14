@@ -117,20 +117,6 @@ class AugeRepository private constructor(context: Context) {
         dao.getFeedbackForLog(logId)?.toFeedback()
     }
 
-    // ─── PendingQuestionnaire ─────────────────────────────────────────────────
-
-    suspend fun getPendingQuestionnaire(): PendingQuestionnaire? = withContext(Dispatchers.IO) {
-        dao.getPendingQuestionnaire()?.toPendingQuestionnaire()
-    }
-
-    suspend fun setPendingQuestionnaire(q: PendingQuestionnaire) = withContext(Dispatchers.IO) {
-        dao.upsertPendingQuestionnaire(q.toEntity())
-    }
-
-    suspend fun clearPendingQuestionnaire() = withContext(Dispatchers.IO) {
-        dao.clearPendingQuestionnaire()
-    }
-
     // ─── Adaptive Cache ─────────────────────────────────────────────────────
 
     suspend fun getAdaptiveCache(): AugeAdaptiveCache = withContext(Dispatchers.IO) {
@@ -152,7 +138,6 @@ class AugeRepository private constructor(context: Context) {
         sleepLogs: List<SleepLog>,
         sleepLogsExtended: List<SleepLogExtended>,
         postSessionFeedback: List<PostSessionFeedback>,
-        pendingQuestionnaire: PendingQuestionnaire?,
         adaptiveCache: AugeAdaptiveCache?,
     ) = withContext(Dispatchers.IO) {
         wellbeingLogs.forEach { saveWellbeingLog(it) }
@@ -161,9 +146,6 @@ class AugeRepository private constructor(context: Context) {
         val extendedIds = sleepLogsExtended.map { it.id }.toSet()
         sleepLogs.filter { it.id !in extendedIds }.forEach { dao.upsertSleepLog(it.toEntity()) }
         postSessionFeedback.forEach { dao.upsertFeedback(it.toEntity()) }
-        if (pendingQuestionnaire != null) {
-            dao.upsertPendingQuestionnaire(pendingQuestionnaire.toEntity())
-        }
         if (adaptiveCache != null) {
             dao.upsertAdaptiveCache(adaptiveCache.toEntity())
         }

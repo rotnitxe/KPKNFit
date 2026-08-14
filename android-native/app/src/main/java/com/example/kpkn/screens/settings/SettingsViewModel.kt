@@ -183,7 +183,6 @@ class SettingsViewModel : ViewModel() {
                     sleepLogs = augeRepository.getLastNSleepLogs(30),
                     sleepLogsExtended = augeRepository.getAllSleepLogsExtended(),
                     postSessionFeedback = augeRepository.getPostSessionFeedbacks(),
-                    pendingQuestionnaire = augeRepository.getPendingQuestionnaire(),
                     adaptiveCache = augeRepository.getAdaptiveCache(),
                 )
                 val exportJson = dbJson.encodeToString(payload)
@@ -256,7 +255,6 @@ class SettingsViewModel : ViewModel() {
                     sleepLogs = payload.sleepLogs,
                     sleepLogsExtended = payload.sleepLogsExtended,
                     postSessionFeedback = payload.postSessionFeedback,
-                    pendingQuestionnaire = payload.pendingQuestionnaire,
                     adaptiveCache = payload.adaptiveCache,
                 )
 
@@ -366,6 +364,5 @@ private data class SettingsExportPayload(
     val sleepLogs: List<com.example.kpkn.data.models.SleepLog>,
     val sleepLogsExtended: List<com.example.kpkn.data.models.SleepLogExtended> = emptyList(),
     val postSessionFeedback: List<com.example.kpkn.data.models.PostSessionFeedback>,
-    val pendingQuestionnaire: com.example.kpkn.data.models.PendingQuestionnaire?,
     val adaptiveCache: com.example.kpkn.data.models.AugeAdaptiveCache? = null,
 )

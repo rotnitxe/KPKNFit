@@ -10,7 +10,6 @@ import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.MuscleAdvance
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.OmittedExercise
-import com.example.kpkn.data.models.PendingQuestionnaire
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutLog
@@ -22,7 +21,6 @@ import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.domain.auge.AugeFatigueEngine
-import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.training.ProgramCalendarEngine
@@ -66,7 +64,6 @@ class WorkoutFinishController(
         notes: String,
         fatigueLevel: Int,
         closingFeedback: SessionClosingFeedback,
-        onPendingQuestionnaire: ((PendingQuestionnaire) -> Unit)? = null,
         onComplete: () -> Unit = {},
         onFailure: (Exception) -> Unit = {},
     ) {
@@ -228,21 +225,6 @@ class WorkoutFinishController(
                     (base * impactFactor * techniquePenalty * clarityFactor).coerceAtLeast(1.0)
                 }
 
-                val muscleGroups = completedExercises
-                    .mapNotNull { ex ->
-                        val info = catalogInfoForCompletedExercise(ex)
-                        val primary = (ex.effectiveMuscles?.takeIf { it.isNotEmpty() } ?: info?.involvedMuscles.orEmpty())
-                            .firstOrNull { m -> m.role == MuscleRole.PRIMARY }
-                        if (primary != null) {
-                            val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(primary.muscle, primary.emphasis)
-                            getAugeMusclePillarId(canonical, primary.emphasis)
-                        } else {
-                            ex.exerciseName
-                        }
-                    }
-                    .distinct()
-                    .take(6)
-
                 val finalEnergySummary = TrainingEnergyEngine.estimateCompletedSession(
                     completedExercises = completedExercises,
                     settings = repository.settings.value,
@@ -345,19 +327,6 @@ class WorkoutFinishController(
                 updatePredictionBias(closingFeedback)
                 restAlertManager.cancelRestAlerts()
                 restTimer.clearActiveTimerId()
-
-                onPendingQuestionnaire?.invoke(
-                    PendingQuestionnaire(
-                        logId = logId,
-                        sessionName = session.name,
-                        muscleGroups = muscleGroups,
-                        stillPresentDiscomfortIds = (
-                            closingFeedback.stillPresentDiscomfortIds +
-                                state.postExerciseFeedbackByExerciseId.values.flatMap { it.stillPresentDiscomfortIds }
-                            ).distinct(),
-                        scheduledTimeMs = System.currentTimeMillis() + (24 * 60 * 60 * 1000L),
-                    )
-                )
 
                 scope.launch(Dispatchers.IO) {
                     try {

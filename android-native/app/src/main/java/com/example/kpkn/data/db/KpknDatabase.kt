@@ -22,6 +22,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         WellbeingEntity::class,
         SleepLogEntity::class,
         PostSessionFeedbackEntity::class,
+        // Tabla legacy (encuesta 24h eliminada); se conserva para el schema.
         PendingQuestionnaireEntity::class,
         // Nutrition entities (v2)
         NutritionLogEntity::class,

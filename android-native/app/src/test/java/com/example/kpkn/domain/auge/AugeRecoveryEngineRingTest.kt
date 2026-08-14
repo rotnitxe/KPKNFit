@@ -35,6 +35,11 @@ class AugeRecoveryEngineRingTest {
             efc = 8.0, cnc = 7.0, ssc = 6.0,
             involvedMuscles = listOf(InvolvedMuscle("Cuádriceps", MuscleRole.PRIMARY)),
         ),
+        "adductor" to ExerciseMuscleInfo(
+            id = "adductor", name = "Máquina de Aductores", equipment = "machine",
+            efc = 6.0, cnc = 5.0, ssc = 3.0,
+            involvedMuscles = listOf(InvolvedMuscle("Aductores", MuscleRole.PRIMARY)),
+        ),
     )
 
     @Test
@@ -115,6 +120,45 @@ class AugeRecoveryEngineRingTest {
             val score = snapshot.ringScore(channel)
             assertTrue("$channel score $score out of 0..100", score in 0..100)
         }
+    }
+
+    @Test
+    fun perMuscleBatteries_includeNonPillarMuscles() {
+        val now = System.currentTimeMillis()
+        val history = (1..3).map { day ->
+            WorkoutLog(
+                id = "adductor-$day", programId = "p", sessionId = "s", sessionName = "Abductores",
+                date = Instant.ofEpochMilli(now - (4 - day) * 86_400_000L).toString(),
+                durationMinutes = 45,
+                completedExercises = listOf(
+                    CompletedExercise(
+                        exerciseId = "adductor", exerciseName = "Máquina de Aductores",
+                        exerciseDbId = "adductor", restTime = 90,
+                        sets = List(6) { i ->
+                            CompletedSet(id = "a-$day-$i", weight = 50.0, reps = 12, rpe = 9.0)
+                        },
+                    ),
+                ),
+            )
+        }
+        val perMuscle = AugeRecoveryEngine.getPerMuscleBatteries(
+            history = history,
+            wellbeing = null,
+            settings = Settings(),
+            exerciseDb = exerciseDb,
+        )
+
+        for (muscle in listOf("Aductores", "Antebrazo", "Cuello", "Psoas")) {
+            val status = perMuscle[muscle]
+            assertTrue("perMuscle must include '$muscle' with a real battery", status != null)
+            assertTrue("'$muscle' score ${status?.recoveryScore} out of 0..100", (status?.recoveryScore ?: -1) in 0..100)
+        }
+
+        val adductorScore = perMuscle["Aductores"]?.recoveryScore ?: 100
+        assertTrue(
+            "Aductores battery should reflect recent drain (< 100), got $adductorScore",
+            adductorScore < 100,
+        )
     }
 
     private fun fullCompute(

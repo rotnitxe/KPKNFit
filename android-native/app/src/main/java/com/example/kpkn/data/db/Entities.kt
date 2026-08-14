@@ -157,13 +157,10 @@ fun PostSessionFeedbackEntity.toFeedback(): PostSessionFeedback? = runCatching {
     dbJson.decodeFromString<PostSessionFeedback>(data)
 }.getOrNull()
 
+// Tabla legacy `auge_pending` (encuesta 24h eliminada). Se conserva la entidad
+// para no alterar el identity hash del schema Room; el flujo ya no la usa.
 @Entity(tableName = "auge_pending")
 data class PendingQuestionnaireEntity(@PrimaryKey val rowId: Int = 1, val data: String)
-fun PendingQuestionnaire.toEntity() = PendingQuestionnaireEntity(data = dbJson.encodeToString(this))
-fun PendingQuestionnaireEntity.toPendingQuestionnaire(): PendingQuestionnaire? {
-    val raw = data.takeIf { it.isNotBlank() } ?: return null
-    return runCatching { dbJson.decodeFromString<PendingQuestionnaire>(raw) }.getOrNull()
-}
 
 @Entity(tableName = "auge_adaptive_cache")
 data class AugeAdaptiveCacheEntity(@PrimaryKey val rowId: Int = 1, val data: String)

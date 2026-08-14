@@ -213,16 +213,6 @@ interface AugeDao {
     @Upsert
     suspend fun upsertFeedback(entity: PostSessionFeedbackEntity)
 
-    // Pending questionnaire
-    @Query("SELECT * FROM auge_pending WHERE rowId = 1")
-    suspend fun getPendingQuestionnaire(): PendingQuestionnaireEntity?
-
-    @Upsert
-    suspend fun upsertPendingQuestionnaire(entity: PendingQuestionnaireEntity)
-
-    @Query("DELETE FROM auge_pending WHERE rowId = 1")
-    suspend fun clearPendingQuestionnaire()
-
     // Adaptive cache
     @Query("SELECT * FROM auge_adaptive_cache WHERE rowId = 1")
     suspend fun getAdaptiveCache(): AugeAdaptiveCacheEntity?

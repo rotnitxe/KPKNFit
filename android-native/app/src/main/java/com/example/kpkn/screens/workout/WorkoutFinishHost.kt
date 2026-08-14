@@ -222,7 +222,7 @@ internal fun FinishWorkoutSheet(
                 .toSet(),
         )
     }
-    var showDiscomfortAccordion by remember { mutableStateOf(true) }
+    var showDiscomfortAccordion by remember { mutableStateOf(false) }
     var discomfortSearchQuery by remember { mutableStateOf("") }
     var discomfortStillPresent by remember {
         mutableStateOf(selectedDiscomforts.associateWith { true })
@@ -814,12 +814,21 @@ internal fun FinishWorkoutSheet(
                     val muscularAdjustment = (
                         perceivedMuscularDrop.toInt() - postSessionPreview.globalMuscularDrain
                         ).coerceIn(-35, 35)
-                    val discomfortLabels = selectedDiscomforts
-                        .mapNotNull { id -> DISCOMFORT_CATALOG_BY_ID[id]?.label }
-                        .distinct()
                     val stillPresentIds = selectedDiscomforts
                         .filter { id -> discomfortStillPresent[id] ?: true }
                         .toList()
+
+                    // Trazabilidad: molestias reportadas durante la sesión se
+                    // conservan en el log aunque el usuario ya no las sienta
+                    // (stillPresent = false) o las haya deseleccionado.
+                    val sessionReportedDiscomfortIds = postExerciseFeedbackByExerciseId
+                        .values
+                        .flatMap { it.discomfortIds }
+                        .filter { it != "none" }
+                        .toSet()
+                    val allSessionDiscomfortLabels = (sessionReportedDiscomfortIds + selectedDiscomforts)
+                        .mapNotNull { id -> DISCOMFORT_CATALOG_BY_ID[id]?.label }
+                        .distinct()
 
                     onConfirm(
                         notes,
@@ -833,7 +842,7 @@ internal fun FinishWorkoutSheet(
                             structureAdjustment = (
                                 postSessionPreview.spinal - spinalFinal
                                 ).coerceIn(-35, 35),
-                            discomforts = discomfortLabels + listOfNotNull(
+                            discomforts = allSessionDiscomfortLabels + listOfNotNull(
                                 additionalDiscomfortNote.trim().takeIf { it.isNotBlank() },
                             ),
                             clarityRating = averageTechnique.toInt().coerceIn(1, 10),

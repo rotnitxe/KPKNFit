@@ -45,7 +45,6 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         get() = catalogExerciseIndex()
 
     private var recoveryTimerJob: Job? = null
-    private var pendingRevealJob: Job? = null
     private val augeWriteMutex = kotlinx.coroutines.sync.Mutex()
 
     // ─── Public state ─────────────────────────────────────────────────────────
@@ -125,9 +124,6 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, _snapshot.value.dashboard)
 
-    private val _pendingQuestionnaire = MutableStateFlow<PendingQuestionnaire?>(null)
-    val pendingQuestionnaire: StateFlow<PendingQuestionnaire?> = _pendingQuestionnaire.asStateFlow()
-
     val articular: StateFlow<Map<ArticularBattery, ArticularBatteryState>> = snapshot
         .map { it.articular }
         .distinctUntilChanged()
@@ -163,7 +159,6 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     override fun onCleared() {
         super.onCleared()
         recoveryTimerJob?.cancel()
-        pendingRevealJob?.cancel()
     }
 
     // ─── Core recompute ───────────────────────────────────────────────────────
@@ -194,7 +189,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             manualMuscleBatteries = remapMuscleIntMapToPillars(wellbeing.manualMuscleBatteries),
         )
 
-        val (batteries, perMuscle, dashboard, readiness, pending, articular, cumulativeFatigue) = withContext(Dispatchers.Default) {
+        val (batteries, perMuscle, dashboard, readiness, articular, cumulativeFatigue) = withContext(Dispatchers.Default) {
             val muscles = AugeRecoveryEngine.getPerMuscleBatteries(
                 history = history,
                 wellbeing = wellbeingNormalized,
@@ -227,7 +222,6 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 recentSessionCount = history.size,
             )
             val verdict = AugeRecoveryEngine.calculateDailyReadiness(dashboard, wellbeingNormalized)
-            val pending = AugeRecoveryEngine.checkPendingSurveys(history, feedbacks)
             
             val twoWeeksAgo = System.currentTimeMillis() - 14L * 24 * 3600_000
             val cumFatigue = history
@@ -242,11 +236,9 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                         adaptiveCache = adaptiveCache,
                     )
                 }
-            Septuple(bat, muscles, dashboard, verdict, pending, articular, cumFatigue)
+            Sextuple(bat, muscles, dashboard, verdict, articular, cumFatigue)
         }
 
-        val resolvedPending = pending ?: augeRepo.getPendingQuestionnaire()
-        exposePendingIfDue(resolvedPending)
         val readinessScore = readiness?.score ?: dashboard.overallScore
         val shouldSuggestAutoDeload = AugeFatigueEngine.shouldSuggestAutoDeload(
             cumulativeFatigue = cumulativeFatigue,
@@ -287,33 +279,6 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 "shouldSuggestAutoDeload" to shouldSuggestAutoDeload,
             ),
         )
-    }
-
-    /**
-     * Exposes [q] to [pendingQuestionnaire] only when its scheduled time has passed.
-     * If not yet due, schedules a single cancellable job to reveal it at the right moment.
-     */
-    private fun exposePendingIfDue(q: PendingQuestionnaire?) {
-        pendingRevealJob?.cancel()
-        pendingRevealJob = null
-        if (q == null) {
-            if (_pendingQuestionnaire.value != null) _pendingQuestionnaire.value = null
-            return
-        }
-        val remaining = q.scheduledTimeMs - System.currentTimeMillis()
-        if (remaining <= 0L) {
-            if (_pendingQuestionnaire.value != q) _pendingQuestionnaire.value = q
-        } else {
-            // Not due yet — keep hidden and reveal exactly when scheduled (no 24h cap that would early-reveal)
-            _pendingQuestionnaire.value = null
-            pendingRevealJob = viewModelScope.launch {
-                delay(remaining)
-                val stillPending = augeRepo.getPendingQuestionnaire()
-                if (stillPending != null && System.currentTimeMillis() >= stillPending.scheduledTimeMs) {
-                    _pendingQuestionnaire.value = stillPending
-                }
-            }
-        }
     }
 
     // ─── Public actions ───────────────────────────────────────────────────────
@@ -361,30 +326,11 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** Call when user submits post-session feedback (from PostSessionSheet). */
+    /** Call when user submits post-session feedback. */
     fun savePostSessionFeedback(fb: PostSessionFeedback) {
         viewModelScope.launch {
             augeRepo.savePostSessionFeedback(fb)
-            augeRepo.clearPendingQuestionnaire()
-            _pendingQuestionnaire.value = null
             recompute(programRepo.history.value, programRepo.settings.value)
-        }
-    }
-
-    /** Schedule a post-session questionnaire to appear after [q.scheduledTimeMs] (typically 24h). */
-    fun schedulePendingQuestionnaire(q: PendingQuestionnaire) {
-        viewModelScope.launch {
-            augeRepo.setPendingQuestionnaire(q)
-            // Do NOT expose immediately — exposePendingIfDue handles the delay
-            exposePendingIfDue(q)
-        }
-    }
-
-    /** Dismiss the pending questionnaire without saving. */
-    fun dismissPendingQuestionnaire() {
-        viewModelScope.launch {
-            augeRepo.clearPendingQuestionnaire()
-            _pendingQuestionnaire.value = null
         }
     }
 
@@ -767,7 +713,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     }
 }
 
-private data class Septuple<A, B, C, D, E, F, G>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E, val sixth: F, val seventh: G)
+private data class Sextuple<A, B, C, D, E, F>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E, val sixth: F)
 
 @Composable
 fun rememberAugeViewModel(): AugeViewModel {

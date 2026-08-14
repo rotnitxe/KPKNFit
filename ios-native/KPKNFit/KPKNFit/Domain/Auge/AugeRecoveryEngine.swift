@@ -40,6 +40,20 @@ enum AugeRecoveryEngine {
         "Abdomen", "Trapecio", "Erectores Espinales", "Core",
     ]
 
+    // Set completo de baterías por músculo: pilares + todo grupo con perfil de
+    // recuperación (Aductores, Antebrazo, Cuello, Psoas, rotadores, etc.).
+    // El promedio global sigue usando solo PILLAR_MUSCLES; este set alimenta
+    // perMuscle para la UI y el readiness de sesiones que involucran esos músculos.
+    private static let BATTERY_MUSCLES: [String] = {
+        var seen = Set<String>()
+        var result: [String] = []
+        for muscle in PILLAR_MUSCLES + MUSCLE_PROFILE_MAP.keys {
+            let pillar = resolveAugeMuscle(rawMuscle: muscle).broad
+            if seen.insert(pillar).inserted { result.append(pillar) }
+        }
+        return result
+    }()
+
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
     private static func densityMultiplierForCompletedExercise(_ ex: CompletedExercise) -> Double {
@@ -865,14 +879,14 @@ enum AugeRecoveryEngine {
         let stressLevel = wellbeing?.stressLevel ?? 3
         let nutritionMultiplier = getNutritionMultiplier(settings: settings, nutritionLogs: nutritionLogs, stressLevel: stressLevel)
 
-        // Optimización O(N^2): Precalcular capacidades de los músculos pilares antes de iterar
+        // Optimización O(N^2): Precalcular capacidades de los músculos antes de iterar
         var precomputedCapacities: [String: Double] = [:]
-        for muscle in PILLAR_MUSCLES {
+        for muscle in BATTERY_MUSCLES {
             precomputedCapacities[muscle] = calculateUserWorkCapacity(muscle, history, settings, exerciseDb)
         }
 
         var result: [String: MuscleRecoveryStatus] = [:]
-        for muscle in PILLAR_MUSCLES {
+        for muscle in BATTERY_MUSCLES {
             result[muscle] = calculateMuscleBattery(
                 muscleName: muscle, history: history, wellbeing: wellbeing, settings: settings,
                 exerciseDb: exerciseDb, nutritionMultiplier: nutritionMultiplier, sleepLogs: sleepLogs,

@@ -94,7 +94,6 @@ fun HomeScreen(
     val sncProgress = augeSnapshot.ringScore(RecoveryChannelId.SYSTEM) / 100f
     val columnaProgress = augeSnapshot.ringScore(RecoveryChannelId.STRUCTURE) / 100f
     val augeLoading = augeSnapshot.isLoading
-    val pendingQuestionnaire by augeViewModel.pendingQuestionnaire.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
     val nutritionRepo = remember { NutritionRepository.getInstance() }
     var showFoodLogger by remember { mutableStateOf(false) }
@@ -274,17 +273,6 @@ fun HomeScreen(
                 nutritionRepo = nutritionRepo,
                 selectedMealForLogger = selectedMealForLogger,
                 onDismiss = { showFoodLogger = false },
-            )
-        }
-
-        pendingQuestionnaire?.let { questionnaire ->
-            com.example.kpkn.screens.auge.PostSessionSheet(
-                questionnaire = questionnaire,
-                onDismiss = { augeViewModel.dismissPendingQuestionnaire() },
-                onSave = { feedback ->
-                    augeViewModel.savePostSessionFeedback(feedback)
-                    viewModel.loadFeedbacks(context)
-                },
             )
         }
     }

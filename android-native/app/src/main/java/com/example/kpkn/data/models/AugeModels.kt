@@ -54,15 +54,6 @@ data class MuscleFeedbackEntry(
     val notes: String = "",
 )
 
-@Serializable
-data class PendingQuestionnaire(
-    val logId: String,
-    val sessionName: String,
-    val muscleGroups: List<String> = emptyList(),
-    val stillPresentDiscomfortIds: List<String> = emptyList(),
-    val scheduledTimeMs: Long,
-)
-
 // ─── AUGE Battery Results ─────────────────────────────────────────────────────
 
 data class GlobalBatteries(

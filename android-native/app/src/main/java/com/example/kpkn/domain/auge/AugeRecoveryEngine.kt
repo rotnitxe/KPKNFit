@@ -62,6 +62,13 @@ object AugeRecoveryEngine {
         "Abdomen", "Trapecio", "Erectores Espinales", "Core",
     )
 
+    // Set completo de baterías por músculo: pilares + todo grupo con perfil de
+    // recuperación (Aductores, Antebrazo, Cuello, Psoas, rotadores, etc.).
+    // El promedio global sigue usando solo PILLAR_MUSCLES; este set alimenta
+    // perMuscle para la UI y el readiness de sesiones que involucran esos músculos.
+    private val BATTERY_MUSCLES: List<String> =
+        (PILLAR_MUSCLES + MUSCLE_PROFILE_MAP.keys.map { getAugeMusclePillarId(it) }).distinct()
+
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
     private fun densityMultiplierForCompletedExercise(ex: CompletedExercise): Double =
@@ -1056,7 +1063,7 @@ object AugeRecoveryEngine {
         )
     }
 
-    // ─── 5. PER-MUSCLE BATTERIES (todos los pilares) ──────────────────────────
+    // ─── 5. PER-MUSCLE BATTERIES (pilares + grupos con perfil) ────────────────
 
     fun getPerMuscleBatteries(
         history: List<WorkoutLog>,
@@ -1075,12 +1082,12 @@ object AugeRecoveryEngine {
         val thirtyDaysAgo = nowMs() - 30L * 24 * 3600_000L
         val recentHistory = history.filter { logDateMs(it) >= thirtyDaysAgo }
 
-        // Optimización O(N^2): Precalcular capacidades de los músculos pilares antes de iterar
-        val precomputedCapacities = PILLAR_MUSCLES.associateWith { muscle ->
+        // Optimización O(N^2): Precalcular capacidades de los músculos antes de iterar
+        val precomputedCapacities = BATTERY_MUSCLES.associateWith { muscle ->
             calculateUserWorkCapacity(muscle, recentHistory, settings, exerciseDb)
         }
 
-        return PILLAR_MUSCLES.associateWith { muscle ->
+        return BATTERY_MUSCLES.associateWith { muscle ->
             calculateMuscleBattery(
                 muscleName = muscle,
                 history = recentHistory,
@@ -1269,33 +1276,7 @@ object AugeRecoveryEngine {
         )
     }
 
-    // ─── 7. ENCUESTAS PENDIENTES ─────────────────────────────────────────────
-
-    fun checkPendingSurveys(
-        history: List<WorkoutLog>,
-        feedbacks: List<PostSessionFeedback>,
-    ): PendingQuestionnaire? {
-        val now = nowMs()
-        val twoHours  = 2L  * 3600 * 1000
-        val fortyEightHours = 48L * 3600 * 1000
-
-        return history.firstOrNull { log ->
-            val timeSince = now - logDateMs(log)
-            timeSince > twoHours &&
-            timeSince < fortyEightHours &&
-            feedbacks.none { it.logId == log.id }
-        }?.let { log ->
-            PendingQuestionnaire(
-                logId         = log.id,
-                sessionName   = log.sessionName,
-                muscleGroups  = emptyList(), // Se llena en la UI con los músculos del log
-                stillPresentDiscomfortIds = log.stillPresentDiscomfortIds,
-                scheduledTimeMs = logDateMs(log) + 24 * 3600 * 1000,
-            )
-        }
-    }
-
-    // ─── 8. RECOMENDACIÓN DE SUEÑO ───────────────────────────────────────────
+    // ─── 7. RECOMENDACIÓN DE SUEÑO ───────────────────────────────────────────
 
     fun calculateSleepRecommendations(
         settings: Settings,
