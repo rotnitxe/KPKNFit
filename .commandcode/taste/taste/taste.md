@@ -42,3 +42,5 @@
 - Prefers voice-mode flows to mirror manual-mode behavior (same rest timer, same technical-quality and discomfort prompts) so both modes stay consistent. Confidence: 0.6
 - Prefers voice recognition to accept natural spoken answers (bare numbers 1-10, adjectives like "buena"/"regular", "sin molestias", "molestia en X") rather than requiring rigid keyword phrasing, and for TTS to actively ask those follow-up questions instead of waiting silently. Confidence: 0.6
 - Prefers collapsible/accordion sections to start collapsed (folded) by default rather than expanded. Confidence: 0.5
+- Prefers uncommitted changes to be committed in an orderly, logical grouping by domain/feature (e.g., AUGE, voice, catalog, build/docs) rather than a single bulk commit. Confidence: 0.8
+- Prefers to validate the latest KPKN build on the Pixel emulator (Pixel_9_Pro_XL / emulator-5554) via assembleDebug + install + launch flow. Confidence: 0.7
