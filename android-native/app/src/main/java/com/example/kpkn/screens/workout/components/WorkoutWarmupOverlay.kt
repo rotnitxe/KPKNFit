@@ -465,16 +465,15 @@ fun WorkoutWarmupOverlay(
                 .align(Alignment.BottomCenter)
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color(0xFF0C1017).copy(alpha = 0.70f),
-                            Color(0xFF0C1017).copy(alpha = 0.94f),
-                            Color(0xFF0C1017),
-                        ),
+                        0.0f to Color.Transparent,
+                        0.30f to Color(0xFF0C1017).copy(alpha = 0.65f),
+                        0.60f to Color(0xFF0C1017).copy(alpha = 0.95f),
+                        1.0f to Color(0xFF0C1017),
                     ),
                 )
                 .navigationBarsPadding()
-                .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding, vertical = 12.dp),
+                .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding)
+                .padding(top = 36.dp, bottom = 14.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

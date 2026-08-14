@@ -545,16 +545,15 @@ fun WorkoutMobilityOverlay(
                 .align(Alignment.BottomCenter)
                 .background(
                     brush = androidx.compose.ui.graphics.Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color(0xFF0C1017).copy(alpha = 0.70f),
-                            Color(0xFF0C1017).copy(alpha = 0.94f),
-                            Color(0xFF0C1017),
-                        ),
+                        0.0f to Color.Transparent,
+                        0.30f to Color(0xFF0C1017).copy(alpha = 0.65f),
+                        0.60f to Color(0xFF0C1017).copy(alpha = 0.95f),
+                        1.0f to Color(0xFF0C1017),
                     ),
                 )
                 .navigationBarsPadding()
-                .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding, vertical = 12.dp),
+                .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding)
+                .padding(top = 36.dp, bottom = 14.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -577,15 +576,18 @@ fun WorkoutMobilityOverlay(
 
                 Button(
                     onClick = onClose,
-                    modifier = Modifier.weight(1.2f).height(48.dp),
+                    enabled = allDone,
+                    modifier = Modifier.weight(1.3f).height(48.dp),
                     shape = RoundedCornerShape(999.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = sessionAccentColor,
                         contentColor = Color.Black,
+                        disabledContainerColor = Color.White.copy(alpha = 0.08f),
+                        disabledContentColor = Color.White.copy(alpha = 0.30f),
                     ),
                 ) {
                     Text(
-                        if (allDone) "Listo" else "Continuar",
+                        if (allDone) "Listo" else "Completa la movilidad",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Black,
                     )
