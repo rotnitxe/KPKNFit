@@ -2547,6 +2547,105 @@ class WorkoutViewModel(
         }
     }
 
+    fun recordWarmupWeight(exerciseId: String, warmupSetId: String, weightKg: Double) {
+        val key = warmupCompletionKey(exerciseId, warmupSetId)
+        val current = _uiState.value.completedSets[key]
+        val exercise = visibleExercises(_uiState.value).firstOrNull { it.id == exerciseId } ?: return
+        val warmup = exercise.warmupSets.firstOrNull { it.id == warmupSetId } ?: return
+        val completed = (current ?: CompletedSet(id = key)).copy(
+            weight = weightKg.coerceAtLeast(0.0),
+            reps = warmup.targetReps,
+            isWarmup = true,
+        )
+        _uiState.update { it.copy(completedSets = it.completedSets + (key to completed)) }
+        persistOngoingState()
+    }
+
+    fun recordWarmupEffort(exerciseId: String, warmupSetId: String, effort: com.example.kpkn.domain.workout.WarmupEffort) {
+        val rpe = when (effort) {
+            com.example.kpkn.domain.workout.WarmupEffort.LIGHT -> 5.0
+            com.example.kpkn.domain.workout.WarmupEffort.NORMAL -> 7.0
+            com.example.kpkn.domain.workout.WarmupEffort.HEAVY -> 9.0
+        }
+        recordWarmupHeaviness(exerciseId, warmupSetId, rpe)
+    }
+
+    fun addMobilityToCurrentExercise(exerciseId: String, mobility: com.example.kpkn.data.models.MobilityExercise) {
+        val newSeries = com.example.kpkn.data.models.MobilitySeries(
+            id = java.util.UUID.randomUUID().toString(),
+            name = mobility.name,
+            sets = 1,
+            durationSeconds = mobility.durationSeconds,
+            notes = mobility.description,
+            bodyZones = listOf(mobility.bodyRegion),
+            unit = com.example.kpkn.data.models.MobilityUnit.SECONDS,
+        )
+        updateExerciseDefinition(exerciseId, persistToProgram = false) { ex ->
+            ex.copy(mobilitySeries = ex.mobilitySeries + newSeries)
+        }
+    }
+
+    fun addMobilityTimerSeconds(seconds: Int) {
+        val current = _uiState.value.mobilityTotalTimerState ?: return
+        val newTotal = (current.totalSeconds + seconds).coerceAtLeast(1)
+        val newRemaining = (current.remainingSeconds + seconds).coerceAtLeast(0)
+        _uiState.update { state ->
+            state.copy(
+                mobilityTotalTimerState = current.copy(
+                    totalSeconds = newTotal,
+                    remainingSeconds = newRemaining,
+                    updatedAtMs = System.currentTimeMillis(),
+                ),
+            )
+        }
+        persistOngoingState()
+    }
+
+    fun resetMobilityGlobalTimer(exerciseId: String) {
+        pauseMobilityGlobalTimer()
+        val key = WorkoutStepRules.mobilityGlobalTimerKey(exerciseId)
+        val exercise = visibleExercises(_uiState.value).firstOrNull { it.id == exerciseId } ?: return
+        val configuredSeconds = (exercise.mobilityConfig?.totalMinutes ?: 1).coerceAtLeast(1) * 60
+        _uiState.update { state ->
+            state.copy(
+                mobilityTotalTimerState = MobilityTotalTimerState(
+                    stepKey = key,
+                    totalSeconds = configuredSeconds,
+                    remainingSeconds = configuredSeconds,
+                    isRunning = false,
+                    updatedAtMs = System.currentTimeMillis(),
+                ),
+            )
+        }
+        persistOngoingState()
+    }
+
+    fun skipMobilityPreparation(exerciseId: String) {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
+        val mobilityKeys = exercise.mobilitySeries.flatMap { mobility ->
+            (0 until mobility.sets.coerceAtLeast(1)).map { mobilitySetIndex ->
+                mobilityCompletionKey(exerciseId, mobility.id, mobilitySetIndex)
+            }
+        }
+        _uiState.update {
+            it.copy(mobilityCompletedExerciseIds = it.mobilityCompletedExerciseIds + mobilityKeys)
+        }
+        persistOngoingState()
+        nextSet(stopRest = false)
+    }
+
+    fun skipWarmupPreparation(exerciseId: String) {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
+        val warmupKeys = exercise.warmupSets.map { warmupCompletionKey(exerciseId, it.id) }
+        _uiState.update {
+            it.copy(warmupCompletedExerciseIds = it.warmupCompletedExerciseIds + warmupKeys)
+        }
+        persistOngoingState()
+        nextSet(stopRest = false)
+    }
+
     fun recordWarmupHeaviness(exerciseId: String, warmupSetId: String, rpe: Double) {
         val exercise = visibleExercises(_uiState.value).firstOrNull { it.id == exerciseId } ?: return
         val warmup = exercise.warmupSets.firstOrNull { it.id == warmupSetId } ?: return

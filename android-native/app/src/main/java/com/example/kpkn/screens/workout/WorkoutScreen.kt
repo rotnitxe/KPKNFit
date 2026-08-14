@@ -887,6 +887,133 @@ fun WorkoutScreen(
         )
     }
 
+    val catalogV2 = remember { com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache.peek()?.catalog }
+
+    val firstIncompleteStep = remember(
+        session,
+        uiState.completedSets,
+        uiState.warmupCompletedExerciseIds,
+        uiState.mobilityCompletedExerciseIds,
+        uiState.mobilityTotalCompletedStepKeys,
+        currentExercise?.id,
+    ) {
+        currentExercise?.let { viewModel.firstIncompleteStepForExercise(it) }
+    }
+
+    val isMobilityOverlayActive = remember(
+        firstIncompleteStep,
+        uiState.activeStepKey,
+        currentExercise?.id,
+        currentExercise?.mobilitySeries,
+        uiState.mobilityCompletedExerciseIds,
+        uiState.isRestTimerRunning,
+        isShowingFeedback,
+    ) {
+        if (uiState.isRestTimerRunning || isShowingFeedback || currentExercise == null) return@remember false
+        if (currentExercise.mobilitySeries.isEmpty()) return@remember false
+
+        val activeStepIsMobility = uiState.activeStepKey != null && currentExercise.mobilitySeries.any { mob ->
+            (0 until mob.sets.coerceAtLeast(1)).any { idx ->
+                uiState.activeStepKey == WorkoutStepRules.mobilityStepKey(currentExercise.id, mob.id, idx)
+            }
+        }
+        val firstStepIsMobility = firstIncompleteStep?.type == WorkoutStepType.MOBILITY ||
+            firstIncompleteStep?.type == WorkoutStepType.MOBILITY_GROUP ||
+            firstIncompleteStep?.type == WorkoutStepType.MOBILITY_TOTAL
+
+        activeStepIsMobility || firstStepIsMobility
+    }
+
+    val warmupWorkingWeight: Double? = remember(
+        currentExercise?.id,
+        currentExercise?.reference1RM,
+        currentExercise?.goal1RM,
+        currentExercise?.calculated1RM,
+        uiState.exerciseTags[currentExercise?.id],
+        uiState.completedSets,
+    ) {
+        val ex = currentExercise ?: return@remember null
+        val auto = viewModel.getWeightSuggestionWithAutoRegulation(
+            ex,
+            0,
+            uiState.exerciseTags[ex.id],
+        )?.suggestedWeight?.takeIf { it > 0.0 }
+        val ghost = viewModel.getGhostForSet(
+            exerciseId = ex.id,
+            setIdx = 0,
+            exerciseDbId = ex.exerciseDbId ?: ex.exerciseId,
+            activeTag = uiState.exerciseTags[ex.id],
+        )?.weight?.takeIf { it > 0.0 }
+        val consolidated = ex.consolidatedWeight?.weightKg
+        val firstSet = ex.sets.firstOrNull { it.weight != null && (it.weight ?: 0.0) > 0.0 }?.weight
+        auto ?: ghost ?: consolidated ?: firstSet
+    }
+
+    val warmupDisplaySets = remember(
+        currentExercise?.id,
+        currentExercise?.warmupSets,
+        warmupWorkingWeight,
+        uiState.exerciseTags[currentExercise?.id],
+    ) {
+        currentExercise?.warmupSets?.mapIndexed { warmupIndex, warmup ->
+            com.example.kpkn.screens.workout.components.WorkoutWarmupDisplaySet(
+                percentage = warmup.percentageOfWorkingWeight,
+                reps = warmup.targetReps,
+                targetWeight = viewModel.getWarmupSuggestedWeight(
+                    exercise = currentExercise,
+                    warmupIndex = warmupIndex,
+                    activeTag = uiState.exerciseTags[currentExercise.id],
+                    workingWeightAnchor = warmupWorkingWeight,
+                )?.takeIf { it > 0.0 },
+            )
+        }.orEmpty()
+    }
+
+    val isWarmupOverlayActive = remember(
+        firstIncompleteStep,
+        uiState.activeStepKey,
+        currentExercise?.id,
+        currentExercise?.warmupSets,
+        uiState.warmupCompletedExerciseIds,
+        isMobilityOverlayActive,
+        uiState.isRestTimerRunning,
+        isShowingFeedback,
+    ) {
+        if (isMobilityOverlayActive || uiState.isRestTimerRunning || isShowingFeedback || currentExercise == null) return@remember false
+        if (currentExercise.warmupSets.isEmpty()) return@remember false
+
+        val activeStepIsWarmup = uiState.activeStepKey != null && currentExercise.warmupSets.any {
+            uiState.activeStepKey == WorkoutStepRules.warmupStepKey(currentExercise.id, it.id)
+        }
+        val firstStepIsWarmup = firstIncompleteStep?.type == WorkoutStepType.WARMUP
+
+        activeStepIsWarmup || firstStepIsWarmup
+    }
+
+    WorkoutMobilityOverlayHost(
+        viewModel = viewModel,
+        currentExercise = currentExercise,
+        completedExerciseIds = uiState.mobilityCompletedExerciseIds,
+        activeStepKey = uiState.activeStepKey,
+        mobilityTotalTimerState = uiState.mobilityTotalTimerState,
+        sessionAccentColor = sessionAccentColor,
+        hazeState = overlayHazeState,
+        catalog = catalogV2,
+        isVisible = isMobilityOverlayActive,
+    )
+
+    WorkoutWarmupOverlayHost(
+        viewModel = viewModel,
+        currentExercise = currentExercise,
+        warmupDisplaySets = warmupDisplaySets,
+        baseWorkingWeightKg = warmupWorkingWeight,
+        warmupCompletedExerciseIds = uiState.warmupCompletedExerciseIds,
+        completedSets = uiState.completedSets,
+        sessionAccentColor = sessionAccentColor,
+        hazeState = overlayHazeState,
+        isVisible = isWarmupOverlayActive,
+    )
+
     WorkoutSessionOverlaysHost(
         viewModel = viewModel,
         augeViewModel = augeViewModel,

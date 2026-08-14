@@ -11,8 +11,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.SelfImprovement
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -817,108 +822,112 @@ internal fun WorkoutV2Body(
                                 )
                             }
                             LivePageType.MOBILITY -> {
-                                val mobilityItems = remember(currentExercise.id, currentExercise.mobilitySeries) {
-                                    currentExercise.mobilitySeries.flatMap { mobility ->
-                                        (0 until mobility.sets.coerceAtLeast(1)).map { mobilitySetIndex ->
-                                            WorkoutMobilityChecklistItem(
-                                                exerciseId = currentExercise.id,
-                                                exerciseName = currentExercise.name,
-                                                mobility = mobility,
-                                                mobilitySetIndex = mobilitySetIndex,
-                                                stepKey = WorkoutStepRules.mobilityStepKey(
-                                                    currentExercise.id,
-                                                    mobility.id,
-                                                    mobilitySetIndex,
-                                                ),
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                                    shape = RoundedCornerShape(20.dp),
+                                    color = Color.White.copy(alpha = 0.04f),
+                                    border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.20f)),
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(16.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                                    ) {
+                                        Surface(
+                                            shape = CircleShape,
+                                            color = sessionAccentColor.copy(alpha = 0.15f),
+                                        ) {
+                                            Icon(
+                                                Icons.Default.SelfImprovement,
+                                                contentDescription = null,
+                                                tint = sessionAccentColor,
+                                                modifier = Modifier.padding(10.dp).size(26.dp),
                                             )
+                                        }
+                                        Text(
+                                            "Fase de Movilidad Articular",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                        )
+                                        Text(
+                                            "${currentExercise.mobilitySeries.size} ejercicios programados para la preparación articular previa.",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = Color.White.copy(alpha = 0.65f),
+                                            textAlign = TextAlign.Center,
+                                        )
+                                        Button(
+                                            onClick = {
+                                                val key = currentExercise.mobilitySeries.firstOrNull()?.let {
+                                                    WorkoutStepRules.mobilityStepKey(currentExercise.id, it.id)
+                                                }
+                                                if (key != null) viewModel.selectWorkoutStep(key)
+                                            },
+                                            shape = RoundedCornerShape(999.dp),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = sessionAccentColor,
+                                                contentColor = Color.Black,
+                                            ),
+                                            modifier = Modifier.fillMaxWidth().height(46.dp),
+                                        ) {
+                                            Text("Abrir Preparación de Movilidad", fontWeight = FontWeight.Black)
                                         }
                                     }
                                 }
-                                val globalTimerKey = WorkoutStepRules.mobilityGlobalTimerKey(currentExercise.id)
-                                val globalTimer = uiState.mobilityTotalTimerState
-                                    ?.takeIf { it.stepKey == globalTimerKey }
-                                WorkoutMobilitySeriesCard(
-                                    mobilityItems = mobilityItems,
-                                    completedExerciseIds = uiState.mobilityCompletedExerciseIds,
-                                    activeMobilityKey = viewModel.firstIncompleteStepForExercise(currentExercise)
-                                        ?.takeIf { it.type == WorkoutStepType.MOBILITY || it.type == WorkoutStepType.MOBILITY_GROUP }
-                                        ?.stepKey,
-                                    globalTimerMinutes = currentExercise.mobilityConfig?.totalMinutes ?: 0,
-                                    globalTimerRemainingSeconds = globalTimer?.remainingSeconds,
-                                    globalTimerRunning = globalTimer?.isRunning == true,
-                                    onStartGlobalTimer = {
-                                        viewModel.startMobilityGlobalTimer(
-                                            currentExercise.id,
-                                            currentExercise.mobilityConfig?.totalMinutes ?: 1,
-                                        )
-                                    },
-                                    onPauseGlobalTimer = viewModel::pauseMobilityGlobalTimer,
-                                    onToggleComplete = { item, completed ->
-                                        viewModel.markMobilityComplete(
-                                            exerciseId = item.exerciseId,
-                                            mobilityId = item.mobility.id,
-                                            mobilitySetIndex = item.mobilitySetIndex,
-                                            completed = completed,
-                                        )
-                                    },
-                                    onClose = { viewModel.skipRemainingPreparation(currentExercise.id) },
-                                )
                             }
                             LivePageType.WARMUP -> {
-                                val warmupWorkingWeight = remember(
-                                    currentExercise.id,
-                                    currentExercise.reference1RM,
-                                    currentExercise.goal1RM,
-                                    currentExercise.calculated1RM,
-                                    uiState.exerciseTags[currentExercise.id],
-                                    uiState.completedSets,
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                                    shape = RoundedCornerShape(20.dp),
+                                    color = Color.White.copy(alpha = 0.04f),
+                                    border = BorderStroke(1.dp, Color(0xFFFFB300).copy(alpha = 0.20f)),
                                 ) {
-                                    viewModel.getWeightSuggestionWithAutoRegulation(
-                                            currentExercise,
-                                            0,
-                                            uiState.exerciseTags[currentExercise.id],
-                                        )?.suggestedWeight?.takeIf { it > 0.0 }
-                                        ?: resolveReferenceCapacity(currentExercise)?.takeIf { it > 0.0 }
-                                        ?: viewModel.getGhostForSet(
-                                            exerciseId = currentExercise.id,
-                                            setIdx = 0,
-                                            exerciseDbId = currentExercise.exerciseDbId ?: currentExercise.exerciseId,
-                                            activeTag = uiState.exerciseTags[currentExercise.id],
-                                        )?.weight?.takeIf { it > 0 }
-                                        ?: currentExercise.consolidatedWeight?.weightKg
-                                        ?: currentExercise.sets.firstOrNull { it.weight != null && it.weight > 0 }?.weight
-                                }
-                                val warmupDisplaySets = remember(
-                                    currentExercise.id,
-                                    currentExercise.warmupSets,
-                                    warmupWorkingWeight,
-                                    uiState.exerciseTags[currentExercise.id],
-                                ) {
-                                    currentExercise.warmupSets.mapIndexed { warmupIndex, warmup ->
-                                        WorkoutWarmupDisplaySet(
-                                            percentage = warmup.percentageOfWorkingWeight,
-                                            reps = warmup.targetReps,
-                                            targetWeight = viewModel.getWarmupSuggestedWeight(
-                                                exercise = currentExercise,
-                                                warmupIndex = warmupIndex,
-                                                activeTag = uiState.exerciseTags[currentExercise.id],
-                                                workingWeightAnchor = warmupWorkingWeight,
-                                            )?.takeIf { it > 0.0 },
+                                    Column(
+                                        modifier = Modifier.padding(16.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                                    ) {
+                                        Surface(
+                                            shape = CircleShape,
+                                            color = Color(0xFFFFB300).copy(alpha = 0.15f),
+                                        ) {
+                                            Icon(
+                                                Icons.Default.LocalFireDepartment,
+                                                contentDescription = null,
+                                                tint = Color(0xFFFFB300),
+                                                modifier = Modifier.padding(10.dp).size(26.dp),
+                                            )
+                                        }
+                                        Text(
+                                            "Series de Aproximación",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
                                         )
+                                        Text(
+                                            "${currentExercise.warmupSets.size} series de aproximación progresiva hacia la carga efectiva.",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = Color.White.copy(alpha = 0.65f),
+                                            textAlign = TextAlign.Center,
+                                        )
+                                        Button(
+                                            onClick = {
+                                                val key = currentExercise.warmupSets.firstOrNull()?.let {
+                                                    WorkoutStepRules.warmupStepKey(currentExercise.id, it.id)
+                                                }
+                                                if (key != null) viewModel.selectWorkoutStep(key)
+                                            },
+                                            shape = RoundedCornerShape(999.dp),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = Color(0xFFFFB300),
+                                                contentColor = Color.Black,
+                                            ),
+                                            modifier = Modifier.fillMaxWidth().height(46.dp),
+                                        ) {
+                                            Text("Abrir Series de Aproximación", fontWeight = FontWeight.Black)
+                                        }
                                     }
                                 }
-                                WorkoutWarmupChecklistCard(
-                                    exercise = currentExercise,
-                                    warmupSets = warmupDisplaySets,
-                                    completedKeys = uiState.warmupCompletedExerciseIds,
-                                    activeWarmupSetId = viewModel.firstIncompleteStepForExercise(currentExercise)
-                                        ?.takeIf { it.type == WorkoutStepType.WARMUP }
-                                        ?.warmupSetId,
-                                    onToggleSet = { warmupSetId, completed ->
-                                        viewModel.markWarmupComplete(currentExercise.id, warmupSetId, completed)
-                                    },
-                                    onClose = { viewModel.skipRemainingPreparation(currentExercise.id) },
-                                )
                             }
                             LivePageType.NORMAL -> {
                                 val activeSetIndex = pageSpec.setIndex.coerceIn(0, (currentExercise.sets.size - 1).coerceAtLeast(0))

@@ -5,21 +5,28 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.MobilityTotalTimerState
 import com.example.kpkn.data.models.SetOutcomeV2
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.screens.workout.components.RestTimerOverlay
 import com.example.kpkn.screens.workout.components.RestTimerPill
+import com.example.kpkn.screens.workout.components.WorkoutMobilityChecklistItem
+import com.example.kpkn.screens.workout.components.WorkoutMobilityOverlay
+import com.example.kpkn.screens.workout.components.WorkoutWarmupDisplaySet
+import com.example.kpkn.screens.workout.components.WorkoutWarmupOverlay
 import dev.chrisbanes.haze.HazeState
 
 /**
  * Hosts rest overlay / minimized pill so [WorkoutScreen] stays thinner.
  * Finish sheet lives in [WorkoutFinishHost] / [FinishWorkoutSheet].
- * Readiness / drawers can migrate here in later F4 slices.
  */
 @Composable
 internal fun WorkoutRestOverlayHost(
@@ -98,4 +105,114 @@ internal fun WorkoutRestOverlayHost(
             }
         }
     }
+}
+
+/**
+ * Full-screen overlay host for exercise mobility preparation.
+ */
+@Composable
+internal fun WorkoutMobilityOverlayHost(
+    viewModel: WorkoutViewModel,
+    currentExercise: Exercise?,
+    completedExerciseIds: Set<String>,
+    activeStepKey: String?,
+    mobilityTotalTimerState: MobilityTotalTimerState?,
+    sessionAccentColor: Color,
+    hazeState: HazeState,
+    catalog: ExerciseCatalogV2?,
+    isVisible: Boolean,
+) {
+    if (!isVisible || currentExercise == null || currentExercise.mobilitySeries.isEmpty()) return
+
+    val mobilityItems = remember(currentExercise.id, currentExercise.mobilitySeries) {
+        currentExercise.mobilitySeries.flatMap { mobility ->
+            (0 until mobility.sets.coerceAtLeast(1)).map { setIndex ->
+                WorkoutMobilityChecklistItem(
+                    stepKey = WorkoutStepRules.mobilityStepKey(currentExercise.id, mobility.id, setIndex),
+                    exerciseId = currentExercise.id,
+                    exerciseName = currentExercise.name,
+                    mobility = mobility,
+                    mobilitySetIndex = setIndex,
+                )
+            }
+        }
+    }
+
+    val globalTimerKey = WorkoutStepRules.mobilityGlobalTimerKey(currentExercise.id)
+    val globalTimer = mobilityTotalTimerState?.takeIf { it.stepKey == globalTimerKey }
+
+    WorkoutMobilityOverlay(
+        exercise = currentExercise,
+        mobilityItems = mobilityItems,
+        completedExerciseIds = completedExerciseIds,
+        activeMobilityKey = activeStepKey,
+        globalTimerMinutes = currentExercise.mobilityConfig?.totalMinutes ?: 1,
+        globalTimerRemainingSeconds = globalTimer?.remainingSeconds,
+        globalTimerRunning = globalTimer?.isRunning == true,
+        onStartGlobalTimer = {
+            viewModel.startMobilityGlobalTimer(
+                currentExercise.id,
+                currentExercise.mobilityConfig?.totalMinutes ?: 1,
+            )
+        },
+        onPauseGlobalTimer = viewModel::pauseMobilityGlobalTimer,
+        onAddTimerSeconds = { seconds -> viewModel.addMobilityTimerSeconds(seconds) },
+        onResetGlobalTimer = { viewModel.resetMobilityGlobalTimer(currentExercise.id) },
+        onToggleComplete = { item, completed ->
+            viewModel.markMobilityComplete(
+                exerciseId = item.exerciseId,
+                mobilityId = item.mobility.id,
+                mobilitySetIndex = item.mobilitySetIndex,
+                completed = completed,
+            )
+        },
+        onAddOptionalMobility = { comp ->
+            viewModel.addMobilityToCurrentExercise(currentExercise.id, comp)
+        },
+        onClose = { viewModel.skipMobilityPreparation(currentExercise.id) },
+        hazeState = hazeState,
+        sessionAccentColor = sessionAccentColor,
+        catalog = catalog,
+    )
+}
+
+/**
+ * Full-screen overlay host for exercise approximation (warm-up) series.
+ */
+@Composable
+internal fun WorkoutWarmupOverlayHost(
+    viewModel: WorkoutViewModel,
+    currentExercise: Exercise?,
+    warmupDisplaySets: List<WorkoutWarmupDisplaySet>,
+    baseWorkingWeightKg: Double?,
+    warmupCompletedExerciseIds: Set<String>,
+    completedSets: Map<String, CompletedSet>,
+    sessionAccentColor: Color,
+    hazeState: HazeState,
+    isVisible: Boolean,
+) {
+    if (!isVisible || currentExercise == null || currentExercise.warmupSets.isEmpty()) return
+
+    WorkoutWarmupOverlay(
+        exercise = currentExercise,
+        warmupSets = warmupDisplaySets,
+        baseWorkingWeightKg = baseWorkingWeightKg,
+        completedKeys = warmupCompletedExerciseIds,
+        completedSets = completedSets,
+        onToggleSet = { warmupSetId, completed ->
+            viewModel.markWarmupComplete(currentExercise.id, warmupSetId, completed)
+        },
+        onRecordWarmupWeight = { warmupSetId, weightKg ->
+            viewModel.recordWarmupWeight(currentExercise.id, warmupSetId, weightKg)
+        },
+        onRecordWarmupHeaviness = { warmupSetId, effort ->
+            viewModel.recordWarmupEffort(currentExercise.id, warmupSetId, effort)
+        },
+        onStartRestTimer = { seconds ->
+            viewModel.startRestTimer(seconds)
+        },
+        onClose = { viewModel.skipWarmupPreparation(currentExercise.id) },
+        hazeState = hazeState,
+        sessionAccentColor = sessionAccentColor,
+    )
 }
