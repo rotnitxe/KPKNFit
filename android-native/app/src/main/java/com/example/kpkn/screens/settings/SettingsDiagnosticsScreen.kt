@@ -19,8 +19,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -61,6 +63,17 @@ fun SettingsDiagnosticsScreen(onBack: () -> Unit) {
     val summaries = remember(refreshToken, folderLabel) { KpknDiagnosticLogger.areaSummaries(context) }
     val reports = remember(refreshToken) { KpknReportManager.reportMarkdownFiles(context) }
     val keyConfigured = remember(refreshToken) { DeepSeekCredentialStore.hasKey(context) }
+    val allExportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip"),
+    ) { uri: Uri? ->
+        val exported = uri?.let { KpknDiagnosticLogger.exportAllTo(context, it) } == true
+        Toast.makeText(
+            context,
+            if (exported) "Todos los diagnósticos exportados (ZIP completo)" else "No había diagnósticos para exportar",
+            Toast.LENGTH_LONG,
+        ).show()
+        refreshToken += 1
+    }
     val voiceExportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/zip"),
     ) { uri: Uri? ->
@@ -138,7 +151,7 @@ fun SettingsDiagnosticsScreen(onBack: () -> Unit) {
             item {
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Espejo automático", fontWeight = FontWeight.Bold)
+                        Text("Espejo automático y Exportación", fontWeight = FontWeight.Bold)
                         Text(
                             folderLabel?.let { "Activo: $it" }
                                 ?: "Sin carpeta configurada. Los archivos siguen guardándose localmente.",
@@ -149,17 +162,35 @@ fun SettingsDiagnosticsScreen(onBack: () -> Unit) {
                                 Icon(Icons.Default.Folder, contentDescription = null)
                                 Text("Configurar carpeta")
                             }
+                            if (folderLabel != null) {
+                                TextButton(onClick = {
+                                    KpknDiagnosticStorage.mirrorRecoveryFiles(context)
+                                    Toast.makeText(context, "Sincronizando archivos al espejo...", Toast.LENGTH_SHORT).show()
+                                    refreshToken += 1
+                                }) {
+                                    Icon(Icons.Default.Sync, contentDescription = null)
+                                    Text("Sincronizar ahora")
+                                }
+                            }
                             TextButton(onClick = {
                                 KpknDiagnosticStorage.clear(context)
                                 folderLabel = null
                                 refreshToken += 1
                             }) { Text("Desvincular") }
                         }
-                        TextButton(onClick = {
-                            voiceExportLauncher.launch(WorkoutVoiceDiagnosticLogger.suggestedFileName() ?: "kpkn-voice-diagnostics.zip")
-                        }) {
-                            Icon(Icons.Default.UploadFile, contentDescription = null)
-                            Text("Exportar ZIP de voz")
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(onClick = {
+                                allExportLauncher.launch(KpknDiagnosticLogger.suggestedFileName())
+                            }) {
+                                Icon(Icons.Default.Download, contentDescription = null)
+                                Text("Exportar Todo (ZIP)")
+                            }
+                            TextButton(onClick = {
+                                voiceExportLauncher.launch(WorkoutVoiceDiagnosticLogger.suggestedFileName() ?: "kpkn-voice-diagnostics.zip")
+                            }) {
+                                Icon(Icons.Default.UploadFile, contentDescription = null)
+                                Text("Solo Voz (ZIP)")
+                            }
                         }
                     }
                 }

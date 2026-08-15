@@ -169,6 +169,7 @@ class WorkoutVoiceController(
     private var lastPostTtsWindowPartialAtMs: Long = 0L
     private var lastSuggestedSetKey: String? = null
     private var lastUnilateralAnnouncedKey: String? = null
+    private var duckReleaseJob: Job? = null
 
     private fun isAffirmativeReply(text: String): Boolean {
         val lower = text.trim().lowercase()
@@ -327,7 +328,7 @@ class WorkoutVoiceController(
             )
         } else {
             ttsManager.stop()
-            releaseDucking()
+            releaseDucking(immediate = true)
         }
         updateStage(VoicePipelineStage.DISABLED)
         resetState()
@@ -436,7 +437,7 @@ class WorkoutVoiceController(
 
     fun stopSpeaking() {
         ttsManager.stop()
-        releaseDucking()
+        releaseDucking(immediate = true)
         if (sessionWanted) {
             resumeListening()
         }
@@ -557,9 +558,16 @@ class WorkoutVoiceController(
             is VoiceSessionCommand.UseAdaptiveRest -> "Descanso adaptativo"
             is VoiceSessionCommand.UndoLastSet -> "Serie deshecha"
             is VoiceSessionCommand.Confirm -> "Confirmado"
-            is VoiceSessionCommand.Cancel -> "Cancelado"
-            is VoiceSessionCommand.SuggestWeight,
-            is VoiceSessionCommand.SuggestWeightReasoned -> "Consulta de carga"
+            is VoiceSessionCommand.StartMobilityTimer -> "Iniciar movilidad"
+            is VoiceSessionCommand.PauseMobilityTimer -> "Pausar movilidad"
+            is VoiceSessionCommand.AdjustMobilityTimer -> "Ajustar timer"
+            is VoiceSessionCommand.ResetMobilityTimer -> "Reiniciar timer"
+            is VoiceSessionCommand.CompleteMobilityItem -> "Movilidad completada"
+            is VoiceSessionCommand.RecordWarmupEffortAndLoad -> "Aproximación registrada"
+            is VoiceSessionCommand.QueryWarmupSuggestedWeight -> "Consulta de aproximación"
+            is VoiceSessionCommand.SetTargetWorkingWeightVoice -> "Carga objetivo definida"
+            is VoiceSessionCommand.AddWarmupSetVoice -> "Aproximación agregada"
+            is VoiceSessionCommand.AddComplementaryMobilityVoice -> "Movilidad agregada"
             is VoiceSessionCommand.FatigueAdvice -> "Consejo de fatiga"
             is VoiceSessionCommand.PaceStatus -> "Ritmo de sesión"
             else -> ""
@@ -624,6 +632,47 @@ class WorkoutVoiceController(
         speakWhilePaused {
             ttsManager.speakError(message)
         }
+    }
+
+    fun speakMobilityPhaseEntered(exerciseName: String, totalMinutes: Int, exerciseCount: Int = 0) {
+        val minText = if (totalMinutes == 1) "un minuto" else "$totalMinutes minutos"
+        val countText = if (exerciseCount > 0) " Tienes $exerciseCount ${if (exerciseCount == 1) "ejercicio programado" else "ejercicios programados"}." else ""
+        speakFeedbackUpdated("Fase de movilidad para $exerciseName.$countText Tiempo de bloque: $minText. Di iniciar para comenzar el cronómetro, o saltar movilidad para ir a las aproximaciones.")
+    }
+
+    fun speakWarmupPhaseEntered(
+        exerciseName: String,
+        totalWarmups: Int,
+        firstSuggestedLoadKg: Double?,
+        targetReps: Int,
+    ) {
+        val countText = if (totalWarmups == 1) "1 serie de aproximación" else "$totalWarmups series de aproximación"
+        val loadText = firstSuggestedLoadKg?.let { " Primera aproximación sugerida con ${it.toTrimmedLoadVoice()} kilos para $targetReps repeticiones." }
+            ?: " Primera aproximación para $targetReps repeticiones."
+        speakFeedbackUpdated("Series de aproximación para $exerciseName. Tienes $countText.$loadText Di hecha al completarla, indícame tu carga y si se sintió liviano o pesado, o di saltar para ir a las series efectivas.")
+    }
+
+    fun speakWarmupAutoRegulation(feedback: String) {
+        speakFeedbackUpdated(feedback)
+    }
+
+    fun speakWarmupCompletedTransition(exerciseName: String, firstEffectiveKg: Double?, targetReps: Int) {
+        val loadText = firstEffectiveKg?.let { " con ${it.toTrimmedLoadVoice()} kilos" } ?: ""
+        speakFeedbackUpdated("¡Aproximaciones completadas! Pasamos a la primera serie efectiva de $exerciseName$loadText para $targetReps repeticiones. ¿Con cuánto peso vas a realizarla?")
+    }
+
+    fun speakWarmupSuggestedLoad(warmupIndex: Int, totalWarmups: Int = 0, suggestedKg: Double?, reps: Int) {
+        val countText = if (totalWarmups > 0) " de $totalWarmups" else ""
+        if (suggestedKg != null && suggestedKg > 0) {
+            speakFeedbackUpdated("Aproximación ${warmupIndex + 1}$countText: carga sugerida ${suggestedKg.toTrimmedLoadVoice()} kilos para $reps repeticiones. Di hecha, tu carga y sensación de esfuerzo, o agregar aproximación si necesitas otra.")
+        } else {
+            speakFeedbackUpdated("Aproximación ${warmupIndex + 1}$countText: $reps repeticiones. Di hecha con tu carga y sensación, o agregar aproximación.")
+        }
+    }
+
+    private fun Double.toTrimmedLoadVoice(): String {
+        val rounded = kotlin.math.round(this * 10.0) / 10.0
+        return if (rounded == rounded.toLong().toDouble()) rounded.toLong().toString() else rounded.toString()
     }
 
     /** Confirma un dato y deja abierta una ventana real para responder la siguiente pregunta. */
@@ -903,6 +952,7 @@ class WorkoutVoiceController(
             if (!acquired) return
             activeSpeechPriority = priority
         }
+        requestDucking()
         WorkoutVoiceDiagnosticLogger.event("voice_phase", mapOf("phase" to "TTS", "state" to "START"))
         updateStage(VoicePipelineStage.TTS_SPEAKING)
 
@@ -1822,8 +1872,6 @@ class WorkoutVoiceController(
                 }
             }
             is VoicePendingAction.ExerciseNavigation -> null
-            is VoicePendingAction.ExerciseReplacement -> null
-            is VoicePendingAction.ExerciseAddition -> null
             is VoicePendingAction.DiscomfortSelection -> WorkoutVoiceCommandParser
                 .resolveDiscomfortCandidateId(transcript, pendingClarification.candidates)
                 ?.let { VoiceSessionCommand.LogFeedback(null, it, null) }
@@ -3683,20 +3731,46 @@ class WorkoutVoiceController(
     }
 
     private fun requestDucking() {
+        duckReleaseJob?.cancel()
+        duckReleaseJob = null
         if (_state.value.isDucking) return
         val handle = audioHelper.requestTransientDuckForVoice(context)
         _state.update { it.copy(duckHandle = handle) }
     }
 
-    private fun releaseDucking() {
-        val handle = _state.value.duckHandle
-        if (handle != null) {
-            audioHelper.abandonTransientDuckFocus(handle as? SystemAudioHelper.TransientDuckHandle)
+    private fun releaseDucking(immediate: Boolean = false) {
+        duckReleaseJob?.cancel()
+        duckReleaseJob = null
+        if (immediate) {
+            val handle = _state.value.duckHandle
+            if (handle != null) {
+                audioHelper.abandonTransientDuckFocus(handle as? SystemAudioHelper.TransientDuckHandle)
+            }
+            _state.update { it.copy(duckHandle = null) }
+            return
         }
-        _state.update { it.copy(duckHandle = null) }
+        val currentScope = scope
+        if (currentScope == null) {
+            val handle = _state.value.duckHandle
+            if (handle != null) {
+                audioHelper.abandonTransientDuckFocus(handle as? SystemAudioHelper.TransientDuckHandle)
+            }
+            _state.update { it.copy(duckHandle = null) }
+            return
+        }
+        duckReleaseJob = currentScope.launch {
+            delay(450L) // Grace buffer for hardware DAC / Bluetooth playback tail
+            val handle = _state.value.duckHandle
+            if (handle != null) {
+                audioHelper.abandonTransientDuckFocus(handle as? SystemAudioHelper.TransientDuckHandle)
+            }
+            _state.update { it.copy(duckHandle = null) }
+        }
     }
 
     private fun cancelAllJobs() {
+        duckReleaseJob?.cancel()
+        duckReleaseJob = null
         engineCollectJob?.cancel()
         engineCollectJob = null
         idleMonitorJob?.cancel()

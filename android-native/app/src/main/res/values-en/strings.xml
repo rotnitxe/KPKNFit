@@ -55,7 +55,8 @@
     <string name="nav_home">Home</string>
     <string name="nav_training">Training</string>
     <string name="nav_nutrition">Nutrition</string>
-    <string name="nav_wikilab">Enciclopedia</string>
+    <string name="nav_body">Body</string>
+    <string name="nav_wikilab">Learn</string>
 
     <!-- ═══════════════════════════════════════════════════════════════
          SETTINGS — main screen

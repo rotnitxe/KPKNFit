@@ -119,7 +119,7 @@ fun BodyProgressScreen(
 
     var showAddMeasurement by remember { mutableStateOf(false) }
     var heroMetric by rememberSaveable { mutableStateOf(BodyHeroMetric.WEIGHT) }
-    val contextualBottomBarClearance = 220.dp
+    val contextualBottomBarClearance = 110.dp
 
     // Compute derived body metrics
     val latestMeasurement = bodyMeasurements.maxByOrNull { it.date }
@@ -164,7 +164,7 @@ fun BodyProgressScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .then(if (activePlan == null) Modifier.blur(10.dp) else Modifier),
-            contentPadding = PaddingValues(bottom = 260.dp),
+            contentPadding = PaddingValues(bottom = 140.dp),
         ) {
             item {
                 ProgressHero(

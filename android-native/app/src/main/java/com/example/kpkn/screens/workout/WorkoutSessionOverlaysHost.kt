@@ -402,7 +402,8 @@ internal fun WorkoutSessionOverlaysHost(
         !uiState.showPostExerciseSheet &&
         !uiState.showFinishSheet
 
-    if (showPersistentDiscomfortAlert && currentExerciseForAlert != null && persistentDiscomfortLabel != null) {
+    if (showPersistentDiscomfortAlert && currentExerciseForAlert != null) {
+        val discomfortLabel = persistentDiscomfortLabel ?: ""
         KpknGlassDialog(
             onDismissRequest = { dismissedPersistentDiscomfortExercise = currentExerciseForAlert.id },
             shape = RoundedCornerShape(KpknGlass.DialogCornerRadius),

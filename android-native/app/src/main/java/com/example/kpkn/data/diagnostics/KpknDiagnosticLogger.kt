@@ -4,6 +4,7 @@ import android.app.ActivityManager
 import android.app.Application
 import android.app.KeyguardManager
 import android.content.Context
+import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.os.SystemClock
@@ -108,6 +109,7 @@ object KpknDiagnosticLogger {
     private var screen: String = "unknown"
     private var currentSessionId: String? = null
     private var processStartedElapsedMs: Long = SystemClock.elapsedRealtime()
+    private var eventsSincePrune = 0
 
     fun initialize(context: Context) = synchronized(lock) {
         appContext = context.applicationContext
@@ -166,7 +168,10 @@ object KpknDiagnosticLogger {
             val subsystem = subsystemFor(safeNamespace)
             val day = DAY_FORMAT.format(Instant.now())
             val directory = File(context.filesDir, "$LOG_ROOT/$area/$day").apply { mkdirs() }
-            prune(directory)
+            if (++eventsSincePrune >= 64) {
+                eventsSincePrune = 0
+                prune(directory)
+            }
             val eventId = UUID.randomUUID().toString()
             val resolvedSessionId = sessionId ?: activeSessionId()
             val payload = linkedMapOf<String, Any?>(
@@ -278,6 +283,45 @@ object KpknDiagnosticLogger {
                 lastEventTimestamp = timestamp,
                 lastEventAgeMin = lastFile?.let { ((now - it.lastModified()).coerceAtLeast(0L) / 60_000L) },
             )
+        }
+    }
+
+    fun suggestedFileName(): String {
+        val timestamp = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").withZone(ZoneOffset.UTC).format(Instant.now())
+        return "kpkn-full-diagnostics-$timestamp.zip"
+    }
+
+    fun exportAllTo(context: Context, uri: Uri): Boolean = synchronized(lock) {
+        val root = File(context.filesDir, LOG_ROOT)
+        val filesToExport = buildList {
+            if (root.isDirectory) {
+                root.walkTopDown().filter { it.isFile && it.extension in setOf("jsonl", "md", "json", "trace") }.forEach(::add)
+            }
+            listOf("kpkn_diagnostics", "voice_diagnostics", "nutrition_telemetry").forEach { legacyName ->
+                val legacyDir = File(context.filesDir, legacyName)
+                if (legacyDir.isDirectory) {
+                    legacyDir.walkTopDown().filter { it.isFile && it.extension in setOf("jsonl", "md", "json", "trace") }.forEach(::add)
+                }
+            }
+        }.distinctBy(File::getAbsolutePath)
+
+        if (filesToExport.isEmpty()) return false
+
+        return runCatching {
+            context.contentResolver.openOutputStream(uri)?.use { rawOutput ->
+                java.util.zip.ZipOutputStream(rawOutput).use { zip ->
+                    filesToExport.forEach { file ->
+                        val relativePath = file.relativeTo(context.filesDir).path.replace('\\', '/')
+                        zip.putNextEntry(java.util.zip.ZipEntry(relativePath))
+                        file.inputStream().use { input -> input.copyTo(zip) }
+                        zip.closeEntry()
+                    }
+                }
+            }
+            true
+        }.getOrElse { error ->
+            Log.e(TAG, "Unable to export all diagnostics", error)
+            false
         }
     }
 

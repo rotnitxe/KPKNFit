@@ -118,6 +118,55 @@ object WarmupCalibrationEngine {
         else -> "Ajuste de aproximación: sin cambio"
     }
 
+    fun generateVoiceFeedback(
+        weightKg: Double?,
+        effort: WarmupEffort?,
+        result: WarmupCalibrationResult,
+        nextWarmupIndex: Int?,
+    ): String {
+        val effortLabel = when (effort) {
+            WarmupEffort.LIGHT -> "liviana"
+            WarmupEffort.NORMAL -> "a ritmo normal"
+            WarmupEffort.HEAVY -> "pesada"
+            null -> "completada"
+        }
+        val weightPart = weightKg?.let { " con ${it.toTrimmedLoad()} kilos" }.orEmpty()
+        val nextLoad = nextWarmupIndex?.let { result.remainingWarmupLoadsKg.getOrNull(it) }
+        val effectiveLoad = result.firstEffectiveLoadKg
+
+        return when (effort) {
+            WarmupEffort.HEAVY -> {
+                val nextPart = if (nextLoad != null && nextLoad > 0) {
+                    " Siguiente aproximación calibrada a ${nextLoad.toTrimmedLoad()} kilos."
+                } else if (effectiveLoad != null && effectiveLoad > 0) {
+                    " Primera serie efectiva ajustada a ${effectiveLoad.toTrimmedLoad()} kilos para cuidar tu fatiga."
+                } else ""
+                "Anotado$weightPart, $effortLabel.$nextPart"
+            }
+            WarmupEffort.LIGHT -> {
+                val nextPart = if (nextLoad != null && nextLoad > 0) {
+                    " Siguiente aproximación sugerida: ${nextLoad.toTrimmedLoad()} kilos."
+                } else if (effectiveLoad != null && effectiveLoad > 0) {
+                    " Buena velocidad neural. Serie efectiva proyectada en ${effectiveLoad.toTrimmedLoad()} kilos."
+                } else ""
+                "Anotado$weightPart, $effortLabel.$nextPart"
+            }
+            WarmupEffort.NORMAL, null -> {
+                val nextPart = if (nextLoad != null && nextLoad > 0) {
+                    " Siguiente aproximación: ${nextLoad.toTrimmedLoad()} kilos."
+                } else if (effectiveLoad != null && effectiveLoad > 0) {
+                    " Primera serie efectiva en ${effectiveLoad.toTrimmedLoad()} kilos."
+                } else ""
+                "Anotado$weightPart, $effortLabel.$nextPart"
+            }
+        }
+    }
+
+    private fun Double.toTrimmedLoad(): String {
+        val rounded = kotlin.math.round(this * 10.0) / 10.0
+        return if (rounded == rounded.toLong().toDouble()) rounded.toLong().toString() else rounded.toString()
+    }
+
     private fun List<Double>.averageOrNull(): Double? = takeIf { isNotEmpty() }?.average()
 
     private fun Double.toTrimmedPercent(): String {

@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.repository.ProgramRepository
@@ -106,6 +107,15 @@ class WorkoutRestTimerOrchestrator(
             )
         }
         ports.persistOngoingState()
+        KpknDiagnosticLogger.event(
+            namespace = "workout",
+            name = "rest_timer_started",
+            fields = mapOf(
+                "exerciseName" to exerciseName,
+                "seconds" to seconds,
+                "kind" to kind.name,
+            ),
+        )
         if (voiceController.isEnabled()) {
             val pendingFeedback = getState().voicePendingFeedbackExerciseIds
             if (pendingFeedback.isNotEmpty()) {

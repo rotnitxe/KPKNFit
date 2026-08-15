@@ -6,17 +6,16 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.expandVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
@@ -24,7 +23,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -32,6 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.kpkn.data.exercises.exerciseCatalogReady
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.MuscleRecoveryStatus
@@ -140,8 +139,9 @@ private fun SessionCard(
 ) {
     val isToday = item.isToday
     val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()
+    val isCatalogReady by exerciseCatalogReady.collectAsStateWithLifecycle()
 
-    val sessionMuscles = remember(item.session, customExercises) {
+    val sessionMuscles = remember(item.session, customExercises, isCatalogReady) {
         getSessionInvolvedMuscles(item.session)
     }
 
@@ -281,107 +281,105 @@ private fun SessionCard(
 
             var musclesExpanded by remember { mutableStateOf(false) }
 
-            run {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-                        .clickable { musclesExpanded = !musclesExpanded }
-                        .padding(horizontal = 12.dp, vertical = 10.dp)
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                    .clickable { musclesExpanded = !musclesExpanded }
+                    .padding(horizontal = 12.dp, vertical = 10.dp)
+            ) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    Text(
+                        "Músculos involucrados",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
                     Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
+                        val avgRecovery = sessionMuscles
+                            .map { lookupMuscleValue(perMuscle, it)?.recoveryScore ?: 100 }
+                            .average()
                         Text(
-                            "Músculos involucrados",
+                            if (avgRecovery.isNaN()) "--%" else "${avgRecovery.toInt()}%",
                             style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.Black,
+                            color = if (avgRecovery.isNaN()) {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                            } else {
+                                batteryColor(avgRecovery.toInt())
+                            },
                         )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            val avgRecovery = sessionMuscles
-                                .map { lookupMuscleValue(perMuscle, it)?.recoveryScore ?: 100 }
-                                .average()
-                            Text(
-                                if (avgRecovery.isNaN()) "--%" else "${avgRecovery.toInt()}%",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Black,
-                                color = if (avgRecovery.isNaN()) {
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                                } else {
-                                    batteryColor(avgRecovery.toInt())
-                                },
-                            )
-                            Icon(
-                                if (musclesExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                contentDescription = if (musclesExpanded) "Contraer" else "Expandir",
-                                modifier = Modifier.size(18.dp),
-                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                            )
-                        }
+                        Icon(
+                            if (musclesExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = if (musclesExpanded) "Contraer" else "Expandir",
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        )
                     }
                 }
+            }
 
-                AnimatedVisibility(visible = musclesExpanded) {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f))
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        if (sessionMuscles.isEmpty()) {
-                            Text(
-                                "Esta sesión no tiene grupos musculares detectados.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            )
-                        } else sessionMuscles.chunked(2).forEach { row ->
-                            Row(
-                                Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                row.forEach { muscle ->
-                                    val score = lookupMuscleValue(perMuscle, muscle)?.recoveryScore ?: 100
-                                    Surface(
-                                        modifier = Modifier.weight(1f),
-                                        shape = RoundedCornerShape(12.dp),
-                                        color = Color(0xFF1F1F1F),
-                                        border = androidx.compose.foundation.BorderStroke(
-                                            1.dp,
-                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
-                                        ),
+            AnimatedVisibility(visible = musclesExpanded) {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f))
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    if (sessionMuscles.isEmpty()) {
+                        Text(
+                            "Esta sesión no tiene grupos musculares detectados.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        )
+                    } else sessionMuscles.chunked(2).forEach { row ->
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            row.forEach { muscle ->
+                                val score = lookupMuscleValue(perMuscle, muscle)?.recoveryScore ?: 100
+                                Surface(
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = Color(0xFF1F1F1F),
+                                    border = androidx.compose.foundation.BorderStroke(
+                                        1.dp,
+                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
+                                    ),
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 9.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     ) {
-                                        Row(
-                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 9.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                        ) {
-                                            Text(
-                                                muscle,
-                                                modifier = Modifier.weight(1f),
-                                                style = MaterialTheme.typography.labelMedium,
-                                                color = MaterialTheme.colorScheme.onSurface,
-                                                fontWeight = FontWeight.Bold,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                            )
-                                            Text(
-                                                "$score%",
-                                                style = MaterialTheme.typography.labelMedium,
-                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                                fontWeight = FontWeight.Bold,
-                                            )
-                                        }
+                                        Text(
+                                            muscle,
+                                            modifier = Modifier.weight(1f),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            fontWeight = FontWeight.Bold,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                        Text(
+                                            "$score%",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                            fontWeight = FontWeight.Bold,
+                                        )
                                     }
                                 }
-                                if (row.size == 1) Spacer(Modifier.weight(1f))
                             }
+                            if (row.size == 1) Spacer(Modifier.weight(1f))
                         }
                     }
                 }
@@ -399,13 +397,21 @@ private fun getSessionInvolvedMuscles(session: Session): List<String> {
             exerciseDbId = exercise.exerciseDbId,
             exerciseId = exercise.exerciseId,
             exerciseName = exercise.name,
-        ) ?: return
+        )
 
-        SessionMuscleFilter.relevantMusclesFor(info)
-            .asSequence()
-            .map { involvement -> getAugeMuscleDisplayId(involvement.muscle, involvement.emphasis) }
-            .filter { it.isNotBlank() }
-            .forEach(muscles::add)
+        if (info != null) {
+            SessionMuscleFilter.relevantMusclesFor(info)
+                .asSequence()
+                .map { involvement -> getAugeMuscleDisplayId(involvement.muscle, involvement.emphasis) }
+                .filter { it.isNotBlank() }
+                .forEach(muscles::add)
+        } else if (!exercise.effectiveMuscles.isNullOrEmpty()) {
+            exercise.effectiveMuscles
+                .asSequence()
+                .map { involvement -> getAugeMuscleDisplayId(involvement.muscle, involvement.emphasis) }
+                .filter { it.isNotBlank() }
+                .forEach(muscles::add)
+        }
     }
 
     session.exercises.forEach(::collectMuscles)
@@ -502,4 +508,3 @@ private fun RestDayCard(
         }
     }
 }
-

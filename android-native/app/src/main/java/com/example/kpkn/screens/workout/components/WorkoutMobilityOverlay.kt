@@ -60,17 +60,15 @@ fun WorkoutMobilityOverlay(
     val scrollState = rememberScrollState()
     val configuredSeconds = globalTimerMinutes.coerceAtLeast(1) * 60
     val remainingSeconds = globalTimerRemainingSeconds ?: configuredSeconds
-    val allDone = mobilityItems.isNotEmpty() && mobilityItems.all { it.stepKey in completedExerciseIds }
+    val allDone = mobilityItems.isNotEmpty() && mobilityItems.all { item ->
+        item.stepKey in completedExerciseIds || completedExerciseIds.any { it.startsWith("${item.exerciseId}_${item.mobility.id}") }
+    }
 
     // Resolve joint involvement from catalog v2 definition/configuration if available
     val resolvedJoints = remember(exercise.id, exercise.catalogConfigurationId, catalog) {
         resolveJointInvolvementForExercise(exercise, catalog)
     }
 
-    // Resolve critical mobility/biomechanical focus
-    val criticalMobilityAspect = remember(exercise.id, exercise.catalogDefinitionId, catalog, resolvedJoints) {
-        resolveCriticalMobilityAspect(exercise, catalog, resolvedJoints)
-    }
 
     // Filter recommended complementary mobility exercises for relevant body regions
     val complementaryMobility = remember(resolvedJoints, mobilityItems) {
@@ -128,8 +126,9 @@ fun WorkoutMobilityOverlay(
                     shape = RoundedCornerShape(999.dp),
                     color = if (allDone) Color(0xFF66BB6A).copy(alpha = 0.18f) else Color.White.copy(alpha = 0.08f),
                 ) {
+                    val completedCount = mobilityItems.count { it.stepKey in completedExerciseIds || completedExerciseIds.any { k -> k.startsWith("${it.exerciseId}_${it.mobility.id}") } }
                     Text(
-                        text = "${mobilityItems.count { it.stepKey in completedExerciseIds }}/${mobilityItems.size}",
+                        text = "$completedCount/${mobilityItems.size}",
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Black,
@@ -261,102 +260,7 @@ fun WorkoutMobilityOverlay(
                 }
             }
 
-            // ─── 3. Involucramiento Articular & Aspectos Críticos ───
-            if (resolvedJoints.isNotEmpty() || criticalMobilityAspect.isNotBlank()) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
-                    color = Color.White.copy(alpha = 0.035f),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.07f)),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        // Articulaciones Clave
-                        if (resolvedJoints.isNotEmpty()) {
-                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text(
-                                    "Involucramiento Articular del Ejercicio",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White.copy(alpha = 0.85f),
-                                )
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .horizontalScroll(rememberScrollState()),
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    resolvedJoints.forEach { joint ->
-                                        val isPrimary = joint.role == JointRoleV2.PRIMARY
-                                        val roleAccent = when (joint.role) {
-                                            JointRoleV2.PRIMARY -> Color(0xFFF59E0B)
-                                            JointRoleV2.SECONDARY -> Color(0xFF38BDF8)
-                                            JointRoleV2.STABILIZER -> Color(0xFFA78BFA)
-                                        }
-                                        Surface(
-                                            shape = RoundedCornerShape(8.dp),
-                                            color = roleAccent.copy(alpha = if (isPrimary) 0.14f else 0.08f),
-                                            border = BorderStroke(1.dp, roleAccent.copy(alpha = if (isPrimary) 0.35f else 0.15f)),
-                                        ) {
-                                            Row(
-                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                                            ) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .size(6.dp)
-                                                        .clip(CircleShape)
-                                                        .background(roleAccent),
-                                                )
-                                                Text(
-                                                    formatJointName(joint.jointId),
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    fontWeight = if (isPrimary) FontWeight.Bold else FontWeight.Medium,
-                                                    color = Color.White.copy(alpha = 0.90f),
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // Aspectos Críticos de Movilidad
-                        if (criticalMobilityAspect.isNotBlank()) {
-                            Surface(
-                                shape = RoundedCornerShape(10.dp),
-                                color = sessionAccentColor.copy(alpha = 0.06f),
-                                border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.14f)),
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-                                    verticalAlignment = Alignment.Top,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-                                    Icon(
-                                        Icons.Default.Info,
-                                        contentDescription = null,
-                                        tint = sessionAccentColor,
-                                        modifier = Modifier.size(15.dp).padding(top = 2.dp),
-                                    )
-                                    Text(
-                                        text = criticalMobilityAspect,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        lineHeight = 17.sp,
-                                        color = Color.White.copy(alpha = 0.85f),
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // ─── 4. Tarjetas de Movilidad Programadas ───
+            // ─── 3. Ejercicios Programados de Movilidad (checklist puro) ───
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
                     "Ejercicios Programados",
@@ -365,9 +269,11 @@ fun WorkoutMobilityOverlay(
                     color = Color.White,
                 )
 
-                mobilityItems.forEachIndexed { index, item ->
-                    val isCompleted = item.stepKey in completedExerciseIds
-                    val isActive = activeMobilityKey == item.stepKey
+                mobilityItems.forEach { item ->
+                    val isCompleted = item.stepKey in completedExerciseIds ||
+                        completedExerciseIds.any { it.startsWith("${item.exerciseId}_${item.mobility.id}") }
+                    val isActive = activeMobilityKey == item.stepKey ||
+                        (activeMobilityKey?.contains(item.mobility.id) == true)
                     val mob = item.mobility
 
                     Surface(
@@ -409,30 +315,12 @@ fun WorkoutMobilityOverlay(
                                 modifier = Modifier.weight(1f),
                                 verticalArrangement = Arrangement.spacedBy(3.dp),
                             ) {
-                                // Nombre completo sin prefijos ambiguos
                                 Text(
                                     text = mob.name,
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = if (isCompleted) Color.White.copy(alpha = 0.65f) else Color.White,
                                 )
-
-                                val metricLabel = buildString {
-                                    append("Serie ${item.mobilitySetIndex + 1} de ${mob.sets.coerceAtLeast(1)}")
-                                    if (mob.unit == MobilityUnit.SECONDS && (mob.durationSeconds ?: 0) > 0) {
-                                        append(" · ${mob.durationSeconds}s")
-                                    } else if (!mob.reps.isNullOrBlank()) {
-                                        append(" · ${mob.reps} reps")
-                                    }
-                                }
-
-                                Text(
-                                    text = metricLabel,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Medium,
-                                    color = sessionAccentColor.copy(alpha = 0.90f),
-                                )
-
                                 if (!mob.notes.isNullOrBlank()) {
                                     Text(
                                         text = mob.notes,
@@ -440,6 +328,157 @@ fun WorkoutMobilityOverlay(
                                         color = Color.White.copy(alpha = 0.55f),
                                         lineHeight = 15.sp,
                                     )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ─── 4. Involucramiento Articular del Ejercicio (chips grandes, neutros, con tooltip) ───
+            if (resolvedJoints.isNotEmpty()) {
+                var selectedJoint by remember { mutableStateOf<JointInvolvementV2?>(null) }
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    color = Color.White.copy(alpha = 0.035f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.07f)),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Text(
+                            "Involucramiento Articular del Ejercicio",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.85f),
+                        )
+                        androidx.compose.foundation.layout.FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            resolvedJoints.forEach { joint ->
+                                val roleLabel = when (joint.role) {
+                                    JointRoleV2.PRIMARY -> "Principal"
+                                    JointRoleV2.SECONDARY -> "Secundario"
+                                    JointRoleV2.STABILIZER -> "Estabilizador"
+                                }
+                                Surface(
+                                    onClick = { selectedJoint = joint },
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = Color.White.copy(alpha = 0.06f),
+                                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(8.dp)
+                                                .clip(CircleShape)
+                                                .background(Color.White.copy(alpha = 0.55f)),
+                                        )
+                                        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                                            Text(
+                                                formatJointName(joint.jointId),
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.White.copy(alpha = 0.95f),
+                                            )
+                                            Text(
+                                                roleLabel,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = Color.White.copy(alpha = 0.55f),
+                                                letterSpacing = 0.3.sp,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Text(
+                            "Toca cada articulación para ver su función específica en este movimiento.",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.45f),
+                        )
+                    }
+                }
+                selectedJoint?.let { joint ->
+                    androidx.compose.ui.window.Dialog(onDismissRequest = { selectedJoint = null }) {
+                        Surface(
+                            shape = RoundedCornerShape(18.dp),
+                            color = Color(0xFF151B26),
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp),
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = sessionAccentColor.copy(alpha = 0.14f),
+                                    ) {
+                                        Text(
+                                            formatJointName(joint.jointId),
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Black,
+                                            color = sessionAccentColor,
+                                        )
+                                    }
+                                    Text(
+                                        when (joint.role) {
+                                            JointRoleV2.PRIMARY -> "Rol principal"
+                                            JointRoleV2.SECONDARY -> "Rol secundario"
+                                            JointRoleV2.STABILIZER -> "Rol estabilizador"
+                                        },
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White.copy(alpha = 0.60f),
+                                    )
+                                }
+                                Text(
+                                    text = buildJointKinesiologyDescription(joint, exercise),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    lineHeight = 18.sp,
+                                    color = Color.White.copy(alpha = 0.88f),
+                                )
+                                if (joint.actions.isNotEmpty()) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                        modifier = Modifier.fillMaxWidth(),
+                                    ) {
+                                        joint.actions.forEach { action ->
+                                            Surface(
+                                                shape = RoundedCornerShape(999.dp),
+                                                color = Color.White.copy(alpha = 0.06f),
+                                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+                                            ) {
+                                                Text(
+                                                    action,
+                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    fontWeight = FontWeight.Medium,
+                                                    color = Color.White.copy(alpha = 0.75f),
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                                TextButton(
+                                    onClick = { selectedJoint = null },
+                                    modifier = Modifier.align(Alignment.End),
+                                ) {
+                                    Text("Cerrar", fontWeight = FontWeight.Bold, color = sessionAccentColor)
                                 }
                             }
                         }
@@ -661,33 +700,37 @@ private fun resolveJointInvolvementForExercise(
     return config.profile.jointInvolvement
 }
 
-private fun resolveCriticalMobilityAspect(
-    exercise: Exercise,
-    catalog: ExerciseCatalogV2?,
-    joints: List<JointInvolvementV2>,
-): String {
-    val primaryJoint = joints.firstOrNull { it.role == JointRoleV2.PRIMARY } ?: joints.firstOrNull()
-    if (!primaryJoint?.note.isNullOrBlank()) {
-        return primaryJoint.note
+private fun buildJointKinesiologyDescription(joint: JointInvolvementV2, exercise: Exercise): String {
+    if (!joint.note.isNullOrBlank()) return joint.note.trim()
+    val actionText = joint.actions.joinToString(" + ").ifBlank { "movimiento controlado" }
+    val roleText = when (joint.role) {
+        JointRoleV2.PRIMARY -> "motor principal del gesto"
+        JointRoleV2.SECONDARY -> "articulación que asiste y reparte carga"
+        JointRoleV2.STABILIZER -> "articulación que estabiliza y sostiene la cadena"
     }
-    val configId = exercise.catalogConfigurationId
-    val configDesc = catalog?.families
-        ?.asSequence()
-        ?.flatMap { it.definitions.asSequence() }
-        ?.flatMap { it.configurations.asSequence() }
-        ?.firstOrNull { it.id == configId }
-        ?.profile
-        ?.description
-        ?.takeIf { it.isNotBlank() }
-    if (configDesc != null) return configDesc
-
-    return when {
-        joints.any { it.jointId.contains("hip", ignoreCase = true) } ->
-            "Foco de movilidad: apertura de cadera y dorsiflexión para asegurar profundidad sin compensación lumbar."
-        joints.any { it.jointId.contains("shoulder", ignoreCase = true) } ->
-            "Foco de movilidad: rotación externa y movilidad torácica para fijar el húmero sin pinzamiento subacromial."
-        joints.any { it.jointId.contains("spine", ignoreCase = true) } ->
-            "Foco de movilidad: disociación lumbopélvica y extensión torácica antes de recibir carga axial."
-        else -> "Foco de movilidad: activar rango articular y lubricación sinovial en las articulaciones objetivo."
+    return when (joint.jointId.trim().lowercase()) {
+        "shoulder", "glenohumeral" -> when (joint.role) {
+            JointRoleV2.PRIMARY -> "Glenohumeral como $roleText: dirige $actionText del húmero. En ${exercise.name} la cabeza humeral debe deslizar sin pinzamiento; la preparación busca rotación externa + elevación escapular para que el manguito rotador centre el húmero en la glena durante toda la fase excéntrica y concéntrica."
+            JointRoleV2.SECONDARY -> "Hombro como $roleText ($actionText): acompaña la trayectoria y evita que el trapecio superior robe el recorrido. La movilidad previa debe liberar cápsula posterior y pectoral menor para que el húmero no se anteriorice bajo carga."
+            else -> "Hombro estabilizador: fija la glenohumeral mientras el gesto produce $actionText. El objetivo es congruencia articular — coaptación del manguito y depresión humeral — para no trasladar cizalla a la articulación acromioclavicular."
+        }
+        "scapulothoracic", "scapula" -> "Escápula como $roleText ($actionText): el ritmo escapulohumeral sostiene la base del hombro. En ${exercise.name} la escápula debe rotar superiormente y bascular posterior sin alar; sin esa cinemática el húmero choca contra el acromion y el trapecio superior se fatiga."
+        "elbow" -> when (joint.role) {
+            JointRoleV2.PRIMARY -> "Codo como $roleText: la articulación húmero-cubital produce $actionText. La clave es mantener el eje troclear alineado — sin valgo/varismo — y preparar flexores/extensores del antebrazo para que el tendón no absorba la carga del bíceps/tríceps."
+            else -> "Codo como $roleText ($actionText): estabiliza el brazo de palanca. La preparación busca que el olécranon no choque precozmente en extensión y que la pronosupinación acompañe sin perder congruencia radio-cubital."
+        }
+        "wrist", "wrist_hand" -> "Muñeca como $roleText ($actionText): transmite fuerza sin colapsar. En ${exercise.name} la muñeca debe mantenerse neutra — ni flexión ni extensión excesiva — para que la carga viaje por el eje radio-carpiano y no por ligamentos; la movilidad aquí es rigidez activa, no laxitud."
+        "hip", "coxofemoral" -> when (joint.role) {
+            JointRoleV2.PRIMARY -> "Cadera como $roleText: genera $actionText. En ${exercise.name} la cabeza femoral debe centrarse en el acetábulo con anteversión pélvica controlada; la dorsiflexión y la rotación externa de cadera liberan profundidad sin que el raquis compense en flexión lumbar."
+            JointRoleV2.SECONDARY -> "Cadera como $roleText ($actionText): reparte la carga entre cadena anterior y posterior. La capsula anterior y aductores deben ceder para que la pelvis no bascule precozmente y el fémur no se anteriorice."
+            else -> "Cadera estabilizadora: sostiene $actionText sin colapso en valgo. Glúteo medio y rotadores externos fijan el fémur para que la rodilla trackee sobre el segundo dedo y el acetábulo no reciba cizalla."
+        }
+        "knee" -> when (joint.role) {
+            JointRoleV2.PRIMARY -> "Rodilla como $roleText: ejecuta $actionText con control del eje. En ${exercise.name} la rótula debe deslizar centrada en la tróclea femoral; la preparación apunta a que cuádriceps y cadena posterior compartan el momento sin que el ligamento cruzado anterior absorba la traslación tibial."
+            else -> "Rodilla como $roleText ($actionText): estabiliza la bisagra. El menisco y el LCA agradecen que la tibia no rote bajo carga; el trabajo de movilidad busca que la dorsiflexión del tobillo y la cadera eviten que la rodilla colapse en valgo."
+        }
+        "ankle" -> "Tobillo como $roleText ($actionText): la dorsiflexión disponible dicta la cinemática superior. En ${exercise.name} un tobillo rígido obliga a la rodilla a avanzar o al talón a levantarse; la preparación persigue que el astrágalo deslice posterior en la mortaja para ganar 8-12° sin pronación excesiva."
+        "spine", "lumbar", "thoracic", "cervical" -> "Columna como $roleText ($actionText): no es bisagra pasiva. En ${exercise.name} debe mantener lordosis neutra y disociar pelvis de tórax; la rigidez torácica o la hiperlordosis lumbar roban recorrido a cadera/hombro y trasladan compresión a discos. La movilidad aquí es control segmentario, no hipermovilidad."
+        else -> "${formatJointName(joint.jointId)} como $roleText: participa con $actionText en ${exercise.name}. Su preparación específica evita que la compensación viaje a la articulación vecina."
     }
 }

@@ -11,6 +11,10 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -52,7 +56,7 @@ fun NutritionIcon(tint: Color, size: Dp = 24.dp) {
             start = Offset(12.dp.toPx(), 7.5.dp.toPx()),
             end = Offset(13.3.dp.toPx(), 4.2.dp.toPx()),
             strokeWidth = 1.7.dp.toPx(),
-            cap = androidx.compose.ui.graphics.StrokeCap.Round,
+            cap = StrokeCap.Round,
         )
 
         val leaf = Path().apply {
@@ -62,6 +66,29 @@ fun NutritionIcon(tint: Color, size: Dp = 24.dp) {
             close()
         }
         drawPath(leaf, tint)
+    }
+}
+
+// ─── Bicep / Arm (Cuerpo tab) ───────────────────────────────────────────────
+@Composable
+fun BodyIcon(tint: Color, size: Dp = 24.dp) {
+    Canvas(Modifier.size(size)) {
+        val s = this.size.width / 24f
+        val strokeWidth = 1.6.dp.toPx()
+        
+        scale(scaleX = s, scaleY = s, pivot = Offset.Zero) {
+            val p1 = PathParser().parsePathString("M12.409 13.017A5 5 0 0 1 22 15c0 3.866-4 7-9 7-4.077 0-8.153-.82-10.371-2.462-.426-.316-.631-.832-.62-1.362C2.118 12.723 2.627 2 10 2a3 3 0 0 1 3 3 2 2 0 0 1-2 2c-1.105 0-1.64-.444-2-1 Z").toPath()
+            val p2 = PathParser().parsePathString("M15 14a5 5 0 0 0-7.584 2").toPath()
+            val p3 = PathParser().parsePathString("M9.964 6.825C8.019 7.977 9.5 13 8 15").toPath()
+            
+            // Solid filled arm body
+            drawPath(p1, color = tint)
+            drawPath(p1, color = tint, style = Stroke(width = 0.8.dp.toPx() / s, cap = StrokeCap.Round, join = StrokeJoin.Round))
+            
+            // Inner muscle definition lines
+            drawPath(p2, color = Color(0xFF141414), style = Stroke(width = strokeWidth / s, cap = StrokeCap.Round, join = StrokeJoin.Round))
+            drawPath(p3, color = Color(0xFF141414), style = Stroke(width = strokeWidth / s, cap = StrokeCap.Round, join = StrokeJoin.Round))
+        }
     }
 }
 

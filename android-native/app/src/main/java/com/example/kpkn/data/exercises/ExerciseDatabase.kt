@@ -10,11 +10,17 @@ import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader
 import com.example.kpkn.domain.exercises.VariantGroupIndex
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 
 private const val EXERCISE_DATABASE_V2_ASSET = "exercise_catalog_v2.json"
 
 private val exerciseCatalogLock = Any()
+
+private val _exerciseCatalogReady = MutableStateFlow(false)
+val exerciseCatalogReady: StateFlow<Boolean> = _exerciseCatalogReady.asStateFlow()
 
 @Volatile
 private var exerciseDatabaseCache: List<ExerciseMuscleInfo> = emptyList()
@@ -55,6 +61,7 @@ fun initializeExerciseDatabase(context: Context) {
         exerciseDatabaseByIdCache = (exercises.associateBy { it.id.lowercase() } + v2ConfigurationLookupCache)
         VariantGroupIndex.rebuild(exercises)
         exerciseCatalogInitialized = true
+        _exerciseCatalogReady.value = true
     }
 }
 
@@ -73,6 +80,7 @@ suspend fun loadCustomExercisesAsync(context: Context) {
         exerciseDatabaseCache = merged
         exerciseDatabaseByIdCache = merged.associateBy { it.id.lowercase() } + v2ConfigurationLookupCache
         VariantGroupIndex.rebuild(merged)
+        _exerciseCatalogReady.value = true
     }
 }
 

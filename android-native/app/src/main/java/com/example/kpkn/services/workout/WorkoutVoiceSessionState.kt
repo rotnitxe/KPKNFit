@@ -239,6 +239,21 @@ sealed class VoiceSessionCommand {
     data object StartTimedSet : VoiceSessionCommand()
     data object StopTimedSet : VoiceSessionCommand()
     data object CompletePreparationStep : VoiceSessionCommand()
+    data object StartMobilityTimer : VoiceSessionCommand()
+    data object PauseMobilityTimer : VoiceSessionCommand()
+    data class AdjustMobilityTimer(val deltaSeconds: Int) : VoiceSessionCommand()
+    data object ResetMobilityTimer : VoiceSessionCommand()
+    data class CompleteMobilityItem(val query: String? = null) : VoiceSessionCommand()
+    data class RecordWarmupEffortAndLoad(
+        val weightKg: Double?,
+        val reps: Int?,
+        val effort: com.example.kpkn.domain.workout.WarmupEffort?,
+        val isCompleted: Boolean = true,
+    ) : VoiceSessionCommand()
+    data object QueryWarmupSuggestedWeight : VoiceSessionCommand()
+    data class SetTargetWorkingWeightVoice(val weightKg: Double) : VoiceSessionCommand()
+    data object AddWarmupSetVoice : VoiceSessionCommand()
+    data object AddComplementaryMobilityVoice : VoiceSessionCommand()
     /** Stop current TTS utterance (barge-in). */
     data object StopSpeaking : VoiceSessionCommand()
     data class LogFeedback(

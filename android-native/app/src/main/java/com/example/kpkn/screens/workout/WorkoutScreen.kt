@@ -1029,7 +1029,10 @@ fun WorkoutScreen(
         readinessMuscularStart = readinessMuscularStart,
         readinessSpinalStart = readinessSpinalStart,
         todayWellbeing = todayWellbeing,
-        onReadinessDismissed = { readinessSheetDismissed = true },
+        onReadinessDismissed = {
+            readinessSheetDismissed = true
+            viewModel.announceCurrentStepOnReadinessDismissed()
+        },
         perMuscle = perMuscle,
         voiceSessionEnabled = uiState.voiceSessionEnabled,
         voiceCaptureMode = settings.voiceCaptureMode,

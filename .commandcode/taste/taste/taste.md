@@ -44,3 +44,7 @@
 - Prefers collapsible/accordion sections to start collapsed (folded) by default rather than expanded. Confidence: 0.5
 - Prefers uncommitted changes to be committed in an orderly, logical grouping by domain/feature (e.g., AUGE, voice, catalog, build/docs) rather than a single bulk commit. Confidence: 0.8
 - Prefers to validate the latest KPKN build on the Pixel emulator (Pixel_9_Pro_XL / emulator-5554) via assembleDebug + install + launch flow. Confidence: 0.7
+- Prefers mobility in live session as a simple checklist — one checkbox per mobility exercise with no series/time metadata (no "Serie X de Y", no seconds/reps) and toggling the checklist simply checks/unchecks without navigating to another series. Confidence: 0.9
+- Prefers live-session mobility overlay order with programmed mobility exercises (checklist) placed before the articular involvement section. Confidence: 0.85
+- Prefers articular involvement chips to be larger and more prominent but with a neutral, less colorful palette (white-translucent) instead of small highly colorful chips, each tappable to reveal detail. Confidence: 0.85
+- Expects articular involvement details per joint via an emergent tooltip/dialog describing that joint's specific kinesiological function in the movement, not a single generic primary-joint summary, and demands expert-level, meticulously written, non-vague descriptions. Confidence: 0.9

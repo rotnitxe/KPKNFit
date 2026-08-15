@@ -95,18 +95,7 @@ object SystemAudioHelper {
      */
     fun requestTransientDuckForVoice(context: Context): TransientDuckHandle? {
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return null
-        var handleRef: TransientDuckHandle? = null
-        val listener = AudioManager.OnAudioFocusChangeListener { focusChange ->
-            when (focusChange) {
-                AudioManager.AUDIOFOCUS_LOSS,
-                AudioManager.AUDIOFOCUS_LOSS_TRANSIENT,
-                AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK,
-                -> {
-                    abandonTransientDuckFocus(handleRef)
-                    handleRef = null
-                }
-            }
-        }
+        val listener = AudioManager.OnAudioFocusChangeListener { /* transient voice duck — focus lifetime managed by caller */ }
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
                 .setAudioAttributes(
@@ -124,7 +113,7 @@ object SystemAudioHelper {
                     audioManager = audioManager,
                     request = request,
                     focusChangeListener = listener,
-                ).also { handleRef = it }
+                )
             } else {
                 null
             }
@@ -139,7 +128,7 @@ object SystemAudioHelper {
                 TransientDuckHandle(
                     audioManager = audioManager,
                     focusChangeListener = listener,
-                ).also { handleRef = it }
+                )
             } else {
                 null
             }

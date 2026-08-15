@@ -132,6 +132,35 @@ object WorkoutVoiceCommandParser {
         "retrasar este ejercicio", "mueve abajo este ejercicio",
     )
 
+    private val START_MOBILITY_TIMER_KEYWORDS = setOf(
+        "iniciar movilidad", "inicia movilidad", "empezar movilidad", "empieza movilidad",
+        "iniciar timer", "inicia timer", "play movilidad", "arrancar movilidad", "comenzar movilidad",
+        "iniciar bloque de movilidad", "empezar tiempo", "iniciar tiempo",
+    )
+    private val PAUSE_MOBILITY_TIMER_KEYWORDS = setOf(
+        "pausar movilidad", "pausa movilidad", "detener movilidad", "pausar timer", "pausa timer",
+        "parar timer", "detener timer", "detener tiempo", "pausa tiempo",
+    )
+    private val RESET_MOBILITY_TIMER_KEYWORDS = setOf(
+        "reiniciar timer", "reiniciar movilidad", "reset timer", "resetear timer", "resetear movilidad",
+        "reset movilidad",
+    )
+    private val ADD_COMPLEMENTARY_MOBILITY_KEYWORDS = setOf(
+        "agregar movilidad complementaria", "agregar movilidad sugerida", "anadir movilidad complementaria",
+        "añadir movilidad complementaria", "mas movilidad", "más movilidad", "agregar ejercicio sugerido",
+    )
+    private val ADD_WARMUP_SET_KEYWORDS = setOf(
+        "agregar serie de aproximacion", "agregar serie de aproximación", "agregar aproximacion",
+        "agregar aproximación", "otra aproximacion", "otra aproximación", "anadir aproximacion",
+        "añadir aproximacion", "suma aproximacion", "sumar aproximacion", "mas aproximacion",
+    )
+    private val QUERY_WARMUP_SUGGESTION_KEYWORDS = setOf(
+        "cuanto peso aproximo", "cuánto peso aproximo", "que peso aproximo", "qué peso aproximo",
+        "carga de aproximacion", "carga de aproximación", "cuanto aproximar", "cuánto aproximar",
+        "peso de aproximacion", "peso de aproximación", "peso sugerido de aproximacion",
+        "que carga aproximo", "qué carga aproximo",
+    )
+
     private val CREATE_SUPERSET_KEYWORDS = setOf(
         "crea superserie", "crear superserie", "arma superserie",
         "armar superserie", "haz una superserie", "hacer una superserie",
@@ -401,6 +430,35 @@ object WorkoutVoiceCommandParser {
         if (lower in setOf("hecha", "hecho", "completada", "completado", "movilidad hecha", "aproximacion hecha")) {
             return VoiceSessionCommand.CompletePreparationStep
         }
+        if (SKIP_PREPARATION_KEYWORDS.any { lower.contains(it) }) {
+            return VoiceSessionCommand.SkipPreparation
+        }
+
+        // ─── Control de Temporizador de Movilidad por Voz ───
+        if (matchesAnyKeyword(lower, RESET_MOBILITY_TIMER_KEYWORDS)) {
+            return VoiceSessionCommand.ResetMobilityTimer
+        }
+        if (matchesAnyKeyword(lower, PAUSE_MOBILITY_TIMER_KEYWORDS)) {
+            return VoiceSessionCommand.PauseMobilityTimer
+        }
+        if (matchesAnyKeyword(lower, START_MOBILITY_TIMER_KEYWORDS)) {
+            return VoiceSessionCommand.StartMobilityTimer
+        }
+        parseAdjustMobilityTimer(lower)?.let { return it }
+
+        if (matchesAnyKeyword(lower, ADD_COMPLEMENTARY_MOBILITY_KEYWORDS)) {
+            return VoiceSessionCommand.AddComplementaryMobilityVoice
+        }
+
+        // ─── Control y Consultas de Series de Aproximación ───
+        if (matchesAnyKeyword(lower, ADD_WARMUP_SET_KEYWORDS)) {
+            return VoiceSessionCommand.AddWarmupSetVoice
+        }
+        if (matchesAnyKeyword(lower, QUERY_WARMUP_SUGGESTION_KEYWORDS)) {
+            return VoiceSessionCommand.QueryWarmupSuggestedWeight
+        }
+        parseTargetWorkingWeight(lower)?.let { return it }
+        parseWarmupReport(lower)?.let { return it }
 
         if (STOP_SPEAKING_KEYWORDS.any { matchesAnyKeyword(lower, setOf(normalizeText(it))) }) {
             return VoiceSessionCommand.StopSpeaking
@@ -932,13 +990,15 @@ object WorkoutVoiceCommandParser {
             .trim()
     }
 
-    /** Exact token match for single words; substring phrase match for multi-word keywords. */
+    /** Exact token match for single words; token sequence match for multi-word keywords. */
     private fun matchesAnyKeyword(normalized: String, keywords: Set<String>): Boolean {
         if (normalized.isBlank()) return false
         val tokens = normalized.split(' ').filter { it.isNotBlank() }
         return keywords.any { keyword ->
             if (keyword.contains(' ')) {
-                normalized.contains(keyword)
+                val kwTokens = keyword.split(' ').filter { it.isNotBlank() }
+                if (kwTokens.isEmpty()) false
+                else tokens.windowed(kwTokens.size).any { it == kwTokens }
             } else {
                 tokens.any { it == keyword }
             }
@@ -1270,6 +1330,107 @@ object WorkoutVoiceCommandParser {
         "upper_back" to setOf("alta", "arriba", "toracica"),
         "lumbar" to setOf("baja", "abajo"),
     )
+
+    fun parseAdjustMobilityTimer(normalized: String): VoiceSessionCommand.AdjustMobilityTimer? {
+        val lower = normalized
+        val isMobilityTimerContext = lower.contains("movilidad") || lower.contains("timer") || lower.contains("tiempo") || lower.contains("segundo")
+        if (!isMobilityTimerContext) return null
+
+        val addMatch = Regex(
+            """(?:anade|añade|suma|agrega|mas|más)\s+(\d+|""" +
+                VOICE_INTEGER_WORDS.keys.joinToString("|") +
+                """)\s*(?:segundos?|segs?)?""",
+        ).find(lower) ?: Regex(
+            """(\d+|""" +
+                VOICE_INTEGER_WORDS.keys.joinToString("|") +
+                """)\s*(?:segundos?|segs?)""",
+        ).find(lower)
+
+        if (addMatch != null) {
+            val raw = addMatch.groupValues[1]
+            val seconds = raw.toIntOrNull() ?: VOICE_INTEGER_WORDS[raw] ?: 30
+            if (seconds > 0) {
+                return VoiceSessionCommand.AdjustMobilityTimer(seconds)
+            }
+        }
+        return null
+    }
+
+    fun parseTargetWorkingWeight(normalized: String): VoiceSessionCommand.SetTargetWorkingWeightVoice? {
+        val lower = normalized
+        val isTargetIntent = lower.contains("primera serie") || lower.contains("serie efectiva") ||
+            lower.contains("carga objetivo") || lower.contains("peso objetivo") || lower.contains("primera con")
+        if (!isTargetIntent) return null
+        val weightMatch = Regex("""(?:con\s+)?(\d+(?:[.,]\d+)?)\s*(?:kilos?|kg)?""").find(lower)
+        val weight = weightMatch?.groupValues?.getOrNull(1)?.replace(',', '.')?.toDoubleOrNull()
+            ?: extractNumberFromText(lower)
+        return weight?.takeIf { it > 0 }?.let { VoiceSessionCommand.SetTargetWorkingWeightVoice(it) }
+    }
+
+    fun parseWarmupReport(normalized: String): VoiceSessionCommand.RecordWarmupEffortAndLoad? {
+        val lower = normalized
+
+        // 1. Never intercept structured working sets (RIR, RPE, tags, drops, failures)
+        if (lower.contains("rir") || lower.contains("rpe") || lower.contains("etiqueta") ||
+            lower.contains("tag") || lower.contains("fallo") || lower.contains("drop") ||
+            lower.contains("cluster")
+        ) {
+            return null
+        }
+
+        // 2. Never intercept pacing, skip or query phrases
+        if (lower.contains("ritmo") || lower.contains("alerta") || lower.contains("modo estricto") || lower.contains("modo suave") ||
+            lower.contains("saltar") || lower.contains("omitir") || lower.contains("pasar") ||
+            lower.contains("agregar") || lower.contains("otra") || lower.contains("cuanto") || lower.contains("cuánto")
+        ) {
+            return null
+        }
+
+        val hasExplicitWarmupToken = lower.contains("aproxima") || lower.contains("calentamiento") || lower.contains("aprox")
+
+        val effort = when {
+            setOf("pesado", "pesada", "duro", "dura", "costo", "costó", "muy pesado", "fuerte", "lento", "apenas salio").any { lower.contains(it) } ->
+                com.example.kpkn.domain.workout.WarmupEffort.HEAVY
+            setOf("liviano", "liviana", "ligero", "ligera", "facil", "fácil", "suave", "volo", "voló", "sin esfuerzo").any { lower.contains(it) } ->
+                com.example.kpkn.domain.workout.WarmupEffort.LIGHT
+            setOf("normal", "moderado", "moderada", "justo", "buen ritmo", "adecuado").any { lower.contains(it) } ->
+                com.example.kpkn.domain.workout.WarmupEffort.NORMAL
+            else -> null
+        }
+
+        val weightMatch = Regex("""(?:con\s+)?(\d+(?:[.,]\d+)?)\s*(?:kilos?|kg)""").find(lower)
+            ?: Regex("""\b(\d+(?:[.,]\d+)?)\s*(?:kilos?|kg)\b""").find(lower)
+        val weight = weightMatch?.groupValues?.getOrNull(1)?.replace(',', '.')?.toDoubleOrNull()
+            ?: if (hasExplicitWarmupToken && (lower.contains("kilo") || lower.contains("kg") || lower.contains("con "))) extractNumberFromText(lower) else null
+
+        val repsMatch = Regex("""(\d+)\s*(?:reps?|repeticiones)""").find(lower)
+        val reps = repsMatch?.groupValues?.getOrNull(1)?.toIntOrNull()
+
+        if (hasExplicitWarmupToken) {
+            return VoiceSessionCommand.RecordWarmupEffortAndLoad(
+                weightKg = weight,
+                reps = reps,
+                effort = effort,
+                isCompleted = true,
+            )
+        }
+
+        // If no explicit warmup token, must have effort combined with (weight or explicit sensation phrase)
+        val hasSensationPhrase = lower.contains("se sintio") || lower.contains("se sintió") ||
+            lower.contains("estuvo livian") || lower.contains("estuvo pesad") || lower.contains("estuvo duro") ||
+            lower.contains("muy livian") || lower.contains("muy pesad") || lower.contains("bastante duro")
+
+        if (effort != null && (weight != null || hasSensationPhrase)) {
+            return VoiceSessionCommand.RecordWarmupEffortAndLoad(
+                weightKg = weight,
+                reps = reps,
+                effort = effort,
+                isCompleted = true,
+            )
+        }
+
+        return null
+    }
 
     private fun extractNumberFromText(text: String): Double? {
         val match = Regex("\\d+(?:[.,]\\d+)?").find(text)

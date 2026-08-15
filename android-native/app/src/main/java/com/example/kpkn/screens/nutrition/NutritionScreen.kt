@@ -91,7 +91,7 @@ fun NutritionScreen(
     var selectedMealForLogger by remember { mutableStateOf(MealType.LUNCH) }
     var foodLoggerInitialDescription by remember { mutableStateOf<String?>(sharedDescription) }
     var foodLoggerInitialTab by remember { mutableIntStateOf(sharedTab.coerceIn(0, 1)) }
-    val contextualBottomBarClearance = 220.dp
+    val contextualBottomBarClearance = 110.dp
 
     LaunchedEffect(sharedDescription) {
         if (!sharedDescription.isNullOrBlank()) {
@@ -122,7 +122,7 @@ fun NutritionScreen(
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 260.dp),
+            contentPadding = PaddingValues(bottom = 140.dp),
         ) {
             item {
                 NutritionHeroHeader(

@@ -125,16 +125,14 @@ internal fun WorkoutMobilityOverlayHost(
     if (!isVisible || currentExercise == null || currentExercise.mobilitySeries.isEmpty()) return
 
     val mobilityItems = remember(currentExercise.id, currentExercise.mobilitySeries) {
-        currentExercise.mobilitySeries.flatMap { mobility ->
-            (0 until mobility.sets.coerceAtLeast(1)).map { setIndex ->
-                WorkoutMobilityChecklistItem(
-                    stepKey = WorkoutStepRules.mobilityStepKey(currentExercise.id, mobility.id, setIndex),
-                    exerciseId = currentExercise.id,
-                    exerciseName = currentExercise.name,
-                    mobility = mobility,
-                    mobilitySetIndex = setIndex,
-                )
-            }
+        currentExercise.mobilitySeries.map { mobility ->
+            WorkoutMobilityChecklistItem(
+                stepKey = WorkoutStepRules.mobilityStepKey(currentExercise.id, mobility.id, 0),
+                exerciseId = currentExercise.id,
+                exerciseName = currentExercise.name,
+                mobility = mobility,
+                mobilitySetIndex = 0,
+            )
         }
     }
 
@@ -159,10 +157,9 @@ internal fun WorkoutMobilityOverlayHost(
         onAddTimerSeconds = { seconds -> viewModel.addMobilityTimerSeconds(seconds) },
         onResetGlobalTimer = { viewModel.resetMobilityGlobalTimer(currentExercise.id) },
         onToggleComplete = { item, completed ->
-            viewModel.markMobilityComplete(
+            viewModel.setMobilityExerciseCompleted(
                 exerciseId = item.exerciseId,
                 mobilityId = item.mobility.id,
-                mobilitySetIndex = item.mobilitySetIndex,
                 completed = completed,
             )
         },

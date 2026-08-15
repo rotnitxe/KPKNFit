@@ -33,6 +33,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import com.example.kpkn.domain.workout.WarmupCalibrationEngine
+import com.example.kpkn.domain.workout.WarmupEffort
+import com.example.kpkn.domain.workout.WarmupEffortReport
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -130,6 +133,13 @@ class WorkoutVoiceCommandHandler(
             mobilitySetIndex: Int = 0,
         )
         fun skipRemainingPreparation(exerciseId: String)
+        fun startMobilityGlobalTimer(exerciseId: String, totalMinutes: Int)
+        fun pauseMobilityGlobalTimer()
+        fun addMobilityTimerSeconds(seconds: Int)
+        fun resetMobilityGlobalTimer(exerciseId: String)
+        fun addWarmupSetToExercise(exerciseId: String)
+        fun setInitialTargetWorkingWeight(exerciseId: String, weightKg: Double)
+        fun addComplementaryMobility(exerciseId: String)
         fun recordCardioSet(durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?): Boolean
         fun startCardio(): Boolean
         fun finishCardio(): Boolean
@@ -644,6 +654,79 @@ class WorkoutVoiceCommandHandler(
             is VoiceSessionCommand.StartTimedSet -> startTimedSet()
             is VoiceSessionCommand.StopTimedSet -> stopTimedSet()
             is VoiceSessionCommand.CompletePreparationStep -> completePreparationStep()
+            is VoiceSessionCommand.StartMobilityTimer -> {
+                val state = getState()
+                val currentExercise = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx)
+                if (currentExercise != null) {
+                    ports.startMobilityGlobalTimer(currentExercise.id, currentExercise.mobilityConfig?.totalMinutes ?: 1)
+                    voiceController.speakFeedbackUpdated("Tiempo de movilidad iniciado. Realiza tus ejercicios y di hecha al terminar, o más 30 segundos si necesitas tiempo extra.")
+                }
+            }
+            is VoiceSessionCommand.PauseMobilityTimer -> {
+                ports.pauseMobilityGlobalTimer()
+                voiceController.speakFeedbackUpdated("Temporizador de movilidad pausado. Di iniciar para reanudar o hecha para continuar.")
+            }
+            is VoiceSessionCommand.AdjustMobilityTimer -> {
+                ports.addMobilityTimerSeconds(command.deltaSeconds)
+                voiceController.speakFeedbackUpdated("${command.deltaSeconds} segundos añadidos al bloque de movilidad.")
+            }
+            is VoiceSessionCommand.ResetMobilityTimer -> {
+                val state = getState()
+                val currentExercise = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx)
+                if (currentExercise != null) {
+                    ports.resetMobilityGlobalTimer(currentExercise.id)
+                    voiceController.speakFeedbackUpdated("Temporizador de movilidad reiniciado. Di iniciar cuando estés listo.")
+                }
+            }
+            is VoiceSessionCommand.CompleteMobilityItem -> {
+                completePreparationStep()
+            }
+            is VoiceSessionCommand.AddComplementaryMobilityVoice -> {
+                val state = getState()
+                val currentExercise = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx)
+                if (currentExercise != null) {
+                    ports.addComplementaryMobility(currentExercise.id)
+                    voiceController.speakFeedbackUpdated("Movilidad complementaria agregada a la lista.")
+                }
+            }
+            is VoiceSessionCommand.AddWarmupSetVoice -> {
+                val state = getState()
+                val currentExercise = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx)
+                if (currentExercise != null) {
+                    ports.addWarmupSetToExercise(currentExercise.id)
+                    voiceController.speakFeedbackUpdated("Serie de aproximación agregada. Di cuánto peso aproximo para conocer la carga recomendada.")
+                }
+            }
+            is VoiceSessionCommand.SetTargetWorkingWeightVoice -> {
+                val state = getState()
+                val currentExercise = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx)
+                if (currentExercise != null) {
+                    ports.setInitialTargetWorkingWeight(currentExercise.id, command.weightKg)
+                    voiceController.speakFeedbackUpdated("Primera serie fijada en ${command.weightKg.toTrimmedNumberString()} kilos. Rampa de aproximaciones recalculada. Di cuánto peso aproximo para consultar tu serie actual.")
+                }
+            }
+            is VoiceSessionCommand.QueryWarmupSuggestedWeight -> {
+                val state = getState()
+                val currentExercise = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx)
+                if (currentExercise != null) {
+                    val step = state.activeStepKey?.let { key -> ports.workoutStepPositions(state).firstOrNull { it.stepKey == key } }
+                    val warmup = currentExercise.warmupSets.firstOrNull { it.id == step?.warmupSetId }
+                        ?: currentExercise.warmupSets.firstOrNull { "${currentExercise.id}_warmup_${it.id}" !in state.warmupCompletedExerciseIds }
+                        ?: currentExercise.warmupSets.firstOrNull()
+                    val index = warmup?.let { currentExercise.warmupSets.indexOf(it) } ?: 0
+                    val totalWarmups = currentExercise.warmupSets.size
+                    val suggested = ports.getWarmupSuggestedWeight(currentExercise, index, state.exerciseTags[currentExercise.id])
+                    voiceController.speakWarmupSuggestedLoad(
+                        warmupIndex = index,
+                        totalWarmups = totalWarmups,
+                        suggestedKg = suggested,
+                        reps = warmup?.targetReps ?: 6,
+                    )
+                }
+            }
+            is VoiceSessionCommand.RecordWarmupEffortAndLoad -> {
+                handleVoiceWarmupReportAndAutoRegulate(command)
+            }
             is VoiceSessionCommand.StopSpeaking -> voiceController.stopSpeaking()
             is VoiceSessionCommand.Unknown -> { /* no-op */ }
         }
@@ -863,8 +946,17 @@ class WorkoutVoiceCommandHandler(
             voiceController.speakFeedbackUpdated("No hay movilidad ni aproximaciones pendientes.")
             return
         }
-        ports.skipRemainingPreparation(exercise.id)
-        voiceController.speakFeedbackUpdated("Movilidad y aproximaciones pendientes omitidas. Las series efectivas quedan disponibles.")
+        val isMobilityPhase = step?.type == WorkoutStepType.MOBILITY ||
+            step?.type == WorkoutStepType.MOBILITY_GROUP ||
+            step?.type == WorkoutStepType.MOBILITY_TOTAL
+
+        if (isMobilityPhase && exercise.warmupSets.isNotEmpty()) {
+            ports.markMobilityTotalComplete(exercise.id)
+            voiceController.speakFeedbackUpdated("Movilidad omitida. Pasamos a las series de aproximación.")
+        } else {
+            ports.skipRemainingPreparation(exercise.id)
+            voiceController.speakFeedbackUpdated("Preparación omitida. Series efectivas disponibles.")
+        }
         speakCurrentStepAnnouncementIfEnabled()
     }
 
@@ -881,26 +973,36 @@ class WorkoutVoiceCommandHandler(
                 // Un pedido explícito (p. ej. omitir descanso) anuncia aunque sea el mismo paso.
                 if (prefix == null && stepKey != null && lastAnnouncedStepKey == stepKey) return
                 lastAnnouncedStepKey = stepKey
-                if (step?.type == WorkoutStepType.MOBILITY || step?.type == WorkoutStepType.MOBILITY_GROUP) {
-                    val mobility = nextEx.mobilitySeries.firstOrNull { it.id == step.mobilitySeriesId }
-                    val target = mobility?.durationSeconds?.let { "$it segundos" }
-                        ?: mobility?.reps?.let { "$it repeticiones" }
-                        ?: "según lo programado"
-                    voiceController.speakFeedbackUpdated("${prefix.orEmpty()}Movilidad: ${mobility?.name ?: spokenWorkoutExerciseName(nextEx)}, $target. Di iniciar si usa tiempo, o hecha al completarla.")
+                if (step?.type == WorkoutStepType.MOBILITY || step?.type == WorkoutStepType.MOBILITY_GROUP || step?.type == WorkoutStepType.MOBILITY_TOTAL) {
+                    val totalMinutes = nextEx.mobilityConfig?.totalMinutes ?: 1
+                    val exerciseCount = nextEx.mobilitySeries.size
+                    voiceController.speakMobilityPhaseEntered(spokenWorkoutExerciseName(nextEx), totalMinutes, exerciseCount)
                     return
                 }
                 if (step?.type == WorkoutStepType.WARMUP) {
                     val warmup = nextEx.warmupSets.firstOrNull { it.id == step.warmupSetId }
-                    val warmupIndex = warmup?.let { nextEx.warmupSets.indexOf(it) } ?: -1
-                    val suggested = warmupIndex.takeIf { it >= 0 }?.let { index ->
-                        ports.getWarmupSuggestedWeight(
-                            exercise = nextEx,
-                            warmupIndex = index,
-                            activeTag = updatedState.exerciseTags[nextEx.id],
+                    val warmupIndex = warmup?.let { nextEx.warmupSets.indexOf(it) } ?: 0
+                    val totalWarmups = nextEx.warmupSets.size
+                    val suggested = ports.getWarmupSuggestedWeight(
+                        exercise = nextEx,
+                        warmupIndex = warmupIndex,
+                        activeTag = updatedState.exerciseTags[nextEx.id],
+                    )
+                    if (warmupIndex == 0) {
+                        voiceController.speakWarmupPhaseEntered(
+                            exerciseName = spokenWorkoutExerciseName(nextEx),
+                            totalWarmups = totalWarmups,
+                            firstSuggestedLoadKg = suggested,
+                            targetReps = warmup?.targetReps ?: 6,
+                        )
+                    } else {
+                        voiceController.speakWarmupSuggestedLoad(
+                            warmupIndex = warmupIndex,
+                            totalWarmups = totalWarmups,
+                            suggestedKg = suggested,
+                            reps = warmup?.targetReps ?: 6,
                         )
                     }
-                    val weightText = suggested?.let { ", peso calculado ${it.toTrimmedNumberString()} kilos" }.orEmpty()
-                    voiceController.speakFeedbackUpdated("${prefix.orEmpty()}Aproximación de ${spokenWorkoutExerciseName(nextEx)}: ${warmup?.targetReps ?: 0} repeticiones$weightText. Di hecha al completarla.")
                     return
                 }
                 val round = step?.supersetRoundIndex?.let { it + 1 }
@@ -912,6 +1014,86 @@ class WorkoutVoiceCommandHandler(
                     prefix = prefix.orEmpty(),
                 )
             }
+        }
+    }
+
+    private fun handleVoiceWarmupReportAndAutoRegulate(command: VoiceSessionCommand.RecordWarmupEffortAndLoad) {
+        val state = getState()
+        val currentExercise = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx) ?: return
+        val step = state.activeStepKey?.let { key -> ports.workoutStepPositions(state).firstOrNull { it.stepKey == key } }
+        val targetWarmup = currentExercise.warmupSets.firstOrNull { it.id == step?.warmupSetId }
+            ?: currentExercise.warmupSets.firstOrNull { "${currentExercise.id}_warmup_${it.id}" !in state.warmupCompletedExerciseIds }
+            ?: currentExercise.warmupSets.lastOrNull()
+            ?: return
+
+        val warmupIndex = currentExercise.warmupSets.indexOf(targetWarmup).coerceAtLeast(0)
+        val suggested = ports.getWarmupSuggestedWeight(currentExercise, warmupIndex, state.exerciseTags[currentExercise.id])
+        val finalWeight = command.weightKg ?: suggested ?: 0.0
+        val finalReps = command.reps ?: targetWarmup.targetReps
+
+        // 1. Report weight & mark complete
+        ports.reportWarmupStep(
+            exerciseId = currentExercise.id,
+            warmupSetId = targetWarmup.id,
+            usedWeightKg = finalWeight,
+            reportedReps = finalReps,
+        )
+        if (command.isCompleted) {
+            ports.markWarmupComplete(currentExercise.id, targetWarmup.id)
+        }
+
+        // 2. Record effort RPE
+        val rpe = when (command.effort) {
+            WarmupEffort.LIGHT -> 5.0
+            WarmupEffort.HEAVY -> 9.0
+            WarmupEffort.NORMAL -> 7.5
+            null -> 7.5
+        }
+        ports.recordWarmupHeaviness(currentExercise.id, targetWarmup.id, rpe)
+
+        // 3. Auto-regulate using WarmupCalibrationEngine
+        val allReports = currentExercise.warmupSets.mapIndexedNotNull { idx, w ->
+            val key = "${currentExercise.id}_warmup_${w.id}"
+            val completed = state.completedSets[key]
+            val setRpe = if (w.id == targetWarmup.id) rpe else completed?.rpe
+            setRpe?.let { r ->
+                val eff = when {
+                    r <= 5.0 -> WarmupEffort.LIGHT
+                    r >= 8.5 -> WarmupEffort.HEAVY
+                    else -> WarmupEffort.NORMAL
+                }
+                WarmupEffortReport(idx, eff)
+            }
+        }
+
+        val baseWorkingLoad = currentExercise.sets.firstOrNull()?.weight
+            ?: (suggested?.let { if (targetWarmup.percentageOfWorkingWeight > 0) it / (targetWarmup.percentageOfWorkingWeight / 100.0) else null })
+
+        val calibration = WarmupCalibrationEngine.calibrateWorkingLoad(
+            programmedPercentages = currentExercise.warmupSets.map { it.percentageOfWorkingWeight },
+            workingLoadKg = baseWorkingLoad,
+            reports = allReports,
+        )
+
+        val nextWarmupIndex = (warmupIndex + 1).takeIf { it < currentExercise.warmupSets.size }
+        val isLastWarmup = nextWarmupIndex == null
+
+        if (isLastWarmup) {
+            val effectiveKg = calibration.firstEffectiveLoadKg ?: baseWorkingLoad
+            val plannedReps = currentExercise.sets.firstOrNull()?.targetReps ?: 8
+            voiceController.speakWarmupCompletedTransition(
+                exerciseName = spokenWorkoutExerciseName(currentExercise),
+                firstEffectiveKg = effectiveKg,
+                targetReps = plannedReps,
+            )
+        } else {
+            val feedback = WarmupCalibrationEngine.generateVoiceFeedback(
+                weightKg = finalWeight,
+                effort = command.effort,
+                result = calibration,
+                nextWarmupIndex = nextWarmupIndex,
+            )
+            voiceController.speakWarmupAutoRegulation(feedback)
         }
     }
 

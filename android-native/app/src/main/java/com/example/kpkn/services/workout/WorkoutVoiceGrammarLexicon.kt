@@ -34,6 +34,13 @@ internal object WorkoutVoiceGrammarLexicon {
         "abducción" to listOf("separar", "abrir"),
         "aduccion" to listOf("juntar", "cerrar"),
         "aducción" to listOf("juntar", "cerrar"),
+        "liviano" to listOf("ligero", "facil", "fácil", "suave"),
+        "ligero" to listOf("liviano", "facil", "fácil", "suave"),
+        "pesado" to listOf("duro", "costo", "costó", "fuerte"),
+        "duro" to listOf("pesado", "costo", "costó"),
+        "aproximacion" to listOf("calentamiento", "aproximar", "aproxima"),
+        "aproximación" to listOf("calentamiento", "aproximar", "aproxima"),
+        "movilidad" to listOf("movilidad articular", "flexibilidad"),
     )
 
     val restStatusAliases = setOf("temporizador")

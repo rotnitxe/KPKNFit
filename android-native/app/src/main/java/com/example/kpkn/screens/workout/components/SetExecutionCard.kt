@@ -2479,7 +2479,7 @@ internal fun SetInputCardV2(
                             !(dropSetEnabled && advanced.dropSets.isNotEmpty()) &&
                             !(restPauseEnabled && advanced.restPauses.isNotEmpty())
 
-                        if (shouldGuide && guide != null) {
+                        if (shouldGuide) {
                             val capture = GuidedMainCapture(
                                 loadMode = loadMode,
                                 unitMode = resolvedUnitMode,

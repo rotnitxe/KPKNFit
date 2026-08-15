@@ -404,26 +404,13 @@ internal fun WorkoutV2Body(
                         onUpsertTagSetup = { tagId, setup -> viewModel.upsertTagSetup(currentExercise.id, tagId, setup) },
                     )
 
-                    val setPagerPages = remember(currentExercise.id, currentExercise.mobilitySeries, currentExercise.mobilityConfig, currentExercise.warmupSets, currentExercise.sets, isUnilateral, currentExercise.unilateralSideOrder) {
+                    val setPagerPages = remember(currentExercise.id, currentExercise.sets, isUnilateral, currentExercise.unilateralSideOrder) {
                         val list = mutableListOf<WorkoutSetSwipePage>()
 
                         if (currentExercise.isCardio) {
                             list.add(WorkoutSetSwipePage(type = LivePageType.CARDIO, setIndex = 0))
                         } else {
-                            // Preparación: una sola página por tipo. Sus filas contienen
-                            // todas las ocurrencias programadas y conservan el orden canónico.
-                            if (currentExercise.mobilitySeries.isNotEmpty()) {
-                                list.add(WorkoutSetSwipePage(type = LivePageType.MOBILITY, setIndex = 0))
-                            }
-                            if (currentExercise.warmupSets.isNotEmpty()) {
-                                list.add(WorkoutSetSwipePage(type = LivePageType.WARMUP, setIndex = 0))
-                            }
-
-                            // Global mobility groups carry one empty placeholder set only so the
-                            // shared workout model can materialize them as an Exercise. That
-                            // placeholder must never become a strength card in the live pager.
-                            // 3. Normal sets
-                            currentExercise.sets.forEachIndexed { i, set ->
+                            currentExercise.sets.forEachIndexed { i, _ ->
                                 if (isUnilateral) {
                                     val expectedSides = currentExercise.expectedSidesForSet(i)
                                     expectedSides.forEach { side ->
@@ -431,8 +418,8 @@ internal fun WorkoutV2Body(
                                             WorkoutSetSwipePage(
                                                 type = LivePageType.NORMAL,
                                                 setIndex = i,
-                                                side = side
-                                            )
+                                                side = side,
+                                            ),
                                         )
                                     }
                                 } else {
@@ -440,8 +427,8 @@ internal fun WorkoutV2Body(
                                         WorkoutSetSwipePage(
                                             type = LivePageType.NORMAL,
                                             setIndex = i,
-                                            side = null
-                                        )
+                                            side = null,
+                                        ),
                                     )
                                 }
                             }
@@ -452,7 +439,6 @@ internal fun WorkoutV2Body(
                         }
                     }
                     val totalSetPages = setPagerPages.size.coerceAtLeast(1)
-                    // The preparation -> working transition can reuse the same composable slot.
                     // Key the whole pager subtree by the exercise and its page shape so a stale
                     // HorizontalPager state cannot render an empty page after navigation.
                     key(currentExercise.id, setPagerPages) {
@@ -468,18 +454,6 @@ internal fun WorkoutV2Body(
                         val index = setPagerPages.indexOfFirst { page ->
                             when (page.type) {
                                 LivePageType.CARDIO -> page.setIndex == uiState.currentSetIdx
-                                LivePageType.MOBILITY -> currentExercise.mobilitySeries.any { mobility ->
-                                    (0 until mobility.sets.coerceAtLeast(1)).any { mobilitySetIndex ->
-                                        uiState.activeStepKey == WorkoutStepRules.mobilityStepKey(
-                                            currentExercise.id,
-                                            mobility.id,
-                                            mobilitySetIndex,
-                                        )
-                                    }
-                                }
-                                LivePageType.WARMUP -> currentExercise.warmupSets.any {
-                                    uiState.activeStepKey == WorkoutStepRules.warmupStepKey(currentExercise.id, it.id)
-                                }
                                 LivePageType.NORMAL -> {
                                     val firstStepIsWorking = firstIncompleteForExercise?.type == WorkoutStepType.WORKING_SET
                                     (uiState.activeStepKey != null || firstStepIsWorking) &&
@@ -507,28 +481,6 @@ internal fun WorkoutV2Body(
                                 val key = WorkoutStepRules.cardioStepKey(currentExercise.id)
                                 if (uiState.activeStepKey != key) viewModel.selectWorkoutStep(key)
                             }
-                            LivePageType.MOBILITY -> {
-                                val key = viewModel.firstIncompleteStepForExercise(currentExercise)
-                                    ?.takeIf { it.type == WorkoutStepType.MOBILITY || it.type == WorkoutStepType.MOBILITY_GROUP }
-                                    ?.stepKey
-                                    ?: currentExercise.mobilitySeries.firstOrNull()?.let {
-                                        WorkoutStepRules.mobilityStepKey(currentExercise.id, it.id)
-                                    }
-                                if (!key.isNullOrBlank() && uiState.activeStepKey != key) {
-                                    viewModel.selectWorkoutStep(key)
-                                }
-                            }
-                            LivePageType.WARMUP -> {
-                                val key = viewModel.firstIncompleteStepForExercise(currentExercise)
-                                    ?.takeIf { it.type == WorkoutStepType.WARMUP }
-                                    ?.stepKey
-                                    ?: currentExercise.warmupSets.firstOrNull()?.let {
-                                        WorkoutStepRules.warmupStepKey(currentExercise.id, it.id)
-                                    }
-                                if (!key.isNullOrBlank() && uiState.activeStepKey != key) {
-                                    viewModel.selectWorkoutStep(key)
-                                }
-                            }
                             LivePageType.NORMAL -> {
                                 val workingSetKey = WorkoutStepRules.workingStepKey(currentExercise.id, pageSpec.setIndex, pageSpec.side)
                                 if (uiState.activeStepKey != workingSetKey) {
@@ -555,30 +507,15 @@ internal fun WorkoutV2Body(
                             }
                         }
                     }
-                    val pagerItems = remember(currentExercise.id, setPagerPages, uiState.completedSets, uiState.warmupCompletedExerciseIds, uiState.mobilityCompletedExerciseIds, uiState.activeStepKey, uiState.currentSetIdx, activeSide) {
+                    val pagerItems = remember(currentExercise.id, setPagerPages, uiState.completedSets, uiState.activeStepKey, uiState.currentSetIdx, activeSide) {
                         setPagerPages.mapIndexed { idx, page ->
                             val label = when (page.type) {
                                 LivePageType.CARDIO -> "C"
-                                LivePageType.MOBILITY -> "M"
-                                LivePageType.WARMUP -> "A"
                                 LivePageType.NORMAL -> "S${page.setIndex + 1}"
                             }
 
                             val isDone = when (page.type) {
                                 LivePageType.CARDIO -> uiState.completedSets.containsKey("${currentExercise.id}_0")
-                                LivePageType.MOBILITY -> currentExercise.mobilitySeries.all { mobility ->
-                                    (0 until mobility.sets.coerceAtLeast(1)).all { mobilitySetIndex ->
-                                        WorkoutStepRules.mobilityStepKey(
-                                            currentExercise.id,
-                                            mobility.id,
-                                            mobilitySetIndex,
-                                        ) in uiState.mobilityCompletedExerciseIds
-                                    }
-                                }
-                                LivePageType.WARMUP -> currentExercise.warmupSets.all { warmup ->
-                                    WorkoutStepRules.warmupStepKey(currentExercise.id, warmup.id) in uiState.warmupCompletedExerciseIds ||
-                                        currentExercise.id in uiState.warmupCompletedExerciseIds
-                                }
                                 LivePageType.NORMAL -> {
                                     val bilateralDone = uiState.completedSets.containsKey("${currentExercise.id}_${page.setIndex}")
                                     val expectedSides = currentExercise.expectedSidesForSet(page.setIndex)
@@ -590,20 +527,8 @@ internal fun WorkoutV2Body(
 
                             val isActive = when (page.type) {
                                 LivePageType.CARDIO -> uiState.activeStepKey == WorkoutStepRules.cardioStepKey(currentExercise.id)
-                                LivePageType.MOBILITY -> currentExercise.mobilitySeries.any { mobility ->
-                                    (0 until mobility.sets.coerceAtLeast(1)).any { mobilitySetIndex ->
-                                        uiState.activeStepKey == WorkoutStepRules.mobilityStepKey(
-                                            currentExercise.id,
-                                            mobility.id,
-                                            mobilitySetIndex,
-                                        )
-                                    }
-                                }
-                                LivePageType.WARMUP -> currentExercise.warmupSets.any { warmup ->
-                                    uiState.activeStepKey == WorkoutStepRules.warmupStepKey(currentExercise.id, warmup.id)
-                                }
                                 LivePageType.NORMAL -> {
-                                    uiState.activeStepKey == null && page.setIndex == uiState.currentSetIdx ||
+                                    (uiState.activeStepKey == null && page.setIndex == uiState.currentSetIdx) ||
                                             uiState.activeStepKey == WorkoutStepRules.workingStepKey(currentExercise.id, page.setIndex, page.side)
                                 }
                             }
@@ -619,10 +544,9 @@ internal fun WorkoutV2Body(
                                 isEditing = false,
                                 side = when (page.type) {
                                     LivePageType.NORMAL -> page.side
-                                    else -> null
+                                    LivePageType.CARDIO -> null
                                 },
-                                isWarmupOrFeedback = page.type == LivePageType.MOBILITY ||
-                                    page.type == LivePageType.WARMUP
+                                isWarmupOrFeedback = false,
                             )
                         }
                     }
@@ -742,22 +666,6 @@ internal fun WorkoutV2Body(
                                 if (targetPage != null) {
                                     val key = when (targetPage.type) {
                                         LivePageType.CARDIO -> WorkoutStepRules.cardioStepKey(currentExercise.id)
-                                        LivePageType.MOBILITY -> {
-                                            viewModel.firstIncompleteStepForExercise(currentExercise)
-                                                ?.takeIf { it.type == WorkoutStepType.MOBILITY || it.type == WorkoutStepType.MOBILITY_GROUP }
-                                                ?.stepKey
-                                                ?: currentExercise.mobilitySeries.firstOrNull()?.let {
-                                                    WorkoutStepRules.mobilityStepKey(currentExercise.id, it.id)
-                                                }.orEmpty()
-                                        }
-                                        LivePageType.WARMUP -> {
-                                            viewModel.firstIncompleteStepForExercise(currentExercise)
-                                                ?.takeIf { it.type == WorkoutStepType.WARMUP }
-                                                ?.stepKey
-                                                ?: currentExercise.warmupSets.firstOrNull()?.let {
-                                                    WorkoutStepRules.warmupStepKey(currentExercise.id, it.id)
-                                                }.orEmpty()
-                                        }
                                         LivePageType.NORMAL -> WorkoutStepRules.workingStepKey(currentExercise.id, targetPage.setIndex, targetPage.side)
                                     }
                                     if (key.isNotBlank()) {
@@ -776,7 +684,7 @@ internal fun WorkoutV2Body(
                         )
                     }
 
-                        HorizontalPager(
+                    HorizontalPager(
                         state = pagerState,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -785,13 +693,11 @@ internal fun WorkoutV2Body(
                             val page = setPagerPages.getOrNull(index)
                             when (page?.type) {
                                 LivePageType.CARDIO -> "${currentExercise.id}_cardio"
-                                LivePageType.MOBILITY -> "${currentExercise.id}_mobility"
-                                LivePageType.WARMUP -> "${currentExercise.id}_warmup"
                                 LivePageType.NORMAL -> "${currentExercise.id}_normal_${page.setIndex}_${page.side ?: "B"}"
                                 null -> "${currentExercise.id}_fallback_$index"
                             }
                         },
-                        ) { page ->
+                    ) { page ->
                         val pageSpec = setPagerPages.getOrNull(page) ?: WorkoutSetSwipePage(type = LivePageType.NORMAL, setIndex = uiState.currentSetIdx, side = activeSide)
                         when (pageSpec.type) {
                             LivePageType.CARDIO -> {
@@ -821,106 +727,6 @@ internal fun WorkoutV2Body(
                                         viewModel.recordCardioSetUsingGps(duration, distance, heartRate)
                                     },
                                 )
-                            }
-                            LivePageType.MOBILITY -> {
-                                Surface(
-                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
-                                    shape = RoundedCornerShape(20.dp),
-                                    color = Color.White.copy(alpha = 0.04f),
-                                    border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.20f)),
-                                ) {
-                                    Column(
-                                        modifier = Modifier.padding(16.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                                    ) {
-                                        Text(
-                                            "FASE DE MOVILIDAD ARTICULAR",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            color = sessionAccentColor,
-                                            letterSpacing = 1.2.sp,
-                                        )
-                                        Text(
-                                            currentExercise.name,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Black,
-                                            color = Color.White,
-                                        )
-                                        Text(
-                                            "${currentExercise.mobilitySeries.size} ejercicios programados para la preparación articular previa.",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = Color.White.copy(alpha = 0.65f),
-                                            textAlign = TextAlign.Center,
-                                        )
-                                        Button(
-                                            onClick = {
-                                                val key = currentExercise.mobilitySeries.firstOrNull()?.let {
-                                                    WorkoutStepRules.mobilityStepKey(currentExercise.id, it.id)
-                                                }
-                                                if (key != null) viewModel.selectWorkoutStep(key)
-                                            },
-                                            shape = RoundedCornerShape(999.dp),
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = sessionAccentColor,
-                                                contentColor = Color.Black,
-                                            ),
-                                            modifier = Modifier.fillMaxWidth().height(44.dp),
-                                        ) {
-                                            Text("Abrir Preparación de Movilidad", fontWeight = FontWeight.Black)
-                                        }
-                                    }
-                                }
-                            }
-                            LivePageType.WARMUP -> {
-                                Surface(
-                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
-                                    shape = RoundedCornerShape(20.dp),
-                                    color = Color.White.copy(alpha = 0.04f),
-                                    border = BorderStroke(1.dp, Color(0xFFFFB300).copy(alpha = 0.20f)),
-                                ) {
-                                    Column(
-                                        modifier = Modifier.padding(16.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                                    ) {
-                                        Text(
-                                            "SERIES DE APROXIMACIÓN",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color(0xFFFFB300),
-                                            letterSpacing = 1.2.sp,
-                                        )
-                                        Text(
-                                            currentExercise.name,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Black,
-                                            color = Color.White,
-                                        )
-                                        Text(
-                                            "${currentExercise.warmupSets.size} series de aproximación progresiva hacia la carga efectiva.",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = Color.White.copy(alpha = 0.65f),
-                                            textAlign = TextAlign.Center,
-                                        )
-                                        Button(
-                                            onClick = {
-                                                val key = currentExercise.warmupSets.firstOrNull()?.let {
-                                                    WorkoutStepRules.warmupStepKey(currentExercise.id, it.id)
-                                                }
-                                                if (key != null) viewModel.selectWorkoutStep(key)
-                                            },
-                                            shape = RoundedCornerShape(999.dp),
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = Color(0xFFFFB300),
-                                                contentColor = Color.Black,
-                                            ),
-                                            modifier = Modifier.fillMaxWidth().height(44.dp),
-                                        ) {
-                                            Text("Abrir Series de Aproximación", fontWeight = FontWeight.Black)
-                                        }
-                                    }
-                                }
                             }
                             LivePageType.NORMAL -> {
                                 val activeSetIndex = pageSpec.setIndex.coerceIn(0, (currentExercise.sets.size - 1).coerceAtLeast(0))
@@ -1165,22 +971,12 @@ internal fun WorkoutV2Body(
 }
 
 
-internal enum class LivePageType { CARDIO, MOBILITY, WARMUP, NORMAL }
+internal enum class LivePageType { CARDIO, NORMAL }
 
 internal data class WorkoutSetSwipePage(
     val type: LivePageType,
     val setIndex: Int,
-    val mobilitySetIndex: Int = 0,
     val side: String? = null,
-    val mobilityId: String? = null,
-    val mobilityName: String? = null,
-    val reps: String? = null,
-    val durationSeconds: Int? = null,
-    val notes: String? = null,
-    val warmupId: String? = null,
-    val percentage: Double? = null,
-    val targetReps: Int? = null,
-    val restBetween: Int? = null,
 )
 
 @Composable

@@ -3,6 +3,7 @@ package com.example.kpkn.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.ui.graphics.vector.ImageVector
 import android.net.Uri
@@ -15,6 +16,7 @@ sealed class KpknRoute(val route: String) {
     object Home : KpknRoute("home")
     object Training : KpknRoute("training")
     object Nutrition : KpknRoute("nutrition")
+    object BodyProgress : KpknRoute("nutrition/body-progress")
     object WikiLab : KpknRoute("wikilab")
 
     // ─── Detail screens ─────────────────────────────────────────────────
@@ -145,7 +147,6 @@ sealed class KpknRoute(val route: String) {
 
     // ─── Nutrition Sub-screens ────────────────────────────────────────
     object NutritionWizard : KpknRoute("nutrition/wizard")
-    object BodyProgress : KpknRoute("nutrition/body-progress")
     object MealHistory : KpknRoute("nutrition/meal-history")
     object NutritionAction : KpknRoute("nutrition/action/{action}") {
         fun create(action: String) = "nutrition/action/$action"
@@ -199,5 +200,6 @@ val bottomNavItems = listOf(
     BottomNavItem(KpknRoute.Home.route, "Inicio", Icons.Default.Home),
     BottomNavItem(KpknRoute.Training.route, "Entreno", Icons.Default.Home),
     BottomNavItem(KpknRoute.Nutrition.route, "Nutrición", Icons.Default.ShoppingCart),
-    BottomNavItem(KpknRoute.WikiLab.route, "Enciclopedia", Icons.Default.Info),
+    BottomNavItem(KpknRoute.BodyProgress.route, "Cuerpo", Icons.Default.Person),
+    BottomNavItem(KpknRoute.WikiLab.route, "Aprende", Icons.Default.Info),
 )

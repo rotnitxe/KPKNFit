@@ -545,6 +545,25 @@ class WorkoutViewModel(
                 ) = this@WorkoutViewModel.reportMobilityStep(exerciseId, mobilitySeriesId, value, unit, mobilitySetIndex)
                 override fun skipRemainingPreparation(exerciseId: String) =
                     this@WorkoutViewModel.skipRemainingPreparation(exerciseId)
+                override fun startMobilityGlobalTimer(exerciseId: String, totalMinutes: Int) =
+                    this@WorkoutViewModel.startMobilityGlobalTimer(exerciseId, totalMinutes)
+                override fun pauseMobilityGlobalTimer() =
+                    this@WorkoutViewModel.pauseMobilityGlobalTimer()
+                override fun addMobilityTimerSeconds(seconds: Int) =
+                    this@WorkoutViewModel.addMobilityTimerSeconds(seconds)
+                override fun resetMobilityGlobalTimer(exerciseId: String) =
+                    this@WorkoutViewModel.resetMobilityGlobalTimer(exerciseId)
+                override fun addWarmupSetToExercise(exerciseId: String) =
+                    this@WorkoutViewModel.addWarmupSetToExercise(exerciseId)
+                override fun setInitialTargetWorkingWeight(exerciseId: String, weightKg: Double) =
+                    this@WorkoutViewModel.setInitialTargetWorkingWeight(exerciseId, weightKg)
+                override fun addComplementaryMobility(exerciseId: String) {
+                    val ex = visibleExercises(_uiState.value).firstOrNull { it.id == exerciseId } ?: return
+                    val existingNames = ex.mobilitySeries.map { it.name.trim().lowercase() }.toSet()
+                    val comp = com.example.kpkn.data.models.MobilityExerciseCatalog.getAllMobilityExercises()
+                        .firstOrNull { it.name.trim().lowercase() !in existingNames } ?: return
+                    this@WorkoutViewModel.addMobilityToCurrentExercise(exerciseId, comp)
+                }
                 override fun recordCardioSet(durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?) =
                     this@WorkoutViewModel.recordCardioSet(durationSeconds, distanceKm, averageHeartRate)
                 override fun startCardio() = this@WorkoutViewModel.startCardioFromVoice()
@@ -2472,6 +2491,16 @@ class WorkoutViewModel(
             )
         }
         persistOngoingState()
+        KpknDiagnosticLogger.event(
+            namespace = "workout",
+            name = "warmup_completed",
+            fields = mapOf(
+                "exerciseId" to exerciseId,
+                "warmupSetId" to warmupSetId,
+                "usedWeightKg" to completed.weight,
+                "reportedReps" to completed.reps,
+            ),
+        )
         nextSet(stopRest = false)
         startPreparationRestIfNeeded(
             seconds = warmup.restBetween ?: 0,
@@ -2704,6 +2733,15 @@ class WorkoutViewModel(
             it.copy(mobilityCompletedExerciseIds = it.mobilityCompletedExerciseIds + key)
         }
         persistOngoingState()
+        KpknDiagnosticLogger.event(
+            namespace = "workout",
+            name = "mobility_completed",
+            fields = mapOf(
+                "exerciseId" to exerciseId,
+                "mobilityId" to mobilityId,
+                "setIndex" to mobilitySetIndex,
+            ),
+        )
         nextSet(stopRest = false)
     }
 
@@ -2722,6 +2760,10 @@ class WorkoutViewModel(
         completeMobilityStep(exerciseId, mobilityId, mobilitySetIndex)
     }
 
+    fun announceCurrentStepOnReadinessDismissed() {
+        voiceCommandHandler.speakCurrentStepAnnouncementIfEnabled()
+    }
+
     fun markMobilityTotalComplete(exerciseId: String) {
         val key = WorkoutStepRules.mobilityTotalStepKey(exerciseId)
         if (key in _uiState.value.mobilityTotalCompletedStepKeys) return
@@ -2734,6 +2776,13 @@ class WorkoutViewModel(
             )
         }
         persistOngoingState()
+        KpknDiagnosticLogger.event(
+            namespace = "workout",
+            name = "mobility_total_completed",
+            fields = mapOf(
+                "exerciseId" to exerciseId,
+            ),
+        )
         nextSet(stopRest = false)
     }
 
@@ -2886,6 +2935,41 @@ class WorkoutViewModel(
         }
         persistOngoingState()
         nextSet(stopRest = false)
+    }
+
+    fun setMobilityExerciseCompleted(
+        exerciseId: String,
+        mobilityId: String,
+        completed: Boolean,
+    ) {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
+        if (exercise.mobilitySeries.none { it.id == mobilityId }) return
+        val mobility = exercise.mobilitySeries.first { it.id == mobilityId }
+        val keys = (0 until mobility.sets.coerceAtLeast(1)).map { idx ->
+            mobilityCompletionKey(exerciseId, mobilityId, idx)
+        }
+        val alreadyDone = keys.all { it in state.mobilityCompletedExerciseIds }
+        if (completed == alreadyDone) return
+        if (completed) {
+            _uiState.update {
+                it.copy(mobilityCompletedExerciseIds = it.mobilityCompletedExerciseIds + keys)
+            }
+            persistOngoingState()
+            KpknDiagnosticLogger.event(
+                namespace = "workout",
+                name = "mobility_completed",
+                fields = mapOf("exerciseId" to exerciseId, "mobilityId" to mobilityId, "sets" to mobility.sets),
+            )
+            return
+        }
+        _uiState.update {
+            it.copy(
+                mobilityCompletedExerciseIds = it.mobilityCompletedExerciseIds - keys.toSet(),
+                preparationReports = it.preparationReports - keys.toSet(),
+            )
+        }
+        persistOngoingState()
     }
 
     fun markMobilityComplete(

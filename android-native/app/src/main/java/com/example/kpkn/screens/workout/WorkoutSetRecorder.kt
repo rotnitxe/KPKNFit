@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.AugeMetrics
 import com.example.kpkn.data.models.CompletedSet
@@ -422,6 +423,27 @@ class WorkoutSetRecorder(
             }
             ports.refreshLoadSuggestions(getState())
             ports.persistOngoingStateAndAwait()
+
+            KpknDiagnosticLogger.event(
+                namespace = "workout",
+                name = "set_recorded",
+                fields = mapOf(
+                    "exerciseId" to exercise.id,
+                    "exerciseName" to exercise.name,
+                    "setIndex" to targetSetIdx,
+                    "weight" to weight,
+                    "value" to value,
+                    "unitMode" to resolvedUnitMode.name,
+                    "loadMode" to resolvedLoadMode.name,
+                    "side" to resolvedSide,
+                    "rpe" to completedSet.rpe,
+                    "rir" to completedSet.rir,
+                    "isFailure" to (completedSet.isFailure || outcome.reachedFailure),
+                    "metricType" to outcome.metricType,
+                    "metricValue" to outcome.metricValue,
+                    "wasExistingSet" to wasExistingSet,
+                ),
+            )
 
             val wasLastSet = state.currentSetIdx == exercise.sets.size - 1
             val isExecutionError = advanced.isFailedSet || advanced.executionError
