@@ -248,10 +248,24 @@ class WorkoutSessionHydrator(
 
         val currentTimeMs = System.currentTimeMillis()
         val restoredRestState = resumedState?.restModalState?.takeIf { it.endsAtMs > currentTimeMs }
+        val restoredSuggestions = buildMap<String, WorkoutLoadSuggestionUi> {
+            val reasons = resumedState?.loadSuggestionReasons ?: emptyMap()
+            resumedState?.dynamicWeights?.forEach { (key, weight) ->
+                put(
+                    key,
+                    WorkoutLoadSuggestionUi(
+                        suggestedWeight = weight,
+                        originalWeight = weight,
+                        reason = reasons[key] ?: "Sugerencia restaurada",
+                    ),
+                )
+            }
+        }
 
         updateState {
             it.copy(
                 session = restoredSession.normalizedIdentityFields().let(ports::normalizeSupersetsForWorkout),
+                loadSuggestions = restoredSuggestions,
                 activeMode = restoredMode,
                 weekId = resolvedWeekId,
                 macroIndex = foundMacroIdx,

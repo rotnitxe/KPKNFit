@@ -29,11 +29,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
@@ -156,6 +161,7 @@ fun WorkoutReadinessSheet(
     KpknSheet(
         onDismissRequest = {},
         dismissible = false,
+        stableHeightFraction = 0.86f,
         hazeState = hazeState,
     ) {
         val preparedWord = when (gender) {
@@ -164,15 +170,34 @@ fun WorkoutReadinessSheet(
             else -> "preparado(a)"
         }
 
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .wrapContentHeight()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .fillMaxSize(),
         ) {
-            Text(
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                    .drawWithContent {
+                        drawContent()
+                        drawRect(
+                            brush = Brush.verticalGradient(
+                                colorStops = arrayOf(
+                                    0.0f to Color.Black,
+                                    0.82f to Color.Black,
+                                    1.0f to Color.Transparent,
+                                ),
+                            ),
+                            blendMode = BlendMode.DstIn,
+                        )
+                    }
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 20.dp)
+                    .padding(bottom = 80.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(
                     text = "Reporta tu estado antes de entrenar",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
@@ -229,47 +254,49 @@ fun WorkoutReadinessSheet(
                     onToggle = onVoiceToggle,
                     onCaptureModeChange = onVoiceCaptureModeChange,
                 )
+            }
 
-                Spacer(Modifier.height(4.dp))
-
-                // 3. BOTÓN PRINCIPAL — FAB circular amarillo
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    FloatingActionButton(
-                        onClick = {
-                            val editedMuscleMap = muscleAdjustments
-                                .filter { (id, _) -> userEditedMuscles[id] == true }
-                                .mapValues { (_, v) -> v.coerceIn(0, 100) }
-                            val manualMuscular = if (editedMuscleMap.isNotEmpty()) {
-                                editedMuscleMap.values.average().toInt().coerceIn(0, 100)
-                            } else null
-                            onSave(
-                                neural,
-                                derivedMuscular,
-                                spinal,
-                                muscleAdjustments.toMap(),
-                                selectedDiscomforts.toList(),
-                                if (userEditedNeural) neural.coerceIn(0, 100) else null,
-                                if (userEditedSpinal) spinal.coerceIn(0, 100) else null,
-                                manualMuscular,
-                                editedMuscleMap,
-                            )
-                        },
-                        modifier = Modifier.size(64.dp),
-                        shape = CircleShape,
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = "Confirmar y entrenar",
-                            modifier = Modifier.size(30.dp),
+            // 3. BOTÓN PRINCIPAL — FAB circular de 64 dp anclado abajo
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 16.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                FloatingActionButton(
+                    onClick = {
+                        val editedMuscleMap = muscleAdjustments
+                            .filter { (id, _) -> userEditedMuscles[id] == true }
+                            .mapValues { (_, v) -> v.coerceIn(0, 100) }
+                        val manualMuscular = if (editedMuscleMap.isNotEmpty()) {
+                            editedMuscleMap.values.average().toInt().coerceIn(0, 100)
+                        } else null
+                        onSave(
+                            neural,
+                            derivedMuscular,
+                            spinal,
+                            muscleAdjustments.toMap(),
+                            selectedDiscomforts.toList(),
+                            if (userEditedNeural) neural.coerceIn(0, 100) else null,
+                            if (userEditedSpinal) spinal.coerceIn(0, 100) else null,
+                            manualMuscular,
+                            editedMuscleMap,
                         )
-                    }
+                    },
+                    modifier = Modifier.size(64.dp),
+                    shape = CircleShape,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Confirmar y entrenar",
+                        modifier = Modifier.size(32.dp),
+                    )
                 }
             }
+        }
     }
 }
 

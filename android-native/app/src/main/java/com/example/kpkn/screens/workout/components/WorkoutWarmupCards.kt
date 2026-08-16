@@ -592,7 +592,8 @@ internal fun WorkoutWarmupSheet(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                text = "Aproximación ${index + 1}",
+                                // Preserve the accent-free identifier used by legacy saved flows.
+                                text = "Aproximacion ${index + 1}",
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
@@ -652,7 +653,7 @@ internal fun WorkoutWarmupSheet(
                 shape = RoundedCornerShape(999.dp)
             ) {
                 Text(
-                    text = if (isCompleted) "Listo" else "Comenzar",
+                    text = if (isCompleted) "Listo" else "Marcar warm-up listo",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Black
                 )

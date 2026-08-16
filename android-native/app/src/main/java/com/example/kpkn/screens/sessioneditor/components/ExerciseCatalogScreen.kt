@@ -16,6 +16,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
+import com.example.kpkn.screens.sessioneditor.CatalogCommitAction
+import com.example.kpkn.screens.sessioneditor.CatalogLaunchOrigin
 import com.example.kpkn.screens.sessioneditor.CatalogLaunchRequest
 import com.example.kpkn.screens.sessioneditor.CatalogResult
 import com.example.kpkn.screens.sessioneditor.CatalogSelectionMode
@@ -64,17 +66,22 @@ internal fun ExerciseCatalogScreen(
             selectedExercisesIds = selected.toSet(),
             onSelect = { info ->
                 selected = listOf(info.id)
-                onResult(CatalogResult.from(request, listOf(info)))
+                onResult(CatalogResult.success(request, listOf(info), commitAction = CatalogCommitAction.ADD))
             },
             onMultiSelect = { infos ->
                 selected = infos.map { it.id }
-                onResult(CatalogResult.from(request, infos))
+                onResult(CatalogResult.success(request, infos, commitAction = CatalogCommitAction.ADD))
                 infos.map { it.id }
             },
             onSelectionChange = { infos -> selected = infos.map { it.id } },
             onOpenExerciseDetail = onOpenExerciseDetail,
+            onCreateSupersetConfigured = { infos, config ->
+                selected = infos.map { it.id }
+                onResult(CatalogResult.success(request, infos, commitAction = CatalogCommitAction.CREATE_SUPERSET, supersetConfig = config))
+            },
+            isSupersetAddMode = request.origin == CatalogLaunchOrigin.SUPERSET || request.selectionMode == CatalogSelectionMode.SUPERSET,
             onDismiss = {
-                onResult(request.copy().let { CatalogResult(it.requestId, canceled = true) })
+                onResult(CatalogResult.cancel(request))
             },
             // The page callback already writes the result and pops the route.
             // Calling onDismiss after it would overwrite that result as canceled.

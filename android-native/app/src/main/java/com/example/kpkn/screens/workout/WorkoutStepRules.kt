@@ -133,6 +133,24 @@ WorkoutStepType.MOBILITY,
             }
         }
 
+    /**
+     * Canonical side order for a working set. Roadmaps, pager pages and the
+     * canonical step builder all use this exact ordering so L→R/R→L never
+     * diverges between surfaces.
+     */
+    fun workingSidesForSet(exercise: Exercise, setIndex: Int): List<String> {
+        if (!exercise.isEffectivelyUnilateral()) return emptyList()
+        val set = exercise.sets.getOrNull(setIndex) ?: return emptyList()
+        val hasLeftOnly = set.leftTarget != null && set.rightTarget == null
+        val hasRightOnly = set.rightTarget != null && set.leftTarget == null
+        return when {
+            hasLeftOnly -> listOf("left")
+            hasRightOnly -> listOf("right")
+            exercise.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT -> listOf("left", "right")
+            else -> listOf("right", "left")
+        }
+    }
+
     fun buildSetPositions(
         session: Session,
         visibleExercises: List<Exercise> = session.allExercises(),
@@ -342,14 +360,7 @@ WorkoutStepType.MOBILITY,
             )
             return
         }
-        val hasLeftOnly = set?.leftTarget != null && set.rightTarget == null
-        val hasRightOnly = set?.rightTarget != null && set.leftTarget == null
-        val sides = when {
-            hasLeftOnly -> listOf("left")
-            hasRightOnly -> listOf("right")
-            exercise.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT -> listOf("left", "right")
-            else -> listOf("right", "left")
-        }
+        val sides = workingSidesForSet(exercise, setIndex)
 
         sides.forEachIndexed { sideIdx, side ->
             steps += WorkoutStep(

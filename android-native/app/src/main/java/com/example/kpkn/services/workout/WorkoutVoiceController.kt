@@ -949,7 +949,10 @@ class WorkoutVoiceController(
                 ttsManager.stop()
                 activeSpeechPriority?.let { speechBus.release(it) }
             }
-            if (!acquired) return
+            if (!acquired) {
+                onComplete()
+                return
+            }
             activeSpeechPriority = priority
         }
         requestDucking()

@@ -544,11 +544,17 @@ internal fun MobilityPickerSheet(
                     ) {
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(mobility.name, fontWeight = FontWeight.Bold)
-                            Text(
-                                "${mobility.durationSeconds}s · ${mobility.bodyRegion} · ${mobility.discomfortIds.joinToString { discomfortLabel(it) }}",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                            val details = listOfNotNull(
+                                mobility.bodyRegion.takeIf { it.isNotBlank() },
+                                mobility.discomfortIds.map { discomfortLabel(it) }.filter { it.isNotBlank() }.joinToString().takeIf { it.isNotBlank() },
+                            ).joinToString(" · ")
+                            if (details.isNotBlank()) {
+                                Text(
+                                    details,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                             Text(
                                 mobility.description,
                                 style = MaterialTheme.typography.bodySmall,

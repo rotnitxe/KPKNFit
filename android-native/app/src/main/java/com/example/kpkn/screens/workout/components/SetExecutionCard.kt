@@ -491,14 +491,14 @@ private fun quickLoadOptionsFor(
         baseOptions.any { kotlin.math.abs(it.weight - suggestedWeight) < 0.01 } -> {
             baseOptions.map { option ->
                 if (kotlin.math.abs(option.weight - suggestedWeight) < 0.01) {
-                    option.copy(label = "Sug.", isAuge = true)
+                    option.copy(label = "Sugerida", isAuge = true)
                 } else {
                     option
                 }
             }
         }
         else -> baseOptions + QuickLoadOption(
-            label = "Sug.",
+            label = "Sugerida",
             weight = suggestedWeight.coerceAtLeast(0.0),
             isAuge = true,
         )
@@ -787,6 +787,9 @@ internal fun SetInputCardV2(
                 defaultCatalogMode = null,
             ),
         )
+    }
+    LaunchedEffect(loadMode) {
+        if (loadMode != LoadModeV2.ASSISTED) showBodyWeightPrompt = false
     }
     val ghostSuggestedWeightText = suggestedWeightText?.takeIf { weightText.isBlank() }
     var reachedFailure by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
@@ -1495,7 +1498,19 @@ internal fun SetInputCardV2(
                                 },
                                 loadIncrementKg = quickLoadIncrementFor(exercise, currentSet),
                             ),
-                            onWeightSelected = { updateActiveWeightText(it) },
+                            onWeightSelected = { selectedWeight ->
+                                val weightNum = selectedWeight.toDoubleOrNull() ?: 0.0
+                                if (loadMode == LoadModeV2.BODYWEIGHT) {
+                                    if (weightNum > 0.0) {
+                                        loadMode = LoadModeV2.LASTRE
+                                        updateActiveWeightText(selectedWeight)
+                                    } else {
+                                        updateActiveWeightText("")
+                                    }
+                                } else {
+                                    updateActiveWeightText(selectedWeight)
+                                }
+                            },
                             onOpenLoadMode = { loadModeMenuExpanded = true },
                             accentColor = sessionAccentColor,
                             loadMode = loadMode,
@@ -1509,6 +1524,7 @@ internal fun SetInputCardV2(
                                 onClick = {
                                     if (loadMode != LoadModeV2.LOAD) updateActiveWeightText("")
                                     loadMode = LoadModeV2.LOAD
+                                    showBodyWeightPrompt = false
                                     loadModeMenuExpanded = false
                                 },
                             )
@@ -1517,7 +1533,7 @@ internal fun SetInputCardV2(
                                 onClick = {
                                     loadMode = LoadModeV2.BODYWEIGHT
                                     updateActiveWeightText("")
-                                    if (bodyWeightText.isBlank()) showBodyWeightPrompt = true
+                                    showBodyWeightPrompt = false
                                     loadModeMenuExpanded = false
                                 },
                             )
@@ -1526,7 +1542,7 @@ internal fun SetInputCardV2(
                                 onClick = {
                                     if (loadMode != LoadModeV2.LASTRE) updateActiveWeightText("")
                                     loadMode = LoadModeV2.LASTRE
-                                    if (bodyWeightText.isBlank()) showBodyWeightPrompt = true
+                                    showBodyWeightPrompt = false
                                     loadModeMenuExpanded = false
                                 },
                             )
@@ -1543,7 +1559,11 @@ internal fun SetInputCardV2(
                     }
 
                     val suggestedMode = weightSuggestion?.suggestedLoadMode
-                    if (suggestedMode != null && suggestedMode != loadMode) {
+                    val zeroLastreSuggestionFromBodyweight =
+                        loadMode == LoadModeV2.BODYWEIGHT &&
+                            suggestedMode == LoadModeV2.LASTRE &&
+                            weightSuggestion.suggestedWeight <= 0.0
+                    if (suggestedMode != null && suggestedMode != loadMode && !zeroLastreSuggestionFromBodyweight) {
                         val modeLabel = when (suggestedMode) {
                             LoadModeV2.LOAD -> "Carga externa"
                             LoadModeV2.BODYWEIGHT -> "Peso corporal"
@@ -1560,11 +1580,20 @@ internal fun SetInputCardV2(
                             shape = RoundedCornerShape(8.dp),
                             color = sessionAccentColor.copy(alpha = 0.12f),
                             onClick = {
+                                if (suggestedMode == LoadModeV2.LASTRE && weightSuggestion.suggestedWeight <= 0.0) {
+                                    // A zero/near-zero recommendation is still
+                                    // bodyweight, never an invalid LASTRE set.
+                                    loadMode = LoadModeV2.BODYWEIGHT
+                                    updateActiveWeightText("")
+                                    showBodyWeightPrompt = false
+                                    return@Surface
+                                }
                                 loadMode = suggestedMode
                                 updateActiveWeightText(
-                                    if (suggestedMode == LoadModeV2.BODYWEIGHT) ""
+                                if (suggestedMode == LoadModeV2.BODYWEIGHT) ""
                                     else weightSuggestion.suggestedWeight.toTrimmedNumberString(),
                                 )
+                                if (suggestedMode != LoadModeV2.ASSISTED) showBodyWeightPrompt = false
                             },
                         ) {
                             Row(
@@ -1836,7 +1865,7 @@ internal fun SetInputCardV2(
                 }
             }
 
-            if (showBodyWeightPrompt || (loadMode != LoadModeV2.LOAD && bodyWeightText.isBlank())) {
+            if (loadMode == LoadModeV2.ASSISTED && (showBodyWeightPrompt || bodyWeightText.isBlank())) {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
@@ -1922,7 +1951,7 @@ internal fun SetInputCardV2(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                listOf("Cambio de planes", "Técnicas de intensidad").forEachIndexed { index, title ->
+                listOf("Cambio de planes", "Técnica").forEachIndexed { index, title ->
                     Surface(
                         onClick = { adjustmentsTab = if (adjustmentsTab == index) -1 else index },
                         shape = WorkoutUiTokens.InnerCardShape,
@@ -2016,7 +2045,12 @@ internal fun SetInputCardV2(
                                         selected = dropSetEnabled,
                                         modifier = Modifier.weight(1f),
                                         onClick = { dropSetEnabled = !dropSetEnabled },
-                                        label = { Text("Drop-set", style = MaterialTheme.typography.labelSmall) },
+                                        label = {
+                                            Text(
+                                                if (dropSetEnabled) "Drop-set activo" else "Drop-set",
+                                                style = MaterialTheme.typography.labelSmall,
+                                            )
+                                        },
                                         colors = FilterChipDefaults.filterChipColors(
                                             selectedContainerColor = sessionAccentColor.copy(alpha = 0.2f),
                                             selectedLabelColor = sessionAccentColor,
@@ -2029,6 +2063,30 @@ internal fun SetInputCardV2(
                                         modifier = Modifier.weight(1f),
                                         onClick = { restPauseEnabled = !restPauseEnabled },
                                         label = { Text("Rest-Pause", style = MaterialTheme.typography.labelSmall) },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = sessionAccentColor.copy(alpha = 0.2f),
+                                            selectedLabelColor = sessionAccentColor,
+                                            containerColor = WorkoutUiTokens.setInnerHighestColor(),
+                                            labelColor = MaterialTheme.colorScheme.onSurface,
+                                        ),
+                                    )
+                                    FilterChip(
+                                        selected = reachedFailure,
+                                        modifier = Modifier.weight(1f),
+                                        onClick = { reachedFailure = !reachedFailure },
+                                        label = { Text("FALLO", style = MaterialTheme.typography.labelSmall) },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = Color(0xFFFF5252).copy(alpha = 0.2f),
+                                            selectedLabelColor = Color(0xFFFF5252),
+                                            containerColor = WorkoutUiTokens.setInnerHighestColor(),
+                                            labelColor = MaterialTheme.colorScheme.onSurface,
+                                        ),
+                                    )
+                                    FilterChip(
+                                        selected = isAmrap,
+                                        modifier = Modifier.weight(1f),
+                                        onClick = { if (isAmrap) isAmrap = false else showAmrapSheet = true },
+                                        label = { Text("AMRAP", style = MaterialTheme.typography.labelSmall) },
                                         colors = FilterChipDefaults.filterChipColors(
                                             selectedContainerColor = sessionAccentColor.copy(alpha = 0.2f),
                                             selectedLabelColor = sessionAccentColor,

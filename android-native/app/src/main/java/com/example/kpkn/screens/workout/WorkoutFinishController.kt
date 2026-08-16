@@ -35,6 +35,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.TimeoutException
 
 /**
  * Owns workout finish flow: build log, persist, performance snapshots, volume-advance gate.
@@ -59,6 +60,8 @@ class WorkoutFinishController(
     private val prepareVoiceDiagnosticExport: () -> Unit,
     /** Aviso cuando finish aborta por sesión sin series (guard P0 de log hueco). */
     private val onEmptySession: () -> Unit = {},
+    /** Test seam; production supplies WorkoutRecordingGate.awaitIdle. */
+    private val awaitRecordingIdle: suspend (Long) -> Boolean = { true },
 ) {
     fun finish(
         notes: String,
@@ -67,17 +70,49 @@ class WorkoutFinishController(
         onComplete: () -> Unit = {},
         onFailure: (Exception) -> Unit = {},
     ) {
-        val state = getState()
-        if (state.isFinishingWorkout || state.isComplete) return
-        val session = state.session ?: return
-        updateState { it.copy(isFinishingWorkout = true) }
-        val durationMs = System.currentTimeMillis() - state.startTimeMs
-        val durationMinutes = (durationMs / 60000).toInt().coerceAtLeast(1)
-        val activeSession = sessionForActiveMode(session, state.activeMode)
-        val allExercises = activeSession.allExercises()
-        val currentExerciseIndex = exerciseIndex()
+        val initialState = getState()
+        if (initialState.isFinishingWorkout || initialState.isComplete || initialState.session == null) return
+        updateState { it.copy(isFinishingWorkout = true, finishWarning = null) }
 
-        val completedExercises = allExercises.map { exercise ->
+        scope.launch {
+            try {
+                if (!awaitRecordingIdle(10_000L)) {
+                    val warning = "No pude cerrar la sesión porque una serie sigue grabándose. Reintentá cuando termine."
+                    KpknDiagnosticLogger.event(
+                        namespace = "workout",
+                        name = "session_finish_blocked_recording_timeout",
+                        fields = mapOf(
+                            "programId" to programId,
+                            "workoutSessionId" to sessionId,
+                            "timeoutMs" to 10_000L,
+                        ),
+                        sessionId = sessionId,
+                    )
+                    updateState {
+                        it.copy(
+                            isFinishingWorkout = false,
+                            showFinishSheet = true,
+                            finishWarning = warning,
+                        )
+                    }
+                    onFailure(TimeoutException(warning))
+                    return@launch
+                }
+
+                // Read the state only after the recorder is idle so the final
+                // in-flight set is included and no new set can enter the log.
+                val state = getState()
+                val session = state.session ?: run {
+                    updateState { it.copy(isFinishingWorkout = false) }
+                    return@launch
+                }
+                val durationMs = System.currentTimeMillis() - state.startTimeMs
+                val durationMinutes = (durationMs / 60000).toInt().coerceAtLeast(1)
+                val activeSession = sessionForActiveMode(session, state.activeMode)
+                val allExercises = activeSession.allExercises()
+                val currentExerciseIndex = exerciseIndex()
+
+                val completedExercises = allExercises.map { exercise ->
             val catalogInfo = resolveCatalogExerciseInfoInIndex(
                 index = currentExerciseIndex,
                 catalogConfigurationId = exercise.catalogConfigurationId,
@@ -123,11 +158,11 @@ class WorkoutFinishController(
                     },
                 )
             }
-        }.filter { it.sets.isNotEmpty() }
+                }.filter { it.sets.isNotEmpty() }
 
         // Guard P0 de sesión vacía: sin series completadas no se persiste un log hueco
         // (drenaría 0 y taparía el problema); se aborta con feedback al usuario.
-        if (completedExercises.isEmpty()) {
+                if (completedExercises.isEmpty()) {
             KpknDiagnosticLogger.event(
                 namespace = "workout",
                 name = "finish_blocked_empty_session",
@@ -140,14 +175,14 @@ class WorkoutFinishController(
             )
             updateState { it.copy(isFinishingWorkout = false) }
             onEmptySession()
-            return
-        }
+                    return@launch
+                }
 
-        val skippedWithNoSets = allExercises.filter { exercise ->
+                val skippedWithNoSets = allExercises.filter { exercise ->
             exercise.id in state.skippedExerciseIds &&
                 state.completedSets.keys.none { key -> key.startsWith("${exercise.id}_") }
         }
-        val omittedExercises = skippedWithNoSets.map { exercise ->
+                val omittedExercises = skippedWithNoSets.map { exercise ->
             val catalogInfo = resolveCatalogExerciseInfoInIndex(
                 index = currentExerciseIndex,
                 catalogConfigurationId = exercise.catalogConfigurationId,
@@ -166,19 +201,17 @@ class WorkoutFinishController(
             )
         }
 
-        val totalVolume = completedExercises.sumOf { ex ->
+                val totalVolume = completedExercises.sumOf { ex ->
             ex.sets.sumOf { it.weight * it.effectiveRepEquivalent() }
         }
 
-        val logId = listOf(
+                val logId = listOf(
             programId,
             sessionId,
             state.weekId.ifBlank { "noweek" },
             state.startTimeMs.toString(),
         ).joinToString("|")
 
-        scope.launch {
-            try {
                 val stressScore = withContext(Dispatchers.Default) {
                     val adaptiveCache = com.example.kpkn.data.repository.AugeRepository
                         .getInstance(appContext)
@@ -355,6 +388,7 @@ class WorkoutFinishController(
                                 showVolumeAdvanceModal = true,
                                 showFinishSheet = false,
                                 isFinishingWorkout = false,
+                                finishResumeSnapshot = null,
                             )
                         }
                         return@launch
@@ -367,6 +401,7 @@ class WorkoutFinishController(
                         showFinishSheet = false,
                         sessionStressScore = stressScore,
                         isFinishingWorkout = false,
+                        finishResumeSnapshot = null,
                     )
                 }
                 ActiveWorkoutHolder.clear()

@@ -47,6 +47,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -90,6 +91,7 @@ import com.example.kpkn.ui.components.showKpknSnackbar
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 import com.example.kpkn.screens.sessioneditor.sessionBackgroundPresets
 import com.example.kpkn.screens.sessioneditor.sessionGradients
@@ -163,6 +165,7 @@ fun SessionEditorScreen(
     var pendingAutoExpandExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
     var showCompetitionConfigSheet by rememberSaveable { mutableStateOf(openCompetitionConfig) }
     var catalogRequestInFlight by rememberSaveable { mutableStateOf(false) }
+    var catalogRequestId by rememberSaveable { mutableStateOf<String?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner, viewModel) {
@@ -229,34 +232,116 @@ fun SessionEditorScreen(
         if (!catalogRequestInFlight) {
             val targetExerciseId = uiState.pickerTargetExerciseId
             catalogRequestInFlight = true
-            onOpenCatalog(
-                CatalogLaunchRequest(
-                    origin = if (targetExerciseId == null) {
-                        CatalogLaunchOrigin.SESSION_EDITOR
-                    } else {
-                        CatalogLaunchOrigin.REPLACEMENT
-                    },
-                    selectionMode = if (targetExerciseId == null) {
-                        CatalogSelectionMode.MULTIPLE
-                    } else {
-                        CatalogSelectionMode.REPLACEMENT
-                    },
-                    targetExerciseId = targetExerciseId,
-                    selectedExerciseIds = uiState.selectedExercisesIds.toList(),
-                    initialQuery = uiState.searchQuery,
-                ),
+            val request = CatalogLaunchRequest(
+                origin = if (targetExerciseId == null) {
+                    CatalogLaunchOrigin.SESSION_EDITOR
+                } else {
+                    CatalogLaunchOrigin.REPLACEMENT
+                },
+                selectionMode = if (targetExerciseId == null) {
+                    CatalogSelectionMode.MULTIPLE
+                } else {
+                    CatalogSelectionMode.REPLACEMENT
+                },
+                targetExerciseId = targetExerciseId,
+                selectedExerciseIds = uiState.selectedExercisesIds.toList(),
+                initialQuery = uiState.searchQuery,
             )
+            catalogRequestId = request.requestId
+            onOpenCatalog(request)
         }
     }
-    LaunchedEffect(catalogResult) {
+    LaunchedEffect(catalogResult?.requestId) {
         val result = catalogResult ?: return@LaunchedEffect
+        if (catalogRequestId != null && result.requestId != catalogRequestId) {
+            val expectedRequestId = catalogRequestId
+            android.util.Log.e("SessionEditorScreen", "Rejecting catalog result for unknown requestId=${result.requestId}; expected=$expectedRequestId")
+            onCatalogResultConsumed()
+            catalogRequestInFlight = false
+            catalogRequestId = null
+            val action = snackbarHostState.showKpknSnackbar(
+                message = "El resultado del catálogo ya no corresponde a esta solicitud",
+                type = SnackbarType.DANGER,
+                actionLabel = "Reintentar",
+            )
+            if (action == SnackbarResult.ActionPerformed && onOpenCatalog != null) {
+                val retry = CatalogLaunchRequest(
+                    origin = if (uiState.pickerTargetExerciseId == null) CatalogLaunchOrigin.SESSION_EDITOR else CatalogLaunchOrigin.REPLACEMENT,
+                    selectionMode = if (uiState.pickerTargetExerciseId == null) CatalogSelectionMode.MULTIPLE else CatalogSelectionMode.REPLACEMENT,
+                    targetExerciseId = uiState.pickerTargetExerciseId,
+                    selectedExerciseIds = uiState.selectedExercisesIds.toList(),
+                    initialQuery = uiState.searchQuery,
+                )
+                catalogRequestInFlight = true
+                catalogRequestId = retry.requestId
+                onOpenCatalog(retry)
+            } else {
+                viewModel.closeSheet()
+            }
+            return@LaunchedEffect
+        }
         val targetPartId = uiState.pickerTargetPartId
         val targetExerciseId = uiState.pickerTargetExerciseId
+        val expectedRequest = CatalogLaunchRequest(
+            requestId = catalogRequestId ?: result.requestId,
+            origin = if (targetExerciseId == null) CatalogLaunchOrigin.SESSION_EDITOR else CatalogLaunchOrigin.REPLACEMENT,
+            selectionMode = if (targetExerciseId == null) CatalogSelectionMode.MULTIPLE else CatalogSelectionMode.REPLACEMENT,
+            targetExerciseId = targetExerciseId,
+            selectedExerciseIds = uiState.selectedExercisesIds.toList(),
+            initialQuery = uiState.searchQuery,
+        )
+        if (catalogRequestId != null && !result.isValidFor(expectedRequest)) {
+            android.util.Log.e("SessionEditorScreen", "Catalog result rejected: invalid request context/action/version")
+            val action = snackbarHostState.showKpknSnackbar(
+                message = "Resultado de catálogo inválido; no se aplicó ningún cambio",
+                type = SnackbarType.DANGER,
+                actionLabel = "Reintentar",
+            )
+            onCatalogResultConsumed()
+            catalogRequestInFlight = false
+            catalogRequestId = null
+            if (action == SnackbarResult.ActionPerformed && onOpenCatalog != null) {
+                val retry = expectedRequest.copy(requestId = UUID.randomUUID().toString())
+                catalogRequestInFlight = true
+                catalogRequestId = retry.requestId
+                onOpenCatalog(retry)
+            } else {
+                viewModel.closeSheet()
+            }
+            return@LaunchedEffect
+        }
         if (result.canceled) {
             viewModel.closeSheet()
         } else {
+            val unresolved = result.unresolvedSelectionIds(exerciseInfoById)
+            if (unresolved.isNotEmpty()) {
+                android.util.Log.e("SessionEditorScreen", "Catalog result rejected atomically; unresolved=$unresolved")
+                val action = snackbarHostState.showKpknSnackbar(
+                    message = "No se pudieron resolver todos los ejercicios; vuelve a intentarlo",
+                    type = SnackbarType.DANGER,
+                    actionLabel = "Reintentar",
+                )
+                onCatalogResultConsumed()
+                catalogRequestInFlight = false
+                catalogRequestId = null
+                if (action == SnackbarResult.ActionPerformed && onOpenCatalog != null) {
+                    val retry = expectedRequest.copy(requestId = UUID.randomUUID().toString())
+                    catalogRequestInFlight = true
+                    catalogRequestId = retry.requestId
+                    onOpenCatalog(retry)
+                } else {
+                    viewModel.closeSheet()
+                }
+                return@LaunchedEffect
+            }
             val infos = result.resolveSelectedInfos(exerciseInfoById)
-            if (targetExerciseId != null) {
+            if (result.commitAction == CatalogCommitAction.CREATE_SUPERSET && targetExerciseId == null) {
+                viewModel.addExercisesAsSupersetToPart(
+                    partId = targetPartId,
+                    infos = infos,
+                    config = result.supersetConfig ?: CatalogSupersetConfig(),
+                )
+            } else if (targetExerciseId != null) {
                 infos.firstOrNull()?.let { info ->
                     viewModel.replaceExerciseInPart(targetPartId, targetExerciseId, info)
                 } ?: viewModel.closeSheet()
@@ -266,6 +351,7 @@ fun SessionEditorScreen(
                 viewModel.closeSheet()
             }
         }
+        catalogRequestId = null
         onCatalogResultConsumed()
     }
     val dragController = remember(session?.id) { SessionEditorDragController() }

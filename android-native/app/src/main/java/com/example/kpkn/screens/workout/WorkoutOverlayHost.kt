@@ -167,6 +167,8 @@ internal fun WorkoutMobilityOverlayHost(
             viewModel.addMobilityToCurrentExercise(currentExercise.id, comp)
         },
         onClose = { viewModel.skipMobilityPreparation(currentExercise.id) },
+        onSkip = { viewModel.skipMobilityPreparation(currentExercise.id) },
+        onContinue = { viewModel.advanceAfterPreparation(currentExercise.id) },
         hazeState = hazeState,
         sessionAccentColor = sessionAccentColor,
         catalog = catalog,
@@ -212,6 +214,8 @@ internal fun WorkoutWarmupOverlayHost(
             viewModel.setInitialTargetWorkingWeight(currentExercise.id, targetWeight)
         },
         onClose = { viewModel.skipWarmupPreparation(currentExercise.id) },
+        onSkip = { viewModel.skipWarmupPreparation(currentExercise.id) },
+        onContinue = { viewModel.advanceAfterPreparation(currentExercise.id) },
         hazeState = hazeState,
         sessionAccentColor = sessionAccentColor,
     )

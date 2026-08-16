@@ -9,6 +9,7 @@ import com.example.kpkn.data.models.MobilitySeries
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WarmupSetDefinition
+import com.example.kpkn.domain.workout.SupersetRules
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -124,5 +125,72 @@ class WorkoutStepNavigatorResumeTest {
                 (WorkoutStepRules.workingStepKey("squat", 1) to CompletedSet(id = "done-1")),
         )
         assertEquals("squat_2", navigator.firstIncompleteStep(state)?.stepKey)
+    }
+
+    @Test
+    fun firstIncompleteStep_keeps_all_superset_preparation_before_r1() {
+        val a = Exercise(
+            id = "a",
+            name = "A",
+            mobilitySeries = listOf(MobilitySeries(id = "mob-a", name = "Hombro")),
+            warmupSets = listOf(WarmupSetDefinition(id = "warm-a", percentageOfWorkingWeight = 50.0, targetReps = 5)),
+            sets = listOf(ExerciseSet(id = "a1"), ExerciseSet(id = "a2")),
+        )
+        val b = Exercise(
+            id = "b",
+            name = "B",
+            warmupSets = listOf(WarmupSetDefinition(id = "warm-b", percentageOfWorkingWeight = 50.0, targetReps = 5)),
+            sets = listOf(ExerciseSet(id = "b1"), ExerciseSet(id = "b2")),
+        )
+        val session = SupersetRules.createSuperset(
+            session = Session(id = "session", name = "Sesion", exercises = listOf(a, b)),
+            groupId = "group",
+            exerciseIds = listOf("a", "b"),
+            restBetweenExercises = 60,
+            restAfterSuperset = 120,
+            rounds = 2,
+        )
+        var state = WorkoutUiState(
+            session = session,
+            // Simulate a stale persisted working key while preparation is pending.
+            activeStepKey = WorkoutStepRules.workingStepKey("b", 0),
+        )
+        val navigator = WorkoutStepNavigator(
+            scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
+            getState = { state },
+            updateState = { transform -> state = transform(state) },
+            ports = object : WorkoutStepNavigator.Ports {
+                override fun visibleExercises(state: WorkoutUiState): List<Exercise> = state.session?.exercises.orEmpty()
+                override fun sessionForActiveMode(base: Session, mode: WeekVariant): Session = base
+                override fun isSetDone(completedSets: Map<String, CompletedSet>, exerciseId: String, setIdx: Int, isUnilateral: Boolean) =
+                    completedSets.containsKey("${exerciseId}_$setIdx")
+                override fun buildEditingStateForPosition(completedSets: Map<String, CompletedSet>, exercise: Exercise?, setIdx: Int, preferredSide: String?) = null
+                override fun stopRestTimer() = Unit
+                override fun persistOngoingState() = Unit
+                override suspend fun persistOngoingStateAndAwait() = Unit
+                override fun refreshLoadSuggestions(state: WorkoutUiState) = Unit
+                override fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?) = Unit
+                override fun computeImbalanceNotice(exercise: Exercise, setIdx: Int, completedSets: Map<String, CompletedSet>) = null
+                override fun openFinishSheet() = Unit
+                override fun speakCurrentStepAnnouncementIfEnabled() = Unit
+                override fun isRecordingBusy() = false
+                override fun announcePostExerciseFeedback(exerciseIds: List<String>) = Unit
+                override fun announceFinalPostExerciseFeedback(exerciseIds: List<String>) = Unit
+            },
+        )
+
+        assertEquals("a_mob-a", navigator.firstIncompleteStep(state)?.stepKey)
+        state = state.copy(
+            mobilityCompletedExerciseIds = setOf(WorkoutStepRules.mobilityStepKey("a", "mob-a")),
+        )
+        assertEquals("a_warmup_warm-a", navigator.firstIncompleteStep(state)?.stepKey)
+        state = state.copy(
+            warmupCompletedExerciseIds = setOf(WorkoutStepRules.warmupStepKey("a", "warm-a")),
+        )
+        assertEquals("b_warmup_warm-b", navigator.firstIncompleteStep(state)?.stepKey)
+        state = state.copy(
+            warmupCompletedExerciseIds = state.warmupCompletedExerciseIds + WorkoutStepRules.warmupStepKey("b", "warm-b"),
+        )
+        assertEquals(WorkoutStepRules.workingStepKey("a", 0), navigator.firstIncompleteStep(state)?.stepKey)
     }
 }

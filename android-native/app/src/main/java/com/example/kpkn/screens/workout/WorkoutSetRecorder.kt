@@ -499,19 +499,21 @@ class WorkoutSetRecorder(
                 supersetRounds = supersetGroup?.rounds,
                 supersetRestAfter = supersetGroup?.roundRestAfterSuperset?.get(targetSetIdx) ?: supersetGroup?.restAfterSuperset,
             )
-            val completedCount = getState().completedSets.size
+            val completedWorkingUnits = getState().completedSets.keys.mapNotNull { k ->
+                parseCompletedSetKey(k)?.let { "${it.exerciseId}_${it.setIdx}" }
+            }.distinct().size
             val setDrain = AugeFatigueEngine.calculateSetBatteryDrain(
                 set = completedSet,
                 metrics = augeMetrics,
                 tanks = augeTanks,
-                accumulatedSets = completedCount,
+                accumulatedSets = completedWorkingUnits,
                 restTime = exercise.restTime ?: settings.restTimerDefaultSeconds,
                 densityMultiplier = densityMult,
             )
             val effectiveRpe = AugeFatigueEngine.getEffectiveRPE(completedSet)
             val totalSetsInSession = allExercises.sumOf { it.sets.size }
             val sessionProgress = if (totalSetsInSession > 0) {
-                completedCount.toDouble() / totalSetsInSession
+                (completedWorkingUnits.toDouble() / totalSetsInSession).coerceIn(0.0, 1.0)
             } else {
                 0.0
             }

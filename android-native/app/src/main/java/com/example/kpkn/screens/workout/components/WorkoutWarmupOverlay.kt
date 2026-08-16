@@ -60,6 +60,8 @@ fun WorkoutWarmupOverlay(
     onAddWarmupSet: () -> Unit = {},
     onSetTargetWorkingWeight: (Double) -> Unit = {},
     onClose: () -> Unit,
+    onSkip: () -> Unit = onClose,
+    onContinue: () -> Unit = onClose,
     hazeState: HazeState,
     sessionAccentColor: Color = Color(0xFFFFB300),
 ) {
@@ -484,7 +486,7 @@ fun WorkoutWarmupOverlay(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Button(
-                    onClick = onClose,
+                    onClick = onSkip,
                     modifier = Modifier.weight(1f).height(48.dp),
                     shape = RoundedCornerShape(999.dp),
                     colors = ButtonDefaults.buttonColors(
@@ -502,7 +504,7 @@ fun WorkoutWarmupOverlay(
                 }
 
                 Button(
-                    onClick = onClose,
+                    onClick = onContinue,
                     enabled = allDone,
                     modifier = Modifier.weight(1.3f).height(48.dp),
                     shape = RoundedCornerShape(999.dp),
@@ -596,7 +598,8 @@ private fun WarmupSetDetailedCard(
                     }
 
                     Text(
-                        "Aproximación ${index + 1}",
+                        // Keep the legacy accent-free label used by saved/automated flows.
+                        "Aproximacion ${index + 1}",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,

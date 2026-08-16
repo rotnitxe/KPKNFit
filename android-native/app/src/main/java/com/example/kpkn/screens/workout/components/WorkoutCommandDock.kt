@@ -236,10 +236,9 @@ fun WorkoutCommandDock(
                             else -> Icons.Default.Check
                         },
                         contentDescription = when {
-                            isRecording -> "Registrando serie"
-                            !primaryActionEnabled -> "Completar serie no disponible"
-                            isUpdateMode -> "Actualizar: $primaryButtonText"
-                            else -> primaryButtonText
+                            isRecording || !primaryActionEnabled -> "Registrando serie"
+                            isUpdateMode -> "Actualizar serie"
+                            else -> "Completar serie"
                         },
                         modifier = Modifier.size(28.dp),
                     )

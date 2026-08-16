@@ -57,6 +57,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -80,16 +81,25 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.TextUnit
 import com.example.kpkn.R
+import com.example.kpkn.screens.sessioneditor.CatalogCommitAction
+import com.example.kpkn.screens.sessioneditor.CatalogLaunchOrigin
+import com.example.kpkn.screens.sessioneditor.CatalogSelectionMode
+import com.example.kpkn.screens.sessioneditor.CatalogSupersetConfig
 import com.example.kpkn.data.exercises.catalogv2.toLegacySelection
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.ExerciseMuscleInfo
@@ -477,6 +487,8 @@ internal fun ExercisePickerV2Catalog(
     onSelectionChange: (List<ExerciseMuscleInfo>) -> Unit,
     onOpenExerciseDetail: (String) -> Unit,
     onCreateSuperset: ((List<ExerciseMuscleInfo>) -> Unit)? = null,
+    onCreateSupersetConfigured: ((List<ExerciseMuscleInfo>, CatalogSupersetConfig) -> Unit)? = null,
+    isSupersetAddMode: Boolean = false,
     onDismiss: () -> Unit,
     initialCatalogDefinitionId: String? = null,
     initialCatalogConfigurationId: String? = null,
@@ -583,6 +595,8 @@ internal fun ExercisePickerV2Catalog(
                         onSelectionChange = onSelectionChange,
                         onOpenExerciseDetail = onOpenExerciseDetail,
                         onCreateSuperset = onCreateSuperset,
+                        onCreateSupersetConfigured = onCreateSupersetConfigured,
+                        isSupersetAddMode = isSupersetAddMode,
                         onDismiss = onDismiss,
                         initialCatalogDefinitionId = initialCatalogDefinitionId,
                         initialCatalogConfigurationId = initialCatalogConfigurationId,
@@ -821,6 +835,8 @@ private fun ColumnScope.CatalogReadyContent(
     onSelectionChange: (List<ExerciseMuscleInfo>) -> Unit,
     onOpenExerciseDetail: (String) -> Unit,
     onCreateSuperset: ((List<ExerciseMuscleInfo>) -> Unit)?,
+    onCreateSupersetConfigured: ((List<ExerciseMuscleInfo>, CatalogSupersetConfig) -> Unit)? = null,
+    isSupersetAddMode: Boolean = false,
     onDismiss: () -> Unit,
     initialCatalogDefinitionId: String?,
     initialCatalogConfigurationId: String?,
@@ -946,11 +962,26 @@ private fun ColumnScope.CatalogReadyContent(
             def.id to searchMatchChipLabels(cfg, def)
         }.toMap()
     }
-    val selectedRows = remember {
+    val selectedRows = remember(catalog, selectedExercisesIds) {
         // neverEqualPolicy: reordenar el LinkedHashMap produce un mapa igual
         // (la igualdad de Maps ignora el orden), y sin esto Compose no
         // recompondría y el reorden no se vería.
-        mutableStateOf<Map<String, ExerciseMuscleInfo>>(emptyMap(), neverEqualPolicy())
+        val restored = linkedMapOf<String, ExerciseMuscleInfo>()
+        selectedExercisesIds.forEach { selectedId ->
+            val definition = definitionsById[selectedId]
+            val info = when {
+                definition != null -> exactInfo(catalog, definition, definition.configurations.firstOrNull()?.id)
+                else -> catalog.families
+                    .asSequence()
+                    .flatMap { it.definitions.asSequence() }
+                    .firstNotNullOfOrNull { candidate ->
+                        candidate.configurations.firstOrNull { it.id.equals(selectedId, ignoreCase = true) }
+                            ?.let { exactInfo(catalog, candidate, it.id) }
+                    }
+            }
+            if (info != null) restored[info.id] = info
+        }
+        mutableStateOf<Map<String, ExerciseMuscleInfo>>(restored, neverEqualPolicy())
     }
     var selectedListExpanded by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(selectedRows.value.isEmpty()) {
@@ -1180,19 +1211,24 @@ private fun ColumnScope.CatalogReadyContent(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
-                            definition.canonicalName,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            style = if (isExpanded) {
-                                MaterialTheme.typography.titleLarge
-                            } else {
-                                MaterialTheme.typography.titleSmall
-                            },
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f),
-                        )
+                        if (isExpanded) {
+                            CatalogAdaptiveExerciseTitle(
+                                text = definition.canonicalName,
+                                modifier = Modifier.weight(1f),
+                                baseStyle = MaterialTheme.typography.titleLarge,
+                                maxLines = 3,
+                            )
+                        } else {
+                            Text(
+                                definition.canonicalName,
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.titleSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
                         if (isSelected) {
                             Icon(
                                 Icons.Default.Check,
@@ -1440,74 +1476,80 @@ private fun ColumnScope.CatalogReadyContent(
                 onValueChange = onSearch,
                 hazeState = hazeState,
             )
+            var showSupersetConfigurator by rememberSaveable { mutableStateOf(false) }
             if (!editingExisting && selectedRows.value.isNotEmpty()) {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 18.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.Bottom,
                 ) {
-                    if (selectedRows.value.size >= 2 && onCreateSuperset != null) {
-                        Button(
-                            onClick = {
-                                onCreateSuperset(selectedRows.value.values.toList())
-                                selectedRows.value = emptyMap()
-                                onSelectionChange(emptyList())
-                                onDismiss()
+                    if (selectedListExpanded) {
+                        SelectedExercisesAppendix(
+                            selected = selectedRows.value.entries.toList(),
+                            onRemove = { id ->
+                                val next = selectedRows.value - id
+                                selectedRows.value = next
+                                onSelectionChange(next.values.toList())
                             },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(50.dp),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.White.copy(alpha = 0.14f),
-                                contentColor = Color.White,
-                            ),
-                        ) {
-                            Text("Crear superserie", fontWeight = FontWeight.Black)
-                        }
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        if (selectedListExpanded) {
-                            SelectedExercisesAppendix(
-                                selected = selectedRows.value.entries.toList(),
-                                onRemove = { id ->
-                                    val next = selectedRows.value - id
-                                    selectedRows.value = next
-                                    onSelectionChange(next.values.toList())
-                                },
-                                onMove = { index, delta ->
-                                    val ids = selectedRows.value.keys.toMutableList()
-                                    val toIndex = (index + delta).coerceIn(0, ids.lastIndex)
-                                    if (toIndex == index) return@SelectedExercisesAppendix
-                                    val moved = ids.removeAt(index)
-                                    ids.add(toIndex, moved)
-                                    selectedRows.value = ids.associateWith { selectedRows.value.getValue(it) }
-                                    onSelectionChange(selectedRows.value.values.toList())
-                                },
-                                onTap = { id ->
-                                    val customOffset = if (visibleCustomExercises.isNotEmpty()) visibleCustomExercises.size + 1 else 0
-                                    val indexInDefinitions = definitions.indexOfFirst { it.id == id }
-                                    if (indexInDefinitions >= 0) {
-                                        scope.launch {
-                                            listState.animateScrollToItem(1 + customOffset + indexInDefinitions)
-                                        }
+                            onMove = { index, delta ->
+                                val ids = selectedRows.value.keys.toMutableList()
+                                val toIndex = (index + delta).coerceIn(0, ids.lastIndex)
+                                if (toIndex == index) return@SelectedExercisesAppendix
+                                val moved = ids.removeAt(index)
+                                ids.add(toIndex, moved)
+                                selectedRows.value = ids.associateWith { selectedRows.value.getValue(it) }
+                                onSelectionChange(selectedRows.value.values.toList())
+                            },
+                            onTap = { id ->
+                                val customOffset = if (visibleCustomExercises.isNotEmpty()) visibleCustomExercises.size + 1 else 0
+                                val indexInDefinitions = definitions.indexOfFirst { it.id == id }
+                                if (indexInDefinitions >= 0) {
+                                    scope.launch {
+                                        listState.animateScrollToItem(1 + customOffset + indexInDefinitions)
                                     }
-                                },
-                            )
-                        }
-                        IntegratedCatalogAddButton(
-                            selectedCount = selectedRows.value.size,
-                            expanded = selectedListExpanded,
-                            onAdd = {
-                                val ids = onMultiSelect(selectedRows.value.values.toList())
-                                if (ids.isNotEmpty() && dismissAfterMultiSelect) onDismiss()
+                                }
                             },
-                            onToggle = { selectedListExpanded = !selectedListExpanded },
+                            onSupersetAction = if (selectedRows.value.size >= 2 && (onCreateSupersetConfigured != null || onCreateSuperset != null || isSupersetAddMode)) {
+                                {
+                                    if (isSupersetAddMode) {
+                                        val ids = onMultiSelect(selectedRows.value.values.toList())
+                                        if (ids.isNotEmpty() && dismissAfterMultiSelect) onDismiss()
+                                    } else {
+                                        showSupersetConfigurator = true
+                                    }
+                                }
+                            } else null,
+                            isSupersetAddMode = isSupersetAddMode,
                         )
                     }
+                    IntegratedCatalogAddButton(
+                        selectedCount = selectedRows.value.size,
+                        expanded = selectedListExpanded,
+                        onAdd = {
+                            val ids = onMultiSelect(selectedRows.value.values.toList())
+                            if (ids.isNotEmpty() && dismissAfterMultiSelect) onDismiss()
+                        },
+                        onToggle = { selectedListExpanded = !selectedListExpanded },
+                    )
                 }
+            }
+            if (showSupersetConfigurator) {
+                CatalogSupersetConfiguratorDialog(
+                    selectedExercises = selectedRows.value.values.toList(),
+                    onDismiss = { showSupersetConfigurator = false },
+                    onConfirm = { config ->
+                        showSupersetConfigurator = false
+                        val selectedList = selectedRows.value.values.toList()
+                        if (onCreateSupersetConfigured != null) {
+                            onCreateSupersetConfigured(selectedList, config)
+                        } else {
+                            onCreateSuperset?.invoke(selectedList)
+                        }
+                        selectedRows.value = emptyMap()
+                        onSelectionChange(emptyList())
+                        if (dismissAfterMultiSelect) onDismiss()
+                    },
+                )
             }
         }
     }
@@ -2141,15 +2183,24 @@ private fun CustomExerciseCard(
     ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    exercise.name,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
+                if (expanded) {
+                    CatalogAdaptiveExerciseTitle(
+                        text = exercise.name,
+                        modifier = Modifier.weight(1f),
+                        baseStyle = MaterialTheme.typography.titleMedium,
+                        maxLines = 3,
+                    )
+                } else {
+                    Text(
+                        exercise.name,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
                 if (selected) {
                     Spacer(Modifier.width(6.dp))
                     Icon(
@@ -2318,6 +2369,8 @@ private fun SelectedExercisesAppendix(
     onRemove: (String) -> Unit,
     onMove: (Int, Int) -> Unit,
     onTap: (String) -> Unit,
+    onSupersetAction: (() -> Unit)? = null,
+    isSupersetAddMode: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val shape = RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp)
@@ -2398,6 +2451,274 @@ private fun SelectedExercisesAppendix(
                 }
                 if (index < selected.lastIndex) {
                     androidx.compose.material3.Divider(color = Color.White.copy(alpha = 0.08f))
+                }
+            }
+        }
+        if (selected.size >= 2 && onSupersetAction != null) {
+            Spacer(Modifier.height(4.dp))
+            Button(
+                onClick = onSupersetAction,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(38.dp)
+                    .padding(horizontal = 4.dp),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF67E8F9).copy(alpha = 0.20f),
+                    contentColor = Color(0xFF67E8F9),
+                ),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+            ) {
+                Text(
+                    if (isSupersetAddMode) "Agregar a superserie" else "Crear superserie",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Título adaptativo para el catálogo: escala progresivamente la tipografía y permite hasta
+ * dos líneas completas sin truncar el nombre antes de tiempo.
+ */
+@Composable
+internal fun CatalogAdaptiveExerciseTitle(
+    text: String,
+    modifier: Modifier = Modifier,
+    maxLines: Int = 3,
+    baseStyle: TextStyle = MaterialTheme.typography.titleLarge,
+    minFontSize: TextUnit = 11.sp,
+    color: Color = Color.White,
+    fontWeight: FontWeight = FontWeight.Bold,
+) {
+    var scaledFontSize by remember(text, baseStyle.fontSize) {
+        mutableStateOf(baseStyle.fontSize)
+    }
+    var readyToDraw by remember(text, baseStyle.fontSize) {
+        mutableStateOf(false)
+    }
+
+    Text(
+        text = text,
+        modifier = modifier
+            .semantics { contentDescription = text }
+            .drawWithContent {
+            if (readyToDraw) drawContent()
+        },
+        color = color,
+        fontWeight = fontWeight,
+        style = baseStyle.copy(fontSize = scaledFontSize),
+        maxLines = maxLines,
+        overflow = TextOverflow.Visible,
+        softWrap = true,
+        onTextLayout = { textLayoutResult ->
+            if (textLayoutResult.hasVisualOverflow && scaledFontSize.value > minFontSize.value) {
+                val nextValue = scaledFontSize.value * 0.9f
+                scaledFontSize = if (nextValue < minFontSize.value) minFontSize else nextValue.sp
+            } else {
+                readyToDraw = true
+            }
+        },
+    )
+}
+
+/**
+ * Diálogo compartido de configuración de superserie antes de confirmarla desde el catálogo.
+ */
+@Composable
+internal fun CatalogSupersetConfiguratorDialog(
+    selectedExercises: List<ExerciseMuscleInfo>,
+    initialConfig: CatalogSupersetConfig = CatalogSupersetConfig(),
+    onDismiss: () -> Unit,
+    onConfirm: (CatalogSupersetConfig) -> Unit,
+) {
+    var rounds by remember { mutableStateOf(initialConfig.rounds) }
+    var restBetween by remember { mutableStateOf(initialConfig.restBetweenExercisesSeconds) }
+    var restAfter by remember { mutableStateOf(initialConfig.restAfterSupersetSeconds) }
+
+    KpknGlassDialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(
+                "Configurar Superserie",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                color = Color.White,
+            )
+
+            // Lista de ejercicios seleccionados
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    "Ejercicios (${selectedExercises.size})",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.6f),
+                    fontWeight = FontWeight.Bold,
+                )
+                selectedExercises.forEachIndexed { idx, info ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.White.copy(alpha = 0.07f))
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = Color(0xFF67E8F9).copy(alpha = 0.2f),
+                            modifier = Modifier.size(20.dp),
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    "${('A' + idx)}",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                    fontWeight = FontWeight.Black,
+                                    color = Color(0xFF67E8F9),
+                                )
+                            }
+                        }
+                        Text(
+                            info.name,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+            }
+
+            // Rondas
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    "Rondas",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White,
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    IconButton(
+                        onClick = { if (rounds > 1) rounds-- },
+                        enabled = rounds > 1,
+                        modifier = Modifier.size(32.dp),
+                    ) {
+                        Text("−", color = if (rounds > 1) Color.White else Color.White.copy(alpha = 0.3f), fontWeight = FontWeight.Black, fontSize = 18.sp)
+                    }
+                    Text(
+                        "$rounds",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                    )
+                    IconButton(
+                        onClick = { if (rounds < 10) rounds++ },
+                        enabled = rounds < 10,
+                        modifier = Modifier.size(32.dp),
+                    ) {
+                        Text("+", color = if (rounds < 10) Color.White else Color.White.copy(alpha = 0.3f), fontWeight = FontWeight.Black, fontSize = 18.sp)
+                    }
+                }
+            }
+
+            // Descanso entre ejercicios
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    "Descanso entre ejercicios",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.85f),
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    listOf(0, 30, 60, 90).forEach { sec ->
+                        Surface(
+                            onClick = { restBetween = sec },
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (restBetween == sec) Color(0xFF67E8F9).copy(alpha = 0.25f) else Color.White.copy(alpha = 0.08f),
+                            border = BorderStroke(1.dp, if (restBetween == sec) Color(0xFF67E8F9) else Color.Transparent),
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(vertical = 6.dp)) {
+                                Text(
+                                    "${sec}s",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (restBetween == sec) Color(0xFF67E8F9) else Color.White.copy(alpha = 0.7f),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Descanso tras superserie
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    "Descanso tras superserie",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.85f),
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    listOf(60, 90, 120, 180).forEach { sec ->
+                        Surface(
+                            onClick = { restAfter = sec },
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (restAfter == sec) Color(0xFF67E8F9).copy(alpha = 0.25f) else Color.White.copy(alpha = 0.08f),
+                            border = BorderStroke(1.dp, if (restAfter == sec) Color(0xFF67E8F9) else Color.Transparent),
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(vertical = 6.dp)) {
+                                Text(
+                                    "${sec}s",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (restAfter == sec) Color(0xFF67E8F9) else Color.White.copy(alpha = 0.7f),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Botones de acción
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                ) {
+                    Text("Cancelar")
+                }
+                Button(
+                    onClick = {
+                        onConfirm(CatalogSupersetConfig(rounds = rounds, restBetweenExercisesSeconds = restBetween, restAfterSupersetSeconds = restAfter))
+                    },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                ) {
+                    Text("Confirmar", fontWeight = FontWeight.Bold)
                 }
             }
         }

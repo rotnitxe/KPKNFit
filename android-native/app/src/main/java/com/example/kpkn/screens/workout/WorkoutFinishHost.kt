@@ -13,6 +13,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -38,10 +39,17 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -81,6 +89,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
@@ -295,19 +304,99 @@ internal fun FinishWorkoutSheet(
     // Explicit back / scrim / drag closes finish sheet (does not abandon the workout).
     BackHandler(enabled = true) { onDismiss() }
 
+    val executeConfirm = {
+        val perceivedMuscularDrop = if (muscleFinal.isEmpty()) {
+            postSessionPreview.globalMuscularDrain.toDouble()
+        } else {
+            muscleFinal.entries
+                .map { (muscle, finalValue) ->
+                    val start = postSessionPreview.perMuscle[muscle]?.recoveryScore ?: 100
+                    (start - finalValue).toDouble()
+                }
+                .average()
+        }
+        val muscularAdjustment = (
+            perceivedMuscularDrop.toInt() - postSessionPreview.globalMuscularDrain
+            ).coerceIn(-35, 35)
+        val stillPresentIds = selectedDiscomforts
+            .filter { id -> discomfortStillPresent[id] ?: true }
+            .toList()
+
+        // Trazabilidad: molestias reportadas durante la sesión se
+        // conservan en el log aunque el usuario ya no las sienta
+        // (stillPresent = false) o las haya deseleccionado.
+        val sessionReportedDiscomfortIds = postExerciseFeedbackByExerciseId
+            .values
+            .flatMap { it.discomfortIds }
+            .filter { it != "none" }
+            .toSet()
+        val allSessionDiscomfortLabels = (sessionReportedDiscomfortIds + selectedDiscomforts)
+            .mapNotNull { id -> DISCOMFORT_CATALOG_BY_ID[id]?.label }
+            .distinct()
+
+        onConfirm(
+            notes,
+            inferredFatigue,
+            SessionClosingFeedback(
+                overallFatigue = inferredFatigue,
+                systemAdjustment = (
+                    postSessionPreview.neural - neuralFinal
+                    ).coerceIn(-35, 35),
+                muscularAdjustment = muscularAdjustment,
+                structureAdjustment = (
+                    postSessionPreview.spinal - spinalFinal
+                    ).coerceIn(-35, 35),
+                discomforts = allSessionDiscomfortLabels + listOfNotNull(
+                    additionalDiscomfortNote.trim().takeIf { it.isNotBlank() },
+                ),
+                clarityRating = averageTechnique.toInt().coerceIn(1, 10),
+                environmentTags = emptyList(),
+                finalNeuralBattery = neuralFinal,
+                finalSpinalBattery = spinalFinal,
+                finalMuscleBatteries = if (musclesEdited) muscleFinal.toMap() else emptyMap(),
+                neuralEdited = neuralEdited,
+                spinalEdited = spinalEdited,
+                musclesEdited = musclesEdited,
+                additionalDiscomfortNote = additionalDiscomfortNote.trim().takeIf { it.isNotBlank() },
+                stillPresentDiscomfortIds = stillPresentIds,
+            ),
+            shareToStory,
+        )
+    }
+
     KpknSheet(
         onDismissRequest = onDismiss,
+        stableHeightFraction = 0.86f,
         hazeState = hazeState,
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .wrapContentHeight()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .fillMaxSize(),
         ) {
-            Text(
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                    .drawWithContent {
+                        drawContent()
+                        drawRect(
+                            brush = Brush.verticalGradient(
+                                colorStops = arrayOf(
+                                    0.0f to Color.Black,
+                                    0.85f to Color.Black,
+                                    1.0f to Color.Transparent,
+                                ),
+                            ),
+                            blendMode = BlendMode.DstIn,
+                        )
+                    }
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 20.dp)
+                    .padding(bottom = 90.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(
                     text = "RESUMEN DE ENTRENAMIENTO",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
@@ -797,156 +886,104 @@ internal fun FinishWorkoutSheet(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = Color.White.copy(alpha = 0.15f)
-                    )
+                    ),
                 )
-
-                val executeConfirm = {
-                    val perceivedMuscularDrop = if (muscleFinal.isEmpty()) {
-                        postSessionPreview.globalMuscularDrain.toDouble()
-                    } else {
-                        muscleFinal.entries
-                            .map { (muscle, finalValue) ->
-                                val start = postSessionPreview.perMuscle[muscle]?.recoveryScore ?: 100
-                                (start - finalValue).toDouble()
-                            }
-                            .average()
-                    }
-                    val muscularAdjustment = (
-                        perceivedMuscularDrop.toInt() - postSessionPreview.globalMuscularDrain
-                        ).coerceIn(-35, 35)
-                    val stillPresentIds = selectedDiscomforts
-                        .filter { id -> discomfortStillPresent[id] ?: true }
-                        .toList()
-
-                    // Trazabilidad: molestias reportadas durante la sesión se
-                    // conservan en el log aunque el usuario ya no las sienta
-                    // (stillPresent = false) o las haya deseleccionado.
-                    val sessionReportedDiscomfortIds = postExerciseFeedbackByExerciseId
-                        .values
-                        .flatMap { it.discomfortIds }
-                        .filter { it != "none" }
-                        .toSet()
-                    val allSessionDiscomfortLabels = (sessionReportedDiscomfortIds + selectedDiscomforts)
-                        .mapNotNull { id -> DISCOMFORT_CATALOG_BY_ID[id]?.label }
-                        .distinct()
-
-                    onConfirm(
-                        notes,
-                        inferredFatigue,
-                        SessionClosingFeedback(
-                            overallFatigue = inferredFatigue,
-                            systemAdjustment = (
-                                postSessionPreview.neural - neuralFinal
-                                ).coerceIn(-35, 35),
-                            muscularAdjustment = muscularAdjustment,
-                            structureAdjustment = (
-                                postSessionPreview.spinal - spinalFinal
-                                ).coerceIn(-35, 35),
-                            discomforts = allSessionDiscomfortLabels + listOfNotNull(
-                                additionalDiscomfortNote.trim().takeIf { it.isNotBlank() },
-                            ),
-                            clarityRating = averageTechnique.toInt().coerceIn(1, 10),
-                            environmentTags = emptyList(),
-                            finalNeuralBattery = neuralFinal,
-                            finalSpinalBattery = spinalFinal,
-                            finalMuscleBatteries = if (musclesEdited) muscleFinal.toMap() else emptyMap(),
-                            neuralEdited = neuralEdited,
-                            spinalEdited = spinalEdited,
-                            musclesEdited = musclesEdited,
-                            additionalDiscomfortNote = additionalDiscomfortNote.trim().takeIf { it.isNotBlank() },
-                            stillPresentDiscomfortIds = stillPresentIds,
-                        ),
-                        shareToStory,
-                    )
-                }
-
                 LaunchedEffect(voiceFinalConfirmTriggered) {
                     if (voiceFinalConfirmTriggered) {
                         executeConfirm()
                     }
                 }
-
-                // 7. BOTÓN COMPARTIR
-                Button(
-                    onClick = onShare,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFE1306C), // Instagram Pink/Red brand color
-                        contentColor = Color.White
-                    )
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Share,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = "Compartir en Instagram Stories",
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-
-                // Escape first, then irreversible confirm — reduces fat-finger risk.
-                OutlinedButton(
-                    onClick = onDismiss,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color.White.copy(alpha = 0.85f),
-                    ),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f)),
-                ) {
-                    Text(
-                        text = "Volver al entrenamiento",
-                        fontWeight = FontWeight.SemiBold,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-
-                Button(
-                    onClick = { if (!isFinishingWorkout) executeConfirm() },
-                    enabled = !isFinishingWorkout,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp),
-                    shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = if (isFinishingWorkout) "Guardando…" else "Guardar y Terminar",
-                            fontWeight = FontWeight.Black,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(100.dp))
             }
+
+            // 7. STICKY ACTION DOCK
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .zIndex(1f)
+                    .padding(horizontal = 20.dp, vertical = 14.dp),
+            ) {
+                // Independent alignments keep the 64dp check geometrically
+                // centered even when the compact right button is wider than
+                // the 48dp share control.
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    // Left: 48dp circular share button
+                    Surface(
+                        onClick = onShare,
+                        modifier = Modifier
+                            .align(Alignment.CenterStart)
+                            .size(48.dp),
+                        shape = CircleShape,
+                        color = Color(0xFFE1306C),
+                        contentColor = Color.White,
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = "Compartir en Instagram Stories",
+                                modifier = Modifier.size(22.dp),
+                            )
+                        }
+                    }
+
+                    // Center: 64dp circular confirm button
+                    FloatingActionButton(
+                        onClick = { if (!isFinishingWorkout) executeConfirm() },
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .size(64.dp),
+                        shape = CircleShape,
+                        containerColor = if (isFinishingWorkout) Color(0xFF444444) else MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                    ) {
+                        if (isFinishingWorkout) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(28.dp),
+                                color = MaterialTheme.colorScheme.primary,
+                                strokeWidth = 3.dp,
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "Guardar y terminar entrenamiento",
+                                modifier = Modifier.size(32.dp),
+                            )
+                        }
+                    }
+
+                    // Right: Compact ← Volver button
+                    Surface(
+                        onClick = onDismiss,
+                        shape = RoundedCornerShape(999.dp),
+                        color = Color.White.copy(alpha = 0.12f),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f)),
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Volver al entrenamiento",
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Text(
+                                text = "Volver",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

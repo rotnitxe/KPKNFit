@@ -1800,7 +1800,7 @@ private fun KPKNNavGraph(
                 onBack = {
                     navController.previousBackStackEntry?.savedStateHandle?.set(
                         CatalogSavedStateKeys.RESULT,
-                        Json.encodeToString(CatalogResult(request.requestId, canceled = true)),
+                        Json.encodeToString(CatalogResult.cancel(request)),
                     )
                     navController.popBackStack()
                 },

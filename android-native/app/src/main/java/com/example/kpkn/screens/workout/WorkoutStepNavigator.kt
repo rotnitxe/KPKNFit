@@ -529,20 +529,10 @@ class WorkoutStepNavigator(
         val targetIdx = (currentIdx + if (forward) 1 else -1).coerceIn(0, steps.lastIndex)
         if (targetIdx == currentIdx) return
         val targetStep = steps[targetIdx]
-        val position = targetStep.positionIn(visible) ?: return
-        val targetExercise = visible.getOrNull(position.first)
-        updateState {
-            it.copy(
-                currentExerciseIdx = position.first,
-                currentSetIdx = position.second,
-                activeStepKey = targetStep.stepKey,
-                pendingRestSuggestion = null,
-                restModalState = null,
-                editingState = ports.buildEditingStateForPosition(it.completedSets, targetExercise, position.second),
-                continuityTransitionTarget = null,
-            )
-        }
-        ports.persistOngoingState()
+        // Keep every manual step selection on the same route so an active rest
+        // timer is cancelled before the cursor moves. This also preserves the
+        // preparation/unilateral/superset guards in selectWorkoutStep().
+        selectWorkoutStep(targetStep.stepKey)
     }
 
     fun selectSupersetRound(roundIdx: Int) {

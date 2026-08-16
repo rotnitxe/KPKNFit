@@ -16,6 +16,7 @@ import com.example.kpkn.data.models.UnilateralMode
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutContextProfile
+import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
@@ -112,6 +113,51 @@ class WorkoutStructuralPersistenceController(
                             val updatedSession = insertExerciseAfter(targetSession, change.afterExerciseId, liveExercise)
                             repository.upsertSessionInProgram(programId, state.weekId, location.macroIndex, location.mesoIndex, updatedSession)
                         }
+                    }
+                }
+                is PendingStructuralChange.AddExercises -> {
+                    state.session?.let { liveSession ->
+                        val liveExercises = change.newExerciseIds.map { id ->
+                            liveSession.allExercises().firstOrNull { it.id == id } ?: return@let
+                        }
+                        if (liveExercises.isEmpty()) return@let
+                        val week = program.macrocycles
+                            .getOrNull(location.macroIndex)?.blocks
+                            ?.flatMap { it.mesocycles }
+                            ?.getOrNull(location.mesoIndex)?.weeks
+                            ?.firstOrNull { it.id == state.weekId }
+                        week?.let { targetWeek ->
+                            val targetSession = targetWeek.sessions.firstOrNull { it.id == sessionId }
+                            if (targetSession == null) return@let
+                            var updatedSession: Session = targetSession
+                            var afterId = change.afterExerciseId
+                            liveExercises.forEach { liveEx ->
+                                val currentAfter = afterId
+                                updatedSession = if (currentAfter == null) {
+                                    insertExerciseAtEnd(updatedSession, liveEx)
+                                } else {
+                                    insertExerciseAfter(updatedSession, currentAfter, liveEx)
+                                }
+                                afterId = liveEx.id
+                            }
+                            repository.upsertSessionInProgram(programId, state.weekId, location.macroIndex, location.mesoIndex, updatedSession)
+                        }
+                    }
+                }
+                is PendingStructuralChange.AddSuperset -> {
+                    findTargetSession(program, location, state)?.let { targetSession ->
+                        val updatedSession = applyAddSupersetToProgramSession(
+                            targetSession = targetSession,
+                            state = state,
+                            change = change,
+                        )
+                        repository.upsertSessionInProgram(
+                            programId,
+                            state.weekId,
+                            location.macroIndex,
+                            location.mesoIndex,
+                            updatedSession,
+                        )
                     }
                 }
                 is PendingStructuralChange.ReorderExercises -> {
@@ -219,7 +265,10 @@ class WorkoutStructuralPersistenceController(
         targetSession: Session,
         change: PendingStructuralChange,
         state: WorkoutUiState,
-    ): Session = withModeSession(targetSession, state.activeMode) { modeSession ->
+    ): Session = withModeSession(
+        targetSession,
+        (change as? PendingStructuralChange.AddSuperset)?.activeMode ?: state.activeMode,
+    ) { modeSession ->
         when (change) {
             is PendingStructuralChange.AddSet -> {
                 val targetExercise = change.exerciseSlot?.let { modeSession.exerciseAtSlot(it) }
@@ -258,10 +307,98 @@ class WorkoutStructuralPersistenceController(
                 if (afterExercise == null) insertExerciseAtEnd(modeSession, cloned)
                 else insertExerciseAfter(modeSession, afterExercise.id, cloned)
             }
+            is PendingStructuralChange.AddExercises -> {
+                var current = modeSession
+                var afterId = change.afterExerciseId
+                val liveSession = state.session ?: return@withModeSession modeSession
+                val templates = change.newExerciseIds.map { id ->
+                    liveSession.allExercises().firstOrNull { it.id == id }
+                        ?: return@withModeSession modeSession
+                }
+                templates.forEach { template ->
+                    val cloned = template.copy(
+                        id = UUID.randomUUID().toString(),
+                        sets = template.sets.map { it.copy(id = UUID.randomUUID().toString()) },
+                    )
+                    current = if (afterId == null) insertExerciseAtEnd(current, cloned)
+                    else insertExerciseAfter(current, afterId, cloned)
+                    afterId = cloned.id
+                }
+                current
+            }
+            is PendingStructuralChange.AddSuperset -> {
+                applyAddSupersetToProgramSession(targetSession, state, change)
+            }
             is PendingStructuralChange.ReorderExercises -> {
                 reorderSessionByCanonicalKeys(modeSession, change)
             }
         }
+    }
+
+    private fun findTargetSession(
+        program: Program,
+        location: SessionLocationCursor,
+        state: WorkoutUiState,
+    ): Session? = program.macrocycles
+        .getOrNull(location.macroIndex)?.blocks
+        ?.flatMap { it.mesocycles }
+        ?.getOrNull(location.mesoIndex)?.weeks
+        ?.firstOrNull { it.id == state.weekId }
+        ?.sessions
+        ?.firstOrNull { it.id == sessionId }
+
+    /**
+     * Replays the exact live templates and one complete superset mutation in
+     * the target program session. Unknown/partial members abort the replay so
+     * a retry can never persist a subset or duplicate a member.
+     */
+    private fun applyAddSupersetToProgramSession(
+        targetSession: Session,
+        state: WorkoutUiState,
+        change: PendingStructuralChange.AddSuperset,
+    ): Session = withModeSession(targetSession, change.activeMode) { modeSession ->
+        val liveSession = state.session?.let { ports.sessionForActiveMode(it, change.activeMode) }
+            ?: return@withModeSession modeSession
+        val liveById = liveSession.allExercises().associateBy { it.id }
+        val templates = change.newExerciseIds.map { id -> liveById[id] }
+        if (templates.any { it == null } || templates.size != change.newExerciseIds.size) return@withModeSession modeSession
+        if (change.group.id != change.groupId || change.group.exerciseOrder != change.newExerciseIds) {
+            return@withModeSession modeSession
+        }
+        if (modeSession.allExercises().any { it.id in change.newExerciseIds }) return@withModeSession modeSession
+
+        val requestedAnchor = change.afterExerciseId?.let { anchorId ->
+            modeSession.allExercises().firstOrNull { it.id == anchorId }
+        }
+        val existingGroupId = requestedAnchor?.supersetGroupRefOrLegacyId()
+        val resolvedAnchor = if (existingGroupId == null) {
+            requestedAnchor?.id
+        } else {
+            SupersetRules.orderedMembers(modeSession, existingGroupId).lastOrNull()?.id ?: requestedAnchor.id
+        }
+        val anchorPartId = resolvedAnchor?.let { anchorId ->
+            modeSession.parts.firstOrNull { part -> part.exercises.any { it.id == anchorId } }?.id
+        }
+        var current = modeSession
+        var insertionAnchor = resolvedAnchor
+        templates.filterNotNull().forEach { template ->
+            current = if (insertionAnchor == null) {
+                insertExerciseAtEnd(current, template)
+            } else {
+                insertExerciseAfter(current, insertionAnchor, template)
+            }
+            insertionAnchor = template.id
+        }
+        SupersetRules.createSuperset(
+            session = current,
+            groupId = change.groupId,
+            exerciseIds = change.newExerciseIds,
+            restBetweenExercises = change.supersetConfig.restBetweenExercisesSeconds,
+            restAfterSuperset = change.supersetConfig.restAfterSupersetSeconds,
+            rounds = change.supersetConfig.rounds,
+            anchorPartId = anchorPartId,
+            anchorExerciseId = change.newExerciseIds.firstOrNull() ?: resolvedAnchor,
+        )
     }
 
     private fun reorderSessionByCanonicalKeys(
@@ -508,11 +645,31 @@ class WorkoutStructuralPersistenceController(
         val clampedSetIdx = if (replacingCurrent) 0 else state.currentSetIdx
 
         val normalizedUpdatedSession = ports.normalizeSupersetsForWorkout(updatedSession)
+        val newVisible = ports.visibleExercises(state.copy(session = normalizedUpdatedSession))
+        val replacementModeSession = ports.sessionForActiveMode(normalizedUpdatedSession, state.activeMode)
+        val replacementFirstStep = WorkoutStepRules.buildSteps(
+            session = replacementModeSession,
+            visibleExercises = newVisible,
+        ).firstOrNull { step -> step.exerciseId == exerciseId }
+        val newExerciseIdx = if (replacingCurrent) {
+            state.currentExerciseIdx.coerceIn(0, (newVisible.size - 1).coerceAtLeast(0))
+        } else {
+            newVisible.indexOfFirst { it.id == exerciseId }.takeIf { it >= 0 } ?: state.currentExerciseIdx
+        }
+        val replacementStepKey = replacementFirstStep?.stepKey
+            ?: WorkoutStepRules.workingStepKey(exerciseId, 0)
+        val newActiveStepKey = if (
+            replacingCurrent || state.activeStepKey?.startsWith("${exerciseId}_") == true
+        ) replacementStepKey else state.activeStepKey
+        val newSetIdx = if (replacingCurrent) replacementFirstStep?.setIndex ?: 0 else clampedSetIdx
 
         updateState {
             it.copy(
                 session = normalizedUpdatedSession,
-                currentSetIdx = clampedSetIdx,
+                currentExerciseIdx = newExerciseIdx,
+                currentSetIdx = newSetIdx,
+                activeStepKey = newActiveStepKey,
+                editingState = if (it.editingState?.exerciseId == exerciseId) null else it.editingState,
                 completedSets = cleanedCompleted,
                 setAdvancedFeedback = cleanedAdvanced,
                 postExerciseFeedbackByExerciseId = cleanedFeedback,

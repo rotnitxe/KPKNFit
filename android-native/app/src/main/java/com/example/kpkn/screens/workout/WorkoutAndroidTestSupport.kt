@@ -46,6 +46,7 @@ import com.example.kpkn.data.models.SupersetGroup
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.screens.workout.components.RoadmapMode
+import com.example.kpkn.screens.workout.components.WorkoutRoadmapBar
 import dev.chrisbanes.haze.HazeState
 
 import androidx.compose.foundation.background
@@ -143,98 +144,23 @@ internal fun UnifiedExerciseCarousel(
     onOpenContext: (String) -> Unit = {},
     enableLongPress: Boolean = true,
 ) {
-    val accentByPartId = remember(parts) {
-        parts.associate { part ->
-            part.id to runCatching {
-                Color((part.color ?: "#3B82F6").toColorInt())
-            }.getOrDefault(Color(0xFF3B82F6))
-        }
-    }
-    val listState = rememberLazyListState(
-        initialFirstVisibleItemIndex = (currentIdx - 1).coerceAtLeast(0)
+    // Keep the legacy test-facing entry point on the same roadmap model and
+    // visuals as production. This prevents unilateral/superset behavior from
+    // drifting between the two surfaces.
+    WorkoutRoadmapBar(
+        exercises = exercises,
+        parts = parts,
+        supersetGroups = supersetGroups,
+        currentIdx = currentIdx,
+        currentSetIdx = currentSetIdx,
+        completedSets = completedSets,
+        onSelect = onSelect,
+        onSelectGroup = onSelectGroup,
+        onOpenContext = onOpenContext,
+        enableLongPress = enableLongPress,
+        sessionAccentColor = MaterialTheme.colorScheme.primary,
+        mode = RoadmapMode.COMPACT,
     )
-    LaunchedEffect(currentIdx) {
-        listState.animateScrollToItem((currentIdx - 1).coerceAtLeast(0))
-    }
-    val roadmapGroups = remember(exercises) {
-        val emitted = mutableSetOf<String>()
-        exercises.mapNotNull { exercise ->
-            val groupId = exercise.supersetGroupRefOrLegacyId()
-            when {
-                groupId == null -> ExerciseRoadmapGroup(null, listOf(exercise))
-                emitted.add(groupId) -> ExerciseRoadmapGroup(
-                    groupId = groupId,
-                    exercises = exercises.filter { it.supersetGroupRefOrLegacyId() == groupId },
-                )
-                else -> null
-            }
-        }
-    }
-    val supersetOrdinalById = remember(roadmapGroups) {
-        roadmapGroups.mapNotNull { group ->
-            group.groupId?.takeIf { group.exercises.size > 1 }
-        }.distinct().withIndex().associate { (index, groupId) -> groupId to index + 1 }
-    }
-    val supersetGroupById = remember(supersetGroups) { supersetGroups.associateBy { it.id } }
-    LazyRow(
-        state = listState,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 5.dp),
-        contentPadding = PaddingValues(horizontal = 0.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        items(roadmapGroups.size) { groupIdx ->
-            val group = roadmapGroups[groupIdx]
-            val exercise = group.exercises.firstOrNull() ?: return@items
-            val idx = exercises.indexOfFirst { it.id == exercise.id }.coerceAtLeast(0)
-            val part = parts.firstOrNull { it.exercises.any { e -> e.id == exercise.id } }
-            val accent = accentByPartId[part?.id] ?: MaterialTheme.colorScheme.primary
-            val partName = part?.name?.takeIf { it.isNotBlank() }
-            val completedCount = group.exercises.sumOf { member ->
-                member.sets.indices.sumOf { setIdx ->
-                    member.completionKeysForSet(setIdx).count { key -> completedSets.containsKey(key) }
-                }
-            }
-            val totalSets = group.exercises.sumOf { member ->
-                member.sets.indices.sumOf { setIdx -> member.completionKeysForSet(setIdx).size }
-            }
-            val isAllDone = completedCount >= totalSets && totalSets > 0
-            val isCurrent = group.exercises.any { it.id == exercises.getOrNull(currentIdx)?.id }
-            if (group.groupId == null || group.exercises.size == 1) {
-                ExerciseRoadmapCard(
-                    exercise = exercise,
-                    completedCount = completedCount,
-                    isCurrent = isCurrent,
-                    isAllDone = isAllDone,
-                    accent = accent,
-                    groupName = partName,
-                    onClick = { onSelect(idx) },
-                    onLongClick = if (enableLongPress) ({ onOpenContext(exercise.id) }) else null,
-                )
-            } else {
-                SupersetRoadmapCard(
-                    exercises = group.exercises,
-                    supersetNumber = group.groupId?.let(supersetOrdinalById::get) ?: 1,
-                    supersetCount = supersetOrdinalById.size,
-                    roundCount = group.groupId
-                        ?.let(supersetGroupById::get)
-                        ?.rounds
-                        ?.takeIf { it > 0 }
-                        ?: (group.exercises.maxOfOrNull { it.sets.size } ?: 0),
-                    completedSets = completedSets,
-                    isCurrent = isCurrent,
-                    isAllDone = isAllDone,
-                    accent = accent,
-                    groupName = partName,
-                    currentExerciseId = exercises.getOrNull(currentIdx)?.id,
-                    currentRound = if (isCurrent) currentSetIdx + 1 else null,
-                    onClick = { onSelectGroup(group.groupId) },
-                    onLongClick = if (enableLongPress) ({ onOpenContext(exercise.id) }) else null,
-                )
-            }
-        }
-    }
 }
 
 

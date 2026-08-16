@@ -84,8 +84,13 @@ internal fun WorkoutSetPager(
                     isLast = index == items.lastIndex && nextExerciseSetCount <= 0,
                     isConnectedPrev = index == 0 && completedPreviousSets > 0,
                     isConnectedNext = index == items.lastIndex && nextExerciseSetCount > 0,
-                    label = item.label,
-                    sideSpec = if (isUnilateral) item.side else null,
+                    isEditing = item.isEditing,
+                    label = if (item.label.startsWith("Serie ") && !item.label.contains("/")) {
+                        "${item.label}/${items.size}"
+                    } else {
+                        item.label
+                    },
+                    sideSpec = if (isUnilateral || !item.side.isNullOrBlank()) item.side else null,
                     selectedSide = selectedSide,
                     sideCompleted = { side -> sideCompleted?.invoke(item.index, side) == true },
                 )
@@ -137,6 +142,7 @@ private fun TimelineSegment(
     isLast: Boolean,
     isConnectedPrev: Boolean = false,
     isConnectedNext: Boolean = false,
+    isEditing: Boolean = false,
     label: String,
     sideSpec: String?,
     selectedSide: String?,
@@ -147,53 +153,72 @@ private fun TimelineSegment(
         isSkipped -> accent.copy(alpha = 0.26f)
         else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.22f)
     }
-    Row(
+    Column(
         modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(1.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(2.dp)
-                .clip(RoundedCornerShape(999.dp))
-                .background(
-                    when {
-                        isConnectedPrev -> lineColor
-                        isFirst -> lineColor.copy(alpha = 0.22f)
-                        else -> lineColor
-                    }
-                ),
-        )
-        if (sideSpec.isNullOrBlank()) {
-            TimelineDot(
-                accent = accent,
-                active = isActive,
-                complete = isComplete,
-                skipped = isSkipped,
-                label = label,
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(2.dp)
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(
+                        when {
+                            isConnectedPrev -> lineColor
+                            isFirst -> lineColor.copy(alpha = 0.22f)
+                            else -> lineColor
+                        }
+                    ),
             )
-        } else {
-            SideTimelineCapsule(
-                sides = sideSpec.split("|").filter { it == "left" || it == "right" },
-                accent = accent,
-                active = isActive,
-                complete = isComplete,
-                selectedSide = selectedSide,
-                sideCompleted = sideCompleted,
+            if (sideSpec.isNullOrBlank()) {
+                TimelineDot(
+                    accent = accent,
+                    active = isActive,
+                    complete = isComplete,
+                    skipped = isSkipped,
+                    label = label,
+                )
+            } else {
+                SideTimelineCapsule(
+                    sides = sideSpec.split("|").filter { it == "left" || it == "right" },
+                    label = label,
+                    accent = accent,
+                    active = isActive,
+                    complete = isComplete,
+                    selectedSide = selectedSide,
+                    sideCompleted = sideCompleted,
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(2.dp)
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(
+                        when {
+                            isConnectedNext -> lineColor
+                            isLast -> lineColor.copy(alpha = 0.22f)
+                            else -> lineColor
+                        }
+                    ),
             )
         }
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(2.dp)
-                .clip(RoundedCornerShape(999.dp))
-                .background(
-                    when {
-                        isConnectedNext -> lineColor
-                        isLast -> lineColor.copy(alpha = 0.22f)
-                        else -> lineColor
-                    }
-                ),
+        Text(
+            text = when {
+                isEditing -> "Editando"
+                isComplete -> "Completada"
+                isSkipped -> "Omitida"
+                else -> "Lista para registrar"
+            },
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 6.sp),
+            fontWeight = if (isEditing) FontWeight.Bold else FontWeight.Normal,
+            color = if (isEditing) accent else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.70f),
+            maxLines = 1,
         )
     }
 }
@@ -351,6 +376,7 @@ private fun NextGhostCluster(
 @Composable
 private fun SideTimelineCapsule(
     sides: List<String>,
+    label: String,
     accent: Color,
     active: Boolean,
     complete: Boolean,
@@ -374,9 +400,23 @@ private fun SideTimelineCapsule(
             horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 6.sp),
+                fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+                color = if (active || complete) accent else accent.copy(alpha = 0.78f),
+                maxLines = 1,
+            )
             sides.ifEmpty { listOf("left", "right") }.forEach { side ->
                 val sideDone = sideCompleted(side) || complete
                 val selected = active && selectedSide == side
+                Text(
+                    text = if (side == "left") "Izq" else "Der",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 6.sp),
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                    color = if (selected || sideDone) accent else accent.copy(alpha = 0.72f),
+                    maxLines = 1,
+                )
                 Surface(
                     modifier = Modifier.size(if (selected) 10.dp else 8.dp),
                     shape = CircleShape,

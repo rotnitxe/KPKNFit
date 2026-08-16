@@ -216,6 +216,68 @@ fun SessionEditorViewModel.addExercisesToPart(partId: String?, infos: List<Exerc
     return newExercises.map { it.id }
 }
 
+/**
+ * Catalog CREATE_SUPERSET commit. Exercises and the group are assembled in
+ * one editor mutation; the UI never observes an intermediate list of loose
+ * exercises and then a second grouping mutation.
+ */
+fun SessionEditorViewModel.addExercisesAsSupersetToPart(
+    partId: String?,
+    infos: List<ExerciseMuscleInfo>,
+    config: CatalogSupersetConfig,
+): List<String> {
+    if (infos.size < 2) return addExercisesToPart(partId, infos)
+    val currentSession = currentUiState.session ?: return emptyList()
+    if (partId != null && currentSession.parts.none { it.id == partId }) return emptyList()
+    val rounds = config.rounds.coerceAtLeast(1)
+    val newExercises = infos.map { info ->
+        val base = createExerciseFromInfo(info, repository.history.value).let { exercise ->
+            if (currentSession.isMeetDay) exercise.asCompetitionMovement() else exercise
+        }.withSessionEditorDefaults(getRuleDefaultsForPart(partId), info)
+        base.copy(
+            sets = List(rounds) { index ->
+                val existing = base.sets.getOrNull(index)
+                    ?: base.sets.lastOrNull()
+                    ?: ExerciseSet(id = UUID.randomUUID().toString())
+                existing.copy(id = UUID.randomUUID().toString())
+            },
+            restTime = config.restBetweenExercisesSeconds.coerceAtLeast(0),
+        )
+    }
+    val groupId = UUID.randomUUID().toString()
+    val updated = if (partId == null) {
+        SupersetRules.createSuperset(
+            session = currentSession.copy(exercises = currentSession.exercises + newExercises),
+            groupId = groupId,
+            exerciseIds = newExercises.map { it.id },
+            restBetweenExercises = config.restBetweenExercisesSeconds,
+            restAfterSuperset = config.restAfterSupersetSeconds,
+            rounds = rounds,
+            anchorPartId = null,
+            anchorExerciseId = newExercises.first().id,
+        )
+    } else {
+        val withMembers = currentSession.copy(
+            parts = currentSession.parts.map { part ->
+                if (part.id == partId) part.copy(exercises = part.exercises + newExercises) else part
+            },
+        )
+        SupersetRules.createSuperset(
+            session = withMembers,
+            groupId = groupId,
+            exerciseIds = newExercises.map { it.id },
+            restBetweenExercises = config.restBetweenExercisesSeconds,
+            restAfterSuperset = config.restAfterSupersetSeconds,
+            rounds = rounds,
+            anchorPartId = partId,
+            anchorExerciseId = newExercises.first().id,
+        )
+    }
+    updateSession { updated }
+    closeSheet()
+    return newExercises.map { it.id }
+}
+
 fun SessionEditorViewModel.addBlankExerciseToPart(partId: String?): String {
     val currentSession = currentUiState.session
     val newExercise = createBlankExercise().let { base ->

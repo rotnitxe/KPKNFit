@@ -194,9 +194,14 @@ internal fun CardioLiveCard(
                 }
             }
 
+            val isGpsDeniedOrDisabled = gpsMode && gpsState?.status in setOf(
+                CardioGpsStatus.PERMISSION_DENIED,
+                CardioGpsStatus.LOCATION_DISABLED,
+            )
+
             Button(
                 onClick = {
-                    if (gpsMode) {
+                    if (gpsMode && !isGpsDeniedOrDisabled) {
                         when (gpsState?.status) {
                             CardioGpsStatus.RECORDING, CardioGpsStatus.SIGNAL_LOST -> onPauseGps()
                             CardioGpsStatus.PAUSED -> onResumeGps()
@@ -219,15 +224,28 @@ internal fun CardioLiveCard(
             ) {
                 Text(
                     when {
-                        gpsMode && gpsState?.status == CardioGpsStatus.RECORDING -> "Pausar GPS"
-                        gpsMode && gpsState?.status == CardioGpsStatus.SIGNAL_LOST -> "Pausar y conservar datos"
-                        gpsMode && gpsState?.status == CardioGpsStatus.PAUSED -> "Reanudar GPS"
-                        gpsMode -> "Iniciar GPS"
+                        gpsMode && !isGpsDeniedOrDisabled && gpsState?.status == CardioGpsStatus.RECORDING -> "Pausar GPS"
+                        gpsMode && !isGpsDeniedOrDisabled && gpsState?.status == CardioGpsStatus.SIGNAL_LOST -> "Pausar y conservar datos"
+                        gpsMode && !isGpsDeniedOrDisabled && gpsState?.status == CardioGpsStatus.PAUSED -> "Reanudar GPS"
+                        gpsMode && !isGpsDeniedOrDisabled -> "Iniciar GPS"
                         status == CardioExecutionStatus.RUNNING -> "Pausar"
                         status == CardioExecutionStatus.PAUSED -> "Reanudar"
                         else -> "Iniciar"
                     },
                 )
+            }
+
+            if (isGpsDeniedOrDisabled) {
+                TextButton(
+                    onClick = onRequestGps,
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                ) {
+                    Text(
+                        "Reintentar permiso de ubicación / GPS",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = accentColor,
+                    )
+                }
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
@@ -261,13 +279,16 @@ internal fun CardioLiveCard(
                     fontWeight = FontWeight.Bold,
                 )
             }
+            val hasManualInput = (distanceKm != null && distanceKm > 0.0) || (heartRate != null) || (durationSeconds > 0)
+            val canRecord = (status !in setOf(CardioExecutionStatus.READY, CardioExecutionStatus.RECORDED)) ||
+                (hasManualInput && status != CardioExecutionStatus.RECORDED)
             Button(
                 onClick = {
                     onRequestRecord(durationSeconds, recordedDistanceKm, heartRate)
                     showRecordConfirmation = true
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = status !in setOf(CardioExecutionStatus.READY, CardioExecutionStatus.RECORDED),
+                enabled = canRecord,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = accentColor.copy(alpha = 0.92f),
                     contentColor = Color.White,

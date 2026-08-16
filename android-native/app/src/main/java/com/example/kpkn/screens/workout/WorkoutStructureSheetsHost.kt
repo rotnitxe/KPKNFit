@@ -1303,6 +1303,8 @@ internal fun WorkoutStructureSheetsHost(
         val title = when (change) {
             is PendingStructuralChange.AddSet -> "Añadir serie"
             is PendingStructuralChange.AddExercise -> "Agregar ejercicio"
+            is PendingStructuralChange.AddExercises -> "Agregar ejercicios"
+            is PendingStructuralChange.AddSuperset -> "Crear superserie"
             is PendingStructuralChange.ReorderExercises -> "Reordenar ejercicios"
         }
         KpknAlertDialog(
@@ -1319,6 +1321,12 @@ internal fun WorkoutStructureSheetsHost(
                             }
                             is PendingStructuralChange.AddExercise -> {
                                 "Se agregó «${change.newExerciseName}». ¿Cómo quieres guardar este cambio?"
+                            }
+                            is PendingStructuralChange.AddExercises -> {
+                                "Se agregaron ${change.newExerciseNames.size} ejercicios. ¿Cómo quieres guardar este cambio?"
+                            }
+                            is PendingStructuralChange.AddSuperset -> {
+                                "Se creó una superserie con ${change.newExerciseNames.size} ejercicios. ¿Cómo quieres guardar este cambio?"
                             }
                             is PendingStructuralChange.ReorderExercises -> {
                                 "Se reordenaron los ejercicios. ¿Cómo quieres guardar este cambio?"

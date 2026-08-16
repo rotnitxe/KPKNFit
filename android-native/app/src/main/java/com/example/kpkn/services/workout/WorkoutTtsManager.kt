@@ -304,8 +304,17 @@ class WorkoutTtsManager(context: Context) {
     }
 
     fun speak(text: String, queueFlush: Boolean = false) {
-        val engine = tts ?: return
-        if (!_isInitialized) return
+        val engine = tts
+        if (engine == null || !_isInitialized) {
+            openGroupKey?.let { key ->
+                val group = completionGroups.remove(key)
+                if (key == latestGroupKey) {
+                    group?.callback?.invoke()
+                }
+            }
+            openGroupKey = null
+            return
+        }
 
         val queueMode = if (queueFlush) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
         val utteranceId = "kpkn-tts-${utteranceCounter.incrementAndGet()}"
@@ -316,7 +325,7 @@ class WorkoutTtsManager(context: Context) {
             }
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             val params = Bundle().apply {
                 putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1.0f)
             }
@@ -331,6 +340,9 @@ class WorkoutTtsManager(context: Context) {
                     TextToSpeech.Engine.KEY_PARAM_VOLUME to "1.0",
                 ),
             )
+        }
+        if (result != TextToSpeech.SUCCESS) {
+            complete(utteranceId)
         }
     }
 

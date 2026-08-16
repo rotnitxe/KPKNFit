@@ -240,15 +240,6 @@ internal fun WorkoutSessionOverlaysHost(
                                         Text(mob.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = Color.White)
                                         Text(mob.description, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f), maxLines = 1, overflow = TextOverflow.Ellipsis)
                                     }
-                                    Surface(shape = RoundedCornerShape(4.dp), color = Color(0xFF448AFF).copy(alpha = 0.15f)) {
-                                        Text(
-                                            "${mob.durationSeconds}s",
-                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = Color(0xFF448AFF),
-                                            fontWeight = FontWeight.Bold,
-                                        )
-                                    }
                                 }
                             }
                         }

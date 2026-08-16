@@ -79,12 +79,13 @@ internal data class ParsedCompletedSetKey(
 )
 
 internal fun parseCompletedSetKey(key: String): ParsedCompletedSetKey? {
-    val unilateral = Regex("""^(.*)_(\d+)_(L|R)$""").matchEntire(key)
+    val unilateral = Regex("""^(.*)_(\d+)_(L|R|left|right)$""", RegexOption.IGNORE_CASE).matchEntire(key)
     if (unilateral != null) {
+        val s = unilateral.groupValues[3].uppercase()
         return ParsedCompletedSetKey(
             exerciseId = unilateral.groupValues[1],
             setIdx = unilateral.groupValues[2].toInt(),
-            side = if (unilateral.groupValues[3] == "L") "left" else "right",
+            side = if (s == "L" || s == "LEFT") "left" else "right",
         )
     }
     val bilateral = Regex("""^(.*)_(\d+)$""").matchEntire(key) ?: return null

@@ -3,6 +3,8 @@ package com.example.kpkn.screens.workout.components
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -19,6 +21,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.example.kpkn.data.exercises.displayNameWithSelectedChips
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.MobilityExercise
@@ -53,6 +57,8 @@ fun WorkoutMobilityOverlay(
     onToggleComplete: (item: WorkoutMobilityChecklistItem, completed: Boolean) -> Unit,
     onAddOptionalMobility: (MobilityExercise) -> Unit,
     onClose: () -> Unit,
+    onSkip: () -> Unit = onClose,
+    onContinue: () -> Unit = onClose,
     hazeState: HazeState,
     sessionAccentColor: Color = Color(0xFF66BB6A),
     catalog: ExerciseCatalogV2? = null,
@@ -61,7 +67,7 @@ fun WorkoutMobilityOverlay(
     val configuredSeconds = globalTimerMinutes.coerceAtLeast(1) * 60
     val remainingSeconds = globalTimerRemainingSeconds ?: configuredSeconds
     val allDone = mobilityItems.isNotEmpty() && mobilityItems.all { item ->
-        item.stepKey in completedExerciseIds || completedExerciseIds.any { it.startsWith("${item.exerciseId}_${item.mobility.id}") }
+        item.stepKey in completedExerciseIds
     }
 
     // Resolve joint involvement from catalog v2 definition/configuration if available
@@ -126,7 +132,7 @@ fun WorkoutMobilityOverlay(
                     shape = RoundedCornerShape(999.dp),
                     color = if (allDone) Color(0xFF66BB6A).copy(alpha = 0.18f) else Color.White.copy(alpha = 0.08f),
                 ) {
-                    val completedCount = mobilityItems.count { it.stepKey in completedExerciseIds || completedExerciseIds.any { k -> k.startsWith("${it.exerciseId}_${it.mobility.id}") } }
+                    val completedCount = mobilityItems.count { it.stepKey in completedExerciseIds }
                     Text(
                         text = "$completedCount/${mobilityItems.size}",
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
@@ -270,8 +276,7 @@ fun WorkoutMobilityOverlay(
                 )
 
                 mobilityItems.forEach { item ->
-                    val isCompleted = item.stepKey in completedExerciseIds ||
-                        completedExerciseIds.any { it.startsWith("${item.exerciseId}_${item.mobility.id}") }
+                    val isCompleted = item.stepKey in completedExerciseIds
                     val isActive = activeMobilityKey == item.stepKey ||
                         (activeMobilityKey?.contains(item.mobility.id) == true)
                     val mob = item.mobility
@@ -335,9 +340,16 @@ fun WorkoutMobilityOverlay(
                 }
             }
 
-            // ─── 4. Involucramiento Articular del Ejercicio (chips grandes, neutros, con tooltip) ───
+            // ─── 4. Involucramiento Articular del Ejercicio (HorizontalPager con vista previa parcial) ───
             if (resolvedJoints.isNotEmpty()) {
-                var selectedJoint by remember { mutableStateOf<JointInvolvementV2?>(null) }
+                var selectedJoint by remember(exercise.id) { mutableStateOf<JointInvolvementV2?>(null) }
+                val jointPagerState = rememberPagerState(pageCount = { resolvedJoints.size })
+                LaunchedEffect(exercise.id, resolvedJoints.map { it.jointId }) {
+                    selectedJoint = null
+                    if (jointPagerState.currentPage != 0) {
+                        jointPagerState.scrollToPage(0)
+                    }
+                }
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(18.dp),
@@ -348,61 +360,111 @@ fun WorkoutMobilityOverlay(
                         modifier = Modifier.padding(14.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        Text(
-                            "Involucramiento Articular del Ejercicio",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White.copy(alpha = 0.85f),
-                        )
-                        androidx.compose.foundation.layout.FlowRow(
+                        Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            resolvedJoints.forEach { joint ->
-                                val roleLabel = when (joint.role) {
-                                    JointRoleV2.PRIMARY -> "Principal"
-                                    JointRoleV2.SECONDARY -> "Secundario"
-                                    JointRoleV2.STABILIZER -> "Estabilizador"
-                                }
-                                Surface(
-                                    onClick = { selectedJoint = joint },
-                                    shape = RoundedCornerShape(12.dp),
-                                    color = Color.White.copy(alpha = 0.06f),
-                                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+                            Text(
+                                "Involucramiento Articular del Ejercicio",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White.copy(alpha = 0.85f),
+                            )
+                            if (resolvedJoints.size > 1) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
                                 ) {
-                                    Row(
-                                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    ) {
+                                    resolvedJoints.indices.forEach { index ->
+                                        val isCurrent = jointPagerState.currentPage == index
                                         Box(
                                             modifier = Modifier
-                                                .size(8.dp)
+                                                .size(if (isCurrent) 6.dp else 4.dp)
                                                 .clip(CircleShape)
-                                                .background(Color.White.copy(alpha = 0.55f)),
+                                                .background(
+                                                    if (isCurrent) sessionAccentColor else Color.White.copy(alpha = 0.3f)
+                                                ),
                                         )
-                                        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-                                            Text(
-                                                formatJointName(joint.jointId),
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                fontWeight = FontWeight.Bold,
-                                                color = Color.White.copy(alpha = 0.95f),
-                                            )
-                                            Text(
-                                                roleLabel,
-                                                style = MaterialTheme.typography.labelSmall,
-                                                fontWeight = FontWeight.SemiBold,
-                                                color = Color.White.copy(alpha = 0.55f),
-                                                letterSpacing = 0.3.sp,
-                                            )
-                                        }
                                     }
                                 }
                             }
                         }
+
+                        HorizontalPager(
+                            state = jointPagerState,
+                            contentPadding = PaddingValues(end = if (resolvedJoints.size > 1) 48.dp else 0.dp),
+                            pageSpacing = 10.dp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(76.dp),
+                        ) { pageIdx ->
+                            val joint = resolvedJoints[pageIdx]
+                            val roleLabel = when (joint.role) {
+                                JointRoleV2.PRIMARY -> "Principal"
+                                JointRoleV2.SECONDARY -> "Secundario"
+                                JointRoleV2.STABILIZER -> "Estabilizador"
+                            }
+                            Surface(
+                                onClick = { selectedJoint = joint },
+                                shape = RoundedCornerShape(12.dp),
+                                color = Color.White.copy(alpha = 0.06f),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .semantics {
+                                        contentDescription = "Tarjeta ${pageIdx + 1} de ${resolvedJoints.size}: ${formatJointName(joint.jointId)}"
+                                    },
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(10.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                when (joint.role) {
+                                                    JointRoleV2.PRIMARY -> sessionAccentColor
+                                                    JointRoleV2.SECONDARY -> Color.White.copy(alpha = 0.75f)
+                                                    JointRoleV2.STABILIZER -> Color.White.copy(alpha = 0.45f)
+                                                }
+                                            ),
+                                    )
+                                    Column(
+                                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                                        modifier = Modifier.weight(1f),
+                                    ) {
+                                        Text(
+                                            formatJointName(joint.jointId),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White.copy(alpha = 0.95f),
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Visible,
+                                        )
+                                        Text(
+                                            roleLabel,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = Color.White.copy(alpha = 0.55f),
+                                            letterSpacing = 0.3.sp,
+                                        )
+                                    }
+                                    Icon(
+                                        Icons.Default.ChevronRight,
+                                        contentDescription = null,
+                                        tint = Color.White.copy(alpha = 0.3f),
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                }
+                            }
+                        }
+
                         Text(
-                            "Toca cada articulación para ver su función específica en este movimiento.",
+                            "Desliza y toca cada articulación para ver su función biomecánica.",
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White.copy(alpha = 0.45f),
                         )
@@ -555,7 +617,7 @@ fun WorkoutMobilityOverlay(
                                                     color = Color.White.copy(alpha = 0.90f),
                                                 )
                                                 Text(
-                                                    "${comp.durationSeconds}s · ${comp.description}",
+                                                    comp.description,
                                                     style = MaterialTheme.typography.labelSmall,
                                                     color = Color.White.copy(alpha = 0.50f),
                                                     maxLines = 1,
@@ -606,7 +668,7 @@ fun WorkoutMobilityOverlay(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Button(
-                    onClick = onClose,
+                    onClick = onSkip,
                     modifier = Modifier.weight(1f).height(48.dp),
                     shape = RoundedCornerShape(999.dp),
                     colors = ButtonDefaults.buttonColors(
@@ -624,7 +686,7 @@ fun WorkoutMobilityOverlay(
                 }
 
                 Button(
-                    onClick = onClose,
+                    onClick = onContinue,
                     enabled = allDone,
                     modifier = Modifier.weight(1.3f).height(48.dp),
                     shape = RoundedCornerShape(999.dp),

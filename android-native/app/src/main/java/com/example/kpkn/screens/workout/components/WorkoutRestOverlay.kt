@@ -669,7 +669,7 @@ private fun NormalRestContent(
                                     modifier = Modifier.size(12.dp)
                                 )
                                 Text(
-                                    text = "Usar Dinámico",
+                                    text = "Descanso sugerido",
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Black
                                 )

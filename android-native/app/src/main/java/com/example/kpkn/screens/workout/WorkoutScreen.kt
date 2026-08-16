@@ -188,6 +188,7 @@ import dev.chrisbanes.haze.hazeSource
 import kotlin.math.roundToInt
 import com.example.kpkn.screens.sessioneditor.components.ExercisePickerSheet
 import com.example.kpkn.screens.sessioneditor.CatalogLaunchOrigin
+import com.example.kpkn.screens.sessioneditor.CatalogCommitAction
 import com.example.kpkn.screens.sessioneditor.CatalogLaunchRequest
 import com.example.kpkn.screens.sessioneditor.CatalogResult
 
@@ -358,8 +359,34 @@ fun WorkoutScreen(
     }
 
     if (session == null) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+        BackHandler {
+            onBack()
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF0D1117)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(24.dp),
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                Text(
+                    text = "Cargando sesión de entrenamiento...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.7f),
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = onBack,
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White.copy(alpha = 0.8f)),
+                ) {
+                    Text("Volver")
+                }
+            }
         }
         return
     }
@@ -559,46 +586,121 @@ fun WorkoutScreen(
 
     LaunchedEffect(catalogResult?.requestId) {
         val result = catalogResult ?: return@LaunchedEffect
-        val request = pendingCatalogRequest ?: return@LaunchedEffect
+        val expectedRequest = pendingCatalogRequest
+        if (expectedRequest != null && !result.matches(expectedRequest)) {
+            android.util.Log.e(
+                "WorkoutScreen",
+                "Rejecting catalog result for request ${result.requestId}; expected ${expectedRequest.requestId}",
+            )
+            onCatalogResultConsumed()
+            pendingCatalogRequest = null
+            val action = snackbarHostState.showKpknSnackbar(
+                message = "El resultado del catálogo ya no corresponde a esta solicitud",
+                type = SnackbarType.DANGER,
+                actionLabel = "Reintentar",
+            )
+            if (action == SnackbarResult.ActionPerformed && onOpenCatalog != null) {
+                val retry = expectedRequest.copy(requestId = UUID.randomUUID().toString())
+                pendingCatalogRequest = retry
+                onOpenCatalog(retry)
+            }
+            return@LaunchedEffect
+        }
+        // A result can outlive the transient request remembered by this
+        // screen (process recreation or a navigation round-trip). Rebuild a
+        // validation request from the self-contained result in that case;
+        // never bypass action/origin/version validation just because the
+        // caller lost its in-memory request.
+        val validationRequest = expectedRequest ?: CatalogLaunchRequest(
+            requestId = result.requestId,
+            contractVersion = result.contractVersion,
+            origin = result.origin,
+            selectionMode = result.selectionMode,
+            targetExerciseId = result.targetExerciseId,
+        )
+        if (!result.isValidFor(validationRequest)) {
+            android.util.Log.e("WorkoutScreen", "Catalog result rejected: invalid request context/action/version")
+            val action = snackbarHostState.showKpknSnackbar(
+                message = "Resultado de catálogo inválido; no se aplicó ningún cambio",
+                type = SnackbarType.DANGER,
+                actionLabel = "Reintentar",
+            )
+            onCatalogResultConsumed()
+            pendingCatalogRequest = null
+            if (action == SnackbarResult.ActionPerformed && onOpenCatalog != null && expectedRequest != null) {
+                val retry = expectedRequest.copy(requestId = UUID.randomUUID().toString())
+                pendingCatalogRequest = retry
+                onOpenCatalog(retry)
+            }
+            return@LaunchedEffect
+        }
         val exerciseInfoById = catalogExerciseIndex()
+        val unresolved = result.unresolvedSelectionIds(exerciseInfoById)
+        if (!result.canceled && unresolved.isNotEmpty()) {
+            android.util.Log.e("WorkoutScreen", "Catalog result rejected atomically; unresolved=$unresolved")
+            val action = snackbarHostState.showKpknSnackbar(
+                message = "No se pudieron resolver todos los ejercicios; vuelve a intentarlo",
+                type = SnackbarType.DANGER,
+                actionLabel = "Reintentar",
+            )
+            onCatalogResultConsumed()
+            pendingCatalogRequest = null
+            if (action == SnackbarResult.ActionPerformed && expectedRequest != null && onOpenCatalog != null) {
+                val retry = expectedRequest.copy(requestId = UUID.randomUUID().toString())
+                pendingCatalogRequest = retry
+                onOpenCatalog(retry)
+            }
+            return@LaunchedEffect
+        }
         val infos = result.resolveSelectedInfos(exerciseInfoById)
         if (!result.canceled) {
-            when (request.origin) {
-                CatalogLaunchOrigin.SUPERSET -> {
-                    request.targetExerciseId?.let { groupId ->
-                        infos.forEach { info -> viewModel.addCatalogExerciseToLiveSuperset(groupId, info) }
+            if (result.commitAction == CatalogCommitAction.CREATE_SUPERSET && infos.isNotEmpty()) {
+                viewModel.addExercisesAsLiveSuperset(
+                    catalogExercises = infos,
+                    config = result.supersetConfig,
+                    targetExerciseId = result.targetExerciseId ?: expectedRequest?.targetExerciseId,
+                )
+                structureSheets.addCatalogToSupersetGroupId = null
+                structureSheets.addCatalogSearchQuery = ""
+                structureSheets.addCatalogSelectedIds = emptySet()
+            } else {
+                val origin = result.origin
+                val targetExerciseId = result.targetExerciseId ?: pendingCatalogRequest?.targetExerciseId
+                when (origin) {
+                    CatalogLaunchOrigin.SUPERSET -> {
+                        targetExerciseId?.let { groupId ->
+                            infos.forEach { info -> viewModel.addCatalogExerciseToLiveSuperset(groupId, info) }
+                        }
+                        structureSheets.addCatalogToSupersetGroupId = null
+                        structureSheets.addCatalogSearchQuery = ""
+                        structureSheets.addCatalogSelectedIds = emptySet()
                     }
-                    structureSheets.addCatalogToSupersetGroupId = null
-                    structureSheets.addCatalogSearchQuery = ""
-                    structureSheets.addCatalogSelectedIds = emptySet()
-                }
-                CatalogLaunchOrigin.LIVE_SESSION -> {
-                    val targetId = request.targetExerciseId
-                    if (targetId != null) {
-                        viewModel.addExercisesAfter(targetId, infos)
-                    } else if (infos.isNotEmpty()) {
-                        viewModel.addExercisesAtEnd(infos)
+                    CatalogLaunchOrigin.LIVE_SESSION, CatalogLaunchOrigin.SESSION_EDITOR -> {
+                        if (targetExerciseId != null) {
+                            viewModel.addExercisesAfter(targetExerciseId, infos)
+                        } else if (infos.isNotEmpty()) {
+                            viewModel.addExercisesAtEnd(infos)
+                        }
+                        structureSheets.addExerciseAfterId = null
+                        structureSheets.addExerciseSearchQuery = ""
+                        structureSheets.addExerciseSelectedIds = emptySet()
                     }
-                    structureSheets.addExerciseAfterId = null
-                    structureSheets.addExerciseSearchQuery = ""
-                    structureSheets.addExerciseSelectedIds = emptySet()
-                }
-                CatalogLaunchOrigin.REPLACEMENT -> {
-                    val targetId = request.targetExerciseId
-                    val replacement = infos.firstOrNull()
-                    if (targetId != null && replacement != null) {
-                        viewModel.replaceExercise(
-                            exerciseId = targetId,
-                            replacement = replacement,
-                            deferPersistencePrompt = true,
-                        )
-                        structureSheets.editSheetExerciseId = targetId
-                        structureSheets.selectedExerciseContextTab = null
+                    CatalogLaunchOrigin.REPLACEMENT -> {
+                        val replacement = infos.firstOrNull()
+                        if (targetExerciseId != null && replacement != null) {
+                            viewModel.replaceExercise(
+                                exerciseId = targetExerciseId,
+                                replacement = replacement,
+                                deferPersistencePrompt = true,
+                            )
+                            structureSheets.editSheetExerciseId = targetExerciseId
+                            structureSheets.selectedExerciseContextTab = null
+                        }
+                        structureSheets.showReplaceExercisePicker = false
+                        structureSheets.replaceTargetExerciseId = null
                     }
-                    structureSheets.showReplaceExercisePicker = false
-                    structureSheets.replaceTargetExerciseId = null
+                    else -> Unit
                 }
-                else -> Unit
             }
         } else {
             structureSheets.addCatalogToSupersetGroupId = null
@@ -747,8 +849,10 @@ fun WorkoutScreen(
             supersetGroups = modeSession.allSupersetGroups(),
             currentIdx = uiState.currentExerciseIdx,
             currentSetIdx = uiState.currentSetIdx,
+            currentSide = activeDockSide,
             completedSets = uiState.completedSets,
             onSelect = { viewModel.selectExercise(it) },
+            onSelectStep = { stepKey -> viewModel.selectWorkoutStep(stepKey) },
             onSelectGroup = { viewModel.selectSupersetGroup(it) },
             onOpenContext = { exId -> structureSheets.exerciseContextExerciseId = exId },
             enableLongPress = true,
@@ -1099,6 +1203,13 @@ fun WorkoutScreen(
             viewModel.consumeEmptyFinishGuardNotice()
         }
     }
+    LaunchedEffect(uiState.finishWarning) {
+        val warning = uiState.finishWarning
+        if (warning != null) {
+            android.widget.Toast.makeText(context, warning, android.widget.Toast.LENGTH_LONG).show()
+            viewModel.consumeFinishWarning()
+        }
+    }
     if (uiState.showFinishSheet) {
         val duration = ((System.currentTimeMillis() - uiState.startTimeMs) / 60000).toInt().coerceAtLeast(1)
         val sessionIntensityResult = remember(completedExercisesForSummary, visibleExercises) {
@@ -1152,6 +1263,7 @@ fun WorkoutScreen(
             voiceFinalNeural = uiState.voiceFinalNeural,
             voiceFinalSpinal = uiState.voiceFinalSpinal,
             voiceFinalConfirmTriggered = uiState.voiceFinalConfirmTriggered,
+            isFinishingWorkout = uiState.isFinishingWorkout,
             hazeState = overlayHazeState,
             onSummaryReady = viewModel::announceWorkoutSessionSummary,
             onConfirm = { notes, fatigue, closingFeedback, shareToStory ->

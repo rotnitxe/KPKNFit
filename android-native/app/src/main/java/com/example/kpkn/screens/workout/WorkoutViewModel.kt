@@ -19,6 +19,7 @@ import com.example.kpkn.domain.cardio.CardioTimerEngine
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge
+import com.example.kpkn.screens.sessioneditor.CatalogSupersetConfig
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.training.ProgramCalendarEngine
@@ -65,18 +66,18 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
 
 internal class WorkoutRecordingGate {
-    private val activeKey = AtomicReference<String?>(null)
+    private val activeKey = MutableStateFlow<String?>(null)
 
     fun tryStart(key: String): Boolean = activeKey.compareAndSet(null, key)
 
@@ -84,8 +85,20 @@ internal class WorkoutRecordingGate {
         activeKey.compareAndSet(key, null)
     }
 
-    fun isBusy(): Boolean = activeKey.get() != null
+    fun isBusy(): Boolean = activeKey.value != null
+
+    /** Waits for the in-flight recorder to release the gate, without polling. */
+    suspend fun awaitIdle(timeoutMs: Long = 10_000L): Boolean {
+        if (!isBusy()) return true
+        return withTimeoutOrNull(timeoutMs) {
+            activeKey.first { it == null }
+            true
+        } ?: false
+    }
 }
+
+internal fun canStartWorkoutRecording(state: WorkoutUiState): Boolean =
+    !state.isFinishingWorkout && !state.isComplete
 
 class WorkoutViewModel(
     private val appContext: Context,
@@ -193,7 +206,10 @@ class WorkoutViewModel(
     private var sessionStartLogged = false
 
     private val setRecorder = WorkoutSetRecorder(
-        tryStartRecording = recordingGate::tryStart,
+        tryStartRecording = { key ->
+            val state = _uiState.value
+            canStartWorkoutRecording(state) && recordingGate.tryStart(key)
+        },
         finishRecording = recordingGate::finish,
         evaluatedContextKeys = evaluatedContextKeysThisSession,
         repository = repository,
@@ -279,6 +295,7 @@ class WorkoutViewModel(
         updatePredictionBias = ::updatePredictionBiasFromClosingFeedback,
         deferOnComplete = { cb -> deferredOnComplete = cb },
         prepareVoiceDiagnosticExport = ::prepareVoiceDiagnosticExport,
+        awaitRecordingIdle = recordingGate::awaitIdle,
         onEmptySession = ::handleEmptySessionFinishBlocked,
     )
 
@@ -1251,6 +1268,10 @@ class WorkoutViewModel(
         expectedSetIdx: Int? = null,
         expectedSide: String? = null,
     ) {
+        // Once finish owns the session, no new record can enter the recorder.
+        // An already-running record is allowed to complete and is awaited by
+        // WorkoutFinishController before it snapshots the log.
+        if (!canStartWorkoutRecording(_uiState.value)) return
         val beforeCount = _uiState.value.completedSets.size
         val exercise = visibleExercises(_uiState.value).getOrNull(_uiState.value.currentExerciseIdx)
         try {
@@ -1896,7 +1917,11 @@ class WorkoutViewModel(
         return normalized.copy(weight = autoWeight ?: normalized.weight)
     }
 
-    private fun workoutStepPositions(state: WorkoutUiState): List<WorkoutStep> = stepNavigator.workoutStepPositions(state)
+    internal fun workoutStepPositions(state: WorkoutUiState): List<WorkoutStep> = stepNavigator.workoutStepPositions(state)
+
+    /** Canonical global cursor used by pager/preparation guards. */
+    internal fun firstIncompleteStep(state: WorkoutUiState): WorkoutStep? =
+        stepNavigator.firstIncompleteStep(state)
 
     private fun warmupCompletionKey(exerciseId: String, warmupSetId: String): String =
         stepNavigator.warmupCompletionKey(exerciseId, warmupSetId)
@@ -1925,12 +1950,65 @@ class WorkoutViewModel(
         restTimer.abortHard()
     }
 
+    private fun isFinishSnapshotStepCompleted(
+        state: WorkoutUiState,
+        visible: List<Exercise>,
+        step: WorkoutStep,
+    ): Boolean = when (step.type) {
+        WorkoutStepType.CARDIO -> "${step.exerciseId}_0" in state.completedSets
+        WorkoutStepType.MOBILITY,
+        WorkoutStepType.MOBILITY_GROUP -> {
+            val mobilityId = step.mobilitySeriesId ?: return false
+            WorkoutStepRules.mobilityStepKey(step.exerciseId, mobilityId, step.mobilitySetIndex) in
+                state.mobilityCompletedExerciseIds
+        }
+        WorkoutStepType.MOBILITY_TOTAL -> step.stepKey in state.mobilityTotalCompletedStepKeys
+        WorkoutStepType.WARMUP -> {
+            val warmupId = step.warmupSetId ?: return false
+            step.exerciseId in state.warmupCompletedExerciseIds ||
+                WorkoutStepRules.warmupStepKey(step.exerciseId, warmupId) in state.warmupCompletedExerciseIds
+        }
+        WorkoutStepType.WORKING_SET -> {
+            val setIndex = step.setIndex ?: return false
+            val exercise = visible.firstOrNull { it.id == step.exerciseId } ?: return false
+            if (exercise.isEffectivelyUnilateral() && step.side != null) {
+                buildCompletedSetKey(exercise.id, setIndex, step.side) in state.completedSets
+            } else {
+                isSetDone(state.completedSets, exercise.id, setIndex, exercise.isEffectivelyUnilateral())
+            }
+        }
+    }
+
     private fun openFinishSheet() {
         abortRestTimerHard()
         voiceController.resetFeedbackPromptFlags()
-        _uiState.update {
-            it.copy(
+        _uiState.update { state ->
+            val visible = visibleExercises(state)
+            val currentExercise = visible.getOrNull(state.currentExerciseIdx)
+            val canonicalSteps = workoutStepPositions(state)
+            val activeStep = state.activeStepKey?.let { key -> canonicalSteps.firstOrNull { it.stepKey == key } }
+            val snapshotExercise = activeStep?.exerciseId
+                ?.let { exerciseId -> visible.firstOrNull { it.id == exerciseId } }
+                ?: currentExercise
+            val snapshotSetIdx = activeStep?.setIndex ?: state.currentSetIdx
+            val snapshotExerciseIdx = snapshotExercise?.let(visible::indexOf)?.takeIf { it >= 0 }
+            val lastRenderableStep = canonicalSteps.asReversed().firstOrNull { step ->
+                isFinishSnapshotStepCompleted(state, visible, step)
+            }
+            val snapshot = FinishResumeSnapshot(
+                exerciseId = snapshotExercise?.id ?: activeStep?.exerciseId,
+                setId = snapshotExercise?.sets?.getOrNull(snapshotSetIdx)?.id,
+                side = state.editingState?.side ?: activeStep?.side,
+                activeStepKey = activeStep?.stepKey,
+                editingState = state.editingState,
+                skippedExerciseIds = state.skippedExerciseIds,
+                lastRenderableStepKey = lastRenderableStep?.stepKey,
+                currentExerciseIdx = snapshotExerciseIdx ?: state.currentExerciseIdx,
+                currentSetIdx = snapshotSetIdx,
+            )
+            state.copy(
                 showFinishSheet = true,
+                finishResumeSnapshot = snapshot,
                 postExerciseTargetIdx = -1,
                 postExerciseFeedbackTarget = null,
                 pendingPostExerciseIdx = -1,
@@ -2075,6 +2153,102 @@ class WorkoutViewModel(
         }
         if (updatedSession == base) return
         applySessionMutation(updatedSession, preferredExerciseId = newExerciseId)
+    }
+
+    fun addExercisesAsLiveSuperset(
+        catalogExercises: List<ExerciseMuscleInfo>,
+        config: CatalogSupersetConfig? = null,
+        targetExerciseId: String? = null,
+    ) {
+        if (catalogExercises.size < 2) return
+        val state = _uiState.value
+        val base = state.session ?: return
+        val effectiveConfig = config ?: CatalogSupersetConfig()
+        val groupId = UUID.randomUUID().toString()
+        val newExerciseIds = mutableListOf<String>()
+        val newExerciseNames = mutableListOf<String>()
+
+        val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
+            var currentSession = modeSession
+            val requestedAnchor = targetExerciseId
+                ?.let { id -> modeSession.allExercises().firstOrNull { it.id == id } }
+            val anchorExerciseId = requestedAnchor?.let { anchor ->
+                val existingGroupId = anchor.supersetGroupRefOrLegacyId()
+                if (existingGroupId == null) {
+                    anchor.id
+                } else {
+                    SupersetRules.orderedMembers(modeSession, existingGroupId).lastOrNull()?.id ?: anchor.id
+                }
+            }
+            var insertionAnchor = anchorExerciseId
+            val createdExercises = catalogExercises.map { info ->
+                val newId = UUID.randomUUID().toString()
+                newExerciseIds.add(newId)
+                newExerciseNames.add(info.name)
+                val baseEx = Exercise(
+                    id = newId,
+                    name = info.name,
+                    exerciseDbId = info.id,
+                    sets = (0 until effectiveConfig.rounds.coerceAtLeast(1)).map {
+                        ExerciseSet(
+                            id = UUID.randomUUID().toString(),
+                            targetReps = 10,
+                            targetRPE = 8.0,
+                            loadModeV2 = LoadModeV2.LOAD,
+                        )
+                    },
+                    restTime = effectiveConfig.restBetweenExercisesSeconds,
+                    supersetGroupRef = groupId,
+                    supersetId = groupId,
+                    supersetRestBetween = effectiveConfig.restBetweenExercisesSeconds,
+                    supersetRestAfter = effectiveConfig.restAfterSupersetSeconds,
+                ).replacedWithCatalogExercise(
+                    info = info,
+                    selectedAspects = CatalogSelectionDraftBridge.consume(info.id)?.selectedAspects,
+                )
+                currentSession = if (insertionAnchor == null) {
+                    structuralPersistence.insertExerciseAtEnd(currentSession, baseEx)
+                } else {
+                    structuralPersistence.insertExerciseAfter(currentSession, insertionAnchor, baseEx)
+                }
+                insertionAnchor = newId
+                baseEx
+            }
+            val anchorPartId = anchorExerciseId?.let { anchorId ->
+                currentSession.parts.firstOrNull { part -> part.exercises.any { it.id == anchorId } }?.id
+            }
+            SupersetRules.createSuperset(
+                session = currentSession,
+                groupId = groupId,
+                exerciseIds = newExerciseIds,
+                restBetweenExercises = effectiveConfig.restBetweenExercisesSeconds,
+                restAfterSuperset = effectiveConfig.restAfterSupersetSeconds,
+                rounds = effectiveConfig.rounds,
+                anchorPartId = anchorPartId,
+                anchorExerciseId = newExerciseIds.firstOrNull() ?: anchorExerciseId,
+            )
+        }
+
+        if (updatedSession == base) return
+        val createdGroup = updatedSession.allSupersetGroups().firstOrNull { it.id == groupId } ?: return
+        applySessionMutation(
+            updatedSession,
+            preferredExerciseId = newExerciseIds.firstOrNull(),
+            persistToProgram = false,
+        )
+        _uiState.update {
+            it.copy(
+                pendingStructuralPersistence = PendingStructuralChange.AddSuperset(
+                    groupId = groupId,
+                    afterExerciseId = targetExerciseId,
+                    newExerciseIds = newExerciseIds,
+                    newExerciseNames = newExerciseNames,
+                    supersetConfig = effectiveConfig,
+                    group = createdGroup,
+                    activeMode = state.activeMode,
+                )
+            )
+        }
     }
 
     private fun insertExerciseAfterSupersetMembers(
@@ -2307,10 +2481,14 @@ class WorkoutViewModel(
         val base = state.session ?: return
         var lastInsertedId = exerciseId
         var firstNewId: String? = null
+        val allNewIds = mutableListOf<String>()
+        val allNewNames = mutableListOf<String>()
         var updated = base
         for (info in infos) {
             val newId = UUID.randomUUID().toString()
             if (firstNewId == null) firstNewId = newId
+            allNewIds.add(newId)
+            allNewNames.add(info.name)
             val curTarget = lastInsertedId
             updated = withModeSession(updated, state.activeMode) { modeSession ->
                 val template = modeSession.allExercises().firstOrNull { it.id == curTarget }
@@ -2326,7 +2504,16 @@ class WorkoutViewModel(
         }
         if (updated == base) return
         applySessionMutation(updated, preferredExerciseId = firstNewId, persistToProgram = false)
-        _uiState.update { it.copy(pendingEditSheetExerciseId = firstNewId) }
+        _uiState.update {
+            it.copy(
+                pendingEditSheetExerciseId = firstNewId,
+                pendingStructuralPersistence = PendingStructuralChange.AddExercises(
+                    afterExerciseId = exerciseId,
+                    newExerciseIds = allNewIds,
+                    newExerciseNames = allNewNames,
+                )
+            )
+        }
     }
 
     fun addExerciseAtEnd(info: ExerciseMuscleInfo) {
@@ -2462,7 +2649,10 @@ class WorkoutViewModel(
             it.copy(warmupCompletedExerciseIds = it.warmupCompletedExerciseIds + exerciseId + keys)
         }
         persistOngoingState()
-        nextSet(stopRest = false)
+        // Preparation completion must resolve the first incomplete canonical
+        // step. A relative nextSet() can jump over remaining prep or land on
+        // the wrong member of a superset when activeStepKey is stale.
+        advanceAfterPreparation(exerciseId)
     }
 
     /** Completes exactly one warm-up card and starts its configured rest. */
@@ -2501,7 +2691,9 @@ class WorkoutViewModel(
                 "reportedReps" to completed.reps,
             ),
         )
-        nextSet(stopRest = false)
+        // Do not advance relative to the pager position here. The canonical
+        // resolver includes remaining mobility/warm-up steps and then R1-A.
+        advanceAfterPreparation(exerciseId)
         startPreparationRestIfNeeded(
             seconds = warmup.restBetween ?: 0,
             kind = RestTimerKind.WARMUP,
@@ -2677,6 +2869,16 @@ class WorkoutViewModel(
         persistOngoingState()
     }
 
+    fun advanceAfterPreparation(exerciseId: String) {
+        val state = _uiState.value
+        // Preparation closes must resume from the first incomplete canonical step,
+        // not from the first working set. This preserves remaining mobility and
+        // warm-up steps, and keeps supersets ordered as prep -> R1-A -> R1-B.
+        stepNavigator.firstIncompleteStep(state)?.let { firstIncomplete ->
+            selectWorkoutStep(firstIncomplete.stepKey)
+        } ?: openFinishSheet()
+    }
+
     fun skipMobilityPreparation(exerciseId: String) {
         val state = _uiState.value
         val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
@@ -2689,7 +2891,7 @@ class WorkoutViewModel(
             it.copy(mobilityCompletedExerciseIds = it.mobilityCompletedExerciseIds + mobilityKeys)
         }
         persistOngoingState()
-        nextSet(stopRest = false)
+        advanceAfterPreparation(exerciseId)
     }
 
     fun skipWarmupPreparation(exerciseId: String) {
@@ -2700,7 +2902,7 @@ class WorkoutViewModel(
             it.copy(warmupCompletedExerciseIds = it.warmupCompletedExerciseIds + warmupKeys)
         }
         persistOngoingState()
-        nextSet(stopRest = false)
+        advanceAfterPreparation(exerciseId)
     }
 
     fun recordWarmupHeaviness(exerciseId: String, warmupSetId: String, rpe: Double) {
@@ -2742,7 +2944,7 @@ class WorkoutViewModel(
                 "setIndex" to mobilitySetIndex,
             ),
         )
-        nextSet(stopRest = false)
+        advanceAfterPreparation(exerciseId)
     }
 
     fun reportMobilityStep(
@@ -2783,7 +2985,10 @@ class WorkoutViewModel(
                 "exerciseId" to exerciseId,
             ),
         )
-        nextSet(stopRest = false)
+        // The global mobility timer is also a preparation step; resume from
+        // the first incomplete canonical step rather than a relative pager
+        // increment.
+        advanceAfterPreparation(exerciseId)
     }
 
     fun startMobilityTotalTimer(exerciseId: String, totalMinutes: Int) {
@@ -2934,7 +3139,7 @@ class WorkoutViewModel(
             )
         }
         persistOngoingState()
-        nextSet(stopRest = false)
+        advanceAfterPreparation(exerciseId)
     }
 
     fun setMobilityExerciseCompleted(
@@ -3848,21 +4053,81 @@ class WorkoutViewModel(
     fun hideFinish() {
         abortRestTimerHard()
         _uiState.update { state ->
-            val steps = workoutStepPositions(state)
-            val lastWorkingStep = steps.lastOrNull { it.type == WorkoutStepType.WORKING_SET }
+            val snapshot = state.finishResumeSnapshot
+            val visible = visibleExercises(state)
+            val canonicalSteps = workoutStepPositions(state)
+            val snapshotStep = snapshot?.activeStepKey
+                ?.let { key -> canonicalSteps.firstOrNull { it.stepKey == key } }
+            val fallbackStep = snapshot?.lastRenderableStepKey
+                ?.let { key -> canonicalSteps.firstOrNull { it.stepKey == key } }
+            val snapshotExercise = snapshot?.exerciseId
+                ?.let { id -> visible.firstOrNull { it.id == id } }
+            val snapshotSetStillExists = snapshot?.setId?.let { setId ->
+                snapshotExercise?.sets?.any { it.id == setId } == true
+            } ?: true
+            // A replacement can keep the exercise ID while rebuilding its
+            // sets. If the stable set ID disappeared, the old step key is no
+            // longer a valid resume anchor; use the last completed canonical
+            // step instead of reopening the replacement at set 0.
+            val snapshotWasReplaced = snapshot?.setId != null && !snapshotSetStillExists
+            val restoredExercise = if (snapshotWasReplaced) {
+                fallbackStep?.let { step -> visible.firstOrNull { it.id == step.exerciseId } }
+            } else {
+                snapshotExercise
+                    ?: snapshotStep?.let { step -> visible.firstOrNull { it.id == step.exerciseId } }
+                    ?: fallbackStep?.let { step -> visible.firstOrNull { it.id == step.exerciseId } }
+            }
+                ?: visible.lastOrNull { it.id !in snapshot?.skippedExerciseIds.orEmpty() }
+                ?: visible.lastOrNull()
+            val restoredExerciseIdx = restoredExercise?.let { visible.indexOf(it) }
+                ?.takeIf { it >= 0 }
+                ?: 0
+            val effectiveSnapshot = snapshot?.takeUnless { snapshotWasReplaced }
+            val restoredSetIdx = effectiveSnapshot?.setId
+                ?.let { setId -> restoredExercise?.sets?.indexOfFirst { it.id == setId } }
+                ?.takeIf { it >= 0 }
+                ?: snapshotStep?.takeUnless { snapshotWasReplaced }?.setIndex
+                ?: fallbackStep?.setIndex
+                ?: effectiveSnapshot?.currentSetIdx?.takeIf { restoredExercise != null && it in restoredExercise.sets.indices }
+                ?: 0
+            val restoredStep = snapshotStep?.takeIf { !snapshotWasReplaced && it.exerciseId == restoredExercise?.id }
+                ?: fallbackStep?.takeIf { it.exerciseId == restoredExercise?.id }
+            val restoredStepKey = restoredStep?.stepKey
+                ?: restoredExercise?.let { ex ->
+                    canonicalSteps.firstOrNull {
+                        it.exerciseId == ex.id &&
+                            it.setIndex == restoredSetIdx &&
+                            (snapshot?.side == null || it.side == snapshot.side)
+                    }?.stepKey
+                        ?: "${ex.id}_$restoredSetIdx"
+                }
+            val restoredEditingState = effectiveSnapshot?.editingState?.takeIf { editing ->
+                restoredExercise?.id == editing.exerciseId &&
+                    editing.setIdx in restoredExercise.sets.indices &&
+                    canonicalSteps.any { step ->
+                        step.stepKey == editing.setKey &&
+                            step.exerciseId == editing.exerciseId &&
+                            step.type == WorkoutStepType.WORKING_SET
+                    }
+            }
+
             state.copy(
                 showFinishSheet = false,
-                activeStepKey = state.activeStepKey ?: lastWorkingStep?.stepKey
+                currentExerciseIdx = restoredExerciseIdx,
+                currentSetIdx = restoredSetIdx,
+                activeStepKey = restoredStepKey,
+                editingState = restoredEditingState,
+                skippedExerciseIds = snapshot?.skippedExerciseIds ?: state.skippedExerciseIds,
+                finishResumeSnapshot = null,
             )
         }
         persistOngoingState()
     }
 
     fun recoverFinishSheet() {
-        if (_uiState.value.showFinishSheet) {
-            // Force recomposition of the sheet while keeping the hard-abort path.
-            _uiState.update { it.copy(showFinishSheet = false) }
-            openFinishSheet()
+        // Re-show without recapturing: the original snapshot is the resume anchor.
+        if (_uiState.value.finishResumeSnapshot != null) {
+            _uiState.update { it.copy(showFinishSheet = it.finishResumeSnapshot != null) }
         }
     }
 
@@ -3964,6 +4229,10 @@ class WorkoutViewModel(
 
     fun consumeEmptyFinishGuardNotice() {
         _uiState.update { it.copy(emptyFinishGuardNotice = null) }
+    }
+
+    fun consumeFinishWarning() {
+        _uiState.update { it.copy(finishWarning = null) }
     }
 
     fun acceptVolumeAdvance() {

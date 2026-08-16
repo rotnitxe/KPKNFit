@@ -200,9 +200,8 @@ class WorkoutPacingController(
         val totalSets = allExercises.sumOf { it.sets.size }
         if (totalSets == 0) return
 
-        val uniqueCompletedSets = state.completedSets.keys.map { key ->
-            val parts = key.split("_")
-            if (parts.size >= 2) "${parts[0]}_${parts[1]}" else key
+        val uniqueCompletedSets = state.completedSets.keys.mapNotNull { key ->
+            parseCompletedSetKey(key)?.let { "${it.exerciseId}_${it.setIdx}" }
         }.distinct().size
 
         val progress = uniqueCompletedSets.toDouble() / totalSets.toDouble()
@@ -259,9 +258,8 @@ class WorkoutPacingController(
         val elapsedMin = ((System.currentTimeMillis() - state.startTimeMs) / 60000).toInt()
         val remainingMin = targetMin - elapsedMin
         val totalSets = visibleExercises(state).sumOf { it.sets.size }
-        val dedupCompletedSets = state.completedSets.keys.map { key ->
-            val parts = key.split("_")
-            if (parts.size >= 2) "${parts[0]}_${parts[1]}" else key
+        val dedupCompletedSets = state.completedSets.keys.mapNotNull { key ->
+            parseCompletedSetKey(key)?.let { "${it.exerciseId}_${it.setIdx}" }
         }.distinct().size
         val progress = if (totalSets > 0) dedupCompletedSets.toFloat() / totalSets else 0f
 

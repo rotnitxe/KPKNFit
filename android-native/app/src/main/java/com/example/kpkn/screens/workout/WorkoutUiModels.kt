@@ -2,6 +2,7 @@ package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.*
 import com.example.kpkn.services.workout.VoiceSessionState
+import com.example.kpkn.screens.sessioneditor.CatalogSupersetConfig
 
 data class PendingReplacementPersistencePrompt(
     val exerciseId: String,
@@ -25,6 +26,22 @@ sealed class PendingStructuralChange {
         val afterExerciseCanonicalKey: String? = null,
         val newExerciseTemplate: Exercise? = null,
     ) : PendingStructuralChange()
+    data class AddExercises(
+        val afterExerciseId: String?,
+        val newExerciseIds: List<String>,
+        val newExerciseNames: List<String>,
+    ) : PendingStructuralChange()
+    /** One logical persistence payload for a catalog-created live superserie. */
+    data class AddSuperset(
+        val groupId: String,
+        val afterExerciseId: String?,
+        val newExerciseIds: List<String>,
+        val newExerciseNames: List<String>,
+        val supersetConfig: CatalogSupersetConfig,
+        val group: SupersetGroup,
+        /** Variant in which the live mutation was created (A/B/C). */
+        val activeMode: WeekVariant = WeekVariant.A,
+    ) : PendingStructuralChange()
     data class ReorderExercises(
         val orderedExerciseIds: List<String>,
         val originalPartMap: Map<String, String>,
@@ -33,6 +50,19 @@ sealed class PendingStructuralChange {
         val orderedExercisePartKeys: List<String?> = emptyList(),
     ) : PendingStructuralChange()
 }
+
+data class FinishResumeSnapshot(
+    val exerciseId: String? = null,
+    val setId: String? = null,
+    val side: String? = null,
+    val activeStepKey: String? = null,
+    val editingState: WorkoutEditingState? = null,
+    val skippedExerciseIds: Set<String> = emptySet(),
+    val lastRenderableStepKey: String? = null,
+    /** Kept only as a fallback for snapshots created by older process state. */
+    val currentExerciseIdx: Int = 0,
+    val currentSetIdx: Int = 0,
+)
 
 data class PendingRestSuggestion(
     val plannedSeconds: Int,
@@ -154,6 +184,8 @@ data class WorkoutUiState(
     val voiceFinalConfirmTriggered: Boolean = false,
     // Aviso one-shot del guard P0 de sesión vacía (finish abortado sin series); la UI lo consume y limpia
     val emptyFinishGuardNotice: String? = null,
+    // Aviso reintentable cuando el cierre no pudo esperar una grabación en curso.
+    val finishWarning: String? = null,
     val continuityTransitionTarget: WorkoutContinuityTransitionTarget? = null,
     val continuityFeedbackExerciseId: String? = null,
     // EMA de estrés acumulado en el mesociclo actual
@@ -186,6 +218,7 @@ data class WorkoutUiState(
     val voiceTimedSet: VoiceTimedSetState? = null,
     val voiceExerciseQueue: List<String> = emptyList(),
     val voicePendingFeedbackExerciseIds: Set<String> = emptySet(),
+    val finishResumeSnapshot: FinishResumeSnapshot? = null,
 )
 
 data class WorkoutSessionSummary(
