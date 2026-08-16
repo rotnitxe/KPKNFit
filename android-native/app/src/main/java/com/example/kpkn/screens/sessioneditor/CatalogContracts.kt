@@ -47,6 +47,7 @@ data class CatalogLaunchRequest(
     val origin: CatalogLaunchOrigin = CatalogLaunchOrigin.SESSION_EDITOR,
     val selectionMode: CatalogSelectionMode = CatalogSelectionMode.MULTIPLE,
     val targetExerciseId: String? = null,
+    val targetGroupName: String? = null,
     val selectedExerciseIds: List<String> = emptyList(),
     val initialQuery: String = "",
 )

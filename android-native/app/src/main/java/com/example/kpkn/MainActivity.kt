@@ -1802,6 +1802,8 @@ private fun KPKNNavGraph(
                     ?: CatalogSelectionMode.MULTIPLE,
                 targetExerciseId = backStack.arguments
                     ?.getString(KpknRoute.ExerciseCatalog.ARG_TARGET_EXERCISE_ID),
+                targetGroupName = backStack.arguments
+                    ?.getString(KpknRoute.ExerciseCatalog.ARG_TARGET_GROUP_NAME),
                 initialQuery = backStack.arguments
                     ?.getString(KpknRoute.ExerciseCatalog.ARG_INITIAL_QUERY)
                     .orEmpty(),

@@ -479,6 +479,9 @@ internal fun SessionEditorSheets(
                        onSelectionChange = { pendingPickerSelection = it },
                        editingCatalogDefinitionId = pickerTargetExercise?.catalogDefinitionId,
                        editingCatalogConfigurationId = pickerTargetExercise?.catalogConfigurationId,
+                       targetGroupName = uiState.pickerTargetPartId?.let { pid ->
+                           session.parts.firstOrNull { it.id == pid }?.name
+                       },
                    )
              }
          }

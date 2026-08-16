@@ -70,7 +70,7 @@ sealed class KpknRoute(val route: String) {
 
     /** Full-screen catalog. The request itself lives in the previous entry's SavedStateHandle. */
     object ExerciseCatalog : KpknRoute(
-        "exerciseCatalog?requestId={requestId}&origin={origin}&selectionMode={selectionMode}&targetExerciseId={targetExerciseId}&initialQuery={initialQuery}",
+        "exerciseCatalog?requestId={requestId}&origin={origin}&selectionMode={selectionMode}&targetExerciseId={targetExerciseId}&targetGroupName={targetGroupName}&initialQuery={initialQuery}",
     ) {
         fun create(request: CatalogLaunchRequest): String = buildString {
             append("exerciseCatalog?requestId=")
@@ -83,6 +83,10 @@ sealed class KpknRoute(val route: String) {
                 append("&targetExerciseId=")
                 append(Uri.encode(it))
             }
+            request.targetGroupName?.let {
+                append("&targetGroupName=")
+                append(Uri.encode(it))
+            }
             if (request.initialQuery.isNotBlank()) {
                 append("&initialQuery=")
                 append(Uri.encode(request.initialQuery))
@@ -93,6 +97,7 @@ sealed class KpknRoute(val route: String) {
         const val ARG_ORIGIN = "origin"
         const val ARG_SELECTION_MODE = "selectionMode"
         const val ARG_TARGET_EXERCISE_ID = "targetExerciseId"
+        const val ARG_TARGET_GROUP_NAME = "targetGroupName"
         const val ARG_INITIAL_QUERY = "initialQuery"
     }
 

@@ -121,4 +121,25 @@ class CatalogResultTest {
 
         assertFalse(result.isValidFor(request))
     }
+
+    @Test
+    fun catalog_launch_request_preserves_target_group_name() {
+        val request = CatalogLaunchRequest(
+            requestId = "group-request",
+            origin = CatalogLaunchOrigin.SESSION_EDITOR,
+            selectionMode = CatalogSelectionMode.MULTIPLE,
+            targetGroupName = "Calentamiento",
+        )
+        assertEquals("Calentamiento", request.targetGroupName)
+    }
+
+    @Test
+    fun format_catalog_superset_rest_label_formats_seconds_and_minutes_correctly() {
+        assertEquals("0s", com.example.kpkn.screens.sessioneditor.components.formatCatalogSupersetRestLabel(0))
+        assertEquals("30s", com.example.kpkn.screens.sessioneditor.components.formatCatalogSupersetRestLabel(30))
+        assertEquals("60s", com.example.kpkn.screens.sessioneditor.components.formatCatalogSupersetRestLabel(60))
+        assertEquals("1:30", com.example.kpkn.screens.sessioneditor.components.formatCatalogSupersetRestLabel(90))
+        assertEquals("2:00", com.example.kpkn.screens.sessioneditor.components.formatCatalogSupersetRestLabel(120))
+        assertEquals("3:00", com.example.kpkn.screens.sessioneditor.components.formatCatalogSupersetRestLabel(180))
+    }
 }

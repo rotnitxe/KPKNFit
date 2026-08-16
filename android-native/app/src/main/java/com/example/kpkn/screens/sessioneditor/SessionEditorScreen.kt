@@ -231,6 +231,9 @@ fun SessionEditorScreen(
         }
         if (!catalogRequestInFlight) {
             val targetExerciseId = uiState.pickerTargetExerciseId
+            val targetGroupName = uiState.pickerTargetPartId?.let { pid ->
+                uiState.session?.parts?.firstOrNull { it.id == pid }?.name
+            }
             catalogRequestInFlight = true
             val request = CatalogLaunchRequest(
                 origin = if (targetExerciseId == null) {
@@ -244,6 +247,7 @@ fun SessionEditorScreen(
                     CatalogSelectionMode.REPLACEMENT
                 },
                 targetExerciseId = targetExerciseId,
+                targetGroupName = targetGroupName,
                 selectedExerciseIds = uiState.selectedExercisesIds.toList(),
                 initialQuery = uiState.searchQuery,
             )
@@ -265,10 +269,14 @@ fun SessionEditorScreen(
                 actionLabel = "Reintentar",
             )
             if (action == SnackbarResult.ActionPerformed && onOpenCatalog != null) {
+                val targetGroupName = uiState.pickerTargetPartId?.let { pid ->
+                    uiState.session?.parts?.firstOrNull { it.id == pid }?.name
+                }
                 val retry = CatalogLaunchRequest(
                     origin = if (uiState.pickerTargetExerciseId == null) CatalogLaunchOrigin.SESSION_EDITOR else CatalogLaunchOrigin.REPLACEMENT,
                     selectionMode = if (uiState.pickerTargetExerciseId == null) CatalogSelectionMode.MULTIPLE else CatalogSelectionMode.REPLACEMENT,
                     targetExerciseId = uiState.pickerTargetExerciseId,
+                    targetGroupName = targetGroupName,
                     selectedExerciseIds = uiState.selectedExercisesIds.toList(),
                     initialQuery = uiState.searchQuery,
                 )
@@ -282,11 +290,15 @@ fun SessionEditorScreen(
         }
         val targetPartId = uiState.pickerTargetPartId
         val targetExerciseId = uiState.pickerTargetExerciseId
+        val targetGroupName = targetPartId?.let { pid ->
+            uiState.session?.parts?.firstOrNull { it.id == pid }?.name
+        }
         val expectedRequest = CatalogLaunchRequest(
             requestId = catalogRequestId ?: result.requestId,
             origin = if (targetExerciseId == null) CatalogLaunchOrigin.SESSION_EDITOR else CatalogLaunchOrigin.REPLACEMENT,
             selectionMode = if (targetExerciseId == null) CatalogSelectionMode.MULTIPLE else CatalogSelectionMode.REPLACEMENT,
             targetExerciseId = targetExerciseId,
+            targetGroupName = targetGroupName,
             selectedExerciseIds = uiState.selectedExercisesIds.toList(),
             initialQuery = uiState.searchQuery,
         )

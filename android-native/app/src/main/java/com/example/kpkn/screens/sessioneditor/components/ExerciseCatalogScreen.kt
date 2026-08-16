@@ -93,6 +93,7 @@ internal fun ExerciseCatalogScreen(
             initialCatalogConfigurationId = request.targetExerciseId?.let { targetId ->
                 catalog.firstOrNull { it.id == targetId }?.catalogConfigurationId
             },
+            targetGroupName = request.targetGroupName,
         )
     }
 }

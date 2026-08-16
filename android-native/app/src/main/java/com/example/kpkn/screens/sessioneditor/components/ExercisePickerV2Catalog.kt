@@ -494,6 +494,7 @@ internal fun ExercisePickerV2Catalog(
     initialCatalogConfigurationId: String? = null,
     opaqueSurface: Boolean = false,
     dismissAfterMultiSelect: Boolean = true,
+    targetGroupName: String? = null,
 ) {
     val state by repository.state.collectAsStateWithLifecycle()
     val retryScope = rememberCoroutineScope()
@@ -603,6 +604,7 @@ internal fun ExercisePickerV2Catalog(
                         dismissAfterMultiSelect = dismissAfterMultiSelect,
                         opaqueSurface = opaqueSurface,
                         hazeState = glassHaze,
+                        targetGroupName = targetGroupName,
                     )
                 }
             }
@@ -637,6 +639,7 @@ private fun CatalogFilterHeader(
     onToggleMuscle: () -> Unit,
     onToggleMuscleId: (String) -> Unit,
     hazeState: HazeState?,
+    targetGroupName: String? = null,
 ) {
     val filterScrollState = rememberScrollState()
     Column(
@@ -650,6 +653,29 @@ private fun CatalogFilterHeader(
             .padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
+        if (!targetGroupName.isNullOrBlank()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 6.dp, vertical = 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = Color(0xFF67E8F9).copy(alpha = 0.25f),
+                    modifier = Modifier.size(8.dp),
+                ) {}
+                Text(
+                    "Agrega ejercicios para $targetGroupName",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color(0xFF67E8F9),
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -843,6 +869,7 @@ private fun ColumnScope.CatalogReadyContent(
     dismissAfterMultiSelect: Boolean,
     opaqueSurface: Boolean,
     hazeState: HazeState?,
+    targetGroupName: String? = null,
 ) {
     val scope = rememberCoroutineScope()
     val definitionsById = remember(catalog) {
@@ -1048,6 +1075,7 @@ private fun ColumnScope.CatalogReadyContent(
             filterMuscle = if (filterMuscle == muscleId) null else muscleId
         },
         hazeState = hazeState,
+        targetGroupName = targetGroupName,
     )
 
     LaunchedEffect(expandedDefinitionId, definitions, visibleCustomExercises, bottomPanelHeight) {
@@ -2524,6 +2552,16 @@ internal fun CatalogAdaptiveExerciseTitle(
     )
 }
 
+internal fun formatCatalogSupersetRestLabel(seconds: Int): String {
+    return if (seconds > 60) {
+        val mins = seconds / 60
+        val secs = seconds % 60
+        "$mins:${secs.toString().padStart(2, '0')}"
+    } else {
+        "${seconds}s"
+    }
+}
+
 /**
  * Diálogo compartido de configuración de superserie antes de confirmarla desde el catálogo.
  */
@@ -2637,29 +2675,62 @@ internal fun CatalogSupersetConfiguratorDialog(
 
             // Descanso entre ejercicios
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    "Descanso entre ejercicios",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.85f),
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "Descanso entre ejercicios",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.85f),
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        IconButton(
+                            onClick = { restBetween = (restBetween - 15).coerceAtLeast(0) },
+                            enabled = restBetween > 0,
+                            modifier = Modifier.size(28.dp),
+                        ) {
+                            Text("−", color = if (restBetween > 0) Color.White else Color.White.copy(alpha = 0.3f), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        }
+                        Text(
+                            formatCatalogSupersetRestLabel(restBetween),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Black,
+                            color = Color(0xFF67E8F9),
+                            modifier = Modifier.padding(horizontal = 4.dp),
+                        )
+                        IconButton(
+                            onClick = { restBetween = (restBetween + 15).coerceAtMost(600) },
+                            enabled = restBetween < 600,
+                            modifier = Modifier.size(28.dp),
+                        ) {
+                            Text("+", color = if (restBetween < 600) Color.White else Color.White.copy(alpha = 0.3f), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        }
+                    }
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     listOf(0, 30, 60, 90).forEach { sec ->
+                        val isSelected = restBetween == sec
                         Surface(
                             onClick = { restBetween = sec },
                             shape = RoundedCornerShape(8.dp),
-                            color = if (restBetween == sec) Color(0xFF67E8F9).copy(alpha = 0.25f) else Color.White.copy(alpha = 0.08f),
-                            border = BorderStroke(1.dp, if (restBetween == sec) Color(0xFF67E8F9) else Color.Transparent),
+                            color = if (isSelected) Color(0xFF67E8F9).copy(alpha = 0.25f) else Color.White.copy(alpha = 0.08f),
+                            border = BorderStroke(1.dp, if (isSelected) Color(0xFF67E8F9) else Color.Transparent),
                             modifier = Modifier.weight(1f),
                         ) {
                             Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(vertical = 6.dp)) {
                                 Text(
-                                    "${sec}s",
+                                    formatCatalogSupersetRestLabel(sec),
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
-                                    color = if (restBetween == sec) Color(0xFF67E8F9) else Color.White.copy(alpha = 0.7f),
+                                    color = if (isSelected) Color(0xFF67E8F9) else Color.White.copy(alpha = 0.7f),
                                 )
                             }
                         }
@@ -2669,29 +2740,62 @@ internal fun CatalogSupersetConfiguratorDialog(
 
             // Descanso tras superserie
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    "Descanso tras superserie",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.85f),
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "Descanso tras superserie",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.85f),
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        IconButton(
+                            onClick = { restAfter = (restAfter - 15).coerceAtLeast(0) },
+                            enabled = restAfter > 0,
+                            modifier = Modifier.size(28.dp),
+                        ) {
+                            Text("−", color = if (restAfter > 0) Color.White else Color.White.copy(alpha = 0.3f), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        }
+                        Text(
+                            formatCatalogSupersetRestLabel(restAfter),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Black,
+                            color = Color(0xFF67E8F9),
+                            modifier = Modifier.padding(horizontal = 4.dp),
+                        )
+                        IconButton(
+                            onClick = { restAfter = (restAfter + 15).coerceAtMost(600) },
+                            enabled = restAfter < 600,
+                            modifier = Modifier.size(28.dp),
+                        ) {
+                            Text("+", color = if (restAfter < 600) Color.White else Color.White.copy(alpha = 0.3f), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        }
+                    }
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     listOf(60, 90, 120, 180).forEach { sec ->
+                        val isSelected = restAfter == sec
                         Surface(
                             onClick = { restAfter = sec },
                             shape = RoundedCornerShape(8.dp),
-                            color = if (restAfter == sec) Color(0xFF67E8F9).copy(alpha = 0.25f) else Color.White.copy(alpha = 0.08f),
-                            border = BorderStroke(1.dp, if (restAfter == sec) Color(0xFF67E8F9) else Color.Transparent),
+                            color = if (isSelected) Color(0xFF67E8F9).copy(alpha = 0.25f) else Color.White.copy(alpha = 0.08f),
+                            border = BorderStroke(1.dp, if (isSelected) Color(0xFF67E8F9) else Color.Transparent),
                             modifier = Modifier.weight(1f),
                         ) {
                             Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(vertical = 6.dp)) {
                                 Text(
-                                    "${sec}s",
+                                    formatCatalogSupersetRestLabel(sec),
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
-                                    color = if (restAfter == sec) Color(0xFF67E8F9) else Color.White.copy(alpha = 0.7f),
+                                    color = if (isSelected) Color(0xFF67E8F9) else Color.White.copy(alpha = 0.7f),
                                 )
                             }
                         }

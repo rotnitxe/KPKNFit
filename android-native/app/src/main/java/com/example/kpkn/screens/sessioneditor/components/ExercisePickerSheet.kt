@@ -102,13 +102,14 @@ internal fun ExercisePickerSheet(
     onSearch: (String) -> Unit,
     onSelect: (ExerciseMuscleInfo) -> Unit,
     onMultiSelect: (List<ExerciseMuscleInfo>) -> List<String>,
-onCreateSuperset: ((List<ExerciseMuscleInfo>) -> Unit)? = null,
+    onCreateSuperset: ((List<ExerciseMuscleInfo>) -> Unit)? = null,
     onOpenExerciseDetail: (String) -> Unit,
     onDismiss: () -> Unit,
     highlightedExerciseId: String? = null,
     onSelectionChange: (List<ExerciseMuscleInfo>) -> Unit = {},
     editingCatalogDefinitionId: String? = null,
     editingCatalogConfigurationId: String? = null,
+    targetGroupName: String? = null,
 ) {
     val v2Context = LocalContext.current
     val v2Repository = remember(v2Context) { ApprovedAssetExerciseCatalogRepositoryV2(v2Context) }
@@ -129,6 +130,7 @@ onCreateSuperset: ((List<ExerciseMuscleInfo>) -> Unit)? = null,
         onDismiss = onDismiss,
         initialCatalogDefinitionId = editingCatalogDefinitionId,
         initialCatalogConfigurationId = editingCatalogConfigurationId,
+        targetGroupName = targetGroupName,
     )
     return
     val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()
