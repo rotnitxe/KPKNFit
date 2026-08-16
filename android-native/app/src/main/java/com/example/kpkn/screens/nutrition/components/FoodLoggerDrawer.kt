@@ -35,6 +35,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.runtime.collectAsState
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.NutritionRepository
+import com.example.kpkn.data.repository.NutritionCalibrationRepository
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.food.findFoodByNormalized
 import com.example.kpkn.data.food.findFoodExactByNormalized
@@ -54,6 +55,7 @@ import com.example.kpkn.domain.nutrition.reconcileParsedFoodItems
 import com.example.kpkn.domain.nutrition.FoodCombinationParser
 import com.example.kpkn.domain.nutrition.round1
 import com.example.kpkn.domain.nutrition.ContextDetector
+import com.example.kpkn.domain.nutrition.FoodState
 import com.example.kpkn.domain.nutrition.FoodIdentity
 import com.example.kpkn.domain.nutrition.FoodResolutionStatus
 import com.example.kpkn.domain.nutrition.NutritionSourceKind
@@ -64,13 +66,17 @@ import com.example.kpkn.domain.nutrition.LastResortSplitter
 import com.example.kpkn.domain.nutrition.NutritionHeuristicEstimator
 import com.example.kpkn.domain.nutrition.MacroValidator
 import com.example.kpkn.domain.nutrition.TagResolver
+import com.example.kpkn.domain.nutrition.NutritionCalibrationWizardEngine
 import com.example.kpkn.domain.nutrition.FoodResolutionPort
 import com.example.kpkn.domain.nutrition.ResolvedTag
 import com.example.kpkn.domain.nutrition.mergeTagsPreservingManualEdits
+import com.example.kpkn.domain.nutrition.absolutePortionOptions
+import com.example.kpkn.domain.nutrition.hasMaterialQuestion
 import com.example.kpkn.domain.nutrition.applyModifierScale
 import com.example.kpkn.domain.nutrition.adjustLoggedFoodForOil
 import com.example.kpkn.domain.nutrition.stripOilFromLoggedFood
 import com.example.kpkn.domain.nutrition.scalingForIntent
+import com.example.kpkn.domain.nutrition.oilGramsForLevel
 import com.example.kpkn.ui.components.KpknSheet
 import java.util.UUID
 import java.util.concurrent.CancellationException
@@ -125,57 +131,6 @@ private data class AnalysisNotice(
     val technicalDetail: String? = null,
 )
 
-private data class ResolvedTag(
-    val id: String = UUID.randomUUID().toString(),
-    val tag: String,
-    val portion: PortionPreset = PortionPreset.MEDIUM,
-    val quantity: Double = 1.0,
-    val amountGrams: Double? = null,
-    val cookingMethod: CookingMethod? = null,
-    val foodItem: FoodItem? = null,
-    val loggedFood: LoggedFood? = null,
-    val isResolved: Boolean = false,
-    val isFuzzyMatch: Boolean = false,
-    val analysisSource: AnalysisSource = AnalysisSource.RULES,
-    val statusText: String = "Pendiente",
-    val isExpanded: Boolean = false,
-    val oilLevel: String = "medio",
-    val isExcluded: Boolean = false,
-    val hasManualEdits: Boolean = false,
-    val amountIntent: AmountIntent = AmountIntent.UNSPECIFIED,
-    val needsCookingClarification: Boolean = false,
-    val clarificationKind: CookingStateResolver.ClarificationKind = CookingStateResolver.ClarificationKind.NONE,
-    /** When true, food macros already include frying — do not add oil grams. */
-    val oilApplied: Boolean = false,
-)
-
-private fun scalingForIntent(
-    intent: AmountIntent,
-    portionAdj: Double,
-    proteinB: Double,
-): Pair<Double, Double> {
-    return if (intent == AmountIntent.EXPLICIT_MASS || intent == AmountIntent.RESOLVED_SUBJECTIVE) {
-        1.0 to 0.0
-    } else {
-        portionAdj to proteinB
-    }
-}
-
-private fun applyModifierScale(logged: LoggedFood, scale: MacroOverrides?): LoggedFood {
-    if (scale == null) return logged
-    val kcal = scale.calories ?: 1.0
-    val prot = scale.protein ?: 1.0
-    val carb = scale.carbs ?: 1.0
-    val fat = scale.fats ?: 1.0
-    if (kcal == 1.0 && prot == 1.0 && carb == 1.0 && fat == 1.0) return logged
-    return logged.copy(
-        calories = kotlin.math.round(logged.calories * kcal),
-        protein = kotlin.math.round(logged.protein * prot * 10) / 10.0,
-        carbs = kotlin.math.round(logged.carbs * carb * 10) / 10.0,
-        fats = kotlin.math.round(logged.fats * fat * 10) / 10.0,
-    )
-}
-
 private fun shouldUseAiLoggedFood(item: ParsedMealItem): Boolean {
     return item.macroOverrides != null && (
         item.analysisSource == AnalysisSource.LOCAL_AI_ESTIMATE ||
@@ -194,23 +149,6 @@ private fun isOilTag(tag: String): Boolean {
  * - If old tag has hasManualEdits=true, preserve it over the new tag
  * - Preserve old tags not present in new tags if they have manual edits
  */
-private fun mergeTagsPreservingManualEdits(oldTags: List<ResolvedTag>, newTags: List<ResolvedTag>): List<ResolvedTag> {
-    val oldEditable = oldTags.filter { it.hasManualEdits }
-    val merged = newTags.toMutableList()
-    
-    for (oldTag in oldEditable) {
-        val matchIdx = merged.indexOfFirst { newTag ->
-            newTag.tag.lowercase() == oldTag.tag.lowercase()
-        }
-        if (matchIdx >= 0) {
-            merged[matchIdx] = oldTag
-        } else {
-            merged.add(oldTag)
-        }
-    }
-    return merged
-}
-
 // ─── Composable ──────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -320,10 +258,23 @@ fun FoodLoggerDrawer(
         showApiConfigDialog = true
     }
 
+    fun updateCalibrationProfile(update: (com.example.kpkn.data.models.NutritionCalibrationProfile) -> com.example.kpkn.data.models.NutritionCalibrationProfile) {
+        scope.launch(Dispatchers.IO) {
+            val repository = NutritionCalibrationRepository.getInstance(context)
+            val current = repository.get() ?: com.example.kpkn.data.models.NutritionCalibrationProfile()
+            repository.save(update(current))
+        }
+    }
+
     suspend fun resolveTags(parsed: ParsedMealDescription) {
+        val calibrationProfile = NutritionCalibrationRepository.getInstance(context).get()
         val resolver = TagResolver(object : FoodResolutionPort {
-            override suspend fun resolveSmart(tag: String, brandHint: String?, contextHint: String?) =
-                nutritionRepo.resolveFoodWithSmartResolver(tag, brandHint, contextHint)
+            override suspend fun resolveSmart(
+                tag: String,
+                brandHint: String?,
+                contextHint: String?,
+                stateHint: FoodState?,
+            ) = nutritionRepo.resolveFoodWithSmartResolver(tag, brandHint, contextHint, stateHint)
 
             override suspend fun getFoodById(id: String) = nutritionRepo.getFoodById(id)
 
@@ -343,7 +294,7 @@ fun FoodLoggerDrawer(
             ) {
                 nutritionRepo.recordLearnedResolution(query, brandHint, foodId, portionGrams, cookingMethod)
             }
-        })
+        }, calibrationProfile = calibrationProfile)
 
         val result = resolver.resolveAll(parsed, detectedContext)
 
@@ -360,7 +311,7 @@ fun FoodLoggerDrawer(
         ) {
             analysisKcalRange = null
         }
-        reviewRequired = mergedTags.any { !it.isExcluded && !it.isResolved }
+        reviewRequired = mergedTags.any { it.hasMaterialQuestion() }
     }
 
     fun buildAnalysisNotice(parsed: ParsedMealDescription): AnalysisNotice? {        val engine = parsed.analysisEngine
@@ -461,9 +412,8 @@ fun FoodLoggerDrawer(
     fun createLastResortManualTags(raw: String): Boolean {
         val fragments = LastResortSplitter.split(raw)
         val trimmed = raw.trim()
-        // CRI-AUDIT (P4): el último nivel produce tags GUARDABLES (isResolved=true + macros
-        // estimados por el motor heurístico puro). Así una descripción común JAMÁS deja al
-        // usuario sin poder registrar, aunque todo el pipeline externo haya fallado.
+                // El último nivel muestra una estimación editable, pero exige una
+                // confirmación explícita antes de guardarla y de alimentar aprendizaje.
         fun manualTag(fragment: String): ResolvedTag {
             val profile = runCatching {
                 NutritionHeuristicEstimator.estimatePer100g(fragment)
@@ -491,8 +441,12 @@ fun FoodLoggerDrawer(
                 } else {
                     "Análisis automático falló: selecciona el alimento y ajusta la cantidad."
                 },
-                isResolved = logged != null,
+                isResolved = false,
                 isFuzzyMatch = true,
+                resolutionStatus = FoodResolutionStatus.NEEDS_REVIEW,
+                nutritionSource = NutritionSourceKind.HEURISTIC_ESTIMATE,
+                resolutionConfidence = 0.35,
+                resolutionMargin = 0.0,
             )
         }
         if (fragments.isEmpty()) {
@@ -501,9 +455,8 @@ fun FoodLoggerDrawer(
             return true
         }
         tags = fragments.distinct().map(::manualTag)
-        // CRI-AUDIT (P4): no forzar el banner "datos incompletos o fuera de rango": los tags
-        // del último nivel son estimaciones GUARDABLES (isResolved=true) que ya llevan su
-        // propia nota "revisa los macros antes de guardar".
+        // La estimación queda explícitamente pendiente de revisión; Guardar se
+        // mantiene bloqueado hasta que el usuario confirme o elija una ficha.
         return true
     }
 
@@ -888,8 +841,8 @@ fun FoodLoggerDrawer(
     }
 
     fun resolveFood(tagId: String, food: FoodItem) {
+        NutritionTelemetry.event("candidate_selected", mapOf("source" to "manual", "rank" to 0))
         val portionAdj = detectedContext?.portionAdjustment ?: 1.0
-        val proteinB = detectedContext?.proteinAdjustment ?: 0.0
         // IT2: conectar el aprendizaje del resolver — una corrección manual del
         // usuario debe persistir para futuras resoluciones (antes era código muerto).
         val targetTag = tags.firstOrNull { it.id == tagId }
@@ -901,10 +854,13 @@ fun FoodLoggerDrawer(
                 portionGrams = targetTag.amountGrams,
                 cookingMethod = targetTag.cookingMethod?.name,
             )
+            updateCalibrationProfile { profile ->
+                NutritionCalibrationWizardEngine.recordConfirmedIdentity(profile, targetTag.tag, food.id)
+            }
         }
         tags = tags.map { tag ->
             if (tag.id == tagId) {
-                val (adj, boost) = scalingForIntent(tag.amountIntent, portionAdj, proteinB)
+                val adj = scalingForIntent(tag.amountIntent, portionAdj)
                 val usePrepared = CookingStateResolver.isAlreadyPreparedForMethod(food, tag.cookingMethod)
                 val scaleMethod = if (usePrepared) null else tag.cookingMethod
                 val applyOil = CookingStateResolver.shouldApplyOil(food, tag.cookingMethod) && !usePrepared
@@ -915,7 +871,6 @@ fun FoodLoggerDrawer(
                     amountGrams = tag.amountGrams,
                     cookingMethod = scaleMethod,
                     portionAdjustment = adj,
-                    proteinBoost = boost,
                 )
                 val adjustedLogged = if (applyOil) {
                     adjustLoggedFoodForOil(logged, tag.cookingMethod, tag.oilLevel, foodName = food.name)
@@ -925,6 +880,9 @@ fun FoodLoggerDrawer(
                 tag.copy(
                     foodItem = food,
                     loggedFood = adjustedLogged.copy(analysisSource = AnalysisSource.DATABASE),
+                    baseAmountGrams = tag.baseAmountGrams ?: tag.amountGrams ?: adjustedLogged.amount,
+                    portionMinGrams = tag.portionMinGrams ?: tag.amountGrams ?: adjustedLogged.amount,
+                    portionMaxGrams = tag.portionMaxGrams ?: tag.amountGrams ?: adjustedLogged.amount,
                     isResolved = true,
                     isFuzzyMatch = false,
                     analysisSource = AnalysisSource.DATABASE,
@@ -938,12 +896,15 @@ fun FoodLoggerDrawer(
                     resolutionStatus = FoodResolutionStatus.AUTO,
                     nutritionSource = NutritionSourceKind.CURATED_LOCAL,
                     resolutionConfidence = 1.0,
+                    explicitDecision = true,
+                    isUncertain = false,
                 )
             } else tag
         }
     }
 
     fun confirmEstimate(tagId: String) {
+        NutritionTelemetry.event("manual_correction", mapOf("field" to "confirm_estimate"))
         tags = tags.map { tag ->
             if (tag.id == tagId && tag.loggedFood != null) {
                 tag.copy(
@@ -951,21 +912,28 @@ fun FoodLoggerDrawer(
                     resolutionStatus = FoodResolutionStatus.CONFIRMED_ESTIMATE,
                     statusText = "Estimación confirmada por ti.",
                     hasManualEdits = true,
+                    explicitDecision = true,
                 )
             } else tag
         }
-        reviewRequired = tags.any { !it.isExcluded && !it.isResolved }
+        reviewRequired = tags.any { it.hasMaterialQuestion() }
     }
     fun updateTagPortion(tagId: String, portion: PortionPreset) {
+        NutritionTelemetry.event("manual_correction", mapOf("field" to "portion"))
         val portionAdj = detectedContext?.portionAdjustment ?: 1.0
-        val proteinB = detectedContext?.proteinAdjustment ?: 0.0
+        val selectedTag = tags.firstOrNull { it.id == tagId }
         tags = tags.map { tag ->
             if (tag.id == tagId) {
                 val food = tag.foodItem
-                val (adj, boost) = scalingForIntent(tag.amountIntent, portionAdj, proteinB)
+                val adj = scalingForIntent(tag.amountIntent, portionAdj)
                 if (food != null && tag.analysisSource != AnalysisSource.LOCAL_AI_ESTIMATE && tag.analysisSource != AnalysisSource.EXTERNAL_API_ESTIMATE) {
                     val multiplier = PORTION_MULTIPLIERS[portion] ?: 1.0
-                    val newGrams = food.servingSize * tag.quantity * multiplier
+                    // Never derive the next value from the previous selection.
+                    // The immutable anchor makes Grande → Pequeña → Grande exact.
+                    val baseGrams = tag.baseAmountGrams
+                        ?: (food.servingSize * tag.quantity).takeIf { it > 0.0 }
+                        ?: 100.0
+                    val newGrams = baseGrams * multiplier
                     val usePrepared = CookingStateResolver.isAlreadyPreparedForMethod(food, tag.cookingMethod)
                     val scaleMethod = if (usePrepared) null else tag.cookingMethod
                     val logged = scaleFoodByPortion(
@@ -975,7 +943,6 @@ fun FoodLoggerDrawer(
                         amountGrams = newGrams,
                         cookingMethod = scaleMethod,
                         portionAdjustment = adj,
-                        proteinBoost = boost,
                     )
                     val adjustedLogged = if (tag.oilApplied) {
                         adjustLoggedFoodForOil(logged, tag.cookingMethod, tag.oilLevel, foodName = food.name)
@@ -983,13 +950,19 @@ fun FoodLoggerDrawer(
                     tag.copy(
                         portion = portion,
                         amountGrams = newGrams,
+                        baseAmountGrams = baseGrams,
+                        portionMinGrams = baseGrams * 0.75,
+                        portionMaxGrams = baseGrams * 1.25,
                         amountIntent = AmountIntent.EXPLICIT_MASS,
                         loggedFood = adjustedLogged,
                         hasManualEdits = true,
                     )
                 } else if (tag.loggedFood != null) {
                     val multiplier = PORTION_MULTIPLIERS[portion] ?: 1.0
-                    val baseGrams = tag.amountGrams ?: tag.loggedFood.amount.takeIf { it > 0 } ?: 100.0
+                    val baseGrams = tag.baseAmountGrams
+                        ?: tag.amountGrams?.takeIf { it > 0 }
+                        ?: tag.loggedFood.amount.takeIf { it > 0 }
+                        ?: 100.0
                     val newGrams = baseGrams * multiplier
                     val scale = if (baseGrams > 0.0) newGrams / baseGrams else 1.0
                     val old = tag.loggedFood
@@ -1003,6 +976,9 @@ fun FoodLoggerDrawer(
                     tag.copy(
                         portion = portion,
                         amountGrams = newGrams,
+                        baseAmountGrams = baseGrams,
+                        portionMinGrams = baseGrams * 0.75,
+                        portionMaxGrams = baseGrams * 1.25,
                         amountIntent = AmountIntent.EXPLICIT_MASS,
                         loggedFood = scaledLogged,
                         hasManualEdits = true,
@@ -1012,15 +988,74 @@ fun FoodLoggerDrawer(
                 }
             } else tag
         }
+        selectedTag?.let { tag ->
+            val base = tag.baseAmountGrams ?: tag.amountGrams ?: tag.loggedFood?.amount
+            val grams = base?.times(PORTION_MULTIPLIERS[portion] ?: 1.0)
+            val key = tag.canonicalFamily ?: tag.foodItem?.let(FoodIdentity::familyFor) ?: tag.tag
+            grams?.let { updateCalibrationProfile { profile -> NutritionCalibrationWizardEngine.recordConfirmedPortion(profile, key, it) } }
+        }
+    }
+
+    /** Accept the central estimate without training any learned resolver. */
+    fun useEstimate(tagId: String) {
+        NutritionTelemetry.event("clarification_answered", mapOf("kind" to "unsure"))
+        tags = tags.map { tag ->
+            if (tag.id != tagId) return@map tag
+            val food = tag.foodItem
+            val grams = tag.amountGrams ?: tag.baseAmountGrams ?: tag.loggedFood?.amount
+            val central = tag.loggedFood ?: food?.let {
+                val base = scaleFoodByPortion(
+                    food = it,
+                    quantity = tag.quantity,
+                    portion = tag.portion,
+                    amountGrams = grams,
+                    cookingMethod = tag.cookingMethod,
+                    portionAdjustment = 1.0,
+                )
+                if (tag.oilApplied) {
+                    adjustLoggedFoodForOil(base, tag.cookingMethod, tag.oilLevel, foodName = it.name)
+                } else base
+            }
+            val minGrams = tag.portionMinGrams ?: grams
+            val maxGrams = tag.portionMaxGrams ?: grams
+            val centralWithRange = central?.copy(
+                caloriesMin = central.calories * (minGrams ?: central.amount) / central.amount.coerceAtLeast(1.0),
+                caloriesMax = central.calories * (maxGrams ?: central.amount) / central.amount.coerceAtLeast(1.0),
+                proteinMin = central.protein * (minGrams ?: central.amount) / central.amount.coerceAtLeast(1.0),
+                proteinMax = central.protein * (maxGrams ?: central.amount) / central.amount.coerceAtLeast(1.0),
+                carbsMin = central.carbs * (minGrams ?: central.amount) / central.amount.coerceAtLeast(1.0),
+                carbsMax = central.carbs * (maxGrams ?: central.amount) / central.amount.coerceAtLeast(1.0),
+                fatsMin = central.fats * (minGrams ?: central.amount) / central.amount.coerceAtLeast(1.0),
+                fatsMax = central.fats * (maxGrams ?: central.amount) / central.amount.coerceAtLeast(1.0),
+                interpretationId = tag.id,
+                isUncertain = true,
+            )
+            tag.copy(
+                loggedFood = centralWithRange,
+                // “No estoy seguro” keeps the central estimate and its range
+                // visible, but it is deliberately not a guardable decision.
+                // The user must press “Confirmar estimación” (or choose a
+                // curated candidate) before the log can be persisted.
+                isResolved = false,
+                isUncertain = true,
+                explicitDecision = false,
+                needsCookingClarification = false,
+                clarificationKind = CookingStateResolver.ClarificationKind.NONE,
+                resolutionStatus = FoodResolutionStatus.NEEDS_REVIEW,
+                statusText = "≈ Estimación visible; confirma antes de guardar. No se aprendió este valor.",
+                hasManualEdits = true,
+            )
+        }
+        reviewRequired = tags.any { it.hasMaterialQuestion() }
     }
 
     fun updateTagGrams(tagId: String, grams: Double) {
+        NutritionTelemetry.event("manual_correction", mapOf("field" to "grams"))
         val portionAdj = detectedContext?.portionAdjustment ?: 1.0
-        val proteinB = detectedContext?.proteinAdjustment ?: 0.0
         tags = tags.map { tag ->
             if (tag.id == tagId) {
                 val food = tag.foodItem
-                val (adj, boost) = scalingForIntent(AmountIntent.EXPLICIT_MASS, portionAdj, proteinB)
+                val adj = scalingForIntent(AmountIntent.EXPLICIT_MASS, portionAdj)
                 val logged = if (food != null && tag.analysisSource != AnalysisSource.LOCAL_AI_ESTIMATE && tag.analysisSource != AnalysisSource.EXTERNAL_API_ESTIMATE) {
                     val usePrepared = CookingStateResolver.isAlreadyPreparedForMethod(food, tag.cookingMethod)
                     val scaleMethod = if (usePrepared) null else tag.cookingMethod
@@ -1031,7 +1066,6 @@ fun FoodLoggerDrawer(
                         amountGrams = grams,
                         cookingMethod = scaleMethod,
                         portionAdjustment = adj,
-                        proteinBoost = boost,
                     )
                     if (tag.oilApplied) {
                         adjustLoggedFoodForOil(baseLogged, tag.cookingMethod, tag.oilLevel, foodName = food.name)
@@ -1050,6 +1084,9 @@ fun FoodLoggerDrawer(
                 }
                 tag.copy(
                     amountGrams = grams,
+                    baseAmountGrams = grams,
+                    portionMinGrams = grams,
+                    portionMaxGrams = grams,
                     amountIntent = AmountIntent.EXPLICIT_MASS,
                     loggedFood = logged,
                     hasManualEdits = true,
@@ -1060,7 +1097,6 @@ fun FoodLoggerDrawer(
 
     fun updateTagOilLevel(tagId: String, oilLevel: String) {
         val portionAdj = detectedContext?.portionAdjustment ?: 1.0
-        val proteinB = detectedContext?.proteinAdjustment ?: 0.0
         tags = tags.map { tag ->
             if (tag.id != tagId) return@map tag
             if (!tag.oilApplied && tag.cookingMethod != CookingMethod.FRITO &&
@@ -1069,7 +1105,7 @@ fun FoodLoggerDrawer(
                 return@map tag.copy(oilLevel = oilLevel, hasManualEdits = true)
             }
             val food = tag.foodItem
-            val (adj, boost) = scalingForIntent(tag.amountIntent, portionAdj, proteinB)
+            val adj = scalingForIntent(tag.amountIntent, portionAdj)
             if (food != null && tag.analysisSource != AnalysisSource.LOCAL_AI_ESTIMATE &&
                 tag.analysisSource != AnalysisSource.EXTERNAL_API_ESTIMATE
             ) {
@@ -1082,7 +1118,6 @@ fun FoodLoggerDrawer(
                     amountGrams = tag.amountGrams,
                     cookingMethod = scaleMethod,
                     portionAdjustment = adj,
-                    proteinBoost = boost,
                 )
                 val adjustedLogged = adjustLoggedFoodForOil(logged, tag.cookingMethod, oilLevel, foodName = food.name)
                 tag.copy(
@@ -1104,11 +1139,17 @@ fun FoodLoggerDrawer(
                 tag.copy(oilLevel = oilLevel, hasManualEdits = true)
             }
         }
+        tags.firstOrNull { it.id == tagId }?.let { tag ->
+            val key = tag.canonicalFamily ?: tag.foodItem?.let(FoodIdentity::familyFor) ?: tag.tag
+            val portion = (tag.amountGrams ?: tag.loggedFood?.amount ?: 100.0).coerceAtLeast(1.0)
+            val gramsPer100 = oilGramsForLevel(oilLevel) * 100.0 / portion
+            updateCalibrationProfile { profile -> NutritionCalibrationWizardEngine.recordConfirmedOil(profile, key, gramsPer100) }
+        }
     }
 
     fun updateTagCookingClarification(tagId: String, wantCooked: Boolean) {
+        NutritionTelemetry.event("clarification_answered", mapOf("kind" to "cooking_state", "answer" to if (wantCooked) "cooked" else "raw"))
         val portionAdj = detectedContext?.portionAdjustment ?: 1.0
-        val proteinB = detectedContext?.proteinAdjustment ?: 0.0
         tags = tags.map { tag ->
             if (tag.id != tagId) return@map tag
             val method = if (wantCooked) CookingMethod.COCIDO else CookingMethod.CRUDO
@@ -1123,7 +1164,7 @@ fun FoodLoggerDrawer(
                 hasManualEdits = true,
             )
             nutritionRepo.recordFoodSelection(tag.tag, food)
-            val (adj, boost) = scalingForIntent(tag.amountIntent, portionAdj, proteinB)
+            val adj = scalingForIntent(tag.amountIntent, portionAdj)
             val usePrepared = CookingStateResolver.isAlreadyPreparedForMethod(food, method)
             val scaleMethod = if (usePrepared) null else method
             val logged = scaleFoodByPortion(
@@ -1133,12 +1174,14 @@ fun FoodLoggerDrawer(
                 amountGrams = tag.amountGrams,
                 cookingMethod = scaleMethod,
                 portionAdjustment = adj,
-                proteinBoost = boost,
             )
             tag.copy(
                 cookingMethod = method,
                 foodItem = food,
                 loggedFood = logged.copy(analysisSource = AnalysisSource.DATABASE, cookingMethod = method),
+                baseAmountGrams = tag.baseAmountGrams ?: tag.amountGrams ?: logged.amount,
+                portionMinGrams = tag.portionMinGrams ?: tag.amountGrams ?: logged.amount,
+                portionMaxGrams = tag.portionMaxGrams ?: tag.amountGrams ?: logged.amount,
                 isResolved = true,
                 analysisSource = AnalysisSource.DATABASE,
                 statusText = "",
@@ -1151,9 +1194,21 @@ fun FoodLoggerDrawer(
                 resolutionStatus = FoodResolutionStatus.AUTO,
                 nutritionSource = NutritionSourceKind.CURATED_LOCAL,
                 resolutionConfidence = 1.0,
+                explicitDecision = true,
+                isUncertain = false,
             )
         }
-        reviewRequired = tags.any { !it.isExcluded && !it.isResolved }
+        reviewRequired = tags.any { it.hasMaterialQuestion() }
+        tags.firstOrNull { it.id == tagId }?.let { tag ->
+            val key = tag.canonicalFamily ?: tag.foodItem?.let(FoodIdentity::familyFor) ?: tag.tag
+            updateCalibrationProfile { profile ->
+                NutritionCalibrationWizardEngine.recordConfirmedState(
+                    profile,
+                    key,
+                    if (wantCooked) com.example.kpkn.domain.nutrition.WeightBasis.COOKED else com.example.kpkn.domain.nutrition.WeightBasis.RAW,
+                )
+            }
+        }
     }
 
                     fun updateTagCalories(tagId: String, calories: Double) {
@@ -1231,7 +1286,7 @@ fun FoodLoggerDrawer(
 
     fun saveLog() {
         val activeTags = tags.filterNot { it.isExcluded }
-        if (activeTags.any { !it.isResolved }) {
+        if (activeTags.any { !it.isResolved && !it.explicitDecision }) {
             NutritionTelemetry.event("save_rejected", mapOf("reason" to "unresolved_tags", "tags" to activeTags.size))
             reviewRequired = true
             // CRI-AUDIT (P6): aviso explícito que nombra el alimento que bloquea el guardado,
@@ -1240,6 +1295,34 @@ fun FoodLoggerDrawer(
             analysisNotice = AnalysisNotice(
                 title = "Falta confirmar: \"$blocking\"",
                 message = "Selecciona el alimento correcto y confirma su cantidad antes de guardar.",
+                tone = AnalysisNoticeTone.WARNING,
+            )
+            return
+        }
+        val materiallyUncertain = activeTags.any { tag ->
+            !tag.isUncertain && !tag.explicitDecision && !tag.hasManualEdits && (
+                (tag.resolutionConfidence?.let { it < 0.80 } == true) ||
+                    (tag.resolutionMargin?.let { it < 0.15 } == true) ||
+                    tag.needsCookingClarification ||
+                    tag.reviewCandidates.any { candidate ->
+                        val selected = tag.foodItem
+                        if (selected == null) {
+                            false
+                        } else {
+                            val kcalGap = kotlin.math.abs(candidate.calories - selected.calories)
+                            val proteinGap = kotlin.math.abs(candidate.protein - selected.protein)
+                            val fatGap = kotlin.math.abs(candidate.fats - selected.fats)
+                            kcalGap >= 50.0 || proteinGap >= 5.0 || fatGap >= 5.0
+                        }
+                    }
+                )
+        }
+        if (materiallyUncertain) {
+            NutritionTelemetry.event("save_rejected", mapOf("reason" to "material_uncertainty", "tags" to activeTags.size))
+            reviewRequired = true
+            analysisNotice = AnalysisNotice(
+                title = "Revisa las alternativas",
+                message = "La confianza o la diferencia entre opciones es insuficiente. Elige una ficha o confirma la estimación.",
                 tone = AnalysisNoticeTone.WARNING,
             )
             return
@@ -1367,6 +1450,11 @@ fun FoodLoggerDrawer(
             },
             shape = RoundedCornerShape(20.dp),
         )
+    }
+    val activeTagsForSave = tags.filterNot { it.isExcluded }
+    val saveBlocked = activeTagsForSave.any { tag ->
+        (!tag.isResolved && !tag.explicitDecision) || tag.needsCookingClarification ||
+            tag.hasMaterialQuestion()
     }
 
     // ─── Sheet ───────────────────────────────────────────────────────────────
@@ -1672,6 +1760,11 @@ fun FoodLoggerDrawer(
                             isResolved = true,
                             statusText = "",
                             hasManualEdits = true,
+                            // Selección manual explícita del usuario: misma autoridad
+                            // que una corrección manual, no un fallback silencioso.
+                            resolutionStatus = FoodResolutionStatus.AUTO,
+                            nutritionSource = NutritionSourceKind.CURATED_LOCAL,
+                            resolutionConfidence = 1.0,
                         )
                         nutritionRepo.recordFoodSelection(queryUsed, selectedFood)
                         tags = tags + tag
@@ -1684,6 +1777,34 @@ fun FoodLoggerDrawer(
 
             // ── Tag List ────────────────────────────────────────────────────
             if (activeTab == 0 && tags.isNotEmpty()) {
+                val pendingClarifications = tags.filter { tag ->
+                    !tag.isExcluded && (
+                        tag.needsCookingClarification ||
+                            (!tag.isResolved && !tag.explicitDecision && tag.amountIntent == AmountIntent.UNSPECIFIED) ||
+                            tag.hasMaterialQuestion()
+                        )
+                }
+                if (pendingClarifications.isNotEmpty()) {
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text(
+                                "Antes de guardar",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            pendingClarifications.forEach { pending ->
+                                FoodClarificationPanel(
+                                    tag = pending,
+                                    onPortionChange = { updateTagPortion(pending.id, it) },
+                                    onGramsChange = { updateTagGrams(pending.id, it) },
+                                    onCookingClarification = { updateTagCookingClarification(pending.id, it) },
+                                    onUnsure = { useEstimate(pending.id) },
+                                )
+                            }
+                        }
+                    }
+                }
                 item {
                     Text(
                         text = "Resumen de la comida",
@@ -1716,6 +1837,7 @@ fun FoodLoggerDrawer(
                                 updateTagCookingClarification(tag.id, wantCooked)
                             },
                             onConfirmEstimate = { confirmEstimate(tag.id) },
+                            onUnsure = { useEstimate(tag.id) },
                         )
                     }
                 }
@@ -1779,7 +1901,11 @@ fun FoodLoggerDrawer(
                                              else if (hasTags) Color(0xFF2E7D32)
                                              else MaterialTheme.colorScheme.primary
                         ),
-                        enabled = !isAnalyzing && (hasTags || description.isNotBlank())
+                        enabled = !isAnalyzing && (
+                            descriptionEdited ||
+                                (hasTags && !saveBlocked) ||
+                                (!hasTags && description.isNotBlank())
+                            )
                     ) {
                         if (isAnalyzing) {
                             CircularProgressIndicator(
@@ -2171,6 +2297,102 @@ private fun FoodSearchResultCard(candidate: FoodCandidate, onClick: () -> Unit) 
 }
 
 @Composable
+private fun FoodClarificationPanel(
+    tag: ResolvedTag,
+    onPortionChange: (PortionPreset) -> Unit,
+    onGramsChange: (Double) -> Unit,
+    onCookingClarification: (Boolean) -> Unit,
+    onUnsure: () -> Unit,
+) {
+    var manualGrams by remember(tag.id, tag.amountGrams) {
+        mutableStateOf((tag.amountGrams ?: tag.baseAmountGrams ?: "").toString().removeSuffix(".0"))
+    }
+    val options = absolutePortionOptions(tag.baseAmountGrams ?: tag.amountGrams ?: tag.loggedFood?.amount)
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.58f),
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                when {
+                    tag.needsCookingClarification -> when (tag.clarificationKind) {
+                        CookingStateResolver.ClarificationKind.DRY_VS_COOKED -> "¿Pesaste seco o ya cocido/hidratado?"
+                        CookingStateResolver.ClarificationKind.RAW_VS_COOKED -> "¿El peso es en crudo o ya cocido?"
+                        else -> "Aclara el estado de cocción"
+                    }
+                    else -> "¿Qué cantidad fue?"
+                },
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+            )
+            if (options.isNotEmpty() && !tag.needsCookingClarification) {
+                Text("Elige una porción o escribe los gramos exactos.", style = MaterialTheme.typography.labelSmall)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+                    options.forEachIndexed { index, (label, grams) ->
+                        val preset = when (index) {
+                            0 -> PortionPreset.SMALL
+                            1 -> PortionPreset.MEDIUM
+                            else -> PortionPreset.LARGE
+                        }
+                        Surface(
+                            modifier = Modifier.weight(1f).clickable { onPortionChange(preset) },
+                            shape = RoundedCornerShape(9.dp),
+                            color = if (tag.portion == preset) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                        ) {
+                            Text(
+                                "$label · ${grams.toInt()} g",
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 8.dp),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (tag.portion == preset) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
+            if (tag.needsCookingClarification) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+                    val stateOptions = when (tag.clarificationKind) {
+                        CookingStateResolver.ClarificationKind.DRY_VS_COOKED -> listOf(false to "Seco", true to "Cocido")
+                        else -> listOf(false to "Crudo", true to "Cocido")
+                    }
+                    stateOptions.forEach { (cooked, label) ->
+                        OutlinedButton(onClick = { onCookingClarification(cooked) }, modifier = Modifier.weight(1f)) {
+                            Text(label)
+                        }
+                    }
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                OutlinedTextField(
+                    value = manualGrams,
+                    onValueChange = { manualGrams = it },
+                    modifier = Modifier.weight(1f),
+                    label = { Text("Ingresar gramos") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+                )
+                Button(
+                    onClick = { manualGrams.toDoubleOrNull()?.takeIf { it > 0.0 }?.let(onGramsChange) },
+                    enabled = manualGrams.toDoubleOrNull()?.let { it > 0.0 } == true,
+                ) { Text("Aplicar") }
+            }
+            TextButton(onClick = onUnsure, modifier = Modifier.fillMaxWidth()) {
+                Text("No estoy seguro; usar estimación")
+            }
+        }
+    }
+}
+
+@Composable
 private fun TagCard(
     tag: ResolvedTag,
     nutritionRepo: NutritionRepository,
@@ -2187,6 +2409,7 @@ private fun TagCard(
     onOilLevelChange: (String) -> Unit,
     onCookingClarification: (Boolean) -> Unit,
     onConfirmEstimate: () -> Unit,
+    onUnsure: () -> Unit,
 ) {
     val logged = tag.loggedFood
 
@@ -2218,10 +2441,35 @@ private fun TagCard(
                     }
                     if (logged != null) {
                         Text(
-                            text = "${kotlin.math.round(logged.calories).toInt()} kcal · P ${kotlin.math.round(logged.protein).toInt()}g · C ${kotlin.math.round(logged.carbs).toInt()}g · G ${kotlin.math.round(logged.fats).toInt()}g",
+                            text = "${if (tag.isUncertain || logged.isUncertain) "≈ " else ""}${kotlin.math.round(logged.calories).toInt()} kcal · P ${kotlin.math.round(logged.protein).toInt()}g · C ${kotlin.math.round(logged.carbs).toInt()}g · G ${kotlin.math.round(logged.fats).toInt()}g",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            val sourceLabel = when {
+                                tag.foodItem?.source?.contains("USDA", ignoreCase = true) == true -> "USDA"
+                                tag.foodItem?.source?.contains("OFF", ignoreCase = true) == true -> "OFF"
+                                tag.nutritionSource == NutritionSourceKind.HEURISTIC_ESTIMATE || tag.isUncertain -> "Estimado"
+                                else -> "Local"
+                            }
+                            AssistChip(onClick = {}, label = { Text(sourceLabel, style = MaterialTheme.typography.labelSmall) })
+                            if (tag.calibrationUsed) {
+                                AssistChip(onClick = {}, label = { Text("Usé tu habitual", style = MaterialTheme.typography.labelSmall) })
+                            }
+                            val stateLabel = when (tag.foodState) {
+                                FoodState.RAW -> "crudo"
+                                FoodState.COOKED, FoodState.HYDRATED -> "cocido"
+                                else -> "estado pendiente"
+                            }
+                            AssistChip(onClick = {}, label = { Text(stateLabel, style = MaterialTheme.typography.labelSmall) })
+                        }
+                        if (tag.isUncertain || logged.isUncertain) {
+                            val minKcal = logged.caloriesMin?.let { kotlin.math.round(it).toInt() }
+                            val maxKcal = logged.caloriesMax?.let { kotlin.math.round(it).toInt() }
+                            if (minKcal != null && maxKcal != null) {
+                                Text("Rango estimado: $minKcal–$maxKcal kcal", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
                     }
                     if (tag.statusText.isNotBlank()) {
                         Text(
@@ -2307,7 +2555,7 @@ private fun TagCard(
                         )
                     }
 
-                    if (tag.resolutionStatus == FoodResolutionStatus.NEEDS_CONFIRMATION && logged != null) {
+                    if (tag.resolutionStatus in setOf(FoodResolutionStatus.NEEDS_CONFIRMATION, FoodResolutionStatus.NEEDS_REVIEW) && logged != null) {
                         Text(
                             "Macros estimados: confirma antes de guardar.",
                             style = MaterialTheme.typography.labelSmall,
@@ -2369,6 +2617,9 @@ private fun TagCard(
                                             )
                                         }
                                     }
+                                }
+                                TextButton(onClick = onUnsure, modifier = Modifier.fillMaxWidth()) {
+                                    Text("No estoy seguro; usar estimación")
                                 }
                             }
                         }

@@ -90,6 +90,11 @@ android {
             isIncludeAndroidResources = true
         }
     }
+
+    // Esquemas Room exportados como assets de androidTest para MigrationTestHelper
+    sourceSets {
+        getByName("androidTest").assets.srcDir("$projectDir/schemas")
+    }
 }
 
 ksp {
@@ -145,6 +150,10 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    // MigrationTestHelper (Room v20→v22) lee los esquemas exportados como assets
+    androidTestImplementation(libs.androidx.room.testing)
+    androidTestImplementation(libs.androidx.room.runtime)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     // LeakCanary: detects memory leaks in debug builds only (not included in release APK).

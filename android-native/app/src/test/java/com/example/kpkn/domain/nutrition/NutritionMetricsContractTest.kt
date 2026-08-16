@@ -32,8 +32,8 @@ class NutritionMetricsContractTest {
         private val resolver: SmartFoodResolver,
         private val foods: List<FoodItem>,
     ) : FoodResolutionPort {
-        override suspend fun resolveSmart(tag: String, brandHint: String?, contextHint: String?) =
-            resolver.resolve(tag, brandHint, contextHint)
+        override suspend fun resolveSmart(tag: String, brandHint: String?, contextHint: String?, stateHint: FoodState?) =
+            resolver.resolve(tag, brandHint, contextHint, stateHint)
         override suspend fun getFoodById(id: String): FoodItem? = foods.firstOrNull { it.id == id }
         override suspend fun staticFood(tag: String): FoodItem? = findFoodByNormalized(tag)
         override fun staticIsExact(tag: String): Boolean = findFoodExactByNormalized(tag) != null

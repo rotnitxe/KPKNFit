@@ -16,8 +16,13 @@ fun buildFoodDatabase(): List<FoodItem> = ALL_FOODS
 val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen001", name = "Manzana", servingSize = 100.0, unit = "g", calories = 52.0, protein = 0.3, carbs = 14.0, fats = 0.2),
     FoodItem(id = "gen002", name = "Plátano", servingSize = 100.0, unit = "g", calories = 89.0, protein = 1.1, carbs = 23.0, fats = 0.3),
-    FoodItem(id = "gen003", name = "Pechuga de Pollo (cruda)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 165.0, protein = 31.0, carbs = 0.0, fats = 3.6, cookingWeightFactor = 0.75),
-    FoodItem(id = "gen004", name = "Pechuga de Pollo (cocida)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 195.0, protein = 30.0, carbs = 0.0, fats = 7.8),
+    // Fichas de pechuga alineadas al asset USDA (food_nutrient.csv):
+    // cruda = FDC 2646170 (22,5 P/1,9 G por 100 g crudos), cocida = FDC 331960
+    // braised (166 kcal/32,1 P/3,2 G por 100 g cocidos). La gen003 anterior
+    // tenía densidad cocida (31 g/100 g) rotulada como cruda y duplicaba la
+    // concentración al dividir por el rendimiento.
+    FoodItem(id = "gen003", name = "Pechuga de Pollo (cruda)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 106.0, protein = 22.5, carbs = 0.0, fats = 1.9, cookingWeightFactor = 0.75),
+    FoodItem(id = "gen004", name = "Pechuga de Pollo (cocida)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 166.0, protein = 32.1, carbs = 0.0, fats = 3.2),
     FoodItem(id = "gen005", name = "Arroz Blanco (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 130.0, protein = 2.7, carbs = 28.0, fats = 0.3),
     FoodItem(id = "gen006", name = "Arroz Integral (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 111.0, protein = 2.6, carbs = 23.0, fats = 0.9),
     FoodItem(id = "gen007", name = "Huevo Entero (cocido)", servingSize = 50.0, unit = "g", calories = 77.0, protein = 6.3, carbs = 0.6, fats = 5.3),
@@ -284,7 +289,13 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "pollo" to "pechuga de pollo", "pechuga" to "pechuga de pollo",
     "arroz" to "arroz blanco", "arroz blanco" to "arroz blanco",
     "huevo" to "huevo entero", "huevos" to "huevo entero", "huevo cocido" to "huevo entero",
+    // El atún sin medio de conservación mantiene la variante al agua como
+    // candidato visible, pero no debe autoconfirmarse (TagResolver marca la
+    // consulta desnuda como NEEDS_CONFIRMATION). Las formas explícitas sí son
+    // identidades deterministas.
     "atún" to "atún en lata",
+    "atún al agua" to "atún en lata",
+    "atun al agua" to "atún en lata",
     "leche" to "leche entera",
     "pan" to "pan blanco",
     "salmon" to "salmón", "salmón" to "salmón",
@@ -304,7 +315,9 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "maní" to "cacahuates", "cacahuate" to "cacahuates", "peanut" to "cacahuates",
     "porotos" to "porotos negros", "frijoles" to "porotos negros",
     "lentejas" to "lentejas",
+    "lenteja" to "lentejas",
     "garbanzos" to "garbanzos",
+    "garbanzo" to "garbanzos",
     "trigo" to "pan integral",
     "café" to "café",
     "té" to "té verde",

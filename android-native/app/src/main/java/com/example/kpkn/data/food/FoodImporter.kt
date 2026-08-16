@@ -1,9 +1,12 @@
 package com.example.kpkn.data.food
 
 import android.content.Context
+import androidx.room.withTransaction
 import com.example.kpkn.data.db.GlobalFoodEntity
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.NutritionDao
+import com.example.kpkn.domain.nutrition.FoodIdentity
+import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
@@ -17,14 +20,23 @@ import java.time.Instant
 
 /**
  * FoodImporter — Soporta USDA y OpenFoodFacts Chile.
+ *
+ * v22 (plan 2026-08-16_nutrition_precision_v2): cada fila importada conserva
+ * procedencia (ID de registro, estado, base nutricional, versión del dataset,
+ * categoría, porción y flags de calidad) y la importación es atómica — un
+ * fallo a mitad de camino deja intacta la versión anterior del catálogo.
  */
 object FoodImporter {
     private const val TAG = "FoodImporter"
     private const val BATCH_SIZE = 2000
-    private const val DATA_VERSION = 7
+    private const val DATA_VERSION = 8
     private const val USDA_FOOD_CSV = "food_data/food.csv"
     private const val USDA_NUTRIENT_CSV = "food_data/food_nutrient.csv"
+    private const val USDA_PORTION_CSV = "food_data/food_portion.csv"
     private const val OFF_CHILE_CSV = "food_data/off_chile.csv"
+
+    /** Umbral de incoherencia energética kcal vs 4P+4C+9G para flag (no rechazo). */
+    internal const val ENERGY_MISMATCH_TOLERANCE = 0.35
 
     data class ImportMetadata(
         val version: Int,
@@ -58,19 +70,29 @@ object FoodImporter {
         }
 
         _importProgress.value = 0.01f
+        NutritionTelemetry.catalogImportStarted(DATA_VERSION.toString())
         val dao = db.nutritionDao()
+        // Atómica: clear+insert dentro de una transacción. Si algo falla a
+        // mitad de importación, el rollback conserva la versión anterior
+        // completa (antes clearGlobalFoods() borraba primero y un fallo dejaba
+        // el catálogo vacío). El FTS external-content se mantiene por triggers
+        // dentro de la misma transacción y la meta se persiste solo al final.
         val imported = runCatching {
-            importAll(dao, context)
+            db.withTransaction {
+                importAll(dao, context)
+            }
             val meta = ImportMetadata(
                 version = DATA_VERSION,
                 checksum = checksum,
                 importedAt = Instant.now().toString(),
             )
             onMetaUpdated(meta)
+            NutritionTelemetry.catalogImportCompleted(DATA_VERSION.toString(), dao.getGlobalFoodCount())
             true
         }.getOrElse { throwable ->
             if (throwable is CancellationException) throw throwable
             android.util.Log.e(TAG, "Error importando (${throwable.javaClass.simpleName})", throwable)
+            NutritionTelemetry.catalogImportFailed(throwable.javaClass.simpleName)
             false
         }
 
@@ -125,6 +147,29 @@ object FoodImporter {
         }
         _importProgress.value = 0.18f
 
+        // Porciones domésticas autoritativas de USDA (food_portion.csv): la
+        // primera porción declarada por ficha. Sin esto, todo alimento global
+        // caería en el "100 g" genérico aunque la fuente declare "1 breast =
+        // 174 g" (compuerta Fase 2).
+        val authoritativePortions = HashMap<Int, Pair<Double, String>>(30_000)
+        runCatching {
+            context.assets.open(USDA_PORTION_CSV).bufferedReader().use { reader ->
+                reader.readLine() // header
+                for (line in reader.lineSequence()) {
+                    val parts = parseCsvLine(line)
+                    if (parts.size < 8) continue
+                    val fdcId = parts[1].toIntOrNull() ?: continue
+                    val gramWeight = parts[7].toDoubleOrNull() ?: continue
+                    if (gramWeight <= 0.0 || !gramWeight.isFinite()) continue
+                    val unit = parts[4].trim('"').takeIf { it.isNotBlank() } ?: "g"
+                    // La primera fila (seq_num menor) es la porción principal.
+                    authoritativePortions.putIfAbsent(fdcId, gramWeight to unit)
+                }
+            }
+        }.onFailure {
+            android.util.Log.w(TAG, "food_portion.csv no disponible: porciones domésticas omitidas", it)
+        }
+
         val usdaBatch = mutableListOf<GlobalFoodEntity>()
         context.assets.open(USDA_FOOD_CSV).bufferedReader().use { reader ->
             reader.readLine()
@@ -140,15 +185,22 @@ object FoodImporter {
                 val normalizedName = normalizeSearch(name)
                 val nutrients = foodNutrients[fdcId] ?: continue
                 if (nutrients[0] <= 0f) continue
+                val calories = nutrients[0].toDouble()
+                val protein = nutrients[1].toDouble()
+                val fats = nutrients[2].toDouble()
+                val carbs = nutrients[3].toDouble()
+                // Validación física (plan Fase 2): negativos, no finitos o
+                // macros individuales > 100 g/100 g no entran al catálogo.
+                if (!hasPhysicallyPlausibleMacros(calories, protein, carbs, fats)) continue
                 usdaBatch.add(
                     GlobalFoodEntity(
                         foodId = "usda_$fdcId",
                         name = name,
                         normalizedName = normalizedName,
-                        calories = nutrients[0].toDouble(),
-                        protein = nutrients[1].toDouble(),
-                        fats = nutrients[2].toDouble(),
-                        carbs = nutrients[3].toDouble(),
+                        calories = calories,
+                        protein = protein,
+                        fats = fats,
+                        carbs = carbs,
                         fiber = nutrients[4].toDouble(),
                         sugar = nutrients[5].toDouble(),
                         sodiumMg = nutrients[6].toDouble(),
@@ -158,6 +210,17 @@ object FoodImporter {
                         source = "USDA",
                         sourcePriority = 70,
                         verifiedScore = 0.85,
+                        // Procedencia v22
+                        sourceRecordId = fdcId.toString(),
+                        foodState = stateForDescription(name),
+                        nutritionBasis = nutritionBasisFor(stateForDescription(name)),
+                        datasetVersion = DATA_VERSION.toString(),
+                        category = parts.getOrNull(3)?.trim('"')?.takeIf { it.isNotBlank() },
+                        portionGrams = authoritativePortions[fdcId]?.first,
+                        portionUnit = authoritativePortions[fdcId]?.second,
+                        qualityFlagsJson = encodeQualityFlags(
+                            usdaQualityFlags(calories, protein, carbs, fats)
+                        ),
                     )
                 )
                 processed++
@@ -177,8 +240,7 @@ object FoodImporter {
         var offProcessed = 0
         var offSkipped = 0
         var offDbFilled = 0
-        runCatching {
-            val offBatch = mutableListOf<GlobalFoodEntity>()
+        val offBatch = mutableListOf<GlobalFoodEntity>()
             context.assets.open(OFF_CHILE_CSV).bufferedReader().use { reader ->
                 // OFF Chile CSV is TAB-separated with NO header row.
                 // Column positions (0-indexed, tab-separated):
@@ -293,6 +355,15 @@ object FoodImporter {
                             source = "OFF Chile",
                             sourcePriority = 80,
                             verifiedScore = parsed.confidence.toDouble(),
+                            // Procedencia v22: OFF declara per-100g tal como se
+                            // vende; el código de barras es el ID de registro.
+                            sourceRecordId = code,
+                            foodState = "UNKNOWN",
+                            nutritionBasis = "PER_100G_AS_SOLD",
+                            datasetVersion = DATA_VERSION.toString(),
+                            qualityFlagsJson = encodeQualityFlags(
+                                offQualityFlags(rawKcal, rawProt, rawCarb, rawFat, parsed.confidence)
+                            ),
                         )
                     )
                     offProcessed++
@@ -303,9 +374,8 @@ object FoodImporter {
                         _importProgress.value = (0.64f + (offProcessed.coerceAtMost(22000) / 22000f) * 0.35f).coerceIn(0.64f, 0.99f)
                     }
                 }
-            }
-            if (offBatch.isNotEmpty()) dao.insertGlobalFoods(offBatch)
         }
+        if (offBatch.isNotEmpty()) dao.insertGlobalFoods(offBatch)
         android.util.Log.d(TAG, "OFF import done: $offProcessed products ($offDbFilled DB-filled), $offSkipped skipped")
     }
 
@@ -320,6 +390,70 @@ object FoodImporter {
         }
         res.add(cur.toString())
         return res
+    }
+
+    // ─── Validación y calidad (Fase 2, testeables sin Android) ─────────────
+
+    /** Rechaza negativos, no finitos, energía nula y macros > 100 g/100 g. */
+    internal fun hasPhysicallyPlausibleMacros(
+        calories: Double,
+        protein: Double,
+        carbs: Double,
+        fats: Double,
+    ): Boolean {
+        val macros = listOf(protein, carbs, fats)
+        if (macros.any { !it.isFinite() || it < 0.0 || it > 100.0 }) return false
+        if (!calories.isFinite() || calories <= 0.0) return false
+        return true
+    }
+
+    /**
+     * Flags de calidad USDA: incoherencia energética frente al diagnóstico
+     * Atwater (4P+4C+9G). Se marca, no se rechaza — diferencias explicables
+     * por fibra, alcohol, polioles o factores específicos no deben caerse.
+     */
+    internal fun usdaQualityFlags(
+        calories: Double,
+        protein: Double,
+        carbs: Double,
+        fats: Double,
+    ): List<String> {
+        val flags = mutableListOf<String>()
+        val macroEnergy = protein * 4.0 + carbs * 4.0 + fats * 9.0
+        if (macroEnergy > 0.0) {
+            val deviation = kotlin.math.abs(calories - macroEnergy) / macroEnergy
+            if (deviation > ENERGY_MISMATCH_TOLERANCE) flags.add("ENERGY_MISMATCH")
+        }
+        if (protein <= 0.0 && carbs <= 0.0 && fats <= 0.0) flags.add("INCOMPLETE")
+        return flags
+    }
+
+    /** Flags OFF: naturaleza colaborativa — además de energía, baja confianza del parser. */
+    internal fun offQualityFlags(
+        calories: Double,
+        protein: Double,
+        carbs: Double,
+        fats: Double,
+        parserConfidence: Float,
+    ): List<String> {
+        val flags = usdaQualityFlags(calories, protein, carbs, fats).toMutableList()
+        if (parserConfidence < 0.6f) flags.add("LOW_QUALITY")
+        return flags.distinct()
+    }
+
+    /** Estado raw/cooked derivado de la descripción de origen (USDA en inglés). */
+    internal fun stateForDescription(description: String): String =
+        FoodIdentity.stateFor(description).name
+
+    internal fun nutritionBasisFor(state: String): String = when (state.uppercase()) {
+        "RAW" -> "PER_100G_RAW"
+        "COOKED", "HYDRATED" -> "PER_100G_COOKED"
+        else -> "PER_100G_AS_SOLD"
+    }
+
+    internal fun encodeQualityFlags(flags: List<String>): String {
+        if (flags.isEmpty()) return "[]"
+        return "[" + flags.joinToString(",") { "\"$it\"" } + "]"
     }
 
     /**
@@ -364,7 +498,8 @@ object FoodImporter {
 
         updateAsset(USDA_FOOD_CSV)
         updateAsset(USDA_NUTRIENT_CSV)
-        runCatching { updateAsset(OFF_CHILE_CSV) }
+        updateAsset(USDA_PORTION_CSV)
+        updateAsset(OFF_CHILE_CSV)
 
         return digest.digest().joinToString(separator = "") { "%02x".format(it) }
     }

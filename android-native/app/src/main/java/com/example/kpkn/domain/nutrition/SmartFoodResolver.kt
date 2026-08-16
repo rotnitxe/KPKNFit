@@ -97,13 +97,17 @@ class SmartFoodResolver(
      * Resolve a single query string to food candidates.
      * @param contextHint descripción completa (D6): el dataset detecta qué alimentos
      * co-ocurren con el contexto y boostea candidatos coherentes con ella.
+     * @param stateHint estado declarado por el usuario vía método de cocción
+     * (crudo/cocido). El parser extrae la palabra del tag, así que sin este hint
+     * la penalización de estado nunca separaría la fila cruda de la cocida.
      */
     suspend fun resolve(
         query: String,
         brandHint: String? = null,
         contextHint: String? = null,
+        stateHint: FoodState? = null,
     ): ResolutionResult = withContext(Dispatchers.Default) {
-        val first = attemptResolve(query, brandHint, contextHint)
+        val first = attemptResolve(query, brandHint, contextHint, stateHint)
         if (first.decision == Decision.AUTO_SELECT) {
             return@withContext first
         }
@@ -113,7 +117,7 @@ class SmartFoodResolver(
         // en singular y se queda con el mejor puntaje. Nunca empeora un resultado.
         val singular = singularizeQuery(query)
         if (singular != null) {
-            val retry = attemptResolve(singular, brandHint, contextHint)
+            val retry = attemptResolve(singular, brandHint, contextHint, stateHint)
             val firstScore = first.candidates.firstOrNull()?.score ?: 0.0
             val retryScore = retry.candidates.firstOrNull()?.score ?: 0.0
             if (retryScore > firstScore) {
@@ -127,6 +131,7 @@ class SmartFoodResolver(
         query: String,
         brandHint: String?,
         contextHint: String? = null,
+        stateHint: FoodState? = null,
     ): ResolutionResult {
         val normalizedQuery = FoodIndex.normalizeSearch(query)
         val queryTokens = FoodIndex.tokenize(normalizedQuery)
@@ -185,7 +190,7 @@ class SmartFoodResolver(
                 .map { it.foodId }
                 .toSet()
             if (stateCandidateIds.isNotEmpty()) {
-                return scoreAndRank(query, normalizedQuery, queryTokens, stateCandidateIds, brandHint, learned, coTokens = null)
+                return scoreAndRank(query, normalizedQuery, queryTokens, stateCandidateIds, brandHint, learned, coTokens = null, stateHint = stateHint)
             }
         }
         val coTokens = contextHint?.takeIf { it.isNotBlank() }?.let { datasetCoOccurrenceTokens(it) }
@@ -206,10 +211,10 @@ class SmartFoodResolver(
             if (expandedIds.isEmpty()) {
                 return resolveDatasetOrHeuristicFallback(query, normalizedQuery)
             }
-            return scoreAndRank(query, normalizedQuery, queryTokens, expandedIds, brandHint, learned, coTokens)
+            return scoreAndRank(query, normalizedQuery, queryTokens, expandedIds, brandHint, learned, coTokens, stateHint)
         }
 
-        return scoreAndRank(query, normalizedQuery, queryTokens, candidateIds, brandHint, learned, coTokens)
+        return scoreAndRank(query, normalizedQuery, queryTokens, candidateIds, brandHint, learned, coTokens, stateHint)
     }
 
     /** D6: tokens (≥4 letras) de los documentos más similares a la descripción completa. */
@@ -326,11 +331,12 @@ class SmartFoodResolver(
         brandHint: String?,
         learned: LearnedEntry?,
         coTokens: Set<String>? = null,
+        stateHint: FoodState? = null,
     ): ResolutionResult {
         val rankedCandidates = candidateIds.mapNotNull { foodId ->
             val food = foodIndex.getFood(foodId) ?: return@mapNotNull null
             if (!hasPlausibleMacros(food)) return@mapNotNull null
-            val score = computeScore(food, normalizedQuery, queryTokens, brandHint, learned, coTokens)
+            val score = computeScore(food, normalizedQuery, queryTokens, brandHint, learned, coTokens, stateHint)
             val trace = buildTrace(food, normalizedQuery, queryTokens, brandHint)
 
             ResolutionCandidate(
@@ -483,12 +489,15 @@ class SmartFoodResolver(
         brandHint: String?,
         learned: LearnedEntry?,
         coTokens: Set<String>? = null,
+        stateHint: FoodState? = null,
     ): Double {
         var score = 0.0
         val foodTokens = food.tokens
 
         val queryFamily = FoodIdentity.familyFor(normalizedQuery)
-        val queryState = FoodIdentity.stateFor(normalizedQuery)
+        // El hint estructurado (método de cocción del usuario) prevalece sobre
+        // la palabra del tag: el parser ya la extrajo antes de resolver.
+        val queryState = stateHint ?: FoodIdentity.stateFor(normalizedQuery)
         val exactAlias = food.normalizedAliases.contains(normalizedQuery)
         if (queryFamily != null && queryFamily == food.canonicalFamily) {
             score += 0.22

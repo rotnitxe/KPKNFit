@@ -70,8 +70,10 @@ private val COOKING_PATTERNS = listOf(
     // 4. FRITO + SALTEADO + REVUELTO (unificados como PWA)
     Pair(Regex("""\b(?:frit[oa]s?|fre[ií]d[oa]s?|revuelt[oa]s?|saltead[oa]s?|saltear|sofrit[oa]s?|soffrit[oa]s?|fried)\b""", RegexOption.IGNORE_CASE), CookingMethod.FRITO),
     
-    // 5. COCIDO / HERVIDO / SANCOCHADO (incluye "duro": "huevo duro" es cocido, IT3)
-    Pair(Regex("""\b(?:cocid[oa]s?|hervid[oa]s?|sancochad[oa]s?|duro|dura|duros|duras|boiled|estofad[oa]s?)\b""", RegexOption.IGNORE_CASE), CookingMethod.COCIDO),
+    // 5. COCIDO / HERVIDO / SANCOCHADO (incluye "duro": "huevo duro" es cocido, IT3;
+    //     "cocinado/cocinada" son sinónimos cotidianos de cocido y antes quedaban
+    //     dentro del tag, rompiendo la identidad y el estado)
+    Pair(Regex("""\b(?:cocid[oa]s?|cocinad[oa]s?|hervid[oa]s?|sancochad[oa]s?|duro|dura|duros|duras|boiled|estofad[oa]s?)\b""", RegexOption.IGNORE_CASE), CookingMethod.COCIDO),
     
     // 6. CRUDO
     Pair(Regex("""\b(?:crud[oa]s?|fresc[oa]s?|raw)\b""", RegexOption.IGNORE_CASE), CookingMethod.CRUDO),
@@ -160,7 +162,7 @@ private val REFERENCE_KEYWORDS_FAST = listOf(
 private val COOKING_KEYWORDS_FAST = listOf(
     "empaniz", "apanad", "breaded", "empanad", "plancha", "horno", "horn",
     "baked", "airfryer", "air fryer", "frit", "freid", "freíd", "freir", "revuelt",
-    "saltea", "sofrit", "soffrit", "fried", "cocid", "hervid", "sancoch", "duro", "dura",
+    "saltea", "sofrit", "soffrit", "fried", "cocid", "cocin", "hervid", "sancoch", "duro", "dura",
     "boiled", "estofad", "guis", "crud", "raw", "vapor", "steamed", "olla",
     "parrill", "grilled", "asado", "carbón", "carbon", "cazuel",
     "ahumad", "humad", "smoked"

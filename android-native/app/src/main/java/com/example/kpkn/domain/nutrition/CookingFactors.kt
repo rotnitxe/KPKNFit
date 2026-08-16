@@ -138,14 +138,23 @@ enum class OilAbsorptionCategory(val mediumGrams: Double) {
     DEFAULT(8.0),
 }
 
-/** Gramos de aceite añadido por nivel, según la categoría del alimento. */
-fun oilGramsForLevelInCategory(oilLevel: String, category: OilAbsorptionCategory): Double {
+/**
+ * Gramos de aceite añadido por nivel, según la categoría y la porción.
+ * `mediumGrams` is the auditable midpoint per 100 g; scaling by the logged
+ * amount avoids the old fixed-8-g error for 40 g and 400 g portions alike.
+ */
+fun oilGramsForLevelInCategory(
+    oilLevel: String,
+    category: OilAbsorptionCategory,
+    portionGrams: Double = 100.0,
+): Double {
     val base = category.mediumGrams
-    return when (oilLevel.lowercase()) {
+    val levelPer100g = when (oilLevel.lowercase()) {
         "poco" -> 3.0
         "abundante" -> base * 2.2
         else -> base
     }
+    return (levelPer100g * (portionGrams / 100.0).coerceIn(0.1, 10.0))
 }
 
 private val STARCH_BATTER_KEYWORDS = listOf(

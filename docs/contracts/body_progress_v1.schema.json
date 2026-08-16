@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kpkn.local/contracts/body-progress-v1.schema.json",
+  "title": "KPKN normalized body progress observation",
+  "type": "object",
+  "required": ["id", "metric", "valueSi", "unitSi", "timestampEpochMs", "source", "method", "quality"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "metric": { "enum": ["WEIGHT", "BODY_FAT_PERCENT", "MUSCLE_MASS_PERCENT", "WAIST", "HIP", "NECK", "CHEST", "ARM", "THIGH"] },
+    "valueSi": { "type": "number" },
+    "unitSi": { "type": "string", "enum": ["kg", "%", "cm"] },
+    "sessionId": { "type": ["string", "null"] },
+    "timestampEpochMs": { "type": "integer", "minimum": 0 },
+    "zoneId": { "type": "string" },
+    "source": { "enum": ["MANUAL", "SCALE", "HEALTH_CONNECT", "IMPORT", "SETTINGS_MIGRATION"] },
+    "method": { "enum": ["SCALE", "BIOIMPEDANCE", "TAPE", "MANUAL", "HEALTH_CONNECT", "UNKNOWN"] },
+    "quality": { "enum": ["MEASURED", "ESTIMATED", "IMPORTED"] },
+    "externalId": { "type": ["string", "null"] }
+  }
+}

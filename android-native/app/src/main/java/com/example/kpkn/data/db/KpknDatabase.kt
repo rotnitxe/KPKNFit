@@ -28,6 +28,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         NutritionLogEntity::class,
         NutritionPlanEntity::class,
         NutritionActiveStateEntity::class,
+        BodyObservationEntity::class,
+        BodyGoalEntity::class,
         PantryItemEntity::class,
         MealTemplateEntity::class,
         CustomFoodEntity::class,
@@ -47,12 +49,16 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         SessionTemplateEntity::class,
         // Learned Resolutions: auto-improvement for food matching (v14)
         LearnedResolutionEntity::class,
+        // Nutrition calibration profile: singleton versionado (v22)
+        NutritionCalibrationProfileEntity::class,
+        // Immutable daily food-goal history (v23)
+        DailyGoalSnapshotEntity::class,
         // Performance Range: RMS tracking (v15)
         PerformanceRangeEntity::class,
         PerformanceSnapshotEntity::class,
         AugeAdaptiveCacheEntity::class,
     ],
-    version = 20,
+    version = 23,
     exportSchema = true,
 )
 abstract class KpknDatabase : RoomDatabase() {
@@ -65,6 +71,7 @@ abstract class KpknDatabase : RoomDatabase() {
     abstract fun workoutV2Dao(): WorkoutV2Dao
     abstract fun augeDao(): AugeDao
     abstract fun nutritionDao(): NutritionDao
+    abstract fun bodyProgressDao(): BodyProgressDao
     abstract fun customExerciseDao(): CustomExerciseDao
     abstract fun wikiLabDao(): WikiLabDao
     abstract fun sessionTemplateDao(): SessionTemplateDao
@@ -512,6 +519,104 @@ abstract class KpknDatabase : RoomDatabase() {
             }
         }
 
+        // v21: normalized body observations and independent body goals. Legacy
+        // JSON is imported by BodyProgressRepository after the table count is
+        // verified; no nutrition, plan, or custom-food rows are touched here.
+        val MIGRATION_20_21 = object : Migration(20, 21) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `body_observations` (
+                        `id` TEXT NOT NULL,
+                        `metric` TEXT NOT NULL,
+                        `valueSi` REAL NOT NULL,
+                        `unitSi` TEXT NOT NULL,
+                        `sessionId` TEXT,
+                        `timestampEpochMs` INTEGER NOT NULL,
+                        `zoneId` TEXT NOT NULL,
+                        `source` TEXT NOT NULL,
+                        `method` TEXT NOT NULL,
+                        `quality` TEXT NOT NULL,
+                        `externalId` TEXT,
+                        PRIMARY KEY(`id`)
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_body_observations_metric` ON `body_observations` (`metric`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_body_observations_timestampEpochMs` ON `body_observations` (`timestampEpochMs`)")
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_body_observations_externalId` ON `body_observations` (`externalId`)")
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `body_goals` (
+                        `id` TEXT NOT NULL,
+                        `metric` TEXT NOT NULL,
+                        `targetValueSi` REAL NOT NULL,
+                        `unitSi` TEXT NOT NULL,
+                        `origin` TEXT NOT NULL,
+                        `linkedPlanId` TEXT,
+                        `createdAtEpochMs` INTEGER NOT NULL,
+                        `updatedAtEpochMs` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_body_goals_metric` ON `body_goals` (`metric`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_body_goals_linkedPlanId` ON `body_goals` (`linkedPlanId`)")
+            }
+        }
+
+        // v22: procedencia del catálogo global (USDA/OFF), aprendizaje enriquecido
+        // y perfil de calibración nutricional (plan 2026-08-16_nutrition_precision_v2).
+        // No destructiva: solo ADD COLUMN con defaults y una tabla nueva; los
+        // identificadores existentes se conservan para no romper resoluciones
+        // aprendidas, planes, logs ni alimentos personalizados.
+        val MIGRATION_21_22 = object : Migration(21, 22) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `global_foods` ADD COLUMN `sourceRecordId` TEXT")
+                db.execSQL("ALTER TABLE `global_foods` ADD COLUMN `foodState` TEXT NOT NULL DEFAULT 'UNKNOWN'")
+                db.execSQL("ALTER TABLE `global_foods` ADD COLUMN `nutritionBasis` TEXT NOT NULL DEFAULT 'PER_100G'")
+                db.execSQL("ALTER TABLE `global_foods` ADD COLUMN `datasetVersion` TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE `global_foods` ADD COLUMN `category` TEXT")
+                db.execSQL("ALTER TABLE `global_foods` ADD COLUMN `portionGrams` REAL")
+                db.execSQL("ALTER TABLE `global_foods` ADD COLUMN `portionUnit` TEXT")
+                db.execSQL("ALTER TABLE `global_foods` ADD COLUMN `qualityFlagsJson` TEXT NOT NULL DEFAULT '[]'")
+                db.execSQL("ALTER TABLE `learned_resolutions` ADD COLUMN `weightBasis` TEXT")
+                db.execSQL("ALTER TABLE `learned_resolutions` ADD COLUMN `portionMinGrams` REAL")
+                db.execSQL("ALTER TABLE `learned_resolutions` ADD COLUMN `portionMaxGrams` REAL")
+                db.execSQL("ALTER TABLE `learned_resolutions` ADD COLUMN `preparation` TEXT")
+                db.execSQL("ALTER TABLE `learned_resolutions` ADD COLUMN `oilProfile` TEXT")
+                db.execSQL("ALTER TABLE `learned_resolutions` ADD COLUMN `confidence` REAL NOT NULL DEFAULT 1.0")
+                db.execSQL("ALTER TABLE `learned_resolutions` ADD COLUMN `lastConfirmedAt` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `nutrition_calibration_profile` (
+                        `rowId` INTEGER NOT NULL,
+                        `schemaVersion` INTEGER NOT NULL,
+                        `data` TEXT NOT NULL,
+                        `updatedAt` INTEGER NOT NULL,
+                        PRIMARY KEY(`rowId`)
+                    )
+                """.trimIndent())
+            }
+        }
+
+        // v23: immutable daily food-goal snapshots. The insert-once DAO
+        // preserves historical comparisons when a plan is edited or deleted.
+        val MIGRATION_22_23 = object : Migration(22, 23) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `daily_goal_snapshots` (
+                        `date` TEXT NOT NULL,
+                        `planId` TEXT,
+                        `calorieTargetKcal` INTEGER,
+                        `proteinGoalG` INTEGER,
+                        `carbGoalG` INTEGER,
+                        `fatGoalG` INTEGER,
+                        `direction` TEXT,
+                        `calculationOrigin` TEXT NOT NULL,
+                        `capturedAtEpochMs` INTEGER NOT NULL,
+                        PRIMARY KEY(`date`)
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_daily_goal_snapshots_planId` ON `daily_goal_snapshots` (`planId`)")
+            }
+        }
+
         fun getInstance(context: Context): KpknDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -539,6 +644,9 @@ abstract class KpknDatabase : RoomDatabase() {
                     MIGRATION_17_18,
                     MIGRATION_18_19,
                     MIGRATION_19_20,
+                    MIGRATION_20_21,
+                    MIGRATION_21_22,
+                    MIGRATION_22_23,
                 )
                 .build()
                 .also { INSTANCE = it }

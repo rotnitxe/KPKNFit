@@ -94,9 +94,39 @@ object NutritionTelemetry {
         val trace = NutritionTrace(newId())
         val payload = LinkedHashMap<String, Any?>(fields)
         payload["source"] = source
+        emit("interpretation_started", payload, trace.traceId)
         emit("analysis_start", payload, trace.traceId)
         return trace
     }
+
+    // Stable local contract for the interpretation pipeline. Values are metrics
+    // only; callers must never pass meal text, credentials or raw descriptions.
+    fun candidateSelected(traceId: String, rank: Int, confidence: Double?, source: String) =
+        event("candidate_selected", mapOf("rank" to rank, "confidence" to confidence, "source" to source), traceId)
+
+    fun clarificationRequested(traceId: String, kind: String) =
+        event("clarification_requested", mapOf("kind" to kind), traceId)
+
+    fun clarificationAnswered(traceId: String, kind: String, answer: String) =
+        event("clarification_answered", mapOf("kind" to kind, "answer" to answer), traceId)
+
+    fun interpretationFinalized(traceId: String, status: String, candidateCount: Int) =
+        event("interpretation_finalized", mapOf("status" to status, "candidateCount" to candidateCount), traceId)
+
+    fun manualCorrection(traceId: String, field: String) =
+        event("manual_correction", mapOf("field" to field), traceId)
+
+    fun calibrationUpdated(profileVersion: Int, status: String) =
+        event("calibration_updated", mapOf("profileVersion" to profileVersion, "status" to status))
+
+    fun catalogImportStarted(datasetVersion: String? = null) =
+        event("catalog_import_started", mapOf("datasetVersion" to datasetVersion))
+
+    fun catalogImportCompleted(datasetVersion: String, acceptedRows: Int? = null) =
+        event("catalog_import_completed", mapOf("datasetVersion" to datasetVersion, "acceptedRows" to acceptedRows))
+
+    fun catalogImportFailed(errorType: String) =
+        event("catalog_import_failed", mapOf("errorType" to errorType.take(120)))
 
     internal fun emit(name: String, fields: Map<String, Any?> = emptyMap(), traceId: String? = null) {
         if (!isEnabled()) return

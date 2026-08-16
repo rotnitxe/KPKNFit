@@ -7,6 +7,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material.icons.filled.HealthAndSafety
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +33,9 @@ import com.example.kpkn.screens.settings.components.SettingsSwitchItem
 fun SettingsNutritionScreen(
     onBack: () -> Unit,
     onOpenPlanOverlay: () -> Unit,
+    onOpenCalibration: () -> Unit = {},
+    showHealthConnect: Boolean = false,
+    onOpenHealthConnect: () -> Unit = {},
     viewModel: SettingsViewModel = viewModel { SettingsViewModel() },
 ) {
     val settings by viewModel.settings.collectAsState()
@@ -92,10 +97,24 @@ fun SettingsNutritionScreen(
                 SettingsSectionCard {
                     SettingsActionItem(
                         title = "Configurar plan nutricional",
-                        description = "Abre el panel unificado para calcular tus objetivos calóricos y de macronutrientes.",
+                        description = "Abre el wizard de 6 pasos para calcular objetivos con EER 2023 y guardarlos como un plan.",
                         icon = Icons.Default.Restaurant,
                         onClick = onOpenPlanOverlay,
                     )
+                    SettingsActionItem(
+                        title = "Calibrar con datos reales",
+                        description = "Revisa una muestra de 14–21 días antes de aplicar ajustes de ±150 kcal.",
+                        icon = Icons.Default.Timeline,
+                        onClick = onOpenCalibration,
+                    )
+                    if (showHealthConnect) {
+                        SettingsActionItem(
+                            title = "Health Connect",
+                            description = "Importa peso y composición corporal con fecha, fuente e identificador deduplicable.",
+                            icon = Icons.Default.HealthAndSafety,
+                            onClick = onOpenHealthConnect,
+                        )
+                    }
                 }
             }
         }

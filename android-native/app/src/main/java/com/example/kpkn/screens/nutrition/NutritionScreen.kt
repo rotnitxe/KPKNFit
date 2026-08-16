@@ -35,7 +35,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.*
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
-import com.example.kpkn.screens.nutrition.components.NutritionPlanEditorModal
 import com.example.kpkn.ui.components.KpknAlertDialog
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -70,6 +69,7 @@ fun NutritionScreen(
     viewModel: NutritionViewModel = viewModel { NutritionViewModel() },
     onNavigateToBodyProgress: (() -> Unit)? = null,
     onNavigateToMealHistory: (() -> Unit)? = null,
+    onNavigateToWizard: (mode: String, planId: String?) -> Unit = { _, _ -> },
 ) {
     val dailyTotals by viewModel.dailyTotals.collectAsState()
     val goals by viewModel.goals.collectAsState()
@@ -77,9 +77,9 @@ fun NutritionScreen(
     val mealGroups by viewModel.mealGroups.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
     val activePlan by viewModel.activePlan.collectAsState()
-    val isPlanOverlayOpen by viewModel.isPlanOverlayOpen.collectAsState()
     val foodDatabase by viewModel.foodDatabase.collectAsState()
     val trendData by viewModel.trendData.collectAsState()
+    val historySeries by viewModel.historySeries.collectAsState()
     val sharedDescription by viewModel.pendingSharedDescription.collectAsState()
     val sharedTab by viewModel.pendingSharedTab.collectAsState()
     val foodLoggerOpenRequest by viewModel.foodLoggerOpenRequest.collectAsState()
@@ -130,8 +130,8 @@ fun NutritionScreen(
                     dailyTotals = dailyTotals,
                     goals = goals,
                     selectedDate = selectedDate,
-                    onEditPlan = viewModel::openPlanOverlay,
-                    onCreatePlan = viewModel::openPlanOverlay,
+                    onEditPlan = { onNavigateToWizard("edit", activePlan?.id) },
+                    onCreatePlan = { onNavigateToWizard("create", null) },
                     hasActivePlan = activePlan != null,
                 )
             }
@@ -201,6 +201,9 @@ fun NutritionScreen(
                     )
                 }
             }
+            if (historySeries.points.isNotEmpty()) {
+                item { NutritionHistoryCoverageCard(historySeries) }
+            }
         }
 
         FloatingActionButton(
@@ -255,23 +258,6 @@ fun NutritionScreen(
         initialTab = foodLoggerInitialTab,
     )
 
-    // ── Plan Editor Modal ────────────────────────────────────────────────────
-    val currentSettings by com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.collectAsState()
-    NutritionPlanEditorModal(
-        isOpen = isPlanOverlayOpen,
-        onDismiss = viewModel::closePlanOverlay,
-        onSave = { plan ->
-            viewModel.createPlan(plan)
-            viewModel.closePlanOverlay()
-        },
-        currentSettings = currentSettings,
-        activePlan = activePlan,
-        onDeletePlan = { planId ->
-            viewModel.deletePlan(planId)
-            viewModel.closePlanOverlay()
-        }
-    )
-
     if (showPlanRequiredDialog) {
         KpknAlertDialog(
             onDismissRequest = { showPlanRequiredDialog = false },
@@ -281,7 +267,7 @@ fun NutritionScreen(
                 TextButton(
                     onClick = {
                         showPlanRequiredDialog = false
-                        viewModel.openPlanOverlay()
+                        onNavigateToWizard("create", null)
                     },
                 ) { Text("Crear plan") }
             },
@@ -817,13 +803,13 @@ private fun DailyEnergyBalanceCard(balance: DailyEnergyBalance) {
                     Text("-${balance.trainingBurnKcal}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Neto", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("${balance.netKcal}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+                    Text("Ingesta", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("${balance.consumedKcal}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
                 }
             }
 
-            val maxForBar = maxOf(balance.targetKcal * 2, balance.netKcal.coerceAtLeast(1))
-            val netFraction = if (maxForBar > 0) balance.netKcal.toFloat() / maxForBar.toFloat() else 0f
+            val maxForBar = maxOf(balance.targetKcal * 2, balance.consumedKcal.coerceAtLeast(1))
+            val netFraction = if (maxForBar > 0) balance.consumedKcal.toFloat() / maxForBar.toFloat() else 0f
             val targetFraction = if (maxForBar > 0) balance.targetKcal.toFloat() / maxForBar.toFloat() else 0f
 
             Canvas(
@@ -1071,7 +1057,7 @@ private fun CalorieTrendChart(
             Spacer(Modifier.height(12.dp))
 
             val maxCal = maxOf(
-                trendData.maxOfOrNull { it.calories } ?: 0.0,
+                trendData.filter { it.hasData }.maxOfOrNull { it.calories } ?: 0.0,
                 calorieGoal.toDouble(),
             ) * 1.15
 
@@ -1105,6 +1091,16 @@ private fun CalorieTrendChart(
                 trendData.forEachIndexed { i, point ->
                     val slotX = i * slotWidth
                     val x = slotX + barPadding
+                    if (!point.hasData) {
+                        drawLine(
+                            color = surfaceVariant.copy(alpha = 0.35f),
+                            start = androidx.compose.ui.geometry.Offset(x + barWidth / 2f, h - 3f),
+                            end = androidx.compose.ui.geometry.Offset(x + barWidth / 2f, h - 14f),
+                            strokeWidth = 2f,
+                            pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(3f, 3f)),
+                        )
+                        return@forEachIndexed
+                    }
                     val barH = (point.calories / maxCal * h).toFloat().coerceAtLeast(4f)
                     val y = h - barH
                     val overGoal = point.calories > calorieGoal
@@ -1137,6 +1133,32 @@ private fun CalorieTrendChart(
                         modifier = Modifier.weight(1f),
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NutritionHistoryCoverageCard(series: NutritionHistorySeries) {
+    val uncertain = series.points.filter { point ->
+        point.intakeCaloriesMin != null && point.intakeCaloriesMax != null &&
+            point.intakeCaloriesMin != point.intakeCaloriesMax
+    }
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            Text("HISTÓRICO", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+            Text("Cobertura: ${series.coverage.label}", style = MaterialTheme.typography.bodySmall)
+            Text(
+                if (uncertain.isEmpty()) "Sin rangos inciertos en este periodo."
+                else "Los días con alimentos inciertos conservan su banda mínima–máxima.",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            series.averageCaloriesOnRegisteredDays?.let { average ->
+                Text("Promedio registrado: ${kotlin.math.round(average).toInt()} kcal", style = MaterialTheme.typography.labelSmall)
             }
         }
     }

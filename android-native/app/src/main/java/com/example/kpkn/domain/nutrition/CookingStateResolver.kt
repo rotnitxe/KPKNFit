@@ -38,6 +38,7 @@ object CookingStateResolver {
     fun isDbFoodCooked(food: FoodItem): Boolean {
         val blob = (food.name + " " + food.searchAliases.joinToString(" ")).lowercase()
         return blob.contains("(cocido)") || blob.contains("cocida") || blob.contains("cocido") ||
+            blob.contains("cocinad") ||
             blob.contains("hidratada/cocida") || blob.contains("hidratad") ||
             blob.contains("(frita)") || blob.contains("(frito)") ||
             blob.contains("(plancha)") || blob.contains("(horno)") ||
@@ -57,7 +58,7 @@ object CookingStateResolver {
             CookingMethod.VAPOR -> name.contains("vapor")
             CookingMethod.ASADO_PARRILLA -> name.contains("parrilla") || name.contains("asad")
             CookingMethod.COCIDO, CookingMethod.OLLA, CookingMethod.GUISADO ->
-                name.contains("cocid") || name.contains("hidratad")
+                name.contains("cocid") || name.contains("cocinad") || name.contains("hidratad")
             CookingMethod.AHUMADO -> name.contains("ahumad")
             CookingMethod.CRUDO -> false
         }
@@ -65,17 +66,34 @@ object CookingStateResolver {
 
     fun methodSearchSuffix(method: CookingMethod): String? = methodSearchSuffixes(method).firstOrNull()
 
-    /** Sufijos de fila preparada por método. FRITO también prueba "revuelto" (B5). */
+    /**
+     * Sufijos de fila preparada por método, con género y plural: "Pechuga de
+     * Pollo (cocida)" nunca se encontraba con el sufijo masculino "cocido" y el
+     * resolver caía a la ficha cruda con doble conversión. "cocinado/a" son
+     * sinónimos cotidianos de cocido.
+     */
     fun methodSearchSuffixes(method: CookingMethod): List<String> = when (method) {
-        CookingMethod.FRITO, CookingMethod.EMPANIZADO_FRITO -> listOf("frito", "revuelto", "frita", "revuelta")
+        CookingMethod.FRITO, CookingMethod.EMPANIZADO_FRITO -> listOf("frita", "frito", "revuelto", "revuelta", "fritas", "fritos")
         CookingMethod.PLANCHA -> listOf("plancha")
         CookingMethod.HORNO -> listOf("horno")
         CookingMethod.VAPOR -> listOf("vapor")
-        CookingMethod.ASADO_PARRILLA -> listOf("parrilla", "asado")
-        CookingMethod.COCIDO -> listOf("cocido")
-        CookingMethod.AHUMADO -> listOf("ahumado")
-        CookingMethod.OLLA, CookingMethod.GUISADO -> listOf("cocido")
+        CookingMethod.ASADO_PARRILLA -> listOf("parrilla", "asado", "asada")
+        CookingMethod.COCIDO, CookingMethod.OLLA, CookingMethod.GUISADO ->
+            listOf("cocida", "cocido", "cocidas", "cocidos", "cocinada", "cocinado", "cocinadas", "cocinados")
+        CookingMethod.AHUMADO -> listOf("ahumado", "ahumada")
         CookingMethod.CRUDO -> emptyList()
+    }
+
+    /**
+     * Estado estructurado que declara el usuario vía método de cocción:
+     * CRUDO → RAW; cualquier otro método produce un alimento cocido. El método
+     * llega separado del tag (el parser extrae la palabra), así que este hint
+     * es la única forma de que el ranking compare estado contra las filas.
+     */
+    fun stateForMethod(method: CookingMethod?): FoodState? = when (method) {
+        null -> null
+        CookingMethod.CRUDO -> FoodState.RAW
+        else -> FoodState.COOKED
     }
 
     /** Prefer a DB row that already encodes the preparation (e.g. pechuga frita). */
@@ -84,9 +102,12 @@ object CookingStateResolver {
         val suffixes = methodSearchSuffixes(method)
         if (suffixes.isEmpty()) return null
         for (suffix in suffixes) {
+            // La forma entre paréntesis es la clave de nombre exacto de la fila
+            // ("pasta (cocida)" → gen040) y debe ganar sobre la forma de alias
+            // ("pasta cocida" → alias de la fila hidratada).
             val queries = listOf(
-                "$tag $suffix",
                 "${tag.trim()} ($suffix)",
+                "$tag $suffix",
             )
             for (q in queries) {
                 findFoodByNormalized(q)?.let { return it }
@@ -128,13 +149,20 @@ object CookingStateResolver {
             }
         }
         return if (wantCooked) {
-            findFoodByNormalized("$lower cocido")
+            findFoodByNormalized("$lower cocida")
+                ?: findFoodByNormalized("$lower cocido")
+                ?: findFoodByNormalized("$lower cocinada")
+                ?: findFoodByNormalized("$lower cocinado")
                 ?: findFoodByNormalized("$lower hidratada")
+                ?: findFoodByNormalized("$lower (cocida)")
                 ?: findFoodByNormalized("$lower (cocido)")
                 ?: findFoodByNormalized("$lower (hidratada)")
         } else {
-            findFoodByNormalized("$lower crudo")
+            findFoodByNormalized("$lower cruda")
+                ?: findFoodByNormalized("$lower crudo")
+                ?: findFoodByNormalized("$lower seca")
                 ?: findFoodByNormalized("$lower seco")
+                ?: findFoodByNormalized("$lower (cruda)")
                 ?: findFoodByNormalized("$lower (crudo)")
                 ?: findFoodByNormalized("$lower (seca)")
                 ?: findFoodByNormalized(lower)

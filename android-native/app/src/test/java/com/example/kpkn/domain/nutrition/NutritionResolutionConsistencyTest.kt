@@ -482,7 +482,7 @@ class NutritionResolutionConsistencyTest {
     ) : FoodResolutionPort {
         var learnedWrites: Int = 0
 
-        override suspend fun resolveSmart(tag: String, brandHint: String?, contextHint: String?) =
+        override suspend fun resolveSmart(tag: String, brandHint: String?, contextHint: String?, stateHint: FoodState?) =
             smart.copy(query = tag)
 
         override suspend fun getFoodById(id: String): FoodItem? =

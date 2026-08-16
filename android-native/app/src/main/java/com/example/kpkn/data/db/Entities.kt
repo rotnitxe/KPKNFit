@@ -183,6 +183,99 @@ fun NutritionPlanEntity.toNutritionPlan(): NutritionPlan = dbJson.decodeFromStri
 @Entity(tableName = "nutrition_active_state")
 data class NutritionActiveStateEntity(@PrimaryKey val rowId: Int = 1, val activePlanId: String?)
 
+// ─── Normalized body progress (v21) ────────────────────────────────────────
+
+@Entity(
+    tableName = "body_observations",
+    indices = [
+        Index("metric"),
+        Index("timestampEpochMs"),
+        Index(value = ["externalId"], unique = true),
+    ],
+)
+data class BodyObservationEntity(
+    @PrimaryKey val id: String,
+    val metric: String,
+    val valueSi: Double,
+    val unitSi: String,
+    val sessionId: String?,
+    val timestampEpochMs: Long,
+    val zoneId: String,
+    val source: String,
+    val method: String,
+    val quality: String,
+    val externalId: String?,
+)
+
+fun com.example.kpkn.data.models.BodyObservation.toEntity() = BodyObservationEntity(
+    id = id,
+    metric = metric.name,
+    valueSi = valueSi,
+    unitSi = unitSi,
+    sessionId = sessionId,
+    timestampEpochMs = timestampEpochMs,
+    zoneId = zoneId,
+    source = source.name,
+    method = method.name,
+    quality = quality.name,
+    externalId = externalId,
+)
+
+fun BodyObservationEntity.toBodyObservation(): com.example.kpkn.data.models.BodyObservation? = runCatching {
+    com.example.kpkn.data.models.BodyObservation(
+        id = id,
+        metric = com.example.kpkn.data.models.BodyMetric.valueOf(metric),
+        valueSi = valueSi,
+        unitSi = unitSi,
+        sessionId = sessionId,
+        timestampEpochMs = timestampEpochMs,
+        zoneId = zoneId,
+        source = com.example.kpkn.data.models.BodyMetricSource.valueOf(source),
+        method = com.example.kpkn.data.models.BodyObservationMethod.valueOf(method),
+        quality = com.example.kpkn.data.models.BodyObservationQuality.valueOf(quality),
+        externalId = externalId,
+    )
+}.getOrNull()
+
+@Entity(
+    tableName = "body_goals",
+    indices = [Index("metric"), Index("linkedPlanId")],
+)
+data class BodyGoalEntity(
+    @PrimaryKey val id: String,
+    val metric: String,
+    val targetValueSi: Double,
+    val unitSi: String,
+    val origin: String,
+    val linkedPlanId: String?,
+    val createdAtEpochMs: Long,
+    val updatedAtEpochMs: Long,
+)
+
+fun com.example.kpkn.data.models.BodyGoal.toEntity() = BodyGoalEntity(
+    id = id,
+    metric = metric.name,
+    targetValueSi = targetValueSi,
+    unitSi = unitSi,
+    origin = origin.name,
+    linkedPlanId = linkedPlanId,
+    createdAtEpochMs = createdAtEpochMs,
+    updatedAtEpochMs = updatedAtEpochMs,
+)
+
+fun BodyGoalEntity.toBodyGoal(): com.example.kpkn.data.models.BodyGoal? = runCatching {
+    com.example.kpkn.data.models.BodyGoal(
+        id = id,
+        metric = com.example.kpkn.data.models.BodyMetric.valueOf(metric),
+        targetValueSi = targetValueSi,
+        unitSi = unitSi,
+        origin = com.example.kpkn.data.models.CalculationOrigin.valueOf(origin),
+        linkedPlanId = linkedPlanId,
+        createdAtEpochMs = createdAtEpochMs,
+        updatedAtEpochMs = updatedAtEpochMs,
+    )
+}.getOrNull()
+
 @Entity(tableName = "nutrition_pantry")
 data class PantryItemEntity(@PrimaryKey val id: String, val name: String, val data: String)
 fun PantryItem.toEntity() = PantryItemEntity(id = id, name = name, data = dbJson.encodeToString(this))
@@ -335,6 +428,23 @@ data class GlobalFoodEntity(
     val verifiedScore: Double = 0.5,
     val usageCount: Int = 0,
     val lastUsedAt: String? = null,
+    // v22 — procedencia (plan 2026-08-16_nutrition_precision_v2): cada fila
+    // global conserva de dónde vienen sus números y en qué base están.
+    /** FDC ID (USDA) o código de barras (OFF), separado del foodId. */
+    val sourceRecordId: String? = null,
+    /** RAW/COOKED/UNKNOWN según la descripción de origen (FoodIdentity). */
+    val foodState: String = "UNKNOWN",
+    /** Base de los macros: canonical PER_100G_* or PER_SERVING. */
+    val nutritionBasis: String = "PER_100G_AS_SOLD",
+    /** Versión del dataset importado que produjo la fila. */
+    val datasetVersion: String = "",
+    /** Categoría declarada por la fuente (p. ej. food_category_id de USDA). */
+    val category: String? = null,
+    /** Porción doméstica autoritativa en gramos, si la fuente la declara. */
+    val portionGrams: Double? = null,
+    val portionUnit: String? = null,
+    /** Flags de calidad JSON: ["ENERGY_MISMATCH","LOW_QUALITY","INCOMPLETE"]. */
+    val qualityFlagsJson: String = "[]",
 )
 
 @Fts4(contentEntity = GlobalFoodEntity::class)
@@ -366,7 +476,21 @@ fun GlobalFoodEntity.toFoodItem() = FoodItem(
     verifiedScore = verifiedScore,
     usageCount = usageCount,
     lastUsedAt = lastUsedAt,
+    source = source,
+    sourceRecordId = sourceRecordId,
+    nutritionBasis = nutritionBasis,
+    foodState = foodState,
+    datasetVersion = datasetVersion,
+    portionGrams = portionGrams,
+    portionUnit = portionUnit,
+    qualityFlags = decodeStringList(qualityFlagsJson),
 )
+
+private fun decodeStringList(json: String): List<String> =
+    json.trim().removePrefix("[").removeSuffix("]")
+        .split(',')
+        .map { it.trim().removeSurrounding("\"") }
+        .filter { it.isNotBlank() }
 
 @Entity(
     tableName = "learned_resolutions",
@@ -382,4 +506,75 @@ data class LearnedResolutionEntity(
     val lastUsedAt: Long = 0L,
     val createdAt: Long = 0L,
     val syncedAt: Long? = null,
+    // v22 — aprendizaje enriquecido: base de peso del mapeo confirmado, rango
+    // de porción, preparación/aceite y confianza con fecha de confirmación.
+    /** RAW/COOKED/AS_SERVED de los gramos que confirmó el usuario. */
+    val weightBasis: String? = null,
+    val portionMinGrams: Double? = null,
+    val portionMaxGrams: Double? = null,
+    /** Método de preparación confirmado (CookingMethod.name). */
+    val preparation: String? = null,
+    /** Perfil de aceite confirmado ("poco"/"medio"/"abundante" o gramos). */
+    val oilProfile: String? = null,
+    /** Confianza del mapeo aprendido [0..1]; solo crece con confirmaciones. */
+    val confidence: Double = 1.0,
+    val lastConfirmedAt: Long = 0L,
 )
+
+/**
+ * v22 — Perfil de calibración nutricional (fila singleton). El JSON `data`
+ * versiona los hábitos de pesaje/porciones del usuario para que el Food
+ * Logger pueda pre-seleccionar porciones maduras y poder migrar/invalidar
+ * reglas futuras sin tocar logs.
+ */
+@Entity(tableName = "nutrition_calibration_profile")
+data class NutritionCalibrationProfileEntity(
+    @PrimaryKey val rowId: Int = 1,
+    /** Versión del esquema del JSON; permite migrar o invalidar reglas. */
+    val schemaVersion: Int = 1,
+    val data: String = "{}",
+    val updatedAt: Long = 0L,
+)
+
+/** Historical food-goal values. Rows are keyed by date and inserted once. */
+@Entity(
+    tableName = "daily_goal_snapshots",
+    indices = [Index("planId")],
+)
+data class DailyGoalSnapshotEntity(
+    @PrimaryKey val date: String,
+    val planId: String?,
+    val calorieTargetKcal: Int?,
+    val proteinGoalG: Int?,
+    val carbGoalG: Int?,
+    val fatGoalG: Int?,
+    val direction: String?,
+    val calculationOrigin: String,
+    val capturedAtEpochMs: Long,
+)
+
+fun DailyGoalSnapshot.toEntity() = DailyGoalSnapshotEntity(
+    date = date,
+    planId = planId,
+    calorieTargetKcal = calorieTargetKcal,
+    proteinGoalG = proteinGoalG,
+    carbGoalG = carbGoalG,
+    fatGoalG = fatGoalG,
+    direction = direction?.name,
+    calculationOrigin = calculationOrigin.name,
+    capturedAtEpochMs = capturedAtEpochMs,
+)
+
+fun DailyGoalSnapshotEntity.toDailyGoalSnapshot(): DailyGoalSnapshot? = runCatching {
+    DailyGoalSnapshot(
+        date = date,
+        planId = planId,
+        calorieTargetKcal = calorieTargetKcal,
+        proteinGoalG = proteinGoalG,
+        carbGoalG = carbGoalG,
+        fatGoalG = fatGoalG,
+        direction = direction?.let { PlanDirection.valueOf(it) },
+        calculationOrigin = CalculationOrigin.valueOf(calculationOrigin),
+        capturedAtEpochMs = capturedAtEpochMs,
+    )
+}.getOrNull()

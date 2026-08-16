@@ -155,12 +155,9 @@ object ContextDetector {
         return grams * context.portionFactor
     }
 
-    /**
-     * Adjust protein based on context (post-entreno needs more protein).
-     */
-    fun adjustProtein(protein: Double, context: MealContext): Double {
-        return protein * (1.0 + context.proteinBoost)
-    }
+    // Nota (plan 2026-08-16, Fase 1): el ajuste de proteína por contexto fue
+    // eliminado — el contexto describe porciones probables, nunca muta la
+    // densidad por 100 g de una ficha. No re agregar helpers equivalentes.
 
     /**
      * Get context profile from dataset knowledge.

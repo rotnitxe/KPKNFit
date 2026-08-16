@@ -60,6 +60,16 @@ fun getContextualDefaultServingSize(food: FoodItem): Double {
     }
 }
 
+/**
+ * Escala una ficha a la porción pedida.
+ *
+ * Reglas de base (plan 2026-08-16_nutrition_precision_v2, Fase 1):
+ * - ficha y peso comparten base → escala directo, sin rendimiento ni factores;
+ * - ficha cruda + pedido cocido → conversión real de base (yield/retención);
+ * - una ficha ya cocida/preparada jamás recibe yield ni factor de concentración
+ *   adicional (era la doble conversión que llevaba 200 g cocidos a 78–91 g);
+ * - el contexto (post-entreno, etc.) no muta la densidad por 100 g.
+ */
 fun scaleFoodByPortion(
     food: FoodItem,
     quantity: Double = 1.0,
@@ -67,7 +77,6 @@ fun scaleFoodByPortion(
     amountGrams: Double? = null,
     cookingMethod: CookingMethod? = null,
     portionAdjustment: Double = 1.0,
-    proteinBoost: Double = 0.0,
 ): LoggedFood {
     val multiplier = PORTION_MULTIPLIERS[portion] ?: 1.0
     val baseServing = if (amountGrams != null) food.servingSize else getContextualDefaultServingSize(food)
@@ -88,6 +97,9 @@ fun scaleFoodByPortion(
         else -> 1.0
     }
 
+    // El rendimiento solo convierte entre bases distintas: crudo→cocido (o el
+    // retorno cocido→crudo). Si la ficha ya está en la base pedida, los gramos
+    // del usuario escalan la ficha tal cual.
     val finalGrams = when {
         dbFoodIsRaw && userRequestIsCooked -> {
             grams / rawToCookedFactor
@@ -114,16 +126,19 @@ fun scaleFoodByPortion(
     val waterBase = extractMicronutrientAmount("agua", "water")
 
     var calPerGram = food.calories
-    var protPerGram = food.protein * (1.0 + proteinBoost)
+    var protPerGram = food.protein
     var carbPerGram = food.carbs
     var fatPerGram = food.fats
 
-    if (cookingMethod != null && cookingMethod != CookingMethod.CRUDO) {
+    // Los factores de cocción (rendimiento/retención aproximados) solo aplican
+    // cuando la ficha NO codifica ya la preparación: sobre una ficha cocida es
+    // una segunda concentración. Tampoco cuando el usuario pidió crudo.
+    if (cookingMethod != null && cookingMethod != CookingMethod.CRUDO && !dbFoodIsCooked) {
         // IT3: factor por categoría de alimento (fritura de masas/tubérculos concentra más).
         val cf = cookingFactorFor(food.name, cookingMethod)
         if (cf != CookingFactor()) {
             calPerGram = food.calories * cf.kcal
-            protPerGram = food.protein * cf.protein * (1.0 + proteinBoost)
+            protPerGram = food.protein * cf.protein
             carbPerGram = food.carbs * cf.carbs
             fatPerGram = food.fats * cf.fats
         }
@@ -281,14 +296,15 @@ fun computeTrendData(
         byDay[dayPart] = (byDay[dayPart] ?: 0.0) + dayCal
     }
 
-    return byDay.entries
-        .sortedBy { it.key }
-        .takeLast(days)
-        .map { (date, calories) ->
+    return (0 until days.coerceAtLeast(1)).map { offset ->
+            val date = cutoff.plusDays(offset.toLong())
+            val dateKey = date.toString()
+            val calories = byDay[dateKey]
             TrendPoint(
-                date = date,
-                calories = kotlin.math.round(calories).toDouble(),
+                date = dateKey,
+                calories = kotlin.math.round(calories ?: 0.0).toDouble(),
                 goal = calorieGoal.toDouble(),
+                hasData = calories != null,
             )
         }
 }

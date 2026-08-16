@@ -16,7 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -32,7 +31,14 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.calculations.calculateFFMI
+import com.example.kpkn.domain.body.validateBodyValue
+import com.example.kpkn.domain.body.goalProgressPercent
+import com.example.kpkn.domain.body.dailyMedianSeries
+import com.example.kpkn.domain.body.ewmaTrend
+import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.ui.components.KpknSheet
+import kotlinx.coroutines.launch
+import java.time.ZoneId
 import java.util.UUID
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -107,35 +113,57 @@ fun BodyProgressScreen(
     onCreatePlan: () -> Unit = {},
 ) {
     val nutritionRepo = NutritionRepository.getInstance()
+    val bodyViewModel: BodyProgressViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
     val settings by ProgramRepository.getInstance().settings.collectAsState()
     val vitals = settings.userVitals
     val plans by nutritionRepo.nutritionPlans.collectAsState()
     val activePlanId by nutritionRepo.activeNutritionPlanId.collectAsState()
     val activePlan = plans.find { it.id == activePlanId }
-        ?: plans.lastOrNull { it.isActive }
-        ?: plans.lastOrNull()
-    val bodyMeasurements by nutritionRepo.bodyMeasurements.collectAsState()
-    val measurementSchedule by nutritionRepo.measurementSchedule.collectAsState()
+    val bodyMeasurements by bodyViewModel.legacyEntries.collectAsState()
+    val bodyUiState by bodyViewModel.uiState.collectAsState()
+    val schedule by bodyViewModel.measurementSchedule.collectAsState()
 
     var showAddMeasurement by remember { mutableStateOf(false) }
+    var editingEntry by remember { mutableStateOf<BodyMeasurementEntry?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val snackbarScope = rememberCoroutineScope()
     var heroMetric by rememberSaveable { mutableStateOf(BodyHeroMetric.WEIGHT) }
     val contextualBottomBarClearance = 110.dp
 
     // Compute derived body metrics
-    val latestMeasurement = bodyMeasurements.maxByOrNull { it.date }
-    val weight = vitals.weight ?: latestMeasurement?.weight
+    val composition = bodyUiState.latestComposition
+    val weight = composition?.weightKg ?: bodyUiState.latestByMetric[BodyMetric.WEIGHT]?.valueSi
     val height = vitals.height
-    val bodyFat = vitals.bodyFatPercentage ?: latestMeasurement?.bodyFat
-    val muscle = vitals.muscleMassPercentage ?: latestMeasurement?.muscleMass
-    val goalType = activePlan?.goalType ?: GoalMetric.WEIGHT
-    // Target value interpreted by goalType: kg for WEIGHT, % for BODY_FAT/MUSCLE_MASS
-    val targetWeight = if (goalType == GoalMetric.WEIGHT) vitals.targetWeight ?: activePlan?.goalValue else null
-    val targetBodyFat = if (goalType == GoalMetric.BODY_FAT) activePlan?.goalValue else null
-    val targetMuscle = if (goalType == GoalMetric.MUSCLE_MASS) activePlan?.goalValue else null
+    // Composition KPIs must be from a compatible session/timestamp; do not
+    // combine an old scale weight with a newer body-fat reading.
+    val bodyFat = composition?.bodyFatPercent
+        ?: bodyUiState.latestByMetric[BodyMetric.BODY_FAT_PERCENT]?.valueSi
+    val muscle = composition?.muscleMassPercent
+        ?: bodyUiState.latestByMetric[BodyMetric.MUSCLE_MASS_PERCENT]?.valueSi
+    val independentGoal = bodyUiState.goals.firstOrNull()
+    val independentGoalMetric = independentGoal?.metric?.let {
+        when (it) {
+            BodyMetric.WEIGHT -> GoalMetric.WEIGHT
+            BodyMetric.BODY_FAT_PERCENT -> GoalMetric.BODY_FAT
+            BodyMetric.MUSCLE_MASS_PERCENT -> GoalMetric.MUSCLE_MASS
+            else -> null
+        }
+    }
+    val goalType = activePlan?.typedBodyGoal?.metric
+        ?: activePlan?.goalType
+        ?: independentGoalMetric
+        ?: GoalMetric.WEIGHT
+    // Target value interpreted by goalType: kg for WEIGHT, % for BODY_FAT/MUSCLE_MASS.
+    // Manual goals remain visible even when no nutrition plan is active.
+    val typedTarget = activePlan?.typedBodyGoal?.targetValueSi
+        ?: activePlan?.goalValue?.takeIf { it > 0.0 }
+        ?: independentGoal?.targetValueSi
+    val targetWeight = typedTarget?.takeIf { goalType == GoalMetric.WEIGHT }
+    val targetBodyFat = typedTarget?.takeIf { goalType == GoalMetric.BODY_FAT }
+    val targetMuscle = typedTarget?.takeIf { goalType == GoalMetric.MUSCLE_MASS }
 
-    val bmi = if (weight != null && height != null && height > 0)
-        weight / ((height / 100) * (height / 100)) else null
-    val ffmiResult = if (weight != null && height != null && bodyFat != null) {
+    val bmi = bodyUiState.bmi
+    val ffmiResult = if (composition != null && weight != null && height != null && bodyFat != null) {
         calculateFFMI(heightCm = height, weightKg = weight, bodyFatPercent = bodyFat)
     } else {
         null
@@ -148,12 +176,24 @@ fun BodyProgressScreen(
     val sortedMeasurements = remember(bodyMeasurements) {
         bodyMeasurements.sortedBy { it.date }
     }
-    val weightSeries = remember(sortedMeasurements, weight) {
-        buildBodyMetricSeries(sortedMeasurements, weight) { it.weight }
+    val chartObservations = remember(bodyUiState.observations, bodyUiState.range) {
+        val now = System.currentTimeMillis()
+        val rangeDays = bodyUiState.range.days
+        bodyUiState.observations.filter { observation ->
+            val age = now - observation.timestampEpochMs
+            rangeDays == null || (age >= 0L && age <= rangeDays * 86_400_000L)
+        }
     }
-    val bodyFatSeries = remember(sortedMeasurements, bodyFat) {
-        buildBodyMetricSeries(sortedMeasurements, bodyFat) { it.bodyFat }
+    val weightSeries = remember(chartObservations) {
+        dailyMedianSeries(chartObservations.filter { it.metric == BodyMetric.WEIGHT }, ZoneId.systemDefault())
+            .map { BodyMetricPoint(it.date.toString(), it.value) }
     }
+    val bodyFatSeries = remember(chartObservations) {
+        dailyMedianSeries(chartObservations.filter { it.metric == BodyMetric.BODY_FAT_PERCENT }, ZoneId.systemDefault())
+            .map { BodyMetricPoint(it.date.toString(), it.value) }
+    }
+    val weightTrendSeries = remember(weightSeries) { smoothBodySeries(weightSeries) }
+    val bodyFatTrendSeries = remember(bodyFatSeries) { smoothBodySeries(bodyFatSeries) }
 
     Box(
         modifier = Modifier
@@ -162,8 +202,7 @@ fun BodyProgressScreen(
     ) {
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
-                .then(if (activePlan == null) Modifier.blur(10.dp) else Modifier),
+                .fillMaxSize(),
             contentPadding = PaddingValues(bottom = 140.dp),
         ) {
             item {
@@ -263,8 +302,8 @@ fun BodyProgressScreen(
 
             item {
                 MeasurementScheduleCard(
-                    schedule = measurementSchedule,
-                    onUpdate = nutritionRepo::updateMeasurementSchedule,
+                    schedule = schedule,
+                    onUpdate = bodyViewModel::updateSchedule,
                 )
             }
 
@@ -306,14 +345,35 @@ fun BodyProgressScreen(
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
+                            TextButton(onClick = onCreatePlan) {
+                                Text("Crear plan (opcional)")
+                            }
                         }
                     }
                 }
             } else {
                 items(bodyMeasurements.sortedByDescending { it.date }) { entry ->
+                    val manualEntry = !entry.id.startsWith("health_connect:") && !entry.id.startsWith("instant:")
                     MeasurementEntryCard(
                         entry = entry,
-                        onDelete = { nutritionRepo.deleteBodyMeasurement(entry.id) },
+                        onEdit = if (manualEntry) ({ editingEntry = entry }) else null,
+                        onDelete = {
+                            bodyViewModel.deleteLegacyMeasurement(entry.id)
+                            snackbarScope.launch {
+                                if (manualEntry) {
+                                    val result = snackbarHostState.showSnackbar(
+                                        message = "Medición eliminada",
+                                        actionLabel = "Deshacer",
+                                        withDismissAction = true,
+                                    )
+                                    if (result == SnackbarResult.ActionPerformed) {
+                                        bodyViewModel.addLegacyMeasurement(entry)
+                                    }
+                                } else {
+                                    snackbarHostState.showSnackbar("Medición eliminada")
+                                }
+                            }
+                        },
                     )
                 }
             }
@@ -323,10 +383,38 @@ fun BodyProgressScreen(
             }
 
             item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    BodyChartRange.entries.forEach { chartRange ->
+                        FilterChip(
+                            selected = bodyUiState.range == chartRange,
+                            onClick = { bodyViewModel.selectRange(chartRange) },
+                            label = {
+                                Text(
+                                    when (chartRange) {
+                                        BodyChartRange.ONE_MONTH -> "1M"
+                                        BodyChartRange.THREE_MONTHS -> "3M"
+                                        BodyChartRange.SIX_MONTHS -> "6M"
+                                        BodyChartRange.ONE_YEAR -> "1A"
+                                        BodyChartRange.ALL -> "Todo"
+                                    },
+                                )
+                            },
+                        )
+                    }
+                }
+            }
+
+            item {
                 BodyMetricTrendChartCard(
                     title = "Peso corporal",
                     subtitle = "Evolución según tus registros",
                     points = weightSeries,
+                    trend = weightTrendSeries,
                     unit = "kg",
                     color = WEIGHT_COLOR,
                     targetValue = targetWeight,
@@ -339,6 +427,7 @@ fun BodyProgressScreen(
                     title = "% de grasa",
                     subtitle = "Cambio relativo en composición",
                     points = bodyFatSeries,
+                    trend = bodyFatTrendSeries,
                     unit = "%",
                     color = BODYFAT_COLOR,
                     targetValue = targetBodyFat,
@@ -349,62 +438,45 @@ fun BodyProgressScreen(
             item { Spacer(Modifier.height(100.dp)) }
         }
 
-        if (activePlan != null) {
-            ExtendedFloatingActionButton(
-                onClick = { showAddMeasurement = true },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = contextualBottomBarClearance),
-                icon = { Icon(Icons.Default.Add, null) },
-                text = { Text("Registrar medición") },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            )
-        }
+        ExtendedFloatingActionButton(
+            onClick = {
+                editingEntry = null
+                showAddMeasurement = true
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp, bottom = contextualBottomBarClearance),
+            icon = { Icon(Icons.Default.Add, null) },
+            text = { Text("Registrar medición") },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+        )
 
-        if (activePlan == null) {
-            Column(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    "Sin plan activo",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Black,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    "Crea un plan de alimentación desde la pestaña Nutrición para desbloquear tu progreso corporal y registrar mediciones.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                )
-            }
-        }
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = contextualBottomBarClearance + 64.dp),
+        )
     }
 
     // ── Add Measurement Sheet ────────────────────────────────────────────────
-    if (showAddMeasurement) {
+    if (showAddMeasurement || editingEntry != null) {
         AddMeasurementSheet(
-            onDismiss = { showAddMeasurement = false },
+            initialEntry = editingEntry,
+            onDismiss = {
+                showAddMeasurement = false
+                editingEntry = null
+            },
             onSave = { entry ->
-                nutritionRepo.addBodyMeasurement(entry)
-                ProgramRepository.getInstance().let { repo ->
-                    repo.updateSettings { s ->
-                        s.copy(
-                            userVitals = s.userVitals.copy(
-                                weight = entry.weight ?: s.userVitals.weight,
-                                bodyFatPercentage = entry.bodyFat ?: s.userVitals.bodyFatPercentage,
-                                muscleMassPercentage = entry.muscleMass ?: s.userVitals.muscleMassPercentage,
-                            ),
-                        )
-                    }
+                val original = editingEntry
+                if (original == null) {
+                    bodyViewModel.addLegacyMeasurement(entry)
+                } else {
+                    bodyViewModel.replaceLegacyMeasurement(original.id, entry)
                 }
                 showAddMeasurement = false
+                editingEntry = null
             },
         )
     }
@@ -802,10 +874,18 @@ private fun BodyTrendSparkline(
                 val height = size.height
                 val horizontalPadding = 8.dp.toPx()
                 val usableWidth = (width - horizontalPadding * 2).coerceAtLeast(1f)
-                val stepX = if (points.size == 1) 0f else usableWidth / (points.size - 1)
+                val pointDates = points.mapIndexed { index, point ->
+                    bodyDateEpochDay(point.date) ?: index.toLong()
+                }
+                val minDate = pointDates.minOrNull() ?: 0L
+                val maxDate = pointDates.maxOrNull() ?: minDate
+                val dateSpan = (maxDate - minDate).coerceAtLeast(1L)
 
                 fun pointOffset(index: Int, value: Double): Offset {
-                    val x = horizontalPadding + stepX * index
+                    val date = pointDates.getOrElse(index) { minDate + index }
+                    val dateFraction = if (maxDate == minDate) 0.5f
+                    else ((date - minDate).toDouble() / dateSpan.toDouble()).toFloat()
+                    val x = horizontalPadding + usableWidth * dateFraction.coerceIn(0f, 1f)
                     val normalized = ((value - minValue) / valueRange).toFloat()
                     val y = height - normalized * (height - 12.dp.toPx()) - 6.dp.toPx()
                     return Offset(x, y)
@@ -874,6 +954,7 @@ private fun BodyMetricTrendChartCard(
     title: String,
     subtitle: String,
     points: List<BodyMetricPoint>,
+    trend: List<BodyMetricPoint> = emptyList(),
     unit: String,
     color: Color,
     targetValue: Double? = null,
@@ -949,11 +1030,20 @@ private fun BodyMetricTrendChartCard(
                     val bottomPadding = 18.dp.toPx()
                     val usableWidth = (width - leftPadding - rightPadding).coerceAtLeast(1f)
                     val usableHeight = (height - topPadding - bottomPadding).coerceAtLeast(1f)
-                    val stepX = if (points.size == 1) 0f else usableWidth / (points.size - 1)
+                    val allSeries = points + trend
+                    val seriesDates = allSeries.mapIndexed { index, point ->
+                        bodyDateEpochDay(point.date) ?: index.toLong()
+                    }
+                    val minDate = seriesDates.minOrNull() ?: 0L
+                    val maxDate = seriesDates.maxOrNull() ?: minDate
+                    val dateSpan = (maxDate - minDate).coerceAtLeast(1L)
 
-                    fun pointOffset(index: Int, value: Double): Offset {
-                        val normalized = ((value - minValue) / valueRange).toFloat()
-                        val x = leftPadding + stepX * index
+                    fun pointOffset(point: BodyMetricPoint, fallbackIndex: Int): Offset {
+                        val normalized = ((point.value - minValue) / valueRange).toFloat()
+                        val date = bodyDateEpochDay(point.date) ?: (minDate + fallbackIndex)
+                        val dateFraction = if (maxDate == minDate) 0.5f
+                        else ((date - minDate).toDouble() / dateSpan.toDouble()).toFloat()
+                        val x = leftPadding + usableWidth * dateFraction.coerceIn(0f, 1f)
                         val y = topPadding + usableHeight - usableHeight * normalized
                         return Offset(x, y)
                     }
@@ -980,25 +1070,34 @@ private fun BodyMetricTrendChartCard(
                         )
                     }
 
-                    points.forEachIndexed { index, point ->
-                        if (index == 0) return@forEachIndexed
-                        drawLine(
-                            color = color,
-                            start = pointOffset(index - 1, points[index - 1].value),
-                            end = pointOffset(index, point.value),
-                            strokeWidth = 3.dp.toPx(),
-                        )
+                    fun drawSeries(series: List<BodyMetricPoint>, strokeWidth: Float, seriesColor: Color, dashed: Boolean = false) {
+                        series.forEachIndexed { index, point ->
+                            if (index == 0) return@forEachIndexed
+                            val effect = if (dashed) {
+                                androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(8f, 7f))
+                            } else null
+                            drawLine(
+                                color = seriesColor,
+                                start = pointOffset(series[index - 1], index - 1),
+                                end = pointOffset(point, index),
+                                strokeWidth = strokeWidth,
+                                pathEffect = effect,
+                            )
+                        }
                     }
+
+                    drawSeries(trend, 2.dp.toPx(), color.copy(alpha = 0.72f), dashed = true)
+                    drawSeries(points, 3.dp.toPx(), color)
                     points.forEachIndexed { index, point ->
-                        drawCircle(Color.White, 5.dp.toPx(), pointOffset(index, point.value))
-                        drawCircle(color, 3.dp.toPx(), pointOffset(index, point.value))
+                        drawCircle(Color.White, 5.dp.toPx(), pointOffset(point, index))
+                        drawCircle(color, 3.dp.toPx(), pointOffset(point, index))
                     }
                 }
                 Spacer(Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
+                    ) {
                     Text(
                         points.firstOrNull()?.date?.let(::formatShortDate) ?: "—",
                         style = MaterialTheme.typography.labelSmall,
@@ -1011,6 +1110,11 @@ private fun BodyMetricTrendChartCard(
                         color = color,
                     )
                 }
+                Text(
+                    "Puntos diarios · tendencia EWMA 7 días · línea discontinua = tendencia",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
@@ -1055,20 +1159,17 @@ private fun GoalProgressCard(
         GoalMetric.MUSCLE_MASS -> if (!isDecreasing) "Ganar ${r1(totalDelta)}% músculo" else "Reducir ${r1(totalDelta)}% músculo"
     }
 
-    val weeklyRateKg = plan?.weeklyChangeKg ?: 0.5
-    // For body fat / muscle goals, express weekly rate in % units per week
+    val weeklyRateKg = plan?.weeklyChangeKg ?: 0.0
+    // Composition plans persist percentage points/week; never convert through
+    // a guessed 70 kg body weight or label it as kg/week.
     val weeklyRateInUnit = when (goalType) {
-        GoalMetric.WEIGHT -> weeklyRateKg
-        GoalMetric.BODY_FAT, GoalMetric.MUSCLE_MASS -> {
-            val wt = currentWeight ?: 70.0
-            if (wt > 0) weeklyRateKg / wt * 100.0 else weeklyRateKg
-        }
+        GoalMetric.WEIGHT -> weeklyRateKg.takeIf { it > 0.0 } ?: 0.0
+        GoalMetric.BODY_FAT, GoalMetric.MUSCLE_MASS -> weeklyRateKg
     }
     val weeklyRateLabel = when (goalType) {
-        GoalMetric.WEIGHT -> "${r1(weeklyRateKg)} kg/sem"
-        GoalMetric.BODY_FAT, GoalMetric.MUSCLE_MASS -> "${r1(weeklyRateInUnit)} %/sem"
+        GoalMetric.WEIGHT -> weeklyRateInUnit?.let { "${r1(it)} kg/sem" } ?: "Calibrando"
+        GoalMetric.BODY_FAT, GoalMetric.MUSCLE_MASS -> if (plan?.weeklyChangeUnit == "percentage-points/week" && weeklyRateInUnit > 0.0) "${r1(weeklyRateInUnit)} puntos/sem" else "Calibrando"
     }
-    val weeksToGoal = if (weeklyRateInUnit > 0) (totalDelta / weeklyRateInUnit) else 0.0
 
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
@@ -1130,8 +1231,8 @@ private fun GoalProgressCard(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 InfoChip("Ritmo", weeklyRateLabel, Modifier.weight(1f))
-                InfoChip("Estimado", "${kotlin.math.round(weeksToGoal).toInt()} sem", Modifier.weight(1f))
-                InfoChip("Δ kcal/día", "${kotlin.math.round(weeklyRateKg * 7700 / 7).toInt()}", Modifier.weight(1f))
+                InfoChip("Proyección", "Sin fecha", Modifier.weight(1f))
+                InfoChip("Estado", "Calibrando", Modifier.weight(1f))
             }
         }
     }
@@ -1620,6 +1721,7 @@ private fun MeasurementScheduleCard(
 @Composable
 private fun MeasurementEntryCard(
     entry: BodyMeasurementEntry,
+    onEdit: (() -> Unit)?,
     onDelete: () -> Unit,
 ) {
     val dateLabel = try {
@@ -1644,6 +1746,11 @@ private fun MeasurementEntryCard(
                     Icon(Icons.Default.CalendarToday, null, tint = TEAL, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(6.dp))
                     Text(dateLabel, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                }
+                if (onEdit != null) {
+                    IconButton(onClick = onEdit, modifier = Modifier.size(28.dp)) {
+                        Icon(Icons.Default.Edit, "Editar", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                    }
                 }
                 IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
                     Icon(Icons.Default.DeleteOutline, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
@@ -1697,19 +1804,24 @@ private fun MeasurementChip(label: String, value: String, color: Color) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AddMeasurementSheet(
+    initialEntry: BodyMeasurementEntry? = null,
     onDismiss: () -> Unit,
     onSave: (BodyMeasurementEntry) -> Unit,
 ) {
-    var weight by remember { mutableStateOf("") }
-    var bodyFat by remember { mutableStateOf("") }
-    var muscleMass by remember { mutableStateOf("") }
-    var waist by remember { mutableStateOf("") }
-    var hip by remember { mutableStateOf("") }
-    var chest by remember { mutableStateOf("") }
-    var arm by remember { mutableStateOf("") }
-    var thigh by remember { mutableStateOf("") }
-    var neck by remember { mutableStateOf("") }
-    var notes by remember { mutableStateOf("") }
+    val entryKey = initialEntry?.id ?: "new"
+    val displayDate = runCatching {
+        java.time.LocalDate.parse(initialEntry?.date ?: java.time.LocalDate.now().toString())
+    }.getOrDefault(java.time.LocalDate.now())
+    var weight by remember(entryKey) { mutableStateOf(initialEntry?.weight?.let(::r1).orEmpty()) }
+    var bodyFat by remember(entryKey) { mutableStateOf(initialEntry?.bodyFat?.let(::r1).orEmpty()) }
+    var muscleMass by remember(entryKey) { mutableStateOf(initialEntry?.muscleMass?.let(::r1).orEmpty()) }
+    var waist by remember(entryKey) { mutableStateOf(initialEntry?.waistCm?.let(::r1).orEmpty()) }
+    var hip by remember(entryKey) { mutableStateOf(initialEntry?.hipCm?.let(::r1).orEmpty()) }
+    var chest by remember(entryKey) { mutableStateOf(initialEntry?.chestCm?.let(::r1).orEmpty()) }
+    var arm by remember(entryKey) { mutableStateOf(initialEntry?.armCm?.let(::r1).orEmpty()) }
+    var thigh by remember(entryKey) { mutableStateOf(initialEntry?.thighCm?.let(::r1).orEmpty()) }
+    var neck by remember(entryKey) { mutableStateOf(initialEntry?.neckCm?.let(::r1).orEmpty()) }
+    var notes by remember(entryKey) { mutableStateOf(initialEntry?.notes.orEmpty()) }
 
     KpknSheet(
         onDismissRequest = onDismiss,
@@ -1722,9 +1834,13 @@ private fun AddMeasurementSheet(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item {
-                Text("Registrar Medición", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black)
                 Text(
-                    java.time.LocalDate.now().format(
+                    if (initialEntry == null) "Registrar Medición" else "Editar Medición",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Black,
+                )
+                Text(
+                    displayDate.format(
                         java.time.format.DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM yyyy", java.util.Locale.getDefault())
                     ).replaceFirstChar { it.uppercase() },
                     style = MaterialTheme.typography.labelMedium,
@@ -1780,28 +1896,44 @@ private fun AddMeasurementSheet(
             }
 
             item {
-                val hasData = weight.isNotBlank() || bodyFat.isNotBlank() || waist.isNotBlank()
+                val hasData = listOf(weight, bodyFat, muscleMass, waist, hip, chest, arm, thigh, neck)
+                    .any { it.isNotBlank() }
+                val parsed = listOfNotNull(
+                    weight.takeIf { it.isNotBlank() }?.let { BodyMetric.WEIGHT to parseLocalizedNumber(it) },
+                    bodyFat.takeIf { it.isNotBlank() }?.let { BodyMetric.BODY_FAT_PERCENT to parseLocalizedNumber(it) },
+                    muscleMass.takeIf { it.isNotBlank() }?.let { BodyMetric.MUSCLE_MASS_PERCENT to parseLocalizedNumber(it) },
+                    waist.takeIf { it.isNotBlank() }?.let { BodyMetric.WAIST to parseLocalizedNumber(it) },
+                    hip.takeIf { it.isNotBlank() }?.let { BodyMetric.HIP to parseLocalizedNumber(it) },
+                    chest.takeIf { it.isNotBlank() }?.let { BodyMetric.CHEST to parseLocalizedNumber(it) },
+                    arm.takeIf { it.isNotBlank() }?.let { BodyMetric.ARM to parseLocalizedNumber(it) },
+                    thigh.takeIf { it.isNotBlank() }?.let { BodyMetric.THIGH to parseLocalizedNumber(it) },
+                    neck.takeIf { it.isNotBlank() }?.let { BodyMetric.NECK to parseLocalizedNumber(it) },
+                )
+                val invalid = parsed.any { (metric, value) -> value == null || !validateBodyValue(metric, value).valid }
+                if (invalid) {
+                    Text("Revisa los valores: deben ser finitos y estar dentro de rangos válidos.", color = Color(0xFFFF9E9E), style = MaterialTheme.typography.labelSmall)
+                }
                 Button(
                     onClick = {
                         val entry = BodyMeasurementEntry(
-                            id = UUID.randomUUID().toString(),
-                            date = java.time.LocalDate.now().toString(),
-                            weight = weight.replace(",", ".").toDoubleOrNull(),
-                            bodyFat = bodyFat.replace(",", ".").toDoubleOrNull(),
-                            muscleMass = muscleMass.replace(",", ".").toDoubleOrNull(),
-                            waistCm = waist.replace(",", ".").toDoubleOrNull(),
-                            hipCm = hip.replace(",", ".").toDoubleOrNull(),
-                            chestCm = chest.replace(",", ".").toDoubleOrNull(),
-                            armCm = arm.replace(",", ".").toDoubleOrNull(),
-                            thighCm = thigh.replace(",", ".").toDoubleOrNull(),
-                            neckCm = neck.replace(",", ".").toDoubleOrNull(),
+                            id = initialEntry?.id ?: UUID.randomUUID().toString(),
+                            date = initialEntry?.date ?: java.time.LocalDate.now().toString(),
+                            weight = parseLocalizedNumber(weight),
+                            bodyFat = parseLocalizedNumber(bodyFat),
+                            muscleMass = parseLocalizedNumber(muscleMass),
+                            waistCm = parseLocalizedNumber(waist),
+                            hipCm = parseLocalizedNumber(hip),
+                            chestCm = parseLocalizedNumber(chest),
+                            armCm = parseLocalizedNumber(arm),
+                            thighCm = parseLocalizedNumber(thigh),
+                            neckCm = parseLocalizedNumber(neck),
                             notes = notes.ifBlank { null },
                         )
                         onSave(entry)
                     },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(16.dp),
-                    enabled = hasData,
+                    enabled = hasData && !invalid,
                 ) {
                     Icon(Icons.Default.Save, null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
@@ -1857,30 +1989,13 @@ private fun MeasurementField(
 // HELPERS
 // ═══════════════════════════════════════════════════════════════════════
 
-private fun buildBodyMetricSeries(
-    measurements: List<BodyMeasurementEntry>,
-    fallbackValue: Double?,
-    selector: (BodyMeasurementEntry) -> Double?,
-): List<BodyMetricPoint> {
-    val points = measurements.mapNotNull { entry ->
-        selector(entry)?.let { BodyMetricPoint(date = entry.date, value = it) }
-    }
-    if (points.isNotEmpty()) return points
-    return fallbackValue?.let {
-        listOf(BodyMetricPoint(date = java.time.LocalDate.now().toString(), value = it))
-    } ?: emptyList()
-}
-
 private fun calculateGoalProgress(
     startValue: Double?,
     currentValue: Double?,
     targetValue: Double?,
 ): Int? {
     if (startValue == null || currentValue == null || targetValue == null) return null
-    val total = kotlin.math.abs(targetValue - startValue)
-    if (total == 0.0) return 100
-    val remaining = kotlin.math.abs(targetValue - currentValue)
-    return kotlin.math.round(((1 - remaining / total).coerceIn(0.0, 1.0)) * 100).toInt()
+    return goalProgressPercent(startValue, currentValue, targetValue)
 }
 
 private fun formatShortDate(raw: String): String {
@@ -1905,3 +2020,19 @@ private fun formatHeroDate(raw: String): String {
 private fun r1(v: Double): String {
     return (kotlin.math.round(v * 10) / 10.0).toString()
 }
+
+private fun bodyDateEpochDay(raw: String): Long? =
+    runCatching { java.time.LocalDate.parse(raw).toEpochDay() }.getOrNull()
+
+private fun smoothBodySeries(points: List<BodyMetricPoint>): List<BodyMetricPoint> =
+    ewmaTrend(
+        points.mapNotNull { point ->
+            runCatching {
+                com.example.kpkn.domain.body.BodyMetricPoint(
+                    date = java.time.LocalDate.parse(point.date),
+                    value = point.value,
+                    sourceObservationIds = emptyList(),
+                )
+            }.getOrNull()
+        },
+    ).map { point -> BodyMetricPoint(point.date.toString(), point.value) }

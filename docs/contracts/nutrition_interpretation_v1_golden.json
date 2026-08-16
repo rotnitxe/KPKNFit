@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "contract": {
+    "precedence": [
+      "explicit grams and explicit state",
+      "exact curated/local row",
+      "prepared variant matching the method",
+      "confirmed user mapping",
+      "high-confidence candidate",
+      "dataset semantic prior",
+      "heuristic or manual estimate"
+    ],
+    "blocking": {
+      "identityConfidenceBelow": 0.8,
+      "candidateMarginBelow": 0.15,
+      "alternativeCaloriesDifferenceAtLeast": 50,
+      "alternativeProteinDifferenceAtLeast": 5,
+      "alternativeFatDifferenceAtLeast": 5
+    },
+    "uncertainDecision": "central value is persisted with min/max; UI prefixes food and totals with ≈; no learning is written"
+  },
+  "cases": [
+    {
+      "id": "cooked_chicken_200g",
+      "input": "200 g pechuga de pollo cocida",
+      "expected": { "candidateId": "gen004", "weightBasis": "COOKED", "proteinGrams": 64.2, "doubleConversion": false }
+    },
+    {
+      "id": "cooked_synonym",
+      "input": "200 g pechuga de pollo cocinada",
+      "expected": { "candidateId": "gen004", "weightBasis": "COOKED" }
+    },
+    {
+      "id": "raw_chicken",
+      "input": "200 g pechuga de pollo cruda",
+      "expected": { "weightBasis": "RAW", "proteinGrams": 45.0 }
+    },
+    {
+      "id": "prepared_variant",
+      "input": "200 g pollo a la plancha",
+      "expected": { "candidateId": "gen003c", "doubleConversion": false }
+    },
+    {
+      "id": "context_invariance",
+      "input": "200 g pechuga de pollo cocida",
+      "contexts": ["post-entreno", "cena", "día de descanso"],
+      "expected": { "proteinDensityInvariant": true }
+    },
+    {
+      "id": "vague_portion",
+      "input": "arroz cocido",
+      "expected": { "question": "portion", "options": ["Pequeña", "Habitual", "Grande"] }
+    },
+    {
+      "id": "sensitive_state",
+      "input": "arroz",
+      "expected": { "question": "weight_state", "saveBlocked": true }
+    },
+    {
+      "id": "unsure_range",
+      "input": "una porción de pollo",
+      "expected": { "centralAndRange": true, "learning": false, "explicitDecision": true }
+    }
+  ]
+}

@@ -2228,7 +2228,7 @@ private fun buildInitialState(currentSettings: Settings, activePlan: NutritionPl
         }
     }
     val vitals = currentSettings.userVitals
-    val goalMetric = if (activePlan?.goalType == GoalMetric.MUSCLE_MASS) GoalMetric.WEIGHT else activePlan?.goalType ?: GoalMetric.WEIGHT
+    val goalMetric = activePlan?.typedBodyGoal?.metric ?: activePlan?.goalType ?: GoalMetric.WEIGHT
     val fallbackGoal = fallbackGoalValue(goalMetric, vitals.weight ?: 0.0, vitals.bodyFatPercentage, vitals.muscleMassPercentage)
     val wUnit = currentSettings.weightUnit
 
@@ -2500,9 +2500,12 @@ private fun formatGoalFieldValue(value: Double): String {
 
 private fun fallbackGoalValue(metric: GoalMetric, weight: Double, bodyFat: Double?, muscle: Double?): Double {
     return when (metric) {
-        GoalMetric.WEIGHT -> if (weight > 0) weight else 70.0
-        GoalMetric.BODY_FAT -> bodyFat ?: 15.0
-        GoalMetric.MUSCLE_MASS -> muscle ?: 40.0
+        // Do not manufacture a body value (70 kg/15%/40%) when the user has
+        // no measurement. The canonical six-step wizard treats zero as an
+        // incomplete field and asks for an explicit value.
+        GoalMetric.WEIGHT -> weight.takeIf { it > 0.0 } ?: 0.0
+        GoalMetric.BODY_FAT -> bodyFat?.takeIf { it.isFinite() && it >= 0.0 } ?: 0.0
+        GoalMetric.MUSCLE_MASS -> muscle?.takeIf { it.isFinite() && it >= 0.0 } ?: 0.0
     }
 }
 

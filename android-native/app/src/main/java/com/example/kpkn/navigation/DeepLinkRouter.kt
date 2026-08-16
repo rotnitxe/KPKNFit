@@ -45,7 +45,8 @@ object DeepLinkRouter {
             "rings", "mis-rings", "my-rings" -> ResolvedRoute(KpknRoute.Home.route)
             "nutrition", "nutricion", "nutrición" -> {
                 when (second) {
-                    "wizard" -> ResolvedRoute(KpknRoute.NutritionWizard.route)
+                    "wizard" -> ResolvedRoute(KpknRoute.NutritionWizard.create())
+                    "calibration" -> ResolvedRoute(KpknRoute.NutritionCalibration.route)
                     "body-progress", "bodyprogress", "progress" -> ResolvedRoute(KpknRoute.BodyProgress.route)
                     "meal-history", "history", "historial" -> ResolvedRoute(KpknRoute.MealHistory.route)
                     "action" -> {
@@ -109,6 +110,7 @@ object DeepLinkRouter {
                     "general" -> ResolvedRoute(KpknRoute.SettingsGeneral.route)
                     "profile", "perfil" -> ResolvedRoute(KpknRoute.SettingsProfile.route)
                     "nutrition", "nutricion", "nutrición" -> ResolvedRoute(KpknRoute.SettingsNutrition.route)
+                    "health-connect", "healthconnect", "salud" -> ResolvedRoute(KpknRoute.HealthConnect.route)
                     "training", "entreno" -> ResolvedRoute(KpknRoute.SettingsTraining.route)
                     "auge" -> ResolvedRoute(KpknRoute.SettingsAuge.route)
                     "notifications", "notificaciones" -> ResolvedRoute(KpknRoute.SettingsNotifications.route)

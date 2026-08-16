@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kpkn.local/contracts/nutrition-plan-v2.schema.json",
+  "title": "KPKN nutrition plan v2",
+  "type": "object",
+  "required": ["id", "direction", "calorieTarget", "calculationOrigin", "engineVersion", "calculationSnapshot"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "direction": { "enum": ["DEFICIT", "MAINTENANCE", "SURPLUS", "PROFESSIONAL"] },
+    "goalType": { "enum": ["WEIGHT", "BODY_FAT", "MUSCLE_MASS"] },
+    "goalValue": { "type": "number" },
+    "calorieTarget": { "type": "integer", "minimum": 0 },
+    "proteinGoal": { "type": "integer", "minimum": 0 },
+    "carbGoal": { "type": "integer", "minimum": 0 },
+    "fatGoal": { "type": "integer", "minimum": 0 },
+    "calculationOrigin": { "enum": ["PLAN", "MANUAL", "PROFESSIONAL", "CALIBRATED", "IMPORTED", "SETTINGS_MIGRATION"] },
+    "engineVersion": { "type": ["string", "null"] },
+    "typedBodyGoal": {
+      "type": ["object", "null"],
+      "required": ["metric", "unitSi", "origin"],
+      "properties": {
+        "metric": { "enum": ["WEIGHT", "BODY_FAT", "MUSCLE_MASS"] },
+        "targetValueSi": { "type": ["number", "null"] },
+        "unitSi": { "type": "string" },
+        "origin": { "type": "string" },
+        "linkedPlanId": { "type": ["string", "null"] }
+      }
+    },
+    "calculationSnapshot": {
+      "type": "object",
+      "required": ["engineVersion", "formula", "inputs", "dataQuality", "result", "assumptions", "calculatedAt"],
+      "properties": {
+        "engineVersion": { "type": "string" },
+        "formula": { "type": "string" },
+        "inputs": { "type": "object", "additionalProperties": { "type": "string" } },
+        "dataQuality": { "type": "string" },
+        "result": { "type": "object", "additionalProperties": { "type": "string" } },
+        "assumptions": { "type": "array", "items": { "type": "string" } },
+        "manualModifications": { "type": "object", "additionalProperties": { "type": "string" } },
+        "calculatedAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kpkn.local/contracts/nutrition-interpretation-v1.schema.json",
+  "title": "KPKN local nutrition interpretation contract",
+  "description": "Sanitized telemetry and persistible interpretation evidence. Raw meal text, credentials and personal data are prohibited.",
+  "type": "object",
+  "required": ["schemaVersion", "event", "timestamp", "sessionId"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "const": 1 },
+    "event": {
+      "type": "string",
+      "enum": [
+        "interpretation_started", "candidate_selected", "clarification_requested",
+        "clarification_answered", "interpretation_finalized", "manual_correction",
+        "calibration_updated", "catalog_import_started", "catalog_import_completed",
+        "catalog_import_finished", "catalog_import_failed"
+      ]
+    },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "sessionId": { "type": "string", "minLength": 1 },
+    "traceId": { "type": ["string", "null"] },
+    "fields": { "$ref": "#/$defs/telemetryFields" },
+    "interpretation": { "$ref": "#/$defs/interpretation" }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "source": {
+      "type": "string",
+      "enum": ["USDA_FOUNDATION", "USDA_FNDDS", "USDA_SR_LEGACY", "USDA_BRANDED", "OPEN_FOOD_FACTS", "CUSTOM_CONFIRMED", "CURATED_LOCAL", "MANUAL", "DATASET_SEMANTIC", "HEURISTIC"]
+    },
+    "nutritionBasis": {
+      "type": "string",
+      "enum": ["PER_100G_RAW", "PER_100G_COOKED", "PER_100G_AS_SOLD", "PER_100G_PREPARED", "PER_SERVING"]
+    },
+    "weightBasis": {
+      "type": "string",
+      "enum": ["RAW", "COOKED", "AS_SERVED", "UNKNOWN"]
+    },
+    "range": {
+      "type": "object",
+      "required": ["central", "min", "max"],
+      "properties": {
+        "central": { "type": "number", "minimum": 0 },
+        "min": { "type": "number", "minimum": 0 },
+        "max": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "clarification": {
+      "type": "object",
+      "required": ["kind", "requestId", "material"],
+      "properties": {
+        "kind": { "enum": ["portion", "identity", "weight_state", "oil"] },
+        "requestId": { "type": "string", "minLength": 1 },
+        "material": { "type": "boolean" },
+        "options": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["source", "datasetVersion", "nutritionBasis"],
+      "properties": {
+        "source": { "$ref": "#/$defs/source" },
+        "sourceRecordId": { "type": ["string", "null"] },
+        "datasetVersion": { "type": "string", "minLength": 1 },
+        "nutritionBasis": { "$ref": "#/$defs/nutritionBasis" },
+        "qualityFlags": { "type": "array", "items": { "type": "string" } },
+        "sourceRelease": { "type": ["string", "null"] },
+        "capturedAtEpochMs": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "interpretation": {
+      "type": "object",
+      "required": ["source", "datasetVersion", "nutritionBasis", "weightBasis", "macros", "pendingQuestions"],
+      "properties": {
+        "draftId": { "type": "string" },
+        "canonicalIdentity": { "type": ["string", "null"] },
+        "canonicalFamily": { "type": ["string", "null"] },
+        "selectedCandidateId": { "type": ["string", "null"] },
+        "source": { "$ref": "#/$defs/source" },
+        "sourceRecordId": { "type": ["string", "null"] },
+        "datasetVersion": { "type": "string" },
+        "nutritionBasis": { "$ref": "#/$defs/nutritionBasis" },
+        "weightBasis": { "$ref": "#/$defs/weightBasis" },
+        "observedGrams": { "type": ["number", "null"], "minimum": 0 },
+        "baseAmountGrams": { "type": ["number", "null"], "minimum": 0 },
+        "portion": { "$ref": "#/$defs/range" },
+        "macros": {
+          "type": "object",
+          "required": ["calories", "protein", "carbs", "fat"],
+          "properties": {
+            "calories": { "$ref": "#/$defs/range" },
+            "protein": { "$ref": "#/$defs/range" },
+            "carbs": { "$ref": "#/$defs/range" },
+            "fat": { "$ref": "#/$defs/range" }
+          },
+          "additionalProperties": false
+        },
+        "transformations": { "type": "array", "items": { "type": "string" } },
+        "pendingQuestions": { "type": "array", "items": { "$ref": "#/$defs/clarification" } },
+        "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence" } },
+        "isUncertain": { "type": "boolean" },
+        "isConfirmedEstimate": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "telemetryFields": {
+      "type": "object",
+      "properties": {
+        "source": { "$ref": "#/$defs/source" },
+        "sourceRecordId": { "type": ["string", "null"] },
+        "rank": { "type": "integer", "minimum": 0 },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "margin": { "type": "number", "minimum": 0, "maximum": 1 },
+        "questionKind": { "enum": ["portion", "identity", "weight_state", "oil", "unsure"] },
+        "option": { "type": "string" },
+        "transformation": { "type": "string" },
+        "durationMs": { "type": "integer", "minimum": 0 },
+        "result": { "enum": ["success", "blocked", "failed", "skipped"] },
+        "datasetVersion": { "type": "string" },
+        "qualityFlags": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    }
+  }
+}

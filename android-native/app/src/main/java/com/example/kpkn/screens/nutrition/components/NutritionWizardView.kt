@@ -31,6 +31,7 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.nutrition.*
 import java.time.Instant
 import java.util.UUID
+import kotlin.math.roundToInt
 
 // ═══════════════════════════════════════════════════════════════════════
 // NUTRITION WIZARD — Full-screen onboarding + plan creation
@@ -107,13 +108,13 @@ fun NutritionWizardView(
 
     // Step 0: Goal
     var primaryMetric by remember { mutableStateOf(GoalMetric.WEIGHT) }
-    var primaryValue by remember { mutableStateOf(currentSettings.userVitals.weight?.toInt()?.toString() ?: "70") }
+    var primaryValue by remember { mutableStateOf(currentSettings.userVitals.weight?.toInt()?.toString() ?: "") }
     var direction by remember { mutableStateOf("maintain") }
 
     // Step 1: Body data
-    var age by remember { mutableStateOf(currentSettings.userVitals.age?.toString() ?: "30") }
-    var height by remember { mutableStateOf(currentSettings.userVitals.height?.toInt()?.toString() ?: "170") }
-    var weight by remember { mutableStateOf(currentSettings.userVitals.weight?.toInt()?.toString() ?: "70") }
+    var age by remember { mutableStateOf(currentSettings.userVitals.age?.toString() ?: "") }
+    var height by remember { mutableStateOf(currentSettings.userVitals.height?.toInt()?.toString() ?: "") }
+    var weight by remember { mutableStateOf(currentSettings.userVitals.weight?.toInt()?.toString() ?: "") }
     var gender by remember { mutableStateOf(currentSettings.userVitals.gender ?: Gender.MALE) }
 
     // Step 2: Body composition
@@ -131,9 +132,9 @@ fun NutritionWizardView(
     var metabolicConditions by remember { mutableStateOf(emptyList<String>()) }
 
     // ─── Derived ─────────────────────────────────────────────────────────
-    val weightD = weight.toDoubleOrNull() ?: 70.0
-    val heightD = height.toDoubleOrNull() ?: 170.0
-    val ageI = age.toIntOrNull() ?: 30
+    val weightD = parseLocalizedNumber(weight) ?: 0.0
+    val heightD = parseLocalizedNumber(height) ?: 0.0
+    val ageI = age.toIntOrNull() ?: 0
     val bodyFatD = bodyFat.toDoubleOrNull()
     val muscleMassD = muscleMass.toDoubleOrNull()
     val primaryValD = primaryValue.toDoubleOrNull() ?: 0.0
@@ -166,15 +167,30 @@ fun NutritionWizardView(
     val goalDirection = when (direction) {
         "lose" -> CalorieGoal.LOSE; "gain" -> CalorieGoal.GAIN; else -> CalorieGoal.MAINTAIN
     }
-    val calorieConfig = CalorieGoalConfig(
-        formula = if (bodyFatD != null) FormulaType.KATCH else FormulaType.MIFFLIN,
-        activityLevel = activityLevel,
-        goal = goalDirection,
-        weeklyChangeKg = weeklyChangeKg,
+    val eerActivity = when (activityLevel) {
+        1 -> EerActivity.INACTIVE
+        2 -> EerActivity.LOW_ACTIVE
+        3 -> EerActivity.ACTIVE
+        else -> EerActivity.VERY_ACTIVE
+    }
+    val eerSex = when (gender) {
+        Gender.FEMALE -> EerSex.FEMALE
+        Gender.MALE -> EerSex.MALE
+        else -> null
+    }
+    val planDirection = when (direction) {
+        "lose" -> PlanDirection.DEFICIT
+        "gain" -> PlanDirection.SURPLUS
+        else -> PlanDirection.MAINTENANCE
+    }
+    val recommendation = NutritionEnergyEngine.recommendPlan(
+        input = EerInput(ageI, heightD, weightD, eerSex, eerActivity),
+        direction = planDirection,
+        targetValueSi = primaryValD,
     )
-    val bmr = calculateBMR(nutritionInput, calorieConfig)
-    val tdee = bmr?.let { kotlin.math.round(it * getActivityFactor(calorieConfig)).toInt() }
-    val targetCalories = calculateDailyCalorieGoal(nutritionInput, calorieConfig)
+    val bmr: Double? = null // EER no expone TMB; no se reintroduce Mifflin/Katch aquí.
+    val tdee = recommendation.eerKcal?.roundToInt()
+    val targetCalories = recommendation.calorieTargetKcal ?: 0
 
     val dietMultiplier = when (dietaryPreference) {
         "vegan" -> 1.15; "vegetarian" -> 1.08; else -> 1.0

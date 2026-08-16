@@ -58,29 +58,28 @@ class CookingPortionPrecisionTest {
     }
 
     @Test
-    fun `explicit grams ignore proteinBoost in scaleFoodByPortion when caller locks`() {
+    fun `explicit grams keep amount and macros stable regardless of context`() {
         val food = FoodItem(
             id = "t", name = "Pollo", servingSize = 100.0, unit = "g",
             calories = 165.0, protein = 31.0, carbs = 0.0, fats = 3.6,
         )
+        // El contexto ya no puede mutar la densidad por 100 g: una masa explícita
+        // produce exactamente los mismos macros con cualquier portionAdjustment
+        // (el boost de proteína fue eliminado del calculador).
         val locked = scaleFoodByPortion(
             food = food,
             amountGrams = 200.0,
             portionAdjustment = 1.4,
-            proteinBoost = 0.2,
         )
-        // Callers must pass portionAdjustment=1 and proteinBoost=0 for locked intents;
-        // this documents the MacroCalculator contract: with amountGrams, portionAdjustment
-        // does not change amount, but proteinBoost still multiplies unless caller zeros it.
         assertEquals(200.0, locked.amount, 0.01)
-        val noBoost = scaleFoodByPortion(
+        val neutral = scaleFoodByPortion(
             food = food,
             amountGrams = 200.0,
-            portionAdjustment = 1.0,
-            proteinBoost = 0.0,
         )
-        assertEquals(200.0, noBoost.amount, 0.01)
-        assertEquals(62.0, noBoost.protein, 0.2)
+        assertEquals(200.0, neutral.amount, 0.01)
+        assertEquals(62.0, neutral.protein, 0.2)
+        assertEquals(neutral.protein, locked.protein, 0.01)
+        assertEquals(neutral.calories, locked.calories, 0.01)
     }
 
     @Test
@@ -90,7 +89,6 @@ class CookingPortionPrecisionTest {
             food = food,
             amountGrams = 200.0,
             portionAdjustment = 1.35,
-            proteinBoost = 0.0,
         )
         assertEquals(200.0, logged.amount, 0.01)
     }

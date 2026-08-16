@@ -20,6 +20,8 @@ enum class FoodState {
 
 enum class FoodResolutionStatus {
     AUTO,
+    /** Heuristic/fallback value is visible for editing but is not guardable yet. */
+    NEEDS_REVIEW,
     NEEDS_STATE,
     NEEDS_CONFIRMATION,
     CONFIRMED_ESTIMATE,
@@ -50,15 +52,26 @@ object FoodIdentity {
         "espagueti", "espaguetis", "macarron", "macarrones", "penne", "lasana",
     )
 
+    private val STATE_SENSITIVE_WORDS = setOf(
+        "pollo", "pechuga", "pavo", "vacuno", "carne", "cerdo", "chancho",
+        "pescado", "salmon", "salmon", "merluza", "atun", "huevo", "huevos",
+        "arroz", "pasta", "fideo", "fideos", "tallarin", "tallarines",
+        "lenteja", "lentejas", "garbanzo", "garbanzos", "poroto", "porotos",
+        "frejol", "frijol", "papa", "papas", "patata", "quinoa", "avena",
+    )
+
     private val STATE_SUFFIX = Regex(
-        "\\s*\\((?:cruda?|cocida?|hidratada?|frita?|frito|plancha|horno|asada?|vapor|parrilla)\\)" +
-            "|\\s+(?:cruda?|cocida?|hidratada?|frita?|frito|plancha|horno|asada?|vapor|parrilla)\\b",
+        "\\s*\\((?:cruda?|cocida?|cocinada?|hidratada?|frita?|frito|plancha|horno|asada?|vapor|parrilla)\\)" +
+            "|\\s+(?:cruda?|cocida?|cocinada?|hidratada?|frita?|frito|plancha|horno|asada?|vapor|parrilla)\\b",
         RegexOption.IGNORE_CASE,
     )
 
-    private val RAW_PATTERN = Regex("\\b(?:crudo|cruda|crudos|crudas|seco|seca|secos|secas|deshidratado|deshidratada|deshidratados|deshidratadas)\\b")
+    // raw/cooked en inglés: las filas USDA/OFF traen el estado en la descripción
+    // ("Chicken… cooked, braised") y antes quedaban UNKNOWN, ignorando la
+    // penalización de estado en el ranking.
+    private val RAW_PATTERN = Regex("\\b(?:crudo|cruda|crudos|crudas|seco|seca|secos|secas|deshidratado|deshidratada|deshidratados|deshidratadas|raw|dried)\\b")
     private val COOKED_PATTERN = Regex(
-        "\\b(?:cocido|cocida|cocidos|cocidas|hervido|hervida|hervidos|hervidas|frito|frita|fritos|fritas|plancha|horno|asado|asada|asados|asadas|vapor|parrilla)\\b",
+        "\\b(?:cocido|cocida|cocidos|cocidas|cocinado|cocinada|cocinados|cocinadas|hervido|hervida|hervidos|hervidas|frito|frita|fritos|fritas|plancha|horno|asado|asada|asados|asadas|vapor|parrilla|cooked|boiled|braised|baked|fried|grilled|roasted|steamed|smoked)\\b",
     )
     private val HYDRATED_PATTERN = Regex("\\b(?:hidratado|hidratada|remojado|remojada)\\b")
 
@@ -93,13 +106,22 @@ object FoodIdentity {
         }
     }
 
-    fun stateFor(food: FoodItem): FoodState =
-        stateFor(food.name + " " + food.searchAliases.joinToString(" "))
+    fun stateFor(food: FoodItem): FoodState {
+        val persisted = food.foodState.trim().uppercase()
+            .let { value -> runCatching { FoodState.valueOf(value) }.getOrNull() }
+        return persisted?.takeUnless { it == FoodState.UNKNOWN }
+            ?: stateFor(food.name + " " + food.searchAliases.joinToString(" "))
+    }
 
     fun familyFor(food: FoodItem): String? =
         familyFor(food.name + " " + food.searchAliases.joinToString(" "))
 
-    fun isStateSensitive(value: String): Boolean = familyFor(value) == "pasta"
+    fun isStateSensitive(value: String): Boolean {
+        val normalized = normalize(value)
+        val tokens = normalized.split(' ').toSet()
+        return familyFor(value) == "pasta" ||
+            tokens.any { it in STATE_SENSITIVE_WORDS }
+    }
 
     fun isAmbiguousStateQuery(value: String): Boolean {
         return isStateSensitive(value) && stateFor(value) == FoodState.UNKNOWN

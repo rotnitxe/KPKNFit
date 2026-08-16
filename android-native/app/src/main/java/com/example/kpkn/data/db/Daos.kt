@@ -367,6 +367,31 @@ interface NutritionDao {
     @Query("DELETE FROM global_foods")
     suspend fun clearGlobalFoods()
 
+    // ─── Calibración nutricional (v22): fila singleton ────────────────────
+
+    @Query("SELECT * FROM nutrition_calibration_profile WHERE rowId = 1 LIMIT 1")
+    suspend fun getCalibrationProfile(): NutritionCalibrationProfileEntity?
+
+    @Upsert
+    suspend fun upsertCalibrationProfile(entity: NutritionCalibrationProfileEntity)
+
+    @Query("DELETE FROM nutrition_calibration_profile WHERE rowId = 1")
+    suspend fun clearCalibrationProfile()
+
+    // Immutable historical food-goal snapshots. A date is captured once;
+    // callers must use INSERT IGNORE rather than replacing an old goal.
+    @Query("SELECT * FROM daily_goal_snapshots ORDER BY date DESC")
+    suspend fun getAllDailyGoalSnapshots(): List<DailyGoalSnapshotEntity>
+
+    @Query("SELECT * FROM daily_goal_snapshots WHERE date = :date LIMIT 1")
+    suspend fun getDailyGoalSnapshot(date: String): DailyGoalSnapshotEntity?
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertDailyGoalSnapshot(entity: DailyGoalSnapshotEntity): Long
+
+    @Query("DELETE FROM daily_goal_snapshots")
+    suspend fun clearDailyGoalSnapshots()
+
     @Transaction
     suspend fun activatePlanAtomic(planId: String, plans: List<NutritionPlanEntity>) {
         plans.forEach { plan ->
@@ -374,6 +399,47 @@ interface NutritionDao {
         }
         upsertActiveState(NutritionActiveStateEntity(activePlanId = planId))
     }
+}
+
+// ─── Body progress ─────────────────────────────────────────────────────────
+
+@Dao
+interface BodyProgressDao {
+    @Query("SELECT * FROM body_observations ORDER BY timestampEpochMs ASC")
+    suspend fun getAllObservations(): List<BodyObservationEntity>
+
+    @Query("SELECT * FROM body_observations WHERE metric = :metric ORDER BY timestampEpochMs ASC")
+    suspend fun getObservationsForMetric(metric: String): List<BodyObservationEntity>
+
+    @Query("SELECT * FROM body_observations WHERE externalId = :externalId LIMIT 1")
+    suspend fun getByExternalId(externalId: String): BodyObservationEntity?
+
+    @Upsert
+    suspend fun upsertObservation(entity: BodyObservationEntity)
+
+    @Upsert
+    suspend fun upsertObservations(entities: List<BodyObservationEntity>)
+
+    @Query("DELETE FROM body_observations WHERE id = :id")
+    suspend fun deleteObservation(id: String)
+
+    @Query("DELETE FROM body_observations")
+    suspend fun clearObservations()
+
+    @Query("SELECT * FROM body_goals ORDER BY updatedAtEpochMs DESC")
+    suspend fun getAllGoals(): List<BodyGoalEntity>
+
+    @Upsert
+    suspend fun upsertGoal(entity: BodyGoalEntity)
+
+    @Query("DELETE FROM body_goals WHERE id = :id")
+    suspend fun deleteGoal(id: String)
+
+    @Query("DELETE FROM body_goals WHERE linkedPlanId = :planId AND origin = 'PLAN'")
+    suspend fun deletePlanGoals(planId: String)
+
+    @Query("DELETE FROM body_goals")
+    suspend fun clearGoals()
 }
 
 // ─── Session Templates ───────────────────────────────────────────────────────
@@ -414,6 +480,9 @@ interface CustomExerciseDao {
 
 @Dao
 interface LearnedResolutionDao {
+    @Query("SELECT * FROM learned_resolutions ORDER BY count DESC, lastUsedAt DESC")
+    suspend fun getAll(): List<LearnedResolutionEntity>
+
     @Query("SELECT * FROM learned_resolutions WHERE queryKey = :queryKey LIMIT 1")
     suspend fun getByQueryKey(queryKey: String): LearnedResolutionEntity?
 

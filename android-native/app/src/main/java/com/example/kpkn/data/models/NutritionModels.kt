@@ -75,6 +75,15 @@ data class FoodItem(
     val verifiedScore: Double = 0.5,
     val usageCount: Int = 0,
     val lastUsedAt: String? = null,
+    /** Stable provenance fields copied from the v22+ global catalog. */
+    val source: String? = null,
+    val sourceRecordId: String? = null,
+    val nutritionBasis: String = "PER_100G_AS_SOLD",
+    val foodState: String = "UNKNOWN",
+    val datasetVersion: String? = null,
+    val portionGrams: Double? = null,
+    val portionUnit: String? = null,
+    val qualityFlags: List<String> = emptyList(),
 )
 
 enum class CookingBehavior { SHRINKS, EXPANDS }
@@ -102,6 +111,18 @@ data class LoggedFood(
     val cookingMethod: CookingMethod? = null,
     val quantity: Double = 1.0,
     val analysisSource: AnalysisSource? = null,
+    /** V2 uncertainty/provenance is optional so legacy logs remain readable. */
+    val caloriesMin: Double? = null,
+    val caloriesMax: Double? = null,
+    val proteinMin: Double? = null,
+    val proteinMax: Double? = null,
+    val carbsMin: Double? = null,
+    val carbsMax: Double? = null,
+    val fatsMin: Double? = null,
+    val fatsMax: Double? = null,
+    val interpretationId: String? = null,
+    val evidenceJson: String? = null,
+    val isUncertain: Boolean = false,
 )
 
 // ─── NutritionLog ─────────────────────────────────────────────────────────────
@@ -146,12 +167,133 @@ data class NutritionPlan(
     val primaryGoal: NutritionGoal? = null,
     val estimatedEndDate: String? = null,
     val weeklyChangeKg: Double = 0.5,
+    /** Display unit for the typed goal's rate; legacy plans default to kg/week. */
+    val weeklyChangeUnit: String = "kg/week",
     val startValue: Double? = null,
     val targetBodyFat: Double? = null,
     val targetMuscle: Double? = null,
+    /** Direction selected by the user; never infer this from a target value. */
+    val direction: PlanDirection? = null,
+    /** Explicitly typed body goal. A maintenance plan may leave this null. */
+    val typedBodyGoal: TypedBodyGoal? = null,
+    /** Calculation provenance for audit/recalculation of legacy plans. */
+    val calculationOrigin: CalculationOrigin = CalculationOrigin.PLAN,
+    val engineVersion: String? = null,
+    val calculationSnapshot: NutritionPlanCalculationSnapshot? = null,
 )
 
 enum class GoalMetric { WEIGHT, BODY_FAT, MUSCLE_MASS }
+
+/** User intent for an energy plan. It is persisted independently of body goals. */
+@Serializable
+enum class PlanDirection {
+    DEFICIT,
+    MAINTENANCE,
+    SURPLUS,
+    PROFESSIONAL,
+}
+
+/** Provenance of a plan/body goal or an explicitly overridden value. */
+@Serializable
+enum class CalculationOrigin {
+    PLAN,
+    MANUAL,
+    PROFESSIONAL,
+    CALIBRATED,
+    IMPORTED,
+    SETTINGS_MIGRATION,
+}
+
+@Serializable
+data class TypedBodyGoal(
+    val metric: GoalMetric,
+    val targetValueSi: Double? = null,
+    val unitSi: String = when (metric) {
+        GoalMetric.WEIGHT -> "kg"
+        GoalMetric.BODY_FAT, GoalMetric.MUSCLE_MASS -> "%"
+    },
+    val origin: CalculationOrigin = CalculationOrigin.MANUAL,
+    val linkedPlanId: String? = null,
+)
+
+/** Immutable audit record for a plan calculation. Values are strings to keep the contract stable. */
+@Serializable
+data class NutritionPlanCalculationSnapshot(
+    val engineVersion: String,
+    val formula: String,
+    val inputs: Map<String, String> = emptyMap(),
+    val dataQuality: String = "unknown",
+    val result: Map<String, String> = emptyMap(),
+    val assumptions: List<String> = emptyList(),
+    val manualModifications: Map<String, String> = emptyMap(),
+    val calculatedAt: String,
+)
+
+/** Versioned, conservative calibration state persisted separately from a plan. */
+@Serializable
+data class NutritionCalibrationRevision(
+    val recordedAtEpochMs: Long,
+    val beforeKcal: Int? = null,
+    val afterKcal: Int? = null,
+    val proposedAdjustmentKcal: Int? = null,
+    val weeklyWeightChangeKg: Double? = null,
+    val status: String = "incomplete",
+)
+
+@Serializable
+data class NutritionCalibrationProfile(
+    val schemaVersion: Int = 1,
+    val baselineKcal: Int? = null,
+    val currentKcal: Int? = null,
+    val recommendedAdjustmentKcal: Int? = null,
+    val startWeightKg: Double? = null,
+    val latestWeightKg: Double? = null,
+    val weightReadings: Int = 0,
+    val completeDays: Int = 0,
+    val observedDays: Int = 0,
+    val ewmaHalfLifeDays: Double = 7.0,
+    val minimumDays: Int = 14,
+    val targetDays: Int = 21,
+    val status: String = "incomplete",
+    val updatedAtEpochMs: Long = 0L,
+    /** V2 food-calibration wizard state. Defaults keep legacy JSON readable. */
+    val wizardVersion: Int = 1,
+    val wizardStep: Int = 0,
+    val wizardSkipped: Boolean = false,
+    val wizardCompleted: Boolean = false,
+    val weighingConvention: String? = null,
+    val utensilVolumesMl: Map<String, Double> = emptyMap(),
+    val habitualPortionsGrams: Map<String, Double> = emptyMap(),
+    val maturePortionsGrams: Map<String, Double> = emptyMap(),
+    val confirmedPortions: Map<String, List<Double>> = emptyMap(),
+    val identityMappings: Map<String, String> = emptyMap(),
+    val statePreferences: Map<String, String> = emptyMap(),
+    val preparationProfiles: Map<String, String> = emptyMap(),
+    val oilProfiles: Map<String, Double> = emptyMap(),
+    val lastWizardUpdatedAtEpochMs: Long = 0L,
+    /** Append-only audit trail of check-ins; old profiles decode with empty history. */
+    val revisions: List<NutritionCalibrationRevision> = emptyList(),
+)
+
+/**
+ * Immutable food-goal values captured for a calendar day.
+ *
+ * A plan may be edited or deleted later, but historical nutrition views must
+ * continue to compare intake with the goal that was actually in force on that
+ * date.  The Room row is insert-once; recalculating a plan never overwrites it.
+ */
+@Serializable
+data class DailyGoalSnapshot(
+    val date: String,
+    val planId: String? = null,
+    val calorieTargetKcal: Int? = null,
+    val proteinGoalG: Int? = null,
+    val carbGoalG: Int? = null,
+    val fatGoalG: Int? = null,
+    val direction: PlanDirection? = null,
+    val calculationOrigin: CalculationOrigin = CalculationOrigin.IMPORTED,
+    val capturedAtEpochMs: Long = 0L,
+)
 
 // ─── PantryItem ──────────────────────────────────────────────────────────────
 
@@ -290,6 +432,8 @@ data class TrendPoint(
     val date: String,
     val calories: Double,
     val goal: Double?,
+    /** False means a temporal gap, not a zero-calorie day. */
+    val hasData: Boolean = true,
 )
 
 // ─── Food Candidate (search) ────────────────────────────────────────────────

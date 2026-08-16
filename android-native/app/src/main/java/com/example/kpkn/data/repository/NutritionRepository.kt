@@ -8,6 +8,7 @@ import com.example.kpkn.data.food.buildFoodDatabase
 import com.example.kpkn.data.food.findFoodByNormalized
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.FoodIndex
+import com.example.kpkn.domain.nutrition.FoodState
 import com.example.kpkn.domain.nutrition.FoodIdentity
 import com.example.kpkn.domain.nutrition.FoodTemplateMatcher
 import com.example.kpkn.domain.nutrition.SemanticPortionRetriever
@@ -34,6 +35,7 @@ import kotlinx.coroutines.withContext
 import java.text.Normalizer
 import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.util.UUID
 
 /**
@@ -44,6 +46,10 @@ class NutritionRepository private constructor(
     private val db: KpknDatabase = KpknDatabase.getInstance(context),
     private val ownsDatabase: Boolean = false,
 ) {
+    /** Normalized body observations are shared with the body feature and never stored in Settings. */
+    private val normalizedBodyRepository by lazy { BodyProgressRepository.getInstance(appContext) }
+    val bodyProgressRepository: BodyProgressRepository
+        get() = normalizedBodyRepository
 
     private val appContext = context.applicationContext
     private val repositoryJob = SupervisorJob()
@@ -88,14 +94,32 @@ class NutritionRepository private constructor(
         val importedAt: String,
     )
 
+    /** Backup hooks: custom foods and catalog provenance are user data, not UI-only cache. */
+    suspend fun getCustomFoodsForBackup(): List<FoodItem> = withContext(Dispatchers.IO) {
+        db.nutritionDao().getAllCustomFoods().mapNotNull { entity ->
+            runCatching { entity.toFoodItem() }.getOrNull()
+        }
+    }
+
+    fun getFoodCatalogMetaForBackup(): FoodCatalogMeta? = loadFoodCatalogMeta()
+
+    fun restoreFoodCatalogMeta(meta: FoodCatalogMeta) {
+        saveFoodCatalogMeta(meta)
+    }
+
     // ─── Nutrition Logs ──────────────────────────────────────────────────────
 
     private val _nutritionLogs = MutableStateFlow<List<NutritionLog>>(emptyList())
     val nutritionLogs: StateFlow<List<NutritionLog>> = _nutritionLogs.asStateFlow()
 
+    private val _dailyGoalSnapshots = MutableStateFlow<List<DailyGoalSnapshot>>(emptyList())
+    /** Immutable per-day targets exposed for historical charts and audits. */
+    val dailyGoalSnapshots: StateFlow<List<DailyGoalSnapshot>> = _dailyGoalSnapshots.asStateFlow()
+
     fun addNutritionLog(log: NutritionLog) {
         _nutritionLogs.update { it + log }
         scope.launch { db.nutritionDao().upsertLog(log.toEntity()) }
+        captureDailyGoalSnapshot(log.date.take(10))
         if (log.foods.isNotEmpty()) {
             rememberMealTemplateFromLog(log)
         }
@@ -104,6 +128,7 @@ class NutritionRepository private constructor(
     fun updateNutritionLog(log: NutritionLog) {
         _nutritionLogs.update { list -> list.map { if (it.id == log.id) log else it } }
         scope.launch { db.nutritionDao().upsertLog(log.toEntity()) }
+        captureDailyGoalSnapshot(log.date.take(10))
     }
 
     fun deleteNutritionLog(logId: String) {
@@ -329,12 +354,59 @@ class NutritionRepository private constructor(
             }
         }
         scope.launch { db.nutritionDao().upsertPlan(plan.toEntity()) }
+
+        // Keep the typed body goal normalized and linked to the plan. The body
+        // feature can render it without depending on an active nutrition plan;
+        // deleting/replacing the plan removes only this derived row.
+        val bodyRepository = BodyProgressRepository.getInstance(appContext)
+        bodyRepository.deletePlanGoals(plan.id)
+        val typedGoal = plan.typedBodyGoal
+            ?: plan.primaryGoal?.let {
+                TypedBodyGoal(
+                    metric = it.metric,
+                    targetValueSi = it.value.takeIf { value -> value.isFinite() && value > 0.0 },
+                    unitSi = it.unit,
+                    origin = CalculationOrigin.SETTINGS_MIGRATION,
+                    linkedPlanId = plan.id,
+                )
+            }
+        typedGoal?.targetValueSi?.takeIf { it.isFinite() && it > 0.0 }?.let { target ->
+            val bodyMetric = when (typedGoal.metric) {
+                GoalMetric.WEIGHT -> BodyMetric.WEIGHT
+                GoalMetric.BODY_FAT -> BodyMetric.BODY_FAT_PERCENT
+                GoalMetric.MUSCLE_MASS -> BodyMetric.MUSCLE_MASS_PERCENT
+            }
+            bodyRepository.upsertGoal(
+                BodyGoal(
+                    id = "plan:${plan.id}:${bodyMetric.name}",
+                    metric = bodyMetric,
+                    targetValueSi = target,
+                    unitSi = typedGoal.unitSi,
+                    origin = CalculationOrigin.PLAN,
+                    linkedPlanId = plan.id,
+                    createdAtEpochMs = System.currentTimeMillis(),
+                    updatedAtEpochMs = System.currentTimeMillis(),
+                ),
+            )
+        }
     }
 
     fun deleteNutritionPlan(planId: String) {
         _nutritionPlans.update { list -> list.filter { it.id != planId } }
+        // Body goals linked to this plan are derived rows; manual/professional
+        // goals remain independent and survive plan deletion.
+        BodyProgressRepository.getInstance(appContext).deletePlanGoals(planId)
         if (_activeNutritionPlanId.value == planId) {
             _activeNutritionPlanId.value = null
+            ProgramRepository.getInstance().updateSettings { current ->
+                current.copy(
+                    dailyCalorieGoal = null,
+                    dailyProteinGoal = null,
+                    dailyCarbGoal = null,
+                    dailyFatGoal = null,
+                    calorieGoalObjective = CalorieGoalObjective.MAINTENANCE,
+                )
+            }
             scope.launch { db.nutritionDao().clearActiveState() }
         }
         scope.launch { db.nutritionDao().deletePlan(planId) }
@@ -344,7 +416,44 @@ class NutritionRepository private constructor(
         _nutritionPlans.update { list -> list.map { it.copy(isActive = it.id == planId) } }
         _activeNutritionPlanId.value = planId
         scope.launch { db.nutritionDao().activatePlanAtomic(planId, _nutritionPlans.value.map { it.toEntity() }) }
+        captureDailyGoalSnapshot(LocalDate.now().toString())
     }
+
+    /**
+     * Captures the goal in force for a date exactly once. This deliberately
+     * uses an INSERT-IGNORE DAO operation: changing/deleting a plan must not
+     * rewrite the target used to explain an historical intake day.
+     */
+    fun captureDailyGoalSnapshot(date: String) {
+        val normalizedDate = date.trim().take(10)
+        if (normalizedDate.isBlank()) return
+        val plan = activeNutritionPlan
+        scope.launch {
+            val snapshot = DailyGoalSnapshot(
+                    date = normalizedDate,
+                    planId = plan?.id,
+                    calorieTargetKcal = plan?.calorieTarget?.takeIf { it > 0 },
+                    proteinGoalG = plan?.proteinGoal?.takeIf { it > 0 },
+                    carbGoalG = plan?.carbGoal?.takeIf { it > 0 },
+                    fatGoalG = plan?.fatGoal?.takeIf { it > 0 },
+                    direction = plan?.direction,
+                    calculationOrigin = plan?.calculationOrigin ?: CalculationOrigin.MANUAL,
+                    capturedAtEpochMs = System.currentTimeMillis(),
+                )
+            val inserted = db.nutritionDao().insertDailyGoalSnapshot(snapshot.toEntity())
+            if (inserted != -1L) {
+                _dailyGoalSnapshots.update { current ->
+                    if (current.any { it.date == snapshot.date }) current else current + snapshot
+                }
+            }
+        }
+    }
+
+    suspend fun getDailyGoalSnapshot(date: String): DailyGoalSnapshot? =
+        db.nutritionDao().getDailyGoalSnapshot(date.trim().take(10))?.toDailyGoalSnapshot()
+
+    suspend fun getDailyGoalSnapshots(): List<DailyGoalSnapshot> =
+        db.nutritionDao().getAllDailyGoalSnapshots().mapNotNull { it.toDailyGoalSnapshot() }
 
     // ─── User meal memory / templates ───────────────────────────────────────
 
@@ -352,51 +461,66 @@ class NutritionRepository private constructor(
     val mealTemplates: StateFlow<List<MealTemplate>> = _mealTemplates.asStateFlow()
 
     // ─── Body Measurements ──────────────────────────────────────────────────
-    private val measurePrefs by lazy { appContext.getSharedPreferences("body_measurements", Context.MODE_PRIVATE) }
     private val _bodyMeasurements = MutableStateFlow<List<BodyMeasurementEntry>>(emptyList())
     val bodyMeasurements: StateFlow<List<BodyMeasurementEntry>> = _bodyMeasurements.asStateFlow()
 
     private val _measurementSchedule = MutableStateFlow(MeasurementSchedule())
     val measurementSchedule: StateFlow<MeasurementSchedule> = _measurementSchedule.asStateFlow()
 
-    fun addBodyMeasurement(entry: BodyMeasurementEntry) {
-        _bodyMeasurements.update { it + entry }
+    init {
+        // Legacy consumers (Home/session editor) receive a compatibility
+        // projection, while Room observations remain the only source of truth.
         scope.launch {
-            measurePrefs.edit()
-                .putString("measurements", Json.encodeToString(_bodyMeasurements.value))
-                .apply()
+            normalizedBodyRepository.observations.collect { observations ->
+                _bodyMeasurements.value = observations.toLegacyMeasurementEntries()
+                _measurementSchedule.value = normalizedBodyRepository.measurementSchedule.value
+            }
         }
+    }
+
+    fun addBodyMeasurement(entry: BodyMeasurementEntry) {
+        normalizedBodyRepository.addLegacyEntry(entry)
     }
 
     fun updateMeasurementSchedule(schedule: MeasurementSchedule) {
-        val normalized = normalizeMeasurementSchedule(schedule)
-        _measurementSchedule.value = normalized
-        scope.launch {
-            measurePrefs.edit()
-                .putString("schedule", Json.encodeToString(normalized))
-                .apply()
-        }
-
-        val notifier = NutritionNotificationManager(appContext)
-        if (normalized.enabled && normalized.nextDate != null) {
-            notifier.scheduleMeasurementReminder(
-                normalized.nextDate,
-                normalized.reminderHour,
-                normalized.reminderMinute,
-            )
-        } else {
-            notifier.cancelMeasurementReminder()
-        }
+        // Room-backed body progress is the single write source. Keep the
+        // legacy flow as a compatibility projection for older screens.
+        normalizedBodyRepository.updateMeasurementSchedule(schedule)
+        _measurementSchedule.value = normalizedBodyRepository.measurementSchedule.value
     }
 
     fun deleteBodyMeasurement(id: String) {
-        _bodyMeasurements.update { it.filterNot { entry -> entry.id == id } }
-        scope.launch {
-            measurePrefs.edit()
-                .putString("measurements", Json.encodeToString(_bodyMeasurements.value))
-                .apply()
-        }
+        normalizedBodyRepository.deleteObservation(id)
+        normalizedBodyRepository.observations.value
+            .filter { it.sessionId == "legacy:$id" }
+            .forEach { normalizedBodyRepository.deleteObservation(it.id) }
     }
+
+    private fun List<BodyObservation>.toLegacyMeasurementEntries(): List<BodyMeasurementEntry> =
+        groupBy { it.sessionId ?: "instant:${it.timestampEpochMs}" }
+            .mapNotNull { (groupId, rows) ->
+                val first = rows.minByOrNull { it.timestampEpochMs } ?: return@mapNotNull null
+                val date = runCatching {
+                    Instant.ofEpochMilli(first.timestampEpochMs)
+                        .atZone(ZoneId.of(first.zoneId))
+                        .toLocalDate()
+                        .toString()
+                }.getOrElse { first.timestampEpochMs.toString() }
+                BodyMeasurementEntry(
+                    id = groupId.removePrefix("legacy:"),
+                    date = date,
+                    weight = rows.firstOrNull { it.metric == BodyMetric.WEIGHT }?.valueSi,
+                    bodyFat = rows.firstOrNull { it.metric == BodyMetric.BODY_FAT_PERCENT }?.valueSi,
+                    muscleMass = rows.firstOrNull { it.metric == BodyMetric.MUSCLE_MASS_PERCENT }?.valueSi,
+                    waistCm = rows.firstOrNull { it.metric == BodyMetric.WAIST }?.valueSi,
+                    hipCm = rows.firstOrNull { it.metric == BodyMetric.HIP }?.valueSi,
+                    neckCm = rows.firstOrNull { it.metric == BodyMetric.NECK }?.valueSi,
+                    chestCm = rows.firstOrNull { it.metric == BodyMetric.CHEST }?.valueSi,
+                    armCm = rows.firstOrNull { it.metric == BodyMetric.ARM }?.valueSi,
+                    thighCm = rows.firstOrNull { it.metric == BodyMetric.THIGH }?.valueSi,
+                )
+            }
+            .sortedBy { it.date }
 
     fun upsertMealTemplate(template: MealTemplate) {
         _mealTemplates.update { current ->
@@ -505,11 +629,12 @@ class NutritionRepository private constructor(
         query: String,
         brandHint: String? = null,
         contextHint: String? = null,
+        stateHint: FoodState? = null,
     ): SmartFoodResolver.ResolutionResult {
         // Ensure both verified foods and offline semantic knowledge are ready.
         ensureDatasetKnowledge()
         initFoodIndex()
-        return smartResolver.resolve(query, brandHint, contextHint)
+        return smartResolver.resolve(query, brandHint, contextHint, stateHint)
     }
 
     fun recordLearnedResolution(
@@ -576,6 +701,7 @@ class NutritionRepository private constructor(
                 }
 
                 val logs = db.nutritionDao().getAllLogs().map { it.toNutritionLog() }
+                val snapshots = db.nutritionDao().getAllDailyGoalSnapshots().mapNotNull { it.toDailyGoalSnapshot() }
                 val plans = db.nutritionDao().getAllPlans().map { it.toNutritionPlan() }
                 val activeId = db.nutritionDao().getActiveState()?.activePlanId
                 val customFoods = db.nutritionDao().getAllCustomFoods()
@@ -588,16 +714,15 @@ class NutritionRepository private constructor(
                 val templates = db.nutritionDao().getAllTemplates().map { it.toMealTemplate() }
                 val learning = loadFoodLearning()
 
-                val measurementsJson = measurePrefs.getString("measurements", "[]") ?: "[]"
-                val scheduleJson = measurePrefs.getString("schedule", null)
-                val measurements = runCatching {
-                    Json.decodeFromString<List<BodyMeasurementEntry>>(measurementsJson)
-                }.getOrElse { emptyList() }
-                val schedule = runCatching {
-                    scheduleJson?.let { Json.decodeFromString<MeasurementSchedule>(it) } ?: MeasurementSchedule()
-                }.getOrElse { MeasurementSchedule() }
+                // BodyProgressRepository performs the one-time legacy JSON
+                // migration and verifies its Room row count before removing
+                // the old preference. Do not read that preference here again.
+                normalizedBodyRepository.awaitReady()
+                val measurements = normalizedBodyRepository.observations.value.toLegacyMeasurementEntries()
+                val schedule = normalizedBodyRepository.measurementSchedule.value
 
                 _nutritionLogs.value = logs
+                _dailyGoalSnapshots.value = snapshots
                 _nutritionPlans.value = plans
                 _activeNutritionPlanId.value = activeId
                 _foodDatabase.value = (buildFoodDatabase() + customFoods)
@@ -606,7 +731,7 @@ class NutritionRepository private constructor(
                 _mealTemplates.value = templates
                 _foodQueryLearning.value = learning
                 _bodyMeasurements.value = measurements
-                _measurementSchedule.value = normalizeMeasurementSchedule(schedule)
+                _measurementSchedule.value = schedule
 
                 // Initialize verified and semantic indexes proactively in the background.
                 launch(Dispatchers.Default) {

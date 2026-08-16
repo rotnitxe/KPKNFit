@@ -73,7 +73,7 @@ fun MealHistoryScreen(
     val plans by NutritionRepository.getInstance().nutritionPlans.collectAsState()
     val activePlanId by NutritionRepository.getInstance().activeNutritionPlanId.collectAsState()
     val activePlan = remember(plans, activePlanId) {
-        plans.find { it.id == activePlanId } ?: plans.find { it.isActive } ?: plans.lastOrNull()
+        activePlanId?.let { id -> plans.find { it.id == id } }
     }
     val goals = deriveMacroGoals(settings, activePlan)
 

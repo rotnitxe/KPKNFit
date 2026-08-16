@@ -6,6 +6,10 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
+import com.example.kpkn.domain.body.goalProgressPercent
+import com.example.kpkn.domain.body.bmi
+import com.example.kpkn.domain.body.latestCompatibleComposition
+import com.example.kpkn.domain.body.latestValidByMetric
 import com.example.kpkn.domain.nutrition.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -27,6 +31,17 @@ class NutritionViewModel : ViewModel() {
     val foodDatabase = nutritionRepo.foodDatabase
     val pantryItems: StateFlow<List<PantryItem>> = MutableStateFlow(emptyList())
     val mealTemplates: StateFlow<List<MealTemplate>> = nutritionRepo.mealTemplates
+    val historySeries: StateFlow<NutritionHistorySeries> = combine(
+        nutritionLogs,
+        nutritionRepo.dailyGoalSnapshots,
+    ) { logs, snapshots ->
+        val end = LocalDate.now()
+        buildNutritionHistory(end.minusDays(29), end, logs, snapshots)
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Lazily,
+        buildNutritionHistory(LocalDate.now().minusDays(29), LocalDate.now(), emptyList()),
+    )
 
     private val _selectedDate = MutableStateFlow(LocalDate.now().toString())
     val selectedDate: StateFlow<String> = _selectedDate.asStateFlow()
@@ -82,7 +97,9 @@ class NutritionViewModel : ViewModel() {
 
     val activePlan: StateFlow<NutritionPlan?> = nutritionRepo.nutritionPlans
         .combine(nutritionRepo.activeNutritionPlanId) { plans, activeId ->
-            plans.find { it.id == activeId } ?: plans.find { it.isActive } ?: plans.lastOrNull()
+            // The active row is authoritative. Never silently reactivate the
+            // last plan after the user deleted the active one.
+            activeId?.let { id -> plans.find { it.id == id } }
         }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
@@ -244,8 +261,14 @@ class NutritionViewModel : ViewModel() {
     }
 
     fun createPlan(plan: NutritionPlan) {
+        val vitals = programRepo.settings.value.userVitals
+        val latest = latestValidByMetric(nutritionRepo.bodyProgressRepository.observations.value)
         val withStart = plan.copy(
-            startValue = plan.startValue ?: programRepo.settings.value.userVitals.weight,
+            startValue = plan.startValue ?: when (plan.typedBodyGoal?.metric ?: plan.goalType) {
+                GoalMetric.WEIGHT -> latest[BodyMetric.WEIGHT]?.valueSi ?: vitals.weight
+                GoalMetric.BODY_FAT -> latest[BodyMetric.BODY_FAT_PERCENT]?.valueSi ?: vitals.bodyFatPercentage
+                GoalMetric.MUSCLE_MASS -> latest[BodyMetric.MUSCLE_MASS_PERCENT]?.valueSi ?: vitals.muscleMassPercentage
+            },
         )
         nutritionRepo.addNutritionPlan(withStart)
         nutritionRepo.activatePlan(withStart.id)
@@ -264,25 +287,42 @@ class NutritionViewModel : ViewModel() {
     }
 
     fun deletePlan(planId: String) {
+        val wasActive = nutritionRepo.activeNutritionPlanId.value == planId
         nutritionRepo.deleteNutritionPlan(planId)
+        if (wasActive) {
+            viewModelScope.launch {
+                programRepo.updateSettings { current ->
+                    current.copy(
+                        dailyCalorieGoal = null,
+                        dailyProteinGoal = null,
+                        dailyCarbGoal = null,
+                        dailyFatGoal = null,
+                        calorieGoalObjective = CalorieGoalObjective.MAINTENANCE,
+                    )
+                }
+            }
+        }
     }
 
     // ─── Body KPIs ──────────────────────────────────────────────────────────
 
     data class BodyKpi(val label: String, val value: String)
 
-    val bodyKpis: StateFlow<List<BodyKpi>> = programRepo.settings
-        .map { settings ->
+    val bodyKpis: StateFlow<List<BodyKpi>> = combine(
+        programRepo.settings,
+        nutritionRepo.bodyProgressRepository.observations,
+    ) { settings, observations ->
             val v = settings.userVitals
-            val weight = v.weight
+            val latest = latestValidByMetric(observations)
+            val weight = latest[BodyMetric.WEIGHT]?.valueSi
             val height = v.height
-            val bodyFat = v.bodyFatPercentage
-            val muscle = v.muscleMassPercentage
-            val bmi = if (weight != null && height != null && height > 0) {
-                weight / ((height / 100) * (height / 100))
-            } else null
-            val ffmi = if (weight != null && height != null && bodyFat != null) {
-                com.example.kpkn.domain.calculations.calculateFFMI(height, weight, bodyFat)?.normalizedFfmi
+            val composition = latestCompatibleComposition(observations)
+            val bodyFat = composition?.bodyFatPercent ?: latest[BodyMetric.BODY_FAT_PERCENT]?.valueSi
+            val muscle = composition?.muscleMassPercent ?: latest[BodyMetric.MUSCLE_MASS_PERCENT]?.valueSi
+            val compositionWeight = composition?.weightKg ?: weight
+            val bodyMassIndex = bmi(compositionWeight, height)
+            val ffmi = if (compositionWeight != null && height != null && bodyFat != null) {
+                com.example.kpkn.domain.calculations.calculateFFMI(height, compositionWeight, bodyFat)?.normalizedFfmi
             } else null
 
             listOf(
@@ -290,7 +330,7 @@ class NutritionViewModel : ViewModel() {
                 BodyKpi("% Grasa", if (bodyFat != null) "${(kotlin.math.round(bodyFat * 10) / 10.0)}%" else "—"),
                 BodyKpi("% Músculo", if (muscle != null) "${(kotlin.math.round(muscle * 10) / 10.0)}%" else "—"),
                 BodyKpi("FFMI", if (ffmi != null) "$ffmi" else "—"),
-                BodyKpi("IMC", if (bmi != null) "${(kotlin.math.round(bmi * 10) / 10.0)}" else "—"),
+                BodyKpi("IMC", if (bodyMassIndex != null) "${(kotlin.math.round(bodyMassIndex * 10) / 10.0)}" else "—"),
             )
         }
         .distinctUntilChanged()
@@ -299,20 +339,22 @@ class NutritionViewModel : ViewModel() {
     // ─── Progress Calculation ───────────────────────────────────────────────
 
     val progressPct: StateFlow<Int> = combine(
-        activePlan, programRepo.settings
-    ) { plan, settings ->
+        activePlan, programRepo.settings, nutritionRepo.bodyProgressRepository.observations,
+    ) { plan, settings, observations ->
         if (plan == null) return@combine 0
-        val goalValue = plan.primaryGoal?.value ?: plan.goalValue
-        val currentWeight = settings.userVitals.weight ?: return@combine 0
-        val startValue = plan.startValue ?: currentWeight
-
-        if (goalValue == 0.0) return@combine 0
-        val totalDistance = kotlin.math.abs(goalValue - startValue)
-        if (totalDistance < 0.01) return@combine 100
-
-        val currentDistance = kotlin.math.abs(goalValue - currentWeight)
-        val progress = ((totalDistance - currentDistance) / totalDistance * 100)
-        progress.toInt().coerceIn(0, 100)
+        val metric = plan.typedBodyGoal?.metric ?: plan.goalType
+        val latest = latestValidByMetric(observations)
+        val current = when (metric) {
+            GoalMetric.WEIGHT -> latest[BodyMetric.WEIGHT]?.valueSi
+            GoalMetric.BODY_FAT -> latest[BodyMetric.BODY_FAT_PERCENT]?.valueSi
+            GoalMetric.MUSCLE_MASS -> latest[BodyMetric.MUSCLE_MASS_PERCENT]?.valueSi
+        } ?: return@combine 0
+        val target = plan.typedBodyGoal?.targetValueSi
+            ?: plan.primaryGoal?.value?.takeIf { it > 0.0 }
+            ?: plan.goalValue.takeIf { it > 0.0 }
+            ?: return@combine 0
+        val start = plan.startValue ?: current
+        goalProgressPercent(start, current, target)
     }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, 0)
@@ -322,9 +364,13 @@ class NutritionViewModel : ViewModel() {
         programRepo.settings,
         programRepo.history,
         _selectedDate,
-    ) { totals, settings, history, date ->
+        activePlan,
+    ) { totals, settings, history, date, plan ->
         val consumedKcal = totals.calories.toInt()
-        val targetKcal = settings.dailyCalorieGoal ?: 2000
+        // A daily balance is meaningful only against the active food goal (or
+        // an explicitly migrated settings goal); never invent a 2,000-kcal
+        // target when no plan is active.
+        val targetKcal = plan?.calorieTarget?.takeIf { it > 0 } ?: settings.dailyCalorieGoal ?: 0
         val workoutsToday = history.filter { it.date.take(10) == date }
         val trainingBurn = workoutsToday.sumOf { it.energySummary?.totalKcal?.mid ?: 0 }
         TrainingEnergyEngine.calculateDailyEnergyBalance(
@@ -359,6 +405,9 @@ class NutritionViewModel : ViewModel() {
         val trendData: List<TrendPoint>,
         val bodyKpis: List<BodyKpi>,
         val dailyEnergyBalance: DailyEnergyBalance = DailyEnergyBalance(),
+        val historySeries: NutritionHistorySeries = buildNutritionHistory(
+            LocalDate.now().minusDays(29), LocalDate.now(), emptyList(),
+        ),
     )
 
     private data class UiPrimaryState(
@@ -457,12 +506,12 @@ class NutritionViewModel : ViewModel() {
     )
 
     private fun applyPlanToSettings(plan: NutritionPlan) {
-        val currentWeight = programRepo.settings.value.userVitals.weight
-        val targetValue = plan.primaryGoal?.value ?: plan.goalValue
-        val goalObjective = when {
-            currentWeight != null && targetValue > 0 && targetValue < currentWeight -> CalorieGoalObjective.DEFICIT
-            currentWeight != null && targetValue > currentWeight -> CalorieGoalObjective.SURPLUS
-            else -> CalorieGoalObjective.MAINTENANCE
+        val goalObjective = when (plan.direction) {
+            PlanDirection.DEFICIT -> CalorieGoalObjective.DEFICIT
+            PlanDirection.SURPLUS -> CalorieGoalObjective.SURPLUS
+            PlanDirection.MAINTENANCE, PlanDirection.PROFESSIONAL -> CalorieGoalObjective.MAINTENANCE
+            // Legacy plans are not reinterpreted from target/body values.
+            null -> programRepo.settings.value.calorieGoalObjective
         }
         viewModelScope.launch {
             programRepo.updateSettings { current ->

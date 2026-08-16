@@ -292,7 +292,7 @@ class MacroCalculatorTest {
     }
 
     @Test
-    fun `scaleFoodByPortion applies portion adjustment and protein boost`() {
+    fun `scaleFoodByPortion applies portion adjustment without touching density`() {
         val food = FoodItem(
             id = "chicken", name = "Pechuga de Pollo (cocida)", servingSize = 100.0,
             calories = 195.0, protein = 30.0, carbs = 0.0, fats = 7.8
@@ -303,12 +303,13 @@ class MacroCalculatorTest {
             portion = PortionPreset.MEDIUM,
             amountGrams = null,
             cookingMethod = null,
-            portionAdjustment = 1.1,
-            proteinBoost = 0.2
+            portionAdjustment = 1.1
         )
+        // Porción subjetiva (cocinado ~120 g) x 1.1 contexto = 132 g;
+        // la densidad por 100 g de la ficha no cambia por contexto.
         assertEquals(132.0, logged.amount, 0.01)
         assertEquals(257.0, logged.calories, 1.0)
-        assertEquals(47.5, logged.protein, 0.1)
+        assertEquals(39.6, logged.protein, 0.1)
     }
 
     @Test
