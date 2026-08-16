@@ -2,6 +2,7 @@
 description: Ubica código KPKN y responde preguntas de arquitectura. Úsalo para investigar rutas, ViewModels, repositorios, Room, AUGE, voz o navegación sin editar.
 mode: subagent
 color: "#8A8A8A"
+model: opencode/deepseek-v4-flash-free
 permission:
   edit: deny
 ---

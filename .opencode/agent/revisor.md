@@ -2,6 +2,7 @@
 description: Revisa aspectos específicos del diff KPKN (UI, datos, dominio, servicios) y devuelve hallazgos con evidencia.
 mode: subagent
 color: "#E0B0FF"
+model: opencode/deepseek-v4-flash-free
 permission:
   edit: deny
 ---

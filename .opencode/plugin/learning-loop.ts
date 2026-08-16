@@ -1,10 +1,15 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
-import type { Part } from "@opencode-ai/sdk"
 import type { Plugin } from "@opencode-ai/plugin"
 
 const PRIMARY_AGENTS = new Set(["orquestador", "constructor_kpkn", "auditor", "plan", "build"])
 const NUDGE_INTERVAL = 10
+// El checkpoint sintético inline se desactivó: el core exige ids de parte con
+// prefijo "prt_" y rechaza los ids generados con crypto.randomUUID()
+// (SchemaError "Expected a string starting with \"prt\""), corrompiendo el
+// guardado de la sesión. El contador de turnos y el nudge de memoria siguen
+// funcionando.
+const SEND_SYNTHETIC_CHECKPOINT = false
 
 type State = {
   turns: number
@@ -41,22 +46,7 @@ const LearningLoopPlugin: Plugin = async (input) => ({
     await mkdir(path.dirname(statePath), { recursive: true })
     await writeFile(statePath, `${JSON.stringify(next, null, 2)}\n`, "utf8")
 
-    if (next.turns % NUDGE_INTERVAL !== 0) return
-
-    const checkpoint: Part = {
-      id: crypto.randomUUID(),
-      sessionID: event.sessionID,
-      messageID: event.messageID,
-      type: "text",
-      synthetic: true,
-      text: [
-        "KAUPOLIKAN self-improvement checkpoint.",
-        "Review this session for durable corrections, project facts, or reusable KPKN procedures.",
-        "Use memory for concise durable knowledge and skill_manage to create or patch a reusable SKILL.md.",
-        "Do not save secrets, transient details, or generic advice. Keep the project memory within its character limit.",
-      ].join(" "),
-    }
-    output.parts.push(checkpoint)
+    if (!SEND_SYNTHETIC_CHECKPOINT || next.turns % NUDGE_INTERVAL !== 0) return
   },
 
   "tool.execute.after": async (event) => {

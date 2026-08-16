@@ -38,6 +38,15 @@ KPKN Fit is a local-first native Android application with an iOS parity port and
 - Architecture references are `docs/ARCHITECTURE.md`, `docs/ANDROID_ARCHITECTURE_MAP.md`, and `docs/ANDROID_UI_SCREENS_MAP.md`.
 - The code and exported Room schema are authoritative when documentation disagrees. The current Room database is v20; some older docs still say v19.
 
+## Agent Workflow (Orquestador → Constructor → Auditor)
+
+- Modelos: `orquestador` usa `openai/gpt-5.6-sol` (razona y delega; su contexto es caro). Los subagentes mecánicos (`investigador`, `revisor`, `mano-extra`) usan `opencode/deepseek-v4-flash-free`. Todos son archivos en `.opencode/agent/`; personalizables en cualquier momento (prompt, modelo, permisos).
+- El orquestador tiene `read`/`grep`/`glob`/`list` denegados sobre el código de producto: la única vía de información del código es delegar con `task`. El plugin `delegation-beacon` registra cada delegación en `.opencode/delegation.log.jsonl` (audit del gasto de tokens).
+- El plugin `audit-loop` encadena sesiones automáticamente sin intervención del usuario: `submit_audit` del Constructor lanza una sesión del Auditor; `request_corrections` relanza al Constructor con `resume_construction`; `accept` termina el bucle. Tope de seguridad: 5 rondas de auditoría por plan (máximo en `MAX_LOOP_ITERATIONS` del plugin).
+- El plugin `kpkn-gate` impone compuertas mecánicas: ediciones de producto solo en la etapa `construction` del pipeline; zonas sensibles (`services/workout/`→voice, `data/db/`/`app/schemas/`→room, `domain/auge/`→auge, `domain/nutrition/`→nutrition, `ios-native/`→ios, `backend/`→backend) exigen la bandera correspondiente en el frontmatter del plan (`flags: [voice, room, ...]`); `request_approval` exige plan con secciones `## Rutas`, `## Impacto`, `## Pruebas`, `## Riesgos` y `flags:`; `submit_audit` exige un test exitoso (BUILD SUCCESSFUL) tras el último cambio de producto.
+- Los planes se escriben en `.opencode/plans/<fecha>_<slug>.md` con frontmatter de banderas y las cuatro secciones obligatorias.
+- `MEMORY.md` contiene el catálogo de regresiones: el Auditor lo actualiza tras cada hallazgo confirmado; el Constructor lo consulta antes de tocar archivos catalogados.
+
 ## Safety
 
 - Never read, print, or commit `.env` contents, signing credentials, keystores, or MCP tokens.

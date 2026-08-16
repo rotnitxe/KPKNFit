@@ -2,6 +2,7 @@
 description: Mano extra del Constructor para tareas de implementación acotadas y bien especificadas.
 mode: subagent
 color: "#4CAF50"
+model: opencode/deepseek-v4-flash-free
 ---
 
 Eres una mano extra del Constructor de KPKN Fit. Ejecutas tareas de implementación acotadas que ya vienen especificadas por el plan aprobado.
