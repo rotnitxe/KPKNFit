@@ -625,62 +625,95 @@ private fun SupersetRoadmapCard(
                                     } else {
                                         listOf(null)
                                     }
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text(
-                                            text = exLetter,
-                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
-                                            fontWeight = FontWeight.Black,
-                                            color = if (isExCurrent) accent else Color.White.copy(alpha = 0.75f),
-                                        )
-                                        Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                                            sides.forEach { side ->
-                                                val sideKey = side?.let { "${ex.id}_${roundIdx}_${it.take(1).uppercase()}" }
-                                                val sideDone = sideKey?.let(completedSets::containsKey) ?: exDone
-                                                val isSideCurrent = isExCurrent &&
-                                                    (currentSide == null || currentSide.equals(side, ignoreCase = true))
-                                                Box(
-                                                    modifier = Modifier
-                                                        .size(16.dp)
-                                                        .clickable { onSelectStep(ex.id, roundIdx, side) }
-                                                        .clip(CircleShape)
-                                                        .background(
-                                                            when {
-                                                                sideDone -> Color(0xFF66BB6A)
-                                                                isSideCurrent -> accent
-                                                                else -> Color.Transparent
-                                                            }
+                                    Column(
+                                        modifier = Modifier
+                                            .widthIn(min = 16.dp, max = 42.dp)
+                                            .height(30.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(12.dp),
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            Text(
+                                                text = exLetter,
+                                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                                                fontWeight = FontWeight.Black,
+                                                color = if (isExCurrent) accent else Color.White.copy(alpha = 0.75f),
+                                            )
+                                        }
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(18.dp),
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                                sides.forEach { side ->
+                                                    val sideKey = side?.let { "${ex.id}_${roundIdx}_${it.take(1).uppercase()}" }
+                                                    val sideDone = sideKey?.let(completedSets::containsKey) ?: exDone
+                                                    val isSideCurrent = isExCurrent &&
+                                                        (currentSide == null || currentSide.equals(side, ignoreCase = true))
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .size(16.dp)
+                                                            .clickable { onSelectStep(ex.id, roundIdx, side) }
+                                                            .clip(CircleShape)
+                                                            .background(
+                                                                when {
+                                                                    sideDone -> Color(0xFF66BB6A)
+                                                                    isSideCurrent -> accent
+                                                                    else -> Color.Transparent
+                                                                }
+                                                            )
+                                                            .border(
+                                                                width = 1.dp,
+                                                                color = when {
+                                                                    sideDone -> Color(0xFF66BB6A)
+                                                                    isSideCurrent -> accent
+                                                                    else -> Color.White.copy(alpha = 0.35f)
+                                                                },
+                                                                shape = CircleShape,
+                                                            ),
+                                                        contentAlignment = Alignment.Center,
+                                                    ) {
+                                                        Text(
+                                                            text = side?.take(1)?.uppercase() ?: exLetter,
+                                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 7.sp),
+                                                            fontWeight = FontWeight.Black,
+                                                            color = if (sideDone || isSideCurrent) Color.Black else Color.White.copy(alpha = 0.75f),
                                                         )
-                                                        .border(
-                                                            width = 1.dp,
-                                                            color = when {
-                                                                sideDone -> Color(0xFF66BB6A)
-                                                                isSideCurrent -> accent
-                                                                else -> Color.White.copy(alpha = 0.35f)
-                                                            },
-                                                            shape = CircleShape,
-                                                        ),
-                                                    contentAlignment = Alignment.Center,
-                                                ) {
-                                                    Text(
-                                                        text = side?.take(1)?.uppercase() ?: exLetter,
-                                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 7.sp),
-                                                        fontWeight = FontWeight.Black,
-                                                        color = if (sideDone || isSideCurrent) Color.Black else Color.White.copy(alpha = 0.75f),
-                                                    )
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                     if (visibleExIdx < exercises.count { roundIdx in it.sets.indices } - 1) {
-                                        Box(
+                                        Column(
                                             modifier = Modifier
                                                 .width(8.dp)
-                                                .height(1.dp)
-                                                .background(
-                                                    if (roundDone) Color(0xFF66BB6A).copy(alpha = 0.7f)
-                                                    else Color.White.copy(alpha = 0.3f)
+                                                .height(30.dp),
+                                        ) {
+                                            Spacer(Modifier.height(12.dp))
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(18.dp),
+                                                contentAlignment = Alignment.Center,
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(1.dp)
+                                                        .background(
+                                                            if (roundDone) Color(0xFF66BB6A).copy(alpha = 0.7f)
+                                                            else Color.White.copy(alpha = 0.3f)
+                                                        )
                                                 )
-                                        )
+                                            }
+                                        }
                                     }
                                 }
                             }

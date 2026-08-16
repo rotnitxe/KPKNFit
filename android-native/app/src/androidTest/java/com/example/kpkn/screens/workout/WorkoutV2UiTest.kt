@@ -225,6 +225,7 @@ class WorkoutV2UiTest {
         }
 
         composeRule.onNodeWithText("Serie 1/2").assertExists()
+        composeRule.onNodeWithText("0/2").assertExists()
         composeRule.onNodeWithText("Editando").assertExists()
         composeRule.onNodeWithText("Izq").assertExists()
         composeRule.onNodeWithText("Lista para registrar").assertExists()

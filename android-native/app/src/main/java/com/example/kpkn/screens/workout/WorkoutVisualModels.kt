@@ -52,13 +52,10 @@ internal fun workoutSetPagerAccent(
     sessionAccentColor: Color? = null,
 ): Color = when {
     isWarmupOrFeedback -> WORKOUT_WARMUP_BLUE
-    sessionAccentColor != null -> sessionAccentColor
-    else -> when (state) {
-        WorkoutSetCardVisualState.ACTIVE -> colorScheme.primary
-        WorkoutSetCardVisualState.COMPLETED -> colorScheme.tertiary
-        WorkoutSetCardVisualState.SKIPPED -> colorScheme.outline
-        WorkoutSetCardVisualState.FUTURE -> colorScheme.surfaceContainerHighest
-    }
+    state == WorkoutSetCardVisualState.ACTIVE -> sessionAccentColor ?: colorScheme.primary
+    state == WorkoutSetCardVisualState.COMPLETED -> Color(0xFF66BB6A)
+    state == WorkoutSetCardVisualState.SKIPPED -> colorScheme.outline
+    else -> colorScheme.onSurfaceVariant
 }
 
 internal fun resolveWorkoutHeaderGroupLabel(

@@ -7,6 +7,13 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
@@ -14,6 +21,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,11 +49,18 @@ internal fun WorkoutSetPager(
     if (items.isEmpty()) return
 
     val accent = sessionAccentColor ?: MaterialTheme.colorScheme.primary
+    val completedCount = completedPreviousSets + items.count { it.state == WorkoutSetCardVisualState.COMPLETED }
+    val totalCount = (completedPreviousSets + items.size + nextExerciseSetCount).coerceAtLeast(1)
+    val progress by animateFloatAsState(
+        targetValue = (completedCount.toFloat() / totalCount).coerceIn(0f, 1f),
+        animationSpec = tween(durationMillis = 520, easing = FastOutSlowInEasing),
+        label = "setTimelineProgress",
+    )
 
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(max = 44.dp)
+            .heightIn(min = 52.dp, max = 58.dp)
             .padding(horizontal = 8.dp, vertical = 3.dp),
         shape = RoundedCornerShape(999.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.26f),
@@ -54,10 +70,17 @@ internal fun WorkoutSetPager(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 38.dp)
+                .heightIn(min = 44.dp, max = 50.dp)
                 .padding(horizontal = 6.dp, vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            SetProgressBadge(
+                completedCount = completedCount,
+                totalCount = totalCount,
+                progress = progress,
+                accent = accent,
+            )
+            Spacer(Modifier.width(5.dp))
             if (completedPreviousSets > 0) {
                 PreviousCompletedCluster(
                     count = completedPreviousSets,
@@ -69,31 +92,33 @@ internal fun WorkoutSetPager(
             items.forEachIndexed { index, item ->
                 val isActive = index == activePageIndex
                 val accentColor = workoutSetPagerAccent(item.state, MaterialTheme.colorScheme, item.isWarmupOrFeedback, sessionAccentColor)
-                TimelineSegment(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                        ) { onSelectPage(index) },
-                    accent = accentColor,
-                    isActive = isActive,
-                    isComplete = item.state == WorkoutSetCardVisualState.COMPLETED,
-                    isSkipped = item.state == WorkoutSetCardVisualState.SKIPPED,
-                    isFirst = index == 0 && completedPreviousSets <= 0,
-                    isLast = index == items.lastIndex && nextExerciseSetCount <= 0,
-                    isConnectedPrev = index == 0 && completedPreviousSets > 0,
-                    isConnectedNext = index == items.lastIndex && nextExerciseSetCount > 0,
-                    isEditing = item.isEditing,
-                    label = if (item.label.startsWith("Serie ") && !item.label.contains("/")) {
-                        "${item.label}/${items.size}"
-                    } else {
-                        item.label
-                    },
-                    sideSpec = if (isUnilateral || !item.side.isNullOrBlank()) item.side else null,
-                    selectedSide = selectedSide,
-                    sideCompleted = { side -> sideCompleted?.invoke(item.index, side) == true },
-                )
+                key(item.index, item.side ?: "bilateral") {
+                    TimelineSegment(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                            ) { onSelectPage(index) },
+                        accent = accentColor,
+                        isActive = isActive,
+                        isComplete = item.state == WorkoutSetCardVisualState.COMPLETED,
+                        isSkipped = item.state == WorkoutSetCardVisualState.SKIPPED,
+                        isFirst = index == 0 && completedPreviousSets <= 0,
+                        isLast = index == items.lastIndex && nextExerciseSetCount <= 0,
+                        isConnectedPrev = index == 0 && completedPreviousSets > 0,
+                        isConnectedNext = index == items.lastIndex && nextExerciseSetCount > 0,
+                        isEditing = item.isEditing,
+                        label = if (item.label.startsWith("Serie ") && !item.label.contains("/")) {
+                            "${item.label}/${items.size}"
+                        } else {
+                            item.label
+                        },
+                        sideSpec = if (isUnilateral || !item.side.isNullOrBlank()) item.side else null,
+                        selectedSide = selectedSide,
+                        sideCompleted = { side -> sideCompleted?.invoke(item.index, side) == true },
+                    )
+                }
             }
 
             if (nextExerciseSetCount > 0) {
@@ -132,6 +157,36 @@ internal fun WorkoutSetPager(
 }
 
 @Composable
+private fun SetProgressBadge(
+    completedCount: Int,
+    totalCount: Int,
+    progress: Float,
+    accent: Color,
+) {
+    Box(
+        modifier = Modifier
+            .width(42.dp)
+            .height(22.dp)
+            .clip(RoundedCornerShape(999.dp))
+            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(progress)
+                .background(WORKOUT_COMPLETED_GREEN.copy(alpha = 0.46f)),
+        )
+        Text(
+            text = "$completedCount/$totalCount",
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+            fontWeight = FontWeight.Black,
+            color = if (completedCount > 0) Color.White else accent.copy(alpha = 0.82f),
+        )
+    }
+}
+
+@Composable
 private fun TimelineSegment(
     modifier: Modifier,
     accent: Color,
@@ -148,67 +203,92 @@ private fun TimelineSegment(
     selectedSide: String?,
     sideCompleted: (String) -> Boolean,
 ) {
-    val lineColor = when {
-        isComplete -> accent.copy(alpha = 0.78f)
-        isSkipped -> accent.copy(alpha = 0.26f)
-        else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.22f)
+    val lineTargetColor = when {
+        isComplete || isConnectedPrev -> WORKOUT_COMPLETED_GREEN.copy(alpha = 0.82f)
+        isSkipped -> accent.copy(alpha = 0.28f)
+        isActive -> accent.copy(alpha = 0.62f)
+        else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.24f)
     }
+    val lineColor by animateColorAsState(
+        targetValue = lineTargetColor,
+        animationSpec = tween(durationMillis = 360, easing = FastOutSlowInEasing),
+        label = "setTimelineLine",
+    )
+    val statusColor by animateColorAsState(
+        targetValue = when {
+            isComplete -> WORKOUT_COMPLETED_GREEN
+            isActive || isEditing -> accent
+            isSkipped -> accent.copy(alpha = 0.72f)
+            else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.70f)
+        },
+        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
+        label = "setTimelineStatus",
+    )
+    val previousFillProgress = when {
+        isComplete || isActive || isConnectedPrev -> 1f
+        else -> 0f
+    }
+    val nextFillProgress = when {
+        isComplete || isConnectedNext -> 1f
+        isActive -> 0.42f
+        else -> 0f
+    }
+    val trackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.16f)
     Column(
-        modifier = modifier,
+        modifier = modifier.height(TIMELINE_TOTAL_SLOT_HEIGHT),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(1.dp),
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
+        // Keep every connector on one fixed axis. The node may animate inside
+        // this slot, but labels and unilateral capsules cannot move the axis.
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(TIMELINE_NODE_SLOT_HEIGHT),
         ) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(2.dp)
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(
-                        when {
-                            isConnectedPrev -> lineColor
-                            isFirst -> lineColor.copy(alpha = 0.22f)
-                            else -> lineColor
-                        }
-                    ),
-            )
-            if (sideSpec.isNullOrBlank()) {
-                TimelineDot(
-                    accent = accent,
-                    active = isActive,
-                    complete = isComplete,
-                    skipped = isSkipped,
-                    label = label,
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TimelineConnector(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(2.dp),
+                    color = if (isFirst) lineColor.copy(alpha = 0.22f) else lineColor,
+                    trackColor = trackColor,
+                    fillProgress = previousFillProgress,
                 )
-            } else {
-                SideTimelineCapsule(
-                    sides = sideSpec.split("|").filter { it == "left" || it == "right" },
-                    label = label,
-                    accent = accent,
-                    active = isActive,
-                    complete = isComplete,
-                    selectedSide = selectedSide,
-                    sideCompleted = sideCompleted,
+                if (sideSpec.isNullOrBlank()) {
+                    TimelineDot(
+                        accent = accent,
+                        active = isActive,
+                        complete = isComplete,
+                        skipped = isSkipped,
+                        label = label,
+                    )
+                } else {
+                    SideTimelineCapsule(
+                        sides = sideSpec.split("|").filter { it == "left" || it == "right" },
+                        label = label,
+                        accent = accent,
+                        active = isActive,
+                        complete = isComplete,
+                        selectedSide = selectedSide,
+                        sideCompleted = sideCompleted,
+                    )
+                }
+                TimelineConnector(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(2.dp),
+                    color = if (isLast) lineColor.copy(alpha = 0.22f) else lineColor,
+                    trackColor = trackColor,
+                    fillProgress = nextFillProgress,
                 )
             }
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(2.dp)
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(
-                        when {
-                            isConnectedNext -> lineColor
-                            isLast -> lineColor.copy(alpha = 0.22f)
-                            else -> lineColor
-                        }
-                    ),
-            )
         }
         Text(
+            modifier = Modifier.height(TIMELINE_STATUS_SLOT_HEIGHT),
             text = when {
                 isEditing -> "Editando"
                 isComplete -> "Completada"
@@ -217,8 +297,34 @@ private fun TimelineSegment(
             },
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 6.sp),
             fontWeight = if (isEditing) FontWeight.Bold else FontWeight.Normal,
-            color = if (isEditing) accent else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.70f),
+            color = statusColor,
             maxLines = 1,
+        )
+    }
+}
+
+@Composable
+private fun TimelineConnector(
+    modifier: Modifier,
+    color: Color,
+    trackColor: Color,
+    fillProgress: Float,
+) {
+    val animatedProgress by animateFloatAsState(
+        targetValue = fillProgress.coerceIn(0f, 1f),
+        animationSpec = tween(durationMillis = 520, easing = FastOutSlowInEasing),
+        label = "setTimelineConnectorFill",
+    )
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(trackColor),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(animatedProgress)
+                .background(color),
         )
     }
 }
@@ -231,18 +337,47 @@ private fun TimelineDot(
     skipped: Boolean,
     label: String,
 ) {
-    val size = if (active) 22.dp else 17.dp
+    val size by animateDpAsState(
+        targetValue = if (active) 22.dp else 17.dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = Spring.StiffnessMediumLow,
+        ),
+        label = "setTimelineDotSize",
+    )
+    val fillTarget = when {
+        active -> accent
+        complete -> WORKOUT_COMPLETED_GREEN
+        skipped -> accent.copy(alpha = 0.26f)
+        else -> Color.Transparent
+    }
+    val fillColor by animateColorAsState(
+        targetValue = fillTarget,
+        animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing),
+        label = "setTimelineDotFill",
+    )
+    val borderColor by animateColorAsState(
+        targetValue = when {
+            complete -> WORKOUT_COMPLETED_GREEN
+            active -> accent
+            skipped -> accent.copy(alpha = 0.24f)
+            else -> accent.copy(alpha = 0.52f)
+        },
+        animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing),
+        label = "setTimelineDotBorder",
+    )
+    val borderWidth by animateDpAsState(
+        targetValue = if (active || complete) 0.dp else 1.4.dp,
+        animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing),
+        label = "setTimelineDotBorderWidth",
+    )
     Surface(
         modifier = Modifier.size(size),
         shape = CircleShape,
-        color = when {
-            active || complete -> accent
-            skipped -> accent.copy(alpha = 0.26f)
-            else -> Color.Transparent
-        },
+        color = fillColor,
         border = BorderStroke(
-            width = if (active || complete) 0.dp else 1.4.dp,
-            color = accent.copy(alpha = if (skipped) 0.22f else 0.52f),
+            width = borderWidth,
+            color = borderColor,
         ),
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -257,57 +392,67 @@ private fun TimelineDot(
     }
 }
 
+private val WORKOUT_COMPLETED_GREEN = Color(0xFF66BB6A)
+private val TIMELINE_NODE_SLOT_HEIGHT = 26.dp
+private val TIMELINE_STATUS_SLOT_HEIGHT = 9.dp
+private val TIMELINE_TOTAL_SLOT_HEIGHT = TIMELINE_NODE_SLOT_HEIGHT + 1.dp + TIMELINE_STATUS_SLOT_HEIGHT
+
 @Composable
 private fun PreviousCompletedCluster(
     count: Int,
     accent: Color,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(0.dp),
+    Box(
+        modifier = modifier.height(TIMELINE_TOTAL_SLOT_HEIGHT),
+        contentAlignment = Alignment.TopCenter,
     ) {
-        val capCount = count.coerceAtMost(12)
-        repeat(capCount) { index ->
-            if (index > 0) {
-                Box(
-                    modifier = Modifier
-                        .width(5.dp)
-                        .height(2.dp)
-                        .clip(RoundedCornerShape(1.dp))
-                        .background(accent.copy(alpha = 0.40f))
-                )
+        Row(
+            modifier = Modifier.height(TIMELINE_NODE_SLOT_HEIGHT),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(0.dp),
+        ) {
+            val capCount = count.coerceAtMost(12)
+            repeat(capCount) { index ->
+                if (index > 0) {
+                    Box(
+                        modifier = Modifier
+                            .width(5.dp)
+                            .height(2.dp)
+                            .clip(RoundedCornerShape(1.dp))
+                            .background(accent.copy(alpha = 0.40f))
+                    )
+                }
+                Surface(
+                    modifier = Modifier.size(6.dp),
+                    shape = CircleShape,
+                    color = accent.copy(alpha = 0.55f),
+                    border = BorderStroke(0.dp, Color.Transparent),
+                ) {}
             }
-            Surface(
-                modifier = Modifier.size(6.dp),
-                shape = CircleShape,
-                color = accent.copy(alpha = 0.55f),
-                border = BorderStroke(0.dp, Color.Transparent),
-            ) {}
+            if (count > 12) {
+                Spacer(Modifier.width(2.dp))
+                Surface(
+                    modifier = Modifier.size(4.dp),
+                    shape = CircleShape,
+                    color = accent.copy(alpha = 0.35f),
+                    border = BorderStroke(0.dp, Color.Transparent),
+                ) {}
+                Surface(
+                    modifier = Modifier.size(4.dp),
+                    shape = CircleShape,
+                    color = accent.copy(alpha = 0.25f),
+                    border = BorderStroke(0.dp, Color.Transparent),
+                ) {}
+            }
+            Box(
+                modifier = Modifier
+                    .width(8.dp)
+                    .height(2.dp)
+                    .clip(RoundedCornerShape(1.dp))
+                    .background(accent.copy(alpha = 0.50f))
+            )
         }
-        if (count > 12) {
-            Spacer(Modifier.width(2.dp))
-            Surface(
-                modifier = Modifier.size(4.dp),
-                shape = CircleShape,
-                color = accent.copy(alpha = 0.35f),
-                border = BorderStroke(0.dp, Color.Transparent),
-            ) {}
-            Surface(
-                modifier = Modifier.size(4.dp),
-                shape = CircleShape,
-                color = accent.copy(alpha = 0.25f),
-                border = BorderStroke(0.dp, Color.Transparent),
-            ) {}
-        }
-        Box(
-            modifier = Modifier
-                .width(8.dp)
-                .height(2.dp)
-                .clip(RoundedCornerShape(1.dp))
-                .background(accent.copy(alpha = 0.50f))
-        )
     }
 }
 
@@ -317,58 +462,63 @@ private fun NextGhostCluster(
     accent: Color,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(0.dp),
+    Box(
+        modifier = modifier.height(TIMELINE_TOTAL_SLOT_HEIGHT),
+        contentAlignment = Alignment.TopCenter,
     ) {
-        Box(
-            modifier = Modifier
-                .width(8.dp)
-                .height(2.dp)
-                .clip(RoundedCornerShape(1.dp))
-                .background(accent.copy(alpha = 0.15f))
-        )
-        val capCount = count.coerceAtMost(8)
-        repeat(capCount) { index ->
-            Surface(
-                modifier = Modifier.size(8.dp),
-                shape = CircleShape,
-                color = Color.Transparent,
-                border = BorderStroke(
-                    width = 1.dp,
-                    color = accent.copy(alpha = 0.25f),
-                ),
-            ) {}
-            if (index < capCount - 1) {
-                Box(
-                    modifier = Modifier
-                        .width(5.dp)
-                        .height(2.dp)
-                        .clip(RoundedCornerShape(1.dp))
-                        .background(accent.copy(alpha = 0.12f))
-                )
+        Row(
+            modifier = Modifier.height(TIMELINE_NODE_SLOT_HEIGHT),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(0.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(8.dp)
+                    .height(2.dp)
+                    .clip(RoundedCornerShape(1.dp))
+                    .background(accent.copy(alpha = 0.15f))
+            )
+            val capCount = count.coerceAtMost(8)
+            repeat(capCount) { index ->
+                Surface(
+                    modifier = Modifier.size(8.dp),
+                    shape = CircleShape,
+                    color = Color.Transparent,
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = accent.copy(alpha = 0.25f),
+                    ),
+                ) {}
+                if (index < capCount - 1) {
+                    Box(
+                        modifier = Modifier
+                            .width(5.dp)
+                            .height(2.dp)
+                            .clip(RoundedCornerShape(1.dp))
+                            .background(accent.copy(alpha = 0.12f))
+                    )
+                }
             }
-        }
-        if (count > 8) {
-            Surface(
-                modifier = Modifier.size(4.dp),
-                shape = CircleShape,
-                color = Color.Transparent,
-                border = BorderStroke(
-                    width = 0.8.dp,
-                    color = accent.copy(alpha = 0.16f),
-                ),
-            ) {}
-            Surface(
-                modifier = Modifier.size(4.dp),
-                shape = CircleShape,
-                color = Color.Transparent,
-                border = BorderStroke(
-                    width = 0.6.dp,
-                    color = accent.copy(alpha = 0.10f),
-                ),
-            ) {}
+            if (count > 8) {
+                Surface(
+                    modifier = Modifier.size(4.dp),
+                    shape = CircleShape,
+                    color = Color.Transparent,
+                    border = BorderStroke(
+                        width = 0.8.dp,
+                        color = accent.copy(alpha = 0.16f),
+                    ),
+                ) {}
+                Surface(
+                    modifier = Modifier.size(4.dp),
+                    shape = CircleShape,
+                    color = Color.Transparent,
+                    border = BorderStroke(
+                        width = 0.6.dp,
+                        color = accent.copy(alpha = 0.10f),
+                    ),
+                ) {}
+            }
         }
     }
 }

@@ -1,7 +1,9 @@
 package com.example.kpkn.screens.workout
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
@@ -617,10 +619,12 @@ internal fun WorkoutV2Body(
                                     LivePageType.CARDIO -> uiState.completedSets.containsKey("${pageEx.id}_0")
                                     LivePageType.NORMAL -> {
                                         val bilateralDone = uiState.completedSets.containsKey("${pageEx.id}_${page.setIndex}")
-                                        val expectedSides = pageEx.expectedSidesForSet(page.setIndex)
-                                        bilateralDone || (pageExIsUnilateral && expectedSides.all { s ->
-                                            uiState.completedSets.containsKey("${pageEx.id}_${page.setIndex}_${s.take(1).uppercase()}")
-                                        })
+                                        val sideDone = page.side?.let { side ->
+                                            uiState.completedSets.containsKey(
+                                                "${pageEx.id}_${page.setIndex}_${side.take(1).uppercase()}"
+                                            )
+                                        } ?: false
+                                        bilateralDone || (pageExIsUnilateral && sideDone)
                                     }
                                 }
 
@@ -1151,7 +1155,7 @@ internal fun SupersetSetPager(
                     )
                     Row(
                         modifier = Modifier.weight(1f),
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.Top,
                         horizontalArrangement = Arrangement.spacedBy(5.dp),
                     ) {
                         roundMembers.forEachIndexed { memberIndex, member ->
@@ -1165,73 +1169,121 @@ internal fun SupersetSetPager(
                             }
                             val letter = ('A'.code + members.indexOf(member)).toChar().toString()
                             Column(
-                                modifier = Modifier.widthIn(min = 56.dp, max = 118.dp),
+                                modifier = Modifier
+                                    .widthIn(min = 56.dp, max = 118.dp)
+                                    .height(44.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(3.dp),
                             ) {
-                                Text(
-                                    text = "$letter · ${member.name}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    maxLines = 1,
-                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                                    color = if (memberActive) sessionAccentColor else MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(18.dp),
+                                    contentAlignment = Alignment.Center,
                                 ) {
-                                    sides.forEach { side ->
-                                        val sideDone = if (side == null) {
-                                            memberDone
-                                        } else {
-                                            completedSets.containsKey(
-                                                "${member.id}_${roundIdx}_${side.take(1).uppercase()}"
-                                            )
-                                        }
-                                        Box(
-                                            modifier = Modifier
-                                                .size(if (memberActive) 24.dp else 22.dp)
-                                                .clip(CircleShape)
-                                                .clickable { onSelectStep(member.id, roundIdx, side) }
-                                                .background(
-                                                    when {
-                                                        sideDone -> Color(0xFF66BB6A)
-                                                        memberActive -> sessionAccentColor
-                                                        else -> Color.Transparent
-                                                    }
+                                    Text(
+                                        text = "$letter · ${member.name}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                        color = if (memberActive) sessionAccentColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(26.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        sides.forEach { side ->
+                                            val sideDone = if (side == null) {
+                                                memberDone
+                                            } else {
+                                                completedSets.containsKey(
+                                                    "${member.id}_${roundIdx}_${side.take(1).uppercase()}"
                                                 )
-                                                .border(
-                                                    1.dp,
-                                                    when {
-                                                        sideDone -> Color(0xFF66BB6A)
-                                                        memberActive -> sessionAccentColor
-                                                        else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                                                    },
-                                                    CircleShape,
-                                                ),
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Text(
-                                                text = side?.take(1)?.uppercase() ?: letter,
-                                                style = MaterialTheme.typography.labelSmall,
-                                                fontWeight = FontWeight.Black,
-                                                color = if (sideDone || memberActive) Color.Black else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            }
+                                            val nodeColor by animateColorAsState(
+                                                targetValue = when {
+                                                    sideDone -> Color(0xFF66BB6A)
+                                                    memberActive -> sessionAccentColor
+                                                    else -> Color.Transparent
+                                                },
+                                                animationSpec = tween(durationMillis = 320),
+                                                label = "supersetNodeFill",
                                             )
+                                            val nodeBorderColor by animateColorAsState(
+                                                targetValue = when {
+                                                    sideDone -> Color(0xFF66BB6A)
+                                                    memberActive -> sessionAccentColor
+                                                    else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                                },
+                                                animationSpec = tween(durationMillis = 320),
+                                                label = "supersetNodeBorder",
+                                            )
+                                            val nodeSize by animateDpAsState(
+                                                targetValue = if (memberActive) 24.dp else 22.dp,
+                                                animationSpec = tween(durationMillis = 280),
+                                                label = "supersetNodeSize",
+                                            )
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(nodeSize)
+                                                    .clip(CircleShape)
+                                                    .clickable { onSelectStep(member.id, roundIdx, side) }
+                                                    .background(nodeColor)
+                                                    .border(
+                                                        1.dp,
+                                                        nodeBorderColor,
+                                                        CircleShape,
+                                                    ),
+                                                contentAlignment = Alignment.Center,
+                                            ) {
+                                                Text(
+                                                    text = side?.take(1)?.uppercase() ?: letter,
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    fontWeight = FontWeight.Black,
+                                                    color = if (sideDone || memberActive) Color.Black else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                )
+                                            }
                                         }
                                     }
                                 }
                             }
                             if (memberIndex < roundMembers.lastIndex) {
-                                Box(
+                                val connectorColor by animateColorAsState(
+                                    targetValue = if (roundDone) {
+                                        Color(0xFF66BB6A).copy(alpha = 0.75f)
+                                    } else {
+                                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                                    },
+                                    animationSpec = tween(durationMillis = 360),
+                                    label = "supersetConnector",
+                                )
+                                Column(
                                     modifier = Modifier
                                         .width(12.dp)
-                                        .height(1.dp)
-                                        .background(
-                                            if (roundDone) Color(0xFF66BB6A).copy(alpha = 0.75f)
-                                            else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                                        .height(44.dp),
+                                ) {
+                                    Spacer(Modifier.height(18.dp))
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(26.dp),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .width(12.dp)
+                                                .height(1.dp)
+                                                .background(connectorColor)
                                         )
-                                )
+                                    }
+                                }
                             }
                         }
                     }
