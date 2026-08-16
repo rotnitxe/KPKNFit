@@ -65,6 +65,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.services.diagnostics.KpknReportManager
@@ -75,6 +77,7 @@ import com.example.kpkn.screens.reports.ReportRequestBus
 import com.example.kpkn.navigation.DeepLinkRouter
 import com.example.kpkn.navigation.KpknRoute
 import com.example.kpkn.navigation.addHealthConnectRoute
+import com.example.kpkn.navigation.healthConnectRouteAvailable
 import com.example.kpkn.navigation.NavigationBus
 import com.example.kpkn.screens.sessioneditor.CatalogLaunchOrigin
 import com.example.kpkn.screens.sessioneditor.CatalogLaunchRequest
@@ -89,6 +92,8 @@ import com.example.kpkn.screens.competitions.CompetitionScreen
 import com.example.kpkn.screens.nutrition.BodyProgressScreen
 import com.example.kpkn.screens.nutrition.MealHistoryScreen
 import com.example.kpkn.screens.nutrition.NutritionScreen
+import com.example.kpkn.screens.nutrition.NutritionCalibrationScreen
+import com.example.kpkn.screens.nutrition.NutritionWizardScreen
 import com.example.kpkn.screens.nutrition.NutritionViewModel
 import com.example.kpkn.screens.profile.ProfileScreen
 import com.example.kpkn.screens.programdetail.ProgramDetailScreen
@@ -533,7 +538,8 @@ fun KPKNApp(
     val isFullscreenWizard =
         currentRoute?.startsWith("session-editor") == true ||
         currentRoute?.startsWith("workout") == true ||
-        currentRoute?.startsWith(KpknRoute.ExerciseCatalog.route) == true
+        currentRoute?.startsWith(KpknRoute.ExerciseCatalog.route) == true ||
+        currentRoute?.startsWith(KpknRoute.NutritionWizard.BASE_ROUTE) == true
     val primaryProgramId = activeProgram?.id ?: allPrograms.firstOrNull()?.id
 
     val currentTab = when {
@@ -1417,6 +1423,9 @@ private fun KPKNNavGraph(
                 onNavigateToMealHistory = {
                     navController.navigate(KpknRoute.MealHistory.route)
                 },
+                onNavigateToWizard = { mode, planId ->
+                    navController.navigate(KpknRoute.NutritionWizard.create(mode, planId))
+                },
             )
         }
 
@@ -1447,19 +1456,30 @@ private fun KPKNNavGraph(
                 navController.popBackStack(KpknRoute.NutritionAction.route, inclusive = true)
             }
         }
-        composable(KpknRoute.NutritionWizard.route) {
-            LaunchedEffect(Unit) {
-                nutritionViewModel.openPlanOverlay()
-                navController.navigate(KpknRoute.Nutrition.route) {
-                    popUpTo(KpknRoute.NutritionWizard.route) { inclusive = true }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            }
+        composable(
+            route = KpknRoute.NutritionWizard.route,
+            arguments = listOf(
+                navArgument(KpknRoute.NutritionWizard.ARG_MODE) {
+                    type = NavType.StringType
+                    defaultValue = "create"
+                },
+                navArgument(KpknRoute.NutritionWizard.ARG_PLAN_ID) {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+            ),
+        ) { backStackEntry ->
+            NutritionWizardScreen(
+                mode = backStackEntry.arguments?.getString(KpknRoute.NutritionWizard.ARG_MODE) ?: "create",
+                planId = backStackEntry.arguments?.getString(KpknRoute.NutritionWizard.ARG_PLAN_ID)?.takeIf { it.isNotBlank() },
+                onDone = { navController.popBackStack() },
+                onCancel = { navController.popBackStack() },
+            )
         }
         composable(KpknRoute.BodyProgress.route) {
             BodyProgressScreen(
-                onCreatePlan = { nutritionViewModel.openPlanOverlay() },
+                onCreatePlan = { navController.navigate(KpknRoute.NutritionWizard.create("create", null)) },
             )
         }
         composable(KpknRoute.MealHistory.route) {
@@ -1686,13 +1706,15 @@ private fun KPKNNavGraph(
             SettingsNutritionScreen(
                 onBack = { navController.popBackStack() },
                 onOpenPlanOverlay = {
-                    nutritionViewModel.openPlanOverlay()
-                    navController.navigate(KpknRoute.Nutrition.route) {
-                        launchSingleTop = true
-                        restoreState = true
-                    }
+                    navController.navigate(KpknRoute.NutritionWizard.create(mode = "create"))
                 },
+                onOpenCalibration = { navController.navigate(KpknRoute.NutritionCalibration.route) },
+                showHealthConnect = healthConnectRouteAvailable(),
+                onOpenHealthConnect = { navController.navigate(KpknRoute.HealthConnect.route) },
             )
+        }
+        composable(KpknRoute.NutritionCalibration.route) {
+            NutritionCalibrationScreen(onBack = { navController.popBackStack() })
         }
         composable(KpknRoute.SettingsTraining.route) {
             SettingsTrainingScreen(onBack = { navController.popBackStack() })

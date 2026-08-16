@@ -4,3 +4,5 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 
 fun NavGraphBuilder.addHealthConnectRoute(navController: NavHostController) {}
+
+fun healthConnectRouteAvailable(): Boolean = false

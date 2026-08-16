@@ -1,7 +1,12 @@
 package com.example.kpkn.features.healthconnect
 
 import android.content.Context
-import com.example.kpkn.data.models.BodyMeasurementEntry
+import com.example.kpkn.data.models.BodyMetric
+import com.example.kpkn.data.models.BodyMetricSource
+import com.example.kpkn.data.models.BodyObservation
+import com.example.kpkn.data.models.BodyObservationMethod
+import com.example.kpkn.data.models.BodyObservationQuality
+import com.example.kpkn.data.repository.BodyProgressRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,14 +17,17 @@ class HealthConnectRepository private constructor(context: Context) {
     
     private val healthConnectManager = HealthConnectManager.getInstance(context)
     private val nutritionRepository = NutritionRepository.getInstance()
+    private val bodyProgressRepository = BodyProgressRepository.getInstance(context.applicationContext)
     private val _isAvailable = MutableStateFlow(false)
     private val _hasPermissions = MutableStateFlow(false)
+    private val _hasWritePermissions = MutableStateFlow(false)
     private val _lastSyncDate = MutableStateFlow<LocalDate?>(null)
     private val _currentMetrics = MutableStateFlow(HealthMetrics())
     private val _isSyncing = MutableStateFlow(false)
     
     val isAvailable: Flow<Boolean> = _isAvailable.asStateFlow()
     val hasPermissions: Flow<Boolean> = _hasPermissions.asStateFlow()
+    val hasWritePermissions: Flow<Boolean> = _hasWritePermissions.asStateFlow()
     val lastSyncDate: Flow<LocalDate?> = _lastSyncDate.asStateFlow()
     val currentMetrics: Flow<HealthMetrics> = _currentMetrics.asStateFlow()
     val isSyncing: Flow<Boolean> = _isSyncing.asStateFlow()
@@ -42,7 +50,8 @@ class HealthConnectRepository private constructor(context: Context) {
     }
     
     suspend fun checkPermissions() {
-        _hasPermissions.value = healthConnectManager.hasAllPermissions()
+        _hasPermissions.value = healthConnectManager.hasBodyReadPermissions()
+        _hasWritePermissions.value = healthConnectManager.hasWritePermissions()
     }
     
     suspend fun syncHealthData(daysBack: Int = 7): Boolean {
@@ -53,6 +62,11 @@ class HealthConnectRepository private constructor(context: Context) {
             if (!healthConnectManager.isAvailable()) {
                 return false
             }
+            if (!healthConnectManager.hasBodyReadPermissions()) {
+                _hasPermissions.value = false
+                return false
+            }
+            _hasPermissions.value = true
             
             val endDate = LocalDate.now()
             val startDate = endDate.minusDays(daysBack.toLong())
@@ -64,7 +78,7 @@ class HealthConnectRepository private constructor(context: Context) {
                     _lastSyncDate.value = LocalDate.now()
                     
                     // Sync to body repository for AUGE integration
-                    syncToBodyRepository(metrics)
+                    syncRecordsToBodyRepository(result.bodyMass, result.bodyFat)
                 }
             }
             return true
@@ -75,16 +89,46 @@ class HealthConnectRepository private constructor(context: Context) {
         }
     }
     
-    private suspend fun syncToBodyRepository(metrics: HealthMetrics) {
-        metrics.latestWeightKg?.let { weight ->
-            val entry = BodyMeasurementEntry(
-                id = System.currentTimeMillis().toString(),
-                date = LocalDate.now().toString(),
-                weight = weight,
-                bodyFat = metrics.latestBodyFatPercentage,
-                notes = "Synced from Health Connect"
+    private suspend fun syncRecordsToBodyRepository(
+        weights: List<BodyMassRecord>,
+        bodyFats: List<BodyFatRecord>,
+    ) {
+        bodyProgressRepository.awaitReady()
+        weights.forEach { record ->
+            val timestamp = record.time.toEpochMilli()
+            bodyProgressRepository.addObservation(
+                BodyObservation(
+                    id = "health_connect:${record.metadata.id}:weight",
+                    metric = BodyMetric.WEIGHT,
+                    valueSi = record.weight.inKilograms,
+                    unitSi = "kg",
+                    sessionId = "health_connect:${record.time.toString().take(10)}",
+                    timestampEpochMs = timestamp,
+                    zoneId = record.zoneOffset?.toString() ?: java.time.ZoneId.systemDefault().id,
+                    source = BodyMetricSource.HEALTH_CONNECT,
+                    method = BodyObservationMethod.HEALTH_CONNECT,
+                    quality = BodyObservationQuality.MEASURED,
+                    externalId = "health_connect:${record.metadata.id}:weight",
+                ),
             )
-            nutritionRepository.addBodyMeasurement(entry)
+        }
+        bodyFats.forEach { record ->
+            val timestamp = record.time.toEpochMilli()
+            bodyProgressRepository.addObservation(
+                BodyObservation(
+                    id = "health_connect:${record.metadata.id}:body_fat",
+                    metric = BodyMetric.BODY_FAT_PERCENT,
+                    valueSi = record.percentage.value,
+                    unitSi = "%",
+                    sessionId = "health_connect:${record.time.toString().take(10)}",
+                    timestampEpochMs = timestamp,
+                    zoneId = record.zoneOffset?.toString() ?: java.time.ZoneId.systemDefault().id,
+                    source = BodyMetricSource.HEALTH_CONNECT,
+                    method = BodyObservationMethod.HEALTH_CONNECT,
+                    quality = BodyObservationQuality.MEASURED,
+                    externalId = "health_connect:${record.metadata.id}:body_fat",
+                ),
+            )
         }
     }
     

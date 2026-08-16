@@ -24,3 +24,5 @@ fun NavGraphBuilder.addHealthConnectRoute(navController: NavHostController) {
         )
     }
 }
+
+fun healthConnectRouteAvailable(): Boolean = true

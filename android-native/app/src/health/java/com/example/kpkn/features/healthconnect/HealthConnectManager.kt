@@ -40,6 +40,23 @@ class HealthConnectManager private constructor(private val context: Context) {
             HealthPermission.getWritePermission(WeightRecord::class),
             HealthPermission.getWritePermission(BodyFatRecord::class),
         )
+        val READ_PERMISSIONS = setOf(
+            HealthPermission.getReadPermission(WeightRecord::class),
+            HealthPermission.getReadPermission(BodyFatRecord::class),
+            HealthPermission.getReadPermission(StepsRecord::class),
+            HealthPermission.getReadPermission(ExerciseSessionRecord::class),
+            HealthPermission.getReadPermission(HeartRateRecord::class),
+            HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
+        )
+        /** Minimum permission set required to import body progress. */
+        val BODY_READ_PERMISSIONS = setOf(
+            HealthPermission.getReadPermission(WeightRecord::class),
+            HealthPermission.getReadPermission(BodyFatRecord::class),
+        )
+        val WRITE_PERMISSIONS = setOf(
+            HealthPermission.getWritePermission(WeightRecord::class),
+            HealthPermission.getWritePermission(BodyFatRecord::class),
+        )
 
         fun getInstance(context: Context): HealthConnectManager {
             return instance ?: synchronized(this) {
@@ -163,6 +180,30 @@ class HealthConnectManager private constructor(private val context: Context) {
         } catch (_: Exception) {
             emptyList()
         }
+    }
+
+    suspend fun hasReadPermissions(): Boolean {
+        val healthClient = getClient() ?: return false
+        return runCatching {
+            val granted = healthClient.permissionController.getGrantedPermissions()
+            READ_PERMISSIONS.all { it in granted }
+        }.getOrDefault(false)
+    }
+
+    suspend fun hasBodyReadPermissions(): Boolean {
+        val healthClient = getClient() ?: return false
+        return runCatching {
+            val granted = healthClient.permissionController.getGrantedPermissions()
+            BODY_READ_PERMISSIONS.all { it in granted }
+        }.getOrDefault(false)
+    }
+
+    suspend fun hasWritePermissions(): Boolean {
+        val healthClient = getClient() ?: return false
+        return runCatching {
+            val granted = healthClient.permissionController.getGrantedPermissions()
+            WRITE_PERMISSIONS.all { it in granted }
+        }.getOrDefault(false)
     }
 
     suspend fun readActiveCalories(startDate: LocalDate, endDate: LocalDate): List<ActiveCaloriesBurnedRecord> {

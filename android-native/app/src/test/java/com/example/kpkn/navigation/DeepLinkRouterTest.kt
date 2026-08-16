@@ -35,6 +35,22 @@ class DeepLinkRouterTest {
     }
 
     @Test
+    fun resolvesNutritionWizardCalibrationAndHealthConnectRoutes() {
+        assertEquals(
+            KpknRoute.NutritionWizard.create(),
+            DeepLinkRouter.resolve(Uri.parse("kpkn://nutrition/wizard"))?.route,
+        )
+        assertEquals(
+            KpknRoute.NutritionCalibration.route,
+            DeepLinkRouter.resolve(Uri.parse("https://kpkn.fit/nutrition/calibration"))?.route,
+        )
+        assertEquals(
+            KpknRoute.HealthConnect.route,
+            DeepLinkRouter.resolve(Uri.parse("kpkn://settings/health-connect"))?.route,
+        )
+    }
+
+    @Test
     fun rejectsNonKpknOrInvalidLinks() {
         val otherHost = DeepLinkRouter.resolve(Uri.parse("https://example.com/nutrition"))
         val noId = DeepLinkRouter.resolve(Uri.parse("https://kpkn.fit/program"))

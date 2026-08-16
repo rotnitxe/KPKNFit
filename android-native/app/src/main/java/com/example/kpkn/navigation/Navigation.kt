@@ -146,7 +146,21 @@ sealed class KpknRoute(val route: String) {
     object WikiLabBiomechanics : KpknRoute("wikilab/biomechanics")
 
     // ─── Nutrition Sub-screens ────────────────────────────────────────
-    object NutritionWizard : KpknRoute("nutrition/wizard")
+    object NutritionWizard : KpknRoute("nutrition/wizard?mode={mode}&planId={planId}") {
+        const val ARG_MODE = "mode"
+        const val ARG_PLAN_ID = "planId"
+
+        fun create(mode: String = "create", planId: String? = null): String = buildString {
+            append("nutrition/wizard?mode=")
+            append(Uri.encode(mode))
+            append("&planId=")
+            append(Uri.encode(planId.orEmpty()))
+        }
+
+        /** Stable base used by deep links and current-route checks. */
+        const val BASE_ROUTE = "nutrition/wizard"
+    }
+    object NutritionCalibration : KpknRoute("nutrition/calibration")
     object MealHistory : KpknRoute("nutrition/meal-history")
     object NutritionAction : KpknRoute("nutrition/action/{action}") {
         fun create(action: String) = "nutrition/action/$action"

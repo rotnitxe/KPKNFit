@@ -25,10 +25,16 @@ fun HealthConnectScreen(
     
     val isAvailable by healthConnectRepo.isAvailable.collectAsState(initial = false)
     val hasPermissions by healthConnectRepo.hasPermissions.collectAsState(initial = false)
+    val hasWritePermissions by healthConnectRepo.hasWritePermissions.collectAsState(initial = false)
     val lastSyncDate by healthConnectRepo.lastSyncDate.collectAsState(initial = null)
     val currentMetrics by healthConnectRepo.currentMetrics.collectAsState(initial = HealthMetrics())
     val healthImpact by augeHealthIntegration.healthImpact.collectAsState(initial = null)
     val isSyncing by healthConnectRepo.isSyncing.collectAsState(initial = false)
+
+    LaunchedEffect(Unit) {
+        healthConnectRepo.checkAvailability()
+        healthConnectRepo.checkPermissions()
+    }
     
     var showSyncDialog by remember { mutableStateOf(false) }
     
@@ -79,7 +85,8 @@ fun HealthConnectScreen(
                         Text(
                             if (!isAvailable) "Health Connect no está instalado"
                             else if (!hasPermissions) "Permisos no otorgados"
-                            else "Sincronizando datos de salud",
+                            else if (!hasWritePermissions) "Lectura corporal activa · escritura opcional pendiente"
+                            else "Lectura y escritura corporal activas",
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
