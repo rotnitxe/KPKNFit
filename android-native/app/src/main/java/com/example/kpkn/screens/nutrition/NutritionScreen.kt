@@ -228,9 +228,9 @@ fun NutritionScreen(
         }
         Box(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
+                .align(Alignment.BottomEnd)
                 .navigationBarsPadding()
-                .padding(bottom = 136.dp)
+                .padding(end = 16.dp, bottom = 106.dp)
                 .clip(pillShape)
                 .hazeEffect(
                     state = nutritionHazeState,
@@ -251,7 +251,7 @@ fun NutritionScreen(
                         viewModel.requestFoodLoggerOpen(tab = 0)
                     }
                 }
-                .padding(horizontal = 20.dp, vertical = 13.dp),
+                .padding(horizontal = 18.dp, vertical = 12.dp),
             contentAlignment = Alignment.Center,
         ) {
             Row(
