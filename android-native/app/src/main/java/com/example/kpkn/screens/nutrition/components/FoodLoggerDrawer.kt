@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -202,6 +203,9 @@ fun FoodLoggerDrawer(
 
     // IT3: incertidumbre preservada como rango (referencia del dataset local).
     var analysisKcalRange by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+
+    // Configuración general de comidas (medidas / aprendizaje)
+    var showSettingsDialog by remember { mutableStateOf(false) }
 
     // IT3: utensilios configurables (ml por utensilio).
     var showUtensilDialog by remember { mutableStateOf(false) }
@@ -1451,6 +1455,115 @@ fun FoodLoggerDrawer(
             shape = RoundedCornerShape(20.dp),
         )
     }
+
+    if (showSettingsDialog) {
+        KpknAlertDialog(
+            onDismissRequest = { showSettingsDialog = false },
+            title = {
+                Text(
+                    text = "Configuración",
+                    fontWeight = FontWeight.Bold,
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                showSettingsDialog = false
+                                utensilValues = SubjectivePortionEngine.UTENSIL_DEFAULTS
+                                    .mapValues { (_, ml) -> ml.toFloat() }
+                                showUtensilDialog = true
+                            },
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Tune,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                            Column {
+                                Text(
+                                    text = "Ajustar medidas",
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                                Text(
+                                    text = "Personaliza el volumen en ml de tazas y platos",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                nutritionRepo.clearLearnedResolutions()
+                                learnedMemoryCleared = true
+                                showSettingsDialog = false
+                            },
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.DeleteSweep,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                            )
+                            Column {
+                                Text(
+                                    text = "Olvidar lo aprendido",
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                                Text(
+                                    text = "Borra las elecciones y porciones recordadas",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showSettingsDialog = false }) {
+                    Text("Cerrar")
+                }
+            },
+            shape = RoundedCornerShape(20.dp),
+        )
+    }
+
+    if (showUtensilDialog) {
+        UtensilSettingsDialog(
+            values = utensilValues,
+            onValueChange = { key, ml -> utensilValues = utensilValues + (key to ml) },
+            onSave = {
+                utensilValues.forEach { (key, ml) ->
+                    nutritionRepo.saveUtensilOverride(key, ml.toDouble())
+                }
+                showUtensilDialog = false
+            },
+            onDismiss = { showUtensilDialog = false },
+        )
+    }
+
     val activeTagsForSave = tags.filterNot { it.isExcluded }
     val saveBlocked = activeTagsForSave.any { tag ->
         (!tag.isResolved && !tag.explicitDecision) || tag.needsCookingClarification ||
@@ -1474,9 +1587,13 @@ fun FoodLoggerDrawer(
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
                         Text(
                             text = "Registrar comida",
                             style = MaterialTheme.typography.headlineSmall,
@@ -1486,6 +1603,16 @@ fun FoodLoggerDrawer(
                             text = "Describe tu comida o agrega alimentos uno por uno.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    IconButton(
+                        onClick = { showSettingsDialog = true },
+                        modifier = Modifier.size(40.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Configuración",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -1518,8 +1645,8 @@ fun FoodLoggerDrawer(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    TabChip("Describir comida", activeTab == 0) { activeTab = 0 }
-                    TabChip("Buscar alimento", activeTab == 1) { activeTab = 1 }
+                    TabChip("Describir comida", activeTab == 0, modifier = Modifier.weight(1f)) { activeTab = 0 }
+                    TabChip("Buscar alimento", activeTab == 1, modifier = Modifier.weight(1f)) { activeTab = 1 }
                 }
             }
 
@@ -1621,102 +1748,13 @@ fun FoodLoggerDrawer(
                             }
                         }
 
-                        // D14 (beta): comparación con IA — referencia paralela de solo lectura.
-                        OutlinedButton(
-                            onClick = { compareWithAi() },
-                            enabled = description.isNotBlank() && !isAiComparing && !isAnalyzing,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = PRO_COLOR,
-                            ),
-                        ) {
-                            if (isAiComparing) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(14.dp),
-                                    strokeWidth = 2.dp,
-                                    color = PRO_COLOR,
-                                )
-                            } else {
-                                Icon(Icons.Default.AutoAwesome, null, modifier = Modifier.size(16.dp))
-                            }
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(if (isAiComparing) "Consultando IA…" else "Comparar con IA (beta)")
-                        }
-                        if (aiComparison != null || aiComparisonError != null || isAiComparing) {
-                            AiComparisonPanel(
-                                result = aiComparison,
-                                isLoading = isAiComparing,
-                                error = aiComparisonError,
-                            )
-                        }
 
-                        // E16/IT2: el usuario puede reiniciar el aprendizaje local
-                        // (porciones y destinos recordados) cuando sienta que
-                        // "recuerda cosas viejas" que ya no quiere.
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            // CRI-ANALYSIS: ruta alternativa de IA, discreta y solo visible
-                            // con API key configurada. El sistema oficial siempre es local.
-                            if (DeepSeekCredentialStore.read(context).orEmpty().isNotBlank()) {
-                                TextButton(
-                                    onClick = {
-                                        if (description.isNotBlank()) analyzeWithAi()
-                                        else openApiConfigDialog()
-                                    },
-                                ) {
-                                    Icon(Icons.Default.AutoAwesome, null, modifier = Modifier.size(14.dp))
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(
-                                        "Usar IA",
-                                        style = MaterialTheme.typography.bodySmall,
-                                    )
-                                }
-                            }
-                            if (learnedMemoryCleared) {
-                                Text(
-                                    "Memoria de aprendizaje borrada",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color.White.copy(alpha = 0.6f),
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                            }
-                            TextButton(onClick = {
-                                nutritionRepo.clearLearnedResolutions()
-                                learnedMemoryCleared = true
-                            }) {
-                                Text(
-                                    "Olvidar lo aprendido",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color.White.copy(alpha = 0.55f),
-                                )
-                            }
-                            TextButton(onClick = {
-                                utensilValues = SubjectivePortionEngine.UTENSIL_DEFAULTS
-                                    .mapValues { (_, ml) -> ml.toFloat() }
-                                showUtensilDialog = true
-                            }) {
-                                Text(
-                                    "Ajustar medidas",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color.White.copy(alpha = 0.55f),
-                                )
-                            }
-                        }
-                        if (showUtensilDialog) {
-                            UtensilSettingsDialog(
-                                values = utensilValues,
-                                onValueChange = { key, ml -> utensilValues = utensilValues + (key to ml) },
-                                onSave = {
-                                    utensilValues.forEach { (key, ml) ->
-                                        nutritionRepo.saveUtensilOverride(key, ml.toDouble())
-                                    }
-                                    showUtensilDialog = false
-                                },
-                                onDismiss = { showUtensilDialog = false },
+
+                        if (learnedMemoryCleared) {
+                            Text(
+                                "Memoria de aprendizaje borrada",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.White.copy(alpha = 0.6f),
                             )
                         }
                     }
@@ -1770,13 +1808,12 @@ fun FoodLoggerDrawer(
                         tags = tags + tag
                         searchQuery = ""
                         searchResults = emptyList()
-                        activeTab = 0
                     })
                 }
             }
 
             // ── Tag List ────────────────────────────────────────────────────
-            if (activeTab == 0 && tags.isNotEmpty()) {
+            if (tags.isNotEmpty()) {
                 val pendingClarifications = tags.filter { tag ->
                     !tag.isExcluded && (
                         tag.needsCookingClarification ||
@@ -1844,7 +1881,7 @@ fun FoodLoggerDrawer(
             }
 
             // ── Totals ──────────────────────────────────────────────────────
-            if (activeTab == 0 && tags.isNotEmpty()) {
+            if (tags.isNotEmpty()) {
                 item {
                     Card(
                         shape = RoundedCornerShape(16.dp),
@@ -1862,9 +1899,6 @@ fun FoodLoggerDrawer(
                             Column {
                                 Text("TOTAL", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, letterSpacing = 0.1f.sp)
                                 Text("${kotlin.math.round(tagTotals.calories).toInt()} kcal", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
-                                // IT3: incertidumbre como rango — referencia del dataset local.
-                                // CRASH-FIX: lectura segura; el estado puede cambiar durante recomposición.
-                                // CRI-ANALYSIS: siempre visible; el motor oficial es local por defecto.
                                 analysisKcalRange?.let { (minK, maxK) ->
                                     Text(
                                         "referencia ${minK}–${maxK} kcal",
@@ -1883,18 +1917,33 @@ fun FoodLoggerDrawer(
                 }
             }
 
-            // ── Save ────────────────────────────────────────────────────────
-            if (activeTab == 0) {
-                item {
-                    val hasTags = tags.isNotEmpty()
-                    val descriptionEdited = hasTags && description.trim() != lastAnalyzedDescription.trim()
+            // ── Save & Action Row ────────────────────────────────────────────
+            item {
+                val hasTags = tags.isNotEmpty()
+                val descriptionEdited = activeTab == 0 && hasTags && description.trim() != lastAnalyzedDescription.trim()
+                val isSearchMode = activeTab == 1
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Button(
                         onClick = {
-                            if (descriptionEdited) analyzeDescription()
-                            else if (hasTags) saveLog()
-                            else analyzeDescription()
+                            if (isSearchMode) {
+                                if (hasTags) saveLog()
+                                else if (searchQuery.isNotBlank()) performSearch()
+                            } else {
+                                if (descriptionEdited) analyzeDescription()
+                                else if (hasTags) saveLog()
+                                else analyzeDescription()
+                            }
                         },
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(52.dp),
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (descriptionEdited) MaterialTheme.colorScheme.primary
@@ -1902,10 +1951,9 @@ fun FoodLoggerDrawer(
                                              else MaterialTheme.colorScheme.primary
                         ),
                         enabled = !isAnalyzing && (
-                            descriptionEdited ||
-                                (hasTags && !saveBlocked) ||
-                                (!hasTags && description.isNotBlank())
-                            )
+                            if (isSearchMode) (hasTags && !saveBlocked) || searchQuery.isNotBlank()
+                            else descriptionEdited || (hasTags && !saveBlocked) || (!hasTags && description.isNotBlank())
+                        )
                     ) {
                         if (isAnalyzing) {
                             CircularProgressIndicator(
@@ -1918,13 +1966,38 @@ fun FoodLoggerDrawer(
                         } else {
                             val icon = if (descriptionEdited) Icons.Default.Refresh
                                        else if (hasTags) Icons.Default.Check
-                                       else Icons.Default.FlashOn
+                                       else if (isSearchMode && !hasTags) Icons.Default.Search
+                                       else Icons.Default.Check
                             val label = if (descriptionEdited) "ACTUALIZAR Y BUSCAR"
                                         else if (hasTags) "GUARDAR"
+                                        else if (isSearchMode && !hasTags) "BUSCAR"
                                         else "REGISTRAR"
                             Icon(icon, null, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(label, fontWeight = FontWeight.Black)
+                        }
+                    }
+
+                    // Botón redondo al lado del de registrar normal
+                    Surface(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .clip(CircleShape)
+                            .clickable {
+                                if (activeTab == 0) activeTab = 1
+                                else activeTab = 0
+                            },
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        tonalElevation = 2.dp,
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = if (activeTab == 0) Icons.Default.Search else Icons.Default.EditNote,
+                                contentDescription = if (activeTab == 0) "Buscar en catálogo" else "Describir comida",
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(24.dp),
+                            )
                         }
                     }
                 }
@@ -2211,8 +2284,12 @@ private fun ModeOptionCard(
 
 @Composable
 private fun MealTypeSelector(mealType: MealType, onSelect: (MealType) -> Unit) {
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        items(MEAL_OPTIONS) { (type, label) ->
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        MEAL_OPTIONS.forEach { (type, label) ->
             val selected = type == mealType
             Surface(
                 shape = RoundedCornerShape(12.dp),
@@ -2232,18 +2309,20 @@ private fun MealTypeSelector(mealType: MealType, onSelect: (MealType) -> Unit) {
 }
 
 @Composable
-private fun TabChip(label: String, active: Boolean, onClick: () -> Unit) {
+private fun TabChip(label: String, active: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = if (active) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainer,
-        modifier = Modifier.clickable(onClick = onClick),
+        modifier = modifier.clickable(onClick = onClick),
     ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = if (active) FontWeight.ExtraBold else FontWeight.SemiBold,
-        )
+        Box(contentAlignment = Alignment.Center) {
+            Text(
+                text = label,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = if (active) FontWeight.ExtraBold else FontWeight.SemiBold,
+            )
+        }
     }
 }
 
