@@ -10,9 +10,12 @@ android-native/**/*.log
 
 android/app/src/main/assets/models/kpkn-food-fg270m-v1.litertlm
 
+android/app/src/main/assets/models/kpkn-food-fg270m-v1.litertlm
+
 __pycache__/
 *.pyc
 # Debug audit logs (local-only, never commit)
 debug-9ba5f2.log
 **/debug-9ba5f2.log
-
+/kpkn-*.png
+/kpkn-*.jpg
