@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -36,11 +37,14 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.*
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
 import com.example.kpkn.ui.components.KpknAlertDialog
-
-// ═══════════════════════════════════════════════════════════════════════
-// COLORS
-// ═══════════════════════════════════════════════════════════════════════
-
+import com.example.kpkn.ui.components.LocalHazeState
+import com.example.kpkn.ui.components.kpknGlass
+import com.example.kpkn.ui.components.kpknGlassOrFallback
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 private val PROTEIN_COLOR = Color(0xFFEF5350)
 private val CARBS_COLOR = Color(0xFF7E57C2)
 private val FATS_COLOR = Color(0xFF26A69A)
@@ -91,7 +95,8 @@ fun NutritionScreen(
     var selectedMealForLogger by remember { mutableStateOf(MealType.LUNCH) }
     var foodLoggerInitialDescription by remember { mutableStateOf<String?>(sharedDescription) }
     var foodLoggerInitialTab by remember { mutableIntStateOf(sharedTab.coerceIn(0, 1)) }
-    val contextualBottomBarClearance = 110.dp
+    
+    val nutritionHazeState = remember { HazeState() }
 
     LaunchedEffect(sharedDescription) {
         if (!sharedDescription.isNullOrBlank()) {
@@ -120,116 +125,161 @@ fun NutritionScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface),
     ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 140.dp),
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeSource(state = nutritionHazeState),
         ) {
-            item {
-                NutritionHeroHeader(
-                    macroRingPct = macroRingPct,
-                    dailyTotals = dailyTotals,
-                    goals = goals,
-                    selectedDate = selectedDate,
-                    onEditPlan = { onNavigateToWizard("edit", activePlan?.id) },
-                    onCreatePlan = { onNavigateToWizard("create", null) },
-                    hasActivePlan = activePlan != null,
-                )
-            }
-
-            item {
-                DailyEnergyBalanceCard(balance = dailyEnergyBalance)
-            }
-
-            if (dailyTotals.calories > 0) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 160.dp),
+            ) {
                 item {
-                    MacroBarsSection(dailyTotals = dailyTotals)
-                }
-            }
-
-            item {
-                DateSelector(
-                    selectedDate = selectedDate,
-                    onDateChange = { viewModel.setSelectedDate(it) },
-                )
-            }
-
-            item {
-                QuickAddBar(
-                    onMealTypeClick = { meal ->
-                        selectedMealForLogger = meal
-                        foodLoggerInitialDescription = null
-                        foodLoggerInitialTab = 0
-                        viewModel.requestFoodLoggerOpen(tab = 0)
-                    },
-                )
-            }
-
-            val mealOrder = listOf(MealType.BREAKFAST, MealType.LUNCH, MealType.DINNER, MealType.SNACK)
-            items(mealOrder) { mealType ->
-                val group = mealGroups.find { it.mealType == mealType }
-                MealGroupCard(
-                    mealType = mealType,
-                    group = group,
-                    onDelete = { viewModel.deleteLog(it) },
-                    onAddFood = {
-                        selectedMealForLogger = mealType
-                        foodLoggerInitialDescription = null
-                        foodLoggerInitialTab = 0
-                        viewModel.requestFoodLoggerOpen(tab = 0)
-                    },
-                )
-            }
-
-            if (onNavigateToMealHistory != null) {
-                item {
-                    TextButton(
-                        onClick = onNavigateToMealHistory,
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                    ) {
-                        Icon(Icons.Default.History, null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text("Ver historial de comidas", style = MaterialTheme.typography.labelMedium)
-                    }
-                }
-            }
-
-            if (trendData.isNotEmpty()) {
-                item {
-                    CalorieTrendChart(
-                        trendData = trendData,
-                        calorieGoal = goals.calorieGoal,
+                    NutritionHeroHeader(
+                        macroRingPct = macroRingPct,
+                        dailyTotals = dailyTotals,
+                        goals = goals,
+                        selectedDate = selectedDate,
+                        onEditPlan = { onNavigateToWizard("edit", activePlan?.id) },
+                        onCreatePlan = { onNavigateToWizard("create", null) },
+                        hasActivePlan = activePlan != null,
                     )
                 }
-            }
-            if (historySeries.points.isNotEmpty()) {
-                item { NutritionHistoryCoverageCard(historySeries) }
+
+                item {
+                    DailyEnergyBalanceCard(balance = dailyEnergyBalance)
+                }
+
+                if (dailyTotals.calories > 0) {
+                    item {
+                        MacroBarsSection(dailyTotals = dailyTotals)
+                    }
+                }
+
+                item {
+                    DateSelector(
+                        selectedDate = selectedDate,
+                        onDateChange = { viewModel.setSelectedDate(it) },
+                    )
+                }
+
+                item {
+                    QuickAddBar(
+                        onMealTypeClick = { meal ->
+                            selectedMealForLogger = meal
+                            foodLoggerInitialDescription = null
+                            foodLoggerInitialTab = 0
+                            viewModel.requestFoodLoggerOpen(tab = 0)
+                        },
+                    )
+                }
+
+                val mealOrder = listOf(MealType.BREAKFAST, MealType.LUNCH, MealType.DINNER, MealType.SNACK)
+                items(mealOrder) { mealType ->
+                    val group = mealGroups.find { it.mealType == mealType }
+                    MealGroupCard(
+                        mealType = mealType,
+                        group = group,
+                        onDelete = { viewModel.deleteLog(it) },
+                        onAddFood = {
+                            selectedMealForLogger = mealType
+                            foodLoggerInitialDescription = null
+                            foodLoggerInitialTab = 0
+                            viewModel.requestFoodLoggerOpen(tab = 0)
+                        },
+                    )
+                }
+
+                if (onNavigateToMealHistory != null) {
+                    item {
+                        TextButton(
+                            onClick = onNavigateToMealHistory,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                        ) {
+                            Icon(Icons.Default.History, null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Ver historial de comidas", style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
+                }
+
+                if (trendData.isNotEmpty()) {
+                    item {
+                        CalorieTrendChart(
+                            trendData = trendData,
+                            calorieGoal = goals.calorieGoal,
+                        )
+                    }
+                }
+                if (historySeries.points.isNotEmpty()) {
+                    item { NutritionHistoryCoverageCard(historySeries) }
+                }
             }
         }
 
-        FloatingActionButton(
-            onClick = {
-                if (activePlan == null) {
-                    showPlanRequiredDialog = true
-                } else {
-                    selectedMealForLogger = MealType.LUNCH
-                    foodLoggerInitialDescription = null
-                    foodLoggerInitialTab = 0
-                    viewModel.requestFoodLoggerOpen(tab = 0)
-                }
-            },
+        val pillShape = RoundedCornerShape(999.dp)
+        val yellowGlassStyle = remember {
+            HazeStyle(
+                blurRadius = 24.dp,
+                tint = HazeTint(Color(0xFFFFD600).copy(alpha = 0.16f)),
+                backgroundColor = Color.Black.copy(alpha = 0.38f),
+                noiseFactor = 0.05f,
+            )
+        }
+        Box(
             modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = contextualBottomBarClearance),
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = 136.dp)
+                .clip(pillShape)
+                .hazeEffect(
+                    state = nutritionHazeState,
+                    style = yellowGlassStyle,
+                )
+                .border(
+                    width = 1.dp,
+                    color = Color(0xFFFFD600).copy(alpha = 0.45f),
+                    shape = pillShape,
+                )
+                .clickable {
+                    if (activePlan == null) {
+                        showPlanRequiredDialog = true
+                    } else {
+                        selectedMealForLogger = MealType.LUNCH
+                        foodLoggerInitialDescription = null
+                        foodLoggerInitialTab = 0
+                        viewModel.requestFoodLoggerOpen(tab = 0)
+                    }
+                }
+                .padding(horizontal = 20.dp, vertical = 13.dp),
+            contentAlignment = Alignment.Center,
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Registrar comida")
-                Spacer(Modifier.width(6.dp))
-                Text("Comida", fontWeight = FontWeight.Bold)
+                Surface(
+                    shape = CircleShape,
+                    color = Color(0xFFFFD600).copy(alpha = 0.22f),
+                    modifier = Modifier.size(26.dp),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Registrar comida",
+                            tint = Color(0xFFFFD600),
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    text = "Registrar comida",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = Color(0xFFFFFBEB),
+                    letterSpacing = 0.2.sp,
+                )
             }
         }
     }

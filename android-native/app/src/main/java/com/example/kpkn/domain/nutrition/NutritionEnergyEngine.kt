@@ -384,13 +384,62 @@ data class PhysiqueGroupInfo(
 )
 
 val PhysiqueGroups: List<PhysiqueGroupInfo> = listOf(
-    PhysiqueGroupInfo(1, "8–12%", "Muy definido", "Abdominales muy visibles, venas marcadas y mínima grasa subcutánea. Típico de etapa de competición.", 10.0, 45.0),
-    PhysiqueGroupInfo(2, "13–17%", "Definido", "Abdomen marcado y separación muscular visible. Se notan líneas intermusculares.", 15.0, 43.0),
-    PhysiqueGroupInfo(3, "18–22%", "Moderadamente definido", "Tono visible con ligera cobertura. Atleta con base entrenada.", 20.0, 41.0),
-    PhysiqueGroupInfo(4, "23–27%", "Suave", "Silueta regular, sin definición marcada pero sin exceso evidente.", 25.0, 39.5),
-    PhysiqueGroupInfo(5, "28–32%", "Grasa moderada", "Acumulación visible en abdomen y cadera. Perfil común sin entrenamiento frecuente.", 30.0, 37.5),
-    PhysiqueGroupInfo(6, "33–37%", "Grasa elevada", "Volumen general con poca definición y perímetro abdominal amplio.", 35.0, 35.0),
-    PhysiqueGroupInfo(7, "38%+", "Grasa muy elevada", "Cobertura amplia y silueta redondeada. Punto de partida para pérdida sostenida.", 40.0, 32.0),
+    PhysiqueGroupInfo(
+        1,
+        "8–12%",
+        "Muy definido",
+        "Músculos y vascularidad muy visibles en abdomen y extremidades, con mínima cobertura sobre el músculo.",
+        10.0,
+        45.0,
+    ),
+    PhysiqueGroupInfo(
+        2,
+        "13–17%",
+        "Definido",
+        "Silueta atlética con separación muscular clara y abdomen visible o firme.",
+        15.0,
+        43.0,
+    ),
+    PhysiqueGroupInfo(
+        3,
+        "18–22%",
+        "Moderadamente definido",
+        "Tono muscular visible en brazos y piernas, con cobertura suave y uniforme en abdomen.",
+        20.0,
+        41.0,
+    ),
+    PhysiqueGroupInfo(
+        4,
+        "23–27%",
+        "Silueta suave",
+        "Líneas corporales naturales y suaves, sin separación muscular marcada ni acumulación excesiva.",
+        25.0,
+        39.5,
+    ),
+    PhysiqueGroupInfo(
+        5,
+        "28–32%",
+        "Mayor cobertura",
+        "Contorno corporal más redondeado, con volumen visible en abdomen, cintura y caderas.",
+        30.0,
+        37.5,
+    ),
+    PhysiqueGroupInfo(
+        6,
+        "33–37%",
+        "Volumen amplio",
+        "Silueta amplia con volumen concentrado en la zona media y torso, sin definición muscular visible.",
+        35.0,
+        35.0,
+    ),
+    PhysiqueGroupInfo(
+        7,
+        "38%+",
+        "Volumen predominante",
+        "Forma corporal redondeada y volumen prominente en torso, cintura y caderas.",
+        40.0,
+        32.0,
+    ),
 )
 
 fun physiqueGroupFor(group: Int): PhysiqueGroupInfo =
@@ -414,19 +463,27 @@ fun physiqueLabelForSliderPos(pos: Float): String {
     val est = bodyFatForSliderPos(p).toInt()
     val nearest = kotlin.math.round(p).toInt().coerceIn(1, 7)
     val info = physiqueGroupFor(nearest)
-    val dist = kotlin.math.abs(p - nearest)
-    return if (dist < 0.18f) "${info.title} · ${info.rangeLabel} · ~${est}% grasa"
-    else "~${est}% grasa · entre ${physiqueGroupFor(kotlin.math.floor(p.toDouble()).toInt().coerceIn(1, 7)).title} y ${physiqueGroupFor(kotlin.math.ceil(p.toDouble()).toInt().coerceIn(1, 7)).title}"
+    return "${info.title} · ~${est}% grasa"
 }
 
 fun physiqueDescForSliderPos(pos: Float): String {
     val p = pos.coerceIn(1f, 7f)
     val est = bodyFatForSliderPos(p).toInt()
-    val nearest = kotlin.math.round(p).toInt().coerceIn(1, 7)
-    val info = physiqueGroupFor(nearest)
-    val dist = kotlin.math.abs(p - nearest)
-    return if (dist < 0.18f) "${info.description} Estimado ~${est}%."
-    else "Estás entre dos fotos. Tomamos ~${est}% como estimado: ${info.description.lowercase()}"
+    return when {
+        est <= 12 -> "Líneas musculares y vascularidad muy visibles en abdomen, brazos y piernas, con mínima cobertura sobre el músculo."
+        est in 13..15 -> "Separación muscular clara en torso y extremidades, con la zona abdominal visible y contornos bien definidos."
+        est in 16..17 -> "Silueta atlética y firme; se aprecia el contorno muscular con una cobertura ligera y uniforme en el abdomen."
+        est in 18..20 -> "Tono muscular visible en brazos y hombros, con cobertura suave en el abdomen y contornos corporales activos."
+        est in 21..22 -> "Físico con buena estructura pero contornos más suaves, donde la musculatura se intuye sin cortes marcados."
+        est in 23..25 -> "Silueta natural y suave; las líneas musculares no están marcadas y la grasa se distribuye de forma pareja."
+        est in 26..27 -> "Contorno redondeado con mayor presencia de cobertura en abdomen, cintura y caderas."
+        est in 28..30 -> "Mayor volumen en la zona media y caderas, con poca visibilidad de la estructura muscular subyacente."
+        est in 31..32 -> "Forma corporal con volumen visible y pliegues suaves concentrados en cintura, espalda baja y muslos."
+        est in 33..35 -> "Silueta amplia con volumen pronunciado en el torso y la zona media, sin definición muscular superficial."
+        est in 36..37 -> "Volumen corporal notable distribuido en abdomen, pecho, caderas y extremidades."
+        est in 38..40 -> "Volumen predominante y contorno redondeado en torso, cintura y caderas con cobertura amplia general."
+        else -> "Volumen prominente y silueta amplia con acumulación uniforme en toda la estructura corporal."
+    }
 }
 
 fun paceRateFor(direction: PlanDirection, preset: WizardPacePreset): Double? = when (direction) {
