@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.models.CalculationOrigin
+import com.example.kpkn.data.models.GoalMetric
 import com.example.kpkn.data.models.NutritionPlanCalculationSnapshot
 import com.example.kpkn.data.models.PlanDirection
 import java.text.NumberFormat
@@ -149,10 +150,11 @@ object NutritionEnergyEngine {
         targetValueSi: Double? = null,
         manualCalorieTargetKcal: Int? = null,
         higherProteinInDeficit: Boolean = true,
+        explicitRatePercentBodyWeightPerWeek: Double? = null,
         now: Instant = Instant.now(),
     ): NutritionPlanRecommendation {
         val eer = calculateEer(input)
-        val rate = when (direction) {
+        val rate = explicitRatePercentBodyWeightPerWeek ?: when (direction) {
             PlanDirection.DEFICIT -> 0.005
             PlanDirection.SURPLUS -> 0.0025
             PlanDirection.MAINTENANCE, PlanDirection.PROFESSIONAL -> null
@@ -222,6 +224,265 @@ object NutritionEnergyEngine {
             snapshot = snapshot,
         )
     }
+}
+
+/**
+ * Base de macros recomendados con los campos manuales por encima.
+ * Distingue un 0 explícito (edición libre) de un campo vacío (usar base).
+ */
+fun resolveEffectiveMacros(
+    base: NutritionMacroTargets?,
+    manualProtein: Double?,
+    manualCarbs: Double?,
+    manualFat: Double?,
+): NutritionMacroTargets? {
+    if (base == null) return null
+    return base.copy(
+        proteinG = manualProtein ?: base.proteinG,
+        carbsG = manualCarbs ?: base.carbsG,
+        fatG = manualFat ?: base.fatG,
+    )
+}
+
+/** Calorías Atwater de gramos efectivos (4/4/9), redondeadas. */
+fun atwaterKcal(proteinG: Double, carbsG: Double, fatG: Double): Int =
+    (4.0 * proteinG + 4.0 * carbsG + 9.0 * fatG).roundToInt()
+
+/**
+ * Escala los tres macros proporcionalmente hasta el nuevo total calórico.
+ * La proteína escala con su aporte por gramo (4 kcal/g), igual que el resto.
+ * Los floors de sanidad evitan gramos negativos y los carbs absorben el
+ * residuo para que la suma Atwater cuadre exactamente con [newKcal].
+ */
+fun scaleMacrosToCalories(
+    proteinG: Double,
+    carbsG: Double,
+    fatG: Double,
+    newKcal: Int,
+): Triple<Int, Int, Int> {
+    val oldKcal = atwaterKcal(proteinG, carbsG, fatG)
+    if (oldKcal <= 0) return Triple(0, 0, 0)
+    val ratio = newKcal.toDouble() / oldKcal.toDouble()
+    val p = (proteinG * ratio).roundToInt().coerceAtLeast(10)
+    val f = (fatG * ratio).roundToInt().coerceAtLeast(10)
+    var c = ((newKcal - p * 4 - f * 9) / 4.0).roundToInt()
+    if (c < 0) {
+        c = 0
+        if (newKcal < p * 4 + f * 9) {
+            val excess = p * 4 + f * 9 - newKcal
+            if (p > 10) return Triple((p - kotlin.math.ceil(excess / 4.0).toInt()).coerceAtLeast(10), 0, f)
+            return Triple(p, 0, (f - kotlin.math.ceil(excess / 9.0).toInt()).coerceAtLeast(10))
+        }
+        c = ((newKcal - p * 4 - f * 9) / 4.0).roundToInt()
+    }
+    return Triple(p, c, f)
+}
+
+/**
+ * Edita SOLO el macro tocado ([protein], [carbs] o [fat], el único no nulo).
+ * Los otros dos quedan intactos; el total calórico se deriva con Atwater.
+ */
+fun editSingleMacro(
+    proteinG: Double,
+    carbsG: Double,
+    fatG: Double,
+    protein: Double? = null,
+    carbs: Double? = null,
+    fat: Double? = null,
+): Triple<Int, Int, Int> = Triple(
+    (protein ?: proteinG).roundToInt().coerceAtLeast(0),
+    (carbs ?: carbsG).roundToInt().coerceAtLeast(0),
+    (fat ?: fatG).roundToInt().coerceAtLeast(0),
+)
+
+/** Ritmo semanal real (fracción del peso corporal) implícito en el déficit/superávit calórico. */
+fun realRateFor(kcal: Int, eerKcal: Double, weightKg: Double): Double? {
+    if (!eerKcal.isFinite() || eerKcal <= 0.0 || weightKg <= 0.0 || !weightKg.isFinite()) return null
+    return (kcal - eerKcal) * 7.0 / 7700.0 / weightKg
+}
+
+/** Preset (Lento/Medio/Rápido) cuyo ritmo está más cerca del déficit/superávit real. */
+fun closestPacePreset(
+    direction: PlanDirection,
+    kcal: Int,
+    eerKcal: Double?,
+    weightKg: Double?,
+): WizardPacePreset? {
+    if (direction != PlanDirection.DEFICIT && direction != PlanDirection.SURPLUS) return null
+    if (eerKcal == null || weightKg == null) return null
+    val realAbs = kotlin.math.abs(realRateFor(kcal, eerKcal, weightKg) ?: return null)
+    return WizardPacePreset.entries
+        .mapNotNull { preset ->
+            paceRateFor(direction, preset)?.let { rate -> preset to kotlin.math.abs(rate - realAbs) }
+        }
+        .minByOrNull { it.second }
+        ?.first
+}
+
+/**
+ * Ritmo semanal en la unidad del plan según métrica, a partir del déficit/superávit.
+ * Peso → kg/semana (delta calórico ÷ 7700). Composición → puntos porcentuales/semana
+ * (kg de masa cambiados ÷ peso corporal × 100, asumiendo densidad calórica de 7700).
+ */
+fun weeklyChangeFor(
+    metric: GoalMetric,
+    kcal: Int,
+    eerKcal: Double,
+    weightKg: Double,
+): Double {
+    val kgPerWeek = (kcal - eerKcal) * 7.0 / 7700.0
+    return when (metric) {
+        GoalMetric.WEIGHT -> kgPerWeek
+        GoalMetric.BODY_FAT, GoalMetric.MUSCLE_MASS -> kgPerWeek / weightKg * 100.0
+    }
+}
+
+/**
+ * Ritmo semanal consistente para proyección de fecha (misma unidad que el delta
+ * actual→meta). Peso → kg/sem; composición → puntos porcentuales/sem. Nulo si el
+ * sentido contradice la dirección del plan.
+ */
+fun paceInMetricFor(
+    metric: GoalMetric,
+    kcal: Int,
+    eerKcal: Double,
+    weightKg: Double,
+    direction: PlanDirection?,
+): Double? {
+    if (!eerKcal.isFinite() || eerKcal <= 0.0 || weightKg <= 0.0 || !weightKg.isFinite()) return null
+    if (direction == PlanDirection.DEFICIT && kcal > eerKcal) return null
+    if (direction == PlanDirection.SURPLUS && kcal < eerKcal) return null
+    return when (metric) {
+        GoalMetric.WEIGHT -> kotlin.math.abs(kcal - eerKcal) * 7.0 / 7700.0
+        GoalMetric.BODY_FAT, GoalMetric.MUSCLE_MASS -> kotlin.math.abs(kcal - eerKcal) * 7.0 / 7700.0 / weightKg * 100.0
+    }
+}
+
+/** Fecha estimada (yyyy-MM-dd) proyectando el delta métrico a un ritmo por métrica. */
+fun estimateMetricEndDate(
+    metric: GoalMetric,
+    current: Double,
+    target: Double,
+    kcal: Int,
+    eerKcal: Double,
+    weightKg: Double,
+    direction: PlanDirection?,
+): String? {
+    val pace = paceInMetricFor(metric, kcal, eerKcal, weightKg, direction) ?: return null
+    return estimatePlanEndDate(current, target, pace)
+}
+
+enum class WizardPacePreset { SLOW, MEDIUM, FAST }
+
+data class PhysiqueGroupInfo(
+    val group: Int,
+    val rangeLabel: String,
+    val title: String,
+    val description: String,
+    val midpointBodyFat: Double,
+    val defaultMuscle: Double,
+)
+
+val PhysiqueGroups: List<PhysiqueGroupInfo> = listOf(
+    PhysiqueGroupInfo(1, "8–12%", "Muy definido", "Abdominales muy visibles, venas marcadas y mínima grasa subcutánea. Típico de etapa de competición.", 10.0, 45.0),
+    PhysiqueGroupInfo(2, "13–17%", "Definido", "Abdomen marcado y separación muscular visible. Se notan líneas intermusculares.", 15.0, 43.0),
+    PhysiqueGroupInfo(3, "18–22%", "Moderadamente definido", "Tono visible con ligera cobertura. Atleta con base entrenada.", 20.0, 41.0),
+    PhysiqueGroupInfo(4, "23–27%", "Suave", "Silueta regular, sin definición marcada pero sin exceso evidente.", 25.0, 39.5),
+    PhysiqueGroupInfo(5, "28–32%", "Grasa moderada", "Acumulación visible en abdomen y cadera. Perfil común sin entrenamiento frecuente.", 30.0, 37.5),
+    PhysiqueGroupInfo(6, "33–37%", "Grasa elevada", "Volumen general con poca definición y perímetro abdominal amplio.", 35.0, 35.0),
+    PhysiqueGroupInfo(7, "38%+", "Grasa muy elevada", "Cobertura amplia y silueta redondeada. Punto de partida para pérdida sostenida.", 40.0, 32.0),
+)
+
+fun physiqueGroupFor(group: Int): PhysiqueGroupInfo =
+    PhysiqueGroups.firstOrNull { it.group == group.coerceIn(1, 7) } ?: PhysiqueGroups[3]
+
+fun defaultBodyFatForGroup(group: Int): Double = physiqueGroupFor(group).midpointBodyFat
+
+fun bodyFatForSliderPos(pos: Float): Double {
+    val p = pos.coerceIn(1f, 7f).toDouble()
+    val lo = kotlin.math.floor(p).toInt().coerceIn(1, 7)
+    val hi = kotlin.math.ceil(p).toInt().coerceIn(1, 7)
+    if (lo == hi) return physiqueGroupFor(lo).midpointBodyFat
+    val frac = p - lo
+    val loFat = physiqueGroupFor(lo).midpointBodyFat
+    val hiFat = physiqueGroupFor(hi).midpointBodyFat
+    return loFat + (hiFat - loFat) * frac
+}
+
+fun physiqueLabelForSliderPos(pos: Float): String {
+    val p = pos.coerceIn(1f, 7f)
+    val est = bodyFatForSliderPos(p).toInt()
+    val nearest = kotlin.math.round(p).toInt().coerceIn(1, 7)
+    val info = physiqueGroupFor(nearest)
+    val dist = kotlin.math.abs(p - nearest)
+    return if (dist < 0.18f) "${info.title} · ${info.rangeLabel} · ~${est}% grasa"
+    else "~${est}% grasa · entre ${physiqueGroupFor(kotlin.math.floor(p.toDouble()).toInt().coerceIn(1, 7)).title} y ${physiqueGroupFor(kotlin.math.ceil(p.toDouble()).toInt().coerceIn(1, 7)).title}"
+}
+
+fun physiqueDescForSliderPos(pos: Float): String {
+    val p = pos.coerceIn(1f, 7f)
+    val est = bodyFatForSliderPos(p).toInt()
+    val nearest = kotlin.math.round(p).toInt().coerceIn(1, 7)
+    val info = physiqueGroupFor(nearest)
+    val dist = kotlin.math.abs(p - nearest)
+    return if (dist < 0.18f) "${info.description} Estimado ~${est}%."
+    else "Estás entre dos fotos. Tomamos ~${est}% como estimado: ${info.description.lowercase()}"
+}
+
+fun paceRateFor(direction: PlanDirection, preset: WizardPacePreset): Double? = when (direction) {
+    PlanDirection.DEFICIT -> when (preset) {
+        WizardPacePreset.SLOW -> 0.0025
+        WizardPacePreset.MEDIUM -> 0.005
+        WizardPacePreset.FAST -> 0.008
+    }
+    PlanDirection.SURPLUS -> when (preset) {
+        WizardPacePreset.SLOW -> 0.0015
+        WizardPacePreset.MEDIUM -> 0.0025
+        WizardPacePreset.FAST -> 0.004
+    }
+    PlanDirection.MAINTENANCE, PlanDirection.PROFESSIONAL -> null
+}
+
+fun calorieBoundsFor(direction: PlanDirection, eerKcal: Double?): IntRange? {
+    if (eerKcal == null || !eerKcal.isFinite()) return null
+    val lo: Int
+    val hi: Int
+    when (direction) {
+        PlanDirection.DEFICIT -> {
+            lo = (eerKcal - 900.0).coerceAtLeast(1200.0).toInt()
+            hi = (eerKcal + 200.0).toInt()
+            if (hi <= lo) return lo..(lo + 50)
+            return lo..hi
+        }
+        PlanDirection.SURPLUS -> {
+            lo = eerKcal.toInt()
+            hi = (eerKcal + 500.0).toInt()
+            return lo..hi
+        }
+        PlanDirection.MAINTENANCE -> {
+            lo = (eerKcal - 150.0).coerceAtLeast(1200.0).toInt()
+            hi = (eerKcal + 150.0).toInt()
+            return lo..hi
+        }
+        PlanDirection.PROFESSIONAL -> return null
+    }
+}
+
+fun wizardPhysiqueDrawableId(group: Int, sex: EerSex?, context: android.content.Context): Int {
+    val g = group.coerceIn(1, 7)
+    val prefix = if (sex == EerSex.FEMALE) "wizard_m" else "wizard_h"
+    val suffix = when (g) {
+        1 -> "08_12"
+        2 -> "13_17"
+        3 -> "18_22"
+        4 -> "23_27"
+        5 -> "28_32"
+        6 -> "33_37"
+        else -> "38p"
+    }
+    val name = "${prefix}_${suffix}"
+    val id = context.resources.getIdentifier(name, "drawable", context.packageName)
+    return if (id != 0) id else android.R.drawable.ic_menu_gallery
 }
 
 /** Locale-aware decimal parser used by the wizard and by unit tests. */
