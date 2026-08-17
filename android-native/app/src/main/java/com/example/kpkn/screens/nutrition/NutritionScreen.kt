@@ -2,6 +2,7 @@ package com.example.kpkn.screens.nutrition
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -37,6 +38,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.*
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.LocalHazeState
 import com.example.kpkn.ui.components.kpknGlass
 import com.example.kpkn.ui.components.kpknGlassOrFallback
@@ -121,13 +123,12 @@ fun NutritionScreen(
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface),
+        modifier = Modifier.fillMaxSize(),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface)
                 .hazeSource(state = nutritionHazeState),
         ) {
             LazyColumn(
@@ -220,10 +221,10 @@ fun NutritionScreen(
         val pillShape = RoundedCornerShape(999.dp)
         val yellowGlassStyle = remember {
             HazeStyle(
-                blurRadius = 24.dp,
-                tint = HazeTint(Color(0xFFFFD600).copy(alpha = 0.16f)),
-                backgroundColor = Color.Black.copy(alpha = 0.38f),
-                noiseFactor = 0.05f,
+                blurRadius = KpknGlass.BlurRadius,
+                tint = HazeTint(Color(0xFFFFD600).copy(alpha = 0.14f)),
+                backgroundColor = Color.Black.copy(alpha = 0.60f),
+                noiseFactor = KpknGlass.NoiseFactor,
             )
         }
         Box(
@@ -726,6 +727,7 @@ private fun QuickAddBar(onMealTypeClick: (MealType) -> Unit) {
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = TEAL.copy(alpha = 0.08f)),
+        border = BorderStroke(1.dp, TEAL.copy(alpha = 0.20f)),
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
@@ -747,8 +749,8 @@ private fun QuickAddBar(onMealTypeClick: (MealType) -> Unit) {
                             .clip(RoundedCornerShape(12.dp))
                             .clickable { onMealTypeClick(meal) },
                         shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.surfaceContainerLow,
-                        tonalElevation = 1.dp,
+                        color = Color(0xFF1E1E26),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
                     ) {
                         Column(
                             modifier = Modifier.padding(vertical = 10.dp),
@@ -789,7 +791,8 @@ private fun MacroBarsSection(dailyTotals: DailyMacroTotals) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF16161C)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Text(
@@ -828,15 +831,16 @@ private fun DailyEnergyBalanceCard(balance: DailyEnergyBalance) {
         DailyEnergyStatus.SURPLUS -> Color(0xFF7E57C2)
     }
     val statusLabel = when (balance.status) {
-        DailyEnergyStatus.DEFICIT -> "D\u00E9ficit"
-        DailyEnergyStatus.MAINTENANCE -> "Mantenci\u00F3n"
-        DailyEnergyStatus.SURPLUS -> "Super\u00E1vit"
+        DailyEnergyStatus.DEFICIT -> "Déficit"
+        DailyEnergyStatus.MAINTENANCE -> "Mantención"
+        DailyEnergyStatus.SURPLUS -> "Superávit"
     }
 
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = statusColor.copy(alpha = 0.08f)),
+        border = BorderStroke(1.dp, statusColor.copy(alpha = 0.20f)),
     ) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(
@@ -941,7 +945,8 @@ private fun MealGroupCard(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 3.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF16161C)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             // Header
@@ -1088,7 +1093,8 @@ private fun CalorieTrendChart(
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF16161C)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Text(
@@ -1197,6 +1203,8 @@ private fun NutritionHistoryCoverageCard(series: NutritionHistorySeries) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
         shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF16161C)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
     ) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Text("HISTÓRICO", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
@@ -1226,7 +1234,8 @@ private fun BodyKpiSection(
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF16161C)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Row(
