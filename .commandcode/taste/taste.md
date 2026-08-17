@@ -1,2 +1,2 @@
 # Taste
-See [taste/taste.md](taste/taste.md)
+- Prefers initial wizard screens with blank numeric fields to remain visually clean: do not show validation alerts such as "Peso válido requerido" or redundant bottom instructional messages about entering weight/body data immediately on first open; relies solely on the disabled Continue button to signal missing required data and only surfaces field errors after the user attempts to continue. Confidence: 0.92
