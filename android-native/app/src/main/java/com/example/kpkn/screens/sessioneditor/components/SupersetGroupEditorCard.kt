@@ -129,8 +129,8 @@ internal fun SupersetGroupEditorCard(
             .fillMaxWidth()
             .onGloballyPositioned { onBoundsChange(it.boundsInWindow()) }
             .graphicsLayer {
-                translationX = 0f
-                translationY = 0f
+                translationX = if (isDragging) dragOffset.x else 0f
+                translationY = if (isDragging) dragOffset.y else 0f
                 alpha = if (isDragging) 0.22f else 1f
                 shadowElevation = if (isDragging) 6.dp.toPx() else 0f
             }

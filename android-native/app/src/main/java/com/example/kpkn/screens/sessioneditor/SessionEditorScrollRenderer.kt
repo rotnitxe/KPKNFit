@@ -1,10 +1,5 @@
 package com.example.kpkn.screens.sessioneditor
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
@@ -13,18 +8,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,37 +21,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.kpkn.data.models.ExerciseMuscleInfo
-import com.example.kpkn.domain.exercises.resolveCatalogInfoForDisplay
-import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
-import com.example.kpkn.domain.workout.SupersetRules
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import com.example.kpkn.screens.sessioneditor.resolvePartAccent
-import com.example.kpkn.screens.sessioneditor.resolveExerciseAccentHex
-import com.example.kpkn.screens.sessioneditor.toEditorColor
+import com.example.kpkn.domain.exercises.resolveCatalogInfoForDisplay
+import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.screens.sessioneditor.components.CompetitionSessionEditor
-import com.example.kpkn.screens.sessioneditor.components.GroupEditorCard
 import com.example.kpkn.screens.sessioneditor.components.ExerciseEditorCard
+import com.example.kpkn.screens.sessioneditor.components.GroupEditorCard
 import com.example.kpkn.screens.sessioneditor.components.SupersetGroupEditorCard
 import com.example.kpkn.screens.sessioneditor.components.matchesCompetitionMovement
 
@@ -95,13 +74,11 @@ internal fun SessionEditorListItem(
     projectedShiftFor: (String, Int, String) -> Float,
     viewModel: SessionEditorViewModel,
 ) {
-    // M2: anchorNames memoizado O(1) en lugar de O(n) por tarjeta
     val anchorNames = remember(session.exercises, session.parts) {
         session.allExercises().associate { ex ->
             ex.resolvedCanonicalExerciseId()?.lowercase()?.trim().orEmpty() to ex.name
         }.filterKeys { it.isNotEmpty() }
     }
-    // M4: supersetGroups memoizado
     val supersetGroupsById = remember(session.supersetGroups) {
         session.supersetGroups.associateBy { it.id }
     }
@@ -341,9 +318,6 @@ internal fun SessionEditorListItem(
             val displayName = part.name.trim().ifBlank { "este grupo" }
             val partAccent = remember(part.color) { resolvePartAccent(part.color) }
             val footerShape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
-            // Slide the footer down in sync with the exercises above it when a drag
-            // targets the end of this part, so it doesn't stay frozen in place and
-            // visually detach from the rearranging cards.
             val footerShiftY by animateFloatAsState(
                 targetValue = if (draggingExerciseId != null) {
                     dragController.projectedFooterShiftFor(part.id, part.exercises.size)
@@ -353,8 +327,15 @@ internal fun SessionEditorListItem(
                 animationSpec = tween(160),
                 label = "partAddFooterDnDShift",
             )
-            if (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex != null && exerciseDropTargetIndex >= part.exercises.size && draggingExerciseId != null) {
-                SessionEditorDropIndicator(visible = true, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
+            val isDropTargetAtEnd = exerciseDropTargetPartId == part.id &&
+                exerciseDropTargetIndex != null &&
+                exerciseDropTargetIndex >= part.exercises.size &&
+                draggingExerciseId != null
+            if (isDropTargetAtEnd) {
+                SessionEditorDropIndicator(
+                    visible = true,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                )
             }
             Box(
                 modifier = Modifier
@@ -364,7 +345,11 @@ internal fun SessionEditorListItem(
                     .background(partAccent.brush(alpha = 0.06f))
                     .graphicsLayer { translationY = footerShiftY }
                     .padding(horizontal = 4.dp, vertical = 6.dp)
-                    .onGloballyPositioned { onPartContentBoundsReport(part.id, it.boundsInWindow()) },
+                    .onGloballyPositioned {
+                        val rect = it.boundsInWindow()
+                        dragController.registerPartFooterBounds(part.id, rect)
+                        onPartContentBoundsReport(part.id, rect)
+                    },
             ) {
                 FilledTonalButton(
                     onClick = { viewModel.openPicker(part.id) },
@@ -414,6 +399,18 @@ private fun LooseExerciseItem(
 ) {
     val partId = "__loose__"
     val accentHex = resolveExerciseAccentHex(session, partColor = null)
+    val isLooseInsertBefore = exerciseDropTargetPartId == "__loose__" &&
+        exerciseDropTargetIndex == index &&
+        draggingExerciseId != null &&
+        draggingExerciseId != exercise.id
+
+    if (isLooseInsertBefore) {
+        SessionEditorDropIndicator(
+            visible = true,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+        )
+    }
+
     key("loose|${exercise.id}") {
         ExerciseEditorCard(
             exercise = exercise,
@@ -422,8 +419,6 @@ private fun LooseExerciseItem(
             partId = partId,
             isCompetitionMovement = exercise.matchesCompetitionMovement(competitionMovementIds),
             modifier = Modifier.fillMaxWidth(),
-            // Cardio uses the same folded card contract as strength: its only
-            // intentional header difference is the missing goal star.
             enableDrag = true,
             isDragging = draggingExerciseId == exercise.id,
             dragOffset = if (draggingExerciseId == exercise.id) draggingExerciseOffset else Offset.Zero,
@@ -467,8 +462,20 @@ private fun LooseExerciseItem(
             },
         )
     }
-    val isLooseInsertBefore = exerciseDropTargetPartId == "__loose__" && exerciseDropTargetIndex == index && draggingExerciseId != null && draggingExerciseId != exercise.id
-    if (isLooseInsertBefore) { SessionEditorDropIndicator(visible = true) }
+
+    val isLooseInsertAtEnd = exerciseDropTargetPartId == "__loose__" &&
+        index == exercises.lastIndex &&
+        exerciseDropTargetIndex == exercises.size &&
+        draggingExerciseId != null &&
+        draggingExerciseId != exercise.id
+
+    if (isLooseInsertAtEnd) {
+        SessionEditorDropIndicator(
+            visible = true,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+        )
+    }
+
     ExerciseListDivider(
         exercise = exercise,
         index = index,
@@ -499,6 +506,18 @@ private fun PartExerciseItem(
     projectedShiftFor: (String, Int, String) -> Float,
     viewModel: SessionEditorViewModel,
 ) {
+    val isPartInsertBefore = exerciseDropTargetPartId == part.id &&
+        exerciseDropTargetIndex == index &&
+        draggingExerciseId != null &&
+        draggingExerciseId != exercise.id
+
+    if (isPartInsertBefore) {
+        SessionEditorDropIndicator(
+            visible = true,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+        )
+    }
+
     key("${part.id}|${exercise.id}") {
         val accentHex = resolveExerciseAccentHex(session, part.color)
         ExerciseEditorCard(
@@ -508,8 +527,6 @@ private fun PartExerciseItem(
             partId = part.id,
             isCompetitionMovement = exercise.matchesCompetitionMovement(competitionMovementIds),
             modifier = Modifier.fillMaxWidth(),
-            // Cardio uses the same folded card contract as strength: its only
-            // intentional header difference is the missing goal star.
             enableDrag = true,
             isDragging = draggingExerciseId == exercise.id,
             dragOffset = if (draggingExerciseId == exercise.id) draggingExerciseOffset else Offset.Zero,
@@ -553,8 +570,7 @@ private fun PartExerciseItem(
             },
         )
     }
-    val isPartInsertBefore = exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == index && draggingExerciseId != null && draggingExerciseId != exercise.id
-    if (isPartInsertBefore) { SessionEditorDropIndicator(visible = true) }
+
     ExerciseListDivider(
         exercise = exercise,
         index = index,
@@ -589,6 +605,19 @@ private fun LooseSupersetItem(
     val partId = "__loose__"
     val accentHex = resolveExerciseAccentHex(session, partColor = null)
     val firstMember = supersetMembers.first()
+
+    val isLooseSupersetInsertBefore = exerciseDropTargetPartId == "__loose__" &&
+        exerciseDropTargetIndex == index &&
+        draggingExerciseId != null &&
+        supersetMembers.none { it.id == draggingExerciseId }
+
+    if (isLooseSupersetInsertBefore) {
+        SessionEditorDropIndicator(
+            visible = true,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+        )
+    }
+
     SupersetGroupEditorCard(
         group = supersetGroup,
         exercises = supersetMembers,
@@ -619,11 +648,11 @@ private fun LooseSupersetItem(
         onRemoveRound = { roundIndex -> viewModel.removeSupersetRound(supersetGroup.id, null, roundIndex) },
         relationshipAnchorName = { member -> resolveRelationshipAnchorName(session, member) },
         onOpenRelationshipPicker = { exerciseId -> viewModel.openRelationshipPicker(null, exerciseId) },
-         onClearRelationship = { exerciseId -> viewModel.linkExerciseRelativeTo(null, exerciseId, null) },
-         onRemoveFromSuperset = { groupId, exerciseId -> viewModel.removeExerciseFromSupersetGroup(groupId, null, exerciseId) },
-         onDeleteExerciseFromSuperset = { groupId, exerciseId -> viewModel.deleteExerciseFromSupersetGroup(groupId, null, exerciseId) },
-         onDissolve = viewModel::dissolveSupersetGroup,
-         onDeleteGroup = viewModel::deleteSupersetGroup,
+        onClearRelationship = { exerciseId -> viewModel.linkExerciseRelativeTo(null, exerciseId, null) },
+        onRemoveFromSuperset = { groupId, exerciseId -> viewModel.removeExerciseFromSupersetGroup(groupId, null, exerciseId) },
+        onDeleteExerciseFromSuperset = { groupId, exerciseId -> viewModel.deleteExerciseFromSupersetGroup(groupId, null, exerciseId) },
+        onDissolve = viewModel::dissolveSupersetGroup,
+        onDeleteGroup = viewModel::deleteSupersetGroup,
         onAddRound = {
             val nextRound = ((supersetGroup.rounds ?: supersetMembers.maxOfOrNull { it.sets.size } ?: 0) + 1).coerceAtLeast(1)
             viewModel.updateSupersetRest(supersetGroup.id, null, null, nextRound)
@@ -642,8 +671,6 @@ private fun LooseSupersetItem(
                     partId = partId,
                     isCompetitionMovement = member.matchesCompetitionMovement(competitionMovementIds),
                     modifier = Modifier.fillMaxWidth(),
-                    // Superset members, including cardio, remain draggable
-                    // through the shared exercise-card interaction.
                     enableDrag = true,
                     isDragging = draggingExerciseId == member.id,
                     dragOffset = if (draggingExerciseId == member.id) draggingExerciseOffset else Offset.Zero,
@@ -692,6 +719,20 @@ private fun LooseSupersetItem(
             }
         }
     }
+
+    val isLooseSupersetInsertAtEnd = exerciseDropTargetPartId == "__loose__" &&
+        index == exercises.lastIndex &&
+        exerciseDropTargetIndex == exercises.size &&
+        draggingExerciseId != null &&
+        supersetMembers.none { it.id == draggingExerciseId }
+
+    if (isLooseSupersetInsertAtEnd) {
+        SessionEditorDropIndicator(
+            visible = true,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+        )
+    }
+
     ExerciseListDivider(
         exercise = firstMember,
         index = index,
@@ -725,6 +766,19 @@ private fun PartSupersetItem(
 ) {
     val accentHex = resolveExerciseAccentHex(session, part.color)
     val firstMember = supersetMembers.first()
+
+    val isPartSupersetInsertBefore = exerciseDropTargetPartId == part.id &&
+        exerciseDropTargetIndex == index &&
+        draggingExerciseId != null &&
+        supersetMembers.none { it.id == draggingExerciseId }
+
+    if (isPartSupersetInsertBefore) {
+        SessionEditorDropIndicator(
+            visible = true,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+        )
+    }
+
     SupersetGroupEditorCard(
         group = supersetGroup,
         exercises = supersetMembers,
@@ -778,8 +832,6 @@ private fun PartSupersetItem(
                     partId = part.id,
                     isCompetitionMovement = member.matchesCompetitionMovement(competitionMovementIds),
                     modifier = Modifier.fillMaxWidth(),
-                    // Superset members, including cardio, remain draggable
-                    // through the shared exercise-card interaction.
                     enableDrag = true,
                     isDragging = draggingExerciseId == member.id,
                     dragOffset = if (draggingExerciseId == member.id) draggingExerciseOffset else Offset.Zero,
