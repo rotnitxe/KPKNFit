@@ -223,7 +223,7 @@ fun NutritionScreen(
             HazeStyle(
                 blurRadius = KpknGlass.BlurRadius,
                 tint = HazeTint(Color(0xFFFFD600).copy(alpha = 0.14f)),
-                backgroundColor = Color.Black.copy(alpha = 0.60f),
+                backgroundColor = Color.Black.copy(alpha = 0.45f),
                 noiseFactor = KpknGlass.NoiseFactor,
             )
         }

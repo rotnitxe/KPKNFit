@@ -2,6 +2,7 @@ package com.example.kpkn.screens.nutrition
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -36,7 +37,13 @@ import com.example.kpkn.domain.body.goalProgressPercent
 import com.example.kpkn.domain.body.dailyMedianSeries
 import com.example.kpkn.domain.body.ewmaTrend
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
+import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknSheet
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.launch
 import java.time.ZoneId
 import java.util.UUID
@@ -129,6 +136,7 @@ fun BodyProgressScreen(
     val snackbarScope = rememberCoroutineScope()
     var heroMetric by rememberSaveable { mutableStateOf(BodyHeroMetric.WEIGHT) }
     val contextualBottomBarClearance = 110.dp
+    val bodyHazeState = remember { HazeState() }
 
     // Compute derived body metrics
     val composition = bodyUiState.latestComposition
@@ -196,10 +204,14 @@ fun BodyProgressScreen(
     val bodyFatTrendSeries = remember(bodyFatSeries) { smoothBodySeries(bodyFatSeries) }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black),
+        modifier = Modifier.fillMaxSize(),
     ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+                .hazeSource(state = bodyHazeState),
+        ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize(),
@@ -456,21 +468,68 @@ fun BodyProgressScreen(
             }
 
             item { Spacer(Modifier.height(100.dp)) }
+            }
         }
 
-        ExtendedFloatingActionButton(
-            onClick = {
-                editingEntry = null
-                showAddMeasurement = true
-            },
+        val pillShape = RoundedCornerShape(999.dp)
+        val yellowGlassStyle = remember {
+            HazeStyle(
+                blurRadius = KpknGlass.BlurRadius,
+                tint = HazeTint(Color(0xFFFFD600).copy(alpha = 0.14f)),
+                backgroundColor = Color.Black.copy(alpha = 0.45f),
+                noiseFactor = KpknGlass.NoiseFactor,
+            )
+        }
+        Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = contextualBottomBarClearance),
-            icon = { Icon(Icons.Default.Add, null) },
-            text = { Text("Registrar medición") },
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
-        )
+                .navigationBarsPadding()
+                .padding(end = 16.dp, bottom = 106.dp)
+                .clip(pillShape)
+                .hazeEffect(
+                    state = bodyHazeState,
+                    style = yellowGlassStyle,
+                )
+                .border(
+                    width = 1.dp,
+                    color = Color(0xFFFFD600).copy(alpha = 0.45f),
+                    shape = pillShape,
+                )
+                .clickable {
+                    editingEntry = null
+                    showAddMeasurement = true
+                }
+                .padding(horizontal = 18.dp, vertical = 12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = Color(0xFFFFD600).copy(alpha = 0.22f),
+                    modifier = Modifier.size(26.dp),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Registrar medidas",
+                            tint = Color(0xFFFFD600),
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    text = "Registrar medidas",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = Color(0xFFFFFBEB),
+                    letterSpacing = 0.2.sp,
+                )
+            }
+        }
 
         SnackbarHost(
             hostState = snackbarHostState,
