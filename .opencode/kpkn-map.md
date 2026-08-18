@@ -36,16 +36,19 @@
 - Verify the real code and Room schema when older docs disagree.
 
 <!-- KAUPOLIKAN_DYNAMIC_MAP_START -->
-Generated at: 2026-08-12T18:05:26.504Z
-Kotlin files: 494
-Room version detected in KpknDatabase.kt: 20
+Generated at: 2026-08-18T03:01:03.090Z
+Kotlin files: 512
+Room version detected in KpknDatabase.kt: 23
 
 ### Entities
 - ActiveProgramEntity
 - AugeAdaptiveCacheEntity
+- BodyGoalEntity
+- BodyObservationEntity
 - CompetitionRecordEntity
 - CustomExerciseEntity
 - CustomFoodEntity
+- DailyGoalSnapshotEntity
 - GlobalFoodEntity
 - GlobalFoodFtsEntity
 - JointEntity
@@ -55,6 +58,7 @@ Room version detected in KpknDatabase.kt: 20
 - MovementPatternEntity
 - MuscleGroupEntity
 - NutritionActiveStateEntity
+- NutritionCalibrationProfileEntity
 - NutritionLogEntity
 - NutritionPlanEntity
 - OngoingWorkoutEntity
@@ -90,7 +94,8 @@ Room version detected in KpknDatabase.kt: 20
 - MealHistory: nutrition/meal-history
 - Nutrition: nutrition
 - NutritionAction: nutrition/action/{action}
-- NutritionWizard: nutrition/wizard
+- NutritionCalibration: nutrition/calibration
+- NutritionWizard: nutrition/wizard?mode={mode}&planId={planId}
 - Profile: profile
 - ProgramDetail: program/{programId}?tab={tab}
 - SessionEditor: session-editor/{programId}/{sessionId}?weekId={weekId}&macroIndex={macroIndex}&mesoIndex={mesoIndex}&dayOfWeek={dayOfWeek}&configureCompetition={configureCompetition}
@@ -123,7 +128,10 @@ Room version detected in KpknDatabase.kt: 20
 ### ViewModels
 - android-native/app/src/main/java/com/example/kpkn/screens/auge/AugeViewModel.kt
 - android-native/app/src/main/java/com/example/kpkn/screens/home/HomeViewModel.kt
+- android-native/app/src/main/java/com/example/kpkn/screens/nutrition/BodyProgressViewModel.kt
+- android-native/app/src/main/java/com/example/kpkn/screens/nutrition/NutritionCalibrationViewModel.kt
 - android-native/app/src/main/java/com/example/kpkn/screens/nutrition/NutritionViewModel.kt
+- android-native/app/src/main/java/com/example/kpkn/screens/nutrition/NutritionWizardViewModel.kt
 - android-native/app/src/main/java/com/example/kpkn/screens/programdetail/ProgramDetailViewModel.kt
 - android-native/app/src/main/java/com/example/kpkn/screens/programs/ProgramsViewModel.kt
 - android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorViewModel.kt
@@ -132,9 +140,11 @@ Room version detected in KpknDatabase.kt: 20
 
 ### Repositories
 - android-native/app/src/main/java/com/example/kpkn/data/repository/AugeRepository.kt
+- android-native/app/src/main/java/com/example/kpkn/data/repository/BodyProgressRepository.kt
 - android-native/app/src/main/java/com/example/kpkn/data/repository/CompetitionRepository.kt
 - android-native/app/src/main/java/com/example/kpkn/data/repository/CustomExerciseRepository.kt
 - android-native/app/src/main/java/com/example/kpkn/data/repository/LearnRepository.kt
+- android-native/app/src/main/java/com/example/kpkn/data/repository/NutritionCalibrationRepository.kt
 - android-native/app/src/main/java/com/example/kpkn/data/repository/NutritionRepository.kt
 - android-native/app/src/main/java/com/example/kpkn/data/repository/ProgramRepository.kt
 - android-native/app/src/main/java/com/example/kpkn/data/repository/SessionTemplateRepository.kt
