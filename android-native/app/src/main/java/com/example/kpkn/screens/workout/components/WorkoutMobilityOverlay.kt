@@ -617,10 +617,17 @@ fun WorkoutMobilityOverlay(
                                                     color = Color.White.copy(alpha = 0.90f),
                                                 )
                                                 Text(
-                                                    comp.description,
+                                                    comp.objective,
                                                     style = MaterialTheme.typography.labelSmall,
                                                     color = Color.White.copy(alpha = 0.50f),
-                                                    maxLines = 1,
+                                                    maxLines = 2,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                )
+                                                Text(
+                                                    comp.instructions.orEmpty(),
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    color = Color.White.copy(alpha = 0.68f),
+                                                    maxLines = 2,
                                                     overflow = TextOverflow.Ellipsis,
                                                 )
                                             }
