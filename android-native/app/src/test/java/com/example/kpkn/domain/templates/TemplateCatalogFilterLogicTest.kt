@@ -34,7 +34,7 @@ class TemplateCatalogFilterLogicTest {
         )
         val result = TemplateCatalogFilterLogic.filterTemplates(templates, facetsById, filters)
         assertTrue("Debe encontrar el push intermedio de hipertrofia: $result", result.isNotEmpty())
-        assertTrue("El push (sys-push-ppl) debe estar presente", result.any { it.id == "sys-push-ppl" })
+        assertTrue("El push (sys-v3-push-ppl) debe estar presente", result.any { it.id == "sys-v3-push-ppl" })
 
         result.forEach { template ->
             assertTrue(TemplateCatalogFilterLogic.matchesSessionType(template, TemplateSessionType.EMPUJE))
@@ -45,7 +45,7 @@ class TemplateCatalogFilterLogicTest {
 
     @Test
     fun pushTambienMatcheaPechoPorTagsYfocus() {
-        val push = templates.first { it.id == "sys-push-ppl" }
+        val push = templates.first { it.id == "sys-v3-push-ppl" }
         assertTrue(TemplateCatalogFilterLogic.matchesSessionType(push, TemplateSessionType.EMPUJE))
         assertTrue(TemplateCatalogFilterLogic.matchesSessionType(push, TemplateSessionType.PECHO))
     }
@@ -60,7 +60,7 @@ class TemplateCatalogFilterLogicTest {
         assertTrue("Debe haber sesiones de tirón", result.isNotEmpty())
         assertFalse(
             "El push no debe aparecer entre las sesiones de tirón",
-            result.any { it.id == "sys-push-ppl" },
+            result.any { it.id == "sys-v3-push-ppl" },
         )
     }
 
@@ -73,7 +73,7 @@ class TemplateCatalogFilterLogicTest {
         )
         assertFalse(
             "Una sesión de empuje (tren superior) no puede aparecer en zona inferior",
-            result.any { it.id == "sys-push-ppl" },
+            result.any { it.id == "sys-v3-push-ppl" },
         )
         result.forEach { template ->
             val facets = facetsById.getValue(template.id)
@@ -90,7 +90,7 @@ class TemplateCatalogFilterLogicTest {
         )
         assertTrue(
             "El push debe reconocerse como sesión de tren superior",
-            result.any { it.id == "sys-push-ppl" },
+            result.any { it.id == "sys-v3-push-ppl" },
         )
     }
 
@@ -186,7 +186,7 @@ class TemplateCatalogFilterLogicTest {
                 sessionType = TemplateSessionType.TIRON,
             ),
         )
-        assertFalse(busquedaMasTiron.any { it.id == "sys-push-ppl" })
+        assertFalse(busquedaMasTiron.any { it.id == "sys-v3-push-ppl" })
     }
 
     @Test

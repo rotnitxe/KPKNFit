@@ -230,7 +230,8 @@ object TemplateCatalogFilterLogic {
      * pero no se listan en el navegador principal.
      */
     fun isHiddenCatalogClone(template: SessionTemplate): Boolean =
-        template.id.startsWith("sys-independent-")
+        template.id.startsWith("sys-independent-") ||
+            template.id.startsWith("sys-v3-independent-")
 
     fun dominantGroup(category: SessionTemplateFocusCategory?): TemplateDominantGroup = when (category) {
         SessionTemplateFocusCategory.PIERNAS,

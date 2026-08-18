@@ -28,7 +28,7 @@ class SessionTemplateFacetsTest {
 
     @Test
     fun pushClassifiesUpperAnteriorAndPectorales() {
-        val facets = facets("sys-push-ppl")
+        val facets = facets("sys-v3-push-ppl")
 
         assertTrue("Push debe ser tren superior: ${facets.regions}", ExerciseCatalogRegion.UPPER in facets.regions)
         assertFalse("Push no debe ser tren inferior", ExerciseCatalogRegion.LOWER in facets.regions)
@@ -48,7 +48,7 @@ class SessionTemplateFacetsTest {
 
     @Test
     fun legsClassifyPosteriorAndAnteriorByTemplate() {
-        val hinge = facets("sys-legs-hinge")
+        val hinge = facets("sys-v3-legs-hinge")
         assertTrue("Bisagra debe ser LOWER: ${hinge.regions}", ExerciseCatalogRegion.LOWER in hinge.regions)
         assertTrue(
             "Bisagra debe incluir cadena posterior: ${hinge.chains}",
@@ -56,7 +56,7 @@ class SessionTemplateFacetsTest {
         )
         assertTrue(SessionTemplateFacetsBuilder.matchesChain(hinge, SessionTemplateChain.POSTERIOR))
 
-        val quad = facets("sys-legs-quad")
+        val quad = facets("sys-v3-legs-quad")
         assertTrue("Quad debe ser LOWER: ${quad.regions}", ExerciseCatalogRegion.LOWER in quad.regions)
         assertTrue(
             "Quad debe incluir cadena anterior: ${quad.chains}",
@@ -64,15 +64,15 @@ class SessionTemplateFacetsTest {
         )
         assertTrue(SessionTemplateFacetsBuilder.matchesChain(quad, SessionTemplateChain.ANTERIOR))
 
-        val ant = facets("sys-ant-chain-ap")
+        val ant = facets("sys-v3-ant-chain-ap")
         assertTrue(SessionTemplateChain.ANTERIOR in ant.chains)
-        val post = facets("sys-post-chain-ap")
+        val post = facets("sys-v3-post-chain-ap")
         assertTrue(SessionTemplateChain.POSTERIOR in post.chains)
     }
 
     @Test
     fun fullBodyDetectsFullOrMultipleRegions() {
-        val full = facets("sys-fullbody-base")
+        val full = facets("sys-v3-fullbody-base")
         val hasFullFlag = ExerciseCatalogRegion.FULL in full.regions
         val hasUpperAndLower =
             ExerciseCatalogRegion.UPPER in full.regions && ExerciseCatalogRegion.LOWER in full.regions
@@ -83,7 +83,7 @@ class SessionTemplateFacetsTest {
         assertTrue(SessionTemplateFacetsBuilder.matchesRegion(full, ExerciseCatalogRegion.FULL))
         assertEquals(ExerciseCatalogRegion.FULL, full.dominantRegion)
 
-        val antChain = facets("sys-ant-chain-ap")
+        val antChain = facets("sys-v3-ant-chain-ap")
         assertTrue(
             "Cadena anterior mezcla torso+pierna → FULL o upper+lower: ${antChain.regions}",
             ExerciseCatalogRegion.FULL in antChain.regions ||
@@ -135,7 +135,7 @@ class SessionTemplateFacetsTest {
 
     @Test
     fun matchingHelpersRespectAllSentinel() {
-        val facets = facets("sys-push-ppl")
+        val facets = facets("sys-v3-push-ppl")
         assertTrue(SessionTemplateFacetsBuilder.matchesRegion(facets, ExerciseCatalogRegion.ALL))
         assertTrue(SessionTemplateFacetsBuilder.matchesChain(facets, SessionTemplateChain.ALL))
         assertTrue(SessionTemplateFacetsBuilder.matchesMuscle(facets, null))
