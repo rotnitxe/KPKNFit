@@ -3,6 +3,7 @@ package com.example.kpkn.domain.auge
 import com.example.kpkn.data.models.*
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
@@ -27,6 +28,17 @@ class ExerciseReadinessEngineArticularTest {
     @Before
     fun setUp() {
         // Clear or set up any required static exercise database state
+        resetExerciseIndex()
+    }
+
+    @After
+    fun tearDown() {
+        // Estas pruebas inyectan fixtures mínimos; nunca deben dejar ese mapa
+        // global contaminando tests que esperan el catálogo aprobado completo.
+        resetExerciseIndex()
+    }
+
+    private fun resetExerciseIndex() {
         val field = Class.forName("com.example.kpkn.data.exercises.ExerciseDatabaseKt")
             .getDeclaredField("exerciseDatabaseByIdCache")
         field.isAccessible = true
