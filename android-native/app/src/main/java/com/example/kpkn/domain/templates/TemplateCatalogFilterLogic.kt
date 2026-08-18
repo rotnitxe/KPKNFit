@@ -123,10 +123,35 @@ object TemplateCatalogFilterLogic {
     fun matchesSearch(template: SessionTemplate, query: String): Boolean {
         val q = query.trim()
         if (q.isEmpty()) return true
-        return template.name.contains(q, ignoreCase = true) ||
-            template.description.contains(q, ignoreCase = true) ||
-            template.muscleGroupsSummary.contains(q, ignoreCase = true) ||
-            template.shortDescription.contains(q, ignoreCase = true)
+        // El catálogo se muestra en español, pero conservar alias de búsqueda
+        // habituales evita que una consulta histórica (p. ej. "push") quede
+        // sin resultados tras la localización editorial.
+        val terms = buildSet {
+            add(q)
+            when (q.lowercase()) {
+                "push" -> add("empuje")
+                "pull" -> {
+                    add("tirón")
+                    add("tracción")
+                }
+                "leg", "legs", "lower" -> {
+                    add("pierna")
+                    add("piernas")
+                }
+                "upper" -> add("torso")
+                "full", "full body", "fullbody" -> add("cuerpo completo")
+                "deload" -> {
+                    add("descarga")
+                    add("recuperación")
+                }
+            }
+        }
+        return terms.any { term ->
+            template.name.contains(term, ignoreCase = true) ||
+                template.description.contains(term, ignoreCase = true) ||
+                template.muscleGroupsSummary.contains(term, ignoreCase = true) ||
+                template.shortDescription.contains(term, ignoreCase = true)
+        }
     }
 
     /**
