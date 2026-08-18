@@ -154,6 +154,7 @@ class SplitApplicationEngineTest {
             startDay = 1,
             existingSessions = emptyList(),
             migrationMode = SessionMigrationMode.PREBUILT,
+            exerciseIndex = emptyMap(),
         )
 
         assertEquals(4, sessions.size)
@@ -171,6 +172,7 @@ class SplitApplicationEngineTest {
         val split = SPLIT_TEMPLATES.first { it.id == "ul_x4" }
         val plan = SessionTemplateSuggestionEngine.suggestWeek(
             split = split,
+            exerciseIndex = emptyMap(),
             prefs = SuggestionPrefs(preferredDifficulty = split.difficulty),
         )
         val legPlans = plan.days.filter { it.dayLabel.equals("Pierna", ignoreCase = true) }
@@ -183,6 +185,7 @@ class SplitApplicationEngineTest {
             startDay = 1,
             existingSessions = emptyList(),
             migrationMode = SessionMigrationMode.PREBUILT,
+            exerciseIndex = emptyMap(),
             prefs = SuggestionPrefs(preferredDifficulty = split.difficulty),
         )
         val legSessions = sessions.filter { it.scheduleLabel.equals("Pierna", ignoreCase = true) }
