@@ -7,6 +7,7 @@ import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateFocusCategory
+import com.example.kpkn.data.sessions.SessionTemplateSourceType
 import com.example.kpkn.data.sessions.SessionTemplateTag
 import com.example.kpkn.data.splits.Difficulty
 import com.example.kpkn.domain.training.VolumeCalculator
@@ -75,11 +76,16 @@ object SessionTemplateQualityRules {
     ): TemplateQualityReport {
         val normalizedIndex = normalizeIndex(index)
         val exercises = template.session.allExercises()
+        val strictCatalog = template.sourceType == SessionTemplateSourceType.SYSTEM
         val resolved = exercises.map { exercise ->
-            exercise to resolveInfo(exercise, normalizedIndex)
+            exercise to resolveInfo(exercise, normalizedIndex, strict = strictCatalog)
         }
         val issues = mutableListOf<TemplateQualityIssue>()
 
+        checkStrictCatalogIdentity(template, resolved, issues)
+        checkCommonEquipment(template, resolved, issues)
+        checkSystemIntensity(template, resolved, issues)
+        checkHeavyPatternAlternation(template, resolved, issues)
         checkDirectVolumeCap(template, resolved, issues)
         checkBeginnerHardBodyweight(template, resolved, issues)
         checkBeginnerFreeCompound(template, resolved, issues)
@@ -107,6 +113,176 @@ object SessionTemplateQualityRules {
         index: Map<String, ExerciseMuscleInfo>,
     ): List<TemplateQualityReport> =
         auditAll(templates, index).filter { it.p0.isNotEmpty() }
+
+    private fun checkStrictCatalogIdentity(
+        template: SessionTemplate,
+        resolved: List<Pair<Exercise, ExerciseMuscleInfo?>>,
+        issues: MutableList<TemplateQualityIssue>,
+    ) {
+        if (template.sourceType != SessionTemplateSourceType.SYSTEM) return
+        val occurrences = mutableSetOf<String>()
+        resolved.forEach { (exercise, info) ->
+            val configurationId = exercise.catalogConfigurationId?.trim()?.lowercase()
+            if (configurationId.isNullOrBlank()) {
+                issues += TemplateQualityIssue(
+                    TemplateQualitySeverity.P0,
+                    "CATALOG_CONFIGURATION_MISSING",
+                    "'${exercise.name}' no tiene una configuración V2 explícita",
+                )
+                return@forEach
+            }
+            if (info == null) {
+                issues += TemplateQualityIssue(
+                    TemplateQualitySeverity.P0,
+                    "CATALOG_CONFIGURATION_UNKNOWN",
+                    "Configuración '$configurationId' no existe en el catálogo aprobado",
+                )
+                return@forEach
+            }
+            if (exercise.exerciseDbId?.trim()?.lowercase() != configurationId ||
+                exercise.exerciseId?.trim()?.lowercase() != configurationId
+            ) {
+                issues += TemplateQualityIssue(
+                    TemplateQualitySeverity.P0,
+                    "CATALOG_ID_ALIAS",
+                    "'${exercise.name}' no usa la configuración como identidad única",
+                )
+            }
+            if (exercise.catalogRevision != info.catalogRevision ||
+                exercise.catalogDefinitionId != info.catalogDefinitionId ||
+                exercise.performanceProfileId != info.performanceProfileId
+            ) {
+                issues += TemplateQualityIssue(
+                    TemplateQualitySeverity.P0,
+                    "CATALOG_IDENTITY_MISMATCH",
+                    "Identidad V2 inconsistente en '${exercise.name}' ($configurationId)",
+                )
+            }
+            if (exercise.selectedAspects != null) {
+                issues += TemplateQualityIssue(
+                    TemplateQualitySeverity.P0,
+                    "LEGACY_CHIP_STATE",
+                    "'${exercise.name}' conserva chips legacy; deben provenir de la configuración exacta",
+                )
+            }
+            val occurrenceId = exercise.occurrenceId?.trim()
+            if (occurrenceId.isNullOrBlank() || !occurrences.add(occurrenceId)) {
+                issues += TemplateQualityIssue(
+                    TemplateQualitySeverity.P0,
+                    "OCCURRENCE_ID_INVALID",
+                    "Ocurrencia duplicada o vacía en '${exercise.name}'",
+                )
+            }
+        }
+    }
+
+    private fun checkCommonEquipment(
+        template: SessionTemplate,
+        resolved: List<Pair<Exercise, ExerciseMuscleInfo?>>,
+        issues: MutableList<TemplateQualityIssue>,
+    ) {
+        if (template.sourceType != SessionTemplateSourceType.SYSTEM) return
+        val forbidden = listOf(
+            "banda", "band", "kettlebell", "pesa rusa", "trx", "hex", "inestable",
+            "safety bar", "slider", "deslizador",
+        )
+        resolved.forEach { (exercise, info) ->
+            val haystack = listOfNotNull(exercise.catalogConfigurationId, info?.equipment, info?.name)
+                .joinToString(" ")
+                .lowercase()
+            if (forbidden.any(haystack::contains)) {
+                issues += TemplateQualityIssue(
+                    TemplateQualitySeverity.P0,
+                    "NON_STANDARD_VARIANT",
+                    "La plantilla usa una variante no priorizada: '${exercise.name}'",
+                )
+            }
+        }
+    }
+
+    private fun checkSystemIntensity(
+        template: SessionTemplate,
+        resolved: List<Pair<Exercise, ExerciseMuscleInfo?>>,
+        issues: MutableList<TemplateQualityIssue>,
+    ) {
+        if (template.sourceType != SessionTemplateSourceType.SYSTEM) return
+        val powerlifting = SessionTemplateCatalogPolicy.isPowerliftingTemplate(template)
+        resolved.forEach { (exercise, info) ->
+            val compound = isCompound(info)
+            exercise.sets.forEachIndexed { index, set ->
+                val rpe = set.targetRPE ?: set.targetRIR?.let { (10 - it).toDouble() }
+                if (set.isFailure || set.isAmrap || set.targetRIR == 0) {
+                    issues += TemplateQualityIssue(
+                        TemplateQualitySeverity.P0,
+                        "SYSTEM_FAILURE_SET",
+                        "La serie ${index + 1} de '${exercise.name}' no puede ser fallo, AMRAP ni RIR 0",
+                    )
+                }
+                val maximum = when {
+                    powerlifting && compound -> 8.5
+                    compound -> 8.5
+                    else -> 9.0
+                }
+                if (rpe != null && (rpe < 6.0 || rpe > maximum)) {
+                    issues += TemplateQualityIssue(
+                        TemplateQualitySeverity.P0,
+                        "SYSTEM_INTENSITY_POLICY",
+                        "RPE/RIR fuera de política en '${exercise.name}' (serie ${index + 1}: $rpe; máximo $maximum)",
+                    )
+                }
+            }
+        }
+    }
+
+    private fun checkHeavyPatternAlternation(
+        template: SessionTemplate,
+        resolved: List<Pair<Exercise, ExerciseMuscleInfo?>>,
+        issues: MutableList<TemplateQualityIssue>,
+    ) {
+        if (template.sourceType != SessionTemplateSourceType.SYSTEM) return
+        fun primary(info: ExerciseMuscleInfo?): Set<String> = primaryMuscles(info)
+            .map(::canonicalMuscle)
+            .map(String::lowercase)
+            .toSet()
+        fun targetRpe(exercise: Exercise): Double = exercise.sets.mapNotNull {
+            it.targetRPE ?: it.targetRIR?.let { rir -> (10 - rir).toDouble() }
+        }.maxOrNull() ?: 0.0
+        fun heavy(exercise: Exercise, info: ExerciseMuscleInfo?): Boolean =
+            // La adyacencia se juzga por la intensidad prescrita, no por la
+            // demanda teórica del ejercicio. Una sentadilla o un press pueden
+            // ser técnicamente compuestos y aun así estar programados como
+            // trabajo moderado (RPE 6–7,5); contar esos casos como "pesados"
+            // hacía que las plantillas de volumen moderado fueran imposibles
+            // de ordenar sin falsos positivos.
+            isCompound(info) && targetRpe(exercise) >= 8.0
+        val squatCount = resolved.count { (exercise, info) ->
+            val pattern = info?.movementPattern.orEmpty().lowercase()
+            pattern.contains("knee_dominant") || pattern.contains("sentadilla") ||
+                exercise.catalogConfigurationId.orEmpty().contains("squat")
+        }
+        if (squatCount > 2) {
+            issues += TemplateQualityIssue(
+                TemplateQualitySeverity.P0,
+                "SQUAT_VARIANT_OVERLOAD",
+                "La plantilla contiene $squatCount variantes de sentadilla; el máximo del sistema es 2",
+            )
+        }
+        resolved.zipWithNext().forEach { (previous, current) ->
+            val (previousExercise, previousInfo) = previous
+            val (currentExercise, currentInfo) = current
+            if (!heavy(previousExercise, previousInfo) || !heavy(currentExercise, currentInfo)) return@forEach
+            val overlap = primary(previousInfo).intersect(primary(currentInfo)).isNotEmpty()
+            val previousPattern = previousInfo?.movementPattern.orEmpty()
+            val currentPattern = currentInfo?.movementPattern.orEmpty()
+            if (overlap || (previousPattern.isNotBlank() && previousPattern == currentPattern)) {
+                issues += TemplateQualityIssue(
+                    TemplateQualitySeverity.P0,
+                    "HEAVY_PATTERN_ADJACENCY",
+                    "Ejercicios pesados consecutivos comparten músculo o patrón: '${previousExercise.name}' → '${currentExercise.name}'",
+                )
+            }
+        }
+    }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
@@ -173,13 +349,21 @@ object SessionTemplateQualityRules {
     private fun resolveInfo(
         exercise: Exercise,
         index: Map<String, ExerciseMuscleInfo>,
-    ): ExerciseMuscleInfo? = resolveCatalogExerciseInfoInIndex(
-        index = index,
-        catalogConfigurationId = exercise.catalogConfigurationId,
-        exerciseDbId = exercise.exerciseDbId,
-        exerciseId = exercise.exerciseId,
-        exerciseName = exercise.name,
-    )
+        strict: Boolean = false,
+    ): ExerciseMuscleInfo? {
+        if (strict) {
+            val configurationId = exercise.catalogConfigurationId?.trim()?.lowercase()
+                ?: return null
+            return index[configurationId]
+        }
+        return resolveCatalogExerciseInfoInIndex(
+            index = index,
+            catalogConfigurationId = exercise.catalogConfigurationId,
+            exerciseDbId = exercise.exerciseDbId,
+            exerciseId = exercise.exerciseId,
+            exerciseName = exercise.name,
+        )
+    }
 
     private fun canonicalMuscle(raw: String, emphasis: String? = null): String =
         VolumeCalculator.normalizeCanonicalMuscleGroup(raw, emphasis).ifBlank { raw }
@@ -350,6 +534,24 @@ object SessionTemplateQualityRules {
     ) {
         // Isolation-only / HYPERFOCUSED days intentionally stack the focus muscle.
         if (isHyperfocused(template)) return
+
+        // En una plantilla dedicada (pecho, espalda, glúteos, etc.) es normal
+        // que tres accesorios consecutivos compartan el primario. La regla de
+        // alternancia sigue aplicándose a los días mixtos, donde sí protege la
+        // recuperación entre grupos; los compuestos pesados consecutivos se
+        // controlan de forma independiente en checkHeavyPatternAlternation.
+        val dedicatedFocus = template.focusCategory in setOf(
+            SessionTemplateFocusCategory.PECHO,
+            SessionTemplateFocusCategory.ESPALDA,
+            SessionTemplateFocusCategory.CUADRICEPS,
+            SessionTemplateFocusCategory.PIERNAS,
+            SessionTemplateFocusCategory.ISQUIOS,
+            SessionTemplateFocusCategory.CADENA_POSTERIOR,
+            SessionTemplateFocusCategory.GLUTEOS,
+            SessionTemplateFocusCategory.HOMBROS,
+            SessionTemplateFocusCategory.BRAZOS,
+        )
+        if (dedicatedFocus) return
 
         var streakMuscle: String? = null
         var streak = 0

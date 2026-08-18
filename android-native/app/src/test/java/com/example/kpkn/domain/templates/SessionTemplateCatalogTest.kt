@@ -116,6 +116,129 @@ class SessionTemplateCatalogTest {
     }
 
     @Test
+    fun systemTemplateEditorialTextIsSpanish() {
+        val forbiddenEnglishTerms = listOf(
+            "push day",
+            "pull day",
+            "leg day",
+            "legs day",
+            "full body",
+            "upper",
+            "lower",
+            "deload",
+            "short",
+            "abs",
+            "grip",
+            "pump",
+            "machine",
+            "dumbbells",
+            "barbell",
+        )
+        val offenders = SESSION_TEMPLATES_SYSTEM.flatMap { template ->
+            val texts = listOfNotNull(
+                template.name,
+                template.description,
+                template.shortDescription,
+                template.muscleGroupsSummary,
+                template.primaryFocusMuscle,
+                template.session.name,
+                template.session.description,
+            ) + template.splitDayLabels
+            texts.mapNotNull { text ->
+                forbiddenEnglishTerms.firstOrNull { term ->
+                    text.contains(term, ignoreCase = true)
+                }?.let { term -> "${template.id}: '$term' en '$text'" }
+            }
+        }
+        assertTrue("La interfaz de plantillas no debe publicar inglés heredado: $offenders", offenders.isEmpty())
+    }
+
+    @Test
+    fun systemTemplatesPassStrictV2CompilerGate() {
+        assertTrue(
+            "El catálogo V3 debe publicar al menos 100 plantillas del sistema",
+            SESSION_TEMPLATES_SYSTEM.size >= 100,
+        )
+        val uniqueConfigurationIds = SESSION_TEMPLATES_SYSTEM
+            .flatMap { it.session.allExercises() }
+            .mapNotNull { it.catalogConfigurationId?.trim()?.lowercase() }
+            .toSet()
+        assertTrue(
+            "La suite debe cubrir al menos 70 configuraciones V2 distintas (actual=${uniqueConfigurationIds.size})",
+            uniqueConfigurationIds.size >= 70,
+        )
+
+        val identityFailures = mutableListOf<String>()
+        SESSION_TEMPLATES_SYSTEM.forEach { template ->
+            assertEquals(SessionTemplateSourceType.SYSTEM, template.sourceType)
+            val occurrences = mutableSetOf<String>()
+            template.session.allExercises().forEach { exercise ->
+                val configurationId = exercise.catalogConfigurationId?.trim()?.lowercase()
+                val info = configurationId?.let { exerciseDatabaseById[it] }
+                if (configurationId == null || info == null) {
+                    identityFailures += "${template.id}: configuración '$configurationId' no existe"
+                    return@forEach
+                }
+                if (exercise.exerciseDbId?.trim()?.lowercase() != configurationId ||
+                    exercise.exerciseId?.trim()?.lowercase() != configurationId ||
+                    exercise.canonicalExerciseId?.trim()?.lowercase() != configurationId
+                ) {
+                    identityFailures += "${template.id}/${exercise.id}: identidad aliasada"
+                }
+                if (exercise.catalogRevision != info.catalogRevision ||
+                    exercise.catalogDefinitionId != info.catalogDefinitionId ||
+                    exercise.performanceProfileId != info.performanceProfileId
+                ) {
+                    identityFailures += "${template.id}/${exercise.id}: metadatos V2 inconsistentes"
+                }
+                if (exercise.selectedAspects != null ||
+                    exercise.occurrenceId.isNullOrBlank() ||
+                    !occurrences.add(exercise.occurrenceId!!)
+                ) {
+                    identityFailures += "${template.id}/${exercise.id}: chips u occurrenceId inválidos"
+                }
+            }
+        }
+        assertTrue(identityFailures.joinToString("\n"), identityFailures.isEmpty())
+
+        val forbiddenTerms = listOf("band", "kettlebell", "trx", "hex_bar", "slider", "safety_bar")
+        val forbidden = SESSION_TEMPLATES_SYSTEM.flatMap { template ->
+            template.session.allExercises().mapNotNull { exercise ->
+                val id = exercise.catalogConfigurationId.orEmpty().lowercase()
+                id.takeIf { forbiddenTerms.any(it::contains) }?.let { "${template.id}: $it" }
+            }
+        }
+        assertTrue("Variantes técnicas no priorizadas: $forbidden", forbidden.isEmpty())
+
+        val p0 = SessionTemplateQualityRules.p0Violations(SESSION_TEMPLATES_SYSTEM, exerciseIndexWithAliases)
+        assertTrue(
+            "El compilador V3 no debe dejar hallazgos P0: ${p0.flatMap { it.p0 }.take(12)}",
+            p0.isEmpty(),
+        )
+    }
+
+    @Test
+    fun specializedSplitsUseOnlyPowerliftingTemplates() {
+        SPLIT_TEMPLATES.filter { SplitTag.POWERLIFTING in it.tags }.forEach { split ->
+            split.pattern.filterNot { it.equals("Descanso", ignoreCase = true) }.forEach { dayLabel ->
+                val candidates = SessionTemplateCatalogPolicy.templatesForSplitDay(
+                    splitId = split.id,
+                    dayLabel = dayLabel,
+                    templates = SESSION_TEMPLATES_SYSTEM,
+                )
+                assertTrue(
+                    "El split especializado '${split.name}' no tiene plantilla para '$dayLabel'",
+                    candidates.isNotEmpty(),
+                )
+                assertTrue(
+                    "El día '$dayLabel' de '${split.name}' mezcló una plantilla no powerlifting: ${candidates.map { it.id }}",
+                    candidates.all(SessionTemplateCatalogPolicy::isPowerliftingTemplate),
+                )
+            }
+        }
+    }
+
+    @Test
     fun protocolExerciseLibraryUses_only_approved_catalog_configurations() {
         val referenced = setOf(
             ProtocolExerciseLibrary.SQUAT_MAIN,
@@ -304,7 +427,9 @@ class SessionTemplateCatalogTest {
 
     @Test
     fun auditProducesCountsDurationAndMusclesForRealTemplate() {
-        val template = SESSION_TEMPLATES_SYSTEM.first { it.id == "sys-push-ppl" }
+        val template = SESSION_TEMPLATES_SYSTEM.first {
+            it.id == "sys-v3-push-ppl" || it.name.contains("Empuje", ignoreCase = true)
+        }
         val audit = SessionTemplateAudit.audit(template, exerciseIndexWithAliases)
 
         val expectedExercises = template.session.exercises + template.session.parts.flatMap { it.exercises }

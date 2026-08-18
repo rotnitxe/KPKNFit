@@ -18,6 +18,7 @@ import com.example.kpkn.data.splits.SplitTemplate
 import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.templates.SessionTemplateCatalogPolicy
 import com.example.kpkn.domain.templates.SessionTemplateEngine
+import com.example.kpkn.domain.templates.SessionTemplateQualityRules
 import com.example.kpkn.domain.templates.SessionTemplateSuggestionEngine
 import com.example.kpkn.domain.templates.SuggestionPrefs
 import java.util.UUID
@@ -63,6 +64,7 @@ data class SplitTemplateSessionPreview(
     val exerciseCount: Int,
     val primaryFocusMuscle: String? = null,
     val focusLabel: String? = null,
+    val unavailabilityReason: String? = null,
     val alternatives: List<SplitTemplateAlternativePreview> = emptyList(),
 ) {
     val isAvailable: Boolean get() = templateId != null
@@ -246,6 +248,7 @@ object SplitApplicationEngine {
                     exerciseCount = day.template?.exerciseCount ?: 0,
                     primaryFocusMuscle = day.template?.primaryFocusMuscle,
                     focusLabel = day.template?.let { focusChipLabel(it) },
+                    unavailabilityReason = day.unavailabilityReason,
                     alternatives = day.alternatives.map { alt ->
                         SplitTemplateAlternativePreview(
                             templateId = alt.id,
@@ -315,7 +318,10 @@ object SplitApplicationEngine {
                                 splitId = it,
                                 dayLabel = day.label,
                                 templates = templates,
-                            ).firstOrNull()
+                            ).firstOrNull { candidate ->
+                                exerciseIndex.isEmpty() ||
+                                    SessionTemplateQualityRules.audit(candidate, exerciseIndex).p0.isEmpty()
+                            }
                         }
                     if (template == null) base
                     else SessionTemplateEngine.applyTemplate(template, base, SessionTemplateApplyMode.REPLACE).copy(

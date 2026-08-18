@@ -3,6 +3,8 @@ package com.example.kpkn.data.sessions
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.splits.Difficulty
+import com.example.kpkn.data.splits.SPLIT_TEMPLATES
+import com.example.kpkn.data.splits.SplitTag
 import kotlin.math.roundToInt
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -12,10 +14,12 @@ private const val TEMPLATE_SETUP_SECONDS = 90
 private const val TEMPLATE_DEFAULT_REST_SECONDS = 90
 private const val TEMPLATE_EXECUTION_SECONDS_PER_SET = 45
 private const val TEMPLATE_MIN_DURATION_MINUTES = 10
+private const val V3_DEFAULT_SETUP_SECONDS = 30
 private const val LOW_VOLUME_MIN_SETS = 8
 private const val LOW_VOLUME_MAX_SETS = 12
 private const val LOW_VOLUME_TARGET_SETS_PER_EXERCISE = 2
-private const val TEMPLATE_CATALOG_REVISION = "v2-approved-2026-08-02-c"
+/** Must match the approved exercise_catalog_v2.json asset. */
+internal const val TEMPLATE_CATALOG_REVISION = "v2-approved-2026-08-12-a"
 
 /**
  * Performance profiles are part of the compiled v2 identity.  Keeping this
@@ -29,13 +33,18 @@ private val TEMPLATE_PERFORMANCE_PROFILE_BY_CONFIGURATION = mapOf(
     "belt_squat__unilateral" to "belt_squat__machine__sentadilla_belt_squat",
     "bench_press__barbell" to "bench_press__barbell__press_de_banca",
     "bench_press__dumbbells" to "bench_press__dumbbells__press_de_banca",
+    "bench_press__machine" to "bench_press__machine__press_de_banca",
+    "bench_press__smith_machine" to "bench_press__smith_machine__press_de_banca",
     "biceps_curl_bayesian__dumbbells__supinated" to "biceps_curl_bayesian__dumbbells__supinated",
     "bulgarian_split_squat__barbell" to "bulgarian_split_squat__barbell__sentadilla_bulgara",
     "bulgarian_split_squat__dumbbells" to "bulgarian_split_squat__dumbbells__sentadilla_bulgara",
+    "bulgarian_split_squat__smith_machine" to "bulgarian_split_squat__smith_machine__sentadilla_bulgara",
     "calf_raise__bilateral__machine" to "calf_raise__bilateral__machine",
     "calf_raise__unilateral__machine" to "calf_raise__unilateral__machine",
+    "calves_tibial_anterior__default" to "calves_tibial_anterior__bodyweight__tibial_anterior",
     "chest_supported_row__dumbbells__medium" to "chest_supported_row__dumbbells__medium__remo_pecho_apoyado",
     "chest_supported_row__dumbbells__wide" to "chest_supported_row__dumbbells__wide__remo_pecho_apoyado",
+    "chest_supported_row__machine__medium" to "chest_supported_row__machine__medium__remo_pecho_apoyado",
     "concentration_curl__dumbbells" to "concentration_curl__dumbbells",
     "conventional_deadlift__bilateral__barbell" to "conventional_deadlift__barbell__peso_muerto",
     "conventional_deadlift__bilateral__hex_bar" to "conventional_deadlift__hex_bar__peso_muerto",
@@ -60,10 +69,12 @@ private val TEMPLATE_PERFORMANCE_PROFILE_BY_CONFIGURATION = mapOf(
     "forearms_curl_muneca_sentado__dumbbells" to "forearms_curl_muneca__dumbbells",
     "forearms_enrollamiento_muneca_rodillo__default" to "forearms_enrollamiento_muneca_rodillo__wrist_roller__enrollamiento_de_muneca_con_rodillo_y_cuerda",
     "front_squat__barbell" to "front_squat__barbell__sentadilla_frontal",
+    "front_squat__smith_machine" to "front_squat__smith_machine__sentadilla_frontal",
     "gironda_row__medium" to "gironda_row__medium__remo_gironda",
     "glutes_hiperextension_45__plate" to "glutes_hiperextension_45__plate",
     "glutes_patada_gluteo__cable" to "glutes_patada_gluteo__cable",
     "high_bar_back_squat__barbell" to "high_bar_back_squat__barbell__sentadilla_trasera",
+    "high_bar_back_squat__smith_machine" to "high_bar_back_squat__smith_machine__sentadilla_trasera",
     "hip_abduction__seated__machine__bilateral" to "hip_abduction__machine__abduccion_de_cadera",
     "hip_abduction__standing__cable__unilateral" to "hip_abduction__cable__abduccion_de_cadera_unilateral",
     "hip_adduction__seated__machine__bilateral" to "hip_adduction__machine__adduccion_de_cadera",
@@ -78,6 +89,7 @@ private val TEMPLATE_PERFORMANCE_PROFILE_BY_CONFIGURATION = mapOf(
     "lying_leg_curl__bilateral__cable" to "lying_leg_curl__cable__curl_isquios",
     "lying_leg_curl__bilateral__machine" to "lying_leg_curl__machine__curl_isquios",
     "lying_leg_curl__unilateral__machine" to "lying_leg_curl__machine__curl_isquios",
+    "low_bar_back_squat__smith_machine" to "low_bar_back_squat__smith_machine__sentadilla_trasera",
     "lying_pullover__dumbbells" to "lying_pullover__dumbbells__pullover_banca",
     "military_press__barbell" to "military_press__barbell__press_militar",
     "military_press__dumbbells" to "military_press__dumbbells__press_militar",
@@ -130,143 +142,17 @@ private val TEMPLATE_PERFORMANCE_PROFILE_BY_CONFIGURATION = mapOf(
 )
 
 /**
- * Static system templates were authored before the editorial regrouping. The
- * builder normalizes these literals once, so emitted sessions carry only the
- * current parent/configuration identity; the catalog itself has no legacy
- * fallback or alias surface.
+ * System templates are authored with an explicit configuration id.  The old
+ * implementation inferred the configuration from the visible name; that made
+ * a renamed exercise silently select another machine, grip or laterality.
  */
-private val TEMPLATE_CONFIGURATION_ID_ALIASES = mapOf(
-    "lat_pulldown__bilateral__band" to "lat_pulldown__bilateral__band",
-    "lat_pulldown__bilateral__machine" to "lat_pulldown__bilateral__machine",
-    "lat_pulldown__bilateral__cable" to "lat_pulldown__bilateral__cable",
-    "calf_raise__bilateral__machine" to "calf_raise__bilateral__machine",
-    "curl_isquios_con_sliders__default" to "curl_isquios_con_sliders__default",
-    "conventional_deadlift__bilateral__hex_bar" to "conventional_deadlift__bilateral__hex_bar",
-    "conventional_deadlift__bilateral__barbell" to "conventional_deadlift__bilateral__barbell",
-    "sumo_deadlift__barbell" to "sumo_deadlift__barbell",
-    "overhead_triceps__barbell" to "overhead_triceps__barbell",
-    "overhead_triceps__machine" to "overhead_triceps__machine",
-    "chest_supported_row__dumbbells__medium" to "chest_supported_row__dumbbells__wide",
-    "seal_row__barbell" to "seal_row__barbell",
-    "seal_row__dumbbells" to "seal_row__dumbbells",
-    "floor_press__barbell" to "floor_press__barbell",
-    "floor_press__dumbbells" to "floor_press__dumbbells",
-    "bench_press__barbell" to "bench_press__barbell",
-    "bench_press__dumbbells" to "bench_press__dumbbells",
-)
+private fun canonicalTemplateConfigurationId(exerciseDbId: String, @Suppress("UNUSED_PARAMETER") name: String): String =
+    exerciseDbId.trim().also { require(it.isNotBlank()) { "Template configuration id cannot be blank" } }
 
-/**
- * Resolves legacy template literals using the actual variant named by the
- * template.  A flat alias is intentionally not used for these IDs because a
- * single historical key was reused for seated/lying/standing or
- * machine/dumbbell variants.  The result is always a materialized v2
- * configuration; no name is used by the catalog runtime to infer chips.
- */
-private fun canonicalTemplateConfigurationId(exerciseDbId: String, name: String): String {
-    val normalized = name.lowercase()
-    return when (exerciseDbId) {
-        "lying_pullover__dumbbells" -> when {
-            "máquina" in normalized -> "pullover__bilateral__machine"
-            "polea" in normalized -> "pullover__bilateral__cable"
-            else -> "lying_pullover__dumbbells"
-        }
-        "curl_isquios_con_sliders__default" -> when {
-            "sentado" in normalized -> "seated_leg_curl__unilateral__machine"
-            "tumbado" in normalized -> "lying_leg_curl__unilateral__machine"
-            "de pie" in normalized -> "standing_leg_curl__unilateral__cable"
-            else -> "curl_isquios_con_sliders__default"
-        }
-        "standing_biceps_curl__barbell" ->
-            if ("mancuern" in normalized) "standing_biceps_curl__dumbbells" else exerciseDbId
-        "preacher_curl__barbell" -> when {
-            "máquina" in normalized -> "preacher_curl__machine"
-            "mancuern" in normalized -> "preacher_curl__dumbbells"
-            else -> exerciseDbId
-        }
-        "incline_biceps_curl__dumbbells" -> "biceps_curl_bayesian__dumbbells__supinated"
-        "calf_raise__bilateral__machine" -> when {
-            "mancuern" in normalized -> "calf_raise__bilateral__machine"
-            "unilateral" in normalized -> "calf_raise__unilateral__machine"
-            else -> "calf_raise__bilateral__machine"
-        }
-        "hip_thrust__bilateral__barbell" -> when {
-            "máquina" in normalized -> "hip_thrust__bilateral__machine"
-            "unilateral" in normalized -> "hip_thrust__bilateral__barbell"
-            "mancuern" in normalized -> "hip_thrust__bilateral__barbell"
-            else -> "hip_thrust__bilateral__barbell"
-        }
-        "quads_extension_cuadriceps__machine__bilateral" ->
-            if ("unilateral" in normalized) "quads_extension_cuadriceps__machine__unilateral"
-            else "quads_extension_cuadriceps__machine__bilateral"
-        "triceps_patada__dumbbells__bilateral" ->
-            if ("polea" in normalized) "triceps_patada__cable__bilateral"
-            else "triceps_patada__dumbbells__bilateral"
-        "seated_shoulder_press__barbell" ->
-            if ("máquina" in normalized) "seated_shoulder_press__machine" else "seated_shoulder_press__barbell"
-        "forearms_curl_muneca_sentado__barbell" ->
-            if ("mancuern" in normalized) "forearms_curl_muneca_sentado__dumbbells" else "forearms_curl_muneca_sentado__barbell"
-        "seated_lateral_raise__machine" -> when {
-            "mancuern" in normalized -> "seated_lateral_raise__dumbbells"
-            "de pie" in normalized -> "standing_lateral_raise__machine"
-            else -> exerciseDbId
-        }
-        "romanian_deadlift__bilateral__barbell" ->
-            if ("mancuern" in normalized) "romanian_deadlift__bilateral__dumbbells" else exerciseDbId
-        "overhead_triceps__barbell" -> when {
-            "polea" in normalized -> "overhead_triceps__cable"
-            "mancuern" in normalized -> "overhead_triceps__dumbbells"
-            else -> "overhead_triceps__barbell"
-        }
-        "bulgarian_split_squat__dumbbells" ->
-            if ("mancuern" in normalized) "bulgarian_split_squat__dumbbells" else exerciseDbId
-        else -> TEMPLATE_CONFIGURATION_ID_ALIASES[exerciseDbId] ?: exerciseDbId
-    }
-}
-
-private fun canonicalTemplateExerciseName(configurationId: String, rawName: String): String = when (configurationId) {
-    "lying_pullover__dumbbells" -> "Pullover con Mancuerna"
-    "pullover__bilateral__cable" -> "Pullover en Polea"
-    "pullover__bilateral__machine" -> "Pullover en Máquina"
-    "standing_biceps_curl__dumbbells" -> "Curl de Bíceps de Pie con Mancuernas"
-    "preacher_curl__dumbbells" -> "Curl Predicador con Mancuernas"
-    "preacher_curl__machine" -> "Curl Predicador en Máquina"
-    "incline_biceps_curl__dumbbells" -> "Curl Bayesian"
-    "preacher_curl__barbell" -> "Curl Predicador con Barra"
-    "standing_biceps_curl__barbell" -> "Curl de Bíceps de Pie con Barra"
-    "romanian_deadlift__bilateral__dumbbells" -> "Peso Muerto Rumano Estilo Sumo con Mancuernas"
-    "curl_isquios_con_sliders__default" -> "Curl Femoral con Sliders"
-    "standing_leg_curl__unilateral__cable" -> "Curl Femoral de Pie Unilateral en Polea"
-    "seated_leg_curl__unilateral__machine" -> "Curl Femoral Sentado Unilateral en Máquina"
-    "lying_leg_curl__unilateral__machine" -> "Curl Femoral Tumbado Unilateral en Máquina"
-    "hip_thrust__bilateral__barbell" -> "Hip Thrust con Barra Recta"
-    "hip_thrust__bilateral__barbell" -> "Hip Thrust con Mancuernas"
-    "hip_thrust__bilateral__barbell" -> "Hip Thrust Unilateral con Mancuernas"
-    "hip_thrust__bilateral__machine" -> "Hip Thrust en Máquina"
-    "triceps_patada__dumbbells__bilateral" -> "Patada de Tríceps con Mancuernas"
-    "triceps_patada__cable__bilateral" -> "Patada de Tríceps en Polea"
-    "triceps_patada__dumbbells__unilateral" -> "Patada de Tríceps Unilateral con Mancuerna"
-    "quads_extension_cuadriceps__machine__bilateral" -> "Extensión de Cuádriceps en Máquina"
-    "quads_extension_cuadriceps__machine__unilateral" -> "Extensión de Cuádriceps Unilateral en Máquina"
-    "calf_raise__bilateral__machine" -> "Elevación de Talones de Pie en Máquina"
-    "calf_raise__unilateral__machine" -> "Elevación de Talones de Pie Unilateral en Máquina"
-    "calf_raise__bilateral__machine" -> "Elevación de Talones de Pie con Mancuernas"
-    "calf_raise__bilateral__machine" -> "Elevación de Talones Burro en Máquina"
-    "calf_raise__bilateral__machine" -> "Elevación de Talones en Prensa"
-    "calf_raise__bilateral__machine" -> "Elevación de Talones Sentado en Máquina"
-    "seated_shoulder_press__barbell" -> "Press de Hombros Sentado con Barra Recta"
-    "seated_shoulder_press__machine" -> "Press de Hombros Sentado en Máquina"
-    "forearms_curl_muneca_sentado__barbell" -> "Curl de Muñeca Sentado con Barra Recta"
-    "forearms_curl_muneca_sentado__dumbbells" -> "Curl de Muñeca Sentado con Mancuernas"
-    "standing_lateral_raise__machine" -> "Elevaciones Laterales de Pie en Máquina"
-    "seated_lateral_raise__dumbbells" -> "Elevaciones Laterales Sentado con Mancuernas"
-    "seated_lateral_raise__machine" -> "Elevaciones Laterales Sentado en Máquina"
-    "overhead_triceps__barbell" -> "Extensión de Tríceps Overhead con Barra"
-    "overhead_triceps__dumbbells" -> "Extensión de Tríceps Overhead con Mancuernas"
-    "overhead_triceps__cable" -> "Extensión de Tríceps Overhead en Polea"
-    "overhead_triceps__machine" -> "Extensión de Tríceps Overhead en Máquina"
-    "bulgarian_split_squat__dumbbells" -> "Sentadilla Búlgara con Mancuernas"
-    else -> rawName
-}
+private fun canonicalTemplateExerciseName(
+    @Suppress("UNUSED_PARAMETER") configurationId: String,
+    rawName: String,
+): String = rawName.trim().ifBlank { configurationId.replace("__", " · ") }
 
 private fun templatePerformanceProfileId(configurationId: String): String =
     TEMPLATE_PERFORMANCE_PROFILE_BY_CONFIGURATION[configurationId]
@@ -3379,6 +3265,1028 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
     ),
 )
 
-val SESSION_TEMPLATES_SYSTEM: List<SessionTemplate> =
+private val LEGACY_SESSION_TEMPLATES: List<SessionTemplate> =
     (SESSION_TEMPLATES_BASE + SESSION_TEMPLATES_DERIVED_SPLIT + SESSION_TEMPLATES_INDEPENDENT + SESSION_TEMPLATES_EXPANDED)
         .map(::finalizedTemplate)
+
+/**
+ * Public system catalog.  The source literals above are retained only as a
+ * migration fixture while the v3 compiler is introduced; nothing from that
+ * fixture is exposed without passing the strict v2 materializer below.
+ */
+val SESSION_TEMPLATES_SYSTEM: List<SessionTemplate> by lazy(LazyThreadSafetyMode.PUBLICATION) {
+    // The compiler below is deliberately declared after the legacy fixture;
+    // lazy materialization keeps every V3 policy table initialized before the
+    // public catalog is built.
+    buildV3SystemTemplates(LEGACY_SESSION_TEMPLATES)
+}
+
+// ─── V3 strict materializer ─────────────────────────────────────────────────
+
+private val V3_FORBIDDEN_CONFIGURATION_TERMS = setOf(
+    "band", "kettlebell", "trx", "hex_bar", "unstable", "safety_bar", "slider",
+)
+
+private val V3_DISPLAY_NAMES = mapOf(
+    "back_extension_lumbar__default" to "Extensión Lumbar en Máquina",
+    "bench_press__barbell" to "Press de Banca con Barra",
+    "bench_press__dumbbells" to "Press de Banca con Mancuernas",
+    "belt_squat__bilateral" to "Sentadilla Belt Squat Bilateral",
+    "bench_press__smith_machine" to "Press de Banca en Smith",
+    "bench_press__machine" to "Press de Pecho en Máquina",
+    "bulgarian_split_squat__barbell" to "Sentadilla Búlgara con Barra",
+    "bulgarian_split_squat__dumbbells" to "Sentadilla Búlgara con Mancuernas",
+    "bulgarian_split_squat__smith_machine" to "Sentadilla Búlgara en Smith",
+    "concentration_curl__dumbbells" to "Curl de Bíceps Concentrado con Mancuernas",
+    "conventional_deadlift__bilateral__barbell" to "Peso Muerto Convencional con Barra",
+    "conventional_row__machine" to "Remo Convencional en Máquina",
+    "core_crunch_maquina__default" to "Crunch Abdominal en Máquina",
+    "core_plancha__default" to "Plancha",
+    "core_press_pallof__default" to "Press Pallof en Polea",
+    "crossbody_triceps__cable__bilateral" to "Extensión Cruzada de Tríceps en Polea",
+    "deltoides_face_pull__default" to "Face Pull en Polea",
+    "flat_chest_fly__machine" to "Aperturas de Pecho en Máquina",
+    "flat_chest_fly__dumbbells" to "Aperturas de Pecho con Mancuernas",
+    "forearms_curl_muneca_inverso_sentado__ez_bar" to "Extensión de Muñeca Inversa con Barra EZ",
+    "forearms_curl_muneca_sentado__barbell" to "Curl de Muñeca con Barra",
+    "forearms_curl_muneca_sentado__dumbbells" to "Curl de Muñeca con Mancuernas",
+    "front_squat__barbell" to "Sentadilla Frontal con Barra",
+    "front_squat__smith_machine" to "Sentadilla Frontal en Smith",
+    "high_bar_back_squat__barbell" to "Sentadilla Trasera Barra Alta con Barra",
+    "high_bar_back_squat__smith_machine" to "Sentadilla Trasera Barra Alta en Smith",
+    "hip_abduction__seated__machine__bilateral" to "Abducción de Cadera Sentado en Máquina",
+    "hip_thrust__bilateral__machine" to "Hip Thrust en Máquina",
+    "lat_pulldown__bilateral__machine" to "Jalón al Pecho en Máquina",
+    "lat_pulldown__bilateral__cable" to "Jalón al Pecho en Polea",
+    "low_bar_back_squat__smith_machine" to "Sentadilla Trasera Barra Baja en Smith",
+    "lying_leg_curl__bilateral__machine" to "Curl Femoral Tumbado en Máquina",
+    "pendulum_squat__bilateral" to "Sentadilla Péndulo en Máquina",
+    "preacher_curl__machine" to "Curl Predicador en Máquina",
+    "pull_up__pronated__wide" to "Dominadas Pronas con Agarre Amplio",
+    "pullover__bilateral__cable" to "Pullover Bilateral en Polea",
+    "pullover__bilateral__machine" to "Pullover Bilateral en Máquina",
+    "quads_sentadilla_copa__default" to "Sentadilla Copa",
+    "quads_extension_cuadriceps__machine__bilateral" to "Extensión de Cuádriceps en Máquina",
+    "quads_extension_cuadriceps__machine__unilateral" to "Extensión Unilateral de Cuádriceps en Máquina",
+    "quads_sentadilla_hack__machine" to "Sentadilla Hack en Máquina",
+    "quads_prensa_piernas__bilateral" to "Prensa de Piernas",
+    "pull_up__pronated__medium" to "Dominadas Pronas con Agarre Medio",
+    "romanian_deadlift__bilateral__dumbbells" to "Peso Muerto Rumano con Mancuernas",
+    "romanian_deadlift__bilateral__barbell" to "Peso Muerto Rumano con Barra",
+    "seated_lateral_raise__dumbbells" to "Elevaciones Laterales Sentado con Mancuernas",
+    "seated_lateral_raise__machine" to "Elevaciones Laterales Sentado en Máquina",
+    "seated_leg_curl__unilateral__machine" to "Curl Femoral Sentado Unilateral en Máquina",
+    "seated_shoulder_press__barbell" to "Press de Hombros Sentado con Barra",
+    "seated_shoulder_press__machine" to "Press de Hombros Sentado en Máquina",
+    "standing_biceps_curl__dumbbells" to "Curl de Bíceps de Pie con Mancuernas",
+    "standing_biceps_curl__barbell" to "Curl de Bíceps de Pie con Barra",
+    "standing_lateral_raise__cable" to "Elevaciones Laterales de Pie en Polea",
+    "standing_lateral_raise__machine" to "Elevaciones Laterales de Pie en Máquina",
+    "standing_lateral_raise__dumbbells" to "Elevaciones Laterales de Pie con Mancuernas",
+    "standing_leg_curl__unilateral__cable" to "Curl Femoral de Pie Unilateral en Polea",
+    "triceps_patada__dumbbells__bilateral" to "Patada de Tríceps con Mancuernas",
+    "triceps_patada__dumbbells__unilateral" to "Patada Unilateral de Tríceps con Mancuernas",
+    "t_bar_row__t_bar__wide" to "Remo en Barra T con Agarre Amplio",
+    "tren_superior_press_pecho_maquina_convergente__default" to "Press de Pecho Convergente en Máquina",
+    "triceps_patada__cable__bilateral" to "Patada de Tríceps en Polea",
+    "triceps_pushdown__bilateral__cable" to "Extensión de Tríceps en Polea",
+    "calf_raise__bilateral__machine" to "Elevación de Talones en Máquina",
+    "calves_tibial_anterior__default" to "Elevación de Tibial Anterior",
+)
+
+// Algunas configuraciones conservan un prefijo histórico distinto al id de
+// definición V2. Mantener estas seis excepciones explícitas evita volver a
+// inferir una identidad desde el nombre visible del ejercicio.
+private val V3_DEFINITION_IDS_BY_CONFIGURATION = mapOf(
+    "crossbody_triceps__cable__bilateral" to "crossbody_triceps_extension",
+    "crossbody_triceps__cable__unilateral" to "crossbody_triceps_extension",
+    "overhead_triceps__barbell" to "overhead_triceps_extension",
+    "overhead_triceps__machine" to "overhead_triceps_extension",
+    "overhead_triceps__dumbbells" to "overhead_triceps_extension",
+    "overhead_triceps__cable" to "overhead_triceps_extension",
+)
+
+private fun v3CatalogDefinitionId(configurationId: String): String =
+    V3_DEFINITION_IDS_BY_CONFIGURATION[configurationId]
+        ?: configurationId.substringBefore("__")
+
+private fun isV3ConfigurationAllowed(configurationId: String): Boolean =
+    V3_FORBIDDEN_CONFIGURATION_TERMS.none { term -> configurationId.contains(term, ignoreCase = true) }
+
+private val V3_CONFIGURATION_TOKEN_LABELS = mapOf(
+    "abduction" to "abducción",
+    "adduction" to "aducción",
+    "anterior" to "anterior",
+    "arms" to "brazos",
+    "back" to "espalda",
+    "bar" to "barra",
+    "barbell" to "barra",
+    "bench" to "press banca",
+    "biceps" to "bíceps",
+    "bilateral" to "bilateral",
+    "cable" to "polea",
+    "calf" to "pantorrilla",
+    "chest" to "pecho",
+    "close" to "agarre cerrado",
+    "concentration" to "concentrado",
+    "conventional" to "convencional",
+    "crunch" to "crunch abdominal",
+    "curl" to "curl",
+    "deadlift" to "peso muerto",
+    "default" to "estándar",
+    "deltoid" to "deltoides",
+    "dumbbells" to "mancuernas",
+    "extension" to "extensión",
+    "face" to "face pull",
+    "flat" to "plano",
+    "fly" to "apertura",
+    "forearms" to "antebrazos",
+    "front" to "frontal",
+    "glute" to "glúteos",
+    "hamstrings" to "isquiosurales",
+    "high" to "polea alta",
+    "hip" to "cadera",
+    "lateral" to "lateral",
+    "leg" to "pierna",
+    "lying" to "tumbado",
+    "low" to "polea baja",
+    "machine" to "máquina",
+    "medium" to "agarre medio",
+    "mid" to "polea media",
+    "neutral" to "agarre neutro",
+    "posterior" to "posterior",
+    "power" to "potencia",
+    "preacher" to "predicador",
+    "press" to "press",
+    "pronated" to "agarre prono",
+    "pull" to "tracción",
+    "pulldown" to "jalón",
+    "raise" to "elevación",
+    "rear" to "posterior",
+    "row" to "remo",
+    "romanian" to "rumano",
+    "seated" to "sentado",
+    "shoulder" to "hombros",
+    "smith" to "Smith",
+    "squat" to "sentadilla",
+    "standing" to "de pie",
+    "supported" to "apoyado",
+    "thrust" to "empuje de cadera",
+    "tibial" to "tibial",
+    "triceps" to "tríceps",
+    "unilateral" to "unilateral",
+    "wide" to "agarre amplio",
+    "wrist" to "muñeca",
+)
+
+private fun spanishTemplateText(value: String): String = value
+    .replace("Push Day", "Empuje", ignoreCase = true)
+    .replace("Pull Day", "Tracción", ignoreCase = true)
+    .replace("Legs Day", "Pierna", ignoreCase = true)
+    .replace("Leg Day", "Pierna", ignoreCase = true)
+    .replace("Full Body", "Cuerpo completo", ignoreCase = true)
+    .replace(Regex("(?i)\\bPush\\b"), "Empuje")
+    .replace(Regex("(?i)\\bPull\\b"), "Tracción")
+    .replace(Regex("(?i)\\bLegs?\\b"), "Pierna")
+    .replace(Regex("(?i)\\bFull\\b"), "Cuerpo completo")
+    .replace(Regex("(?i)\\bUpper\\b"), "Torso")
+    .replace(Regex("(?i)\\bLower\\b"), "Pierna")
+    .replace(Regex("(?i)\\bDeload\\b"), "Descarga")
+    .replace(Regex("(?i)\\bShort\\b"), "Breve")
+    .replace(Regex("(?i)\\bAbs\\b"), "Abdomen")
+    .replace(Regex("(?i)\\bCore\\b"), "Zona media")
+    .replace(Regex("(?i)\\bGrip\\b"), "Agarre")
+    .replace(Regex("(?i)\\bPump\\b"), "Bombeo")
+    .replace(Regex("(?i)\\bMachine\\b"), "Máquina")
+    .replace(Regex("(?i)\\bDumbbells?\\b"), "Mancuernas")
+    .replace(Regex("(?i)\\bBarbells?\\b"), "Barra")
+    .replace(Regex("(?i)\\bCables?\\b"), "Polea")
+    .replace(Regex("(?i)\\bBench\\b"), "Banca")
+    .replace(Regex("(?i)\\bDay\\b"), "Día")
+
+private fun spanishConfigurationDisplayName(configurationId: String): String {
+    V3_DISPLAY_NAMES[configurationId]?.let { return it }
+    // When the runtime catalog has already been loaded, use its canonical
+    // Spanish name instead of reconstructing prose from internal tokens. The
+    // token fallback below only exists for cold-start/unit-test materialization
+    // before the Android asset cache is initialized.
+    catalogExerciseIndex()[configurationId.lowercase()]?.name
+        ?.trim()
+        ?.takeIf { it.isNotBlank() }
+        ?.let { return it }
+    val labels = configurationId
+        .lowercase()
+        .split("__", "_")
+        .mapNotNull { token -> V3_CONFIGURATION_TOKEN_LABELS[token] }
+        .distinct()
+    return labels.takeIf { it.isNotEmpty() }?.joinToString(" · ") ?: "Ejercicio de catálogo"
+}
+
+private fun v3Exercise(
+    templateId: String,
+    slot: String,
+    configurationId: String,
+    sets: Int,
+    reps: Int,
+    rpe: Double,
+    restSeconds: Int,
+): Exercise {
+    require(isV3ConfigurationAllowed(configurationId)) {
+        "Configuración no permitida en plantilla v3: $configurationId"
+    }
+    val profileId = templatePerformanceProfileId(configurationId)
+    val exerciseId = "$templateId-$slot"
+    return Exercise(
+        id = exerciseId,
+        name = spanishConfigurationDisplayName(configurationId),
+        exerciseDbId = configurationId,
+        exerciseId = configurationId,
+        canonicalExerciseId = configurationId,
+        exerciseFamilyId = configurationId.substringBefore("__"),
+        sets = nSets("$templateId-$slot", sets, reps, rpe),
+        restTime = restSeconds,
+        trainingMode = TrainingMode.REPS,
+        catalogRevision = TEMPLATE_CATALOG_REVISION,
+        catalogDefinitionId = v3CatalogDefinitionId(configurationId),
+        catalogConfigurationId = configurationId,
+        performanceProfileId = profileId,
+        selectedAspects = null,
+        occurrenceId = exerciseId,
+    )
+}
+
+private fun v3Part(templateId: String, index: Int, name: String, exercises: List<Exercise>): SessionPart =
+    SessionPart(
+        id = "$templateId-part-$index",
+        name = name,
+        color = listOf("#153B50", "#245C4A", "#6B3E26", "#473B69")[index % 4],
+        exercises = exercises,
+    )
+
+private fun estimateV3Duration(exercises: List<Exercise>): Int {
+    if (exercises.isEmpty()) return 0
+    val index = catalogExerciseIndex()
+    val seconds = exercises.sumOf { exercise ->
+        val info = exercise.catalogConfigurationId?.let { index[it] }
+        val sets = exercise.sets.size
+        // The v2 asset's setup times are compact (roughly 10–35 s). A static
+        // template must remain useful before the Android catalog cache is
+        // initialized, so use the editorial midpoint here.
+        val setup = info?.setupTime?.takeIf { it > 0 } ?: V3_DEFAULT_SETUP_SECONDS
+        val rest = exercise.restTime?.takeIf { it > 0 }
+            ?: info?.averageRestSeconds?.takeIf { it > 0 }
+            ?: TEMPLATE_DEFAULT_REST_SECONDS
+        setup + sets * TEMPLATE_EXECUTION_SECONDS_PER_SET +
+            (sets - 1).coerceAtLeast(0) * rest
+    }
+    return (seconds / 60.0).roundToInt().coerceAtLeast(TEMPLATE_MIN_DURATION_MINUTES)
+}
+
+/**
+ * Keeps the generated catalog within the direct-volume contract used by the
+ * quality auditor.  The source fixture contains a few historical sessions
+ * with repeated glute/quad work; those are trimmed at materialization time so
+ * the public catalog never exposes a session that overloads one muscle.
+ */
+private fun capV3DirectVolume(
+    template: SessionTemplate,
+    exercises: List<Exercise>,
+): List<Exercise> {
+    val cap = when (template.difficulty) {
+        Difficulty.PRINCIPIANTE -> 6
+        Difficulty.INTERMEDIO -> 8
+        Difficulty.AVANZADO -> 10
+    }
+    val index = catalogExerciseIndex()
+    val used = mutableMapOf<String, Int>()
+    return exercises.mapNotNull { exercise ->
+        val info = exercise.catalogConfigurationId?.let { index[it] }
+        val muscles = info?.involvedMuscles
+            ?.filter { it.role == MuscleRole.PRIMARY }
+            ?.map { it.muscle.trim().lowercase() }
+            ?.filter { it.isNotBlank() }
+            ?.distinct()
+            .orEmpty()
+            .ifEmpty { inferredV3PrimaryMuscles(exercise.catalogConfigurationId.orEmpty()) }
+        val allowed = muscles.minOfOrNull { muscle -> cap - (used[muscle] ?: 0) }
+            ?: exercise.sets.size
+        val kept = exercise.sets.take(allowed.coerceAtLeast(0))
+        if (kept.isEmpty()) {
+            null
+        } else {
+            muscles.forEach { muscle -> used[muscle] = (used[muscle] ?: 0) + kept.size }
+            exercise.copy(sets = kept)
+        }
+    }
+}
+
+/**
+ * Legacy fixtures can still carry an old intensity prescription even after
+ * their exercise identity has been compiled to V2.  System templates use a
+ * controlled submaximal baseline; the specialized powerlifting blueprints
+ * below provide their own explicit intensity targets.
+ */
+private fun normalizeV3LegacyIntensity(exercise: Exercise): Exercise =
+    exercise.copy(
+        sets = exercise.sets.map { set ->
+            val rpe = set.targetRPE?.coerceIn(6.0, 7.5)
+            val rir = if (rpe == null) set.targetRIR?.coerceIn(3, 4) else null
+            set.copy(
+                targetRPE = rpe ?: if (rir == null) 7.0 else null,
+                targetRIR = rir,
+                intensityMode = if (rpe != null || rir == null) IntensityMode.RPE else IntensityMode.RIR,
+                isFailure = false,
+                isAmrap = false,
+            )
+        },
+    )
+
+private data class V3ExerciseSignals(
+    val primaryMuscles: Set<String>,
+    val movementPattern: String,
+    val heavy: Boolean,
+)
+
+private fun v3ExerciseSignals(
+    exercise: Exercise,
+    index: Map<String, ExerciseMuscleInfo>,
+): V3ExerciseSignals {
+    val info = exercise.catalogConfigurationId?.let { index[it.lowercase()] }
+    val primaries = info?.involvedMuscles
+        ?.filter { it.role == MuscleRole.PRIMARY }
+        ?.map { it.muscle.trim().lowercase() }
+        ?.filter { it.isNotBlank() }
+        ?.toSet()
+        .orEmpty()
+    val maxRpe = exercise.sets.mapNotNull {
+        it.targetRPE ?: it.targetRIR?.let { rir -> (10 - rir).toDouble() }
+    }.maxOrNull() ?: 0.0
+    val heavy = maxRpe >= 8.0 ||
+        info?.fatigueTier?.equals("ALTA", ignoreCase = true) == true ||
+        (info?.cnc ?: 0.0) >= 3.5 ||
+        (info?.axialLoadFactor ?: 0.0) >= 1.0
+    return V3ExerciseSignals(
+        primaryMuscles = primaries,
+        movementPattern = info?.movementPattern.orEmpty().lowercase(),
+        heavy = heavy,
+    )
+}
+
+private fun heavyV3Conflict(
+    previous: V3ExerciseSignals,
+    current: V3ExerciseSignals,
+): Boolean = previous.heavy && current.heavy && (
+    previous.primaryMuscles.intersect(current.primaryMuscles).isNotEmpty() ||
+        (previous.movementPattern.isNotBlank() && previous.movementPattern == current.movementPattern)
+    )
+
+/**
+ * Greedy stable interleave for the one-part V3 sessions. It preserves the
+ * focus exercise first, then prefers another primary muscle and a different
+ * movement pattern. This prevents the old fixture's adjacent bench/squat
+ * overloads while retaining all approved configurations.
+ */
+private fun rebalanceV3ExerciseOrder(exercises: List<Exercise>): List<Exercise> {
+    if (exercises.size < 2) return exercises
+    val catalog = catalogExerciseIndex()
+    val indexed = exercises.mapIndexed { index, exercise ->
+        Triple(index, exercise, v3ExerciseSignals(exercise, catalog))
+    }
+    val remaining = indexed.toMutableList()
+    val result = mutableListOf<Triple<Int, Exercise, V3ExerciseSignals>>()
+    result += remaining.removeAt(0)
+
+    while (remaining.isNotEmpty()) {
+        val previous = result.last().third
+        val previousPrevious = result.dropLast(1).lastOrNull()?.third
+        val next = remaining.minWithOrNull(
+            compareBy<Triple<Int, Exercise, V3ExerciseSignals>> { candidate ->
+                val signal = candidate.third
+                var score = 0
+                if (signal.primaryMuscles.intersect(previous.primaryMuscles).isNotEmpty()) score += 100
+                if (previousPrevious != null &&
+                    signal.primaryMuscles.intersect(previousPrevious.primaryMuscles).isNotEmpty()
+                ) score += 45
+                if (heavyV3Conflict(previous, signal)) score += 120
+                if (signal.primaryMuscles.isEmpty()) score -= 5
+                score
+            }.thenBy { it.first }
+        ) ?: remaining.first()
+        remaining.remove(next)
+        result += next
+    }
+
+    var balanced = result.map { it.second }
+    // If a source fixture contains only one primary muscle, ordering cannot
+    // break a three-exercise streak. Remove the least useful trailing item
+    // only when the session remains inside the minimum volume contract.
+    while (true) {
+        val signals = balanced.map { v3ExerciseSignals(it, catalog) }
+        val streakIndex = signals.windowed(3).indexOfFirst { window ->
+            window[0].primaryMuscles.isNotEmpty() &&
+                window[0].primaryMuscles == window[1].primaryMuscles &&
+                window[1].primaryMuscles == window[2].primaryMuscles
+        }
+        if (streakIndex < 0) break
+        val removable = (streakIndex + 2).takeIf { index ->
+            balanced.sumOf { it.sets.size } - balanced[index].sets.size >= LOW_VOLUME_MIN_SETS
+        } ?: break
+        balanced = balanced.toMutableList().also { it.removeAt(removable) }
+    }
+    return balanced
+}
+
+private fun inferredV3PrimaryMuscles(configurationId: String): List<String> {
+    val id = configurationId.lowercase()
+    return buildList {
+        when {
+            id.contains("hip_thrust") || id.contains("glute") || id.contains("hip_abduction") -> add("gluteus_maximus")
+            id.contains("deadlift") || id.contains("romanian") || id.contains("leg_curl") || id.contains("isquios") -> add("hamstrings")
+            id.contains("squat") || id.contains("prensa") || id.contains("quads") || id.contains("leg_extension") -> add("quadriceps")
+            id.contains("bench_press") || id.contains("chest") || id.contains("fly") || id.contains("fondos") -> add("pectorals")
+            id.contains("row") || id.contains("pull") || id.contains("pulldown") || id.contains("dominada") -> add("latissimus_dorsi")
+            id.contains("shoulder") || id.contains("lateral_raise") || id.contains("deltoid") -> add("deltoids")
+            id.contains("biceps") || id.contains("curl") -> add("biceps")
+            id.contains("triceps") -> add("triceps")
+            id.contains("calf") || id.contains("tibial") -> add("calves")
+            id.contains("adduction") || id.contains("aductor") -> add("adductors")
+            id.contains("core") || id.contains("plancha") || id.contains("crunch") || id.contains("pallof") -> add("core")
+            id.contains("back_extension") || id.contains("lumbar") -> add("erector_spinae")
+        }
+    }
+}
+
+private fun rebuildV3Template(template: SessionTemplate, index: Int): SessionTemplate? {
+    val exercises = template.session.allExercises()
+    if (exercises.isEmpty()) return null
+    val normalizedExercises = exercises.mapNotNull { exercise ->
+        val configurationId = exercise.catalogConfigurationId
+            ?: exercise.exerciseDbId
+            ?: exercise.exerciseId
+            ?: return@mapNotNull null
+        if (!isV3ConfigurationAllowed(configurationId)) return@mapNotNull null
+        val profileId = TEMPLATE_PERFORMANCE_PROFILE_BY_CONFIGURATION[configurationId]
+            ?: return@mapNotNull null
+        exercise.copy(
+            name = spanishConfigurationDisplayName(configurationId),
+            exerciseDbId = configurationId,
+            exerciseId = configurationId,
+            canonicalExerciseId = configurationId,
+            exerciseFamilyId = configurationId.substringBefore("__"),
+            catalogRevision = TEMPLATE_CATALOG_REVISION,
+            catalogDefinitionId = v3CatalogDefinitionId(configurationId),
+            catalogConfigurationId = configurationId,
+            performanceProfileId = profileId,
+            selectedAspects = null,
+            occurrenceId = exercise.occurrenceId ?: exercise.id,
+        )
+    }
+    if (normalizedExercises.isEmpty()) return null
+    val volumeCappedExercises = capV3DirectVolume(
+        template,
+        normalizedExercises.map(::normalizeV3LegacyIntensity),
+    )
+    if (volumeCappedExercises.isEmpty()) return null
+    val balancedExercises = rebalanceV3ExerciseOrder(volumeCappedExercises)
+    val totalSets = balancedExercises.sumOf { it.sets.size }
+    if (totalSets < LOW_VOLUME_MIN_SETS) return null
+    val isLow = template.id.endsWith("-low") || template.name.contains("Compacta", ignoreCase = true)
+    if (totalSets !in if (isLow) 8..12 else 8..22) return null
+    val v3Id = "sys-v3-" + template.id.removePrefix("sys-")
+    val session = template.session.copy(
+        id = "session-$v3Id",
+        name = spanishTemplateText(template.session.name),
+        description = template.session.description?.let(::spanishTemplateText),
+        parts = listOf(v3Part(v3Id, 0, "Trabajo principal", balancedExercises)),
+        exercises = emptyList(),
+    )
+    return template.copy(
+        id = v3Id,
+        name = spanishTemplateText(template.name),
+        description = spanishTemplateText(template.description),
+        muscleGroupsSummary = spanishTemplateText(template.muscleGroupsSummary),
+        session = session,
+        exerciseCount = balancedExercises.size,
+        partCount = 1,
+        estimatedDurationMinutes = estimateV3Duration(balancedExercises),
+        sortOrder = index,
+        splitDayLabels = template.splitDayLabels.map(::spanishTemplateText),
+        shortDescription = spanishTemplateText(template.shortDescription),
+        primaryFocusMuscle = template.primaryFocusMuscle?.let(::spanishTemplateText),
+    )
+}
+
+/**
+ * Blueprints created directly in V3 do not pass through the legacy compiler,
+ * so apply the same editorial localization to their public metadata before
+ * publishing the catalog. Exercise identity is deliberately untouched.
+ */
+private fun localizeV3TemplateEditorialText(template: SessionTemplate): SessionTemplate {
+    val session = template.session.copy(
+        name = spanishTemplateText(template.session.name),
+        description = template.session.description?.let(::spanishTemplateText),
+    )
+    return template.copy(
+        name = spanishTemplateText(template.name),
+        description = spanishTemplateText(template.description),
+        muscleGroupsSummary = spanishTemplateText(template.muscleGroupsSummary),
+        session = session,
+        splitDayLabels = template.splitDayLabels.map(::spanishTemplateText),
+        shortDescription = spanishTemplateText(template.shortDescription),
+        primaryFocusMuscle = template.primaryFocusMuscle?.let(::spanishTemplateText),
+    )
+}
+
+private fun v3Template(
+    id: String,
+    name: String,
+    description: String,
+    focus: SessionTemplateFocusCategory,
+    difficulty: Difficulty,
+    primaryFocusMuscle: String?,
+    tags: List<SessionTemplateTag>,
+    exercises: List<List<Exercise>>,
+    splitIds: List<String> = emptyList(),
+    splitDayLabels: List<String> = emptyList(),
+    durationClass: SessionTemplateDurationClass = SessionTemplateDurationClass.STANDARD,
+    equipmentBias: SessionTemplateEquipmentBias = SessionTemplateEquipmentBias.MIXED,
+): SessionTemplate {
+    val parts = exercises.mapIndexed { index, group ->
+        v3Part(id, index, if (index == 0) "Trabajo principal" else "Accesorios", group)
+    }
+    val allExercises = parts.flatMap { it.exercises }
+    val session = Session(
+        id = "session-$id",
+        name = name,
+        description = description,
+        parts = parts,
+    )
+    return SessionTemplate(
+        id = id,
+        sourceType = SessionTemplateSourceType.SYSTEM,
+        name = name,
+        description = description,
+        emoji = if (focus == SessionTemplateFocusCategory.POWERLIFTING) "🏋️" else "💪",
+        tags = tags,
+        difficulty = difficulty,
+        estimatedDurationMinutes = estimateV3Duration(allExercises),
+        exerciseCount = allExercises.size,
+        partCount = parts.size,
+        muscleGroupsSummary = primaryFocusMuscle ?: "Cobertura equilibrada",
+        session = session,
+        sortOrder = 4_000 + id.hashCode().mod(900),
+        splitIds = splitIds,
+        splitDayLabels = splitDayLabels,
+        focusCategory = focus,
+        shortDescription = description,
+        weeklyVolumePolicyId = if (difficulty == Difficulty.PRINCIPIANTE) "beginner_machine" else "hypertrophy_base",
+        primaryFocusMuscle = primaryFocusMuscle,
+        durationClass = durationClass,
+        equipmentBias = equipmentBias,
+    )
+}
+
+private fun safePowerliftingTemplates(): List<SessionTemplate> {
+    fun pl(
+        id: String,
+        label: String,
+        title: String,
+        primary: String,
+        groups: List<List<Exercise>>,
+    ) = v3Template(
+        id = id,
+        name = "Powerlifting · $title",
+        description = "Sesión especializada con un único levantamiento pesado, trabajo técnico separado y accesorios de cobertura.",
+        focus = SessionTemplateFocusCategory.POWERLIFTING,
+        difficulty = Difficulty.AVANZADO,
+        primaryFocusMuscle = primary,
+        tags = listOf(SessionTemplateTag.POWERLIFTING, SessionTemplateTag.FUERZA),
+        exercises = groups,
+        splitDayLabels = listOf(label),
+        equipmentBias = SessionTemplateEquipmentBias.MIXED,
+    )
+
+    val sbd1 = pl(
+        "sys-v3-pl-sbd-1", "SBD Día 1", "SBD · Sentadilla", "Cuádriceps",
+        listOf(
+            listOf(v3Exercise("pl-sbd-1", "principal", "high_bar_back_squat__barbell", 3, 4, 8.0, 210)),
+            listOf(
+                v3Exercise("pl-sbd-1", "banca", "bench_press__barbell", 3, 5, 7.5, 150),
+                v3Exercise("pl-sbd-1", "remo", "chest_supported_row__dumbbells__wide", 2, 8, 8.0, 120),
+                v3Exercise("pl-sbd-1", "cuad", "quads_extension_cuadriceps__machine__bilateral", 2, 12, 8.0, 75),
+                v3Exercise("pl-sbd-1", "triceps", "triceps_pushdown__bilateral__cable", 2, 10, 8.0, 75),
+            ),
+        ),
+    )
+    val sbd2 = pl(
+        "sys-v3-pl-sbd-2", "SBD Día 2", "SBD · Peso muerto", "Isquiosurales",
+        listOf(
+            listOf(v3Exercise("pl-sbd-2", "principal", "conventional_deadlift__bilateral__barbell", 3, 3, 8.0, 240)),
+            listOf(
+                v3Exercise("pl-sbd-2", "banca", "bench_press__smith_machine", 3, 6, 7.5, 150),
+                v3Exercise("pl-sbd-2", "jalon", "lat_pulldown__bilateral__cable", 2, 8, 8.0, 120),
+                v3Exercise("pl-sbd-2", "gluteo", "hip_thrust__bilateral__machine", 2, 10, 8.0, 90),
+                v3Exercise("pl-sbd-2", "core", "core_press_pallof__default", 2, 12, 7.5, 60),
+            ),
+        ),
+    )
+    val sbd3 = pl(
+        "sys-v3-pl-sbd-3", "SBD Día 3", "SBD · Banca", "Pectorales",
+        listOf(
+            listOf(v3Exercise("pl-sbd-3", "principal", "bench_press__barbell", 4, 4, 8.0, 180)),
+            listOf(
+                v3Exercise("pl-sbd-3", "tecnica", "front_squat__barbell", 2, 5, 7.0, 150),
+                v3Exercise("pl-sbd-3", "remo", "conventional_row__machine", 2, 10, 8.0, 90),
+                v3Exercise("pl-sbd-3", "femoral", "lying_leg_curl__bilateral__machine", 2, 10, 8.0, 90),
+                v3Exercise("pl-sbd-3", "triceps", "triceps_pushdown__bilateral__cable", 2, 12, 8.0, 75),
+            ),
+        ),
+    )
+    val recovery = pl(
+        "sys-v3-pl-recuperacion", "Día Recuperación", "Recuperación técnica", "Pectorales",
+        listOf(
+            listOf(v3Exercise("pl-rec", "sentadilla", "quads_prensa_piernas__bilateral", 2, 8, 6.5, 120)),
+            listOf(
+                v3Exercise("pl-rec", "banca", "bench_press__machine", 2, 8, 6.5, 120),
+                v3Exercise("pl-rec", "remo", "chest_supported_row__machine__medium", 2, 10, 7.0, 90),
+                v3Exercise("pl-rec", "femoral", "seated_leg_curl__unilateral__machine", 2, 10, 7.0, 75),
+            ),
+        ),
+    )
+    return listOf(sbd1, sbd2, sbd3, recovery)
+}
+
+private fun expandedCommonTemplates(): List<SessionTemplate> {
+    val specs = listOf(
+        Triple("empuje-maquinas", "Empuje · Máquinas", SessionTemplateFocusCategory.PECHO),
+        Triple("empuje-libre", "Empuje · Peso libre", SessionTemplateFocusCategory.PECHO),
+        Triple("traccion-apoyada", "Tracción · Espalda apoyada", SessionTemplateFocusCategory.ESPALDA),
+        Triple("traccion-dominadas", "Tracción · Dominadas", SessionTemplateFocusCategory.ESPALDA),
+        Triple("pierna-maquinas", "Pierna · Máquinas", SessionTemplateFocusCategory.CUADRICEPS),
+        Triple("pierna-unilateral", "Pierna · Unilateral", SessionTemplateFocusCategory.PIERNAS),
+        Triple("posterior-maquinas", "Posterior · Máquinas", SessionTemplateFocusCategory.ISQUIOS),
+        Triple("posterior-libre", "Posterior · Peso libre", SessionTemplateFocusCategory.CADENA_POSTERIOR),
+        Triple("gluteo-maquinas", "Glúteos · Máquinas", SessionTemplateFocusCategory.GLUTEOS),
+        Triple("hombros-maquinas", "Hombros · Máquinas", SessionTemplateFocusCategory.HOMBROS),
+        Triple("brazos-cables", "Brazos · Poleas", SessionTemplateFocusCategory.BRAZOS),
+        Triple("brazos-mancuernas", "Brazos · Mancuernas", SessionTemplateFocusCategory.BRAZOS),
+        Triple("full-equilibrado-a", "Cuerpo completo · A", SessionTemplateFocusCategory.FULL_BODY),
+        Triple("full-equilibrado-b", "Cuerpo completo · B", SessionTemplateFocusCategory.FULL_BODY),
+        Triple("full-principiante", "Cuerpo completo · Inicial", SessionTemplateFocusCategory.FULL_BODY),
+        Triple("cadena-anterior-a", "Cadena anterior · A", SessionTemplateFocusCategory.CADENA_ANTERIOR),
+        Triple("cadena-anterior-b", "Cadena anterior · B", SessionTemplateFocusCategory.CADENA_ANTERIOR),
+        Triple("cadena-posterior-a", "Cadena posterior · A", SessionTemplateFocusCategory.CADENA_POSTERIOR),
+        Triple("cadena-posterior-b", "Cadena posterior · B", SessionTemplateFocusCategory.CADENA_POSTERIOR),
+        Triple("core-control", "Core · Control", SessionTemplateFocusCategory.CORE),
+        Triple("pantorrillas-control", "Pantorrillas · Control", SessionTemplateFocusCategory.PANTORRILLAS),
+        Triple("aductores-control", "Aductores · Control", SessionTemplateFocusCategory.ADUCTORES),
+        Triple("antebrazos-control", "Antebrazos · Control", SessionTemplateFocusCategory.ANTEBRAZOS),
+        Triple("recuperacion-activa", "Recuperación · Activa", SessionTemplateFocusCategory.RECUPERACION),
+    )
+    return specs.mapIndexed { index, (suffix, title, focus) ->
+        val id = "sys-v3-$suffix"
+        val difficulty = if (focus == SessionTemplateFocusCategory.RECUPERACION || focus == SessionTemplateFocusCategory.FULL_BODY && index == 14) {
+            Difficulty.PRINCIPIANTE
+        } else {
+            Difficulty.INTERMEDIO
+        }
+        val groups = when (focus) {
+            SessionTemplateFocusCategory.PECHO -> listOf(
+                listOf(v3Exercise(id, "principal", if (index % 2 == 0) "bench_press__smith_machine" else "bench_press__dumbbells", 3, 8, 7.5, 150)),
+                listOf(
+                    v3Exercise(id, "apertura", if (index % 2 == 0) "flat_chest_fly__machine" else "flat_chest_fly__dumbbells", 2, 12, 8.0, 75),
+                    v3Exercise(id, "hombro", "seated_lateral_raise__dumbbells", 2, 12, 8.0, 60),
+                    v3Exercise(id, "triceps", "triceps_patada__cable__bilateral", 2, 12, 8.0, 60),
+                ),
+            )
+            SessionTemplateFocusCategory.ESPALDA -> listOf(
+                listOf(v3Exercise(id, "principal", if (index % 2 == 0) "chest_supported_row__machine__medium" else "pull_up__pronated__wide", 3, 8, 7.5, 150)),
+                listOf(
+                    v3Exercise(id, "jalon", "lat_pulldown__bilateral__machine", 2, 10, 8.0, 90),
+                    v3Exercise(id, "posterior", "deltoides_face_pull__default", 2, 12, 8.0, 60),
+                    v3Exercise(id, "biceps", "concentration_curl__dumbbells", 2, 10, 8.0, 60),
+                ),
+            )
+            SessionTemplateFocusCategory.CUADRICEPS, SessionTemplateFocusCategory.PIERNAS -> listOf(
+                listOf(v3Exercise(id, "principal", if (index % 2 == 0) "quads_sentadilla_hack__machine" else "belt_squat__bilateral", 3, 8, 7.5, 150)),
+                listOf(
+                    v3Exercise(id, "unilateral", "bulgarian_split_squat__dumbbells", 2, 8, 7.5, 105),
+                    v3Exercise(id, "extension", "quads_extension_cuadriceps__machine__unilateral", 2, 12, 8.0, 75),
+                    v3Exercise(id, "pantorrilla", "calf_raise__unilateral__machine", 2, 12, 8.0, 60),
+                ),
+            )
+            SessionTemplateFocusCategory.ISQUIOS, SessionTemplateFocusCategory.CADENA_POSTERIOR -> listOf(
+                listOf(v3Exercise(id, "principal", if (index % 2 == 0) "romanian_deadlift__bilateral__dumbbells" else "lying_leg_curl__bilateral__machine", 3, 8, 7.5, 150)),
+                listOf(
+                    v3Exercise(id, "gluteo", "hip_thrust__bilateral__machine", 2, 10, 8.0, 90),
+                    v3Exercise(id, "femoral", "standing_leg_curl__unilateral__cable", 2, 12, 8.0, 75),
+                    v3Exercise(id, "abduccion", "hip_abduction__seated__machine__bilateral", 2, 12, 8.0, 60),
+                    v3Exercise(id, "lumbar", "back_extension_lumbar__default", 2, 12, 7.5, 75),
+                ),
+            )
+            SessionTemplateFocusCategory.GLUTEOS -> listOf(
+                listOf(v3Exercise(id, "principal", "hip_thrust__bilateral__machine", 3, 8, 7.5, 150)),
+                listOf(
+                    v3Exercise(id, "unilateral", "bulgarian_split_squat__smith_machine", 2, 8, 7.5, 105),
+                    v3Exercise(id, "posterior", "romanian_deadlift__bilateral__dumbbells", 2, 10, 7.5, 120),
+                    // Una serie de abducción completa la sesión sin superar
+                    // el tope de ocho series directas de glúteo en nivel
+                    // intermedio.
+                    v3Exercise(id, "abduccion", "hip_abduction__standing__cable__unilateral", 1, 12, 8.0, 60),
+                ),
+            )
+            SessionTemplateFocusCategory.HOMBROS -> listOf(
+                listOf(v3Exercise(id, "principal", if (index % 2 == 0) "seated_shoulder_press__machine" else "seated_shoulder_press__barbell", 3, 8, 7.5, 135)),
+                listOf(
+                    v3Exercise(id, "lateral", "standing_lateral_raise__machine", 2, 12, 8.0, 60),
+                    v3Exercise(id, "posterior", "deltoides_face_pull__default", 2, 12, 8.0, 60),
+                    v3Exercise(id, "triceps", "crossbody_triceps__cable__bilateral", 2, 10, 8.0, 60),
+                ),
+            )
+            SessionTemplateFocusCategory.BRAZOS -> listOf(
+                listOf(v3Exercise(id, "biceps", if (index % 2 == 0) "preacher_curl__machine" else "standing_biceps_curl__dumbbells", 3, 10, 8.0, 75)),
+                listOf(
+                    v3Exercise(id, "triceps", "triceps_pushdown__bilateral__cable", 3, 10, 8.0, 75),
+                    v3Exercise(id, "curl", "concentration_curl__dumbbells", 2, 12, 8.0, 60),
+                ),
+            )
+            SessionTemplateFocusCategory.CORE -> listOf(
+                listOf(v3Exercise(id, "pallof", "core_press_pallof__default", 3, 12, 7.5, 60)),
+                listOf(
+                    v3Exercise(id, "crunch", "core_crunch_maquina__default", 3, 12, 8.0, 60),
+                    v3Exercise(id, "plancha", "core_plancha__default", 2, 10, 7.5, 60),
+                ),
+            )
+            SessionTemplateFocusCategory.PANTORRILLAS -> listOf(
+                listOf(v3Exercise(id, "gemelo", "calf_raise__bilateral__machine", 4, 12, 8.0, 60)),
+                listOf(v3Exercise(id, "tibial", "calves_tibial_anterior__default", 4, 15, 8.0, 60)),
+            )
+            SessionTemplateFocusCategory.ADUCTORES -> listOf(
+                listOf(v3Exercise(id, "aductor", "hip_adduction__seated__machine__bilateral", 4, 12, 8.0, 60)),
+                listOf(
+                    v3Exercise(id, "core", "core_press_pallof__default", 2, 12, 7.5, 60),
+                    v3Exercise(id, "aductor_aux", "hip_adduction__seated__machine__bilateral", 2, 15, 7.5, 60),
+                ),
+            )
+            SessionTemplateFocusCategory.ANTEBRAZOS -> listOf(
+                listOf(v3Exercise(id, "curl", "forearms_curl_muneca_sentado__dumbbells", 4, 12, 8.0, 60)),
+                listOf(v3Exercise(id, "reverse", "forearms_curl_muneca_inverso_sentado__ez_bar", 4, 12, 8.0, 60)),
+            )
+            SessionTemplateFocusCategory.FULL_BODY, SessionTemplateFocusCategory.CADENA_ANTERIOR, SessionTemplateFocusCategory.RECUPERACION -> listOf(
+                listOf(v3Exercise(id, "rodilla", if (index % 2 == 0) "quads_prensa_piernas__bilateral" else "quads_sentadilla_copa__default", 2, 8, if (difficulty == Difficulty.PRINCIPIANTE) 6.5 else 7.0, 135)),
+                listOf(
+                    v3Exercise(id, "empuje", "bench_press__machine", 2, 8, if (difficulty == Difficulty.PRINCIPIANTE) 6.5 else 7.0, 120),
+                    v3Exercise(id, "traccion", "chest_supported_row__machine__medium", 2, 10, 7.0, 90),
+                    v3Exercise(id, "bisagra", "romanian_deadlift__bilateral__dumbbells", 2, 8, 7.0, 120),
+                ),
+            )
+            else -> emptyList()
+        }
+        v3Template(
+            id = id,
+            name = title,
+            description = "Plantilla en español con ejercicios exactos del catálogo, ordenados de mayor demanda a menor demanda.",
+            focus = focus,
+            difficulty = difficulty,
+            primaryFocusMuscle = when (focus) {
+                SessionTemplateFocusCategory.PECHO -> "Pectorales"
+                SessionTemplateFocusCategory.ESPALDA -> "Dorsales"
+                SessionTemplateFocusCategory.CUADRICEPS, SessionTemplateFocusCategory.PIERNAS -> "Cuádriceps"
+                SessionTemplateFocusCategory.ISQUIOS, SessionTemplateFocusCategory.CADENA_POSTERIOR -> "Isquiosurales"
+                SessionTemplateFocusCategory.GLUTEOS -> "Glúteos"
+                SessionTemplateFocusCategory.HOMBROS -> "Deltoides"
+                SessionTemplateFocusCategory.BRAZOS -> "Bíceps"
+                SessionTemplateFocusCategory.PANTORRILLAS -> "Pantorrillas"
+                SessionTemplateFocusCategory.ADUCTORES -> "Aductores"
+                SessionTemplateFocusCategory.CORE -> "Abdomen"
+                SessionTemplateFocusCategory.ANTEBRAZOS -> "Antebrazo"
+                else -> null
+            },
+            tags = listOf(SessionTemplateTag.HIPERTROFIA) + when (focus) {
+                SessionTemplateFocusCategory.FULL_BODY -> listOf(SessionTemplateTag.CUERPO_COMPLETO)
+                SessionTemplateFocusCategory.PECHO -> listOf(SessionTemplateTag.PECHO, SessionTemplateTag.EMPUJE)
+                SessionTemplateFocusCategory.ESPALDA -> listOf(SessionTemplateTag.ESPALDA, SessionTemplateTag.TIRON)
+                SessionTemplateFocusCategory.PIERNAS, SessionTemplateFocusCategory.CUADRICEPS -> listOf(SessionTemplateTag.PIERNA, SessionTemplateTag.CUADRICEPS)
+                SessionTemplateFocusCategory.GLUTEOS -> listOf(SessionTemplateTag.PIERNA, SessionTemplateTag.GLUTEOS)
+                else -> emptyList()
+            },
+            exercises = groups,
+            durationClass = if (difficulty == Difficulty.PRINCIPIANTE) SessionTemplateDurationClass.SHORT else SessionTemplateDurationClass.STANDARD,
+            equipmentBias = if (title.contains("Máquinas")) SessionTemplateEquipmentBias.MACHINE else SessionTemplateEquipmentBias.MIXED,
+        )
+    }
+}
+
+/**
+ * Eight compact, low-overlap choices shared by high-frequency non-specialized
+ * splits.  They are deliberately machine/cable based and keep every exercise
+ * at two sets so the first recommendation for a six-day split cannot silently
+ * accumulate a bodybuilding-volume week.
+ */
+private fun highFrequencyCommonTemplates(): List<SessionTemplate> {
+    val splitIds = SPLIT_TEMPLATES
+        .filter { it.id != "custom" && SplitTag.POWERLIFTING !in it.tags }
+        .map { it.id }
+    val specs = listOf(
+        Triple("hf-empuje", "Empuje · Dosis compacta", SessionTemplateFocusCategory.PECHO),
+        Triple("hf-traccion", "Tracción · Dosis compacta", SessionTemplateFocusCategory.ESPALDA),
+        Triple("hf-pierna", "Pierna · Dosis compacta", SessionTemplateFocusCategory.PIERNAS),
+        Triple("hf-posterior", "Posterior · Dosis compacta", SessionTemplateFocusCategory.CADENA_POSTERIOR),
+        Triple("hf-torso", "Torso · Dosis compacta", SessionTemplateFocusCategory.HOMBROS),
+        Triple("hf-brazos", "Brazos · Dosis compacta", SessionTemplateFocusCategory.BRAZOS),
+        Triple("hf-full", "Cuerpo completo · Dosis compacta", SessionTemplateFocusCategory.FULL_BODY),
+        Triple("hf-anterior", "Cadena anterior · Dosis compacta", SessionTemplateFocusCategory.CADENA_ANTERIOR),
+    )
+    val base = specs.mapIndexed { index, (suffix, name, focus) ->
+        val id = "sys-v3-$suffix"
+        val groups = when (focus) {
+            SessionTemplateFocusCategory.PECHO -> listOf(
+                listOf(v3Exercise(id, "press", "bench_press__machine", 1, 8, 7.0, 120)),
+                listOf(
+                    v3Exercise(id, "apertura", "flat_chest_fly__machine", 2, 12, 7.5, 75),
+                    v3Exercise(id, "lateral", "standing_lateral_raise__machine", 1, 12, 7.5, 60),
+                    v3Exercise(id, "triceps", "triceps_pushdown__bilateral__cable", 1, 12, 7.5, 60),
+                    v3Exercise(id, "cruzado", "crossbody_triceps__cable__bilateral", 1, 12, 7.5, 60),
+                    v3Exercise(id, "traccion", "pullover__bilateral__machine", 2, 10, 7.0, 90),
+                ),
+            )
+            SessionTemplateFocusCategory.ESPALDA -> listOf(
+                listOf(v3Exercise(id, "remo", "chest_supported_row__machine__medium", 2, 8, 7.0, 120)),
+                listOf(
+                    v3Exercise(id, "jalon", "lat_pulldown__bilateral__machine", 2, 10, 7.5, 90),
+                    v3Exercise(id, "face", "deltoides_face_pull__default", 2, 12, 7.5, 60),
+                    v3Exercise(id, "biceps", "preacher_curl__machine", 2, 10, 7.5, 60),
+                ),
+            )
+            SessionTemplateFocusCategory.PIERNAS -> listOf(
+                listOf(v3Exercise(id, "rodilla", "quads_prensa_piernas__bilateral", 2, 8, 7.0, 120)),
+                listOf(
+                    v3Exercise(id, "femoral", "lying_leg_curl__bilateral__machine", 2, 10, 7.5, 90),
+                    v3Exercise(id, "gluteo", "hip_abduction__seated__machine__bilateral", 1, 12, 7.5, 60),
+                    v3Exercise(id, "pantorrilla", "calf_raise__bilateral__machine", 3, 12, 7.5, 60),
+                ),
+            )
+            SessionTemplateFocusCategory.CADENA_ANTERIOR -> listOf(
+                listOf(v3Exercise(id, "rodilla", "quads_prensa_piernas__bilateral", 2, 8, 7.0, 120)),
+                listOf(
+                    // Mantener el foco anterior sin convertir cada día en una
+                    // sesión de cuádriceps: la prensa ya cubre el patrón
+                    // pesado y la extensión queda en una sola serie.
+                    v3Exercise(id, "extension", "quads_extension_cuadriceps__machine__bilateral", 1, 12, 7.5, 75),
+                    v3Exercise(id, "press", "bench_press__machine", 1, 8, 7.0, 120),
+                    v3Exercise(id, "hombro", "seated_shoulder_press__machine", 1, 8, 7.0, 120),
+                    v3Exercise(id, "lateral", "standing_lateral_raise__machine", 1, 12, 7.5, 60),
+                    v3Exercise(id, "pantorrilla", "calf_raise__bilateral__machine", 1, 12, 7.5, 60),
+                    v3Exercise(id, "pecho_aux", "flat_chest_fly__machine", 1, 12, 7.5, 75),
+                ),
+            )
+            SessionTemplateFocusCategory.CADENA_POSTERIOR -> listOf(
+                listOf(v3Exercise(id, "femoral", "lying_leg_curl__bilateral__machine", 2, 10, 7.0, 90)),
+                listOf(
+                    v3Exercise(id, "cadera", "hip_thrust__bilateral__machine", 1, 10, 7.5, 90),
+                    v3Exercise(id, "lumbar", "back_extension_lumbar__default", 3, 12, 7.0, 75),
+                    v3Exercise(id, "abduccion", "hip_abduction__seated__machine__bilateral", 1, 12, 7.5, 60),
+                    v3Exercise(id, "pantorrilla", "calf_raise__bilateral__machine", 1, 12, 7.5, 60),
+                ),
+            )
+            SessionTemplateFocusCategory.HOMBROS -> listOf(
+                listOf(
+                    v3Exercise(id, "press", "seated_shoulder_press__machine", 1, 8, 7.0, 120),
+                    v3Exercise(id, "remo", "pullover__bilateral__machine", 1, 10, 7.0, 90),
+                    v3Exercise(id, "pecho", "flat_chest_fly__machine", 1, 12, 7.0, 75),
+                ),
+                listOf(
+                    v3Exercise(id, "lateral", "standing_lateral_raise__machine", 1, 12, 7.5, 60),
+                    v3Exercise(id, "posterior", "deltoides_face_pull__default", 1, 12, 7.5, 60),
+                    v3Exercise(id, "biceps", "preacher_curl__machine", 2, 10, 7.5, 60),
+                    v3Exercise(id, "triceps", "triceps_pushdown__bilateral__cable", 1, 10, 7.5, 60),
+                ),
+            )
+            SessionTemplateFocusCategory.BRAZOS -> listOf(
+                listOf(v3Exercise(id, "biceps", "preacher_curl__machine", 2, 10, 7.0, 75)),
+                listOf(
+                    v3Exercise(id, "triceps", "triceps_pushdown__bilateral__cable", 2, 10, 7.5, 75),
+                    v3Exercise(id, "curl", "concentration_curl__dumbbells", 2, 12, 7.5, 60),
+                    v3Exercise(id, "cruzado", "crossbody_triceps__cable__bilateral", 2, 12, 7.5, 60),
+                ),
+            )
+            SessionTemplateFocusCategory.FULL_BODY -> listOf(
+                listOf(v3Exercise(id, "rodilla", "quads_prensa_piernas__bilateral", 2, 8, 6.5, 120)),
+                listOf(
+                    v3Exercise(id, "press", "bench_press__machine", 2, 8, 6.5, 120),
+                    v3Exercise(id, "traccion", "pullover__bilateral__machine", 2, 10, 7.0, 90),
+                    v3Exercise(id, "tibial", "calves_tibial_anterior__default", 1, 15, 7.0, 60),
+                    v3Exercise(id, "pantorrilla", "calf_raise__bilateral__machine", 1, 12, 7.0, 60),
+                ),
+            )
+            else -> emptyList()
+        }
+        val labels = when (focus) {
+            SessionTemplateFocusCategory.PECHO -> listOf("Empuje", "Pecho")
+            SessionTemplateFocusCategory.ESPALDA -> listOf("Tirón", "Espalda")
+            SessionTemplateFocusCategory.PIERNAS -> listOf("Pierna", "Piernas", "Lower")
+            SessionTemplateFocusCategory.CADENA_POSTERIOR -> listOf(
+                "Cadena Posterior", "Posterior", "Glúteo/Isquios", "Glúteo Pump", "Glúteo",
+            )
+            SessionTemplateFocusCategory.HOMBROS -> listOf("Torso", "Upper", "Hombros")
+            SessionTemplateFocusCategory.BRAZOS -> listOf("Brazos", "Hombro/Brazo")
+            SessionTemplateFocusCategory.FULL_BODY -> listOf("Cuerpo Completo", "Full Body")
+            SessionTemplateFocusCategory.CADENA_ANTERIOR -> listOf("Cadena Anterior", "Anterior")
+            else -> emptyList()
+        }
+        v3Template(
+            id = id,
+            name = name,
+            description = "Dosis compacta para splits de frecuencia alta, con máquinas y poleas comunes.",
+            focus = focus,
+            difficulty = Difficulty.INTERMEDIO,
+            primaryFocusMuscle = when (focus) {
+                SessionTemplateFocusCategory.PECHO -> "Pectorales"
+                SessionTemplateFocusCategory.ESPALDA -> "Dorsales"
+                SessionTemplateFocusCategory.PIERNAS, SessionTemplateFocusCategory.CADENA_ANTERIOR -> "Cuádriceps"
+                SessionTemplateFocusCategory.CADENA_POSTERIOR -> "Isquiosurales"
+                SessionTemplateFocusCategory.HOMBROS -> "Deltoides"
+                SessionTemplateFocusCategory.BRAZOS -> "Bíceps"
+                else -> null
+            },
+            tags = listOf(SessionTemplateTag.HIPERTROFIA),
+            exercises = groups,
+            splitIds = splitIds,
+            splitDayLabels = labels,
+            durationClass = SessionTemplateDurationClass.SHORT,
+            equipmentBias = SessionTemplateEquipmentBias.MACHINE,
+        ).copy(sortOrder = -500 + index)
+    }
+    val pushQuadId = "sys-v3-hf-empuje-cuad"
+    val pullHamId = "sys-v3-hf-traccion-isquio"
+    val compoundTemplates = listOf(
+        v3Template(
+            id = pushQuadId,
+            name = "Empuje + Cuádriceps · Dosis compacta",
+            description = "Sesión combinada con empuje y cuádriceps, ajustada para frecuencia dos.",
+            focus = SessionTemplateFocusCategory.PECHO,
+            difficulty = Difficulty.INTERMEDIO,
+            primaryFocusMuscle = "Pectorales",
+            tags = listOf(SessionTemplateTag.HIPERTROFIA, SessionTemplateTag.PECHO),
+            exercises = listOf(
+                listOf(v3Exercise(pushQuadId, "press", "bench_press__machine", 1, 8, 7.0, 120)),
+                listOf(
+                    v3Exercise(pushQuadId, "apertura", "flat_chest_fly__machine", 1, 12, 7.5, 75),
+                    v3Exercise(pushQuadId, "rodilla", "quads_prensa_piernas__bilateral", 2, 8, 7.0, 120),
+                    v3Exercise(pushQuadId, "femoral", "lying_leg_curl__bilateral__machine", 1, 10, 7.5, 90),
+                    v3Exercise(pushQuadId, "lateral", "standing_lateral_raise__machine", 1, 12, 7.5, 60),
+                    v3Exercise(pushQuadId, "triceps", "triceps_pushdown__bilateral__cable", 2, 12, 7.5, 60),
+                ),
+            ),
+            splitIds = splitIds,
+            splitDayLabels = listOf("Empuje + Cuádriceps"),
+            durationClass = SessionTemplateDurationClass.SHORT,
+            equipmentBias = SessionTemplateEquipmentBias.MACHINE,
+        ).copy(sortOrder = -490),
+        v3Template(
+            id = pullHamId,
+            name = "Tracción + Isquios · Dosis compacta",
+            description = "Sesión combinada con tracción y cadena posterior, ajustada para frecuencia dos.",
+            focus = SessionTemplateFocusCategory.ESPALDA,
+            difficulty = Difficulty.INTERMEDIO,
+            primaryFocusMuscle = "Dorsales",
+            tags = listOf(SessionTemplateTag.HIPERTROFIA, SessionTemplateTag.ESPALDA),
+            exercises = listOf(
+                listOf(v3Exercise(pullHamId, "remo", "chest_supported_row__machine__medium", 1, 8, 7.0, 120)),
+                listOf(
+                    v3Exercise(pullHamId, "jalon", "lat_pulldown__bilateral__machine", 1, 10, 7.5, 90),
+                    v3Exercise(pullHamId, "femoral", "lying_leg_curl__bilateral__machine", 2, 10, 7.0, 90),
+                    v3Exercise(pullHamId, "lumbar", "back_extension_lumbar__default", 1, 12, 7.0, 75),
+                    v3Exercise(pullHamId, "face", "deltoides_face_pull__default", 1, 12, 7.5, 60),
+                    v3Exercise(pullHamId, "biceps", "preacher_curl__machine", 1, 10, 7.5, 60),
+                    v3Exercise(pullHamId, "pantorrilla", "calf_raise__bilateral__machine", 1, 12, 7.5, 60),
+                ),
+            ),
+            splitIds = splitIds,
+            splitDayLabels = listOf("Tirón + Isquios"),
+            durationClass = SessionTemplateDurationClass.SHORT,
+            equipmentBias = SessionTemplateEquipmentBias.MACHINE,
+        ).copy(sortOrder = -489),
+    )
+    return base + compoundTemplates
+}
+
+private fun buildV3SystemTemplates(legacy: List<SessionTemplate>): List<SessionTemplate> {
+    val generic = legacy.mapIndexedNotNull { index, template ->
+        val specialized = template.focusCategory == SessionTemplateFocusCategory.POWERLIFTING ||
+            SessionTemplateTag.POWERLIFTING in template.tags
+        if (specialized) null else rebuildV3Template(template, index)
+    }
+    val specialized = safePowerliftingTemplates()
+    val expanded = expandedCommonTemplates()
+    val highFrequency = highFrequencyCommonTemplates()
+    val all = (generic + specialized + expanded + highFrequency)
+        .map(::localizeV3TemplateEditorialText)
+        .filter { it.id.startsWith("sys-v3-") }
+        .distinctBy { it.id }
+    require(all.size >= 100) { "El catálogo de plantillas v3 debe contener al menos 100 plantillas" }
+    require(all.flatMap { it.session.allExercises() }.mapNotNull { it.catalogConfigurationId }.toSet().size >= 70) {
+        "El catálogo v3 debe cubrir al menos 70 configuraciones exactas"
+    }
+    return all.sortedBy { it.sortOrder }
+}

@@ -974,7 +974,7 @@ private fun SplitApplySheet(
                                     if (preview.isAvailable) {
                                         "${preview.dayLabel} → ${preview.templateName} · ${preview.exerciseCount} ejercicios"
                                     } else {
-                                        "${preview.dayLabel} → Sin plantilla compatible"
+                                        "${preview.dayLabel} → ${preview.unavailabilityReason ?: "Sin plantilla compatible"}"
                                     },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = if (preview.isAvailable) {

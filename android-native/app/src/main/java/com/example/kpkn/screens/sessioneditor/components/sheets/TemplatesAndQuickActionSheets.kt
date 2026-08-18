@@ -65,7 +65,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache
-import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.sessions.SessionTemplate
@@ -153,7 +152,11 @@ internal fun TemplatesSheet(
                     templates = templates,
                     searchQuery = searchQuery,
                     onSelectTemplate = onSelectTemplate,
-                    exerciseIndex = exerciseCatalogSnapshot().associateBy { it.id.lowercase() },
+                    // Las plantillas V3 guardan la configuración V2 completa
+                    // (incluidos implemento, estación y lateralidad). El
+                    // snapshot base solo contiene las definiciones padre y no
+                    // puede resolver esos IDs ni sus chips.
+                    exerciseIndex = catalogExerciseIndex(),
                     glassDark = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -467,18 +470,11 @@ internal fun MobilityPickerSheet(
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var selectedRegion by rememberSaveable { mutableStateOf("") }
+    var expandedMobilityId by rememberSaveable { mutableStateOf<String?>(null) }
     val allMobility = remember { MobilityExerciseCatalog.getAllMobilityExercises() }
     val uniqueRegions = remember(allMobility) { allMobility.map { it.bodyRegion }.distinct().sorted() }
     val results = remember(query, selectedRegion, allMobility) {
-        val byQuery = if (query.isBlank()) allMobility else {
-            val normalized = query.trim().lowercase()
-            allMobility.filter { exercise ->
-                exercise.name.contains(normalized, ignoreCase = true) ||
-                    exercise.description.contains(normalized, ignoreCase = true) ||
-                    exercise.bodyRegion.contains(normalized, ignoreCase = true) ||
-                    exercise.discomfortIds.any { discomfortLabel(it).contains(normalized, ignoreCase = true) }
-            }
-        }
+        val byQuery = if (query.isBlank()) allMobility else MobilityExerciseCatalog.searchMobility(query)
         if (selectedRegion.isBlank()) byQuery else byQuery.filter { it.bodyRegion == selectedRegion }
     }
 
@@ -492,7 +488,12 @@ internal fun MobilityPickerSheet(
             Column(modifier = Modifier.weight(1f)) {
                 Text("Catálogo de movilidad", fontWeight = FontWeight.Black, fontSize = 18.sp)
                 Text(
-                    "${allMobility.size} ejercicios correctivos separados",
+                    "${allMobility.size} movimientos en español, por articulación y objetivo",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    "Orientación práctica: no sustituye una evaluación clínica.",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -521,7 +522,7 @@ internal fun MobilityPickerSheet(
                 CompactCatalogFilterChip(
                     selected = selectedRegion == region,
                     onClick = { selectedRegion = region },
-                    label = region.replaceFirstChar { it.uppercase() },
+                    label = mobilityBodyRegionLabel(region),
                     glassDark = true,
                 )
             }
@@ -545,7 +546,8 @@ internal fun MobilityPickerSheet(
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(mobility.name, fontWeight = FontWeight.Bold)
                             val details = listOfNotNull(
-                                mobility.bodyRegion.takeIf { it.isNotBlank() },
+                                mobilityBodyRegionLabel(mobility.bodyRegion).takeIf { it.isNotBlank() },
+                                mobility.joints.firstOrNull()?.replaceFirstChar { it.uppercase() },
                                 mobility.discomfortIds.map { discomfortLabel(it) }.filter { it.isNotBlank() }.joinToString().takeIf { it.isNotBlank() },
                             ).joinToString(" · ")
                             if (details.isNotBlank()) {
@@ -558,9 +560,40 @@ internal fun MobilityPickerSheet(
                             Text(
                                 mobility.description,
                                 style = MaterialTheme.typography.bodySmall,
-                                maxLines = 1,
+                                maxLines = if (expandedMobilityId == mobility.id) 4 else 2,
                                 overflow = TextOverflow.Ellipsis,
                             )
+                            TextButton(
+                                onClick = {
+                                    expandedMobilityId =
+                                        if (expandedMobilityId == mobility.id) null else mobility.id
+                                },
+                                contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
+                            ) {
+                                Text(if (expandedMobilityId == mobility.id) "Ocultar ficha" else "Ver ficha")
+                            }
+                            if (expandedMobilityId == mobility.id) {
+                                Text(
+                                    "Objetivo: ${mobility.objective}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Text(
+                                    "Cómo hacerlo: ${mobility.instructions.orEmpty()}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Text(
+                                    "Material: ${mobility.equipment} · Nivel: ${mobility.level}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Text(
+                                    "Precaución: ${mobility.precautions}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
                         FilledTonalButton(
                             onClick = { if (alreadyAdded) onRemove(mobility) else onAdd(mobility) },

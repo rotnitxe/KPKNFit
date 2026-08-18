@@ -8,6 +8,8 @@ import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateFocusCategory
 import com.example.kpkn.data.sessions.SessionTemplateSourceType
+import com.example.kpkn.data.splits.SPLIT_TEMPLATES
+import com.example.kpkn.data.splits.SplitTag
 import com.example.kpkn.data.splits.SplitTemplate
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.training.VolumeCalculator
@@ -128,29 +130,111 @@ object SessionTemplateCatalogPolicy {
         dayLabel: String,
         templates: List<SessionTemplate>
     ): List<SessionTemplate> {
-        val normalizedCandidates = candidateLabelsFor(dayLabel)
+        val specializedSplit = isSpecializedSplit(splitId)
+        val rawDayArchetype = dayArchetype(dayLabel)
+        // Specialized strength splits often label their days as "Volumen",
+        // "Técnica" or "Recuperación" instead of naming the lift.  Those
+        // labels still need the validated powerlifting pool rather than an
+        // unrelated hypertrophy fallback.
+        val dayArchetype = if (specializedSplit && rawDayArchetype == "generic") {
+            "powerlifting"
+        } else {
+            rawDayArchetype
+        }
         val exact = templates.filter { template ->
             template.splitIds.contains(splitId) && template.splitDayLabels.any { it.equals(dayLabel, ignoreCase = true) }
         }
         val sameSplitArchetype = templates.filter { template ->
-            template.splitIds.contains(splitId) && template.splitDayLabels.any { it.normalizedLabel() in normalizedCandidates }
+            template.splitIds.contains(splitId) &&
+                templateArchetype(template) == dayArchetype
         }
         val sharedArchetype = templates.filter { template ->
-            template.splitIds.isNotEmpty() && template.splitDayLabels.any { it.normalizedLabel() in normalizedCandidates }
+            template.splitIds.isNotEmpty() && templateArchetype(template) == dayArchetype
         }
         val independentArchetype = templates.filter { template ->
-            template.splitIds.isEmpty() && template.focusCategory != null && template.focusCategory in focusCategoriesFor(dayLabel)
+            !specializedSplit && template.splitIds.isEmpty() && template.focusCategory != null &&
+                template.focusCategory in focusCategoriesFor(dayLabel)
+        }
+
+        // Specialized splits may share only a validated template of the same
+        // powerlifting pattern. They must never fall through to an unrelated
+        // independent hypertrophy template.
+        val specializedShared = if (specializedSplit) {
+            templates.filter { template ->
+                isPowerliftingTemplate(template) &&
+                    (
+                        templateArchetype(template) == dayArchetype ||
+                            dayArchetype in setOf("powerlifting", "full", "upper", "pull", "generic")
+                        )
+            }
+        } else {
+            emptyList()
         }
 
         val exactMapped = exact.map { it to 1 }
         val sameSplitMapped = sameSplitArchetype.map { it to 2 }
-        val sharedMapped = sharedArchetype.map { it to 3 }
+        val sharedMapped = (if (specializedSplit) specializedShared else sharedArchetype).map { it to 3 }
         val independentMapped = independentArchetype.map { it to 4 }
 
-        return (exactMapped + sameSplitMapped + sharedMapped + independentMapped)
+        val ranked = (exactMapped + sameSplitMapped + sharedMapped + independentMapped)
             .distinctBy { it.first.id }
-            .sortedWith(compareBy<Pair<SessionTemplate, Int>> { it.second }.thenBy { it.first.sortOrder })
-            .map { it.first }
+        val comparator = if (specializedSplit) {
+            compareBy<Pair<SessionTemplate, Int>> { it.second }
+                .thenBy { it.first.session.allExercises().sumOf { exercise -> exercise.sets.size } }
+                .thenBy { it.first.sortOrder }
+        } else {
+            // For a normal split, recommend the smallest validated session
+            // first. Larger sessions remain available as alternatives, while
+            // the representative schedule stays inside weekly recovery caps.
+            compareBy<Pair<SessionTemplate, Int>> {
+                it.first.session.allExercises().sumOf { exercise -> exercise.sets.size }
+            }.thenBy { it.second }.thenBy { it.first.sortOrder }
+        }
+        return ranked.sortedWith(comparator).map { it.first }
+    }
+
+    /** Explains why a day is specialized before the suggestion engine scores it. */
+    fun isSpecializedSplit(splitId: String): Boolean =
+        SPLIT_TEMPLATES.firstOrNull { it.id == splitId }?.tags?.contains(SplitTag.POWERLIFTING) == true
+
+    fun dayArchetype(dayLabel: String): String {
+        val normalized = dayLabel.normalizedLabel()
+        return when {
+            normalized.contains("sentadilla") || normalized.contains("squat") ||
+                normalized.contains("pierna") || normalized.contains("lower") ||
+                normalized.contains("me lower") -> "squat"
+            normalized.contains("peso muerto") || normalized.contains("deadlift") ||
+                normalized.contains("variante dl") -> "deadlift"
+            normalized.contains("banca") || normalized.contains("bench") ||
+                normalized.contains("pecho") || normalized.contains("me upper") -> "bench"
+            normalized.contains("sbd") -> "powerlifting"
+            normalized.contains("full body") || normalized.contains("cuerpo completo") -> "full"
+            normalized.contains("hombro") || normalized.contains("militar") ||
+                normalized.contains("torso") || normalized == "upper" -> "upper"
+            normalized.contains("espalda") || normalized.contains("pull") -> "pull"
+            else -> "generic"
+        }
+    }
+
+    private fun templateArchetype(template: SessionTemplate): String {
+        if (isPowerliftingTemplate(template)) {
+            return when {
+                template.primaryFocusMuscle.equals("Cuádriceps", ignoreCase = true) -> "squat"
+                template.primaryFocusMuscle.equals("Isquiosurales", ignoreCase = true) -> "deadlift"
+                template.primaryFocusMuscle.equals("Pectorales", ignoreCase = true) -> "bench"
+                else -> "powerlifting"
+            }
+        }
+        return when (template.focusCategory) {
+            SessionTemplateFocusCategory.PECHO -> "bench"
+            SessionTemplateFocusCategory.ESPALDA -> "pull"
+            SessionTemplateFocusCategory.HOMBROS, SessionTemplateFocusCategory.BRAZOS -> "upper"
+            SessionTemplateFocusCategory.CUADRICEPS, SessionTemplateFocusCategory.PIERNAS -> "squat"
+            SessionTemplateFocusCategory.ISQUIOS, SessionTemplateFocusCategory.GLUTEOS,
+            SessionTemplateFocusCategory.CADENA_POSTERIOR -> "deadlift"
+            SessionTemplateFocusCategory.FULL_BODY, SessionTemplateFocusCategory.CADENA_ANTERIOR -> "full"
+            else -> "generic"
+        }
     }
 
     fun calculateSessionMuscleVolume(

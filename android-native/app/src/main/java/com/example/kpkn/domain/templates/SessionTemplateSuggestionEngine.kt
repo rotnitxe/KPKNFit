@@ -24,6 +24,7 @@ data class SuggestedDayPlan(
     val template: SessionTemplate?,
     val alternatives: List<SessionTemplate>, // top 2 distintos del elegido
     val score: Double,
+    val unavailabilityReason: String? = null,
 )
 
 data class SuggestedWeekPlan(
@@ -52,15 +53,21 @@ object SessionTemplateSuggestionEngine {
         var weeklyVolume = emptyMap<String, Double>()
 
         trainingDays.forEachIndexed { dayIndex, dayLabel ->
-            val candidates = SessionTemplateCatalogPolicy.templatesForSplitDay(
+            val allCandidates = SessionTemplateCatalogPolicy.templatesForSplitDay(
                 splitId = split.id,
                 dayLabel = dayLabel,
                 templates = templates,
             )
+            val candidates = if (exerciseIndex.isEmpty()) {
+                allCandidates
+            } else {
+                allCandidates.filter { candidate ->
+                    SessionTemplateQualityRules.audit(candidate, exerciseIndex).p0.isEmpty()
+                }
+            }
             val forcedId = prefs.forcedTemplateByDayIndex[dayIndex]
             val forced = forcedId?.let { id ->
                 candidates.firstOrNull { it.id == id }
-                    ?: templates.firstOrNull { it.id == id }
             }
 
             val preferredMuscle = prefs.preferredFocusMuscleByDayIndex[dayIndex]
@@ -90,7 +97,14 @@ object SessionTemplateSuggestionEngine {
                 else -> scored.firstOrNull()?.template
             }
             if (selected == null) {
-                warnings += "Sin plantilla para el día '$dayLabel' del split '${split.name}'; se generará una sesión en blanco."
+                val reason = when {
+                    allCandidates.isEmpty() && SessionTemplateCatalogPolicy.isSpecializedSplit(split.id) ->
+                        "No existe una plantilla validada del mismo arquetipo especializado."
+                    allCandidates.isNotEmpty() && candidates.isEmpty() ->
+                        "Las candidatas del día no superan la validación estricta del catálogo V2."
+                    else -> "No existe una plantilla compatible con el patrón del día."
+                }
+                warnings += "Sin plantilla para el día '$dayLabel' del split '${split.name}': $reason"
             }
             val selectedScore = when {
                 selected == null -> 0.0
@@ -127,6 +141,7 @@ object SessionTemplateSuggestionEngine {
                 template = selected,
                 alternatives = alternatives,
                 score = selectedScore,
+                unavailabilityReason = if (selected == null) warnings.lastOrNull() else null,
             )
         }
 

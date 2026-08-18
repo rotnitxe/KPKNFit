@@ -187,13 +187,24 @@ object SessionTemplateAudit {
     internal fun resolveCatalogInfoNormalized(
         exercise: Exercise,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
-    ): ExerciseMuscleInfo? = resolveCatalogExerciseInfoInIndex(
-        index = exerciseIndex,
-        catalogConfigurationId = exercise.catalogConfigurationId,
-        exerciseDbId = exercise.exerciseDbId,
-        exerciseId = exercise.exerciseId,
-        exerciseName = exercise.name,
-    )
+    ): ExerciseMuscleInfo? {
+        // Catalog-backed V2 exercises are resolved by their exact materialized
+        // configuration. Name/alias matching remains available only for old
+        // user payloads that do not carry V2 identity.
+        if (!exercise.catalogRevision.isNullOrBlank()) {
+            return exercise.catalogConfigurationId
+                ?.trim()
+                ?.lowercase()
+                ?.let(exerciseIndex::get)
+        }
+        return resolveCatalogExerciseInfoInIndex(
+            index = exerciseIndex,
+            catalogConfigurationId = exercise.catalogConfigurationId,
+            exerciseDbId = exercise.exerciseDbId,
+            exerciseId = exercise.exerciseId,
+            exerciseName = exercise.name,
+        )
+    }
 
     private fun computeMetrics(
         session: Session,

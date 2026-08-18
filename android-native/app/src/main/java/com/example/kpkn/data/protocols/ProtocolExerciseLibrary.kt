@@ -1,30 +1,31 @@
 package com.example.kpkn.data.protocols
 
-private const val CATALOG_V2_REVISION = "v2-approved-2026-08-02-c"
+private const val CATALOG_V2_REVISION = "v2-approved-2026-08-12-a"
 
 private val PERFORMANCE_PROFILE_BY_CONFIGURATION = mapOf(
-    "pull_up__pronated__medium" to "pull_up__pronated__wide",
-    "lat_pulldown__bilateral__cable" to "lat_pulldown__bilateral__cable",
-    "chest_supported_row__dumbbells__wide" to "chest_supported_row__dumbbells__wide",
-    "standing_biceps_curl__barbell" to "standing_biceps_curl__barbell",
-    "flat_chest_fly__machine" to "flat_chest_fly__machine",
-    "core_plancha__default" to "core_plancha__default",
-    "seated_shoulder_press__barbell" to "seated_shoulder_press__barbell",
-    "hip_thrust__bilateral__barbell" to "hip_thrust__bilateral__barbell",
-    "curl_isquios_con_sliders__default" to "curl_isquios_con_sliders__default",
-    "conventional_deadlift__bilateral__barbell" to "conventional_deadlift__bilateral__barbell",
-    "sumo_deadlift__barbell" to "sumo_deadlift__barbell",
-    "hip_adduction__seated__machine__bilateral" to "hip_adduction__seated__machine__bilateral",
-    "standing_lateral_raise__cable" to "standing_lateral_raise__cable",
+    "pull_up__pronated__medium" to "pull_up__pronated__medium",
+    "lat_pulldown__bilateral__cable" to "lat_pulldown__cable__jalon_pecho",
+    "chest_supported_row__dumbbells__wide" to "chest_supported_row__dumbbells__wide__remo_pecho_apoyado",
+    "standing_biceps_curl__barbell" to "standing_biceps_curl__barbell__curl_biceps",
+    "flat_chest_fly__machine" to "flat_chest_fly__machine__aperturas",
+    "core_plancha__default" to "core_plancha__bodyweight__plancha",
+    "seated_shoulder_press__barbell" to "seated_shoulder_press__barbell__press_hombros_sentado",
+    "hip_thrust__bilateral__barbell" to "hip_thrust__barbell__hip_thrust",
+    "curl_isquios_con_sliders__default" to "curl_isquios_con_sliders__sliders__curl_de_isquiosurales_con_sliders",
+    "seated_leg_curl__unilateral__machine" to "seated_leg_curl__machine__curl_isquios",
+    "conventional_deadlift__bilateral__barbell" to "conventional_deadlift__barbell__peso_muerto",
+    "sumo_deadlift__barbell" to "sumo_deadlift__barbell__peso_muerto_sumo",
+    "hip_adduction__seated__machine__bilateral" to "hip_adduction__machine__adduccion_de_cadera",
+    "standing_lateral_raise__cable" to "lateral_raise_standing__cable",
     "quads_extension_cuadriceps__machine__bilateral" to "quads_extension_cuadriceps__machine__bilateral",
-    "quads_prensa_piernas__bilateral" to "quads_prensa_piernas__bilateral",
-    "front_squat__barbell" to "front_squat__barbell",
-    "high_bar_back_squat__barbell" to "high_bar_back_squat__barbell",
-    "romanian_deadlift__bilateral__barbell" to "romanian_deadlift__bilateral__barbell",
-    "floor_press__barbell" to "floor_press__barbell",
-    "tren_superior_fondos__default" to "tren_superior_fondos__default",
-    "bench_press__barbell" to "bench_press__barbell",
-    "triceps_pushdown__bilateral__cable" to "triceps_pushdown__bilateral__cable",
+    "quads_prensa_piernas__bilateral" to "quads_prensa_piernas__bilateral__prensa_piernas",
+    "front_squat__barbell" to "front_squat__barbell__sentadilla_frontal",
+    "high_bar_back_squat__barbell" to "high_bar_back_squat__barbell__sentadilla_trasera",
+    "romanian_deadlift__bilateral__barbell" to "romanian_deadlift__barbell__peso_muerto_rumano",
+    "floor_press__barbell" to "floor_press__barbell__floor_press",
+    "tren_superior_fondos__default" to "tren_superior_fondos__bodyweight__fondos",
+    "bench_press__barbell" to "bench_press__barbell__press_de_banca",
+    "triceps_pushdown__bilateral__cable" to "triceps_pushdown__cable__bilateral",
 )
 
 /**
@@ -47,7 +48,7 @@ object ProtocolExerciseLibrary {
     val SQUAT_MAIN = ProtocolLift("Sentadilla Trasera Barra Alta con Barra Recta", "high_bar_back_squat__barbell")
     val SQUAT_TECHNIQUE = ProtocolLift("Sentadilla Frontal con Barra Recta", "front_squat__barbell")
     val BENCH_MAIN = ProtocolLift("Press de Banca Plano con Barra", "bench_press__barbell")
-    val BENCH_TECHNIQUE = ProtocolLift("Floor Press con Barra", "floor_press__barbell")
+    val BENCH_TECHNIQUE = ProtocolLift("Press en el Suelo con Barra", "floor_press__barbell")
     val DEADLIFT_MAIN = ProtocolLift("Peso Muerto Convencional con Barra Recta", "conventional_deadlift__bilateral__barbell")
     val DEADLIFT_TECHNIQUE = ProtocolLift("Peso Muerto Sumo con Barra Recta", "sumo_deadlift__barbell")
     val OHP_MAIN = ProtocolLift("Press de Hombros Sentado con Barra Recta", "seated_shoulder_press__barbell")
@@ -64,7 +65,7 @@ object ProtocolExerciseLibrary {
     )
     private val DEADLIFT_ACCESSORIES = listOf(
         ProtocolLift("Peso Muerto Rumano con Barra Recta", "romanian_deadlift__bilateral__barbell"),
-        ProtocolLift("Curl Femoral con Sliders", "curl_isquios_con_sliders__default"),
+        ProtocolLift("Curl Femoral Sentado en Máquina", "seated_leg_curl__unilateral__machine"),
         ProtocolLift("Hip Thrust con Barra Recta", "hip_thrust__bilateral__barbell"),
     )
     private val PULL_ACCESSORIES = listOf(

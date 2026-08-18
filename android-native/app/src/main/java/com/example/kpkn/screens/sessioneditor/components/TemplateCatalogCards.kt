@@ -51,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.sessions.SessionTemplate
@@ -413,19 +414,49 @@ internal fun TemplateExpandedDetails(
                 color = titleColor,
             )
             template.session.allExercises().forEachIndexed { idx, ex ->
+                val catalogInfo = ex.catalogConfigurationId
+                    ?.trim()
+                    ?.lowercase()
+                    ?.let { exerciseIndex[it] }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text(
-                        text = "${idx + 1}. ${ex.name}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = mutedColor,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f),
-                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "${idx + 1}. ${ex.name}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = mutedColor,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        val chips = catalogInfo?.catalogVariantChips.orEmpty()
+                            .ifEmpty { fallbackTechnicalVariantChips(ex, catalogInfo) }
+                        if (chips.isNotEmpty()) {
+                            @OptIn(ExperimentalLayoutApi::class)
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalArrangement = Arrangement.spacedBy(2.dp),
+                            ) {
+                                chips.forEach { chip ->
+                                    Surface(
+                                        shape = RoundedCornerShape(999.dp),
+                                        color = if (glassDark) Color.White.copy(alpha = 0.12f)
+                                        else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                                    ) {
+                                        Text(
+                                            text = chip,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = if (glassDark) Color.White.copy(alpha = 0.85f)
+                                            else MaterialTheme.colorScheme.onPrimaryContainer,
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                     val setsCount = ex.sets.size
                     Text(
                         text = "$setsCount ${if (setsCount == 1) "serie" else "series"}",
@@ -553,4 +584,45 @@ internal fun TemplateExpandedDetails(
             }
         }
     }
+}
+
+/**
+ * Presentation-only fallback for an index that is still warming up. The
+ * persisted V2 configuration ID remains the source of identity; these labels
+ * never resolve or substitute an exercise. This keeps the technical choices
+ * visible even when the asynchronous catalog index has not exposed its rich
+ * chip metadata yet.
+ */
+private fun fallbackTechnicalVariantChips(
+    exercise: Exercise,
+    catalogInfo: ExerciseMuscleInfo?,
+): List<String> {
+    val labels = mapOf(
+        "barbell" to "Barra",
+        "dumbbells" to "Mancuernas",
+        "machine" to "Máquina",
+        "cable" to "Polea",
+        "smith_machine" to "Máquina Smith",
+        "bilateral" to "Bilateral",
+        "unilateral" to "Unilateral",
+        "seated" to "Sentado",
+        "standing" to "De pie",
+        "supinated" to "Supino",
+        "pronated" to "Prono",
+        "neutral" to "Neutro",
+        "wide" to "Amplio",
+        "medium" to "Medio",
+        "close" to "Cerrado",
+        "high" to "Polea Alta",
+        "mid" to "Polea Media",
+        "low" to "Polea Baja",
+    )
+    val configurationOptions = exercise.catalogConfigurationId
+        ?.substringAfter("__", "")
+        ?.split("__")
+        .orEmpty()
+        .mapNotNull { labels[it.lowercase()] }
+    return (configurationOptions + catalogInfo?.equipment.orEmpty())
+        .filter { it.isNotBlank() }
+        .distinct()
 }

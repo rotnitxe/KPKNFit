@@ -251,7 +251,7 @@ internal fun TemplateCatalogBrowser(
                 if (!filters.hasActiveFilters) {
                     item(key = "group-label") {
                         Text(
-                            text = "Agrupado por ${activeGroupMode.label.lowercase()}",
+                            text = "Agrupado ${activeGroupMode.label.removePrefix("Por ").lowercase()}",
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Black,
                             color = titleColor,
