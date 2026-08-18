@@ -1,5 +1,5 @@
 ---
-flags: [auge, ios, backend]
+flags: [auge, ios, backend, nutrition]
 ---
 
 # Fix: drenaje muscular real AUGE estrangulado (rings per-músculo quedan en 97-99% tras sesión intensa)

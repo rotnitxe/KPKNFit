@@ -20,3 +20,5 @@ debug-9ba5f2.log
 **/debug-9ba5f2.log
 /kpkn-*.png
 /kpkn-*.jpg
+android-native/*_scrolled.png
+android-native/fab_glass*.png
