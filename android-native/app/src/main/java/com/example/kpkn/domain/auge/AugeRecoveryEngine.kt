@@ -399,7 +399,10 @@ object AugeRecoveryEngine {
         val weeklyAvg = totalStress / 4.0
         val calculatedCapacity = weeklyAvg * 1.8
 
-        return clamp(max(calculatedCapacity, baseFloor), 500.0, 3500.0)
+        // Recalibración 2026-08-17: floor inferior de 500 → 120 para que la
+        // capacidad sea adaptativa desde volumen realista (2-3 sesiones/sem).
+        // Antes clamp(500) anulaba el factor 1.8 para cualquier volumen normal.
+        return clamp(max(calculatedCapacity, baseFloor), 120.0, 3500.0)
     }
 
 

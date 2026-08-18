@@ -30,10 +30,11 @@ MUSCLE_PROFILE_MAP: dict[str, str] = {
     "isquiosurales": "heavy", "espalda baja": "heavy", "erectores espinales": "heavy", "cuello": "medium",
 }
 
+# Recalibración 2026-08-17: floors reducidos ~48% — paridad Android/iOS
 ATHLETE_CAPACITY_FLOORS: dict[str, int] = {
-    "enthusiast": 500, "hybrid": 650, "calisthenics": 600,
-    "bodybuilder": 1000, "powerbuilder": 1100, "powerlifter": 1200,
-    "weightlifter": 1000, "parapowerlifter": 1100,
+    "enthusiast": 260, "hybrid": 340, "calisthenics": 310,
+    "bodybuilder": 520, "powerbuilder": 570, "powerlifter": 625,
+    "weightlifter": 520, "parapowerlifter": 570, "zercher_lifter": 340,
 }
 
 MUSCLE_CATEGORY_MAP: dict[str, list[str]] = {
@@ -109,7 +110,8 @@ def _calculate_user_work_capacity(
 
     weekly_avg = total_stress / 4
     calculated = weekly_avg * 1.8
-    return _clamp(max(calculated, base_floor), 500, 3500)
+    # Recalibración 2026-08-17: clamp 120 paridad Android/iOS
+    return _clamp(max(calculated, base_floor), 120, 3500)
 
 
 # ── Core: muscle battery ─────────────────────────────────

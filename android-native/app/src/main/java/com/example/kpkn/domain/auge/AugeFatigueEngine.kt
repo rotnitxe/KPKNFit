@@ -26,14 +26,21 @@ object AugeFatigueEngine {
 
     // ─── Capacidades base por tipo de atleta ─────────────────────────────────
 
+    // Recalibración 2026-08-17: floors reducidos ~48% para que una sesión dura
+    // drene de forma realista (hard pecho 8 sets RPE8.5: antes 90% inmediato, ahora ~82%).
+    // Simulación: stress hard ~47pp → con cap 260 => battery 76-82 inmediato, 87 a 24h, ~98 a 48h.
+    // Light (3 sets) => 88 inmediato. Estrangulamiento previo: floor 500 dominaba siempre
+    // (harían falta >278pp/sem para superarlo); nuevo floor permite adaptación desde 2-3 sesiones/sem.
+    // Mantiene jerarquía por tipo de atleta y clamp 120-3500.
     private val ATHLETE_CAPACITY: Map<AthleteType, Double> = mapOf(
-        AthleteType.ENTHUSIAST    to 500.0,
-        AthleteType.HYBRID        to 650.0,
-        AthleteType.CALISTHENICS  to 600.0,
-        AthleteType.BODYBUILDER   to 1000.0,
-        AthleteType.POWERBUILDER  to 1100.0,
-        AthleteType.POWERLIFTER   to 1200.0,
-        AthleteType.WEIGHTLIFTER  to 1000.0,
+        AthleteType.ENTHUSIAST    to 260.0,
+        AthleteType.HYBRID        to 340.0,
+        AthleteType.CALISTHENICS  to 310.0,
+        AthleteType.BODYBUILDER   to 520.0,
+        AthleteType.POWERBUILDER  to 570.0,
+        AthleteType.POWERLIFTER   to 625.0,
+        AthleteType.WEIGHTLIFTER  to 520.0,
+        AthleteType.ZERCHER_LIFTER to 340.0,
     )
 
     fun getAthleteCapacity(settings: Settings): Double =

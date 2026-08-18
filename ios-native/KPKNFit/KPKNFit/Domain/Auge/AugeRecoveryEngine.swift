@@ -316,7 +316,8 @@ enum AugeRecoveryEngine {
 
         let weeklyAvg = totalStress / 4.0
         let calculatedCapacity = weeklyAvg * 1.8
-        return AugeUtils.clamp(max(calculatedCapacity, baseFloor), 500.0, 3500.0)
+        // Recalibración 2026-08-17: paridad Android, clamp 120
+        return AugeUtils.clamp(max(calculatedCapacity, baseFloor), 120.0, 3500.0)
     }
 
     // ─── 1. BATERÍA MUSCULAR INDIVIDUAL ───────────────────────────────────────

@@ -7,14 +7,16 @@ enum AugeFatigueEngine {
 
     private static let maxTechniqueFatigueMultiplier = 4.0
 
+    // Recalibración 2026-08-17: floors reducidos ~48% — paridad con Android.
     private static let athleteCapacity: [AthleteType: Double] = [
-        .ENTHUSIAST: 500.0,
-        .HYBRID: 650.0,
-        .CALISTHENICS: 600.0,
-        .BODYBUILDER: 1000.0,
-        .POWERBUILDER: 1100.0,
-        .POWERLIFTER: 1200.0,
-        .WEIGHTLIFTER: 1000.0,
+        .ENTHUSIAST: 260.0,
+        .HYBRID: 340.0,
+        .CALISTHENICS: 310.0,
+        .BODYBUILDER: 520.0,
+        .POWERBUILDER: 570.0,
+        .POWERLIFTER: 625.0,
+        .WEIGHTLIFTER: 520.0,
+        .ZERCHER_LIFTER: 340.0,
     ]
 
     static func getAthleteCapacity(settings: AppSettings) -> Double {
@@ -221,6 +223,7 @@ enum AugeFatigueEngine {
 
     static func isSetEffective(set: CompletedSet) -> Bool {
         if set.skipped { return false }
+        if set.isWarmup { return false }
         let hasTime = (set.timeSeconds ?? 0) > 0
         if set.reps <= 0 && !hasTime && set.weight <= 0.0 { return false }
         let rpe = getEffectiveRPE(set: set)
@@ -387,6 +390,8 @@ enum AugeFatigueEngine {
         muscleMultiplier: Double = 1.0
     ) -> SetDrain {
         if set.skipped { return SetDrain(cnsDrainPct: 0.0, muscularDrainPct: 0.0, spinalDrainPct: 0.0) }
+        // Paridad Android: unilateral halves
+        let sideScale: Double = set.side != nil ? 0.5 : 1.0
         let rpe = getEffectiveRPE(set: set)
         let baseReps: Double
         if (set.timeSeconds ?? 0) > 0 {
@@ -517,10 +522,11 @@ enum AugeFatigueEngine {
             metrics.ssc * repsFactorSpinal * rpeMult * systemicProgressiveMult * structureRestMult * structureBias * loadFactor *
             systemicTechniqueFactor * structureDensityMult * (1.0 + (nearRmMult - 1.0) * 1.20) * 5.2 * assistedMultiplier * spinalMultiplier
 
+        // Paridad Android: caps 32/32/35 y halves unilaterales
         return SetDrain(
-            cnsDrainPct: min(max(rawCns / tanks.cns * 100, 0.0), 100.0),
-            muscularDrainPct: min(max(rawMuscular / tanks.muscular * 100, 0.0), 100.0),
-            spinalDrainPct: min(max(rawSpinal / tanks.spinal * 100, 0.0), 100.0)
+            cnsDrainPct: min(max(rawCns / tanks.cns * 100, 0.0), 32.0) * sideScale,
+            muscularDrainPct: min(max(rawMuscular / tanks.muscular * 100, 0.0), 32.0) * sideScale,
+            spinalDrainPct: min(max(rawSpinal / tanks.spinal * 100, 0.0), 35.0) * sideScale
         )
     }
 
