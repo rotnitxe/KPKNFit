@@ -9,6 +9,7 @@ data class Settings(
 
     /** Onboarding de bienvenida (primera vez): fases y finalización. */
     val onboardingCompleted: Boolean = false,
+    val onboardingNameDone: Boolean = false,
     val onboardingProgramDone: Boolean = false,
     val onboardingNutritionDone: Boolean = false,
 

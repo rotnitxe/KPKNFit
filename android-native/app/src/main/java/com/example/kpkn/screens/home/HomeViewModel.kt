@@ -7,11 +7,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.Block
+import com.example.kpkn.data.models.GoalMetric
 import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
+import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.NutritionStatus
+import com.example.kpkn.data.models.PlanDirection
 import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStatus
@@ -128,45 +132,63 @@ class HomeViewModel : ViewModel() {
         nutritionRepository.activeNutritionPlanId,
         repository.isReady,
         _onboardingDismissed,
-    ) { settings, activePlanId, ready, dismissed ->
-        onboardingStateFrom(settings, activePlanId, ready, dismissed)
+        repository.programs,
+        repository.activeProgramState,
+        nutritionRepository.nutritionPlans,
+    ) { args ->
+        val settings = args[0] as Settings
+        val activePlanId = args[1] as String?
+        val ready = args[2] as Boolean
+        val dismissed = args[3] as Boolean
+        @Suppress("UNCHECKED_CAST")
+        val programs = args[4] as List<Program>
+        val activeState = args[5] as ActiveProgramState?
+        @Suppress("UNCHECKED_CAST")
+        val nutritionPlans = args[6] as List<NutritionPlan>
+        onboardingStateFrom(
+            settings = settings,
+            activePlanId = activePlanId,
+            ready = ready,
+            dismissed = dismissed,
+            programs = programs,
+            activeProgramState = activeState,
+            nutritionPlans = nutritionPlans,
+        )
     }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, OnboardingState())
 
     fun updateDisplayName(name: String) {
         val trimmed = name.trim()
-        if (trimmed.length < 3) return
-        repository.updateSettings { it.copy(username = trimmed) }
+        if (trimmed.length < 3 && trimmed != "Usuario") return
+        repository.updateSettings { it.copy(username = trimmed, onboardingNameDone = true) }
     }
 
-    /** Crea el primer programa con el nombre elegido (fallback "Mi programa"). */
+    /** Crea el primer programa con el nombre elegido (fallback "Mi programa") y lo activa de inmediato. */
     fun createOnboardingProgram(name: String): String {
         val programId = UUID.randomUUID().toString()
         val cleanName = name.trim().ifBlank { "Mi programa" }
-        repository.addProgram(
-            Program(
-                id = programId,
-                name = cleanName,
-                coverImage = "gradient://ember",
-                structure = ProgramStructure.SIMPLE,
-                macrocycles = listOf(
-                    Macrocycle(
-                        id = UUID.randomUUID().toString(),
-                        name = "Macrociclo base",
-                        blocks = listOf(
-                            Block(
-                                id = UUID.randomUUID().toString(),
-                                name = "Ciclo base",
-                                mesocycles = listOf(
-                                    Mesocycle(
-                                        id = UUID.randomUUID().toString(),
-                                        name = "Mesociclo 1",
-                                        weeks = listOf(
-                                            ProgramWeek(
-                                                id = UUID.randomUUID().toString(),
-                                                name = "Semana 1",
-                                            ),
+        val program = Program(
+            id = programId,
+            name = cleanName,
+            coverImage = "gradient://ember",
+            structure = ProgramStructure.SIMPLE,
+            macrocycles = listOf(
+                Macrocycle(
+                    id = UUID.randomUUID().toString(),
+                    name = "Macrociclo base",
+                    blocks = listOf(
+                        Block(
+                            id = UUID.randomUUID().toString(),
+                            name = "Ciclo base",
+                            mesocycles = listOf(
+                                Mesocycle(
+                                    id = UUID.randomUUID().toString(),
+                                    name = "Mesociclo 1",
+                                    weeks = listOf(
+                                        ProgramWeek(
+                                            id = UUID.randomUUID().toString(),
+                                            name = "Semana 1",
                                         ),
                                     ),
                                 ),
@@ -176,6 +198,10 @@ class HomeViewModel : ViewModel() {
                 ),
             ),
         )
+        repository.addProgram(program)
+        // Activación inmediata para que el flujo sea fluido sin pasar por Entreno
+        repository.startProgram(programId)
+        repository.updateSettings { it.copy(onboardingProgramDone = true) }
         return programId
     }
 
@@ -639,12 +665,15 @@ class HomeViewModel : ViewModel() {
 
 data class OnboardingState(
     val show: Boolean = false,
+    val nameDone: Boolean = false,
     val programDone: Boolean = false,
     val nutritionDone: Boolean = false,
     val completed: Boolean = false,
     val displayName: String = "Usuario",
+    val programName: String? = null,
+    val nutritionGoalLabel: String? = null,
 ) {
-    val allTasksDone: Boolean get() = programDone && nutritionDone
+    val allTasksDone: Boolean get() = nameDone && programDone && nutritionDone
 }
 
 /**
@@ -657,16 +686,64 @@ fun onboardingStateFrom(
     activePlanId: String?,
     ready: Boolean,
     dismissed: Boolean,
+    programs: List<Program> = emptyList(),
+    activeProgramState: ActiveProgramState? = null,
+    nutritionPlans: List<NutritionPlan> = emptyList(),
 ): OnboardingState {
+    val nameDone = settings.onboardingNameDone || (settings.username.isNotBlank() && settings.username != "Usuario")
     val programDone = settings.onboardingProgramDone
     val nutritionDone = settings.onboardingNutritionDone || activePlanId != null
+    val activePlan = nutritionPlans.find { it.id == activePlanId } ?: nutritionPlans.find { it.isActive }
+    val nutritionGoalLabel = formatNutritionGoalLabel(activePlan)
+    val programName = activeProgramState?.let { st -> programs.find { it.id == st.programId }?.name }
+        ?: if (programDone) programs.lastOrNull()?.name else null
     return OnboardingState(
         show = ready && !settings.onboardingCompleted && !dismissed,
+        nameDone = nameDone,
         programDone = programDone,
         nutritionDone = nutritionDone,
         completed = settings.onboardingCompleted,
         displayName = settings.username.ifBlank { "Usuario" },
+        programName = programName,
+        nutritionGoalLabel = nutritionGoalLabel,
     )
+}
+
+private fun formatNutritionGoalLabel(plan: NutritionPlan?): String? {
+    if (plan == null) return null
+    val directionLabel = when (plan.direction) {
+        PlanDirection.DEFICIT -> "Déficit"
+        PlanDirection.SURPLUS -> "Superávit"
+        PlanDirection.MAINTENANCE -> "Mantenimiento"
+        PlanDirection.PROFESSIONAL -> "Profesional"
+        null -> null
+    }
+    val metric = plan.typedBodyGoal?.metric ?: plan.primaryGoal?.metric ?: plan.goalType
+    val rawValue = plan.typedBodyGoal?.targetValueSi
+        ?: plan.primaryGoal?.value?.takeIf { it.isFinite() && it > 0 }
+        ?: plan.goalValue.takeIf { it.isFinite() && it > 0 }
+    val unit = plan.typedBodyGoal?.unitSi ?: plan.primaryGoal?.unit ?: when (metric) {
+        GoalMetric.WEIGHT -> "kg"
+        GoalMetric.BODY_FAT, GoalMetric.MUSCLE_MASS -> "%"
+    }
+    val metricLabel = when (metric) {
+        GoalMetric.WEIGHT -> "Peso"
+        GoalMetric.BODY_FAT -> "Grasa corporal"
+        GoalMetric.MUSCLE_MASS -> "Masa muscular"
+    }
+    if (plan.typedBodyGoal == null && plan.primaryGoal == null && (plan.goalValue == 0.0 || !plan.goalValue.isFinite())) {
+        return directionLabel ?: plan.name.ifBlank { "Plan activo" }
+    }
+    val valuePart = rawValue?.let { v ->
+        val formatted = if (v % 1.0 == 0.0) v.toInt().toString() else String.format(java.util.Locale.US, "%.1f", v).trimEnd('0').trimEnd('.')
+        "$formatted $unit"
+    }
+    return when {
+        directionLabel != null && valuePart != null -> "$directionLabel · $metricLabel $valuePart"
+        valuePart != null -> "$metricLabel $valuePart"
+        directionLabel != null -> directionLabel
+        else -> plan.name.ifBlank { "Plan activo" }
+    }
 }
 
 data class HomeUiState(

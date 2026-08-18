@@ -177,10 +177,7 @@ fun HomeScreen(
                         hazeState = rootHazeState,
                         onDismiss = viewModel::dismissOnboarding,
                         onSaveName = viewModel::updateDisplayName,
-                        onCreateProgram = { programName ->
-                            viewModel.createOnboardingProgram(programName)
-                            viewModel.markProgramDone()
-                        },
+                        onCreateProgram = viewModel::createOnboardingProgram,
                         onNavigateToNutritionWizard = onNavigateToNutritionWizard,
                         onAllTasksDone = viewModel::completeOnboarding,
                     )

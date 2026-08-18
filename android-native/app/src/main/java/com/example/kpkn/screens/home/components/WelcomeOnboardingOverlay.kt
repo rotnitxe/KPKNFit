@@ -1,20 +1,29 @@
 package com.example.kpkn.screens.home.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
@@ -24,13 +33,10 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.home.OnboardingState
 import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
-import kotlinx.coroutines.delay
 
 /**
- * Overlay de bienvenida de primera vez. Mismo lenguaje visual que
- * [NutritionTodayGlassOverlay] (scrim + tarjeta glass) y botones de tarea
- * idénticos al botón "Agregar comida" (TextButton con icono Add 16dp,
- * spacer 6dp y texto en FontWeight.Black).
+ * Overlay de bienvenida rediseñado: título centrado, 3 tarjetas uniformes con check,
+ * inputs inline semitransparentes y flujo SIGUIENTE → resumen.
  */
 @Composable
 fun WelcomeOnboardingOverlay(
@@ -42,32 +48,32 @@ fun WelcomeOnboardingOverlay(
     onNavigateToNutritionWizard: () -> Unit,
     onAllTasksDone: () -> Unit,
 ) {
+    var nameExpanded by rememberSaveable { mutableStateOf(false) }
+    var programExpanded by rememberSaveable { mutableStateOf(false) }
+    var showSummary by rememberSaveable { mutableStateOf(false) }
     var nameInput by rememberSaveable { mutableStateOf("") }
     var nameError by rememberSaveable { mutableStateOf(false) }
-    var nameSaved by rememberSaveable { mutableStateOf(false) }
-    var showProgramNameDialog by remember { mutableStateOf(false) }
+    var programNameInput by rememberSaveable { mutableStateOf("") }
+    var programNameError by rememberSaveable { mutableStateOf(false) }
 
-    // Cuando ambas tareas están hechas, mostrar los checks un instante y cerrar.
+    // Si se completa todo y se estaba en resumen, no resetear; si se deshace algo, volver al onboarding
     LaunchedEffect(state.allTasksDone) {
-        if (state.allTasksDone) {
-            delay(1800)
-            onAllTasksDone()
-        }
+        if (!state.allTasksDone && showSummary) showSummary = false
     }
-
-    // Recupera la confirmación del nombre desde el estado persistido: al volver
-    // del NutritionWizard el overlay se re-crea y nameSaved (rememberSaveable
-    // local) se pierde; el nombre guardado vive en Settings.
+    // Autocolapsar tarjetas cuando ya están done
+    LaunchedEffect(state.nameDone) { if (state.nameDone) nameExpanded = false }
+    LaunchedEffect(state.programDone) { if (state.programDone) programExpanded = false }
     LaunchedEffect(state.displayName) {
-        if (state.displayName.isNotBlank() && state.displayName != "Usuario") nameSaved = true
+        // Sincronizar input con nombre guardado si viene persistido
+        if (state.nameDone && nameInput.isBlank() && state.displayName != "Usuario") {
+            // no-op, mantener input vacío para próxima edición
+        }
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black.copy(alpha = 0.55f))
-            // El scrim consume los toques para que no operen Home/NavigationBar
-            // "por detrás"; la tarjeta hija sigue recibiendo sus propios toques.
             .pointerInput(Unit) {
                 awaitPointerEventScope {
                     while (true) {
@@ -89,250 +95,391 @@ fun WelcomeOnboardingOverlay(
                 modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
+                if (!showSummary) {
+                    // ── Header centrado ──────────────────────────────────────
+                    Box(modifier = Modifier.fillMaxWidth()) {
                         Text(
                             "¡Bienvenido a KPKN!",
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Black,
                             color = Color.White,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
                         )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            "Tu suite completa de entrenamiento",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = Color.White.copy(alpha = 0.66f),
-                        )
+                        IconButton(
+                            onClick = onDismiss,
+                            modifier = Modifier.align(Alignment.TopEnd).size(36.dp),
+                        ) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Cerrar por ahora",
+                                tint = Color.White.copy(alpha = 0.7f),
+                            )
+                        }
                     }
-                    IconButton(onClick = onDismiss) {
-                        Icon(
-                            Icons.Default.Close,
-                            contentDescription = "Cerrar por ahora",
-                            tint = Color.White.copy(alpha = 0.7f),
+
+                    Text(
+                        "Somos más que una app para el gym. Acá podrás programar tus entrenamientos, " +
+                            "crear planes de alimentación, registrar tus comidas y ver tu progreso; " +
+                            "una suite completa para que completes tus objetivos, respetando tu privacidad.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.85f),
+                        textAlign = TextAlign.Center,
+                    )
+
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
+
+                    // ── Tarjeta 1: Nombre ────────────────────────────────────
+                    val nameDone = state.nameDone
+                    OnboardingCard(
+                        done = nameDone,
+                        title = if (nameDone) "Nombre elegido" else "Elige tu nombre",
+                        subtitle = if (nameDone) "¡Te llamaremos ${state.displayName}!" else "Toca para escribir cómo te llamaremos",
+                        expanded = nameExpanded && !nameDone,
+                        onToggle = { if (!nameDone) nameExpanded = !nameExpanded },
+                    ) {
+                        TextField(
+                            value = nameInput,
+                            onValueChange = {
+                                nameInput = it
+                                nameError = false
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = { Text("Tu nombre", color = Color.White.copy(alpha = 0.4f)) },
+                            singleLine = true,
+                            isError = nameError,
+                            supportingText = if (nameError) {
+                                { Text("Escribe al menos 3 caracteres o usa Omitir", color = MaterialTheme.colorScheme.error) }
+                            } else null,
+                            shape = RoundedCornerShape(14.dp),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.White.copy(alpha = 0.12f),
+                                unfocusedContainerColor = Color.White.copy(alpha = 0.08f),
+                                disabledContainerColor = Color.White.copy(alpha = 0.08f),
+                                errorContainerColor = Color.White.copy(alpha = 0.08f),
+                                cursorColor = Color(0xFF8FB7B8),
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                disabledTextColor = Color.White.copy(alpha = 0.6f),
+                                errorTextColor = Color.White,
+                                focusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
+                                unfocusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                disabledIndicatorColor = Color.Transparent,
+                                errorIndicatorColor = Color.Transparent,
+                            ),
                         )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            TextButton(
+                                onClick = {
+                                    onSaveName("Usuario")
+                                    nameInput = ""
+                                    nameExpanded = false
+                                },
+                            ) {
+                                Text("Omitir", fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
+                            }
+                            Button(
+                                onClick = {
+                                    val trimmed = nameInput.trim()
+                                    if (trimmed.length < 3) {
+                                        nameError = true
+                                    } else {
+                                        onSaveName(trimmed)
+                                        nameInput = ""
+                                        nameExpanded = false
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8FB7B8), contentColor = Color.Black),
+                                shape = RoundedCornerShape(12.dp),
+                            ) {
+                                Text("Guardar", fontWeight = FontWeight.Black)
+                            }
+                        }
                     }
-                }
 
-                Text(
-                    "Somos más que una app para el gym. Acá podrás programar tus entrenamientos, " +
-                        "crear planes de alimentación, registrar tus comidas y ver tu progreso; " +
-                        "una suite completa para que completes tus objetivos, respetando tu privacidad.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.85f),
-                )
+                    // ── Tarjeta 2: Programa ──────────────────────────────────
+                    val programDone = state.programDone
+                    val programSubtitle = if (programDone) {
+                        state.programName?.let { "Programa \"$it\" activo" } ?: "Programa creado y activado"
+                    } else "Toca para ponerle nombre y activarlo"
 
-                HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
-
-                // ── Nombre ────────────────────────────────────────────────────
-                if (nameSaved) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.CheckCircle,
-                            contentDescription = null,
-                            tint = Color(0xFF8FB7B8),
-                            modifier = Modifier.size(18.dp),
+                    OnboardingCard(
+                        done = programDone,
+                        title = if (programDone) "Programa creado" else "Crea tu programa",
+                        subtitle = programSubtitle,
+                        expanded = programExpanded && !programDone,
+                        onToggle = { if (!programDone) programExpanded = !programExpanded },
+                    ) {
+                        TextField(
+                            value = programNameInput,
+                            onValueChange = {
+                                programNameInput = it
+                                programNameError = false
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = { Text("Ej. Hypertrophy I", color = Color.White.copy(alpha = 0.4f)) },
+                            singleLine = true,
+                            isError = programNameError,
+                            supportingText = if (programNameError) {
+                                { Text("Ponle un nombre al programa", color = MaterialTheme.colorScheme.error) }
+                            } else null,
+                            shape = RoundedCornerShape(14.dp),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.White.copy(alpha = 0.12f),
+                                unfocusedContainerColor = Color.White.copy(alpha = 0.08f),
+                                disabledContainerColor = Color.White.copy(alpha = 0.08f),
+                                errorContainerColor = Color.White.copy(alpha = 0.08f),
+                                cursorColor = Color(0xFF8FB7B8),
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                disabledTextColor = Color.White.copy(alpha = 0.6f),
+                                errorTextColor = Color.White,
+                                focusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
+                                unfocusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                disabledIndicatorColor = Color.Transparent,
+                                errorIndicatorColor = Color.Transparent,
+                            ),
                         )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            "¡Listo! Te llamaremos ${state.displayName}",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Black,
-                            color = Color.White,
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            TextButton(onClick = { programExpanded = false; programNameInput = "" }) {
+                                Text("Cancelar", fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
+                            }
+                            Button(
+                                onClick = {
+                                    val trimmed = programNameInput.trim()
+                                    if (trimmed.isEmpty()) {
+                                        programNameError = true
+                                    } else {
+                                        onCreateProgram(trimmed)
+                                        programNameInput = ""
+                                        programExpanded = false
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8FB7B8), contentColor = Color.Black),
+                                shape = RoundedCornerShape(12.dp),
+                            ) {
+                                Text("Crear y activar", fontWeight = FontWeight.Black)
+                            }
+                        }
+                        if (!programDone) {
+                            Text(
+                                "Se activará de inmediato, sin necesidad de ir a Entreno.",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White.copy(alpha = 0.55f),
+                            )
+                        }
+                    }
+
+                    // ── Tarjeta 3: Nutrición ─────────────────────────────────
+                    val nutritionDone = state.nutritionDone
+                    val nutritionSubtitle = if (nutritionDone) {
+                        state.nutritionGoalLabel ?: "Plan creado"
+                    } else "Te guiamos paso a paso"
+
+                    OnboardingCard(
+                        done = nutritionDone,
+                        title = if (nutritionDone) "Plan de nutrición" else "Crea tu plan de nutrición",
+                        subtitle = nutritionSubtitle,
+                        expanded = false,
+                        onToggle = { if (!nutritionDone) onNavigateToNutritionWizard() },
+                        showChevron = !nutritionDone,
+                    ) {
+                        // No hay contenido expandido; la acción es navegar al wizard
+                    }
+
+                    // ── Botón SIGUIENTE ──────────────────────────────────────
+                    AnimatedVisibility(
+                        visible = state.allTasksDone,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically(),
+                    ) {
+                        Button(
+                            onClick = { showSummary = true },
+                            modifier = Modifier.fillMaxWidth().height(52.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8FB7B8), contentColor = Color.Black),
+                        ) {
+                            Text("SIGUIENTE", fontWeight = FontWeight.Black, letterSpacing = 0.8.sp, fontSize = 15.sp)
+                        }
                     }
                 } else {
+                    // ── Resumen ──────────────────────────────────────────────
                     Text(
-                        "Cómo quieres que te llamemos",
+                        "¡Todo listo!",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Text(
+                        "Así quedó tu configuración inicial. Podés cambiarla cuando quieras desde Ajustes.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.75f),
+                        textAlign = TextAlign.Center,
+                    )
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
+
+                    SummaryRow(
+                        label = "Nombre",
+                        value = state.displayName,
+                        done = state.nameDone,
+                    )
+                    SummaryRow(
+                        label = "Programa",
+                        value = state.programName ?: if (state.programDone) "Programa activo" else "—",
+                        done = state.programDone,
+                    )
+                    SummaryRow(
+                        label = "Plan de nutrición",
+                        value = state.nutritionGoalLabel ?: if (state.nutritionDone) "Plan activo" else "—",
+                        done = state.nutritionDone,
+                    )
+
+                    Spacer(Modifier.height(4.dp))
+
+                    Button(
+                        onClick = onAllTasksDone,
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8FB7B8), contentColor = Color.Black),
+                    ) {
+                        Text("EMPEZAR", fontWeight = FontWeight.Black, letterSpacing = 0.8.sp, fontSize = 15.sp)
+                    }
+                    TextButton(
+                        onClick = { showSummary = false },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("Volver", fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OnboardingCard(
+    done: Boolean,
+    title: String,
+    subtitle: String,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    showChevron: Boolean = true,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Surface(
+        shape = RoundedCornerShape(18.dp),
+        color = if (done) Color(0xFF8FB7B8).copy(alpha = 0.14f) else Color.White.copy(alpha = 0.06f),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .clickable(onClick = onToggle)
+            .animateContentSize(),
+        tonalElevation = 0.dp,
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    if (done) Icons.Default.CheckCircle else Icons.Outlined.Circle,
+                    contentDescription = if (done) "Hecho" else "Pendiente",
+                    tint = if (done) Color(0xFF8FB7B8) else Color.White.copy(alpha = 0.45f),
+                    modifier = Modifier.size(22.dp),
+                )
+                Spacer(Modifier.width(10.dp))
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        title,
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Black,
                         color = Color.White,
                     )
-                    OutlinedTextField(
-                        value = nameInput,
-                        onValueChange = {
-                            nameInput = it
-                            nameError = false
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Tu nombre", color = Color.White.copy(alpha = 0.4f)) },
-                        singleLine = true,
-                        isError = nameError,
-                        supportingText = if (nameError) {
-                            { Text("Escribe al menos 3 caracteres o usa Omitir", color = MaterialTheme.colorScheme.error) }
-                        } else null,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            focusedBorderColor = Color(0xFF8FB7B8),
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.3f),
-                            cursorColor = Color(0xFF8FB7B8),
-                        ),
+                    Text(
+                        subtitle,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.68f),
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(
-                            onClick = {
-                                val trimmed = nameInput.trim()
-                                if (trimmed.length < 3) {
-                                    nameError = true
-                                } else {
-                                    onSaveName(trimmed)
-                                    nameSaved = true
-                                }
-                            },
-                        ) {
-                            Text("Guardar", fontWeight = FontWeight.Black)
-                        }
-                        TextButton(
-                            onClick = {
-                                onSaveName("Usuario")
-                                nameSaved = true
-                            },
-                        ) {
-                            Text("Omitir", fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
-                        }
-                    }
                 }
-
-                HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
-
-                // ── Tarea 1: programa de entrenamiento ─────────────────────────
-                OnboardingTaskRow(
-                    done = state.programDone,
-                    title = "Crea tu primer programa de entrenamiento",
-                    subtitle = if (state.programDone) "Programa creado" else "Ponle nombre y listo",
-                    actionLabel = "Crear programa",
-                    onAction = { showProgramNameDialog = true },
-                )
-
-                if (state.programDone) {
-                    Surface(
-                        shape = RoundedCornerShape(14.dp),
-                        color = Color.White.copy(alpha = 0.06f),
-                    ) {
-                        Text(
-                            "Un programa de entrenamiento es la base para planificar tus sesiones en el gimnasio, " +
-                                "en la pestaña de \"Entreno\" podrás añadir sesiones a tu semana, " +
-                                "o podrás configurarlo para opciones avanzadas.",
-                            modifier = Modifier.padding(12.dp),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(alpha = 0.8f),
-                        )
-                    }
+                if (!done && showChevron) {
+                    Icon(
+                        if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = Color.White.copy(alpha = 0.6f),
+                        modifier = Modifier.size(20.dp),
+                    )
                 }
-
-                // ── Tarea 2: plan de alimentación ──────────────────────────────
-                OnboardingTaskRow(
-                    done = state.nutritionDone,
-                    title = "Crea tu plan de alimentación",
-                    subtitle = if (state.nutritionDone) "Plan creado" else "Te guiamos paso a paso",
-                    actionLabel = "Crear plan",
-                    onAction = onNavigateToNutritionWizard,
-                )
             }
-        }
-    }
-
-    if (showProgramNameDialog) {
-        CreateProgramNameDialog(
-            onDismiss = { showProgramNameDialog = false },
-            onConfirm = { programName ->
-                showProgramNameDialog = false
-                onCreateProgram(programName)
-            },
-        )
-    }
-}
-
-@Composable
-private fun OnboardingTaskRow(
-    done: Boolean,
-    title: String,
-    subtitle: String,
-    actionLabel: String,
-    onAction: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            if (done) Icons.Default.CheckCircle else Icons.Outlined.Circle,
-            contentDescription = if (done) "Hecho" else "Pendiente",
-            tint = if (done) Color(0xFF8FB7B8) else Color.White.copy(alpha = 0.45f),
-            modifier = Modifier.size(22.dp),
-        )
-        Spacer(Modifier.width(10.dp))
-        Column(Modifier.weight(1f)) {
-            Text(
-                title,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Black,
-                color = Color.White,
-            )
-            Text(
-                subtitle,
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.White.copy(alpha = 0.6f),
-            )
-        }
-        if (!done) {
-            // Botón idéntico al "Agregar comida" del registro de hoy.
-            TextButton(onClick = onAction) {
-                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(6.dp))
-                Text(actionLabel, fontWeight = FontWeight.Black)
-            }
-        }
-    }
-}
-
-@Composable
-private fun CreateProgramNameDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit,
-) {
-    var programName by rememberSaveable { mutableStateOf("") }
-    var showError by rememberSaveable { mutableStateOf(false) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Nuevo programa", fontWeight = FontWeight.Black) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("¿Cómo se llamará tu programa de entrenamiento?")
-                OutlinedTextField(
-                    value = programName,
-                    onValueChange = {
-                        programName = it
-                        showError = false
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Ej. Hypertrophy I") },
-                    singleLine = true,
-                    isError = showError,
-                    supportingText = if (showError) {
-                        { Text("Ponle un nombre al programa", color = MaterialTheme.colorScheme.error) }
-                    } else null,
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    if (programName.trim().isEmpty()) {
-                        showError = true
-                    } else {
-                        onConfirm(programName)
-                    }
-                },
+            AnimatedVisibility(
+                visible = expanded,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically(),
             ) {
-                Text("Crear", fontWeight = FontWeight.Black)
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.08f))
+                    content()
+                }
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancelar", fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun SummaryRow(
+    label: String,
+    value: String,
+    done: Boolean,
+) {
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = Color.White.copy(alpha = 0.06f),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Default.CheckCircle,
+                contentDescription = null,
+                tint = if (done) Color(0xFF8FB7B8) else Color.White.copy(alpha = 0.35f),
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.width(10.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    label.uppercase(),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White.copy(alpha = 0.55f),
+                    letterSpacing = 0.8.sp,
+                    fontSize = 10.sp,
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    value,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                )
             }
-        },
-    )
+        }
+    }
 }
