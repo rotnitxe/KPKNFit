@@ -525,23 +525,6 @@ fun calorieBoundsFor(direction: PlanDirection, eerKcal: Double?): IntRange? {
     }
 }
 
-fun wizardPhysiqueDrawableId(group: Int, sex: EerSex?, context: android.content.Context): Int {
-    val g = group.coerceIn(1, 7)
-    val prefix = if (sex == EerSex.FEMALE) "wizard_m" else "wizard_h"
-    val suffix = when (g) {
-        1 -> "08_12"
-        2 -> "13_17"
-        3 -> "18_22"
-        4 -> "23_27"
-        5 -> "28_32"
-        6 -> "33_37"
-        else -> "38p"
-    }
-    val name = "${prefix}_${suffix}"
-    val id = context.resources.getIdentifier(name, "drawable", context.packageName)
-    return if (id != 0) id else android.R.drawable.ic_menu_gallery
-}
-
 /** Locale-aware decimal parser used by the wizard and by unit tests. */
 fun parseLocalizedNumber(raw: String, locale: Locale = Locale.getDefault()): Double? {
     val text = raw.trim().replace("\u00A0", "").replace(" ", "")

@@ -72,7 +72,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -81,6 +80,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.kpkn.R
 import com.example.kpkn.data.models.PlanDirection
 import com.example.kpkn.domain.nutrition.EerActivity
 import com.example.kpkn.domain.nutrition.EerSex
@@ -88,7 +88,6 @@ import com.example.kpkn.domain.nutrition.WizardPacePreset
 import com.example.kpkn.domain.nutrition.bodyFatForSliderPos
 import com.example.kpkn.domain.nutrition.physiqueDescForSliderPos
 import com.example.kpkn.domain.nutrition.physiqueLabelForSliderPos
-import com.example.kpkn.domain.nutrition.wizardPhysiqueDrawableId
 import com.example.kpkn.ui.components.LocalHazeState
 import com.example.kpkn.ui.components.kpknGlassOrFallback
 import java.time.LocalDate
@@ -201,7 +200,6 @@ private fun GoalStep(state: NutritionWizardUiState, vm: NutritionWizardViewModel
 
 @Composable
 private fun DataStep(state: NutritionWizardUiState, vm: NutritionWizardViewModel) {
-    val context = LocalContext.current
     val pos = state.draft.physiqueSliderPos
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
@@ -226,8 +224,8 @@ private fun DataStep(state: NutritionWizardUiState, vm: NutritionWizardViewModel
                 val hi = kotlin.math.ceil(p.toDouble()).toInt().coerceIn(1, 7)
                 val frac = (p - lo).coerceIn(0f, 1f)
                 val sex = state.draft.equationSex
-                val loId = wizardPhysiqueDrawableId(lo, sex, context)
-                val hiId = wizardPhysiqueDrawableId(hi, sex, context)
+                val loId = wizardPhysiqueDrawableId(lo, sex)
+                val hiId = wizardPhysiqueDrawableId(hi, sex)
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Image(painter = painterResource(id = loId), contentDescription = null, modifier = Modifier.fillMaxSize().padding(6.dp), contentScale = ContentScale.Fit)
                     Image(painter = painterResource(id = hiId), contentDescription = null, modifier = Modifier.fillMaxSize().padding(6.dp), contentScale = ContentScale.Fit, alpha = frac)
@@ -565,5 +563,19 @@ private fun AnimatedMacroRing(kcal: Int, macros: com.example.kpkn.domain.nutriti
             if (pct > 0f) drawArc(c, -90f, 360f * pct.coerceAtMost(1f), false, Offset(cx - r, cy - r), Size(d, d), style = Stroke(stroke, cap = StrokeCap.Round))
         }
         ring(r1, calPct, CalColor); ring(r2, proPct, ProColor); ring(r3, carbPct, CarbColor); ring(r4, fatPct, FatColor)
+    }
+}
+
+private fun wizardPhysiqueDrawableId(group: Int, sex: EerSex?): Int {
+    val g = group.coerceIn(1, 7)
+    val female = sex == EerSex.FEMALE
+    return when (g) {
+        1 -> if (female) R.drawable.wizard_m_08_12 else R.drawable.wizard_h_08_12
+        2 -> if (female) R.drawable.wizard_m_13_17 else R.drawable.wizard_h_13_17
+        3 -> if (female) R.drawable.wizard_m_18_22 else R.drawable.wizard_h_18_22
+        4 -> if (female) R.drawable.wizard_m_23_27 else R.drawable.wizard_h_23_27
+        5 -> if (female) R.drawable.wizard_m_28_32 else R.drawable.wizard_h_28_32
+        6 -> if (female) R.drawable.wizard_m_33_37 else R.drawable.wizard_h_33_37
+        else -> if (female) R.drawable.wizard_m_38p else R.drawable.wizard_h_38p
     }
 }
