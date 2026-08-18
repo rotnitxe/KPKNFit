@@ -47,6 +47,7 @@ import com.example.kpkn.data.models.NutritionLog
 import com.example.kpkn.data.models.NutritionStatus
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.screens.auge.rememberAugeViewModel
+import com.example.kpkn.screens.home.components.WelcomeOnboardingOverlay
 import com.example.kpkn.screens.nutrition.NutritionViewModel
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
 import com.example.kpkn.ui.theme.AppThemeMode
@@ -79,6 +80,8 @@ fun HomeScreen(
     onNavigate: (String) -> Unit = {},
     onHeaderOverlayChange: HomeGlassOverlayChange = { _, _ -> },
     onNutritionOverlayChange: HomeGlassOverlayChange = { _, _ -> },
+    onOnboardingOverlayChange: HomeGlassOverlayChange = { _, _ -> },
+    onNavigateToNutritionWizard: () -> Unit = {},
     viewModel: HomeViewModel = rememberHomeViewModel(),
     @Suppress("UNUSED_PARAMETER") nutritionViewModel: NutritionViewModel? = null,
 ) {
@@ -156,6 +159,48 @@ fun HomeScreen(
             }
         }
     }
+
+    // ── Onboarding de bienvenida (primera vez) ────────────────────────────────
+    val onboardingState by viewModel.onboardingState.collectAsState()
+    val latestOnboardingOverlayChange by rememberUpdatedState(onOnboardingOverlayChange)
+    val onboardingRegistration = remember {
+        object {
+            var active: HomeGlassOverlay? = null
+        }
+    }
+    LaunchedEffect(onboardingState) {
+        val content: HomeGlassOverlay? =
+            if (onboardingState.show) {
+                { rootHazeState ->
+                    WelcomeOnboardingOverlay(
+                        state = onboardingState,
+                        hazeState = rootHazeState,
+                        onDismiss = viewModel::dismissOnboarding,
+                        onSaveName = viewModel::updateDisplayName,
+                        onCreateProgram = { programName ->
+                            viewModel.createOnboardingProgram(programName)
+                            viewModel.markProgramDone()
+                        },
+                        onNavigateToNutritionWizard = onNavigateToNutritionWizard,
+                        onAllTasksDone = viewModel::completeOnboarding,
+                    )
+                }
+            } else {
+                null
+            }
+        val previous = onboardingRegistration.active
+        latestOnboardingOverlayChange(content, previous)
+        onboardingRegistration.active = content
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            val owned = onboardingRegistration.active
+            onboardingRegistration.active = null
+            if (owned != null) {
+                latestOnboardingOverlayChange(null, owned)
+            }
+        }
+    }
     val listState = rememberLazyListState()
     val density = LocalDensity.current
 
@@ -180,8 +225,8 @@ fun HomeScreen(
     val latestHeaderContent by rememberUpdatedState<@Composable (HazeState) -> Unit> { rootHazeState ->
         HomeTopBar(
             modifier = Modifier,
-            greeting = "Hola",
-            userName = "Usuario",
+            greeting = uiState.greeting,
+            userName = uiState.userName,
             greetingProgress = greetingProgress,
             ringsProgress = ringsProgress,
             sessionProgress = sessionProgress,

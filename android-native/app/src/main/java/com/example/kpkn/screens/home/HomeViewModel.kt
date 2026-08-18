@@ -7,11 +7,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.KeyDateType
+import com.example.kpkn.data.models.Macrocycle
+import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.NutritionStatus
 import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStatus
+import com.example.kpkn.data.models.ProgramStructure
+import com.example.kpkn.data.models.Settings
+import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.data.models.isSimpleTemporalProgram
 import com.example.kpkn.data.repository.AugeRepository
@@ -42,6 +48,7 @@ import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.Locale
+import java.util.UUID
 
 /**
  * HomeViewModel — State management for Home Screen.
@@ -112,6 +119,81 @@ class HomeViewModel : ViewModel() {
         .map { it.username.ifBlank { "Usuario" } }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, "Usuario")
+
+    // ── Onboarding de bienvenida (primera vez) ───────────────────────────────
+    private val _onboardingDismissed = MutableStateFlow(false)
+
+    val onboardingState: StateFlow<OnboardingState> = combine(
+        repository.settings,
+        nutritionRepository.activeNutritionPlanId,
+        repository.isReady,
+        _onboardingDismissed,
+    ) { settings, activePlanId, ready, dismissed ->
+        onboardingStateFrom(settings, activePlanId, ready, dismissed)
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, OnboardingState())
+
+    fun updateDisplayName(name: String) {
+        val trimmed = name.trim()
+        if (trimmed.length < 3) return
+        repository.updateSettings { it.copy(username = trimmed) }
+    }
+
+    /** Crea el primer programa con el nombre elegido (fallback "Mi programa"). */
+    fun createOnboardingProgram(name: String): String {
+        val programId = UUID.randomUUID().toString()
+        val cleanName = name.trim().ifBlank { "Mi programa" }
+        repository.addProgram(
+            Program(
+                id = programId,
+                name = cleanName,
+                coverImage = "gradient://ember",
+                structure = ProgramStructure.SIMPLE,
+                macrocycles = listOf(
+                    Macrocycle(
+                        id = UUID.randomUUID().toString(),
+                        name = "Macrociclo base",
+                        blocks = listOf(
+                            Block(
+                                id = UUID.randomUUID().toString(),
+                                name = "Ciclo base",
+                                mesocycles = listOf(
+                                    Mesocycle(
+                                        id = UUID.randomUUID().toString(),
+                                        name = "Mesociclo 1",
+                                        weeks = listOf(
+                                            ProgramWeek(
+                                                id = UUID.randomUUID().toString(),
+                                                name = "Semana 1",
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        return programId
+    }
+
+    fun markProgramDone() {
+        repository.updateSettings { settings ->
+            settings.copy(onboardingProgramDone = true)
+        }
+    }
+
+    /** Persiste la finalización completa (ambas tareas hechas). */
+    fun completeOnboarding() {
+        repository.updateSettings { it.copy(onboardingCompleted = true) }
+    }
+
+    /** Cierra el overlay por ahora; reaparece en el próximo arranque hasta completar. */
+    fun dismissOnboarding() {
+        _onboardingDismissed.value = true
+    }
 
     fun getGreeting(): String {
         val h = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
@@ -553,6 +635,38 @@ class HomeViewModel : ViewModel() {
     }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, HomeUiState())
+}
+
+data class OnboardingState(
+    val show: Boolean = false,
+    val programDone: Boolean = false,
+    val nutritionDone: Boolean = false,
+    val completed: Boolean = false,
+    val displayName: String = "Usuario",
+) {
+    val allTasksDone: Boolean get() = programDone && nutritionDone
+}
+
+/**
+ * Derivación pura del estado del overlay de bienvenida. El gate [ready]
+ * (repository.isReady) evita el flash del overlay antes de que Settings
+ * carguen desde Room en cada arranque.
+ */
+fun onboardingStateFrom(
+    settings: Settings,
+    activePlanId: String?,
+    ready: Boolean,
+    dismissed: Boolean,
+): OnboardingState {
+    val programDone = settings.onboardingProgramDone
+    val nutritionDone = settings.onboardingNutritionDone || activePlanId != null
+    return OnboardingState(
+        show = ready && !settings.onboardingCompleted && !dismissed,
+        programDone = programDone,
+        nutritionDone = nutritionDone,
+        completed = settings.onboardingCompleted,
+        displayName = settings.username.ifBlank { "Usuario" },
+    )
 }
 
 data class HomeUiState(

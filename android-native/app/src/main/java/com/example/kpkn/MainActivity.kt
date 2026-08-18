@@ -640,6 +640,7 @@ fun KPKNApp(
     var bottomBarHeightPx by remember { mutableIntStateOf(0) }
     var homeGlassOverlay by remember { mutableStateOf<HomeGlassOverlay?>(null) }
     var homeModalOverlay by remember { mutableStateOf<HomeGlassOverlay?>(null) }
+    var homeOnboardingOverlay by remember { mutableStateOf<HomeGlassOverlay?>(null) }
     // Stable callbacks — never key DisposableEffect on these.
     val onHomeGlassOverlayChange = remember<HomeGlassOverlayChange> {
         { overlay, expectedCurrent ->
@@ -662,6 +663,18 @@ fun KPKNApp(
                 }
                 expectedCurrent != null && homeModalOverlay === expectedCurrent -> {
                     homeModalOverlay = null
+                }
+            }
+        }
+    }
+    val onHomeOnboardingOverlayChange = remember<HomeGlassOverlayChange> {
+        { overlay, expectedCurrent ->
+            when {
+                overlay != null -> {
+                    if (homeOnboardingOverlay !== overlay) homeOnboardingOverlay = overlay
+                }
+                expectedCurrent != null && homeOnboardingOverlay === expectedCurrent -> {
+                    homeOnboardingOverlay = null
                 }
             }
         }
@@ -695,6 +708,7 @@ fun KPKNApp(
                     onWikiSearchQueryChange = { wikiSearchQuery = it },
                     onHomeGlassOverlayChange = onHomeGlassOverlayChange,
                     onHomeModalOverlayChange = onHomeModalOverlayChange,
+                    onHomeOnboardingOverlayChange = onHomeOnboardingOverlayChange,
                 )
             }
         } else {
@@ -722,6 +736,7 @@ fun KPKNApp(
                     onWikiSearchQueryChange = { wikiSearchQuery = it },
                     onHomeGlassOverlayChange = onHomeGlassOverlayChange,
                     onHomeModalOverlayChange = onHomeModalOverlayChange,
+                    onHomeOnboardingOverlayChange = onHomeOnboardingOverlayChange,
                 )
                 }
 
@@ -1053,6 +1068,15 @@ fun KPKNApp(
             homeModalOverlay?.invoke(hazeState)
         }
 
+        AnimatedVisibility(
+            visible = showHomeGlassOverlays,
+            modifier = Modifier.zIndex(102f),
+            enter = fadeIn(animationSpec = tween(120)),
+            exit = fadeOut(animationSpec = tween(150)),
+        ) {
+            homeOnboardingOverlay?.invoke(hazeState)
+        }
+
         // Sheets/dialogs portaled out of NavGraph so they are siblings of hazeSource.
         // Only mount the full-screen host when there is at least one entry — an empty
         // fillMaxSize Box at zIndex 400 would swallow every touch in the app.
@@ -1313,6 +1337,7 @@ private fun KPKNNavGraph(
     onWikiSearchQueryChange: (String) -> Unit = {},
     onHomeGlassOverlayChange: HomeGlassOverlayChange = { _, _ -> },
     onHomeModalOverlayChange: HomeGlassOverlayChange = { _, _ -> },
+    onHomeOnboardingOverlayChange: HomeGlassOverlayChange = { _, _ -> },
 ) {
     NavHost(navController = navController, startDestination = KpknRoute.Home.route) {
         composable(KpknRoute.Home.route) {
@@ -1357,6 +1382,10 @@ private fun KPKNNavGraph(
                 },
                 onHeaderOverlayChange = onHomeGlassOverlayChange,
                 onNutritionOverlayChange = onHomeModalOverlayChange,
+                onOnboardingOverlayChange = onHomeOnboardingOverlayChange,
+                onNavigateToNutritionWizard = {
+                    navController.navigate(KpknRoute.NutritionWizard.create("create")) { launchSingleTop = true }
+                },
                 onNavigate = { destination ->
                     when (destination) {
                         "wiki-home" -> navController.navigate(KpknRoute.WikiLab.route)

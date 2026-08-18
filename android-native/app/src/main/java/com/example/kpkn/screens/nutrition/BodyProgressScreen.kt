@@ -311,6 +311,26 @@ fun BodyProgressScreen(
                 MeasurementSectionLabel("Historial de medidas")
             }
 
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    TextButton(
+                        onClick = {
+                            editingEntry = null
+                            showAddMeasurement = true
+                        },
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Registrar medidas", fontWeight = FontWeight.Black)
+                    }
+                }
+            }
+
             if (bodyMeasurements.isEmpty()) {
                 item {
                     Card(

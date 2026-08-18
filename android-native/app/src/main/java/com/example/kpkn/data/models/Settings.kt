@@ -7,6 +7,11 @@ data class Settings(
     val hasSeenWelcome: Boolean = false,
     val hasSeenHomeTour: Boolean = false,
 
+    /** Onboarding de bienvenida (primera vez): fases y finalización. */
+    val onboardingCompleted: Boolean = false,
+    val onboardingProgramDone: Boolean = false,
+    val onboardingNutritionDone: Boolean = false,
+
     val username: String = "Usuario",
     val profilePicture: String? = null,
     val age: Int? = null,
