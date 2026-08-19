@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -21,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CompareArrows
 import androidx.compose.material.icons.filled.Info
@@ -87,6 +89,7 @@ fun SplitView(
     selectedWeekId: String?,
     onUpdateProgram: (Program) -> Unit,
     modifier: Modifier = Modifier,
+    onBack: (() -> Unit)? = null,
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedTag by rememberSaveable { mutableStateOf<SplitTag?>(null) }
@@ -143,7 +146,7 @@ fun SplitView(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        CompactSplitHeader(isAdvancedProgram = isAdvancedProgram)
+        CompactSplitHeader(isAdvancedProgram = isAdvancedProgram, onBack = onBack)
 
         OutlinedTextField(
             value = searchQuery,
@@ -320,12 +323,29 @@ fun SplitView(
 @Composable
 private fun CompactSplitHeader(
     isAdvancedProgram: Boolean,
+    onBack: (() -> Unit)? = null,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("Catálogo de Splits", fontWeight = FontWeight.Black, fontSize = 18.sp)
+        if (onBack != null) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier.size(32.dp),
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Volver",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+                Text("Cat\u00E1logo de Splits", fontWeight = FontWeight.Black, fontSize = 18.sp)
+            }
+        } else {
+            Text("Cat\u00E1logo de Splits", fontWeight = FontWeight.Black, fontSize = 18.sp)
+        }
         Text(
-            if (isAdvancedProgram) "Filtra, compara y aplica una estructura global o por bloque."
-            else "Elige una estructura semanal o crea una propia desde cero.",
+            "Un split es la distribuci\u00F3n semanal de grupos musculares o patrones de movimiento. Elegir el adecuado define la frecuencia con la que entrenas cada m\u00FAsculo.",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodySmall,
         )

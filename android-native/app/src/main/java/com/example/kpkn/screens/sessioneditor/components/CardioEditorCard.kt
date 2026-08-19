@@ -3,22 +3,25 @@ package com.example.kpkn.screens.sessioneditor.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -30,135 +33,280 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioIntensity
 import com.example.kpkn.data.models.CardioType
-import com.example.kpkn.domain.calculations.CardioCalorieEngine
 import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
+import kotlin.math.roundToInt
+
+private enum class CardioTargetMode(val label: String) {
+    DURATION("Tiempo"),
+    DISTANCE("Distancia"),
+    BOTH("Ambos"),
+}
 
 @Composable
 internal fun CardioEditorCard(
     details: CardioDetails,
     accentColor: Color,
+    exerciseName: String? = null,
     onChange: (CardioDetails) -> Unit,
 ) {
-    var durationText by remember(details.targetDurationSeconds) {
-        mutableStateOf((details.targetDurationSeconds / 60).coerceAtLeast(1).toString())
+    val currentTargetMode = remember(details.targetDurationSeconds, details.targetDistanceKm, details.supportsDistance) {
+        if (!details.supportsDistance) {
+            CardioTargetMode.DURATION
+        } else when {
+            details.targetDurationSeconds != null && details.targetDistanceKm != null -> CardioTargetMode.BOTH
+            details.targetDistanceKm != null && details.targetDurationSeconds == null -> CardioTargetMode.DISTANCE
+            else -> CardioTargetMode.DURATION
+        }
     }
+
     var distanceText by remember(details.targetDistanceKm) {
-        mutableStateOf(details.targetDistanceKm?.toString().orEmpty())
+        mutableStateOf(details.targetDistanceKm?.let { if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() }.orEmpty())
     }
-    val defaultMet = CardioCalorieEngine.defaultMet(details.type, details.intensity)
+
+    val currentIntensityLevel = details.resolvedIntensityLevel()
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         color = accentColor.copy(alpha = 0.08f),
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(9.dp),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text("CARDIO", color = accentColor, fontWeight = FontWeight.Black)
+            // Nombre del ejercicio como título principal
+            val title = exerciseName?.takeIf { it.isNotBlank() } ?: cardioTypeLabel(details.type)
             Text(
-                "${cardioTypeLabel(details.type)} · MET estimado ${"%.1f".format(defaultMet)}",
-                color = Color.White.copy(alpha = 0.68f),
+                text = title,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium,
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                CardioDurationField(
-                    durationMinutes = durationText.toIntOrNull() ?: 1,
-                    accentColor = accentColor,
-                    modifier = Modifier.weight(1f),
-                    onConfirm = { minutes ->
-                        durationText = minutes.toString()
-                        onChange(details.copy(targetDurationSeconds = minutes * 60))
-                    },
+
+            // Selector de tipo de objetivo (Tiempo / Distancia / Ambos)
+            if (details.supportsDistance) {
+                Text(
+                    "Objetivo a programar",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.75f),
                 )
-                if (details.supportsDistance) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    CardioTargetMode.entries.forEach { mode ->
+                        CardioModeChip(
+                            selected = currentTargetMode == mode,
+                            onClick = {
+                                when (mode) {
+                                    CardioTargetMode.DURATION -> {
+                                        val duration = details.targetDurationSeconds ?: (20 * 60)
+                                        onChange(details.copy(targetDurationSeconds = duration, targetDistanceKm = null))
+                                    }
+                                    CardioTargetMode.DISTANCE -> {
+                                        val distance = details.targetDistanceKm ?: 3.0
+                                        distanceText = if (distance % 1.0 == 0.0) distance.toInt().toString() else distance.toString()
+                                        onChange(details.copy(targetDurationSeconds = null, targetDistanceKm = distance))
+                                    }
+                                    CardioTargetMode.BOTH -> {
+                                        val duration = details.targetDurationSeconds ?: (20 * 60)
+                                        val distance = details.targetDistanceKm ?: 3.0
+                                        distanceText = if (distance % 1.0 == 0.0) distance.toInt().toString() else distance.toString()
+                                        onChange(details.copy(targetDurationSeconds = duration, targetDistanceKm = distance))
+                                    }
+                                }
+                            },
+                            label = mode.label,
+                            accentColor = accentColor,
+                        )
+                    }
+                }
+            }
+
+            // Inputs de duración y/o distancia según el modo seleccionado
+            when (currentTargetMode) {
+                CardioTargetMode.DURATION -> {
+                    CardioDurationField(
+                        durationMinutes = ((details.targetDurationSeconds ?: (20 * 60)) / 60).coerceAtLeast(1),
+                        accentColor = accentColor,
+                        modifier = Modifier.fillMaxWidth(),
+                        onConfirm = { minutes ->
+                            onChange(details.copy(targetDurationSeconds = minutes * 60))
+                        },
+                    )
+                }
+                CardioTargetMode.DISTANCE -> {
                     CardioAccentField(
                         value = distanceText,
                         onValueChange = { value ->
                             distanceText = value.filter { it.isDigit() || it == '.' || it == ',' }.take(8)
-                            onChange(details.copy(targetDistanceKm = distanceText.replace(',', '.').toDoubleOrNull()))
+                            val parsed = distanceText.replace(',', '.').toDoubleOrNull()
+                            onChange(details.copy(targetDistanceKm = parsed))
                         },
-                        modifier = Modifier.weight(1f),
-                        label = "Distancia km",
+                        modifier = Modifier.fillMaxWidth(),
+                        label = "Distancia meta (km)",
                         accentColor = accentColor,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     )
                 }
-            }
-            Text("Intensidad", fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.82f))
-            Row(
-                modifier = Modifier.horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                CardioIntensity.entries.forEach { intensity ->
-                    CardioIntensityChip(
-                        selected = details.intensity == intensity,
-                        onClick = { onChange(details.copy(intensity = intensity)) },
-                        label = intensityLabel(intensity),
-                        accentColor = accentColor,
-                    )
+                CardioTargetMode.BOTH -> {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        CardioDurationField(
+                            durationMinutes = ((details.targetDurationSeconds ?: (20 * 60)) / 60).coerceAtLeast(1),
+                            accentColor = accentColor,
+                            modifier = Modifier.weight(1f),
+                            onConfirm = { minutes ->
+                                onChange(details.copy(targetDurationSeconds = minutes * 60))
+                            },
+                        )
+                        CardioAccentField(
+                            value = distanceText,
+                            onValueChange = { value ->
+                                distanceText = value.filter { it.isDigit() || it == '.' || it == ',' }.take(8)
+                                val parsed = distanceText.replace(',', '.').toDoubleOrNull()
+                                onChange(details.copy(targetDistanceKm = parsed))
+                            },
+                            modifier = Modifier.weight(1f),
+                            label = "Distancia (km)",
+                            accentColor = accentColor,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        )
+                    }
                 }
             }
-            if (details.type.isOutdoor()) {
-                val context = androidx.compose.ui.platform.LocalContext.current
+
+            // Slider de Intensidad de 1 a 10
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    Text("Intensidad", fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.88f))
+                    Text(
+                        "${currentIntensityLevel}/10 · ${intensityZoneDescription(currentIntensityLevel)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = accentColor,
+                    )
+                }
+                Slider(
+                    value = currentIntensityLevel.toFloat(),
+                    onValueChange = { newValue ->
+                        val rounded = newValue.roundToInt().coerceIn(1, 10)
+                        if (rounded != currentIntensityLevel) {
+                            val newIntensity = CardioIntensity.fromLevel(rounded)
+                            onChange(details.copy(intensityLevel = rounded, intensity = newIntensity))
+                        }
+                    },
+                    valueRange = 1f..10f,
+                    steps = 8,
+                    colors = SliderDefaults.colors(
+                        thumbColor = Color.White,
+                        activeTrackColor = accentColor,
+                        inactiveTrackColor = accentColor.copy(alpha = 0.20f),
+                        activeTickColor = Color.White.copy(alpha = 0.6f),
+                        inactiveTickColor = accentColor.copy(alpha = 0.35f),
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+
+            // Apartado de GPS en vivo simplificado y compacto (sin texto redundante que gaste espacio)
+            if (details.type.isOutdoor()) {
+                val context = androidx.compose.ui.platform.LocalContext.current
+                val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+                    contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
+                ) { _ -> }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(accentColor.copy(alpha = 0.06f))
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Icon(
+                        Icons.Default.LocationOn,
+                        contentDescription = null,
+                        tint = if (details.requiresGps) accentColor else Color.White.copy(alpha = 0.5f),
+                        modifier = Modifier.size(20.dp),
+                    )
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Registrar GPS en vivo", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("GPS en vivo", color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
                         Text(
-                            if (details.requiresGps) "Guarda distancia y ritmo mientras entrenas."
-                            else "Puedes activarlo para este cardio exterior.",
+                            "Registra ruta, ritmo y distancia con GPS",
                             style = MaterialTheme.typography.labelSmall,
-                            color = accentColor.copy(alpha = 0.84f),
+                            color = Color.White.copy(alpha = 0.60f),
                         )
                     }
                     Switch(
                         checked = details.requiresGps,
-                        onCheckedChange = { enabled -> onChange(details.copy(requiresGps = enabled)) },
+                        onCheckedChange = { enabled ->
+                            onChange(details.copy(requiresGps = enabled))
+                            if (enabled) {
+                                val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+                                    context,
+                                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                                ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                                if (!hasPermission) {
+                                    permissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                                }
+                            }
+                        },
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = Color.White,
-                            checkedTrackColor = accentColor.copy(alpha = 0.75f),
+                            checkedTrackColor = accentColor.copy(alpha = 0.85f),
                             checkedBorderColor = accentColor,
-                            uncheckedThumbColor = accentColor.copy(alpha = 0.9f),
-                            uncheckedTrackColor = accentColor.copy(alpha = 0.08f),
-                            uncheckedBorderColor = accentColor.copy(alpha = 0.55f),
+                            uncheckedThumbColor = Color.White.copy(alpha = 0.6f),
+                            uncheckedTrackColor = Color.White.copy(alpha = 0.12f),
+                            uncheckedBorderColor = Color.White.copy(alpha = 0.25f),
                         ),
-                    )
-                }
-                val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
-                    contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
-                ) { _ -> }
-                androidx.compose.runtime.LaunchedEffect(details.requiresGps) {
-                    if (details.requiresGps) {
-                        val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
-                            context,
-                            android.Manifest.permission.ACCESS_FINE_LOCATION,
-                        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-                        if (!hasPermission) {
-                            permissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
-                        }
-                    }
-                }
-                if (details.requiresGps) {
-                    Text(
-                        "Este cardio requiere ubicación. KPKN solicita el permiso al programarlo y al iniciar el recorrido si hace falta; si lo deniegas, conservarás el registro manual.",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.62f),
                     )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun CardioModeChip(
+    selected: Boolean,
+    onClick: () -> Unit,
+    label: String,
+    accentColor: Color,
+) {
+    Surface(
+        modifier = Modifier.clickable(onClick = onClick),
+        shape = RoundedCornerShape(999.dp),
+        color = accentColor.copy(alpha = if (selected) 0.30f else 0.06f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = if (selected) 0.90f else 0.40f)),
+    ) {
+        Text(
+            label,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+            color = if (selected) Color.White else Color.White.copy(alpha = 0.70f),
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+            style = MaterialTheme.typography.labelSmall,
+        )
     }
 }
 
@@ -251,29 +399,6 @@ private fun CardioAccentField(
     )
 }
 
-@Composable
-private fun CardioIntensityChip(
-    selected: Boolean,
-    onClick: () -> Unit,
-    label: String,
-    accentColor: Color,
-) {
-    Surface(
-        modifier = Modifier.clickable(onClick = onClick),
-        shape = RoundedCornerShape(999.dp),
-        color = accentColor.copy(alpha = if (selected) 0.34f else 0.08f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = if (selected) 0.95f else 0.52f)),
-    ) {
-        Text(
-            label,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.labelSmall,
-        )
-    }
-}
-
 private fun CardioType.isOutdoor(): Boolean = when (this) {
     CardioType.RUN_OUTDOOR,
     CardioType.BIKE_OUTDOOR,
@@ -293,9 +418,11 @@ private fun cardioTypeLabel(type: CardioType): String = when (type) {
     CardioType.STAIR_CLIMBER -> "Escaladora"
 }
 
-private fun intensityLabel(intensity: CardioIntensity): String = when (intensity) {
-    CardioIntensity.BAJA -> "Baja"
-    CardioIntensity.MEDIA -> "Media"
-    CardioIntensity.ALTA -> "Alta"
-    CardioIntensity.MUY_ALTA -> "Muy alta"
+private fun intensityZoneDescription(level: Int): String = when (level) {
+    in 1..3 -> "Suave (Calentamiento)"
+    in 4..5 -> "Moderado (Quema grasa)"
+    in 6..7 -> "Ritmo medio (Aeróbico)"
+    in 8..9 -> "Fuerte (Umbral anaeróbico)"
+    10 -> "Máximo esfuerzo (Sprint)"
+    else -> "Moderado"
 }

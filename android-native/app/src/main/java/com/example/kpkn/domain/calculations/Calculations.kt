@@ -569,7 +569,7 @@ fun calculateSessionTimeBreakdown(
         // the source of truth even when a legacy/edited session has no sets or
         // stale ExerciseSet.targetDuration values.
         exercise.cardioDetails?.let { cardio ->
-            executionSec += cardio.targetDurationSeconds.coerceAtLeast(0)
+            executionSec += (cardio.targetDurationSeconds ?: 0).coerceAtLeast(0)
             return@forEach
         }
 

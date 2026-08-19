@@ -56,15 +56,14 @@ fun SessionEditorViewModel.movePart(partId: String, direction: Int) = updateSess
 }
 
 fun SessionEditorViewModel.movePartToIndex(partId: String, targetIndex: Int) = updateSession { session ->
-    val currentIndex = session.parts.indexOfFirst { it.id == partId }
-    if (currentIndex == -1) return@updateSession session
-    val safeTarget = targetIndex.coerceIn(0, session.parts.lastIndex)
-    if (currentIndex == safeTarget) return@updateSession session
+    val movedPart = session.parts.firstOrNull { it.id == partId } ?: return@updateSession session
+    val grouped = session.parts.filterNot { it.isUncategorizedPart() }
+    val remaining = grouped.filterNot { it.id == partId }.toMutableList()
+    val safeTarget = targetIndex.coerceIn(0, remaining.size)
+    remaining.add(safeTarget, movedPart)
 
-    val mutable = session.parts.toMutableList()
-    val moved = mutable.removeAt(currentIndex)
-    mutable.add(safeTarget, moved)
-    session.copy(parts = mutable.toList())
+    val uncategorized = session.parts.filter { it.isUncategorizedPart() }
+    session.copy(parts = remaining.toList() + uncategorized)
 }
 
 fun SessionEditorViewModel.openPicker(partId: String?, exerciseId: String? = null, searchQuery: String = "") {
@@ -347,8 +346,19 @@ fun SessionEditorViewModel.moveExerciseToPart(
     } else {
         session.parts.firstOrNull { it.id == sourcePartId }?.exercises.orEmpty()
     }
-    val draggedSource = sourceExercises.firstOrNull { it.id == exerciseId }
-    val draggedGroupId = draggedSource?.supersetGroupRefOrLegacyId()
+    val draggedSource = sourceExercises.firstOrNull { it.id == exerciseId } ?: return@updateSession session
+    val isCardio = draggedSource.isCardio || (sourcePartId != null && session.parts.firstOrNull { it.id == sourcePartId }?.isCardioPart() == true)
+
+    val targetPart = if (targetPartId != null) session.parts.firstOrNull { it.id == targetPartId } else null
+    val targetIsCardio = targetPart?.isCardioPart() == true
+
+    // REGLA: Cardio NO se mezcla con Fuerza.
+    // - Si el ejercicio es cardio, SOLO puede moverse a un grupo de cardio.
+    // - Si el ejercicio es fuerza, NO puede moverse a un grupo de cardio.
+    if (isCardio && !targetIsCardio) return@updateSession session
+    if (!isCardio && targetIsCardio) return@updateSession session
+
+    val draggedGroupId = draggedSource.supersetGroupRefOrLegacyId()
     if (!draggedGroupId.isNullOrBlank()) {
         val group = session.allSupersetGroups().firstOrNull { it.id == draggedGroupId }
         val memberIds = group?.exerciseOrder?.filter { id -> sourceExercises.any { it.id == id } }
@@ -551,7 +561,7 @@ fun SessionEditorViewModel.openExerciseQuickActions(partId: String?, exerciseId:
 fun SessionEditorViewModel.triggerQuickActionOpenPicker() {
     val state = currentUiState
     val exerciseId = state.quickActionsExerciseId ?: return
-    val contextualQuery = state.session
+    val targetExercise = state.session
         ?.let { session ->
             if (state.quickActionsPartId == null) {
                 session.exercises.firstOrNull { it.id == exerciseId }
@@ -562,8 +572,13 @@ fun SessionEditorViewModel.triggerQuickActionOpenPicker() {
                     ?.firstOrNull { it.id == exerciseId }
             }
         }
-        ?.name
-        .orEmpty()
+
+    if (targetExercise?.cardioDetails != null) {
+        openCardioPicker(partId = state.quickActionsPartId, exerciseId = exerciseId)
+        return
+    }
+
+    val contextualQuery = targetExercise?.name.orEmpty()
 
     openPicker(
         partId = state.quickActionsPartId,

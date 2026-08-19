@@ -1,17 +1,16 @@
 package com.example.kpkn.screens.programdetail
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -71,8 +70,6 @@ fun ProgramDetailScreen(
     onEditSession: (String) -> Unit,
     onCreateSession: (String, String, Int, Int, Int, Boolean) -> Unit,
     onOpenProgram: (String) -> Unit = {},
-    onContextTabStateChange: (MainTab, (MainTab) -> Unit) -> Unit = { _, _ -> },
-    initialTab: MainTab? = null,
     viewModel: ProgramDetailViewModel = viewModel(factory = ProgramDetailViewModel.factory(programId)),
 ) {
     val augeViewModel = rememberAugeViewModel()
@@ -87,7 +84,6 @@ fun ProgramDetailScreen(
     val currentWeekIndex by viewModel.currentWeekIndex.collectAsState()
     val roadmapBlocks by viewModel.roadmapBlocks.collectAsState()
     val simpleRoadmapLoopMarkers by viewModel.simpleRoadmapLoopMarkers.collectAsState()
-    val programLogs by viewModel.programLogs.collectAsState()
     val isSimpleProgram by viewModel.isSimpleProgram.collectAsState()
     val activeProgramState by viewModel.activeProgramState.collectAsState()
     val showSimpleCalendarizationSheet by viewModel.showSimpleCalendarizationSheet.collectAsState()
@@ -98,18 +94,9 @@ fun ProgramDetailScreen(
     val augeSnapshot by augeViewModel.snapshot.collectAsState()
     val settings by ProgramRepository.getInstance().settings.collectAsState()
     val context = LocalContext.current
-    val muscleCdbsStatus by viewModel.muscleCdbsStatus.collectAsState()
 
     LaunchedEffect(programId) {
         viewModel.loadFeedbacks(context)
-    }
-
-    LaunchedEffect(programId, initialTab) {
-        if (initialTab != null) viewModel.setActiveTab(initialTab)
-    }
-
-    LaunchedEffect(uiState.activeTab) {
-        onContextTabStateChange(uiState.activeTab) { viewModel.setActiveTab(it) }
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -117,6 +104,7 @@ fun ProgramDetailScreen(
     var showVolumeSetupNotice by remember { mutableStateOf(false) }
     var openVolumeSheetToken by remember { mutableIntStateOf(0) }
     var notifiedLoopWeekId by remember { mutableStateOf<String?>(null) }
+    var showSplitPage by rememberSaveable { mutableStateOf(false) }
 
     // Edge case: program not found
     val p = program
@@ -145,6 +133,26 @@ fun ProgramDetailScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) { KpknSnackbar(it) } },
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom),
     ) { padding ->
+        if (showSplitPage) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .statusBarsPadding()
+                    .padding(bottom = padding.calculateBottomPadding() + 120.dp),
+            ) {
+                SplitView(
+                    program = p,
+                    selectedBlockId = uiState.selectedBlockId,
+                    selectedWeekId = uiState.selectedWeekId,
+                    onUpdateProgram = {
+                        viewModel.updateProgram(it)
+                        showSplitPage = false
+                    },
+                    onBack = { showSplitPage = false },
+                )
+            }
+        } else {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -241,49 +249,29 @@ fun ProgramDetailScreen(
                 openVolumeSheetToken = openVolumeSheetToken,
             )
 
-            CompactSubTabs(
-                activeMainTab = uiState.activeTab,
+            CompactStructureSubTabs(
                 structureSubTab = uiState.structureSubTab,
-                analyticsSubTab = uiState.analyticsSubTab,
                 onStructureSubTabChange = { viewModel.setStructureSubTab(it) },
-                onAnalyticsSubTabChange = { viewModel.setAnalyticsSubTab(it) },
             )
 
-            // Tab Content with animation
-            AnimatedContent(
-                targetState = uiState.activeTab,
-                transitionSpec = {
-                    (fadeIn() + scaleIn(initialScale = 0.98f)) togetherWith (fadeOut() + scaleOut(targetScale = 0.98f))
-                },
-                label = "tab-content",
-            ) { tab ->
-                when (tab) {
-                    MainTab.TRAINING -> TrainingPanel(
-                        viewModel = viewModel,
-                        program = p,
-                        roadmapBlocks = roadmapBlocks,
-                        currentWeeks = currentWeeks,
-                        displayedSessions = displayedSessions,
-                        selectedWeekMeta = selectedWeekMeta,
-                        selectedBlockId = uiState.selectedBlockId,
-                        selectedWeekId = uiState.selectedWeekId,
-                        simpleRoadmapLoopMarkers = simpleRoadmapLoopMarkers,
-                        structureSubTab = uiState.structureSubTab,
-                        onStartWorkout = onStartWorkout,
-                        onEditSession = onEditSession,
-                        onCreateSession = onCreateSession,
-                        onOpenProgram = onOpenProgram,
-                    )
-                    MainTab.ANALYTICS -> AnalyticsPanel(
-                        viewModel = viewModel,
-                        program = p,
-                        isProgramActive = isActive,
-                        analyticsSubTab = uiState.analyticsSubTab,
-                        programLogs = programLogs,
-                        userBodyWeightKg = settings.userVitals.weight,
-                    )
-                }
-            }
+            TrainingPanel(
+                viewModel = viewModel,
+                program = p,
+                roadmapBlocks = roadmapBlocks,
+                currentWeeks = currentWeeks,
+                displayedSessions = displayedSessions,
+                selectedWeekMeta = selectedWeekMeta,
+                selectedBlockId = uiState.selectedBlockId,
+                selectedWeekId = uiState.selectedWeekId,
+                simpleRoadmapLoopMarkers = simpleRoadmapLoopMarkers,
+                structureSubTab = uiState.structureSubTab,
+                onStartWorkout = onStartWorkout,
+                onEditSession = onEditSession,
+                onCreateSession = onCreateSession,
+                onOpenProgram = onOpenProgram,
+                onOpenSplitPage = { showSplitPage = true },
+            )
+        }
         }
     }
 
@@ -330,26 +318,15 @@ fun ProgramDetailScreen(
 }
 
 @Composable
-private fun CompactSubTabs(
-    activeMainTab: MainTab,
+private fun CompactStructureSubTabs(
     structureSubTab: StructureSubTab,
-    analyticsSubTab: AnalyticsSubTab,
     onStructureSubTabChange: (StructureSubTab) -> Unit,
-    onAnalyticsSubTabChange: (AnalyticsSubTab) -> Unit,
 ) {
-    val items = if (activeMainTab == MainTab.TRAINING) {
-        listOf(
-            "Semana" to StructureSubTab.SEMANA,
-            "Estructura" to StructureSubTab.MACROCICLO,
-            "Split" to StructureSubTab.SPLIT,
-        )
-    } else {
-        listOf(
-            "Volumen" to AnalyticsSubTab.VOLUMEN,
-            "Progreso" to AnalyticsSubTab.PROGRESO,
-            "Historiales" to AnalyticsSubTab.HISTORIALES,
-        )
-    }
+    val items = listOf(
+        "Semana" to StructureSubTab.SEMANA,
+        "Estructura" to StructureSubTab.MACROCICLO,
+        "Volumen" to StructureSubTab.VOLUMEN,
+    )
 
     Surface(
         modifier = Modifier
@@ -375,21 +352,12 @@ private fun CompactSubTabs(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             items.forEach { (label, value) ->
-                val selected = when (value) {
-                    is StructureSubTab -> structureSubTab == value || (value == StructureSubTab.MACROCICLO && structureSubTab == StructureSubTab.LOOPS)
-                    is AnalyticsSubTab -> analyticsSubTab == value
-                    else -> false
-                }
+                val selected = structureSubTab == value || (value == StructureSubTab.MACROCICLO && structureSubTab == StructureSubTab.LOOPS)
                 Surface(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(14.dp))
-                        .clickable {
-                            when (value) {
-                                is StructureSubTab -> onStructureSubTabChange(value)
-                                is AnalyticsSubTab -> onAnalyticsSubTabChange(value)
-                            }
-                        },
+                        .clickable { onStructureSubTabChange(value) },
                     shape = RoundedCornerShape(14.dp),
                     color = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.74f) else Color.White.copy(alpha = 0.05f),
                 ) {
@@ -426,6 +394,7 @@ private fun TrainingPanel(
     onEditSession: (String) -> Unit,
     onCreateSession: (String, String, Int, Int, Int, Boolean) -> Unit,
     onOpenProgram: (String) -> Unit = {},
+    onOpenSplitPage: () -> Unit = {},
 ) {
     val currentWeekId by viewModel.activeProgramState.collectAsState()
     val editorUiState by viewModel.uiState.collectAsState()
@@ -550,7 +519,7 @@ private fun TrainingPanel(
     Column {
         Spacer(Modifier.height(4.dp))
 
-        if (structureSubTab != StructureSubTab.SPLIT) {
+        if (structureSubTab != StructureSubTab.VOLUMEN) {
             BlockRoadmap(
                 roadmapBlocks = roadmapBlocks,
                 currentWeeks = currentWeeks,
@@ -586,6 +555,16 @@ private fun TrainingPanel(
             )
 
             Spacer(Modifier.height(8.dp))
+        }
+
+        if (structureSubTab == StructureSubTab.SEMANA) {
+            TextButton(
+                onClick = onOpenSplitPage,
+                modifier = Modifier.padding(horizontal = 16.dp),
+            ) {
+                Text("VER SPLITS", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color.White.copy(alpha = 0.7f))
+            }
+            Spacer(Modifier.height(4.dp))
         }
 
         when (structureSubTab) {
@@ -657,12 +636,6 @@ private fun TrainingPanel(
                     },
                 )
             }
-            StructureSubTab.SPLIT -> SplitView(
-                program = program,
-                selectedBlockId = selectedBlockId,
-                selectedWeekId = selectedWeekId,
-                onUpdateProgram = { viewModel.updateProgram(it) },
-            )
             StructureSubTab.MACROCICLO -> MacrocycleEditor(
                 program = program,
                 onUpdateProgram = { viewModel.updateProgram(it) },
@@ -741,6 +714,60 @@ private fun TrainingPanel(
                     onOpenProgram(copy.id)
                 },
             )
+            StructureSubTab.VOLUMEN -> {
+                val progLogs by viewModel.programLogs.collectAsState()
+                val isActiveProg by viewModel.isActiveProgram.collectAsState()
+                val muscleCdbs by viewModel.muscleCdbsStatus.collectAsState()
+                val discomforts by viewModel.programDiscomforts.collectAsState()
+                val exDiscomfortAssoc by viewModel.exerciseDiscomfortAssociations.collectAsState()
+                val analyticsReport = remember(program, progLogs) {
+                    ProgramAnalyticsEngine.analyze(
+                        program = program,
+                        logs = progLogs,
+                        exerciseCatalog = exerciseCatalogSnapshot(),
+                    )
+                }
+                val hasCreatedSessions = remember(program) {
+                    program.macrocycles
+                        .flatMap { it.blocks }
+                        .flatMap { it.mesocycles }
+                        .flatMap { it.weeks }
+                        .any { it.sessions.isNotEmpty() }
+                }
+                VolumeView(
+                    program = program,
+                    isProgramActive = isActiveProg,
+                    hasCreatedSessions = hasCreatedSessions,
+                    onActivateProgram = { viewModel.startProgram() },
+                    onGoCreateSession = {
+                        val firstBlock = program.macrocycles.firstOrNull()?.blocks?.firstOrNull()
+                        val firstWeek = firstBlock?.mesocycles?.firstOrNull()?.weeks?.firstOrNull()
+                        if (firstBlock != null && firstWeek != null) {
+                            viewModel.selectBlock(firstBlock.id)
+                            viewModel.selectWeek(firstWeek.id)
+                            viewModel.setStructureSubTab(StructureSubTab.SEMANA)
+                        } else {
+                            viewModel.setStructureSubTab(StructureSubTab.MACROCICLO)
+                        }
+                    },
+                    onApplyVolumeCalibration = { mode, athleteScore, recommendations ->
+                        viewModel.updateProgram(
+                            program.copy(
+                                mode = mode,
+                                volumeSystem = com.example.kpkn.data.models.VolumeSystem.KPNK,
+                                athleteProfileScore = athleteScore,
+                                volumeRecommendations = recommendations,
+                            )
+                        )
+                    },
+                    programDiscomforts = discomforts,
+                    exerciseDiscomfortAssociations = exDiscomfortAssoc,
+                    analyticsReport = analyticsReport,
+                    muscleCdbsStatus = muscleCdbs,
+                    programLogs = progLogs,
+                )
+            }
+            else -> {} // SPLIT — movido a botón dentro de Semana
         }
 
         Spacer(Modifier.height(120.dp))
@@ -1250,104 +1277,6 @@ private fun chooseSessionCreationDay(
     return orderedDays.firstOrNull { it !in occupiedDays } ?: normalizedPreferred
 }
 
-// ─── Analytics Panel ────────────────────────────────────────────────────────
-
-@Composable
-private fun AnalyticsPanel(
-    viewModel: ProgramDetailViewModel,
-    program: Program,
-    isProgramActive: Boolean,
-    analyticsSubTab: AnalyticsSubTab,
-    programLogs: List<com.example.kpkn.data.models.WorkoutLog>,
-    userBodyWeightKg: Double?,
-) {
-    val analyticsReport = remember(program, programLogs) {
-        ProgramAnalyticsEngine.analyze(
-            program = program,
-            logs = programLogs,
-            exerciseCatalog = exerciseCatalogSnapshot(),
-        )
-    }
-    val muscleCdbsStatus by viewModel.muscleCdbsStatus.collectAsState()
-
-    Column {
-        Spacer(Modifier.height(8.dp))
-
-        when (analyticsSubTab) {
-            AnalyticsSubTab.VOLUMEN -> {
-                val programDiscomforts by viewModel.programDiscomforts.collectAsState()
-                val exerciseDiscomfortAssociations by viewModel.exerciseDiscomfortAssociations.collectAsState()
-                val hasCreatedSessions = remember(program) {
-                    program.macrocycles
-                        .flatMap { it.blocks }
-                        .flatMap { it.mesocycles }
-                        .flatMap { it.weeks }
-                        .any { it.sessions.isNotEmpty() }
-                }
-                VolumeView(
-                    program = program,
-                    isProgramActive = isProgramActive,
-                    hasCreatedSessions = hasCreatedSessions,
-                    onActivateProgram = { viewModel.startProgram() },
-                    onGoCreateSession = {
-                        val firstBlock = program.macrocycles.firstOrNull()?.blocks?.firstOrNull()
-                        val firstWeek = firstBlock?.mesocycles?.firstOrNull()?.weeks?.firstOrNull()
-                        viewModel.setActiveTab(MainTab.TRAINING)
-                        if (firstBlock != null && firstWeek != null) {
-                            viewModel.selectBlock(firstBlock.id)
-                            viewModel.selectWeek(firstWeek.id)
-                            viewModel.setStructureSubTab(StructureSubTab.SEMANA)
-                        } else {
-                            viewModel.setStructureSubTab(StructureSubTab.MACROCICLO)
-                        }
-                    },
-                    onApplyVolumeCalibration = { mode, athleteScore, recommendations ->
-                        viewModel.updateProgram(
-                            program.copy(
-                                mode = mode,
-                                volumeSystem = com.example.kpkn.data.models.VolumeSystem.KPNK,
-                                athleteProfileScore = athleteScore,
-                                volumeRecommendations = recommendations,
-                            )
-                        )
-                    },
-                    programDiscomforts = programDiscomforts,
-                    exerciseDiscomfortAssociations = exerciseDiscomfortAssociations,
-                    analyticsReport = analyticsReport,
-                    muscleCdbsStatus = muscleCdbsStatus,
-                    programLogs = programLogs,
-                )
-            }
-            AnalyticsSubTab.PROGRESO -> {
-                if (programLogs.isEmpty()) {
-                    EmptyHistoryState()
-                } else {
-                    ProgressView(
-                        program = program,
-                        programLogs = programLogs,
-                        userBodyWeightKg = userBodyWeightKg,
-                        onUpdateProgram = { viewModel.updateProgram(it) },
-                        analyticsReport = analyticsReport,
-                    )
-                }
-            }
-            AnalyticsSubTab.HISTORIALES -> {
-                if (programLogs.isEmpty()) {
-                    EmptyHistoryState()
-                } else {
-                    HistoryView(
-                        program = program,
-                        programLogs = programLogs,
-                        analyticsReport = analyticsReport,
-                    )
-                }
-            }
-        }
-
-        Spacer(Modifier.height(120.dp))
-    }
-}
-
 // ─── Empty States ───────────────────────────────────────────────────────────
 
 @Composable
@@ -1373,29 +1302,6 @@ private fun EmptyProgramState(onAddStructure: () -> Unit) {
             Button(onClick = onAddStructure) {
                 Text("Agregar estructura", fontWeight = FontWeight.Bold)
             }
-        }
-    }
-}
-
-@Composable
-private fun EmptyHistoryState() {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
-        shape = MaterialTheme.shapes.extraLarge,
-    ) {
-        Column(
-            modifier = Modifier.padding(32.dp).fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text("\uD83D\uDCCA", fontSize = 40.sp)
-            Spacer(Modifier.height(12.dp))
-            Text("Sin datos aún", fontSize = 16.sp, fontWeight = FontWeight.Black)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "Completa sesiones de entrenamiento para ver estadísticas",
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }

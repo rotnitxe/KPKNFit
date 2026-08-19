@@ -56,6 +56,8 @@ fun WelcomeOnboardingOverlay(
     var programNameInput by rememberSaveable { mutableStateOf("") }
     var programNameError by rememberSaveable { mutableStateOf(false) }
 
+    val successGreen = Color(0xFF4CAF50)
+
     // Si se completa todo y se estaba en resumen, no resetear; si se deshace algo, volver al onboarding
     LaunchedEffect(state.allTasksDone) {
         if (!state.allTasksDone && showSummary) showSummary = false
@@ -119,7 +121,7 @@ fun WelcomeOnboardingOverlay(
                     }
 
                     Text(
-                        "Somos más que una app para el gym. Acá podrás programar tus entrenamientos, " +
+                        "Somos más que una app para el gimnasio. Aquí podrás programar tus entrenamientos, " +
                             "crear planes de alimentación, registrar tus comidas y ver tu progreso; " +
                             "una suite completa para que completes tus objetivos, respetando tu privacidad.",
                         style = MaterialTheme.typography.bodyMedium,
@@ -182,7 +184,7 @@ fun WelcomeOnboardingOverlay(
                                     nameExpanded = false
                                 },
                             ) {
-                                Text("Omitir", fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
+                                Text("Omitir", fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.9f))
                             }
                             Button(
                                 onClick = {
@@ -254,7 +256,7 @@ fun WelcomeOnboardingOverlay(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             TextButton(onClick = { programExpanded = false; programNameInput = "" }) {
-                                Text("Cancelar", fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
+                                Text("Cancelar", fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.9f))
                             }
                             Button(
                                 onClick = {
@@ -299,19 +301,50 @@ fun WelcomeOnboardingOverlay(
                         // No hay contenido expandido; la acción es navegar al wizard
                     }
 
-                    // ── Botón SIGUIENTE ──────────────────────────────────────
+                    // ── Mensaje de tareas completadas + botón SIGUIENTE ──────
                     AnimatedVisibility(
                         visible = state.allTasksDone,
                         enter = fadeIn() + expandVertically(),
                         exit = fadeOut() + shrinkVertically(),
                     ) {
-                        Button(
-                            onClick = { showSummary = true },
-                            modifier = Modifier.fillMaxWidth().height(52.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8FB7B8), contentColor = Color.Black),
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
-                            Text("SIGUIENTE", fontWeight = FontWeight.Black, letterSpacing = 0.8.sp, fontSize = 15.sp)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                            ) {
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = successGreen,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    "Tareas completadas",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = successGreen,
+                                )
+                            }
+                            Text(
+                                "Presiona siguiente para ver el resumen",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White.copy(alpha = 0.7f),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            Button(
+                                onClick = { showSummary = true },
+                                modifier = Modifier.fillMaxWidth().height(52.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8FB7B8), contentColor = Color.Black),
+                            ) {
+                                Text("SIGUIENTE", fontWeight = FontWeight.Black, letterSpacing = 0.8.sp, fontSize = 15.sp)
+                            }
                         }
                     }
                 } else {
@@ -325,7 +358,7 @@ fun WelcomeOnboardingOverlay(
                         modifier = Modifier.fillMaxWidth(),
                     )
                     Text(
-                        "Así quedó tu configuración inicial. Podés cambiarla cuando quieras desde Ajustes.",
+                        "Así quedó tu configuración inicial. Puedes cambiarla cuando quieras desde Ajustes.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White.copy(alpha = 0.75f),
                         textAlign = TextAlign.Center,
@@ -362,7 +395,7 @@ fun WelcomeOnboardingOverlay(
                         onClick = { showSummary = false },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text("Volver", fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.7f))
+                        Text("Volver", fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.9f))
                     }
                 }
             }
@@ -382,7 +415,7 @@ private fun OnboardingCard(
 ) {
     Surface(
         shape = RoundedCornerShape(18.dp),
-        color = if (done) Color(0xFF8FB7B8).copy(alpha = 0.14f) else Color.White.copy(alpha = 0.06f),
+        color = if (done) Color(0xFF4CAF50).copy(alpha = 0.16f) else Color.White.copy(alpha = 0.06f),
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
@@ -401,7 +434,7 @@ private fun OnboardingCard(
                 Icon(
                     if (done) Icons.Default.CheckCircle else Icons.Outlined.Circle,
                     contentDescription = if (done) "Hecho" else "Pendiente",
-                    tint = if (done) Color(0xFF8FB7B8) else Color.White.copy(alpha = 0.45f),
+                    tint = if (done) Color(0xFF4CAF50) else Color.White.copy(alpha = 0.45f),
                     modifier = Modifier.size(22.dp),
                 )
                 Spacer(Modifier.width(10.dp))
@@ -459,7 +492,7 @@ private fun SummaryRow(
             Icon(
                 Icons.Default.CheckCircle,
                 contentDescription = null,
-                tint = if (done) Color(0xFF8FB7B8) else Color.White.copy(alpha = 0.35f),
+                tint = if (done) Color(0xFF4CAF50) else Color.White.copy(alpha = 0.35f),
                 modifier = Modifier.size(18.dp),
             )
             Spacer(Modifier.width(10.dp))

@@ -8,7 +8,7 @@ import kotlin.math.max
 data class CardioCalorieInput(
     val details: CardioDetails,
     val weightKg: Double,
-    val durationSeconds: Int = details.targetDurationSeconds,
+    val durationSeconds: Int = details.targetDurationSeconds ?: 0,
     val averageHeartRate: Int? = null,
     val restingHeartRate: Int? = null,
     val maximumHeartRate: Int? = null,

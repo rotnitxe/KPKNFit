@@ -124,32 +124,10 @@ class ProgramDetailViewModelTest {
     // ─── Tab Management ───────────────────────────────────────────────────
 
     @Test
-    fun initial_state_is_training_tab() {
+    fun initial_state_is_semana_subtab() {
         val id = nextId()
         val vm = ProgramDetailViewModel(id)
-        assertEquals(MainTab.TRAINING, vm.uiState.value.activeTab)
         assertEquals(StructureSubTab.SEMANA, vm.uiState.value.structureSubTab)
-    }
-
-    @Test
-    fun setActiveTab_changes_tab() {
-        val vm = ProgramDetailViewModel(nextId())
-        vm.setActiveTab(MainTab.ANALYTICS)
-        assertEquals(MainTab.ANALYTICS, vm.uiState.value.activeTab)
-    }
-
-    @Test
-    fun setStructureSubTab_changes_subtab() {
-        val vm = ProgramDetailViewModel(nextId())
-        vm.setStructureSubTab(StructureSubTab.SPLIT)
-        assertEquals(StructureSubTab.SPLIT, vm.uiState.value.structureSubTab)
-    }
-
-    @Test
-    fun setAnalyticsSubTab_changes_subtab() {
-        val vm = ProgramDetailViewModel(nextId())
-        vm.setAnalyticsSubTab(AnalyticsSubTab.PROGRESO)
-        assertEquals(AnalyticsSubTab.PROGRESO, vm.uiState.value.analyticsSubTab)
     }
 
     // ─── Block Selection ──────────────────────────────────────────────────

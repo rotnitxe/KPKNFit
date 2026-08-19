@@ -163,7 +163,7 @@ internal fun HeroGlassFab(
     summary: SessionEditorAugeSummary,
     modifier: Modifier = Modifier,
     hazeState: HazeState? = null,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)? = null,
 ) {
     // Same construction as the roadmap dock: Box + kpknGlass OVER a sibling hazeSource.
     // Do NOT wrap this in Scaffold's floatingActionButton (that nests inside hazeSource and kills blur).
@@ -172,11 +172,12 @@ internal fun HeroGlassFab(
     } else {
         Modifier.background(DarkEditorChip, CircleShape)
     }
+    val clickModifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
     Box(
         modifier = modifier
             .size(67.dp)
             .then(glassModifier)
-            .clickable(onClick = onClick),
+            .then(clickModifier),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
@@ -195,7 +196,7 @@ internal fun HeroTimeFab(
     hasSuggestions: Boolean,
     modifier: Modifier = Modifier,
     hazeState: HazeState? = null,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)? = null,
 ) {
     val ratio = if (limitMinutes != null && limitMinutes > 0) {
         estimatedMinutes.toFloat() / limitMinutes.toFloat()
@@ -220,12 +221,13 @@ internal fun HeroTimeFab(
         estimatedMinutes > 0 -> "${estimatedMinutes}'"
         else -> "—"
     }
+    val clickModifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
 
     Box(
         modifier = modifier
             .size(56.dp)
             .then(glassModifier)
-            .clickable(onClick = onClick),
+            .then(clickModifier),
         contentAlignment = Alignment.Center,
     ) {
         Canvas(modifier = Modifier.fillMaxSize().padding(3.dp)) {

@@ -108,7 +108,6 @@ internal fun ExerciseEditorCard(
     isCompetitionMovement: Boolean,
     modifier: Modifier = Modifier,
     isDragging: Boolean,
-    dragOffset: Offset,
     isDropTarget: Boolean,
     isPartDropTarget: Boolean,
     onBoundsChange: (Rect) -> Unit,
@@ -229,8 +228,8 @@ internal fun ExerciseEditorCard(
             .fillMaxWidth()
             .onGloballyPositioned { onBoundsChange(it.boundsInWindow()) }
             .graphicsLayer {
-                translationX = if (isDragging) dragOffset.x else 0f
-                translationY = if (isDragging) dragOffset.y else 0f
+                scaleX = if (isDragging) 1.02f else 1f
+                scaleY = if (isDragging) 1.02f else 1f
                 alpha = if (isDragging) 0.22f else 1f
                 shadowElevation = if (isDragging) 6.dp.toPx() else 0f
             }
@@ -394,11 +393,12 @@ internal fun ExerciseEditorCard(
                     CardioEditorCard(
                         details = details,
                         accentColor = accentColor,
+                        exerciseName = exercise.name,
                         onChange = { updated ->
                             onUpdateExercise { current ->
                                 current.copy(
                                     cardioDetails = updated,
-                                    targetDurationMinutes = (updated.targetDurationSeconds / 60).coerceAtLeast(1),
+                                    targetDurationMinutes = updated.targetDurationSeconds?.let { (it / 60).coerceAtLeast(1) } ?: 0,
                                 )
                             }
                         },
@@ -906,13 +906,18 @@ private fun cardioCollapsedSummary(details: CardioDetails): String {
         CardioType.WALK -> "Caminata"
         CardioType.STAIR_CLIMBER -> "Escaladora"
     }
-    val intensity = when (details.intensity) {
-        CardioIntensity.BAJA -> "Baja"
-        CardioIntensity.MEDIA -> "Media"
-        CardioIntensity.ALTA -> "Alta"
-        CardioIntensity.MUY_ALTA -> "Muy alta"
+    val level = details.resolvedIntensityLevel()
+    val parts = mutableListOf<String>()
+    parts.add("Cardio")
+    parts.add(type)
+    details.targetDurationSeconds?.let { sec ->
+        parts.add("${(sec / 60).coerceAtLeast(1)} min")
     }
-    return "Cardio · $type · ${(details.targetDurationSeconds / 60).coerceAtLeast(1)} min · $intensity"
+    details.targetDistanceKm?.let { km ->
+        parts.add(if (km % 1.0 == 0.0) "${km.toInt()} km" else "$km km")
+    }
+    parts.add("Nivel $level")
+    return parts.joinToString(" · ")
 }
 
 private fun normalizeWarmupPercentageForEditor(rawPercentage: Double): Double {

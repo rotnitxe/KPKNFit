@@ -68,6 +68,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.hasCardioPart
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -382,18 +383,81 @@ fun SessionEditorScreen(
         dragController.pruneBounds(active, uiState.collapsedPartIds)
     }
     var draggingPartId by dragController::draggingPartId
-    var draggingPartOffsetY by dragController::draggingPartOffsetY
     var partDropTargetId by dragController::partDropTargetId
     var partDropTargetIndex by dragController::partDropTargetIndex
     var draggingExerciseId by dragController::draggingExerciseId
     var draggingExercisePartId by dragController::draggingExercisePartId
-    var draggingExerciseOffset by dragController::draggingExerciseOffset
     var exerciseDropTargetKey by dragController::exerciseDropTargetKey
     var exerciseDropTargetPartId by dragController::exerciseDropTargetPartId
     var exerciseDropTargetIndex by dragController::exerciseDropTargetIndex
+    var lazyColumnWindowBounds by remember { mutableStateOf<Rect?>(null) }
 
-    fun beginExerciseDrag(partId: String, exerciseId: String, grab: Offset) =
-        dragController.beginExerciseDrag(partId, exerciseId, grab)
+    fun beginExerciseDrag(partId: String, exerciseId: String, grab: Offset) {
+        val windowBounds = lazyColumnWindowBounds
+        val liveBounds = if (windowBounds != null) {
+            val map = mutableMapOf<String, Rect>()
+            listState.layoutInfo.visibleItemsInfo.forEach { itemInfo ->
+                val key = itemInfo.key as? String ?: return@forEach
+                val top = windowBounds.top + itemInfo.offset
+                val bottom = top + itemInfo.size
+                val rect = Rect(windowBounds.left, top.toFloat(), windowBounds.right, bottom.toFloat())
+                when {
+                    key.startsWith("loose-exercise-") -> {
+                        val exId = key.removePrefix("loose-exercise-")
+                        map["__loose__|$exId"] = rect
+                    }
+                    key.startsWith("loose-superset-") -> {
+                        val groupId = key.removePrefix("loose-superset-")
+                        val members = session?.exercises?.filter { it.supersetGroupRefOrLegacyId() == groupId }.orEmpty()
+                        members.forEach { m -> map["__loose__|${m.id}"] = rect }
+                    }
+                    key.startsWith("part-") && key.contains("-exercise-") -> {
+                        val pid = key.substringAfter("part-").substringBefore("-exercise-")
+                        val exId = key.substringAfter("-exercise-")
+                        map["$pid|$exId"] = rect
+                    }
+                    key.startsWith("part-") && key.contains("-superset-") -> {
+                        val pid = key.substringAfter("part-").substringBefore("-superset-")
+                        val groupId = key.substringAfter("-superset-")
+                        val part = session?.parts?.firstOrNull { it.id == pid }
+                        val members = part?.exercises?.filter { it.supersetGroupRefOrLegacyId() == groupId }.orEmpty()
+                        members.forEach { m -> map["$pid|${m.id}"] = rect }
+                    }
+                    key.startsWith("part-header-") -> {
+                        val pid = key.removePrefix("part-header-")
+                        map["header|$pid"] = rect
+                    }
+                    key.startsWith("part-add-") -> {
+                        val pid = key.removePrefix("part-add-")
+                        map["footer|$pid"] = rect
+                    }
+                    key == "strength-add-actions" -> {
+                        map["loose_container|__loose__"] = rect
+                    }
+                }
+            }
+            map
+        } else null
+        dragController.beginExerciseDrag(partId, exerciseId, grab, liveBounds)
+    }
+
+    fun beginPartDrag(partId: String, grabRect: Rect?) {
+        val windowBounds = lazyColumnWindowBounds
+        val liveBounds = if (windowBounds != null) {
+            val map = mutableMapOf<String, Rect>()
+            listState.layoutInfo.visibleItemsInfo.forEach { itemInfo ->
+                val key = itemInfo.key as? String ?: return@forEach
+                if (key.startsWith("part-header-")) {
+                    val pid = key.removePrefix("part-header-")
+                    val top = windowBounds.top + itemInfo.offset
+                    val bottom = top + itemInfo.size
+                    map[pid] = Rect(windowBounds.left, top.toFloat(), windowBounds.right, bottom.toFloat())
+                }
+            }
+            map
+        } else null
+        dragController.beginPartDrag(partId, liveBounds, grabRect)
+    }
 
     fun endExerciseDrag() {
         val activeSession = session ?: return
@@ -438,9 +502,7 @@ fun SessionEditorScreen(
         buildSessionListItems(session, uiState.collapsedPartIds)
     }
     val scrollableListItems = remember(sessionListItems) {
-        sessionListItems.drop(1).let { tail ->
-            if (tail.lastOrNull() is SessionListItem.AddActions) tail.dropLast(1) else tail
-        }
+        sessionListItems.drop(1)
     }
     val allExercisesForUi = remember(session.exercises, session.parts) { session.allExercises() }
     // Sticky compact header ONLY when the expanded hero (item 0) has fully left the viewport.
@@ -466,17 +528,6 @@ fun SessionEditorScreen(
         val activeSession = session ?: return
         dragController.updateExerciseDrag(delta, activeSession, groupedParts)
     }
-    val draggedExerciseIds = remember(session, draggingExerciseId, draggingExercisePartId) {
-        val activeId = draggingExerciseId ?: return@remember emptySet<String>()
-        val sourcePartId = draggingExercisePartId
-        val sourceList = when (sourcePartId) {
-            "__loose__" -> session.exercises
-            null -> emptyList()
-            else -> session.parts.firstOrNull { it.id == sourcePartId }?.exercises.orEmpty()
-        }
-        val groupId = sourceList.firstOrNull { it.id == activeId }?.supersetGroupRefOrLegacyId()
-        if (groupId != null) sourceList.filter { it.supersetGroupRefOrLegacyId() == groupId }.map { it.id }.toSet() else setOf(activeId)
-    }
 
     fun projectedShiftFor(
         partId: String,
@@ -485,44 +536,13 @@ fun SessionEditorScreen(
         itemHeight: Float = (dragController.frozenExerciseBounds["$partId|$exerciseId"]
             ?: exerciseBounds["$partId|$exerciseId"])?.height ?: 88f,
     ): Float {
-        val activeId = draggingExerciseId ?: return 0f
-        val sourcePartId = draggingExercisePartId ?: return 0f
-        val keyTargetPart = exerciseDropTargetKey?.substringBefore("|")
-        val keyTargetExercise = exerciseDropTargetKey?.substringAfter("|")
-        val targetPartId = exerciseDropTargetPartId ?: keyTargetPart ?: return 0f
-        val targetList = if (targetPartId == "__loose__") session.exercises
-        else session.parts.firstOrNull { it.id == targetPartId }?.exercises.orEmpty()
-        val targetIndex = exerciseDropTargetIndex ?: keyTargetExercise?.let { targetExerciseId ->
-            targetList.indexOfFirst { it.id == targetExerciseId }.takeIf { it >= 0 }
-        } ?: return 0f
-        if (exerciseId in draggedExerciseIds) return 0f
-        if (partId != targetPartId) return 0f
-        val movingCount = draggedExerciseIds.size.coerceAtLeast(1)
-        val gap = (itemHeight + 10f) * movingCount
-        if (partId != sourcePartId) {
-            if (targetIndex < targetList.size) return if (index >= targetIndex) gap else 0f
-            return if (index == targetList.size - 1) gap else 0f
-        }
-        val sourceList = if (partId == "__loose__") session.exercises else session.parts.firstOrNull { it.id == partId }?.exercises.orEmpty()
-        val sourceIndex = sourceList.indexOfFirst { it.id == activeId }
-        if (sourceIndex < 0 || targetIndex == sourceIndex) return 0f
-        return when {
-            targetIndex < sourceIndex && index >= targetIndex && index < sourceIndex -> gap
-            targetIndex > sourceIndex && index > sourceIndex && index < targetIndex -> -gap
-            targetIndex >= sourceList.size && index > sourceIndex -> -gap
-            else -> 0f
-        }
+        val activeSession = session ?: return 0f
+        return dragController.calculateProjectedShift(activeSession, partId, index, exerciseId, itemHeight)
     }
 
     LaunchedEffect(openCompetitionConfig, session.id) {
         if (openCompetitionConfig && session.isMeetDay) {
             showCompetitionConfigSheet = true
-        }
-    }
-
-    LaunchedEffect(session.exercises.isEmpty()) {
-        if (session.exercises.isEmpty()) {
-            looseContentBounds = null
         }
     }
 
@@ -535,7 +555,6 @@ fun SessionEditorScreen(
     }
 
     var editorRootBounds by remember { mutableStateOf<Rect?>(null) }
-    var lazyColumnWindowBounds by remember { mutableStateOf<Rect?>(null) }
 
     // Auto-scroll durante drag: si el dedo se acerca al borde superior/inferior
     // del viewport, scrollea la lista y desplaza los Rect congelados en window
@@ -549,13 +568,13 @@ fun SessionEditorScreen(
                 continue
             }
             val pointerY: Float? = when {
-                draggingExerciseId != null -> {
+                dragController.draggingExerciseId != null -> {
                     val start = dragController.dragStartExerciseRect
-                    if (start != null) start.top + dragController.dragStartGrabOffset.y + draggingExerciseOffset.y else null
+                    if (start != null) start.top + dragController.dragStartGrabOffset.y + dragController.draggingExerciseOffset.y else null
                 }
-                draggingPartId != null -> {
+                dragController.draggingPartId != null -> {
                     val start = dragController.dragStartPartRect
-                    if (start != null) start.center.y + draggingPartOffsetY else null
+                    if (start != null) start.center.y + dragController.draggingPartOffsetY else null
                 }
                 else -> null
             }
@@ -685,12 +704,11 @@ fun SessionEditorScreen(
                     exerciseInfoById = exerciseInfoById,
                     dragController = dragController,
                     draggingExerciseId = draggingExerciseId,
-                    draggingExerciseOffset = draggingExerciseOffset,
                     exerciseDropTargetKey = exerciseDropTargetKey,
                     exerciseDropTargetPartId = exerciseDropTargetPartId,
                     exerciseDropTargetIndex = exerciseDropTargetIndex,
                     draggingPartId = draggingPartId,
-                    draggingPartOffsetY = draggingPartOffsetY,
+                    draggingPartOffsetY = dragController.draggingPartOffsetY,
                     partDropTargetId = partDropTargetId,
                     pendingAutoExpandExerciseId = pendingAutoExpandExerciseId,
                     onPendingAutoExpandHandled = { exerciseId ->
@@ -740,57 +758,10 @@ fun SessionEditorScreen(
                     beginExerciseDrag = ::beginExerciseDrag,
                     updateExerciseDrag = ::updateExerciseDrag,
                     endExerciseDrag = ::endExerciseDrag,
+                    beginPartDrag = ::beginPartDrag,
                     projectedShiftFor = ::projectedShiftFor,
                     viewModel = viewModel,
                 )
-            }
-
-            if (!session.isMeetDay) item {
-                val isEmptySession = session.exercises.isEmpty() &&
-                    session.parts.none { !it.isUncategorizedPart() }
-                Column(
-                    modifier = Modifier
-                        .padding(horizontal = editorSpacing.screenPadding, vertical = 12.dp)
-                        .fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    if (isEmptySession) {
-                        SessionEditorEmptyState(
-                            onAddExercise = viewModel::openPickerForUncategorized,
-                            onAddGroup = viewModel::addPart,
-                            onAddCardio = { viewModel.openCardioPicker(null) },
-                        )
-                    } else {
-                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            ) {
-                                Button(
-                                    onClick = viewModel::openPickerForUncategorized,
-                                    modifier = Modifier.weight(1f),
-                                    shape = RoundedCornerShape(18.dp),
-                                ) {
-                                    Text("Añadir ejercicio", fontWeight = FontWeight.Bold)
-                                }
-                                FilledTonalButton(
-                                    onClick = viewModel::addPart,
-                                    modifier = Modifier.weight(1f),
-                                    shape = RoundedCornerShape(18.dp),
-                                ) {
-                                    Text("Nuevo grupo", fontWeight = FontWeight.Bold)
-                                }
-                            }
-                            FilledTonalButton(
-                                onClick = { viewModel.openCardioPicker(null) },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(18.dp),
-                            ) {
-                                Text("Añadir cardio", fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    }
-                }
             }
         }
         }
@@ -824,20 +795,18 @@ fun SessionEditorScreen(
         val estimated = uiState.sessionTimeBreakdown?.totalMinutes
             ?: uiState.estimatedDurationMinutes
         val navBarBottomPx = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-        val screenWidthPx = editorRootBounds?.width?.roundToInt() ?: 0
-        val screenHeightPx = editorRootBounds?.height?.roundToInt() ?: 0
         DraggableHeroFabGroup(
-            screenWidthPx = screenWidthPx,
-            screenHeightPx = screenHeightPx,
             navBarBottomPx = with(density) { navBarBottomPx.toPx() }.roundToInt(),
             fabBottomPadding = fabBottomPadding,
+            onAssistantClick = { viewModel.openSheet(SessionEditorSheet.AUGE) },
+            onTimeClick = { viewModel.openRulesSheet(initialTab = 1) },
             modifier = Modifier.zIndex(260f),
             assistantFab = { fabModifier ->
                 HeroGlassFab(
                     summary = uiState.augeSummary,
                     modifier = fabModifier,
                     hazeState = hazeState,
-                    onClick = { viewModel.openSheet(SessionEditorSheet.AUGE) },
+                    onClick = null,
                 )
             },
             timeFab = if (showTimeFab) {
@@ -849,7 +818,7 @@ fun SessionEditorScreen(
                             estimated > (session.targetDurationMinutes ?: Int.MAX_VALUE),
                         modifier = fabModifier,
                         hazeState = hazeState,
-                        onClick = { viewModel.openRulesSheet(initialTab = 1) },
+                        onClick = null,
                     )
                 }
             } else {
@@ -868,7 +837,7 @@ fun SessionEditorScreen(
             DragLiftPreview(
                 exercise = previewExercise,
                 rect = previewRect,
-                offset = draggingExerciseOffset,
+                offsetProvider = { dragController.draggingExerciseOffset },
                 rootBounds = editorRootBounds,
                 modifier = Modifier.zIndex(500f),
             )
@@ -879,7 +848,7 @@ fun SessionEditorScreen(
             DragPartLiftPreview(
                 partName = draggingPart.name,
                 rect = partPreviewRect,
-                offsetY = draggingPartOffsetY,
+                offsetYProvider = { dragController.draggingPartOffsetY },
                 rootBounds = editorRootBounds,
                 modifier = Modifier.zIndex(500f),
             )

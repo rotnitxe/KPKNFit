@@ -3,6 +3,7 @@ package com.example.kpkn.screens.sessioneditor
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
+import com.example.kpkn.data.models.isCardioPart
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.workout.SupersetRules
 
@@ -71,6 +72,18 @@ sealed class SessionListItem {
         override val stableKey: String = "part-add-$partId"
     }
 
+    data object StrengthAddActions : SessionListItem() {
+        override val stableKey: String = "strength-add-actions"
+    }
+
+    data object CardioDivider : SessionListItem() {
+        override val stableKey: String = "cardio-divider"
+    }
+
+    data object StrengthDivider : SessionListItem() {
+        override val stableKey: String = "strength-divider"
+    }
+
     data object AddActions : SessionListItem() {
         override val stableKey: String = "add-actions"
     }
@@ -85,40 +98,85 @@ fun buildSessionListItems(
 
     if (session.isMeetDay) {
         items += SessionListItem.CompetitionEditor
+        return items
     }
 
-    if (!session.isMeetDay && session.exercises.isNotEmpty()) {
-        appendExerciseItems(
-            items = items,
-            exercises = session.exercises,
-            session = session,
-            partId = null,
-        )
-    }
+    val groupedParts = session.parts.filterNot { it.isUncategorizedPart() }
+    val firstPartIsCardio = groupedParts.firstOrNull()?.isCardioPart() == true
 
-    if (!session.isMeetDay) {
-        val groupedParts = session.parts.filterNot { it.isUncategorizedPart() }
-        groupedParts.forEach { part ->
-            items += SessionListItem.PartHeader(part.id)
-            if (part.id !in collapsedPartIds) {
-                appendExerciseItems(
-                    items = items,
-                    exercises = part.exercises,
-                    session = session,
-                    partId = part.id,
-                )
-                items += SessionListItem.PartAddExercise(part.id)
+    if (firstPartIsCardio) {
+        // --- 1. BLOQUE CARDIO ARRIBA ---
+        items += SessionListItem.CardioDivider
+        val cardioParts = groupedParts.filter { it.isCardioPart() }
+        cardioParts.forEach { part ->
+            appendPartItems(items, part, session, collapsedPartIds)
+        }
+
+        // --- 2. BLOQUE FUERZA ABAJO ---
+        items += SessionListItem.StrengthDivider
+        if (session.exercises.isNotEmpty()) {
+            appendExerciseItems(
+                items = items,
+                exercises = session.exercises,
+                session = session,
+                partId = null,
+            )
+        }
+        val strengthParts = groupedParts.filterNot { it.isCardioPart() }
+        strengthParts.forEach { part ->
+            appendPartItems(items, part, session, collapsedPartIds)
+        }
+        items += SessionListItem.StrengthAddActions
+    } else {
+        // --- 1. BLOQUE FUERZA ARRIBA ---
+        if (session.exercises.isNotEmpty()) {
+            appendExerciseItems(
+                items = items,
+                exercises = session.exercises,
+                session = session,
+                partId = null,
+            )
+        }
+        val strengthParts = groupedParts.filterNot { it.isCardioPart() }
+        strengthParts.forEach { part ->
+            appendPartItems(items, part, session, collapsedPartIds)
+        }
+        items += SessionListItem.StrengthAddActions
+
+        // --- 2. BLOQUE CARDIO ABAJO (si existe) ---
+        val cardioParts = groupedParts.filter { it.isCardioPart() }
+        if (cardioParts.isNotEmpty()) {
+            items += SessionListItem.CardioDivider
+            cardioParts.forEach { part ->
+                appendPartItems(items, part, session, collapsedPartIds)
             }
         }
-        items += SessionListItem.AddActions
     }
 
     return items
 }
 
+private fun appendPartItems(
+    items: MutableList<SessionListItem>,
+    part: SessionPart,
+    session: Session,
+    collapsedPartIds: Set<String>,
+) {
+    items += SessionListItem.PartHeader(part.id)
+    if (part.id !in collapsedPartIds) {
+        appendExerciseItems(
+            items = items,
+            exercises = part.exercises,
+            session = session,
+            partId = part.id,
+        )
+        items += SessionListItem.PartAddExercise(part.id)
+    }
+}
+
 private fun appendExerciseItems(
     items: MutableList<SessionListItem>,
-    exercises: List<com.example.kpkn.data.models.Exercise>,
+    exercises: List<Exercise>,
     session: Session,
     partId: String?,
 ) {

@@ -608,7 +608,10 @@ internal fun SessionEditorSheets(
                 onRemove = onRemoveMobilityExercise,
                 onDismiss = onDismiss,
             )
-            SessionEditorSheet.CARDIO_PICKER -> CardioCatalogSheet(onAdd = onAddCardio)
+            SessionEditorSheet.CARDIO_PICKER -> CardioCatalogSheet(
+                isReplacing = uiState.pickerTargetExerciseId != null,
+                onAdd = onAddCardio,
+            )
             SessionEditorSheet.SUPERSERIE_MANAGER -> {
                 val supersetExercises = uiState.supersetManagerSupersetId
                     ?.let { SupersetRules.orderedMembers(session, it) }

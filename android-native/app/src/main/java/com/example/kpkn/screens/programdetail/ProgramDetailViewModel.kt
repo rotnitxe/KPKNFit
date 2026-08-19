@@ -72,18 +72,12 @@ import java.util.Locale
 import kotlin.math.ceil
 import kotlin.math.floor
 
-enum class MainTab { TRAINING, ANALYTICS }
-
-enum class StructureSubTab { SEMANA, SPLIT, MACROCICLO, LOOPS }
-
-enum class AnalyticsSubTab { VOLUMEN, PROGRESO, HISTORIALES }
+enum class StructureSubTab { SEMANA, SPLIT, MACROCICLO, LOOPS, VOLUMEN }
 
 enum class VolumeAdjustmentResult { SUCCESS, REQUIRES_CALIBRATION, NO_WEEK_SELECTED, NO_ADJUSTABLE_VOLUME }
 
 data class ProgramDetailUiState(
-    val activeTab: MainTab = MainTab.TRAINING,
     val structureSubTab: StructureSubTab = StructureSubTab.SEMANA,
-    val analyticsSubTab: AnalyticsSubTab = AnalyticsSubTab.VOLUMEN,
     val selectedBlockId: String? = null,
     val selectedWeekId: String? = null,
     val macrocycleRoadmapExpanded: Boolean? = null,
@@ -422,16 +416,8 @@ class ProgramDetailViewModel(
 
     // ─── Actions ──────────────────────────────────────────────────────────
 
-    fun setActiveTab(tab: MainTab) {
-        _uiState.update { it.copy(activeTab = tab) }
-    }
-
     fun setStructureSubTab(tab: StructureSubTab) {
         _uiState.update { it.copy(structureSubTab = tab) }
-    }
-
-    fun setAnalyticsSubTab(tab: AnalyticsSubTab) {
-        _uiState.update { it.copy(analyticsSubTab = tab) }
     }
 
     fun setMacrocycleRoadmapExpanded(expanded: Boolean) {

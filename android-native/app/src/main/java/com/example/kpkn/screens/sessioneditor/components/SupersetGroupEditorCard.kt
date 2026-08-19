@@ -86,7 +86,6 @@ internal fun SupersetGroupEditorCard(
     partId: String?,
     modifier: Modifier = Modifier,
     isDragging: Boolean = false,
-    dragOffset: Offset = Offset.Zero,
     onBoundsChange: (Rect) -> Unit = {},
     onDragStart: (Offset) -> Unit = {},
     onDrag: (Offset) -> Unit = {},
@@ -116,6 +115,7 @@ internal fun SupersetGroupEditorCard(
     var showOptionalInfo by rememberSaveable(group.id) { mutableStateOf(false) }
     var pendingRemovalExerciseId by rememberSaveable(group.id) { mutableStateOf<String?>(null) }
     var showDeleteGroupDialog by rememberSaveable(group.id) { mutableStateOf(false) }
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
     val accent = remember(accentHex) { resolvePartAccent(accentHex) }
     val accentColor = accent.primary
     val rounds = (group.rounds ?: exercises.maxOfOrNull { it.sets.size } ?: 1).coerceAtLeast(1)
@@ -129,8 +129,8 @@ internal fun SupersetGroupEditorCard(
             .fillMaxWidth()
             .onGloballyPositioned { onBoundsChange(it.boundsInWindow()) }
             .graphicsLayer {
-                translationX = if (isDragging) dragOffset.x else 0f
-                translationY = if (isDragging) dragOffset.y else 0f
+                scaleX = if (isDragging) 1.02f else 1f
+                scaleY = if (isDragging) 1.02f else 1f
                 alpha = if (isDragging) 0.22f else 1f
                 shadowElevation = if (isDragging) 6.dp.toPx() else 0f
             }
@@ -161,74 +161,86 @@ internal fun SupersetGroupEditorCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-            Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Default.DragHandle,
-                    contentDescription = "Reordenar superserie",
-                    tint = accentColor.copy(alpha = 0.72f),
+                Box(
                     modifier = Modifier
-                        .size(24.dp)
+                        .size(48.dp)
                         .pointerInput(group.id) {
                             detectDragGestures(
-                                onDragStart = { offset -> onDragStart(offset) },
-                                onDragCancel = { onDragEnd() },
-                                onDragEnd = { onDragEnd() },
+                                onDragStart = { offset ->
+                                    haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                    onDragStart(offset)
+                                },
+                                onDragCancel = {
+                                    haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                                    onDragEnd()
+                                },
+                                onDragEnd = {
+                                    haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                                    onDragEnd()
+                                },
                                 onDrag = { change, dragAmount ->
                                     change.consume()
                                     onDrag(Offset(dragAmount.x, dragAmount.y))
                                 },
                             )
                         },
-                )
-            }
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .combinedClickable(
-                        onClick = { expanded = !expanded },
-                        onLongClick = { expanded = !expanded },
-                    ),
-            ) {
-                Text(
-                    text = "Superserie",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    contentAlignment = Alignment.Center,
                 ) {
-                    if (group.isOptional) {
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
-                        ) {
-                            Text(
-                                "Opcional",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
-                            )
-                        }
-                    }
+                    Icon(
+                        imageVector = Icons.Default.DragHandle,
+                        contentDescription = "Reordenar superserie",
+                        tint = accentColor.copy(alpha = 0.72f),
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .combinedClickable(
+                            onClick = { expanded = !expanded },
+                            onLongClick = { expanded = !expanded },
+                        ),
+                ) {
                     Text(
-                        text = "${exercises.size} ejercicios · $rounds ronda${if (rounds == 1) "" else "s"} · $totalSets series",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        text = "Superserie",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        if (group.isOptional) {
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                            ) {
+                                Text(
+                                    "Opcional",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+                                )
+                            }
+                        }
+                        Text(
+                            text = "${exercises.size} ejercicios · $rounds ronda${if (rounds == 1) "" else "s"} · $totalSets series",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
-            }
-            Icon(
-                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                contentDescription = if (expanded) "Plegar" else "Desplegar",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.clickable { expanded = !expanded },
-            )
+                Icon(
+                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = if (expanded) "Plegar" else "Desplegar",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.clickable { expanded = !expanded },
+                )
             }
         }
 

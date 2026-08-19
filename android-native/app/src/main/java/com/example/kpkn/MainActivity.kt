@@ -97,7 +97,6 @@ import com.example.kpkn.screens.nutrition.NutritionWizardScreen
 import com.example.kpkn.screens.nutrition.NutritionViewModel
 import com.example.kpkn.screens.profile.ProfileScreen
 import com.example.kpkn.screens.programdetail.ProgramDetailScreen
-import com.example.kpkn.screens.programdetail.MainTab
 import com.example.kpkn.screens.programs.ProgramsScreen
 import com.example.kpkn.screens.programs.ProgramsViewModel
 import com.example.kpkn.screens.sessioneditor.SessionEditorScreen
@@ -564,14 +563,7 @@ fun KPKNApp(
     }
 
     val ongoingWorkout by ProgramRepository.getInstance().ongoingWorkout.collectAsState()
-    var programContextTab by remember { mutableStateOf(MainTab.TRAINING) }
-    var onProgramContextTabChange by remember { mutableStateOf<(MainTab) -> Unit>({}) }
-    var programContextReady by remember { mutableStateOf(false) }
     var wikiSearchQuery by rememberSaveable { mutableStateOf("") }
-
-    LaunchedEffect(currentRoute) {
-        programContextReady = currentRoute != KpknRoute.ProgramDetail.route
-    }
 
     LaunchedEffect(currentTab) {
         if (currentTab != KpknRoute.WikiLab.route) wikiSearchQuery = ""
@@ -631,12 +623,9 @@ fun KPKNApp(
         }
     }
 
-    val showTrainingSubtabbar = currentTab == KpknRoute.Training.route &&
-            currentRoute == KpknRoute.ProgramDetail.route &&
-            programContextReady
     val showWikiSearchSubtabbar = currentTab == KpknRoute.WikiLab.route &&
             currentRoute == KpknRoute.WikiLab.route
-    val showContextualSubtabbar = showTrainingSubtabbar || showWikiSearchSubtabbar
+    val showContextualSubtabbar = showWikiSearchSubtabbar
 
     val hazeState = remember { HazeState() }
     val overlayHost = rememberKpknOverlayHostController()
@@ -703,10 +692,6 @@ fun KPKNApp(
                     onThemeChange = onThemeChange,
                     primaryProgramId = primaryProgramId,
                     nutritionViewModel = nutritionViewModel,
-                    onProgramContextTabStateChange = { activeTab, onChange ->
-                        programContextTab = activeTab
-                        onProgramContextTabChange = onChange
-                    },
                     wikiSearchQuery = wikiSearchQuery,
                     onWikiSearchQueryChange = { wikiSearchQuery = it },
                     onHomeGlassOverlayChange = onHomeGlassOverlayChange,
@@ -730,11 +715,6 @@ fun KPKNApp(
                     onThemeChange = onThemeChange,
                     primaryProgramId = primaryProgramId,
                     nutritionViewModel = nutritionViewModel,
-                    onProgramContextTabStateChange = { activeTab, onChange ->
-                        programContextTab = activeTab
-                        onProgramContextTabChange = onChange
-                        programContextReady = true
-                    },
                     wikiSearchQuery = wikiSearchQuery,
                     onWikiSearchQueryChange = { wikiSearchQuery = it },
                     onHomeGlassOverlayChange = onHomeGlassOverlayChange,
@@ -893,43 +873,7 @@ fun KPKNApp(
                                 .height(44.dp)
                                 .clip(RoundedCornerShape(22.dp)),
                         ) {
-                            if (showTrainingSubtabbar) {
-                                TabRow(
-                                    selectedTabIndex = MainTab.entries.indexOf(programContextTab).coerceAtLeast(0),
-                                    modifier = Modifier.fillMaxSize(),
-                                    containerColor = Color.Transparent,
-                                    contentColor = MaterialTheme.colorScheme.primary,
-                                    indicator = { tabPositions ->
-                                        val idx = MainTab.entries.indexOf(programContextTab).coerceAtLeast(0)
-                                        TabRowDefaults.SecondaryIndicator(
-                                            modifier = Modifier.tabIndicatorOffset(tabPositions[idx]),
-                                            height = 3.dp,
-                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
-                                        )
-                                    },
-                                    divider = {},
-                                ) {
-                                    MainTab.entries.forEach { tab ->
-                                        val selected = programContextTab == tab
-                                        Tab(
-                                            selected = selected,
-                                            onClick = { onProgramContextTabChange(tab) },
-                                            text = {
-                                                Text(
-                                                    text = when (tab) {
-                                                        MainTab.TRAINING -> "Estructura"
-                                                        MainTab.ANALYTICS -> "Analíticas"
-                                                    },
-                                                    style = MaterialTheme.typography.labelMedium,
-                                                    fontWeight = if (selected) FontWeight.Black else FontWeight.SemiBold,
-                                                )
-                                            },
-                                            selectedContentColor = MaterialTheme.colorScheme.primary,
-                                            unselectedContentColor = Color.White,
-                                        )
-                                    }
-                                }
-                            } else if (showWikiSearchSubtabbar) {
+                            if (showWikiSearchSubtabbar) {
                                 WikiSearchSubtabbar(
                                     query = wikiSearchQuery,
                                     onQueryChange = { wikiSearchQuery = it },
@@ -1335,7 +1279,6 @@ private fun KPKNNavGraph(
     onThemeChange: (AppThemeMode) -> Unit,
     primaryProgramId: String?,
     nutritionViewModel: NutritionViewModel,
-    onProgramContextTabStateChange: (MainTab, (MainTab) -> Unit) -> Unit,
     wikiSearchQuery: String = "",
     onWikiSearchQueryChange: (String) -> Unit = {},
     onHomeGlassOverlayChange: HomeGlassOverlayChange = { _, _ -> },
@@ -1375,7 +1318,7 @@ private fun KPKNNavGraph(
                             val programId = primaryProgramId
                             if (programId != null) {
                                 navController.navigate(
-                                    KpknRoute.ProgramDetail.create(programId, KpknRoute.ProgramDetail.TAB_ANALYTICS)
+                                    KpknRoute.ProgramDetail.create(programId)
                                 )
                             } else {
                                 createProgramAndOpen(navController)
@@ -1769,13 +1712,8 @@ private fun KPKNNavGraph(
         }
         composable(KpknRoute.ProgramDetail.route) { backStack ->
             val id = backStack.arguments?.getString(KpknRoute.ProgramDetail.ARG_PROGRAM_ID) ?: ""
-            val initialTab = when (backStack.arguments?.getString(KpknRoute.ProgramDetail.ARG_TAB)) {
-                KpknRoute.ProgramDetail.TAB_ANALYTICS -> MainTab.ANALYTICS
-                else -> null
-            }
             ProgramDetailScreen(
                 programId = id,
-                initialTab = initialTab,
                 onBack = {
                     if (!navController.popBackStack(KpknRoute.Training.route, inclusive = false)) {
                         navController.navigate(KpknRoute.Training.route) {
@@ -1807,9 +1745,6 @@ private fun KPKNNavGraph(
                     navController.navigate(KpknRoute.ProgramDetail.create(newProgramId)) {
                         launchSingleTop = true
                     }
-                },
-                onContextTabStateChange = { activeTab, onChange ->
-                    onProgramContextTabStateChange(activeTab, onChange)
                 },
             )
         }

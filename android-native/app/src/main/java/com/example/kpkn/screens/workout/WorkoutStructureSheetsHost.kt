@@ -806,10 +806,11 @@ internal fun WorkoutStructureSheetsHost(
                         CardioEditorCard(
                             details = draftExercise.cardioDetails!!,
                             accentColor = sessionAccentColor,
+                            exerciseName = draftExercise.name,
                             onChange = { details ->
                                 draftExercise = draftExercise.copy(
                                     cardioDetails = details,
-                                    targetDurationMinutes = (details.targetDurationSeconds / 60).coerceAtLeast(1),
+                                    targetDurationMinutes = details.targetDurationSeconds?.let { (it / 60).coerceAtLeast(1) } ?: 0,
                                 )
                             },
                         )

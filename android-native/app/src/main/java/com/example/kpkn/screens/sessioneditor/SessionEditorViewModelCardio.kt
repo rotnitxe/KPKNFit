@@ -2,15 +2,19 @@ package com.example.kpkn.screens.sessioneditor
 
 import com.example.kpkn.data.models.CardioCatalogItem
 import com.example.kpkn.data.models.CardioDetails
+import com.example.kpkn.data.models.DEFAULT_CARDIO_PART_COLOR
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.SessionPart
+import com.example.kpkn.data.models.cardioPart
 import java.util.UUID
 
-fun SessionEditorViewModel.openCardioPicker(partId: String? = null) {
+fun SessionEditorViewModel.openCardioPicker(partId: String? = null, exerciseId: String? = null) {
+    val targetPart = partId ?: currentUiState.session?.cardioPart()?.id
     updateUi {
         it.copy(
             sheet = SessionEditorSheet.CARDIO_PICKER,
-            pickerTargetPartId = partId,
-            pickerTargetExerciseId = null,
+            pickerTargetPartId = targetPart,
+            pickerTargetExerciseId = exerciseId,
             quickActionsPartId = null,
             quickActionsExerciseId = null,
             warmupExerciseId = null,
@@ -18,8 +22,42 @@ fun SessionEditorViewModel.openCardioPicker(partId: String? = null) {
     }
 }
 
+fun SessionEditorViewModel.createCardioSpace() {
+    val existingCardio = currentUiState.session?.cardioPart()
+    if (existingCardio != null) {
+        openCardioPicker(existingCardio.id)
+    } else {
+        openCardioPicker(null)
+    }
+}
+
 fun SessionEditorViewModel.addCardioToPart(item: CardioCatalogItem) {
     val targetPartId = currentUiState.pickerTargetPartId
+    val targetExerciseId = currentUiState.pickerTargetExerciseId
+
+    if (targetExerciseId != null) {
+        updateExercise(targetPartId, targetExerciseId) { current ->
+            val existingDetails = current.cardioDetails
+            val newDetails = CardioDetails(
+                type = item.type,
+                intensity = existingDetails?.intensity ?: com.example.kpkn.data.models.CardioIntensity.MEDIA,
+                intensityLevel = existingDetails?.intensityLevel,
+                targetDurationSeconds = existingDetails?.targetDurationSeconds ?: (20 * 60),
+                targetDistanceKm = if (item.supportsDistance) existingDetails?.targetDistanceKm else null,
+                requiresGps = item.requiresGps,
+                supportsDistance = item.supportsDistance,
+            )
+            current.copy(
+                name = item.name,
+                exerciseDbId = item.id,
+                cardioDetails = newDetails,
+                targetDurationMinutes = newDetails.targetDurationSeconds?.let { (it / 60).coerceAtLeast(1) } ?: 0,
+            )
+        }
+        closeSheet()
+        return
+    }
+
     val details = CardioDetails(
         type = item.type,
         requiresGps = item.requiresGps,
@@ -30,17 +68,31 @@ fun SessionEditorViewModel.addCardioToPart(item: CardioCatalogItem) {
         name = item.name,
         exerciseDbId = item.id,
         cardioDetails = details,
-        targetDurationMinutes = (details.targetDurationSeconds / 60).coerceAtLeast(1),
+        targetDurationMinutes = (details.targetDurationSeconds?.let { it / 60 } ?: 20).coerceAtLeast(1),
     )
     updateSession { session ->
-        if (targetPartId == null) {
-            session.copy(exercises = session.exercises + exercise)
-        } else {
+        val existingCardioPart = targetPartId?.let { pid -> session.parts.firstOrNull { it.id == pid } }
+            ?: session.cardioPart()
+
+        if (existingCardioPart != null) {
             session.copy(
                 parts = session.parts.map { part ->
-                    if (part.id == targetPartId) part.copy(exercises = part.exercises + exercise) else part
+                    if (part.id == existingCardioPart.id) {
+                        part.copy(exercises = part.exercises + exercise)
+                    } else {
+                        part
+                    }
                 },
             )
+        } else {
+            val newCardioPart = SessionPart(
+                id = UUID.randomUUID().toString(),
+                name = "Espacio de cardio",
+                color = DEFAULT_CARDIO_PART_COLOR,
+                isCardioGroup = true,
+                exercises = listOf(exercise),
+            )
+            session.copy(parts = session.parts + newCardioPart)
         }
     }
     closeSheet()

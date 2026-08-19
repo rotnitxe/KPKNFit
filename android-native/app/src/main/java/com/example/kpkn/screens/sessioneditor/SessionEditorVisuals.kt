@@ -157,14 +157,14 @@ internal fun resolveExerciseAccentHex(
 internal fun DragLiftPreview(
     exercise: Exercise,
     rect: Rect,
-    offset: Offset,
+    offsetProvider: () -> Offset,
     rootBounds: Rect?,
     modifier: Modifier = Modifier,
 ) {
     val root = rootBounds ?: return
     val density = LocalDensity.current
-    val x = rect.left - root.left + offset.x
-    val y = rect.top - root.top + offset.y
+    val baseX = rect.left - root.left
+    val baseY = rect.top - root.top
     var lifted by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { lifted = true }
     val liftScale by animateFloatAsState(
@@ -175,7 +175,8 @@ internal fun DragLiftPreview(
     Surface(
         modifier = modifier
             .offset {
-                IntOffset(x.roundToInt(), y.roundToInt())
+                val currentOffset = offsetProvider()
+                IntOffset((baseX + currentOffset.x).roundToInt(), (baseY + currentOffset.y).roundToInt())
             }
             .width(with(density) { rect.width.toDp() })
             .heightIn(min = 70.dp)
@@ -219,24 +220,24 @@ internal fun DragLiftPreview(
 internal fun DragPartLiftPreview(
     partName: String,
     rect: Rect,
-    offsetY: Float,
+    offsetYProvider: () -> Float,
     rootBounds: Rect?,
     modifier: Modifier = Modifier,
 ) {
     val root = rootBounds ?: return
     val density = LocalDensity.current
-    val x = rect.left - root.left
-    val y = rect.top - root.top + offsetY
+    val baseX = rect.left - root.left
+    val baseY = rect.top - root.top
     var lifted by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { lifted = true }
     val liftScale by animateFloatAsState(
-        targetValue = if (lifted) 1.05f else 1f,
+        targetValue = if (lifted) 1.03f else 1f,
         animationSpec = spring(dampingRatio = 0.5f, stiffness = 420f),
         label = "drag-part-lift-scale",
     )
     Surface(
         modifier = modifier
-            .offset { IntOffset(x.roundToInt(), y.roundToInt()) }
+            .offset { IntOffset(baseX.roundToInt(), (baseY + offsetYProvider()).roundToInt()) }
             .width(with(density) { rect.width.toDp() })
             .heightIn(min = 56.dp)
             .zIndex(100f)

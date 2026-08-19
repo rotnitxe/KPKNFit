@@ -110,7 +110,7 @@ internal fun SessionEditorEmptyState(
                     .height(46.dp),
                 shape = RoundedCornerShape(14.dp),
             ) {
-                Text("Añadir cardio", fontWeight = FontWeight.SemiBold, maxLines = 1)
+                Text("Crear espacio de cardio", fontWeight = FontWeight.SemiBold, maxLines = 1)
             }
         }
     }

@@ -65,7 +65,7 @@ internal fun CardioLiveCard(
     var showRecordConfirmation by remember { mutableStateOf(false) }
 
     val status = executionState?.status ?: CardioExecutionStatus.READY
-    val plannedDurationSeconds = details.targetDurationSeconds.coerceAtLeast(1)
+    val plannedDurationSeconds = (details.targetDurationSeconds ?: (20 * 60)).coerceAtLeast(1)
     val timerElapsedSeconds = executionState?.elapsedSeconds ?: 0
     val timerRemainingSeconds = executionState?.remainingSeconds ?: plannedDurationSeconds
     val gpsMode = details.requiresGps
@@ -105,10 +105,12 @@ internal fun CardioLiveCard(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Text("Cardio · ${details.type.name.replace('_', ' ')}", fontWeight = FontWeight.Black, color = accentColor)
+            val targetGoalSummary = listOfNotNull(
+                details.targetDurationSeconds?.let { "${it / 60} min" },
+                details.targetDistanceKm?.let { "$it km" },
+            ).joinToString(" · ").ifEmpty { "Libre" }
             Text(
-                "Objetivo ${details.targetDurationSeconds / 60} min" +
-                    (details.targetDistanceKm?.let { " · $it km" } ?: "") +
-                    " · ${details.intensity.name.replace('_', ' ')}",
+                "Objetivo $targetGoalSummary · ${details.intensity.name.replace('_', ' ')}",
                 color = Color.White.copy(alpha = 0.68f),
             )
 

@@ -3369,7 +3369,7 @@ class WorkoutViewModel(
             ?: return
         val details = exercise.cardioDetails ?: return
         val total = state.cardioTimerState?.takeIf { it.exerciseId == exerciseId }?.totalSeconds
-            ?: details.targetDurationSeconds.coerceAtLeast(1)
+            ?: (details.targetDurationSeconds ?: (20 * 60)).coerceAtLeast(1)
         val elapsed = durationSeconds.coerceAtLeast(0)
         val base = state.cardioTimerState?.takeIf { it.exerciseId == exerciseId }
             ?: CardioTimerState(exerciseId, total, (total - elapsed).coerceAtLeast(0))
@@ -3414,7 +3414,7 @@ class WorkoutViewModel(
         val gps = CardioGpsTracker.state.value.takeIf { it.sessionKey == cardioGpsSessionKey(exercise.id) }
         val duration = timer?.elapsedSeconds?.takeIf { it > 0 }
             ?: gps?.elapsedActiveSeconds?.toInt()?.takeIf { it > 0 }
-            ?: details.targetDurationSeconds.coerceAtLeast(1)
+            ?: (details.targetDurationSeconds ?: (20 * 60)).coerceAtLeast(1)
         val distance = gps?.distanceMeters?.div(1_000.0)?.takeIf { it > 0.0 }
             ?: timer?.distanceKm
             ?: details.targetDistanceKm

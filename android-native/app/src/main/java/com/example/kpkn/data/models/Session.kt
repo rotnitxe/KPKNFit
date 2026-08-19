@@ -117,6 +117,8 @@ data class SessionPart(
     val targetDurationMinutes: Int? = null,
     /** True when this part contains mobility movements not tied to a strength exercise. */
     val isMobilityGroup: Boolean = false,
+    /** True when this part represents a dedicated cardio space/block. */
+    val isCardioGroup: Boolean = false,
     /** Mobility movements owned by this part rather than attached to an exercise. */
     val mobilitySeries: List<MobilitySeries> = emptyList(),
     /** Configuration for the mobility block owned by this part. */
@@ -327,13 +329,21 @@ data class MobilitySeries(
 data class CardioDetails(
     val type: CardioType,
     val intensity: CardioIntensity = CardioIntensity.MEDIA,
-    val targetDurationSeconds: Int = 20 * 60,
+    val targetDurationSeconds: Int? = 20 * 60,
     val targetDistanceKm: Double? = null,
     val requiresGps: Boolean = false,
     val supportsDistance: Boolean = true,
     /** 0 delegates to [CardioCalorieEngine] type defaults; explicit values remain supported. */
     val metBase: Double = 0.0,
-)
+    val intensityLevel: Int? = null,
+) {
+    fun resolvedIntensityLevel(): Int = intensityLevel ?: when (intensity) {
+        CardioIntensity.BAJA -> 3
+        CardioIntensity.MEDIA -> 6
+        CardioIntensity.ALTA -> 8
+        CardioIntensity.MUY_ALTA -> 10
+    }
+}
 
 enum class CardioType {
     TREADMILL,
@@ -350,7 +360,16 @@ enum class CardioIntensity(val defaultRpe: Double) {
     BAJA(5.0),
     MEDIA(7.0),
     ALTA(8.5),
-    MUY_ALTA(9.5),
+    MUY_ALTA(9.5);
+
+    companion object {
+        fun fromLevel(level: Int): CardioIntensity = when {
+            level <= 4 -> BAJA
+            level <= 6 -> MEDIA
+            level <= 8 -> ALTA
+            else -> MUY_ALTA
+        }
+    }
 }
 
 enum class TrainingMode { REPS, TIME, RM, CUSTOM, DISTANCE, SOLO_RPE, AMRAP }
@@ -542,3 +561,12 @@ val Session.isCompetitionMeet: Boolean
 
 val Session.kind: SessionKind
     get() = if (isCompetitionMeet) SessionKind.COMPETITION else SessionKind.TRAINING
+
+const val DEFAULT_CARDIO_PART_COLOR = "#10B981"
+
+fun SessionPart.isCardioPart(): Boolean =
+    isCardioGroup || (exercises.isNotEmpty() && exercises.all { it.isCardio }) || name.trim().lowercase() in setOf("cardio", "espacio de cardio")
+
+fun Session.hasCardioPart(): Boolean = parts.any { it.isCardioPart() }
+
+fun Session.cardioPart(): SessionPart? = parts.firstOrNull { it.isCardioPart() }

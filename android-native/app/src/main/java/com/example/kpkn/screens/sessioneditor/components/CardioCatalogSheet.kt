@@ -27,6 +27,7 @@ import com.example.kpkn.ui.components.kpknSheetWhiteTonalButtonColors
 
 @Composable
 internal fun CardioCatalogSheet(
+    isReplacing: Boolean = false,
     onAdd: (CardioCatalogItem) -> Unit,
 ) {
     Column(
@@ -35,9 +36,15 @@ internal fun CardioCatalogSheet(
             .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("Añadir cardio", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = Color.White)
         Text(
-            "Elige una modalidad; después puedes editar duración, intensidad y distancia inline.",
+            if (isReplacing) "Cambiar ejercicio de cardio" else "Añadir cardio",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Black,
+            color = Color.White,
+        )
+        Text(
+            if (isReplacing) "Selecciona la nueva modalidad de cardio para reemplazar el ejercicio."
+            else "Elige una modalidad; después puedes editar duración, intensidad y distancia inline.",
             style = MaterialTheme.typography.bodySmall,
             color = Color.White.copy(alpha = 0.65f),
         )
@@ -63,7 +70,7 @@ internal fun CardioCatalogSheet(
                         FilledTonalButton(
                             onClick = { onAdd(item) },
                             colors = kpknSheetWhiteTonalButtonColors(),
-                        ) { Text("Añadir") }
+                        ) { Text(if (isReplacing) "Reemplazar" else "Añadir") }
                     }
                 }
             }

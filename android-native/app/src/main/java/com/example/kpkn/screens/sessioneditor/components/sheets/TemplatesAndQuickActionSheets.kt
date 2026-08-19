@@ -329,12 +329,20 @@ internal fun ExerciseQuickActionsSheet(
             selectedInfo?.anatomicalConsiderations?.firstOrNull()?.trait?.takeIf { it.isNotBlank() }?.let { "Consideración: $it" },
         )
     }
-    val tags = listOfNotNull(
-        selectedInfo?.equipment,
-        selectedInfo?.category,
-        selectedInfo?.type,
-        selectedInfo?.variantName,
-    ).filter { it.isNotBlank() }.distinct()
+    val tags = if (exercise.cardioDetails != null) {
+        listOfNotNull(
+            "Cardio",
+            com.example.kpkn.data.models.CardioCatalog.items.firstOrNull { it.type == exercise.cardioDetails.type }?.name,
+            if (exercise.cardioDetails.requiresGps) "GPS en vivo" else null,
+        ).filter { it.isNotBlank() }.distinct()
+    } else {
+        listOfNotNull(
+            selectedInfo?.equipment,
+            selectedInfo?.category,
+            selectedInfo?.type,
+            selectedInfo?.variantName,
+        ).filter { it.isNotBlank() }.distinct()
+    }
 
     Column(
         modifier = Modifier
@@ -370,9 +378,13 @@ internal fun ExerciseQuickActionsSheet(
             }
         }
 
-        // Descripción exacta del catálogo (no sintetizada ni paralela)
-        val exactDescription = resolvedV2?.definition?.description?.takeIf { it.isNotBlank() }
-            ?: selectedInfo?.description?.takeIf { it.isNotBlank() }
+        // Descripción exacta del catálogo (o del catálogo de cardio)
+        val exactDescription = if (exercise.cardioDetails != null) {
+            com.example.kpkn.data.models.CardioCatalog.items.firstOrNull { it.type == exercise.cardioDetails.type || it.id == exercise.exerciseDbId }?.description
+        } else {
+            resolvedV2?.definition?.description?.takeIf { it.isNotBlank() }
+                ?: selectedInfo?.description?.takeIf { it.isNotBlank() }
+        }
 
         Surface(
             modifier = Modifier.fillMaxWidth(),

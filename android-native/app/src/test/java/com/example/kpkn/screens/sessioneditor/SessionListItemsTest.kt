@@ -1,8 +1,8 @@
 package com.example.kpkn.screens.sessioneditor
 
-import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioType
+import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import org.junit.Assert.assertEquals
@@ -12,11 +12,11 @@ import org.junit.Test
 class SessionListItemsTest {
 
     @Test
-    fun buildSessionListItems_startsWithHeroAndEndsWithAddActions() {
+    fun buildSessionListItems_startsWithHeroAndEndsWithStrengthAddActions() {
         val session = Session(id = "s1", name = "Push")
         val items = buildSessionListItems(session)
         assertTrue(items.first() is SessionListItem.Hero)
-        assertTrue(items.last() is SessionListItem.AddActions)
+        assertTrue(items.last() is SessionListItem.StrengthAddActions)
     }
 
     @Test
@@ -93,6 +93,42 @@ class SessionListItemsTest {
     }
 
     @Test
+    fun buildSessionListItems_withCardioSpaceAppendsCardioDividerAndCardioPart() {
+        val strengthPart = SessionPart(id = "p1", name = "Pecho", exercises = listOf(Exercise(id = "e1", name = "Press")))
+        val cardioPart = SessionPart(id = "p2", name = "Espacio de cardio", isCardioGroup = true, exercises = listOf(Exercise(id = "c1", name = "Cinta")))
+        val session = Session(id = "s1", name = "Mixto", parts = listOf(strengthPart, cardioPart))
+        val items = buildSessionListItems(session)
+
+        val headerP1Idx = items.indexOfFirst { it is SessionListItem.PartHeader && it.partId == "p1" }
+        val strengthActionsIdx = items.indexOfFirst { it is SessionListItem.StrengthAddActions }
+        val dividerIdx = items.indexOfFirst { it is SessionListItem.CardioDivider }
+        val headerP2Idx = items.indexOfFirst { it is SessionListItem.PartHeader && it.partId == "p2" }
+
+        assertTrue(headerP1Idx in 0..<strengthActionsIdx)
+        assertTrue(strengthActionsIdx < dividerIdx)
+        assertTrue(dividerIdx < headerP2Idx)
+    }
+
+    @Test
+    fun buildSessionListItems_withCardioAtTopRendersCardioFirstAndStrengthDividerBelow() {
+        val cardioPart = SessionPart(id = "p2", name = "Espacio de cardio", isCardioGroup = true, exercises = listOf(Exercise(id = "c1", name = "Cinta")))
+        val strengthPart = SessionPart(id = "p1", name = "Pecho", exercises = listOf(Exercise(id = "e1", name = "Press")))
+        val session = Session(id = "s1", name = "Mixto", parts = listOf(cardioPart, strengthPart))
+        val items = buildSessionListItems(session)
+
+        val cardioDividerIdx = items.indexOfFirst { it is SessionListItem.CardioDivider }
+        val headerP2Idx = items.indexOfFirst { it is SessionListItem.PartHeader && it.partId == "p2" }
+        val strengthDividerIdx = items.indexOfFirst { it is SessionListItem.StrengthDivider }
+        val headerP1Idx = items.indexOfFirst { it is SessionListItem.PartHeader && it.partId == "p1" }
+        val strengthActionsIdx = items.indexOfFirst { it is SessionListItem.StrengthAddActions }
+
+        assertTrue(cardioDividerIdx in 0..<headerP2Idx)
+        assertTrue(headerP2Idx < strengthDividerIdx)
+        assertTrue(strengthDividerIdx < headerP1Idx)
+        assertTrue(headerP1Idx < strengthActionsIdx)
+    }
+
+    @Test
     fun findListIndexForExercise_returnsCorrectIndex() {
         val ex = Exercise(id = "e1", name = "Row", exerciseDbId = "row")
         val session = Session(id = "s1", name = "Pull", exercises = listOf(ex))
@@ -107,7 +143,7 @@ class SessionListItemsTest {
         val ex = Exercise(id = "e1", name = "Row", exerciseDbId = "row")
         val session = Session(id = "s1", name = "Pull", exercises = listOf(ex))
         val full = buildSessionListItems(session)
-        val scrollable = full.drop(1).dropLast(1)
+        val scrollable = full.drop(1)
         val lazyIndex = lazyColumnIndexForExercise(scrollable, "e1")
         // LazyColumn: [0]=Hero, [1]=first scrollable item
         assertEquals(1, lazyIndex)

@@ -350,7 +350,7 @@ internal fun GroupEditorCard(
     isDropTarget: Boolean,
     onBoundsChange: (Rect) -> Unit,
     onContentBoundsChange: (Rect) -> Unit,
-    onDragStart: () -> Unit,
+    onDragStart: (Rect?) -> Unit = {},
     onDrag: (Float) -> Unit,
     onDragEnd: () -> Unit,
     onAddExercise: () -> Unit,
@@ -365,6 +365,7 @@ internal fun GroupEditorCard(
     val haptics = LocalHapticFeedback.current
     var showDeleteConfirm by remember(part.id) { mutableStateOf(false) }
     var showDeleteModeConfirm by remember(part.id) { mutableStateOf(false) }
+    var cardBoundsInWindow by remember { mutableStateOf<Rect?>(null) }
     val partAccent = remember(part.color) { resolvePartAccent(part.color) }
     val partColor = partAccent.primary
     val dropScale by animateFloatAsState(if (isDropTarget) 1.01f else 1f, label = "partDropScale")
@@ -383,15 +384,18 @@ internal fun GroupEditorCard(
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .padding(top = 8.dp, bottom = if (collapsed) 4.dp else 0.dp)
-            .onGloballyPositioned { onBoundsChange(it.boundsInWindow()) }
-            .graphicsLayer {
-                translationY = if (isDragging) dragOffsetY else 0f
-                scaleX = if (isDragging) 1.02f else dropScale
-                scaleY = if (isDragging) 1.02f else dropScale
-                alpha = if (isDragging) 0.22f else 1f
-                shadowElevation = if (isDragging) 6.dp.toPx() else 0f
+            .onGloballyPositioned {
+                cardBoundsInWindow = it.boundsInWindow()
+                onBoundsChange(cardBoundsInWindow!!)
             }
-            .zIndex(if (isDragging) 10f else 0f),
+            .graphicsLayer {
+                translationY = dragOffsetY
+                scaleX = if (isDragging) 1.03f else dropScale
+                scaleY = if (isDragging) 1.03f else dropScale
+                alpha = if (isDragging) 0.9f else 1f
+                shadowElevation = if (isDragging) 12.dp.toPx() else 0f
+            }
+            .zIndex(if (isDragging) 100f else 0f),
     ) {
         val headerBorderColor = if (isDragging || isDropTarget) {
             partColor.copy(alpha = if (isDragging) 0.45f else 0.28f)
@@ -435,7 +439,10 @@ internal fun GroupEditorCard(
                                 .height(44.dp)
                                 .pointerInput(part.id) {
                                     detectDragGestures(
-                                        onDragStart = { haptics.performHapticFeedback(HapticFeedbackType.LongPress); onDragStart() },
+                                        onDragStart = {
+                                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            onDragStart(cardBoundsInWindow)
+                                        },
                                         onDragCancel = { haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove); onDragEnd() },
                                         onDragEnd = { haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove); onDragEnd() },
                                         onDrag = { change, dragAmount ->
@@ -503,6 +510,13 @@ internal fun GroupEditorCard(
                         if (part.isMobilityGroup) {
                             Text(
                                 "MOVILIDAD",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Black,
+                                color = partColor,
+                            )
+                        } else if (part.isCardioGroup || part.name.trim().lowercase() in setOf("cardio", "espacio de cardio")) {
+                            Text(
+                                "CARDIO",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Black,
                                 color = partColor,
