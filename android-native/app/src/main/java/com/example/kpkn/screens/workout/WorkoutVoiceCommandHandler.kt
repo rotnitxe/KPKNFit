@@ -853,7 +853,7 @@ class WorkoutVoiceCommandHandler(
         val currentExercise = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx)
         if (currentExercise?.cardioDetails != null) {
             val details = currentExercise.cardioDetails
-            val durationSec = (details.targetDurationSeconds ?: (20 * 60)).coerceAtLeast(1)
+            val durationSec = details.effectiveDurationSeconds().coerceAtLeast(1)
             val recorded = ports.recordCardioSet(
                 durationSeconds = durationSec,
                 distanceKm = details.targetDistanceKm,
@@ -1356,7 +1356,7 @@ class WorkoutVoiceCommandHandler(
                 ?.takeIf { it > 0.0 }
                 ?.toInt()
                 ?.coerceAtLeast(1)
-                ?: (details.targetDurationSeconds ?: (20 * 60)).coerceAtLeast(1)
+                ?: details.effectiveDurationSeconds().coerceAtLeast(1)
             val persistedInterpretation = acceptedInterpretation.copy(
                 metricValue = durationSeconds,
                 metricDecimalValue = durationSeconds.toDouble(),

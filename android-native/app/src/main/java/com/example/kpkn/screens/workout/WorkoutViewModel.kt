@@ -15,6 +15,7 @@ import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
+import com.example.kpkn.domain.cardio.CardioIntervalEngine
 import com.example.kpkn.domain.cardio.CardioTimerEngine
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
@@ -3237,7 +3238,7 @@ class WorkoutViewModel(
             ?.takeIf { it.isCardio && it.cardioDetails?.requiresGps == true }
             ?: return
         CardioGpsForegroundService.start(appContext, cardioGpsSessionKey(exercise.id))
-        startCardioTimer(exercise.id, exercise.cardioDetails?.targetDurationSeconds ?: 1)
+        startCardioTimer(exercise.id, exercise.cardioDetails?.effectiveDurationSeconds() ?: 1)
     }
 
     fun pauseCardioGps() {
@@ -3251,7 +3252,7 @@ class WorkoutViewModel(
         val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx)
             ?.takeIf { it.isCardio }
             ?: return
-        startCardioTimer(exercise.id, exercise.cardioDetails?.targetDurationSeconds ?: 1)
+        startCardioTimer(exercise.id, exercise.cardioDetails?.effectiveDurationSeconds() ?: 1)
     }
 
     fun cardioGpsPermissionDenied() {
@@ -3267,7 +3268,7 @@ class WorkoutViewModel(
         val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId }
             ?.takeIf { it.isCardio }
             ?: return
-        val safeTotal = (totalSeconds.takeIf { it > 0 } ?: exercise.cardioDetails?.targetDurationSeconds ?: 1)
+        val safeTotal = (totalSeconds.takeIf { it > 0 } ?: exercise.cardioDetails?.effectiveDurationSeconds() ?: 1)
             .coerceAtLeast(1)
         val current = state.cardioTimerState?.takeIf { it.exerciseId == exerciseId }
         val base = when {
@@ -3304,6 +3305,26 @@ class WorkoutViewModel(
                 )
                 _uiState.update { state -> state.copy(cardioTimerState = updated) }
                 persistOngoingState(immediate = false)
+                // Interval TTS: announce block change once per transition (gateado).
+                if (voiceController.isEnabled()) {
+                    try {
+                        val exercise = _uiState.value.let { st -> visibleExercises(st).firstOrNull { it.id == exerciseId } }
+                        val details = exercise?.cardioDetails
+                        if (details?.hasIntervals() == true) {
+                            val prev = CardioIntervalEngine.progressAt(details, timer.elapsedSeconds)
+                            val curr = CardioIntervalEngine.progressAt(details, updated.elapsedSeconds)
+                            if (prev?.currentIndex != curr?.currentIndex && curr?.currentBlock != null && !curr.isComplete) {
+                                val b = curr.currentBlock
+                                val speedLabel = b.speedKmh?.let { "${it.toString().trimEnd('0').trimEnd('.')} km/h" }
+                                    ?: b.watts?.let { "${it}W" }
+                                    ?: b.rpm?.let { "${it} RPM" }
+                                    ?: b.intensityLevel?.let { "nivel $it" }
+                                    ?: "nivel ${details.resolvedIntensityLevel()}"
+                                voiceController.speakAnnouncement("Bloque ${curr.currentIndex + 1}: ${CardioIntervalEngine.blockTypeLabel(b.type)} a $speedLabel.")
+                            }
+                        }
+                    } catch (_: Exception) { }
+                }
                 if (updated.status != CardioExecutionStatus.RUNNING) return@launch
             }
         }
@@ -3369,7 +3390,7 @@ class WorkoutViewModel(
             ?: return
         val details = exercise.cardioDetails ?: return
         val total = state.cardioTimerState?.takeIf { it.exerciseId == exerciseId }?.totalSeconds
-            ?: (details.targetDurationSeconds ?: (20 * 60)).coerceAtLeast(1)
+            ?: details.effectiveDurationSeconds().coerceAtLeast(1)
         val elapsed = durationSeconds.coerceAtLeast(0)
         val base = state.cardioTimerState?.takeIf { it.exerciseId == exerciseId }
             ?: CardioTimerState(exerciseId, total, (total - elapsed).coerceAtLeast(0))
@@ -3400,7 +3421,7 @@ class WorkoutViewModel(
         val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx)
             ?.takeIf { it.isCardio }
             ?: return false
-        startCardioTimer(exercise.id, exercise.cardioDetails?.targetDurationSeconds ?: 1)
+        startCardioTimer(exercise.id, exercise.cardioDetails?.effectiveDurationSeconds() ?: 1)
         return true
     }
 
@@ -3414,7 +3435,7 @@ class WorkoutViewModel(
         val gps = CardioGpsTracker.state.value.takeIf { it.sessionKey == cardioGpsSessionKey(exercise.id) }
         val duration = timer?.elapsedSeconds?.takeIf { it > 0 }
             ?: gps?.elapsedActiveSeconds?.toInt()?.takeIf { it > 0 }
-            ?: (details.targetDurationSeconds ?: (20 * 60)).coerceAtLeast(1)
+            ?: details.effectiveDurationSeconds().coerceAtLeast(1)
         val distance = gps?.distanceMeters?.div(1_000.0)?.takeIf { it > 0.0 }
             ?: timer?.distanceKm
             ?: details.targetDistanceKm

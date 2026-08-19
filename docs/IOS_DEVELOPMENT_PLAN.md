@@ -78,6 +78,11 @@ This document outlines the step-by-step execution plan to build the native iOS v
 
 ---
 
+## 🧩 Parity note — Cardio intervalos / HIIT (2026-08-18)
+- Android (Beta 10+) tiene `CardioDetails.intervalBlocks: List<CardioIntervalBlock>` + `intervalRounds` (JSON embebido con defaults, sin migración Room v23) — ver `data/models/Session.kt:324` doctrina "no requiere migración". Las 6 plantillas HIIT viven como catálogo estático Kotlin (`data/models/CardioHiitTemplates.kt`, patrón `SESSION_TEMPLATES_SYSTEM`, cero Room).
+- iOS **no tiene aún** modelo de cardio en `Data/Models/Session.swift` (ni `CardioDetails`/`CardioType`); SessionEditor iOS es placeholder. El JSON nuevo es lenient en lectura (iOS con `JSONDecoder` y defaults ignorará la clave), pero si iOS re-codifica y guarda un `Program` con intervalos, el round-trip pierde los campos → mitigación futura: añadir `Codable` con defaults pasivos en Swift aunque la UI no los consuma.
+- Paridad diferida conscientemente en este plan; no bloquea Android. Archivos iOS a tocar eventualmente: `Session.swift`, `WorkoutLog.swift`, `CardioCatalog`, `Domain/Cardio/`, `Presentation/Screens/Workout/CardioLiveCard`, `SessionEditor`.
+
 ## 🏁 Execution Strategy
 The recommended approach is to tackle this sequentially: **Data -> Domain -> Presentation -> Native Services**. 
 

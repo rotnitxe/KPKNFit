@@ -810,7 +810,7 @@ internal fun WorkoutStructureSheetsHost(
                             onChange = { details ->
                                 draftExercise = draftExercise.copy(
                                     cardioDetails = details,
-                                    targetDurationMinutes = details.targetDurationSeconds?.let { (it / 60).coerceAtLeast(1) } ?: 0,
+                                    targetDurationMinutes = details.effectiveDurationSeconds().let { (it / 60).coerceAtLeast(1) }.coerceAtLeast(1).takeIf { details.hasIntervals() || details.targetDurationSeconds != null } ?: 0,
                                 )
                             },
                         )

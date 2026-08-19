@@ -17,6 +17,7 @@ data class CardioCalorieInput(
 /** Pure MET/heart-rate estimate used by editor preview, live workout and history. */
 object CardioCalorieEngine {
     fun estimate(input: CardioCalorieInput): Double {
+        if (input.details.hasIntervals()) return estimateIntervals(input)
         val weight = input.weightKg.takeIf { it > 0.0 } ?: return 0.0
         val durationHours = input.durationSeconds.coerceAtLeast(0) / 3600.0
         if (durationHours == 0.0) return 0.0
@@ -29,6 +30,80 @@ object CardioCalorieEngine {
             maximum = input.maximumHeartRate,
         )
         return baseMet * 3.5 * weight / 200.0 * durationHours * heartRateFactor
+    }
+
+    fun estimateIntervals(input: CardioCalorieInput): Double {
+        val details = input.details
+        if (!details.hasIntervals()) return estimate(input.copy(durationSeconds = details.effectiveDurationSeconds()))
+        val weight = input.weightKg.takeIf { it > 0.0 } ?: return 0.0
+        val heartRateFactor = heartRateFactor(input.averageHeartRate, input.restingHeartRate, input.maximumHeartRate)
+        val rounds = details.intervalRounds.coerceIn(1, 99)
+        var total = 0.0
+        repeat(rounds) {
+            details.intervalBlocks.forEach { block ->
+                if (block.durationSeconds <= 0) return@forEach
+                val effectiveMet = metForIntervalBlock(block, details) ?: defaultMet(details.type, details.intensity)
+                val hours = block.durationSeconds / 3600.0
+                total += effectiveMet * 3.5 * weight / 200.0 * hours * heartRateFactor
+            }
+        }
+        return total
+    }
+
+    private fun metForIntervalBlock(block: com.example.kpkn.data.models.CardioIntervalBlock, details: com.example.kpkn.data.models.CardioDetails): Double? {
+        // Use block's own intensity/speed/watts when present, otherwise null to fallback to details' intensity
+        block.speedKmh?.takeIf { it > 0 }?.let { return speedToMet(details.type, it) }
+        block.watts?.takeIf { it > 0 }?.let { return wattsToMet(details.type, it) }
+        block.intensityLevel?.let { return defaultMet(details.type, com.example.kpkn.data.models.CardioIntensity.fromLevel(it)) }
+        return null
+    }
+
+    private fun speedToMet(type: CardioType, kmh: Double): Double = when (type) {
+        CardioType.WALK -> when {
+            kmh < 5.0 -> 3.5
+            kmh < 6.5 -> 5.0
+            kmh < 8.0 -> 7.0
+            kmh < 9.5 -> 8.3
+            else -> 9.0
+        }
+        CardioType.TREADMILL, CardioType.RUN_OUTDOOR -> when {
+            kmh < 5.0 -> 3.5
+            kmh < 6.5 -> 5.0
+            kmh < 8.0 -> 7.0
+            kmh < 9.5 -> 8.3
+            kmh < 10.5 -> 10.0
+            kmh < 11.5 -> 11.5
+            kmh < 12.8 -> 12.5
+            kmh < 14.0 -> 13.5
+            kmh < 15.5 -> 15.0
+            else -> 16.0
+        }
+        CardioType.BIKE_STATIONARY, CardioType.BIKE_OUTDOOR -> when {
+            kmh < 15.0 -> 5.5
+            kmh < 20.0 -> 7.0
+            kmh < 25.0 -> 8.5
+            kmh < 30.0 -> 10.5
+            else -> 12.0
+        }
+        else -> 7.0
+    }
+
+    private fun wattsToMet(type: CardioType, watts: Int): Double = when (type) {
+        CardioType.BIKE_STATIONARY, CardioType.BIKE_OUTDOOR -> when {
+            watts < 80 -> 5.5
+            watts < 120 -> 7.0
+            watts < 160 -> 8.5
+            watts < 200 -> 10.5
+            watts < 250 -> 12.0
+            else -> 14.0
+        }
+        CardioType.ROW_MACHINE -> when {
+            watts < 100 -> 6.0
+            watts < 150 -> 8.0
+            watts < 200 -> 10.0
+            else -> 12.0
+        }
+        else -> 7.0
     }
 
     fun defaultMet(type: CardioType, intensity: CardioIntensity): Double {

@@ -46,12 +46,16 @@ fun SessionEditorViewModel.addCardioToPart(item: CardioCatalogItem) {
                 targetDistanceKm = if (item.supportsDistance) existingDetails?.targetDistanceKm else null,
                 requiresGps = item.requiresGps,
                 supportsDistance = item.supportsDistance,
+                intervalBlocks = existingDetails?.intervalBlocks ?: emptyList(),
+                intervalRounds = existingDetails?.intervalRounds ?: 1,
             )
+            // Keep targetDuration synced when intervals exist
+            val synced = if (newDetails.hasIntervals()) newDetails.copy(targetDurationSeconds = newDetails.totalIntervalSeconds()) else newDetails
             current.copy(
                 name = item.name,
                 exerciseDbId = item.id,
-                cardioDetails = newDetails,
-                targetDurationMinutes = newDetails.targetDurationSeconds?.let { (it / 60).coerceAtLeast(1) } ?: 0,
+                cardioDetails = synced,
+                targetDurationMinutes = synced.targetDurationSeconds?.let { (it / 60).coerceAtLeast(1) } ?: 0,
             )
         }
         closeSheet()

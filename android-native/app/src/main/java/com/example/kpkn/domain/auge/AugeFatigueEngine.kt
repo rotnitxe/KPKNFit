@@ -234,6 +234,9 @@ object AugeFatigueEngine {
         if (set.isWarmup) return false
         val hasTime = (set.timeSeconds ?: 0) > 0
         if (set.reps <= 0 && !hasTime && set.weight <= 0.0) return false
+        // Cardio puro (solo tiempo, sin carga ni reps) nunca debe drenar baterías AUGE.
+        // Evita que 20 min de cinta se conviertan en ~240 "reps" sintéticas.
+        if (set.reps <= 0 && set.weight <= 0.0 && hasTime) return false
         val rpe = getEffectiveRPE(set)
         return rpe >= 6.0
     }

@@ -36,8 +36,8 @@
 - Verify the real code and Room schema when older docs disagree.
 
 <!-- KAUPOLIKAN_DYNAMIC_MAP_START -->
-Generated at: 2026-08-18T21:11:11.963Z
-Kotlin files: 511
+Generated at: 2026-08-19T04:10:50.035Z
+Kotlin files: 516
 Room version detected in KpknDatabase.kt: 23
 
 ### Entities

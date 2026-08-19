@@ -36,6 +36,7 @@ import com.example.kpkn.data.models.CardioExecutionStatus
 import com.example.kpkn.data.models.CardioTimerState
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.domain.cardio.CardioGuideEngine
+import com.example.kpkn.domain.cardio.CardioIntervalEngine
 import com.example.kpkn.services.cardio.CardioGpsState
 import com.example.kpkn.services.cardio.CardioGpsStatus
 
@@ -65,7 +66,8 @@ internal fun CardioLiveCard(
     var showRecordConfirmation by remember { mutableStateOf(false) }
 
     val status = executionState?.status ?: CardioExecutionStatus.READY
-    val plannedDurationSeconds = (details.targetDurationSeconds ?: (20 * 60)).coerceAtLeast(1)
+    val isLibre = !details.hasIntervals() && details.targetDurationSeconds == null
+    val plannedDurationSeconds = if (isLibre) 20 * 60 else details.effectiveDurationSeconds().coerceAtLeast(1)
     val timerElapsedSeconds = executionState?.elapsedSeconds ?: 0
     val timerRemainingSeconds = executionState?.remainingSeconds ?: plannedDurationSeconds
     val gpsMode = details.requiresGps
@@ -105,7 +107,16 @@ internal fun CardioLiveCard(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Text("Cardio · ${details.type.name.replace('_', ' ')}", fontWeight = FontWeight.Black, color = accentColor)
-            val targetGoalSummary = listOfNotNull(
+            val targetGoalSummary = if (details.hasIntervals()) {
+                val blocks = details.intervalBlocks.size * details.intervalRounds.coerceIn(1, 99)
+                val mins = details.totalIntervalSeconds() / 60
+                listOfNotNull(
+                    "$blocks bloques",
+                    "${mins} min",
+                    details.targetDistanceKm?.let { "$it km" },
+                    "Circuitos",
+                ).joinToString(" · ")
+            } else listOfNotNull(
                 details.targetDurationSeconds?.let { "${it / 60} min" },
                 details.targetDistanceKm?.let { "$it km" },
             ).joinToString(" · ").ifEmpty { "Libre" }
@@ -125,6 +136,15 @@ internal fun CardioLiveCard(
                         (timerElapsedSeconds.toFloat() / plannedDurationSeconds).coerceIn(0f, 1f)
                     } else 0f,
                     accentColor = accentColor,
+                )
+            }
+
+            if (details.hasIntervals()) {
+                CardioIntervalChart(
+                    details = details,
+                    accentColor = accentColor,
+                    elapsedSeconds = timerElapsedSeconds,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
 
@@ -156,41 +176,43 @@ internal fun CardioLiveCard(
                 )
             }
 
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                listOf(
-                    "Calentamiento" to "50-60%",
-                    "Quema grasa" to "60-70%",
-                    "Aeróbico" to "70-80%",
-                    "Anaeróbico" to "80-90%",
-                ).forEach { (zone, percent) ->
-                    val isActive = guide.zoneName == zone
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            zone,
-                            color = if (isActive) accentColor else Color.White.copy(alpha = 0.55f),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-                            modifier = Modifier.weight(1f),
-                        )
-                        Text(
-                            percent,
-                            color = if (isActive) accentColor else Color.White.copy(alpha = 0.55f),
-                            style = MaterialTheme.typography.labelSmall,
-                        )
-                        if (showsCadence) {
+            if (!details.hasIntervals()) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    listOf(
+                        "Calentamiento" to "50-60%",
+                        "Quema grasa" to "60-70%",
+                        "Aeróbico" to "70-80%",
+                        "Anaeróbico" to "80-90%",
+                    ).forEach { (zone, percent) ->
+                        val isActive = guide.zoneName == zone
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
                             Text(
-                                when (zone) {
-                                    "Calentamiento" -> "50-60 RPM"
-                                    "Quema grasa" -> "60-70 RPM"
-                                    "Aeróbico" -> "70-85 RPM"
-                                    else -> "85+ RPM"
-                                },
+                                zone,
+                                color = if (isActive) accentColor else Color.White.copy(alpha = 0.55f),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Text(
+                                percent,
                                 color = if (isActive) accentColor else Color.White.copy(alpha = 0.55f),
                                 style = MaterialTheme.typography.labelSmall,
                             )
+                            if (showsCadence) {
+                                Text(
+                                    when (zone) {
+                                        "Calentamiento" -> "50-60 RPM"
+                                        "Quema grasa" -> "60-70 RPM"
+                                        "Aeróbico" -> "70-85 RPM"
+                                        else -> "85+ RPM"
+                                    },
+                                    color = if (isActive) accentColor else Color.White.copy(alpha = 0.55f),
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            }
                         }
                     }
                 }

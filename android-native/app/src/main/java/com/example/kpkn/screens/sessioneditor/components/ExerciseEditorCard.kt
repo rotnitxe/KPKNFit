@@ -910,13 +910,21 @@ private fun cardioCollapsedSummary(details: CardioDetails): String {
     val parts = mutableListOf<String>()
     parts.add("Cardio")
     parts.add(type)
-    details.targetDurationSeconds?.let { sec ->
-        parts.add("${(sec / 60).coerceAtLeast(1)} min")
+    if (details.hasIntervals()) {
+        val totalBlocks = details.intervalBlocks.size * details.intervalRounds.coerceIn(1, 99)
+        parts.add("$totalBlocks bloques")
+        val totalSec = details.totalIntervalSeconds()
+        parts.add("${(totalSec / 60).coerceAtLeast(1)} min")
+        parts.add("Circuitos")
+    } else {
+        details.targetDurationSeconds?.let { sec ->
+            parts.add("${(sec / 60).coerceAtLeast(1)} min")
+        }
+        details.targetDistanceKm?.let { km ->
+            parts.add(if (km % 1.0 == 0.0) "${km.toInt()} km" else "$km km")
+        }
+        parts.add("Nivel $level")
     }
-    details.targetDistanceKm?.let { km ->
-        parts.add(if (km % 1.0 == 0.0) "${km.toInt()} km" else "$km km")
-    }
-    parts.add("Nivel $level")
     return parts.joinToString(" · ")
 }
 

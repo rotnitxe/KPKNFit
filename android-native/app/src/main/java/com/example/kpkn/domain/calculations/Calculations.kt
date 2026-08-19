@@ -565,11 +565,9 @@ fun calculateSessionTimeBreakdown(
             warmupSec += mobilityDuration
         }
 
-        // Cardio is one continuous execution block. Use the embedded target as
-        // the source of truth even when a legacy/edited session has no sets or
-        // stale ExerciseSet.targetDuration values.
+        // Cardio: intervals expand to total circuit time; legacy single-block uses targetDuration.
         exercise.cardioDetails?.let { cardio ->
-            executionSec += (cardio.targetDurationSeconds ?: 0).coerceAtLeast(0)
+            executionSec += cardio.effectiveDurationSeconds()
             return@forEach
         }
 

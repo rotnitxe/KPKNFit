@@ -54,7 +54,7 @@ object CardioCalorieTargetEngine {
             CardioCalorieInput(
                 details = details,
                 weightKg = weight,
-                durationSeconds = details.targetDurationSeconds ?: 0,
+                durationSeconds = details.effectiveDurationSeconds(),
             ),
         )
     }

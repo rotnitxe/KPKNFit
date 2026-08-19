@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioIntensity
 import com.example.kpkn.data.models.CardioType
+import com.example.kpkn.screens.sessioneditor.components.CardioIntervalsEditor
 import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
 import kotlin.math.roundToInt
 
@@ -92,60 +93,105 @@ internal fun CardioEditorCard(
                 style = MaterialTheme.typography.titleMedium,
             )
 
-            // Selector de tipo de objetivo (Tiempo / Distancia / Ambos)
-            if (details.supportsDistance) {
-                Text(
-                    "Objetivo a programar",
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.75f),
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    CardioTargetMode.entries.forEach { mode ->
-                        CardioModeChip(
-                            selected = currentTargetMode == mode,
-                            onClick = {
-                                when (mode) {
-                                    CardioTargetMode.DURATION -> {
-                                        val duration = details.targetDurationSeconds ?: (20 * 60)
-                                        onChange(details.copy(targetDurationSeconds = duration, targetDistanceKm = null))
+            // Selector de tipo de objetivo (Tiempo / Distancia / Ambos) — oculto cuando hay intervalos (duración deriva del circuito)
+            if (!details.hasIntervals()) {
+                if (details.supportsDistance) {
+                    Text(
+                        "Objetivo a programar",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.75f),
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        CardioTargetMode.entries.forEach { mode ->
+                            CardioModeChip(
+                                selected = currentTargetMode == mode,
+                                onClick = {
+                                    when (mode) {
+                                        CardioTargetMode.DURATION -> {
+                                            val duration = details.targetDurationSeconds ?: (20 * 60)
+                                            onChange(details.copy(targetDurationSeconds = duration, targetDistanceKm = null))
+                                        }
+                                        CardioTargetMode.DISTANCE -> {
+                                            val distance = details.targetDistanceKm ?: 3.0
+                                            distanceText = if (distance % 1.0 == 0.0) distance.toInt().toString() else distance.toString()
+                                            onChange(details.copy(targetDurationSeconds = null, targetDistanceKm = distance))
+                                        }
+                                        CardioTargetMode.BOTH -> {
+                                            val duration = details.targetDurationSeconds ?: (20 * 60)
+                                            val distance = details.targetDistanceKm ?: 3.0
+                                            distanceText = if (distance % 1.0 == 0.0) distance.toInt().toString() else distance.toString()
+                                            onChange(details.copy(targetDurationSeconds = duration, targetDistanceKm = distance))
+                                        }
                                     }
-                                    CardioTargetMode.DISTANCE -> {
-                                        val distance = details.targetDistanceKm ?: 3.0
-                                        distanceText = if (distance % 1.0 == 0.0) distance.toInt().toString() else distance.toString()
-                                        onChange(details.copy(targetDurationSeconds = null, targetDistanceKm = distance))
-                                    }
-                                    CardioTargetMode.BOTH -> {
-                                        val duration = details.targetDurationSeconds ?: (20 * 60)
-                                        val distance = details.targetDistanceKm ?: 3.0
-                                        distanceText = if (distance % 1.0 == 0.0) distance.toInt().toString() else distance.toString()
-                                        onChange(details.copy(targetDurationSeconds = duration, targetDistanceKm = distance))
-                                    }
-                                }
-                            },
-                            label = mode.label,
-                            accentColor = accentColor,
-                        )
+                                },
+                                label = mode.label,
+                                accentColor = accentColor,
+                            )
+                        }
                     }
                 }
-            }
 
-            // Inputs de duración y/o distancia según el modo seleccionado
-            when (currentTargetMode) {
-                CardioTargetMode.DURATION -> {
-                    CardioDurationField(
-                        durationMinutes = ((details.targetDurationSeconds ?: (20 * 60)) / 60).coerceAtLeast(1),
-                        accentColor = accentColor,
-                        modifier = Modifier.fillMaxWidth(),
-                        onConfirm = { minutes ->
-                            onChange(details.copy(targetDurationSeconds = minutes * 60))
-                        },
-                    )
+                // Inputs de duración y/o distancia según el modo seleccionado
+                when (currentTargetMode) {
+                    CardioTargetMode.DURATION -> {
+                        CardioDurationField(
+                            durationMinutes = ((details.targetDurationSeconds ?: (20 * 60)) / 60).coerceAtLeast(1),
+                            accentColor = accentColor,
+                            modifier = Modifier.fillMaxWidth(),
+                            onConfirm = { minutes ->
+                                onChange(details.copy(targetDurationSeconds = minutes * 60))
+                            },
+                        )
+                    }
+                    CardioTargetMode.DISTANCE -> {
+                        CardioAccentField(
+                            value = distanceText,
+                            onValueChange = { value ->
+                                distanceText = value.filter { it.isDigit() || it == '.' || it == ',' }.take(8)
+                                val parsed = distanceText.replace(',', '.').toDoubleOrNull()
+                                onChange(details.copy(targetDistanceKm = parsed))
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = "Distancia meta (km)",
+                            accentColor = accentColor,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        )
+                    }
+                    CardioTargetMode.BOTH -> {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            CardioDurationField(
+                                durationMinutes = ((details.targetDurationSeconds ?: (20 * 60)) / 60).coerceAtLeast(1),
+                                accentColor = accentColor,
+                                modifier = Modifier.weight(1f),
+                                onConfirm = { minutes ->
+                                    onChange(details.copy(targetDurationSeconds = minutes * 60))
+                                },
+                            )
+                            CardioAccentField(
+                                value = distanceText,
+                                onValueChange = { value ->
+                                    distanceText = value.filter { it.isDigit() || it == '.' || it == ',' }.take(8)
+                                    val parsed = distanceText.replace(',', '.').toDoubleOrNull()
+                                    onChange(details.copy(targetDistanceKm = parsed))
+                                },
+                                modifier = Modifier.weight(1f),
+                                label = "Distancia (km)",
+                                accentColor = accentColor,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            )
+                        }
+                    }
                 }
-                CardioTargetMode.DISTANCE -> {
+            } else {
+                // Cuando hay intervalos, la duración total se deriva del circuito; la distancia sigue editable si aplica
+                if (details.supportsDistance) {
                     CardioAccentField(
                         value = distanceText,
                         onValueChange = { value ->
@@ -154,38 +200,16 @@ internal fun CardioEditorCard(
                             onChange(details.copy(targetDistanceKm = parsed))
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        label = "Distancia meta (km)",
+                        label = "Distancia meta (km) (opcional con intervalos)",
                         accentColor = accentColor,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     )
                 }
-                CardioTargetMode.BOTH -> {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        CardioDurationField(
-                            durationMinutes = ((details.targetDurationSeconds ?: (20 * 60)) / 60).coerceAtLeast(1),
-                            accentColor = accentColor,
-                            modifier = Modifier.weight(1f),
-                            onConfirm = { minutes ->
-                                onChange(details.copy(targetDurationSeconds = minutes * 60))
-                            },
-                        )
-                        CardioAccentField(
-                            value = distanceText,
-                            onValueChange = { value ->
-                                distanceText = value.filter { it.isDigit() || it == '.' || it == ',' }.take(8)
-                                val parsed = distanceText.replace(',', '.').toDoubleOrNull()
-                                onChange(details.copy(targetDistanceKm = parsed))
-                            },
-                            modifier = Modifier.weight(1f),
-                            label = "Distancia (km)",
-                            accentColor = accentColor,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        )
-                    }
-                }
+                Text(
+                    "Duración total: ${formatIntervalTotal(details.totalIntervalSeconds())} (deriva de los bloques)",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.68f),
+                )
             }
 
             // Slider de Intensidad de 1 a 10
@@ -227,6 +251,9 @@ internal fun CardioEditorCard(
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
+
+            // Circuitos / intervalos (HIIT) — editor de bloques y plantillas
+            CardioIntervalsEditor(details = details, accentColor = accentColor, onChange = onChange)
 
             // Apartado de GPS en vivo simplificado y compacto (sin texto redundante que gaste espacio)
             if (details.type.isOutdoor()) {
@@ -425,4 +452,10 @@ private fun intensityZoneDescription(level: Int): String = when (level) {
     in 8..9 -> "Fuerte (Umbral anaeróbico)"
     10 -> "Máximo esfuerzo (Sprint)"
     else -> "Moderado"
+}
+
+private fun formatIntervalTotal(totalSeconds: Int): String {
+    val m = totalSeconds / 60
+    val s = totalSeconds % 60
+    return if (s == 0) "${m} min" else "${m}m ${s}s"
 }

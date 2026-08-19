@@ -66,7 +66,7 @@ class OnboardingStateDerivationTest {
     @Test
     fun `programa hecho y plan activo completan todas las tareas`() {
         val state = onboardingStateFrom(
-            Settings(onboardingProgramDone = true),
+            Settings(onboardingProgramDone = true, onboardingNameDone = true),
             "p1",
             ready = true,
             dismissed = false,

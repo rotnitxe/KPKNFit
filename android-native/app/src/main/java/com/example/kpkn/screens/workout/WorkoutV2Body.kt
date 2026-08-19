@@ -816,7 +816,7 @@ internal fun WorkoutV2Body(
                                     onStartTimer = {
                                         viewModel.startCardioTimer(
                                             pageExercise.id,
-                                            pageExercise.cardioDetails?.targetDurationSeconds ?: 1,
+                                            pageExercise.cardioDetails?.effectiveDurationSeconds() ?: 1,
                                         )
                                     },
                                     onPauseTimer = viewModel::pauseCardioTimer,
@@ -894,7 +894,7 @@ internal fun WorkoutV2Body(
                                         onStartTimer = {
                                             viewModel.startCardioTimer(
                                                 targetExercise.id,
-                                                targetExercise.cardioDetails?.targetDurationSeconds ?: 1,
+                                                targetExercise.cardioDetails?.effectiveDurationSeconds() ?: 1,
                                             )
                                         },
                                         onPauseTimer = viewModel::pauseCardioTimer,

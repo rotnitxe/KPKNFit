@@ -336,6 +336,10 @@ data class CardioDetails(
     /** 0 delegates to [CardioCalorieEngine] type defaults; explicit values remain supported. */
     val metBase: Double = 0.0,
     val intensityLevel: Int? = null,
+    /** Programmed intervals. Empty = legacy single-block cardio (unchanged behaviour). */
+    val intervalBlocks: List<CardioIntervalBlock> = emptyList(),
+    /** Repetitions of the full block sequence (circuit rounds). */
+    val intervalRounds: Int = 1,
 ) {
     fun resolvedIntensityLevel(): Int = intensityLevel ?: when (intensity) {
         CardioIntensity.BAJA -> 3
@@ -343,6 +347,35 @@ data class CardioDetails(
         CardioIntensity.ALTA -> 8
         CardioIntensity.MUY_ALTA -> 10
     }
+
+    fun hasIntervals(): Boolean = intervalBlocks.isNotEmpty()
+
+    fun totalIntervalSeconds(): Int {
+        if (intervalBlocks.isEmpty()) return 0
+        val perRound = intervalBlocks.sumOf { it.durationSeconds.coerceAtLeast(0) }
+        return (perRound * intervalRounds.coerceIn(1, 99)).coerceAtLeast(0)
+    }
+
+    fun effectiveDurationSeconds(): Int =
+        if (hasIntervals()) totalIntervalSeconds() else (targetDurationSeconds ?: 0).coerceAtLeast(0)
+}
+
+@Serializable
+enum class CardioBlockType { WARMUP, WORK, RECOVER, COOLDOWN }
+
+@Serializable
+data class CardioIntervalBlock(
+    val id: String = "",
+    val type: CardioBlockType = CardioBlockType.WORK,
+    val durationSeconds: Int = 60,
+    val speedKmh: Double? = null,
+    val inclinePercent: Double? = null,
+    val rpm: Int? = null,
+    val watts: Int? = null,
+    val intensityLevel: Int? = null,
+) {
+    fun displaySpeedOrIntensity(): Double? = speedKmh ?: intensityLevel?.toDouble()
+    fun isValid(): Boolean = durationSeconds > 0
 }
 
 enum class CardioType {
