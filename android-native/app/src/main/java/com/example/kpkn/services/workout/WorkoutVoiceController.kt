@@ -146,6 +146,7 @@ class WorkoutVoiceController(
     var onError: ((String) -> Unit)? = null
     var onStageChanged: ((VoicePipelineStage) -> Unit)? = null
     var exerciseInfoProvider: (() -> ExerciseInfo?)? = null
+    var cardioTimerActiveProvider: (() -> Boolean)? = null
     var verbosityProvider: (() -> com.example.kpkn.data.models.VoiceVerbosity)? = null
     var noiseProfileProvider: (() -> com.example.kpkn.data.models.VoiceNoiseProfile)? = null
     var hapticEnabledProvider: (() -> Boolean)? = null
@@ -2298,8 +2299,9 @@ class WorkoutVoiceController(
                 unitMode = exerciseInfo?.unitMode ?: if (isTimeMode) UnitModeV2.TIME else UnitModeV2.REPS,
                 customUnit = exerciseInfo?.customUnit,
                 trackRom = exerciseInfo?.trackRom == true,
-                allowCardioMetrics = exerciseInfo?.exercise?.cardioDetails != null,
-                tagNames = exerciseInfo?.tagNames.orEmpty(),
+            allowCardioMetrics = exerciseInfo?.exercise?.cardioDetails != null,
+            tagNames = exerciseInfo?.tagNames.orEmpty(),
+            isCardioTimerActive = cardioTimerActiveProvider?.invoke() == true,
         ).let { cmd ->
             if (cmd is VoiceSessionCommand.RegisterSet && isUnilateral && cmd.interpretation.side == null) {
                 val side = exerciseInfo?.pendingUnilateralSide

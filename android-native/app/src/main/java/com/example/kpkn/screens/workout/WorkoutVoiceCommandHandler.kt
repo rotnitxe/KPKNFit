@@ -143,6 +143,10 @@ class WorkoutVoiceCommandHandler(
         fun recordCardioSet(durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?): Boolean
         fun startCardio(): Boolean
         fun finishCardio(): Boolean
+        fun skipCardioBlock(): Boolean
+        fun pauseCardio(): Boolean
+        fun resumeCardio(): Boolean
+        fun cardioStatusSpeech(): String?
         fun setVoiceExerciseQueue(exerciseIds: List<String>)
         /** Mueve el ejercicio actual ±1 posición (estructura en vivo). */
         fun moveCurrentExercise(direction: Int)
@@ -650,6 +654,21 @@ class WorkoutVoiceCommandHandler(
             is VoiceSessionCommand.FinishCardio -> {
                 if (ports.finishCardio()) voiceController.speakFeedbackUpdated("Cardio finalizado y registrado.")
                 else voiceController.speakFeedbackUpdated("No pude registrar este cardio.")
+            }
+            is VoiceSessionCommand.SkipCardioBlock -> {
+                if (ports.skipCardioBlock()) voiceController.speakFeedbackUpdated("Bloque saltado.")
+                else voiceController.speakFeedbackUpdated("No hay un bloque de cardio activo para saltar.")
+            }
+            is VoiceSessionCommand.PauseCardio -> {
+                if (ports.pauseCardio()) voiceController.speakFeedbackUpdated("Cardio pausado.")
+                else voiceController.speakFeedbackUpdated("No hay un cardio en curso para pausar.")
+            }
+            is VoiceSessionCommand.ResumeCardio -> {
+                if (ports.resumeCardio()) voiceController.speakFeedbackUpdated("Cardio reanudado.")
+                else voiceController.speakFeedbackUpdated("No hay un cardio pausado para reanudar.")
+            }
+            is VoiceSessionCommand.QueryCardioStatus -> {
+                voiceController.speakFeedbackUpdated(ports.cardioStatusSpeech() ?: "No hay un cardio activo.")
             }
             is VoiceSessionCommand.StartTimedSet -> startTimedSet()
             is VoiceSessionCommand.StopTimedSet -> stopTimedSet()

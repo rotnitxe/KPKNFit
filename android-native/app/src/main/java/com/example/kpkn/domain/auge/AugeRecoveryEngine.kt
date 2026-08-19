@@ -365,6 +365,18 @@ object AugeRecoveryEngine {
                 else (35.0 - daysSince) / 7.0
 
             log.completedExercises.forEach { ex ->
+                ex.cardioDetails?.let { cardio ->
+                    val duration = ex.sets.sumOf { it.timeSeconds ?: 0 }
+                        .takeIf { it > 0 }
+                        ?: return@forEach
+                    val rpe = ex.sets.firstOrNull { (it.timeSeconds ?: 0) > 0 }?.rpe ?: cardio.resolvedRpe()
+                    val cardioDrain = CardioRingDrainEngine.drain(cardio, duration, rpe, settings)
+                    val matched = cardioDrain.muscleDrains.entries
+                        .filter { (key, _) -> muscleMatchesCategory(key, muscleName) }
+                        .sumOf { it.value }
+                    totalStress += matched * decay
+                    return@forEach
+                }
                 val dbInfo = resolveDbInfo(ex, exerciseDb)
                 val involvedMuscles = involvedMusclesFor(ex, dbInfo)
 
@@ -488,6 +500,22 @@ object AugeRecoveryEngine {
             var sessionSoftAccum = 0.0
 
             log.completedExercises.forEach { ex ->
+                ex.cardioDetails?.let { cardio ->
+                    val duration = ex.sets.sumOf { it.timeSeconds ?: 0 }
+                        .takeIf { it > 0 }
+                        ?: return@forEach
+                    val rpe = ex.sets.firstOrNull { (it.timeSeconds ?: 0) > 0 }?.rpe ?: cardio.resolvedRpe()
+                    val cardioDrain = CardioRingDrainEngine.drain(cardio, duration, rpe, settings)
+                    val matched = cardioDrain.muscleDrains.entries
+                        .filter { (key, _) -> muscleMatchesCategory(key, muscleName) }
+                        .sumOf { it.value }
+                    val capped = AugeUtils.applySessionSoftCap(matched * conservationFactor, sessionSoftAccum, muscularCap)
+                    sessionSoftAccum += capped
+                    sessionMuscleStress += capped
+                    if (hoursSince <= 168 && matched > 0.0) effectiveSetsCount++
+                    if (logTime > lastSessionDate && matched > 0.0) lastSessionDate = logTime
+                    return@forEach
+                }
                 val dbInfo = resolveDbInfo(ex, exerciseDb)
                 val involvedMuscles = involvedMusclesFor(ex, dbInfo)
                 val involvement = involvedMuscles.find {

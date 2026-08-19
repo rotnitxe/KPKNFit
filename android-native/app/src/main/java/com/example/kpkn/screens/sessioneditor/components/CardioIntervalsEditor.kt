@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -50,7 +51,10 @@ import com.example.kpkn.data.models.CardioCatalog
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioHiitTemplates
 import com.example.kpkn.data.models.CardioIntervalBlock
+import com.example.kpkn.data.models.CardioIntervalPattern
+import com.example.kpkn.data.models.CardioIntervalPrograms
 import com.example.kpkn.domain.cardio.CardioIntervalEngine
+import com.example.kpkn.domain.cardio.CardioIntervalProgramBuilder
 import com.example.kpkn.screens.workout.CardioIntervalChart
 import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
 import java.util.UUID
@@ -64,6 +68,9 @@ internal fun CardioIntervalsEditor(
 ) {
     val hasIntervals = details.hasIntervals()
     var showTemplatePicker by remember { mutableStateOf(false) }
+    var totalMinutesText by remember(details.totalIntervalSeconds(), details.targetDurationSeconds) {
+        mutableStateOf(((details.targetDurationSeconds ?: details.totalIntervalSeconds()).coerceAtLeast(60) / 60).toString())
+    }
 
     Column(
         modifier = Modifier
@@ -88,30 +95,77 @@ internal fun CardioIntervalsEditor(
                     color = Color.White.copy(alpha = 0.62f),
                 )
             }
-            Switch(
-                checked = hasIntervals,
-                onCheckedChange = { enabled ->
-                    if (enabled) {
-                        val seed = listOf(
-                            CardioIntervalBlock(id = UUID.randomUUID().toString(), type = CardioBlockType.WARMUP, durationSeconds = 5 * 60, speedKmh = 6.0, intensityLevel = 3),
-                            CardioIntervalBlock(id = UUID.randomUUID().toString(), type = CardioBlockType.WORK, durationSeconds = 60, speedKmh = 10.0, intensityLevel = 7),
-                            CardioIntervalBlock(id = UUID.randomUUID().toString(), type = CardioBlockType.RECOVER, durationSeconds = 60, speedKmh = 5.0, intensityLevel = 3),
-                            CardioIntervalBlock(id = UUID.randomUUID().toString(), type = CardioBlockType.WORK, durationSeconds = 60, speedKmh = 11.0, intensityLevel = 8),
-                            CardioIntervalBlock(id = UUID.randomUUID().toString(), type = CardioBlockType.COOLDOWN, durationSeconds = 3 * 60, speedKmh = 5.0, intensityLevel = 3),
-                        )
-                        val total = seed.sumOf { it.durationSeconds }
-                        onChange(details.copy(intervalBlocks = seed, intervalRounds = 1, targetDurationSeconds = total))
-                    } else {
-                        onChange(details.copy(intervalBlocks = emptyList(), intervalRounds = 1, targetDurationSeconds = 20 * 60))
+            Text(
+                "Modo intervalos activo",
+                color = accentColor,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            IntervalAccentField(
+                value = totalMinutesText,
+                onValueChange = { raw ->
+                    totalMinutesText = raw.filter(Char::isDigit).take(4)
+                    val minutes = totalMinutesText.toIntOrNull()?.coerceIn(1, 240)
+                    if (minutes != null) {
+                        val current = details.totalIntervalSeconds().coerceAtLeast(60)
+                        if (minutes * 60 != current) {
+                            onChange(rescaleIntervalDetails(details, minutes * 60))
+                        }
                     }
                 },
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White,
-                    checkedTrackColor = accentColor.copy(alpha = 0.85f),
-                    uncheckedThumbColor = Color.White.copy(alpha = 0.6f),
-                    uncheckedTrackColor = Color.White.copy(alpha = 0.12f),
-                ),
+                label = "Duración total (min)",
+                accentColor = accentColor,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.weight(1f),
             )
+            Text(
+                "El patrón escala automáticamente; cada bloque sigue siendo editable.",
+                modifier = Modifier.weight(1.2f).align(Alignment.CenterVertically),
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White.copy(alpha = 0.62f),
+            )
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("Patrón", color = Color.White.copy(alpha = 0.75f), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+            CardioIntervalPrograms.specs.chunked(3).forEach { row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+                    row.forEach { spec ->
+                        val selected = details.intervalBlocks.isNotEmpty() &&
+                            spec.pattern != CardioIntervalPattern.CUSTOM &&
+                            details.intervalBlocks.any { it.type == CardioBlockType.WARMUP } &&
+                            details.intervalBlocks.count { it.type == CardioBlockType.WORK } >= spec.units.count { it.type == CardioBlockType.WORK }
+                        Surface(
+                            modifier = Modifier.weight(1f).clickable {
+                                if (spec.pattern == CardioIntervalPattern.CUSTOM) {
+                                    onChange(details.copy(hiit = null))
+                                } else {
+                                    val total = totalMinutesText.toIntOrNull()?.coerceIn(1, 240)?.times(60)
+                                        ?: details.totalIntervalSeconds().coerceAtLeast(20 * 60)
+                                    onChange(
+                                        CardioIntervalProgramBuilder.buildDetails(
+                                            pattern = spec.pattern,
+                                            totalSeconds = total,
+                                            type = details.type,
+                                            baseLevel = details.resolvedIntensityLevel(),
+                                            base = details.copy(hiit = null),
+                                        ),
+                                    )
+                                }
+                            },
+                            shape = RoundedCornerShape(999.dp),
+                            color = accentColor.copy(alpha = if (selected) 0.28f else 0.06f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = if (selected) 0.85f else 0.30f)),
+                        ) {
+                            Text(spec.label, modifier = Modifier.padding(horizontal = 7.dp, vertical = 5.dp), color = Color.White, style = MaterialTheme.typography.labelSmall, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium)
+                        }
+                    }
+                    repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+                }
+            }
         }
 
         if (!hasIntervals) {
@@ -444,4 +498,35 @@ private fun formatMinutes(totalSeconds: Int): String {
     val m = totalSeconds / 60
     val s = totalSeconds % 60
     return if (s == 0) "${m} min" else "${m}m ${s}s"
+}
+
+private fun rescaleIntervalDetails(details: CardioDetails, totalSeconds: Int): CardioDetails {
+    val rounds = details.intervalRounds.coerceIn(1, 99)
+    val perRoundTarget = (totalSeconds / rounds).coerceAtLeast(details.intervalBlocks.size * 15)
+    val current = details.intervalBlocks.sumOf { it.durationSeconds }.coerceAtLeast(1)
+    val scaled = details.intervalBlocks.map { block ->
+        block.copy(durationSeconds = (block.durationSeconds.toDouble() * perRoundTarget / current).roundToInt().coerceAtLeast(15))
+    }.toMutableList()
+    var delta = perRoundTarget - scaled.sumOf { it.durationSeconds }
+    var index = scaled.lastIndex
+    while (delta != 0 && scaled.isNotEmpty()) {
+        if (delta > 0) {
+            val add = minOf(delta, 5)
+            scaled[index] = scaled[index].copy(durationSeconds = scaled[index].durationSeconds + add)
+            delta -= add
+        } else {
+            val removable = (scaled[index].durationSeconds - 15).coerceAtLeast(0)
+            if (removable == 0) {
+                index = (index - 1).takeIf { it >= 0 } ?: scaled.lastIndex
+                if (scaled.all { it.durationSeconds <= 15 }) break
+                continue
+            }
+            val subtract = minOf(-delta, removable, 5)
+            scaled[index] = scaled[index].copy(durationSeconds = scaled[index].durationSeconds - subtract)
+            delta += subtract
+        }
+        index = (index - 1).takeIf { it >= 0 } ?: scaled.lastIndex
+    }
+    val actual = scaled.sumOf { it.durationSeconds } * rounds
+    return details.copy(intervalBlocks = scaled, intervalRounds = rounds, targetDurationSeconds = actual)
 }

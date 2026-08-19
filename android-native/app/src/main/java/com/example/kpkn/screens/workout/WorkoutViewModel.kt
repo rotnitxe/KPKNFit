@@ -17,6 +17,7 @@ import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.domain.cardio.CardioIntervalEngine
 import com.example.kpkn.domain.cardio.CardioTimerEngine
+import com.example.kpkn.domain.cardio.CardioCueRules
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge
@@ -42,6 +43,7 @@ import com.example.kpkn.services.cardio.CardioGpsStatus
 import com.example.kpkn.services.cardio.CardioGpsTracker
 import com.example.kpkn.services.cardio.CardioGpsMilestoneNotifier
 import com.example.kpkn.services.cardio.CardioHealthProviderFactory
+import com.example.kpkn.services.cardio.CardioCuePlayer
 import com.example.kpkn.services.workout.TimerAction
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import com.example.kpkn.services.workout.WorkoutVoiceController
@@ -133,6 +135,7 @@ class WorkoutViewModel(
     private val pacingNotifications = WorkoutPacingNotificationManager(appContext)
     private val cardioGpsMilestoneNotifier = CardioGpsMilestoneNotifier(appContext)
     private val cardioHealthProvider = CardioHealthProviderFactory.create(appContext)
+    private val cardioCuePlayer = CardioCuePlayer(appContext)
 
     private val _uiState = MutableStateFlow(WorkoutUiState(programId = programId))
     val uiState: StateFlow<WorkoutUiState> = _uiState.asStateFlow()
@@ -586,6 +589,10 @@ class WorkoutViewModel(
                     this@WorkoutViewModel.recordCardioSet(durationSeconds, distanceKm, averageHeartRate)
                 override fun startCardio() = this@WorkoutViewModel.startCardioFromVoice()
                 override fun finishCardio() = this@WorkoutViewModel.finishCardioFromVoice()
+                override fun skipCardioBlock() = this@WorkoutViewModel.skipCardioBlock()
+                override fun pauseCardio() = this@WorkoutViewModel.pauseCardioFromVoice()
+                override fun resumeCardio() = this@WorkoutViewModel.resumeCardioFromVoice()
+                override fun cardioStatusSpeech() = this@WorkoutViewModel.cardioStatusSpeech()
                 override fun setVoiceExerciseQueue(exerciseIds: List<String>) {
                     _uiState.update { it.copy(voiceExerciseQueue = exerciseIds) }
                     this@WorkoutViewModel.persistOngoingState()
@@ -775,6 +782,12 @@ class WorkoutViewModel(
                 isUnilateralSidePending = sidePending,
                 completedSidesCount = completedSidesCount,
                 pendingUnilateralSide = pendingSide,
+            )
+        }
+        voiceController.cardioTimerActiveProvider = {
+            _uiState.value.cardioTimerState?.status in setOf(
+                CardioExecutionStatus.RUNNING,
+                CardioExecutionStatus.PAUSED,
             )
         }
         voiceController.hapticEnabledProvider = { repository.settings.value.hapticFeedbackEnabled }
@@ -1755,11 +1768,18 @@ class WorkoutViewModel(
         allExercises: List<Exercise>,
     ): List<CompletedExercise> =
         allExercises.map { exercise ->
-            val sets = exercise.sets.indices.flatMap { setIdx ->
-                val bilateral = completedSets["${exercise.id}_$setIdx"]
-                val left = completedSets["${exercise.id}_${setIdx}_L"]
-                val right = completedSets["${exercise.id}_${setIdx}_R"]
-                listOfNotNull(bilateral, left, right)
+            val sets = if (exercise.cardioDetails != null) {
+                completedSets
+                    .filterKeys { it == exercise.id || it.startsWith("${exercise.id}_") }
+                    .values
+                    .toList()
+            } else {
+                exercise.sets.indices.flatMap { setIdx ->
+                    val bilateral = completedSets["${exercise.id}_$setIdx"]
+                    val left = completedSets["${exercise.id}_${setIdx}_L"]
+                    val right = completedSets["${exercise.id}_${setIdx}_R"]
+                    listOfNotNull(bilateral, left, right)
+                }
             }
             CompletedExercise(
                 exerciseId = exercise.id,
@@ -1770,6 +1790,7 @@ class WorkoutViewModel(
                 catalogConfigurationId = exercise.catalogConfigurationId,
                 performanceProfileId = exercise.performanceProfileId,
                 occurrenceId = exercise.occurrenceId ?: exercise.id,
+                cardioDetails = exercise.cardioDetails,
                 canonicalExerciseId = exercise.canonicalExerciseId ?: canonicalExerciseKey(exercise),
                 variantName = exercise.variantName,
                 selectedAspects = exercise.selectedAspects,
@@ -3298,22 +3319,39 @@ class WorkoutViewModel(
                 val timer = _uiState.value.cardioTimerState
                     ?.takeIf { it.exerciseId == exerciseId && it.status == CardioExecutionStatus.RUNNING }
                     ?: return@launch
-                val updated = CardioTimerEngine.tick(
+                val ticked = CardioTimerEngine.tick(
                     state = timer,
                     elapsedSeconds = 1,
                     nowMs = System.currentTimeMillis(),
                 )
+                val activeExercise = _uiState.value.let { st -> visibleExercises(st).firstOrNull { it.id == exerciseId } }
+                val activeDetails = activeExercise?.cardioDetails
+                val updated = if (activeDetails != null) {
+                    autoCutCardioBlockIfReached(activeDetails, ticked)
+                } else {
+                    ticked
+                }
                 _uiState.update { state -> state.copy(cardioTimerState = updated) }
                 persistOngoingState(immediate = false)
-                // Interval TTS: announce block change once per transition (gateado).
-                if (voiceController.isEnabled()) {
-                    try {
-                        val exercise = _uiState.value.let { st -> visibleExercises(st).firstOrNull { it.id == exerciseId } }
-                        val details = exercise?.cardioDetails
-                        if (details?.hasIntervals() == true) {
-                            val prev = CardioIntervalEngine.progressAt(details, timer.elapsedSeconds)
-                            val curr = CardioIntervalEngine.progressAt(details, updated.elapsedSeconds)
-                            if (prev?.currentIndex != curr?.currentIndex && curr?.currentBlock != null && !curr.isComplete) {
+                // Cues remain independent of the microphone; speech uses the announcement channel.
+                runCatching {
+                    val details = activeDetails
+                    if (details?.hasIntervals() == true) {
+                        val prev = CardioIntervalEngine.progressAt(details, timer.elapsedSeconds)
+                        val curr = CardioIntervalEngine.progressAt(details, updated.elapsedSeconds)
+                        if (curr != null) {
+                            val transition = CardioCueRules.transitionCue(prev, curr, details.hiit)
+                            val countdown = curr.currentBlock?.let {
+                                CardioCueRules.countdownCue(curr.remainingInBlock, it.type, details.hiit)
+                            }
+                            val settings = repository.settings.value
+                            if (settings.soundsEnabled || settings.hapticFeedbackEnabled) {
+                                cardioCuePlayer.play(transition)
+                                countdown?.let(cardioCuePlayer::play)
+                            }
+                            if (voiceController.isEnabled() && transition.speech != null && details.hiit?.voiceCuesEnabled != false) {
+                                voiceController.speakAnnouncement(transition.speech)
+                            } else if (voiceController.isEnabled() && prev?.currentIndex != curr.currentIndex && curr.currentBlock != null && !curr.isComplete && details.hiit == null) {
                                 val b = curr.currentBlock
                                 val speedLabel = b.speedKmh?.let { "${it.toString().trimEnd('0').trimEnd('.')} km/h" }
                                     ?: b.watts?.let { "${it}W" }
@@ -3323,10 +3361,39 @@ class WorkoutViewModel(
                                 voiceController.speakAnnouncement("Bloque ${curr.currentIndex + 1}: ${CardioIntervalEngine.blockTypeLabel(b.type)} a $speedLabel.")
                             }
                         }
-                    } catch (_: Exception) { }
+                    }
                 }
                 if (updated.status != CardioExecutionStatus.RUNNING) return@launch
             }
+        }
+    }
+
+    /** Auto-cuts only a configured work block; session completion remains manual. */
+    private fun autoCutCardioBlockIfReached(details: CardioDetails, state: CardioTimerState): CardioTimerState {
+        if (!details.hasIntervals() || state.status != CardioExecutionStatus.RUNNING) return state
+        val progress = CardioIntervalEngine.progressAt(details, state.elapsedSeconds) ?: return state
+        val block = progress.currentBlock ?: return state
+        if (block.type != com.example.kpkn.data.models.CardioBlockType.WORK) return state
+        val targetDistanceReached = block.targetDistanceMeters?.let { target ->
+            val gps = CardioGpsTracker.state.value
+            gps.distanceMeters >= target && gps.distanceMeters > 0.0
+        } == true
+        val blockElapsed = (block.durationSeconds - progress.remainingInBlock).coerceAtLeast(0)
+        val targetKcalReached = block.targetKcal?.let { target ->
+            val weight = currentBodyWeight()?.takeIf { it > 0.0 } ?: return@let false
+            val estimate = com.example.kpkn.domain.calculations.CardioCalorieEngine.estimate(
+                com.example.kpkn.domain.calculations.CardioCalorieInput(
+                    details = details.copy(intervalBlocks = listOf(block), intervalRounds = 1),
+                    weightKg = weight,
+                    durationSeconds = blockElapsed,
+                ),
+            )
+            estimate >= target
+        } == true
+        return if (targetDistanceReached || targetKcalReached) {
+            CardioTimerEngine.skipToNextBlock(details, state, System.currentTimeMillis())
+        } else {
+            state
         }
     }
 
@@ -3342,6 +3409,54 @@ class WorkoutViewModel(
         _uiState.update { it.copy(cardioTimerState = CardioTimerEngine.pause(current, System.currentTimeMillis())) }
         persistOngoingState()
     }
+
+    fun pauseCardioFromVoice(): Boolean {
+        val active = _uiState.value.cardioTimerState?.status == CardioExecutionStatus.RUNNING
+        if (active) pauseCardioTimer()
+        return active
+    }
+
+    fun resumeCardioFromVoice(): Boolean {
+        val state = _uiState.value
+        val timer = state.cardioTimerState ?: return false
+        if (timer.status != CardioExecutionStatus.PAUSED) return false
+        val exercise = visibleExercises(state).firstOrNull { it.id == timer.exerciseId } ?: return false
+        startCardioTimer(exercise.id, timer.totalSeconds)
+        return true
+    }
+
+    fun skipCardioBlock(): Boolean {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.takeIf { it.isCardio }
+            ?: return false
+        val details = exercise.cardioDetails?.takeIf { it.hasIntervals() } ?: return false
+        val timer = state.cardioTimerState?.takeIf { it.exerciseId == exercise.id } ?: return false
+        val updated = CardioTimerEngine.skipToNextBlock(details, timer, System.currentTimeMillis())
+        _uiState.update { it.copy(cardioTimerState = updated) }
+        persistOngoingState()
+        if (updated.status != CardioExecutionStatus.RUNNING) {
+            cardioTimerJob?.cancel()
+            cardioHealthProvider.stop()
+        }
+        return true
+    }
+
+    fun cardioStatusSpeech(): String? {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.takeIf { it.isCardio }
+            ?: return null
+        val details = exercise.cardioDetails ?: return null
+        val timer = state.cardioTimerState?.takeIf { it.exerciseId == exercise.id } ?: return null
+        val progress = CardioIntervalEngine.progressAt(details, timer.elapsedSeconds)
+        if (progress == null) return "Cardio: ${formatCardioStatusTime(timer.remainingSeconds)} restantes."
+        if (progress.isComplete) return "Cardio terminado."
+        val current = progress.currentBlock?.let { CardioIntervalEngine.blockTypeLabel(it.type) } ?: "bloque actual"
+        val next = progress.nextBlock?.let { CardioIntervalEngine.blockTypeLabel(it.type) } ?: "fin"
+        return "${current}, ${formatCardioStatusTime(progress.remainingInBlock)} restantes. Siguiente: $next."
+    }
+
+    private fun formatCardioStatusTime(totalSeconds: Int): String =
+        "${(totalSeconds.coerceAtLeast(0) / 60).toString().padStart(2, '0')}:${(totalSeconds.coerceAtLeast(0) % 60).toString().padStart(2, '0')}"
 
     private fun launchCardioInfoTicker(exerciseId: String) {
         cardioInfoTickerJob?.cancel()
@@ -3501,7 +3616,7 @@ class WorkoutViewModel(
             distanceKm = distanceKm,
             avgHeartRate = averageHeartRate,
             calories = calories,
-            rpe = details.intensity.defaultRpe,
+            rpe = details.resolvedRpe(),
         )
         val alreadyCompleted = state.completedSets.containsKey(key)
         _uiState.update {

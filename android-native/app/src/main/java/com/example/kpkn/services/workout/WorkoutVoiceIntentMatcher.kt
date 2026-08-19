@@ -22,6 +22,7 @@ object WorkoutVoiceIntentMatcher {
         trackRom: Boolean = false,
         allowCardioMetrics: Boolean = false,
         tagNames: Set<String> = emptySet(),
+        isCardioTimerActive: Boolean = false,
         voiceFeedbackPromptActive: Boolean = false,
     ): VoiceSessionCommand {
         if (showFinishSheet) {
@@ -50,6 +51,7 @@ object WorkoutVoiceIntentMatcher {
             trackRom = trackRom,
             allowCardioMetrics = allowCardioMetrics,
             tagNames = tagNames,
+            isCardioTimerActive = isCardioTimerActive,
         )
 
         return when (stage) {

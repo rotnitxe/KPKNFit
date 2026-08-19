@@ -820,6 +820,7 @@ internal fun WorkoutV2Body(
                                         )
                                     },
                                     onPauseTimer = viewModel::pauseCardioTimer,
+                                    onSkipBlock = { viewModel.skipCardioBlock() },
                                     onRequestRecord = { duration, distance, heartRate ->
                                         viewModel.requestCardioRecord(pageExercise.id, duration, distance, heartRate)
                                     },
@@ -898,6 +899,7 @@ internal fun WorkoutV2Body(
                                             )
                                         },
                                         onPauseTimer = viewModel::pauseCardioTimer,
+                                        onSkipBlock = { viewModel.skipCardioBlock() },
                                         onRequestRecord = { duration, distance, heartRate ->
                                             viewModel.requestCardioRecord(targetExercise.id, duration, distance, heartRate)
                                         },

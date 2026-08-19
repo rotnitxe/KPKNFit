@@ -110,6 +110,8 @@ data class CompletedExercise(
     val performanceProfileId: String? = null,
     val occurrenceId: String? = null,
     val resolvedProfileSnapshotJson: String? = null,
+    /** Cardio snapshot required by AUGE/recovery; null preserves old strength logs. */
+    val cardioDetails: CardioDetails? = null,
 )
 
 @Serializable

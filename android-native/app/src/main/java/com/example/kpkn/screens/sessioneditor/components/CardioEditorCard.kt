@@ -41,8 +41,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioIntensity
+import com.example.kpkn.data.models.CardioProgramMode
 import com.example.kpkn.data.models.CardioType
-import com.example.kpkn.screens.sessioneditor.components.CardioIntervalsEditor
+import com.example.kpkn.data.models.CardioHiitConfig
+import com.example.kpkn.data.models.CardioIntervalPattern
+import com.example.kpkn.domain.cardio.CardioHiitProgramBuilder
+import com.example.kpkn.domain.cardio.CardioIntervalProgramBuilder
 import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
 import kotlin.math.roundToInt
 
@@ -74,6 +78,7 @@ internal fun CardioEditorCard(
     }
 
     val currentIntensityLevel = details.resolvedIntensityLevel()
+    val programMode = details.programMode()
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -93,8 +98,68 @@ internal fun CardioEditorCard(
                 style = MaterialTheme.typography.titleMedium,
             )
 
+            Text(
+                "Modo de programación",
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White.copy(alpha = 0.75f),
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                listOf(
+                    CardioProgramMode.STEADY to "Estático",
+                    CardioProgramMode.HIIT_SIT to "HIIT / SIT",
+                    CardioProgramMode.INTERVALS to "Intervalos",
+                ).forEach { (mode, label) ->
+                    CardioModeChip(
+                        selected = programMode == mode,
+                        onClick = {
+                            if (programMode != mode) when (mode) {
+                                CardioProgramMode.STEADY -> onChange(
+                                    details.copy(
+                                        intervalBlocks = emptyList(),
+                                        intervalRounds = 1,
+                                        hiit = null,
+                                        targetDurationSeconds = details.targetDurationSeconds ?: 20 * 60,
+                                    ),
+                                )
+                                CardioProgramMode.HIIT_SIT -> {
+                                    val config = details.hiit ?: CardioHiitConfig(
+                                        targetRpe = details.resolvedRpe(),
+                                        protocol = if (details.resolvedRpe() >= 9.5) {
+                                            com.example.kpkn.data.models.HiitProtocol.SIT
+                                        } else {
+                                            com.example.kpkn.data.models.HiitProtocol.HIIT
+                                        },
+                                    )
+                                    onChange(CardioHiitProgramBuilder.buildDetails(config, details.type, details))
+                                }
+                                CardioProgramMode.INTERVALS -> {
+                                    val total = details.targetDurationSeconds
+                                        ?: details.effectiveDurationSeconds().takeIf { it > 0 }
+                                        ?: 20 * 60
+                                    onChange(
+                                        CardioIntervalProgramBuilder.buildDetails(
+                                            pattern = CardioIntervalPattern.PYRAMID,
+                                            totalSeconds = total,
+                                            type = details.type,
+                                            baseLevel = details.resolvedIntensityLevel(),
+                                            base = details.copy(hiit = null),
+                                        ),
+                                    )
+                                }
+                            }
+                        },
+                        label = label,
+                        accentColor = accentColor,
+                    )
+                }
+            }
+
             // Selector de tipo de objetivo (Tiempo / Distancia / Ambos) — oculto cuando hay intervalos (duración deriva del circuito)
-            if (!details.hasIntervals()) {
+            if (programMode == CardioProgramMode.STEADY) {
                 if (details.supportsDistance) {
                     Text(
                         "Objetivo a programar",
@@ -212,7 +277,9 @@ internal fun CardioEditorCard(
                 )
             }
 
-            // Slider de Intensidad de 1 a 10
+            // Slider de RPE programado de 1 a 10.  HIIT/SIT keeps the exact
+            // target in its config; the slider remains useful as a quick
+            // fallback when switching modes.
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -222,9 +289,9 @@ internal fun CardioEditorCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("Intensidad", fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.88f))
+                    Text("RPE programado", fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.88f))
                     Text(
-                        "${currentIntensityLevel}/10 · ${intensityZoneDescription(currentIntensityLevel)}",
+                        "${currentIntensityLevel}/10 · ${intensityRpeAnchor(currentIntensityLevel)}",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = accentColor,
@@ -252,8 +319,19 @@ internal fun CardioEditorCard(
                 )
             }
 
-            // Circuitos / intervalos (HIIT) — editor de bloques y plantillas
-            CardioIntervalsEditor(details = details, accentColor = accentColor, onChange = onChange)
+            when (programMode) {
+                CardioProgramMode.STEADY -> Unit
+                CardioProgramMode.HIIT_SIT -> CardioHiitEditor(
+                    details = details,
+                    accentColor = accentColor,
+                    onChange = onChange,
+                )
+                CardioProgramMode.INTERVALS -> CardioIntervalsEditor(
+                    details = details,
+                    accentColor = accentColor,
+                    onChange = onChange,
+                )
+            }
 
             // Apartado de GPS en vivo simplificado y compacto (sin texto redundante que gaste espacio)
             if (details.type.isOutdoor()) {
@@ -443,15 +521,19 @@ private fun cardioTypeLabel(type: CardioType): String = when (type) {
     CardioType.BIKE_OUTDOOR -> "Bici exterior"
     CardioType.WALK -> "Caminata"
     CardioType.STAIR_CLIMBER -> "Escaladora"
+    CardioType.AIR_BIKE -> "Air Bike"
+    CardioType.SKI_ERG -> "SkiErg"
+    CardioType.CURVED_TREADMILL -> "Cinta curva"
+    CardioType.SLED -> "Trineo"
 }
 
-private fun intensityZoneDescription(level: Int): String = when (level) {
-    in 1..3 -> "Suave (Calentamiento)"
-    in 4..5 -> "Moderado (Quema grasa)"
-    in 6..7 -> "Ritmo medio (Aeróbico)"
-    in 8..9 -> "Fuerte (Umbral anaeróbico)"
-    10 -> "Máximo esfuerzo (Sprint)"
-    else -> "Moderado"
+private fun intensityRpeAnchor(level: Int): String = when (level.coerceIn(1, 10)) {
+    in 1..2 -> "Muy suave"
+    in 3..4 -> "Suave"
+    in 5..6 -> "Algo duro"
+    in 7..8 -> "Duro"
+    9 -> "Muy duro"
+    else -> "Máximo"
 }
 
 private fun formatIntervalTotal(totalSeconds: Int): String {

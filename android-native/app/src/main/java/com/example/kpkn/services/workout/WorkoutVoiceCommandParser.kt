@@ -80,6 +80,10 @@ object WorkoutVoiceCommandParser {
     )
     private val START_CARDIO_KEYWORDS = setOf("iniciar cardio", "empieza cardio", "comenzar cardio")
     private val FINISH_CARDIO_KEYWORDS = setOf("finalizar cardio", "terminar cardio", "acabar cardio")
+    private val SKIP_CARDIO_BLOCK_KEYWORDS = setOf("saltar bloque", "siguiente bloque", "completar bloque", "bloque hecho")
+    private val PAUSE_CARDIO_KEYWORDS = setOf("pausar cardio", "pausa cardio", "detener cardio")
+    private val RESUME_CARDIO_KEYWORDS = setOf("reanudar cardio", "continuar cardio", "continua cardio", "continúa cardio")
+    private val QUERY_CARDIO_KEYWORDS = setOf("cuanto queda de cardio", "cuánto queda de cardio", "que bloque sigue", "qué bloque sigue", "estado del cardio")
 
     private val CANCEL_SESSION_KEYWORDS = setOf(
         "cancelar sesion", "cancelar entrenamiento", "descartar entrenamiento",
@@ -263,6 +267,10 @@ object WorkoutVoiceCommandParser {
                 base += FINISH_SESSION_KEYWORDS
                 base += START_CARDIO_KEYWORDS
                 base += FINISH_CARDIO_KEYWORDS
+                base += SKIP_CARDIO_BLOCK_KEYWORDS
+                base += PAUSE_CARDIO_KEYWORDS
+                base += RESUME_CARDIO_KEYWORDS
+                base += QUERY_CARDIO_KEYWORDS
                 base += CANCEL_SESSION_KEYWORDS
                 base += ADD_SET_KEYWORDS
                 base += SKIP_REST_KEYWORDS
@@ -391,8 +399,9 @@ object WorkoutVoiceCommandParser {
     unitMode: UnitModeV2 = if (isTimeMode) UnitModeV2.TIME else UnitModeV2.REPS,
     customUnit: String? = null,
     trackRom: Boolean = false,
-    allowCardioMetrics: Boolean = false,
-    tagNames: Set<String> = emptySet(),
+        allowCardioMetrics: Boolean = false,
+        tagNames: Set<String> = emptySet(),
+        isCardioTimerActive: Boolean = false,
     ): VoiceSessionCommand {
         // Los mishearings también afectan a los keywords de comandos ("metro corporal",
         // "reir", "la varra"); corregir antes de clasificar evita Unknowns evitables.
@@ -432,6 +441,13 @@ object WorkoutVoiceCommandParser {
         }
         if (SKIP_PREPARATION_KEYWORDS.any { lower.contains(it) }) {
             return VoiceSessionCommand.SkipPreparation
+        }
+
+        if (isCardioTimerActive) {
+            if (SKIP_CARDIO_BLOCK_KEYWORDS.any { lower.contains(normalizeText(it)) }) return VoiceSessionCommand.SkipCardioBlock
+            if (PAUSE_CARDIO_KEYWORDS.any { lower.contains(normalizeText(it)) }) return VoiceSessionCommand.PauseCardio
+            if (RESUME_CARDIO_KEYWORDS.any { lower.contains(normalizeText(it)) }) return VoiceSessionCommand.ResumeCardio
+            if (QUERY_CARDIO_KEYWORDS.any { lower.contains(normalizeText(it)) }) return VoiceSessionCommand.QueryCardioStatus
         }
 
         // ─── Control de Temporizador de Movilidad por Voz ───

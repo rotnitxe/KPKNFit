@@ -635,6 +635,24 @@ object AugeFatigueEngine {
         val acc = AggregateDrainAcc()
 
         completedExercises.forEach { ex ->
+            ex.cardioDetails?.let { cardio ->
+                val duration = ex.sets.sumOf { it.timeSeconds ?: 0 }
+                    .takeIf { it > 0 }
+                    ?: return@forEach
+                val rpe = ex.sets.firstOrNull { (it.timeSeconds ?: 0) > 0 }?.rpe ?: cardio.resolvedRpe()
+                val cardioDrain = CardioRingDrainEngine.drain(cardio, duration, rpe, settings)
+                val cns = applySoftCap(cardioDrain.cns * adaptiveCache.cnsDrainMultiplier, acc.totalCns, cnsCap)
+                val muscular = applySoftCap(cardioDrain.muscular, acc.totalMuscular, muscularCap)
+                val spinal = applySoftCap(cardioDrain.spinal * adaptiveCache.spinalDrainMultiplier, acc.totalSpinal, spinalCap)
+                acc.totalCns += cns
+                acc.totalMuscular += muscular
+                acc.totalSpinal += spinal
+                acc.accumulatedDrain += (cns + muscular + spinal) / 3.0
+                cardioDrain.muscleDrains.forEach { (pillar, value) ->
+                    acc.perMuscleMuscular[pillar] = (acc.perMuscleMuscular[pillar] ?: 0.0) + value
+                }
+                return@forEach
+            }
             val dbInfo = resolveCatalogExerciseInfoInIndex(
                 index = exerciseDb,
                 catalogConfigurationId = ex.catalogConfigurationId,
@@ -777,6 +795,23 @@ object AugeFatigueEngine {
         val exercises = session.exercises + session.parts.flatMap { it.exercises }
 
         exercises.forEach { ex ->
+            ex.cardioDetails?.let { cardio ->
+                val duration = cardio.effectiveDurationSeconds().coerceAtLeast(0)
+                if (duration > 0) {
+                    val cardioDrain = CardioRingDrainEngine.drain(cardio, duration, cardio.resolvedRpe(), settings)
+                    val cns = applySoftCap(cardioDrain.cns * adaptiveCache.cnsDrainMultiplier, acc.totalCns, cnsCap)
+                    val muscular = applySoftCap(cardioDrain.muscular, acc.totalMuscular, muscularCap)
+                    val spinal = applySoftCap(cardioDrain.spinal * adaptiveCache.spinalDrainMultiplier, acc.totalSpinal, spinalCap)
+                    acc.totalCns += cns
+                    acc.totalMuscular += muscular
+                    acc.totalSpinal += spinal
+                    acc.accumulatedDrain += (cns + muscular + spinal) / 3.0
+                    cardioDrain.muscleDrains.forEach { (pillar, value) ->
+                        acc.perMuscleMuscular[pillar] = (acc.perMuscleMuscular[pillar] ?: 0.0) + value
+                    }
+                }
+                return@forEach
+            }
             val dbInfo = resolveCatalogExerciseInfoInIndex(
                 index = exerciseDb,
                 catalogConfigurationId = ex.catalogConfigurationId,

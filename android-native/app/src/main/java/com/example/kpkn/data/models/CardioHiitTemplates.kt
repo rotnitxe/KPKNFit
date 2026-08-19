@@ -17,7 +17,31 @@ data class HiitTemplate(
     val rounds: Int = 1,
     val warmupSeconds: Int = 0,
     val cooldownSeconds: Int = 0,
+    val protocol: HiitProtocol = HiitProtocol.HIIT,
+    val targetRpe: Double = if (protocol == HiitProtocol.SIT) 10.0 else 9.0,
 ) {
+    /** Authoring representation; materialized blocks remain available for execution. */
+    fun toConfig(
+        workTargetType: HiitWorkTarget = HiitWorkTarget.TIME,
+        workTargetValue: Double? = null,
+        restNature: HiitRestNature = HiitRestNature.ACTIVE,
+    ): CardioHiitConfig {
+        val work = blocks.firstOrNull { it.type == CardioBlockType.WORK }?.durationSeconds ?: 30
+        val rest = blocks.firstOrNull { it.type == CardioBlockType.RECOVER }?.durationSeconds ?: 0
+        return CardioHiitConfig(
+            warmupSeconds = warmupSeconds,
+            workSeconds = work,
+            restSeconds = rest,
+            rounds = rounds.coerceIn(1, 99),
+            cooldownSeconds = cooldownSeconds,
+            workTargetType = workTargetType,
+            workTargetValue = workTargetValue,
+            protocol = protocol,
+            targetRpe = targetRpe,
+            restNature = restNature,
+        )
+    }
+
     /** Builds a ready-to-use CardioDetails for [type] from this template. */
     fun toDetails(type: CardioType, intensity: CardioIntensity = CardioIntensity.MEDIA): CardioDetails {
         val core = blocks.map { it.copy(id = UUID.randomUUID().toString()) }
@@ -48,6 +72,7 @@ data class HiitTemplate(
             targetDurationSeconds = allBlocks.sumOf { it.durationSeconds },
             intervalBlocks = allBlocks,
             intervalRounds = 1,
+            hiit = toConfig(),
         )
     }
 
@@ -56,6 +81,7 @@ data class HiitTemplate(
         CardioType.RUN_OUTDOOR -> 6.0
         CardioType.WALK -> 4.5
         CardioType.BIKE_STATIONARY, CardioType.BIKE_OUTDOOR -> 15.0
+        CardioType.CURVED_TREADMILL -> 6.0
         else -> null
     }
 
@@ -64,6 +90,7 @@ data class HiitTemplate(
         CardioType.RUN_OUTDOOR -> 5.5
         CardioType.WALK -> 4.0
         CardioType.BIKE_STATIONARY, CardioType.BIKE_OUTDOOR -> 12.0
+        CardioType.CURVED_TREADMILL -> 5.0
         else -> null
     }
 }
@@ -83,6 +110,8 @@ object CardioHiitTemplates {
                 CardioIntervalBlock(id = "tabata_work", type = CardioBlockType.WORK, durationSeconds = 20, speedKmh = 13.0, intensityLevel = 10),
                 CardioIntervalBlock(id = "tabata_rec", type = CardioBlockType.RECOVER, durationSeconds = 10, speedKmh = 5.0, intensityLevel = 3),
             ),
+            protocol = HiitProtocol.HIIT,
+            targetRpe = 9.5,
         ),
         // 2. 30/30 clásico ×10
         HiitTemplate(
@@ -97,6 +126,8 @@ object CardioHiitTemplates {
                 CardioIntervalBlock(id = "3030_work", type = CardioBlockType.WORK, durationSeconds = 30, speedKmh = 11.0, intensityLevel = 8),
                 CardioIntervalBlock(id = "3030_rec", type = CardioBlockType.RECOVER, durationSeconds = 30, speedKmh = 6.0, intensityLevel = 4),
             ),
+            protocol = HiitProtocol.HIIT,
+            targetRpe = 9.0,
         ),
         // 3. Pirámide 1-2-3-2-1 con recuperación igual
         HiitTemplate(
@@ -118,6 +149,8 @@ object CardioHiitTemplates {
                 CardioIntervalBlock(id = "pyr_r4", type = CardioBlockType.RECOVER, durationSeconds = 120, speedKmh = 5.5, intensityLevel = 4),
                 CardioIntervalBlock(id = "pyr_w5", type = CardioBlockType.WORK, durationSeconds = 60, speedKmh = 10.0, intensityLevel = 7),
             ),
+            protocol = HiitProtocol.HIIT,
+            targetRpe = 8.5,
         ),
         // 4. Fartlek trotadora (ejemplo del usuario)
         HiitTemplate(
@@ -135,6 +168,8 @@ object CardioHiitTemplates {
                 CardioIntervalBlock(id = "fartlek_peak2", type = CardioBlockType.WORK, durationSeconds = 2 * 60, speedKmh = 12.0, intensityLevel = 9),
                 CardioIntervalBlock(id = "fartlek_cool", type = CardioBlockType.COOLDOWN, durationSeconds = 4 * 60, speedKmh = 5.0, intensityLevel = 3),
             ),
+            protocol = HiitProtocol.HIIT,
+            targetRpe = 8.5,
         ),
         // 5. Sprint 8 — 30 s sprint + 90 s suave ×8
         HiitTemplate(
@@ -148,6 +183,53 @@ object CardioHiitTemplates {
             blocks = listOf(
                 CardioIntervalBlock(id = "sprint8_work", type = CardioBlockType.WORK, durationSeconds = 30, speedKmh = 13.5, intensityLevel = 10),
                 CardioIntervalBlock(id = "sprint8_rec", type = CardioBlockType.RECOVER, durationSeconds = 90, speedKmh = 5.5, intensityLevel = 4),
+            ),
+            protocol = HiitProtocol.SIT,
+            targetRpe = 10.0,
+        ),
+        HiitTemplate(
+            id = "hiit_micro_sit_alactic",
+            name = "Micro-SIT aláctico",
+            description = "10 s all-out + 60 s de recuperación ×8.",
+            level = "Avanzado",
+            rounds = 8,
+            warmupSeconds = 5 * 60,
+            cooldownSeconds = 3 * 60,
+            protocol = HiitProtocol.SIT,
+            targetRpe = 10.0,
+            blocks = listOf(
+                CardioIntervalBlock(type = CardioBlockType.WORK, durationSeconds = 10, intensityLevel = 10),
+                CardioIntervalBlock(type = CardioBlockType.RECOVER, durationSeconds = 60, intensityLevel = 2),
+            ),
+        ),
+        HiitTemplate(
+            id = "hiit_wingate_power",
+            name = "Wingate Power Test",
+            description = "30 s all-out + 240 s de recuperación ×4.",
+            level = "Avanzado",
+            rounds = 4,
+            warmupSeconds = 5 * 60,
+            cooldownSeconds = 3 * 60,
+            protocol = HiitProtocol.SIT,
+            targetRpe = 10.0,
+            blocks = listOf(
+                CardioIntervalBlock(type = CardioBlockType.WORK, durationSeconds = 30, intensityLevel = 10),
+                CardioIntervalBlock(type = CardioBlockType.RECOVER, durationSeconds = 240, intensityLevel = 2),
+            ),
+        ),
+        HiitTemplate(
+            id = "hiit_one_on_one_off",
+            name = "1 min ON / 1 min OFF",
+            description = "Un minuto intenso y uno suave ×8.",
+            level = "Intermedio",
+            rounds = 8,
+            warmupSeconds = 5 * 60,
+            cooldownSeconds = 3 * 60,
+            protocol = HiitProtocol.HIIT,
+            targetRpe = 8.5,
+            blocks = listOf(
+                CardioIntervalBlock(type = CardioBlockType.WORK, durationSeconds = 60, intensityLevel = 9),
+                CardioIntervalBlock(type = CardioBlockType.RECOVER, durationSeconds = 60, intensityLevel = 3),
             ),
         ),
         // 6. Z2 con picos — base aeróbica con sprints cortos
@@ -168,6 +250,8 @@ object CardioHiitTemplates {
                 CardioIntervalBlock(id = "z2_base4", type = CardioBlockType.WORK, durationSeconds = 4 * 60, speedKmh = 8.5, intensityLevel = 6),
                 CardioIntervalBlock(id = "z2_cool", type = CardioBlockType.COOLDOWN, durationSeconds = 3 * 60, speedKmh = 5.0, intensityLevel = 3),
             ),
+            protocol = HiitProtocol.HIIT,
+            targetRpe = 6.0,
         ),
     )
 

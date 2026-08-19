@@ -110,6 +110,7 @@ object CardioIntervalEngine {
     }
 
     private fun speedToMet(type: CardioType, kmh: Double): Double = when (type) {
+        CardioType.CURVED_TREADMILL -> speedToMet(CardioType.TREADMILL, kmh) + 0.5
         CardioType.TREADMILL, CardioType.RUN_OUTDOOR, CardioType.WALK -> when {
             kmh < 5.0 -> 3.5
             kmh < 6.5 -> 5.0
@@ -122,7 +123,7 @@ object CardioIntervalEngine {
             kmh < 15.5 -> 15.0
             else -> 16.0
         }
-        CardioType.BIKE_STATIONARY, CardioType.BIKE_OUTDOOR -> when {
+        CardioType.BIKE_STATIONARY, CardioType.BIKE_OUTDOOR, CardioType.AIR_BIKE -> when {
             kmh < 15.0 -> 5.5
             kmh < 20.0 -> 7.0
             kmh < 25.0 -> 8.5
@@ -138,6 +139,20 @@ object CardioIntervalEngine {
     }
 
     private fun wattsToMet(type: CardioType, watts: Int): Double = when (type) {
+        CardioType.AIR_BIKE -> when {
+            watts < 80 -> 6.5
+            watts < 120 -> 8.0
+            watts < 160 -> 9.5
+            watts < 200 -> 11.5
+            watts < 250 -> 13.0
+            else -> 15.0
+        }
+        CardioType.SKI_ERG -> when {
+            watts < 100 -> 6.0
+            watts < 150 -> 8.0
+            watts < 200 -> 10.0
+            else -> 12.0
+        }
         CardioType.BIKE_STATIONARY, CardioType.BIKE_OUTDOOR -> when {
             watts < 80 -> 5.5
             watts < 120 -> 7.0
@@ -171,6 +186,10 @@ object CardioIntervalEngine {
             CardioType.BIKE_OUTDOOR -> doubleArrayOf(6.0, 8.0, 10.0, 12.0)[idx]
             CardioType.WALK -> doubleArrayOf(3.5, 5.0, 6.0, 7.5)[idx]
             CardioType.STAIR_CLIMBER -> doubleArrayOf(6.0, 8.5, 10.5, 12.5)[idx]
+            CardioType.AIR_BIKE -> doubleArrayOf(5.0, 8.0, 11.0, 14.0)[idx]
+            CardioType.SKI_ERG -> doubleArrayOf(5.5, 7.5, 9.5, 12.0)[idx]
+            CardioType.CURVED_TREADMILL -> doubleArrayOf(7.5, 10.5, 13.0, 14.5)[idx]
+            CardioType.SLED -> doubleArrayOf(7.0, 9.0, 11.0, 13.0)[idx]
         }
     }
 

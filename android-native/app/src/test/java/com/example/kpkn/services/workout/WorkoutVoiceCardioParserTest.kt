@@ -32,4 +32,63 @@ class WorkoutVoiceCardioParserTest {
             ),
         )
     }
+
+    @Test
+    fun cardioBlockCommandsRequireActiveCardioContext() {
+        assertEquals(
+            VoiceSessionCommand.SkipCardioBlock,
+            WorkoutVoiceCommandParser.parseCommand(
+                transcript = "siguiente bloque",
+                isTimeMode = false,
+                isUnilateral = false,
+                hasPendingConfirmation = false,
+                isRestTimerActive = false,
+                isCardioTimerActive = true,
+            ),
+        )
+        assertEquals(
+            VoiceSessionCommand.SkipExercise,
+            WorkoutVoiceCommandParser.parseCommand(
+                transcript = "siguiente",
+                isTimeMode = false,
+                isUnilateral = false,
+                hasPendingConfirmation = false,
+                isRestTimerActive = false,
+                isCardioTimerActive = false,
+            ),
+        )
+        assertEquals(
+            VoiceSessionCommand.PauseCardio,
+            WorkoutVoiceCommandParser.parseCommand(
+                transcript = "pausar cardio",
+                isTimeMode = false,
+                isUnilateral = false,
+                hasPendingConfirmation = false,
+                isRestTimerActive = false,
+                isCardioTimerActive = true,
+            ),
+        )
+        assertEquals(
+            VoiceSessionCommand.ResumeCardio,
+            WorkoutVoiceCommandParser.parseCommand(
+                transcript = "reanudar cardio",
+                isTimeMode = false,
+                isUnilateral = false,
+                hasPendingConfirmation = false,
+                isRestTimerActive = false,
+                isCardioTimerActive = true,
+            ),
+        )
+        assertEquals(
+            VoiceSessionCommand.QueryCardioStatus,
+            WorkoutVoiceCommandParser.parseCommand(
+                transcript = "cuánto queda de cardio",
+                isTimeMode = false,
+                isUnilateral = false,
+                hasPendingConfirmation = false,
+                isRestTimerActive = false,
+                isCardioTimerActive = true,
+            ),
+        )
+    }
 }

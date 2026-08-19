@@ -35,8 +35,8 @@ import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioExecutionStatus
 import com.example.kpkn.data.models.CardioTimerState
 import com.example.kpkn.data.models.CompletedSet
-import com.example.kpkn.domain.cardio.CardioGuideEngine
 import com.example.kpkn.domain.cardio.CardioIntervalEngine
+import com.example.kpkn.domain.cardio.CardioGuideEngine
 import com.example.kpkn.services.cardio.CardioGpsState
 import com.example.kpkn.services.cardio.CardioGpsStatus
 
@@ -49,6 +49,7 @@ internal fun CardioLiveCard(
     liveHeartRateBpm: Int? = null,
     onStartTimer: () -> Unit = {},
     onPauseTimer: () -> Unit = {},
+    onSkipBlock: () -> Unit = {},
     onRequestRecord: (durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?) -> Unit = { _, _, _ -> },
     onCancelRecord: () -> Unit = {},
     onRecord: (durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?) -> Unit,
@@ -83,13 +84,17 @@ internal fun CardioLiveCard(
     val distanceKm = distanceText.replace(',', '.').toDoubleOrNull()
     val recordedDistanceKm = if (gpsHasData) gpsState?.distanceMeters?.div(1_000.0) else distanceKm
     val heartRate = (liveHeartRateBpm ?: heartRateText.toIntOrNull())?.coerceIn(30, 240)
-    val showsCadence = details.type in setOf(
-        com.example.kpkn.data.models.CardioType.TREADMILL,
-        com.example.kpkn.data.models.CardioType.ELLIPTICAL,
-        com.example.kpkn.data.models.CardioType.ROW_MACHINE,
-        com.example.kpkn.data.models.CardioType.BIKE_STATIONARY,
-    )
-    val guide = remember(details.type, details.intensity) { CardioGuideEngine.guide(details) }
+    val guide = remember(details.type, details.intensity, details.intensityLevel, details.hiit) {
+        CardioGuideEngine.guide(details)
+    }
+    val modeLabel = when (details.programMode()) {
+        com.example.kpkn.data.models.CardioProgramMode.STEADY -> "Estático"
+        com.example.kpkn.data.models.CardioProgramMode.HIIT_SIT -> "HIIT / SIT"
+        com.example.kpkn.data.models.CardioProgramMode.INTERVALS -> "Intervalos"
+    }
+    val currentBlock = remember(details, timerElapsedSeconds) {
+        CardioIntervalEngine.progressAt(details, timerElapsedSeconds)?.currentBlock
+    }
 
     LaunchedEffect(status) {
         if (status == CardioExecutionStatus.AWAITING_CONFIRMATION) showRecordConfirmation = true
@@ -106,7 +111,12 @@ internal fun CardioLiveCard(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text("Cardio · ${details.type.name.replace('_', ' ')}", fontWeight = FontWeight.Black, color = accentColor)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Cardio · ${details.type.name.replace('_', ' ')}", fontWeight = FontWeight.Black, color = accentColor)
+                Surface(shape = RoundedCornerShape(999.dp), color = accentColor.copy(alpha = 0.22f)) {
+                    Text(modeLabel, modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp), color = Color.White, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                }
+            }
             val targetGoalSummary = if (details.hasIntervals()) {
                 val blocks = details.intervalBlocks.size * details.intervalRounds.coerceIn(1, 99)
                 val mins = details.totalIntervalSeconds() / 60
@@ -146,6 +156,16 @@ internal fun CardioLiveCard(
                     elapsedSeconds = timerElapsedSeconds,
                     modifier = Modifier.fillMaxWidth(),
                 )
+                currentBlock?.let { block ->
+                    Text(
+                        "Bloque actual: ${CardioIntervalEngine.blockTypeLabel(block.type)} · ${formatCardioTime(block.durationSeconds)}" +
+                            (block.targetKcal?.let { " · ${"%.0f".format(it)} kcal" } ?: "") +
+                            (block.targetDistanceMeters?.let { " · ${"%.0f".format(it)} m" } ?: ""),
+                        color = accentColor,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
             }
 
             Text(
@@ -177,45 +197,13 @@ internal fun CardioLiveCard(
             }
 
             if (!details.hasIntervals()) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    listOf(
-                        "Calentamiento" to "50-60%",
-                        "Quema grasa" to "60-70%",
-                        "Aeróbico" to "70-80%",
-                        "Anaeróbico" to "80-90%",
-                    ).forEach { (zone, percent) ->
-                        val isActive = guide.zoneName == zone
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                zone,
-                                color = if (isActive) accentColor else Color.White.copy(alpha = 0.55f),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-                                modifier = Modifier.weight(1f),
-                            )
-                            Text(
-                                percent,
-                                color = if (isActive) accentColor else Color.White.copy(alpha = 0.55f),
-                                style = MaterialTheme.typography.labelSmall,
-                            )
-                            if (showsCadence) {
-                                Text(
-                                    when (zone) {
-                                        "Calentamiento" -> "50-60 RPM"
-                                        "Quema grasa" -> "60-70 RPM"
-                                        "Aeróbico" -> "70-85 RPM"
-                                        else -> "85+ RPM"
-                                    },
-                                    color = if (isActive) accentColor else Color.White.copy(alpha = 0.55f),
-                                    style = MaterialTheme.typography.labelSmall,
-                                )
-                            }
-                        }
-                    }
-                }
+                Text(
+                    "Objetivo: RPE ${guide.rpeTarget}/10 · ${CardioGuideEngine.rpeAnchor(guide.rpeTarget)}" +
+                        (guide.hrPercentRef?.let { " · $it" } ?: ""),
+                    color = accentColor,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                )
             }
 
             val isGpsDeniedOrDisabled = gpsMode && gpsState?.status in setOf(
@@ -257,6 +245,15 @@ internal fun CardioLiveCard(
                         else -> "Iniciar"
                     },
                 )
+            }
+
+            if (details.hasIntervals() && status in setOf(CardioExecutionStatus.RUNNING, CardioExecutionStatus.PAUSED)) {
+                TextButton(
+                    onClick = onSkipBlock,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Completar bloque", color = accentColor, fontWeight = FontWeight.Bold)
+                }
             }
 
             if (isGpsDeniedOrDisabled) {

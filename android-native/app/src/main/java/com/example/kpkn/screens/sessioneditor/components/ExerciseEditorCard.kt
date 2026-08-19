@@ -905,6 +905,10 @@ private fun cardioCollapsedSummary(details: CardioDetails): String {
         CardioType.BIKE_OUTDOOR -> "Bici exterior"
         CardioType.WALK -> "Caminata"
         CardioType.STAIR_CLIMBER -> "Escaladora"
+        CardioType.AIR_BIKE -> "Air Bike"
+        CardioType.SKI_ERG -> "SkiErg"
+        CardioType.CURVED_TREADMILL -> "Cinta curva"
+        CardioType.SLED -> "Trineo"
     }
     val level = details.resolvedIntensityLevel()
     val parts = mutableListOf<String>()
@@ -923,7 +927,7 @@ private fun cardioCollapsedSummary(details: CardioDetails): String {
         details.targetDistanceKm?.let { km ->
             parts.add(if (km % 1.0 == 0.0) "${km.toInt()} km" else "$km km")
         }
-        parts.add("Nivel $level")
+        parts.add("RPE $level/10")
     }
     return parts.joinToString(" · ")
 }

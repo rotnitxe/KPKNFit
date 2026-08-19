@@ -7,6 +7,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.AugeClassifiers
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.AugeUtils
+import com.example.kpkn.domain.auge.CardioRingDrainEngine
 import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
 import com.example.kpkn.domain.calculations.estimateSessionDurationMinutes
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
@@ -521,6 +522,30 @@ internal fun computeSessionAugeComputation(
     var pipelinedTotalSpinal = 0.0
 
     val exerciseInsights = exercises.mapNotNull { exercise ->
+        exercise.cardioDetails?.let { cardio ->
+            val duration = cardio.effectiveDurationSeconds().coerceAtLeast(0)
+            if (duration <= 0) return@mapNotNull null
+            val rpe = cardio.resolvedRpe()
+            val cardioDrain = CardioRingDrainEngine.drain(cardio, duration, rpe, settings)
+            totalSets += 1
+            rpeSum += rpe
+            rpeCount += 1
+            totalSpinalLoad += cardioDrain.spinal
+            cardioDrain.muscleDrains.forEach { (muscle, value) ->
+                muscleDrainMapPipelined[muscle] = (muscleDrainMapPipelined[muscle] ?: 0.0) + value
+                muscleEnergyDrainMapPipelined[muscle] = (muscleEnergyDrainMapPipelined[muscle] ?: 0.0) + value * cardioDrain.cns / cardioDrain.muscular.coerceAtLeast(0.01)
+                muscleSpinalDrainMapPipelined[muscle] = (muscleSpinalDrainMapPipelined[muscle] ?: 0.0) + value * cardioDrain.spinal / cardioDrain.muscular.coerceAtLeast(0.01)
+            }
+            return@mapNotNull SessionEditorAugeExerciseInsight(
+                exerciseId = exercise.id,
+                name = exercise.name,
+                muscular = cardioDrain.muscular.roundToInt().coerceIn(0, 100),
+                cns = cardioDrain.cns.roundToInt().coerceIn(0, 100),
+                spinal = cardioDrain.spinal.roundToInt().coerceIn(0, 100),
+                total = ((cardioDrain.muscular + cardioDrain.cns + cardioDrain.spinal) / 3.0).roundToInt().coerceIn(0, 100),
+                suggestion = exerciseSuggestionForInsight(cardioDrain.muscular, cardioDrain.cns, cardioDrain.spinal),
+            )
+        }
         val info = resolveExerciseInfo(exercise, exerciseIndex) ?: return@mapNotNull null
         val validSets = exercise.validAugeSets()
         if (validSets.isEmpty()) return@mapNotNull null

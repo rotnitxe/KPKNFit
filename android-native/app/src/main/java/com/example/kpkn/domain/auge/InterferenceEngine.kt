@@ -198,6 +198,18 @@ object InterferenceEngine {
         val drains = mutableMapOf<String, Double>()
 
         log.completedExercises.forEach { ce ->
+            ce.cardioDetails?.let { cardio ->
+                val duration = ce.sets.sumOf { it.timeSeconds ?: 0 }
+                    .takeIf { it > 0 }
+                    ?: return@forEach
+                val rpe = ce.sets.firstOrNull { (it.timeSeconds ?: 0) > 0 }?.rpe ?: cardio.resolvedRpe()
+                val cardioDrain = CardioRingDrainEngine.drain(cardio, duration, rpe, settings)
+                cardioDrain.muscleDrains.forEach { (muscleKey, drainPct) ->
+                    val muscleDrain = drainPct * 0.01
+                    drains[muscleKey] = (drains[muscleKey] ?: 0.0) + muscleDrain
+                }
+                return@forEach
+            }
             val info = resolveExercise(
                 catalogConfigurationId = ce.catalogConfigurationId,
                 exerciseDbId = ce.exerciseDbId,

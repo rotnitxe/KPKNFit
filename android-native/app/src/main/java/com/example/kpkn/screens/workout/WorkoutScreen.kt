@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.workout
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -491,6 +492,19 @@ fun WorkoutScreen(
     }
     val currentExercise = visibleExercises.getOrNull(uiState.currentExerciseIdx)
     val currentSet = currentExercise?.sets?.getOrNull(uiState.currentSetIdx)
+    val keepCardioScreenOn = uiState.cardioTimerState?.status == com.example.kpkn.data.models.CardioExecutionStatus.RUNNING &&
+        currentExercise?.cardioDetails?.hiit?.keepScreenOn == true
+    DisposableEffect(keepCardioScreenOn) {
+        val window = (context as? Activity)?.window
+        if (keepCardioScreenOn) {
+            window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+        onDispose {
+            if (keepCardioScreenOn) {
+                window?.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            }
+        }
+    }
     val currentSupersetGroupId = currentExercise?.supersetGroupRefOrLegacyId()
     val currentSupersetMembers = remember(currentSupersetGroupId, visibleExercises) {
         currentSupersetGroupId

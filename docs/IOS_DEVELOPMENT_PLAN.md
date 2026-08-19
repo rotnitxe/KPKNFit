@@ -1,5 +1,11 @@
 # KPKN Fit: iOS Native Migration & Development Plan
 
+### Cardio JSON parity (added 2026-08-19)
+
+Android sessions may now contain the optional `CardioDetails.hiit` object, per-work-block `targetKcal` and `targetDistanceMeters`, and the `CardioType` values `AIR_BIKE`, `SKI_ERG`, `CURVED_TREADMILL` and `SLED`. iOS readers should use defaults when these keys are absent, and iOS writers must preserve unknown cardio keys when round-tripping an Android backup so a future iOS editor does not downgrade a session to legacy steady cardio.
+
+The parity reference for RPE guidance, MET estimates, HIIT/interval expansion and AUGE ring drainage is [CARDIO_3_MODES_CONTRACT.md](CARDIO_3_MODES_CONTRACT.md). This entry documents the future port boundary; it does not claim that the current iOS target already executes cardio.
+
 This document outlines the step-by-step execution plan to build the native iOS version of KPKN Fit using Swift, ensuring 100% parity with the Android architecture.
 
 ---

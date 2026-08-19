@@ -340,6 +340,8 @@ data class CardioDetails(
     val intervalBlocks: List<CardioIntervalBlock> = emptyList(),
     /** Repetitions of the full block sequence (circuit rounds). */
     val intervalRounds: Int = 1,
+    /** Optional authoring configuration for the explicit HIIT/SIT mode. */
+    val hiit: CardioHiitConfig? = null,
 ) {
     fun resolvedIntensityLevel(): Int = intensityLevel ?: when (intensity) {
         CardioIntensity.BAJA -> 3
@@ -349,6 +351,16 @@ data class CardioDetails(
     }
 
     fun hasIntervals(): Boolean = intervalBlocks.isNotEmpty()
+
+    /** The mode is derived from content so legacy JSON cannot become inconsistent. */
+    fun programMode(): CardioProgramMode = when {
+        hiit != null -> CardioProgramMode.HIIT_SIT
+        hasIntervals() -> CardioProgramMode.INTERVALS
+        else -> CardioProgramMode.STEADY
+    }
+
+    fun resolvedRpe(): Double = hiit?.targetRpe?.coerceIn(1.0, 10.0)
+        ?: resolvedIntensityLevel().toDouble().coerceIn(1.0, 10.0)
 
     fun totalIntervalSeconds(): Int {
         if (intervalBlocks.isEmpty()) return 0
@@ -373,10 +385,45 @@ data class CardioIntervalBlock(
     val rpm: Int? = null,
     val watts: Int? = null,
     val intensityLevel: Int? = null,
+    /** Optional live auto-cut target for a work block. */
+    val targetKcal: Double? = null,
+    /** Optional live auto-cut target for a work block. */
+    val targetDistanceMeters: Double? = null,
 ) {
     fun displaySpeedOrIntensity(): Double? = speedKmh ?: intensityLevel?.toDouble()
     fun isValid(): Boolean = durationSeconds > 0
 }
+
+enum class CardioProgramMode { STEADY, HIIT_SIT, INTERVALS }
+
+@Serializable
+enum class HiitWorkTarget { TIME, KCAL, DISTANCE }
+
+@Serializable
+enum class HiitProtocol { HIIT, SIT }
+
+@Serializable
+enum class HiitRestNature { ACTIVE, PASSIVE }
+
+@Serializable
+data class CardioHiitConfig(
+    val warmupSeconds: Int = 180,
+    val workSeconds: Int = 30,
+    val restSeconds: Int = 60,
+    val rounds: Int = 8,
+    val sets: Int = 1,
+    val restBetweenSetsSeconds: Int = 120,
+    val cooldownSeconds: Int = 120,
+    val workTargetType: HiitWorkTarget = HiitWorkTarget.TIME,
+    val workTargetValue: Double? = null,
+    val protocol: HiitProtocol = HiitProtocol.HIIT,
+    val targetRpe: Double = 9.0,
+    val restNature: HiitRestNature = HiitRestNature.ACTIVE,
+    val beepsEnabled: Boolean = true,
+    val voiceCuesEnabled: Boolean = true,
+    val vibrationEnabled: Boolean = true,
+    val keepScreenOn: Boolean = true,
+)
 
 enum class CardioType {
     TREADMILL,
@@ -387,6 +434,10 @@ enum class CardioType {
     BIKE_OUTDOOR,
     WALK,
     STAIR_CLIMBER,
+    AIR_BIKE,
+    SKI_ERG,
+    CURVED_TREADMILL,
+    SLED,
 }
 
 enum class CardioIntensity(val defaultRpe: Double) {
