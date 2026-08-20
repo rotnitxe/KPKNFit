@@ -233,6 +233,17 @@ data class SessionEditorUiState(
     // ─── Feature 3: Variantes de sesión ────────────────────────────────────────
     val activeVariant: WeekVariant = WeekVariant.A,
     val availableVariants: List<WeekVariant> = listOf(WeekVariant.A),
+    /**
+     * Empty-state chooser: el usuario eligió Fuerza. Muestra divisor + CTAs
+     * aunque la sesión aún no tenga ejercicios.
+     */
+    val strengthSpaceCommitted: Boolean = false,
+    /**
+     * Preferencia de colocación del espacio de cardio (inicio/final).
+     * Se conserva tras crear el part: con sesión vacía START y END producen
+     * la misma lista de parts, y el list builder necesita esta señal.
+     */
+    val cardioSpacePlacement: CardioSpacePlacement? = null,
 ) {
     /** La sesión de la variante activa (A = sesión principal, B/C/D = sessionB/C/D). */
     val activeVariantSession: Session? get() = when (activeVariant) {

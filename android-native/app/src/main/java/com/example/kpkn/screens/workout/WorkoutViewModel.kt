@@ -325,13 +325,21 @@ class WorkoutViewModel(
     private val pacingController = WorkoutPacingController(
         scope = viewModelScope,
         pacingNotifications = pacingNotifications,
-        sessionTtsManager = sessionTtsManager,
         getState = { _uiState.value },
         updateState = { transform -> _uiState.update(transform) },
         persistOngoingState = { persistOngoingState() },
         visibleExercises = ::visibleExercises,
         isVoiceActive = { voiceController.isEnabled() },
-        speakViaVoice = { text -> voiceController.speakAnnouncement(text) },
+        speakViaVoice = { text, essential ->
+            voiceController.speakAnnouncement(
+                text = text,
+                kind = if (essential) {
+                    com.example.kpkn.services.workout.VoiceAnnouncementKind.ESSENTIAL
+                } else {
+                    com.example.kpkn.services.workout.VoiceAnnouncementKind.COMPLETE
+                },
+            )
+        },
     )
 
     private val tagsContextController = WorkoutTagsContextController(
@@ -1372,6 +1380,14 @@ class WorkoutViewModel(
         progress: Float,
         isExerciseScope: Boolean,
     ) = pacingController.checkLocalBudgetGuide(scopeKey, scopeLabel, progress, isExerciseScope)
+
+    fun ensureLocalBudgetStart(scopeKey: String) {
+        if (scopeKey.isBlank() || scopeKey in _uiState.value.localBudgetStartedAtMs) return
+        _uiState.update {
+            it.copy(localBudgetStartedAtMs = it.localBudgetStartedAtMs + (scopeKey to System.currentTimeMillis()))
+        }
+        persistOngoingState()
+    }
 
     private fun adjustRestTimeForPace(baseSeconds: Int) = pacingController.adjustRestTimeForPace(baseSeconds)
 
@@ -3826,6 +3842,15 @@ class WorkoutViewModel(
         pacingController.setAbsoluteSessionTimeLimit(totalMinutes)
         if (persistToSession) {
             persistSessionTargetDuration(totalMinutes)
+            _uiState.update { it.copy(customTargetDurationMinutes = null) }
+            persistOngoingState()
+        }
+    }
+
+    fun clearSessionTimeLimit(persistToSession: Boolean = false) {
+        pacingController.clearSessionTimeLimit(persistToSession)
+        if (persistToSession) {
+            persistSessionTargetDuration(null)
         }
     }
 
@@ -3941,7 +3966,7 @@ class WorkoutViewModel(
         persistOngoingState()
     }
 
-    private fun persistSessionTargetDuration(totalMinutes: Int) {
+    private fun persistSessionTargetDuration(totalMinutes: Int?) {
         val state = _uiState.value
         val session = state.session ?: return
         val updatedSession = session.copy(targetDurationMinutes = totalMinutes)

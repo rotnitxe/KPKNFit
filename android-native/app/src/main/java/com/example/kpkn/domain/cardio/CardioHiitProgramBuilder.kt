@@ -8,16 +8,47 @@ import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.HiitRestNature
 import com.example.kpkn.data.models.HiitWorkTarget
 import java.util.UUID
+import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 /** Pure materializer for the authoring representation of HIIT/SIT. */
 object CardioHiitProgramBuilder {
+
+    data class EffectiveHiitStructure(
+        val sets: Int,
+        val rounds: Int,
+        val lastWorkSeconds: Int,
+        val workTimeTargetSeconds: Int?,
+    )
+
+    /** Rounds repeat until the accumulated work time reaches the target (single set). */
+    fun effectiveStructure(config: CardioHiitConfig): EffectiveHiitStructure {
+        val workSeconds = config.workSeconds.coerceAtLeast(1)
+        val workTimeTargetSeconds = config.workTargetValue
+            ?.takeIf { config.workTargetType == HiitWorkTarget.TIME }
+            ?.toInt()
+            ?.takeIf { it > 0 }
+        val sets = if (workTimeTargetSeconds != null) 1 else config.sets.coerceIn(1, 5)
+        val rounds = if (workTimeTargetSeconds != null) {
+            ceil(workTimeTargetSeconds.toDouble() / workSeconds).toInt()
+        } else {
+            config.rounds.coerceIn(1, 99)
+        }
+        val lastWorkSeconds = if (workTimeTargetSeconds != null) {
+            (workTimeTargetSeconds - (rounds - 1) * workSeconds).coerceAtLeast(1)
+        } else {
+            workSeconds
+        }
+        return EffectiveHiitStructure(sets, rounds, lastWorkSeconds, workTimeTargetSeconds)
+    }
+
     fun build(config: CardioHiitConfig, type: CardioType): List<CardioIntervalBlock> {
         val blocks = mutableListOf<CardioIntervalBlock>()
         val workSeconds = config.workSeconds.coerceAtLeast(1)
         val restSeconds = config.restSeconds.coerceAtLeast(0)
-        val rounds = config.rounds.coerceIn(1, 99)
-        val sets = config.sets.coerceIn(1, 5)
+        val effective = effectiveStructure(config)
+        val rounds = effective.rounds
+        val sets = effective.sets
         val workLevel = config.targetRpe.roundToInt().coerceIn(1, 10)
         val recoverLevel = if (config.restNature == HiitRestNature.ACTIVE) 3 else null
 
@@ -31,16 +62,17 @@ object CardioHiitProgramBuilder {
         }
 
         repeat(sets) { setIndex ->
-            repeat(rounds) {
+            repeat(rounds) { roundIndex ->
                 blocks += block(
                     type = CardioBlockType.WORK,
-                    durationSeconds = workSeconds,
+                    durationSeconds = if (roundIndex == rounds - 1) effective.lastWorkSeconds else workSeconds,
                     intensityLevel = workLevel,
                     typeOfCardio = type,
                     targetKcal = config.workTargetValue?.takeIf { config.workTargetType == HiitWorkTarget.KCAL },
                     targetDistanceMeters = config.workTargetValue?.takeIf { config.workTargetType == HiitWorkTarget.DISTANCE },
                 )
-                if (restSeconds > 0) {
+                val trailingRest = effective.workTimeTargetSeconds != null && roundIndex == rounds - 1
+                if (restSeconds > 0 && !trailingRest) {
                     blocks += block(
                         type = CardioBlockType.RECOVER,
                         durationSeconds = restSeconds,

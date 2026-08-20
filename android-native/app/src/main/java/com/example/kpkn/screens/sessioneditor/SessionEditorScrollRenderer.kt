@@ -79,11 +79,14 @@ internal fun SessionEditorListItem(
     onPendingAutoExpandHandled: (String) -> Unit,
     onOpenCompetitionConfig: () -> Unit,
     onLooseBoundsReport: (Rect) -> Unit,
+    onStrengthAddActionsBoundsReport: (Rect) -> Unit = onLooseBoundsReport,
     onPartContentBoundsReport: (String, Rect) -> Unit,
     beginExerciseDrag: (String, String, Offset) -> Unit,
     updateExerciseDrag: (Offset) -> Unit,
     endExerciseDrag: () -> Unit,
-    beginPartDrag: (String, Rect?) -> Unit,
+    cancelExerciseDrag: () -> Unit = endExerciseDrag,
+    beginPartDrag: (String, Rect?, Offset?) -> Unit,
+    cancelPartDrag: () -> Unit = {},
     projectedShiftFor: (String, Int, String) -> Float,
     viewModel: SessionEditorViewModel,
 ) {
@@ -125,14 +128,15 @@ internal fun SessionEditorListItem(
                     dragOffsetY = if (draggingPartId == part.id) draggingPartOffsetY else 0f,
                     isDropTarget = isDropTargetBefore,
                     onBoundsChange = { rect -> dragController.registerPartBoundsDuringDrag(part.id, rect) },
-                    onContentBoundsChange = { rect -> dragController.partContentBounds[part.id] = rect },
-                    onDragStart = { grabRect -> beginPartDrag(part.id, grabRect) },
+                    onContentBoundsChange = { rect -> dragController.setPartContentBounds(part.id, rect) },
+                    onDragStart = { grabRect, pointerWindow -> beginPartDrag(part.id, grabRect, pointerWindow) },
                     onDrag = { deltaY -> dragController.updatePartDrag(deltaY, groupedParts) },
                     onDragEnd = {
                         dragController.endPartDrag(groupedParts) { partId, index ->
                             viewModel.movePartToIndex(partId, index)
                         }
                     },
+                    onDragCancel = cancelPartDrag,
                     onAddExercise = {
                         if (isCardio) {
                             viewModel.openCardioPicker(part.id)
@@ -154,13 +158,15 @@ internal fun SessionEditorListItem(
 
         is SessionListItem.LooseExercise -> {
             val exercise = session.exercises.firstOrNull { it.id == listItem.exerciseId } ?: return
+            val itemHeight = (dragController.frozenExerciseBounds["__loose__|${exercise.id}"]
+                ?: dragController.exerciseBounds["__loose__|${exercise.id}"])?.height ?: 88f
             val shiftY by animateFloatAsState(
                 targetValue = if (draggingExerciseId != null) {
-                    dragController.calculateProjectedShift(session, "__loose__", listItem.indexInLoose, exercise.id, 88f)
+                    dragController.calculateProjectedShift(session, "__loose__", listItem.indexInLoose, exercise.id, itemHeight)
                 } else {
                     0f
                 },
-                animationSpec = tween(160),
+                animationSpec = tween(90),
                 label = "looseDnDShift",
             )
             val isLooseInsertBefore = exerciseDropTargetPartId == "__loose__" &&
@@ -204,8 +210,10 @@ internal fun SessionEditorListItem(
                         beginExerciseDrag = beginExerciseDrag,
                         updateExerciseDrag = updateExerciseDrag,
                         endExerciseDrag = endExerciseDrag,
+                        cancelExerciseDrag = cancelExerciseDrag,
                         projectedShiftFor = projectedShiftFor,
                         viewModel = viewModel,
+                        shiftYForBounds = shiftY,
                     )
                 }
             }
@@ -216,13 +224,15 @@ internal fun SessionEditorListItem(
             val exercise = part.exercises.firstOrNull { it.id == listItem.exerciseId } ?: return
             val partAccent = remember(part.color) { resolvePartAccent(part.color) }
             val isCardioSpace = part.isCardioPart()
+            val itemHeight = (dragController.frozenExerciseBounds["${part.id}|${exercise.id}"]
+                ?: dragController.exerciseBounds["${part.id}|${exercise.id}"])?.height ?: 88f
             val shiftY by animateFloatAsState(
                 targetValue = if (draggingExerciseId != null) {
-                    dragController.calculateProjectedShift(session, part.id, listItem.indexInPart, exercise.id, 88f)
+                    dragController.calculateProjectedShift(session, part.id, listItem.indexInPart, exercise.id, itemHeight)
                 } else {
                     0f
                 },
-                animationSpec = tween(160),
+                animationSpec = tween(90),
                 label = "partDnDShift",
             )
             val containerBackground = if (isCardioSpace) {
@@ -279,8 +289,10 @@ internal fun SessionEditorListItem(
                         beginExerciseDrag = beginExerciseDrag,
                         updateExerciseDrag = updateExerciseDrag,
                         endExerciseDrag = endExerciseDrag,
+                        cancelExerciseDrag = cancelExerciseDrag,
                         projectedShiftFor = projectedShiftFor,
                         viewModel = viewModel,
+                        shiftYForBounds = shiftY,
                     )
                 }
             }
@@ -292,13 +304,16 @@ internal fun SessionEditorListItem(
                 session.exercises.firstOrNull { it.id == id }
             }
             if (supersetMembers.size < 2) return
+            val firstId = supersetMembers.first().id
+            val itemHeight = (dragController.frozenExerciseBounds["__loose__|$firstId"]
+                ?: dragController.exerciseBounds["__loose__|$firstId"])?.height ?: 88f
             val looseSupersetShiftY by animateFloatAsState(
                 targetValue = if (draggingExerciseId != null) {
-                    dragController.calculateProjectedShift(session, "__loose__", listItem.indexInLoose, supersetMembers.first().id, 88f)
+                    dragController.calculateProjectedShift(session, "__loose__", listItem.indexInLoose, firstId, itemHeight)
                 } else {
                     0f
                 },
-                animationSpec = tween(160),
+                animationSpec = tween(90),
                 label = "looseSupersetDnDShift",
             )
             val isLooseSupersetInsertBefore = exerciseDropTargetPartId == "__loose__" &&
@@ -343,8 +358,10 @@ internal fun SessionEditorListItem(
                         beginExerciseDrag = beginExerciseDrag,
                         updateExerciseDrag = updateExerciseDrag,
                         endExerciseDrag = endExerciseDrag,
+                        cancelExerciseDrag = cancelExerciseDrag,
                         projectedShiftFor = projectedShiftFor,
                         viewModel = viewModel,
+                        shiftYForBounds = looseSupersetShiftY,
                     )
                 }
             }
@@ -358,13 +375,16 @@ internal fun SessionEditorListItem(
             }
             if (supersetMembers.size < 2) return
             val partAccent = remember(part.color) { resolvePartAccent(part.color) }
+            val firstId = supersetMembers.first().id
+            val itemHeight = (dragController.frozenExerciseBounds["${part.id}|$firstId"]
+                ?: dragController.exerciseBounds["${part.id}|$firstId"])?.height ?: 88f
             val partSupersetShiftY by animateFloatAsState(
                 targetValue = if (draggingExerciseId != null) {
-                    dragController.calculateProjectedShift(session, part.id, listItem.indexInPart, supersetMembers.first().id, 88f)
+                    dragController.calculateProjectedShift(session, part.id, listItem.indexInPart, firstId, itemHeight)
                 } else {
                     0f
                 },
-                animationSpec = tween(160),
+                animationSpec = tween(90),
                 label = "partSupersetDnDShift",
             )
             val isPartSupersetInsertBefore = exerciseDropTargetPartId == part.id &&
@@ -411,11 +431,24 @@ internal fun SessionEditorListItem(
                         beginExerciseDrag = beginExerciseDrag,
                         updateExerciseDrag = updateExerciseDrag,
                         endExerciseDrag = endExerciseDrag,
+                        cancelExerciseDrag = cancelExerciseDrag,
                         projectedShiftFor = projectedShiftFor,
                         viewModel = viewModel,
+                        shiftYForBounds = partSupersetShiftY,
                     )
                 }
             }
+        }
+
+        is SessionListItem.LooseEndGap -> {
+            val isDropTargetAtEndOfLoose = exerciseDropTargetPartId == "__loose__" &&
+                exerciseDropTargetIndex != null &&
+                exerciseDropTargetIndex >= session.exercises.size &&
+                draggingExerciseId != null
+            SessionEditorDropIndicator(
+                visible = isDropTargetAtEndOfLoose,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+            )
         }
 
         is SessionListItem.PartAddExercise -> {
@@ -430,7 +463,7 @@ internal fun SessionEditorListItem(
                 } else {
                     0f
                 },
-                animationSpec = tween(160),
+                animationSpec = tween(90),
                 label = "partAddFooterDnDShift",
             )
             val isDropTargetAtEnd = exerciseDropTargetPartId == part.id &&
@@ -523,31 +556,29 @@ internal fun SessionEditorListItem(
             val isEmptySession = session.exercises.isEmpty() &&
                 session.parts.none { !it.isUncategorizedPart() }
             val hasCardioSpace = session.hasCardioPart()
+            val showChooser = isEmptySession && !uiState.strengthSpaceCommitted
 
-            val isDropTargetAtEndOfLoose = exerciseDropTargetPartId == "__loose__" &&
-                exerciseDropTargetIndex != null &&
-                exerciseDropTargetIndex >= session.exercises.size &&
-                draggingExerciseId != null
-
-            if (isDropTargetAtEndOfLoose) {
-                SessionEditorDropIndicator(
-                    visible = true,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                )
-            }
+            // End-of-loose indicator lives on LooseEndGap (N9), not on these buttons.
 
             Column(
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .fillMaxWidth()
-                    .onGloballyPositioned { onLooseBoundsReport(it.boundsInWindow()) },
+                    .then(
+                        if (isEmptySession) {
+                            Modifier.onGloballyPositioned {
+                                onStrengthAddActionsBoundsReport(it.boundsInWindow())
+                            }
+                        } else {
+                            Modifier
+                        },
+                    ),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                if (isEmptySession) {
+                if (showChooser) {
                     SessionEditorEmptyState(
-                        onAddExercise = viewModel::openPickerForUncategorized,
-                        onAddGroup = viewModel::addPart,
-                        onAddCardio = viewModel::createCardioSpace,
+                        onChooseStrength = viewModel::commitStrengthSpace,
+                        onChooseCardio = viewModel::createCardioSpace,
                     )
                 } else {
                     Row(
@@ -692,8 +723,10 @@ private fun LooseExerciseItem(
     beginExerciseDrag: (String, String, Offset) -> Unit,
     updateExerciseDrag: (Offset) -> Unit,
     endExerciseDrag: () -> Unit,
+    cancelExerciseDrag: () -> Unit = endExerciseDrag,
     projectedShiftFor: (String, Int, String) -> Float,
     viewModel: SessionEditorViewModel,
+    shiftYForBounds: Float = 0f,
 ) {
     val partId = "__loose__"
     val accentHex = resolveExerciseAccentHex(session, partColor = null)
@@ -717,12 +750,13 @@ private fun LooseExerciseItem(
                 val key = "$partId|${exercise.id}"
                 exerciseBounds[key] = rect
                 if (dragController.isExerciseDragging) {
-                    dragController.registerExerciseBoundsDuringDrag(key, rect)
+                    dragController.registerExerciseBoundsDuringDrag(key, rect, shiftYForBounds)
                 }
             },
-            onDragStart = { grab -> beginExerciseDrag(partId, exercise.id, grab) },
+            onDragStart = { pointerWindow -> beginExerciseDrag(partId, exercise.id, pointerWindow) },
             onDrag = updateExerciseDrag,
             onDragEnd = { endExerciseDrag() },
+            onDragCancel = { cancelExerciseDrag() },
             onUpdateExercise = { updater -> viewModel.updateExercise(null, exercise.id, updater) },
             onDeleteExercise = { viewModel.removeExercise(null, exercise.id) },
             onAddSet = { side -> viewModel.addSet(null, exercise.id, side) },
@@ -775,8 +809,10 @@ private fun PartExerciseItem(
     beginExerciseDrag: (String, String, Offset) -> Unit,
     updateExerciseDrag: (Offset) -> Unit,
     endExerciseDrag: () -> Unit,
+    cancelExerciseDrag: () -> Unit = endExerciseDrag,
     projectedShiftFor: (String, Int, String) -> Float,
     viewModel: SessionEditorViewModel,
+    shiftYForBounds: Float = 0f,
 ) {
     key("${part.id}|${exercise.id}") {
         val accentHex = resolveExerciseAccentHex(session, part.color)
@@ -798,12 +834,13 @@ private fun PartExerciseItem(
                 val key = "${part.id}|${exercise.id}"
                 exerciseBounds[key] = rect
                 if (dragController.isExerciseDragging) {
-                    dragController.registerExerciseBoundsDuringDrag(key, rect)
+                    dragController.registerExerciseBoundsDuringDrag(key, rect, shiftYForBounds)
                 }
             },
-            onDragStart = { grab -> beginExerciseDrag(part.id, exercise.id, grab) },
+            onDragStart = { pointerWindow -> beginExerciseDrag(part.id, exercise.id, pointerWindow) },
             onDrag = updateExerciseDrag,
             onDragEnd = { endExerciseDrag() },
+            onDragCancel = { cancelExerciseDrag() },
             onUpdateExercise = { updater -> viewModel.updateExercise(part.id, exercise.id, updater) },
             onDeleteExercise = { viewModel.removeExercise(part.id, exercise.id) },
             onAddSet = { side -> viewModel.addSet(part.id, exercise.id, side) },
@@ -857,8 +894,10 @@ private fun LooseSupersetItem(
     beginExerciseDrag: (String, String, Offset) -> Unit,
     updateExerciseDrag: (Offset) -> Unit,
     endExerciseDrag: () -> Unit,
+    cancelExerciseDrag: () -> Unit = endExerciseDrag,
     projectedShiftFor: (String, Int, String) -> Float,
     viewModel: SessionEditorViewModel,
+    shiftYForBounds: Float = 0f,
 ) {
     val partId = "__loose__"
     val accentHex = resolveExerciseAccentHex(session, partColor = null)
@@ -875,12 +914,13 @@ private fun LooseSupersetItem(
             val key = "$partId|${firstMember.id}"
             exerciseBounds[key] = rect
             if (dragController.isExerciseDragging) {
-                dragController.registerExerciseBoundsDuringDrag(key, rect)
+                dragController.registerExerciseBoundsDuringDrag(key, rect, shiftYForBounds)
             }
         },
-        onDragStart = { grab -> beginExerciseDrag(partId, firstMember.id, grab) },
+        onDragStart = { pointerWindow -> beginExerciseDrag(partId, firstMember.id, pointerWindow) },
         onDrag = updateExerciseDrag,
         onDragEnd = { endExerciseDrag() },
+        onDragCancel = { cancelExerciseDrag() },
         onOpenSupersetCreator = viewModel::openSupersetCreator,
         onUpdateSupersetRest = viewModel::updateSupersetRest,
         onUpdateRoundRest = viewModel::updateSupersetRoundRest,
@@ -906,6 +946,7 @@ private fun LooseSupersetItem(
             }
         },
     ) {
+        // Member cards: no individual drag handles — block drag is on the superset header (N3).
         supersetMembers.forEach { member ->
             val memberIndex = exercises.indexOfFirst { it.id == member.id }.takeIf { it >= 0 } ?: index
             key("loose|${member.id}") {
@@ -916,25 +957,17 @@ private fun LooseSupersetItem(
                     partId = partId,
                     isCompetitionMovement = member.matchesCompetitionMovement(competitionMovementIds),
                     modifier = Modifier.fillMaxWidth(),
-                    enableDrag = true,
-                    isDragging = draggingExerciseId == member.id,
+                    enableDrag = false,
+                    isDragging = draggingExerciseId == firstMember.id,
                     isDropTarget = (
-                        exerciseDropTargetKey == "$partId|${member.id}" ||
+                        exerciseDropTargetKey == "$partId|${firstMember.id}" ||
                             (exerciseDropTargetPartId == partId && exerciseDropTargetIndex == memberIndex)
-                        ) && draggingExerciseId != member.id,
-                    isPartDropTarget = exerciseDropTargetPartId == partId && draggingExerciseId != member.id,
-                    onBoundsChange = { rect ->
-                        if (member.id != firstMember.id) {
-                            val key = "$partId|${member.id}"
-                            exerciseBounds[key] = rect
-                            if (dragController.isExerciseDragging) {
-                                dragController.registerExerciseBoundsDuringDrag(key, rect)
-                            }
-                        }
-                    },
-                    onDragStart = { grab -> beginExerciseDrag(partId, member.id, grab) },
-                    onDrag = updateExerciseDrag,
-                    onDragEnd = { endExerciseDrag() },
+                        ) && draggingExerciseId != firstMember.id,
+                    isPartDropTarget = exerciseDropTargetPartId == partId && draggingExerciseId != firstMember.id,
+                    onBoundsChange = {},
+                    onDragStart = {},
+                    onDrag = {},
+                    onDragEnd = {},
                     onUpdateExercise = { updater -> viewModel.updateExercise(null, member.id, updater) },
                     onDeleteExercise = { viewModel.removeExerciseFromSupersetGroup(supersetGroup.id, null, member.id) },
                     onAddSet = { viewModel.addSet(null, member.id) },
@@ -991,8 +1024,10 @@ private fun PartSupersetItem(
     beginExerciseDrag: (String, String, Offset) -> Unit,
     updateExerciseDrag: (Offset) -> Unit,
     endExerciseDrag: () -> Unit,
+    cancelExerciseDrag: () -> Unit = endExerciseDrag,
     projectedShiftFor: (String, Int, String) -> Float,
     viewModel: SessionEditorViewModel,
+    shiftYForBounds: Float = 0f,
 ) {
     val accentHex = resolveExerciseAccentHex(session, part.color)
     val firstMember = supersetMembers.first()
@@ -1008,12 +1043,13 @@ private fun PartSupersetItem(
             val key = "${part.id}|${firstMember.id}"
             exerciseBounds[key] = rect
             if (dragController.isExerciseDragging) {
-                dragController.registerExerciseBoundsDuringDrag(key, rect)
+                dragController.registerExerciseBoundsDuringDrag(key, rect, shiftYForBounds)
             }
         },
-        onDragStart = { grab -> beginExerciseDrag(part.id, firstMember.id, grab) },
+        onDragStart = { pointerWindow -> beginExerciseDrag(part.id, firstMember.id, pointerWindow) },
         onDrag = updateExerciseDrag,
         onDragEnd = { endExerciseDrag() },
+        onDragCancel = { cancelExerciseDrag() },
         onOpenSupersetCreator = viewModel::openSupersetCreator,
         onUpdateSupersetRest = viewModel::updateSupersetRest,
         onUpdateRoundRest = viewModel::updateSupersetRoundRest,
@@ -1039,6 +1075,7 @@ private fun PartSupersetItem(
             }
         },
     ) {
+        // Member cards: no individual drag handles — block drag is on the superset header (N3).
         supersetMembers.forEach { member ->
             val memberIndex = part.exercises.indexOfFirst { it.id == member.id }.takeIf { it >= 0 } ?: index
             key("${part.id}|${member.id}") {
@@ -1049,25 +1086,17 @@ private fun PartSupersetItem(
                     partId = part.id,
                     isCompetitionMovement = member.matchesCompetitionMovement(competitionMovementIds),
                     modifier = Modifier.fillMaxWidth(),
-                    enableDrag = true,
-                    isDragging = draggingExerciseId == member.id,
+                    enableDrag = false,
+                    isDragging = draggingExerciseId == firstMember.id,
                     isDropTarget = (
-                        exerciseDropTargetKey == "${part.id}|${member.id}" ||
+                        exerciseDropTargetKey == "${part.id}|${firstMember.id}" ||
                             (exerciseDropTargetPartId == part.id && exerciseDropTargetIndex == memberIndex)
-                        ) && draggingExerciseId != member.id,
-                    isPartDropTarget = exerciseDropTargetPartId == part.id && draggingExerciseId != member.id,
-                    onBoundsChange = { rect ->
-                        if (member.id != firstMember.id) {
-                            val key = "${part.id}|${member.id}"
-                            exerciseBounds[key] = rect
-                            if (dragController.isExerciseDragging) {
-                                dragController.registerExerciseBoundsDuringDrag(key, rect)
-                            }
-                        }
-                    },
-                    onDragStart = { grab -> beginExerciseDrag(part.id, member.id, grab) },
-                    onDrag = updateExerciseDrag,
-                    onDragEnd = { endExerciseDrag() },
+                        ) && draggingExerciseId != firstMember.id,
+                    isPartDropTarget = exerciseDropTargetPartId == part.id && draggingExerciseId != firstMember.id,
+                    onBoundsChange = {},
+                    onDragStart = {},
+                    onDrag = {},
+                    onDragEnd = {},
                     onUpdateExercise = { updater -> viewModel.updateExercise(part.id, member.id, updater) },
                     onDeleteExercise = { viewModel.removeExerciseFromSupersetGroup(supersetGroup.id, part.id, member.id) },
                     onAddSet = { viewModel.addSet(part.id, member.id) },
@@ -1131,13 +1160,3 @@ private fun ExerciseListDivider(
         )
     }
 }
-
-internal fun mergeBounds(existing: Rect?, incoming: Rect): Rect =
-    existing?.let { prev ->
-        Rect(
-            left = minOf(prev.left, incoming.left),
-            top = minOf(prev.top, incoming.top),
-            right = maxOf(prev.right, incoming.right),
-            bottom = maxOf(prev.bottom, incoming.bottom),
-        )
-    } ?: incoming

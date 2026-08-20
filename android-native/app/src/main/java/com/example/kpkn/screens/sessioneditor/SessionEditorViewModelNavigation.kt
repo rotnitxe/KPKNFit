@@ -123,6 +123,8 @@ fun SessionEditorViewModel.createSessionForDay(dayOfWeek: Int): SessionEditorSav
             hasUnsavedChanges = false,
             draftBundle = it.draftBundle?.copy(sessionId = newSession.id, dayOfWeek = dayOfWeek),
             snackbarMessage = "Sesión creada para ${dayLabel(dayOfWeek)}",
+            strengthSpaceCommitted = false,
+            cardioSpacePlacement = null,
         )
     }
     refreshDerivedStateImmediate()
@@ -192,6 +194,8 @@ fun SessionEditorViewModel.createCompetitionSessionForDay(dayOfWeek: Int): Sessi
             hasUnsavedChanges = false,
             draftBundle = it.draftBundle?.copy(sessionId = newSession.id, dayOfWeek = dayOfWeek),
             snackbarMessage = "Sesión de competición creada para ${dayLabel(dayOfWeek)}",
+            strengthSpaceCommitted = false,
+            cardioSpacePlacement = null,
         )
     }
     refreshDerivedStateImmediate()
@@ -319,6 +323,8 @@ internal fun SessionEditorViewModel.switchToSession(
             partRuleDefaults = persistedDraft?.partRuleDefaults ?: emptyMap(),
             ruleLimits = persistedDraft?.ruleLimits ?: it.ruleLimits,
             selectedExercisesIds = persistedDraft?.selectedExercisesIds.orEmpty(),
+            strengthSpaceCommitted = false,
+            cardioSpacePlacement = null,
         )
     }
     refreshDerivedStateImmediate()

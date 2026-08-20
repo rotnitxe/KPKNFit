@@ -51,16 +51,22 @@ internal fun WorkoutSetPager(
     val accent = sessionAccentColor ?: MaterialTheme.colorScheme.primary
     val completedCount = completedPreviousSets + items.count { it.state == WorkoutSetCardVisualState.COMPLETED }
     val totalCount = (completedPreviousSets + items.size + nextExerciseSetCount).coerceAtLeast(1)
-    val progress by animateFloatAsState(
-        targetValue = (completedCount.toFloat() / totalCount).coerceIn(0f, 1f),
-        animationSpec = tween(durationMillis = 520, easing = FastOutSlowInEasing),
-        label = "setTimelineProgress",
+    val timelineFillTarget = timelineContinuousFillTarget(
+        completedCount = completedCount,
+        completedPreviousSets = completedPreviousSets,
+        activePageIndex = activePageIndex,
+        totalCount = totalCount,
     )
-
+    val timelineFillProgress by animateFloatAsState(
+        targetValue = timelineFillTarget,
+        animationSpec = tween(durationMillis = 720, easing = FastOutSlowInEasing),
+        label = "setTimelineContinuousFill",
+    )
+    val trackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.16f)
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 52.dp, max = 58.dp)
+            .heightIn(min = 40.dp, max = 48.dp)
             .padding(horizontal = 8.dp, vertical = 3.dp),
         shape = RoundedCornerShape(999.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.26f),
@@ -70,63 +76,82 @@ internal fun WorkoutSetPager(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 44.dp, max = 50.dp)
-                .padding(horizontal = 6.dp, vertical = 5.dp),
+                .heightIn(min = 34.dp, max = 42.dp)
+                .padding(horizontal = 6.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             SetProgressBadge(
                 completedCount = completedCount,
                 totalCount = totalCount,
-                progress = progress,
                 accent = accent,
             )
             Spacer(Modifier.width(5.dp))
-            if (completedPreviousSets > 0) {
-                PreviousCompletedCluster(
-                    count = completedPreviousSets,
-                    accent = accent,
-                    modifier = Modifier.padding(end = 4.dp),
-                )
-            }
 
-            items.forEachIndexed { index, item ->
-                val isActive = index == activePageIndex
-                val accentColor = workoutSetPagerAccent(item.state, MaterialTheme.colorScheme, item.isWarmupOrFeedback, sessionAccentColor)
-                key(item.index, item.side ?: "bilateral") {
-                    TimelineSegment(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                            ) { onSelectPage(index) },
-                        accent = accentColor,
-                        isActive = isActive,
-                        isComplete = item.state == WorkoutSetCardVisualState.COMPLETED,
-                        isSkipped = item.state == WorkoutSetCardVisualState.SKIPPED,
-                        isFirst = index == 0 && completedPreviousSets <= 0,
-                        isLast = index == items.lastIndex && nextExerciseSetCount <= 0,
-                        isConnectedPrev = index == 0 && completedPreviousSets > 0,
-                        isConnectedNext = index == items.lastIndex && nextExerciseSetCount > 0,
-                        isEditing = item.isEditing,
-                        label = if (item.label.startsWith("Serie ") && !item.label.contains("/")) {
-                            "${item.label}/${items.size}"
-                        } else {
-                            item.label
-                        },
-                        sideSpec = if (isUnilateral || !item.side.isNullOrBlank()) item.side else null,
-                        selectedSide = selectedSide,
-                        sideCompleted = { side -> sideCompleted?.invoke(item.index, side) == true },
-                    )
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+            ) {
+                ContinuousTimelineTrack(
+                    progress = timelineFillProgress,
+                    fillColor = WORKOUT_COMPLETED_GREEN.copy(alpha = 0.82f),
+                    trackColor = trackColor,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp)
+                        .height(2.dp),
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (completedPreviousSets > 0) {
+                        PreviousCompletedCluster(
+                            count = completedPreviousSets,
+                            accent = accent,
+                            modifier = Modifier.padding(end = 4.dp),
+                        )
+                    }
+
+                    items.forEachIndexed { index, item ->
+                        val isActive = index == activePageIndex
+                        val accentColor = workoutSetPagerAccent(item.state, MaterialTheme.colorScheme, item.isWarmupOrFeedback, sessionAccentColor)
+                        key(item.index, item.side ?: "bilateral") {
+                            TimelineSegment(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                    ) { onSelectPage(index) },
+                                accent = accentColor,
+                                isActive = isActive,
+                                isComplete = item.state == WorkoutSetCardVisualState.COMPLETED,
+                                isSkipped = item.state == WorkoutSetCardVisualState.SKIPPED,
+                                isEditing = item.isEditing,
+                                label = if (item.label.startsWith("Serie ") && !item.label.contains("/")) {
+                                    "${item.label}/${items.size}"
+                                } else {
+                                    item.label
+                                },
+                                sideSpec = if (isUnilateral || !item.side.isNullOrBlank()) item.side else null,
+                                selectedSide = selectedSide,
+                                sideCompleted = { side -> sideCompleted?.invoke(item.index, side) == true },
+                            )
+                        }
+                    }
+
+                    if (nextExerciseSetCount > 0) {
+                        NextGhostCluster(
+                            count = nextExerciseSetCount,
+                            accent = accent,
+                            modifier = Modifier.padding(start = 4.dp),
+                        )
+                    }
                 }
-            }
-
-            if (nextExerciseSetCount > 0) {
-                NextGhostCluster(
-                    count = nextExerciseSetCount,
-                    accent = accent,
-                    modifier = Modifier.padding(start = 4.dp),
-                )
             }
 
             if (onAddSet != null) {
@@ -160,7 +185,6 @@ internal fun WorkoutSetPager(
 private fun SetProgressBadge(
     completedCount: Int,
     totalCount: Int,
-    progress: Float,
     accent: Color,
 ) {
     Box(
@@ -171,12 +195,6 @@ private fun SetProgressBadge(
             .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)),
         contentAlignment = Alignment.Center,
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth(progress)
-                .background(WORKOUT_COMPLETED_GREEN.copy(alpha = 0.46f)),
-        )
         Text(
             text = "$completedCount/$totalCount",
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
@@ -193,54 +211,16 @@ private fun TimelineSegment(
     isActive: Boolean,
     isComplete: Boolean,
     isSkipped: Boolean,
-    isFirst: Boolean,
-    isLast: Boolean,
-    isConnectedPrev: Boolean = false,
-    isConnectedNext: Boolean = false,
     isEditing: Boolean = false,
     label: String,
     sideSpec: String?,
     selectedSide: String?,
     sideCompleted: (String) -> Boolean,
 ) {
-    val lineTargetColor = when {
-        isComplete || isConnectedPrev -> WORKOUT_COMPLETED_GREEN.copy(alpha = 0.82f)
-        isSkipped -> accent.copy(alpha = 0.28f)
-        isActive -> accent.copy(alpha = 0.62f)
-        else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.24f)
-    }
-    val lineColor by animateColorAsState(
-        targetValue = lineTargetColor,
-        animationSpec = tween(durationMillis = 360, easing = FastOutSlowInEasing),
-        label = "setTimelineLine",
-    )
-    val statusColor by animateColorAsState(
-        targetValue = when {
-            isComplete -> WORKOUT_COMPLETED_GREEN
-            isActive || isEditing -> accent
-            isSkipped -> accent.copy(alpha = 0.72f)
-            else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.70f)
-        },
-        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
-        label = "setTimelineStatus",
-    )
-    val previousFillProgress = when {
-        isComplete || isActive || isConnectedPrev -> 1f
-        else -> 0f
-    }
-    val nextFillProgress = when {
-        isComplete || isConnectedNext -> 1f
-        isActive -> 0.42f
-        else -> 0f
-    }
-    val trackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.16f)
-    Column(
+    Box(
         modifier = modifier.height(TIMELINE_TOTAL_SLOT_HEIGHT),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(1.dp),
+        contentAlignment = Alignment.Center,
     ) {
-        // Keep every connector on one fixed axis. The node may animate inside
-        // this slot, but labels and unilateral capsules cannot move the axis.
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -250,18 +230,15 @@ private fun TimelineSegment(
                 modifier = Modifier.fillMaxSize(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                TimelineConnector(
+                Spacer(
                     modifier = Modifier
                         .weight(1f)
                         .height(2.dp),
-                    color = if (isFirst) lineColor.copy(alpha = 0.22f) else lineColor,
-                    trackColor = trackColor,
-                    fillProgress = previousFillProgress,
                 )
                 if (sideSpec.isNullOrBlank()) {
                     TimelineDot(
                         accent = accent,
-                        active = isActive,
+                        active = isActive || isEditing,
                         complete = isComplete,
                         skipped = isSkipped,
                         label = label,
@@ -277,44 +254,23 @@ private fun TimelineSegment(
                         sideCompleted = sideCompleted,
                     )
                 }
-                TimelineConnector(
+                Spacer(
                     modifier = Modifier
                         .weight(1f)
                         .height(2.dp),
-                    color = if (isLast) lineColor.copy(alpha = 0.22f) else lineColor,
-                    trackColor = trackColor,
-                    fillProgress = nextFillProgress,
                 )
             }
         }
-        Text(
-            modifier = Modifier.height(TIMELINE_STATUS_SLOT_HEIGHT),
-            text = when {
-                isEditing -> "Editando"
-                isComplete -> "Completada"
-                isSkipped -> "Omitida"
-                else -> "Lista para registrar"
-            },
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 6.sp),
-            fontWeight = if (isEditing) FontWeight.Bold else FontWeight.Normal,
-            color = statusColor,
-            maxLines = 1,
-        )
     }
 }
 
 @Composable
-private fun TimelineConnector(
-    modifier: Modifier,
-    color: Color,
+private fun ContinuousTimelineTrack(
+    progress: Float,
+    fillColor: Color,
     trackColor: Color,
-    fillProgress: Float,
+    modifier: Modifier = Modifier,
 ) {
-    val animatedProgress by animateFloatAsState(
-        targetValue = fillProgress.coerceIn(0f, 1f),
-        animationSpec = tween(durationMillis = 520, easing = FastOutSlowInEasing),
-        label = "setTimelineConnectorFill",
-    )
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(999.dp))
@@ -323,10 +279,23 @@ private fun TimelineConnector(
         Box(
             modifier = Modifier
                 .fillMaxHeight()
-                .fillMaxWidth(animatedProgress)
-                .background(color),
+                .fillMaxWidth(progress.coerceIn(0f, 1f))
+                .background(fillColor),
         )
     }
+}
+
+private fun timelineContinuousFillTarget(
+    completedCount: Int,
+    completedPreviousSets: Int,
+    activePageIndex: Int,
+    totalCount: Int,
+): Float {
+    if (totalCount <= 1) return 1f
+    val activeDotCenter = completedPreviousSets + activePageIndex + 0.5f
+    val completedDotCenter = completedCount.toFloat() - 0.5f
+    val fillDots = maxOf(activeDotCenter, completedDotCenter).coerceIn(0.5f, totalCount.toFloat())
+    return (fillDots / totalCount).coerceIn(0f, 1f)
 }
 
 @Composable
@@ -394,8 +363,7 @@ private fun TimelineDot(
 
 private val WORKOUT_COMPLETED_GREEN = Color(0xFF66BB6A)
 private val TIMELINE_NODE_SLOT_HEIGHT = 26.dp
-private val TIMELINE_STATUS_SLOT_HEIGHT = 9.dp
-private val TIMELINE_TOTAL_SLOT_HEIGHT = TIMELINE_NODE_SLOT_HEIGHT + 1.dp + TIMELINE_STATUS_SLOT_HEIGHT
+private val TIMELINE_TOTAL_SLOT_HEIGHT = TIMELINE_NODE_SLOT_HEIGHT
 
 @Composable
 private fun PreviousCompletedCluster(
@@ -405,7 +373,7 @@ private fun PreviousCompletedCluster(
 ) {
     Box(
         modifier = modifier.height(TIMELINE_TOTAL_SLOT_HEIGHT),
-        contentAlignment = Alignment.TopCenter,
+        contentAlignment = Alignment.Center,
     ) {
         Row(
             modifier = Modifier.height(TIMELINE_NODE_SLOT_HEIGHT),
@@ -464,7 +432,7 @@ private fun NextGhostCluster(
 ) {
     Box(
         modifier = modifier.height(TIMELINE_TOTAL_SLOT_HEIGHT),
-        contentAlignment = Alignment.TopCenter,
+        contentAlignment = Alignment.Center,
     ) {
         Row(
             modifier = Modifier.height(TIMELINE_NODE_SLOT_HEIGHT),

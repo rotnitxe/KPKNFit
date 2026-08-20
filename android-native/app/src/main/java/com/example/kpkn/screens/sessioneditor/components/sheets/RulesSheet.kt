@@ -955,13 +955,13 @@ internal fun RulesSheet(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     Text(
-                        "Límite de tiempo global (guía)",
+                        "Tiempo de sesión",
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Black,
                         color = Color.White,
                     )
                     Text(
-                        "Presupuesto orientativo. Guía el ritmo en vivo; no corta el entrenamiento.",
+                        "Cuenta atrás en el entreno. No corta la sesión.",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White.copy(alpha = 0.65f),
                     )
@@ -990,7 +990,7 @@ internal fun RulesSheet(
                         )
                     }
                     DurationTapField(
-                        label = "Presupuesto global",
+                        label = "Tiempo de sesión",
                         display = formatDurationMinutes(session.targetDurationMinutes),
                         modifier = Modifier.fillMaxWidth(),
                         onClick = {
@@ -1005,9 +1005,9 @@ internal fun RulesSheet(
                         val remaining = sessionBudget - assignedMinutes
                         Text(
                             text = if (isOverBudget) {
-                                "Excede el presupuesto global por ${assignedMinutes - sessionBudget} min ($assignedMinutes min asignados)"
+                                "Asignados ${assignedMinutes} min; el tiempo de sesión es $sessionBudget min"
                             } else {
-                                "$assignedMinutes de $sessionBudget min asignados ($remaining min disponibles)"
+                                "$assignedMinutes de $sessionBudget min asignados ($remaining min libres)"
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = if (isOverBudget) Color(0xFFEF4444) else Color.White.copy(alpha = 0.85f),
@@ -1034,9 +1034,9 @@ internal fun RulesSheet(
                         )
                         Text(
                             if (groupTimesExpanded) {
-                                "Presupuesto por grupo o ejercicio. El del grupo prevalece."
+                                "Por grupo o ejercicio. El del grupo vale."
                             } else {
-                                "Tocar para desplegar presupuestos por grupo"
+                                "Tocar para tiempos por grupo"
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.White.copy(alpha = 0.65f),

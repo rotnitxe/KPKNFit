@@ -177,9 +177,23 @@ class SessionEditorViewModel(
     private val _uiState = MutableStateFlow(SessionEditorUiState(programId = programId))
     val uiState: StateFlow<SessionEditorUiState> = _uiState.asStateFlow()
 
+    /** Drag-and-drop controller owned by the ViewModel (hallazgo I — not Compose `remember`). */
+    val dragController = SessionEditorDragController()
+
+    private val _dragUiState = MutableStateFlow(SessionEditorDragUiState())
+    val dragUiState: StateFlow<SessionEditorDragUiState> = _dragUiState.asStateFlow()
+
+    /** Visible to [SessionEditorViewModelDrag] publish helpers. */
+    internal val dragUiStateMutable: MutableStateFlow<SessionEditorDragUiState>
+        get() = _dragUiState
+
     /** Read-only snapshot for same-package ViewModel extensions. */
     internal val currentUiState: SessionEditorUiState
         get() = _uiState.value
+
+    init {
+        bindDragControllerListener()
+    }
 
     internal fun updateUi(transform: (SessionEditorUiState) -> SessionEditorUiState) {
         _uiState.update(transform)

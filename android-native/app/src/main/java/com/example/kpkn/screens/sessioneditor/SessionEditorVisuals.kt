@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -46,6 +47,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -160,6 +162,8 @@ internal fun DragLiftPreview(
     offsetProvider: () -> Offset,
     rootBounds: Rect?,
     modifier: Modifier = Modifier,
+    subtitleOverride: String? = null,
+    titleOverride: String? = null,
 ) {
     val root = rootBounds ?: return
     val density = LocalDensity.current
@@ -200,14 +204,15 @@ internal fun DragLiftPreview(
             Icon(Icons.Default.DragHandle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             Column(Modifier.weight(1f)) {
                 Text(
-                    exercise.name.ifBlank { "Ejercicio" },
+                    titleOverride ?: exercise.name.ifBlank { "Ejercicio" },
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Black,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    "${exercise.sets.size} series · ${trainingModeLabel(exercise.trainingMode)}",
+                    subtitleOverride
+                        ?: "${exercise.sets.size} series · ${trainingModeLabel(exercise.trainingMode)}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -269,25 +274,68 @@ internal fun DragPartLiftPreview(
     }
 }
 
-/** DayView-style drop cue: thin primary bar between items. */
+/** DayView-style drop cue: thin primary bar between items (overlay — no layout height). */
 @Composable
 internal fun SessionEditorDropIndicator(
     visible: Boolean,
     modifier: Modifier = Modifier,
 ) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(0.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        androidx.compose.animation.AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn(tween(90)),
+            exit = fadeOut(tween(80)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight(unbounded = true, align = Alignment.CenterVertically),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .padding(horizontal = 14.dp)
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(MaterialTheme.colorScheme.primary),
+            )
+        }
+    }
+}
+
+/** Inline chip while the pointer is outside a valid strength/cardio drop zone (N8). */
+@Composable
+internal fun SessionEditorInvalidDropBanner(
+    visible: Boolean,
+    modifier: Modifier = Modifier,
+) {
     AnimatedVisibility(
         visible = visible,
-        enter = fadeIn(tween(90)) + expandVertically(animationSpec = tween(140)),
-        exit = fadeOut(tween(80)) + shrinkVertically(animationSpec = tween(120)),
+        modifier = modifier,
+        enter = fadeIn(tween(90)) + expandVertically(),
+        exit = fadeOut(tween(80)) + shrinkVertically(),
     ) {
-        Box(
-            modifier = modifier
-                .fillMaxWidth()
-                .height(4.dp)
-                .padding(horizontal = 14.dp)
-                .clip(RoundedCornerShape(999.dp))
-                .background(MaterialTheme.colorScheme.primary),
-        )
+        Surface(
+            shape = RoundedCornerShape(999.dp),
+            color = Color(0xE6F43F5E),
+            shadowElevation = 8.dp,
+            tonalElevation = 0.dp,
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .testTag("session_editor_invalid_drop_banner"),
+        ) {
+            Text(
+                text = "Zona no válida",
+                modifier = Modifier
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+            )
+        }
     }
 }
 

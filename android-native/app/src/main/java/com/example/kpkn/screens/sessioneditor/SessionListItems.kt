@@ -76,6 +76,11 @@ sealed class SessionListItem {
         override val stableKey: String = "strength-add-actions"
     }
 
+    /** Zero-height gap after loose exercises for the end-of-loose drop indicator (N9). */
+    data object LooseEndGap : SessionListItem() {
+        override val stableKey: String = "loose-end-gap"
+    }
+
     data object CardioDivider : SessionListItem() {
         override val stableKey: String = "cardio-divider"
     }
@@ -92,6 +97,9 @@ sealed class SessionListItem {
 fun buildSessionListItems(
     session: Session,
     collapsedPartIds: Set<String> = emptySet(),
+    showStrengthDivider: Boolean = false,
+    /** Preferencia explícita inicio/final; necesaria cuando solo hay part cardio. */
+    cardioAtStart: Boolean? = null,
 ): List<SessionListItem> {
     val items = mutableListOf<SessionListItem>()
     items += SessionListItem.Hero
@@ -103,11 +111,21 @@ fun buildSessionListItems(
 
     val groupedParts = session.parts.filterNot { it.isUncategorizedPart() }
     val firstPartIsCardio = groupedParts.firstOrNull()?.isCardioPart() == true
+    val strengthParts = groupedParts.filterNot { it.isCardioPart() }
+    val cardioParts = groupedParts.filter { it.isCardioPart() }
+    val showCardioFirst = when {
+        cardioParts.isEmpty() -> false
+        // Con parts de fuerza, el orden en `parts` manda.
+        strengthParts.isNotEmpty() -> firstPartIsCardio
+        // Solo cardio en parts: START y END dejan la misma lista → usar preferencia.
+        cardioAtStart != null -> cardioAtStart
+        else -> firstPartIsCardio
+    }
+    val emitStrengthDivider = showStrengthDivider || showCardioFirst || cardioParts.isNotEmpty()
 
-    if (firstPartIsCardio) {
+    if (showCardioFirst) {
         // --- 1. BLOQUE CARDIO ARRIBA ---
         items += SessionListItem.CardioDivider
-        val cardioParts = groupedParts.filter { it.isCardioPart() }
         cardioParts.forEach { part ->
             appendPartItems(items, part, session, collapsedPartIds)
         }
@@ -121,14 +139,19 @@ fun buildSessionListItems(
                 session = session,
                 partId = null,
             )
+            items += SessionListItem.LooseEndGap
+        } else if (strengthParts.isNotEmpty()) {
+            items += SessionListItem.LooseEndGap
         }
-        val strengthParts = groupedParts.filterNot { it.isCardioPart() }
         strengthParts.forEach { part ->
             appendPartItems(items, part, session, collapsedPartIds)
         }
         items += SessionListItem.StrengthAddActions
     } else {
         // --- 1. BLOQUE FUERZA ARRIBA ---
+        if (emitStrengthDivider) {
+            items += SessionListItem.StrengthDivider
+        }
         if (session.exercises.isNotEmpty()) {
             appendExerciseItems(
                 items = items,
@@ -136,15 +159,17 @@ fun buildSessionListItems(
                 session = session,
                 partId = null,
             )
+            items += SessionListItem.LooseEndGap
+        } else if (strengthParts.isNotEmpty()) {
+            // Empty loose with groups: gap before first header for end-of-loose / synthetic zone cue.
+            items += SessionListItem.LooseEndGap
         }
-        val strengthParts = groupedParts.filterNot { it.isCardioPart() }
         strengthParts.forEach { part ->
             appendPartItems(items, part, session, collapsedPartIds)
         }
         items += SessionListItem.StrengthAddActions
 
         // --- 2. BLOQUE CARDIO ABAJO (si existe) ---
-        val cardioParts = groupedParts.filter { it.isCardioPart() }
         if (cardioParts.isNotEmpty()) {
             items += SessionListItem.CardioDivider
             cardioParts.forEach { part ->

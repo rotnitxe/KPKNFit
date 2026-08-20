@@ -151,6 +151,47 @@ class SessionListItemsTest {
     }
 
     @Test
+    fun buildSessionListItems_emptyWithoutCommitHasNoStrengthDivider() {
+        val session = Session(id = "s1", name = "Push")
+        val items = buildSessionListItems(session, showStrengthDivider = false)
+        assertTrue(items.none { it is SessionListItem.StrengthDivider })
+        assertTrue(items.any { it is SessionListItem.StrengthAddActions })
+    }
+
+    @Test
+    fun buildSessionListItems_strengthCommittedShowsStrengthDividerWhenEmpty() {
+        val session = Session(id = "s1", name = "Push")
+        val items = buildSessionListItems(session, showStrengthDivider = true)
+        val dividerIdx = items.indexOfFirst { it is SessionListItem.StrengthDivider }
+        val actionsIdx = items.indexOfFirst { it is SessionListItem.StrengthAddActions }
+        assertTrue(dividerIdx >= 0)
+        assertTrue(dividerIdx < actionsIdx)
+    }
+
+    @Test
+    fun buildSessionListItems_onlyCardioPart_respectsCardioAtStartPreference() {
+        val cardioPart = SessionPart(
+            id = "p2",
+            name = "Espacio de cardio",
+            isCardioGroup = true,
+            exercises = listOf(Exercise(id = "c1", name = "Cinta")),
+        )
+        val session = Session(id = "s1", name = "Mixto", parts = listOf(cardioPart))
+
+        val atStart = buildSessionListItems(session, cardioAtStart = true)
+        val startCardioIdx = atStart.indexOfFirst { it is SessionListItem.CardioDivider }
+        val startStrengthIdx = atStart.indexOfFirst { it is SessionListItem.StrengthDivider }
+        assertTrue(startCardioIdx in 0..<startStrengthIdx)
+
+        val atEnd = buildSessionListItems(session, showStrengthDivider = true, cardioAtStart = false)
+        val endStrengthIdx = atEnd.indexOfFirst { it is SessionListItem.StrengthDivider }
+        val endActionsIdx = atEnd.indexOfFirst { it is SessionListItem.StrengthAddActions }
+        val endCardioIdx = atEnd.indexOfFirst { it is SessionListItem.CardioDivider }
+        assertTrue(endStrengthIdx in 0..<endActionsIdx)
+        assertTrue(endActionsIdx < endCardioIdx)
+    }
+
+    @Test
     fun isUncategorizedPart_filtersSinGrupo() {
         val part = SessionPart(id = "p1", name = "Sin grupo")
         assertTrue(part.isUncategorizedPart())

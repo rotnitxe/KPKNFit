@@ -332,4 +332,126 @@ class SessionEditorCardioSpaceTest {
         assertEquals(com.example.kpkn.data.models.CardioIntensity.MUY_ALTA, com.example.kpkn.data.models.CardioIntensity.fromLevel(9))
         assertEquals(com.example.kpkn.data.models.CardioIntensity.MUY_ALTA, com.example.kpkn.data.models.CardioIntensity.fromLevel(10))
     }
+
+    @Test
+    fun createCardioSpace_opensPlacementDialogWhenNoCardioExists() = runBlocking {
+        val programId = "prog_cardio_placement_dialog"
+        val sessionId = "session_placement_dialog"
+        seedSimpleSession(programId, sessionId, Session(id = sessionId, name = "Empty Day"))
+
+        val vm = loadEditor(programId, sessionId)
+        vm.createCardioSpace()
+        assertEquals(SessionEditorSheet.CARDIO_PLACEMENT, vm.uiState.value.sheet)
+
+        vm.confirmCardioPlacement(CardioSpacePlacement.START)
+        assertEquals(SessionEditorSheet.CARDIO_PICKER, vm.uiState.value.sheet)
+        assertEquals(CardioSpacePlacement.START, vm.uiState.value.cardioSpacePlacement)
+    }
+
+    @Test
+    fun addCardioToPart_respectsStartAndEndPlacement() = runBlocking {
+        val programId = "prog_cardio_placement_order"
+        val sessionId = "session_placement_order"
+        val strengthPart = SessionPart(
+            id = "p_strength",
+            name = "Pecho",
+            exercises = listOf(Exercise(id = "e1", name = "Press")),
+        )
+        seedSimpleSession(
+            programId,
+            sessionId,
+            Session(id = sessionId, name = "Mix", parts = listOf(strengthPart)),
+        )
+
+        val vm = loadEditor(programId, sessionId)
+        val cardioItem = CardioCatalogItem(
+            id = "cardio_treadmill",
+            name = "Cinta",
+            type = CardioType.TREADMILL,
+            description = "Cinta",
+        )
+
+        vm.confirmCardioPlacement(CardioSpacePlacement.START)
+        vm.addCardioToPart(cardioItem)
+        val afterStart = vm.uiState.value.session
+        assertNotNull(afterStart)
+        assertTrue(afterStart!!.parts.first().isCardioPart())
+        assertEquals("p_strength", afterStart.parts.last().id)
+
+        // Remove cardio and place at end
+        vm.updateCurrentSession { s ->
+            s.copy(parts = s.parts.filterNot { it.isCardioPart() })
+        }
+        vm.confirmCardioPlacement(CardioSpacePlacement.END)
+        vm.addCardioToPart(cardioItem)
+        val afterEnd = vm.uiState.value.session
+        assertNotNull(afterEnd)
+        assertEquals("p_strength", afterEnd!!.parts.first().id)
+        assertTrue(afterEnd.parts.last().isCardioPart())
+    }
+
+    @Test
+    fun commitStrengthSpace_setsFlag() = runBlocking {
+        val programId = "prog_strength_commit"
+        val sessionId = "session_strength_commit"
+        seedSimpleSession(programId, sessionId, Session(id = sessionId, name = "Empty"))
+        val vm = loadEditor(programId, sessionId)
+        assertFalse(vm.uiState.value.strengthSpaceCommitted)
+        vm.commitStrengthSpace()
+        assertTrue(vm.uiState.value.strengthSpaceCommitted)
+    }
+
+    private suspend fun seedSimpleSession(programId: String, sessionId: String, session: Session) {
+        val program = Program(
+            id = programId,
+            name = "Test Program",
+            structure = ProgramStructure.SIMPLE,
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "macro",
+                    name = "Macro",
+                    blocks = listOf(
+                        Block(
+                            id = "block",
+                            name = "Block",
+                            mesocycles = listOf(
+                                Mesocycle(
+                                    id = "meso",
+                                    name = "Meso",
+                                    weeks = listOf(
+                                        ProgramWeek(
+                                            id = "week",
+                                            name = "Semana",
+                                            sessions = listOf(session),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        repository.addProgram(program)
+    }
+
+    private suspend fun loadEditor(programId: String, sessionId: String): SessionEditorViewModel {
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        val vm = SessionEditorViewModel(
+            application = app,
+            programId = programId,
+            sessionId = sessionId,
+            draftWeekId = "week",
+            draftMacroIndex = 0,
+            draftMesoIndex = 0,
+            draftDayOfWeek = null,
+        )
+        withTimeout(5_000) {
+            while (vm.uiState.value.session == null) {
+                vm.retryLoadSession()
+                delay(50)
+            }
+        }
+        return vm
+    }
 }

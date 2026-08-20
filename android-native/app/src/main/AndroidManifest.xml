@@ -164,6 +164,12 @@
                 android:resource="@xml/provider_paths" />
         </provider>
 
+    <!-- LeakCanary (debug) registra un activity-alias launcher y le roba el
+             launch a la app; se elimina para que el icono abra MainActivity siempre. -->
+        <activity-alias
+            android:name="leakcanary.internal.activity.LeakLauncherActivity"
+            tools:node="remove" />
+
     </application>
 
 </manifest>

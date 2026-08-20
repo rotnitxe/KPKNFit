@@ -310,8 +310,13 @@ class WorkoutSessionHydrator(
                         }
                     },
                 customTargetDurationMinutes = resumedState?.customTargetDurationMinutes,
-                targetDurationMinutes = resumedState?.customTargetDurationMinutes ?: restoredSession.targetDurationMinutes,
+                targetDurationMinutes = resolveEffectiveSessionTargetMinutes(
+                    customTargetDurationMinutes = resumedState?.customTargetDurationMinutes,
+                    targetDurationMinutes = null,
+                    sessionTargetDurationMinutes = restoredSession.targetDurationMinutes,
+                ),
                 pacingAlertMode = PacingAlertMode.fromStored(resumedState?.pacingAlertMode),
+                localBudgetStartedAtMs = resumedState?.localBudgetStartedAtMs.orEmpty(),
                 exerciseNotes = resumedState?.exerciseNotes.orEmpty(),
                 exercisePhotos = resumedState?.exercisePhotos.orEmpty(),
                 sessionMilestones = resumedState?.sessionMilestones.orEmpty(),
@@ -412,7 +417,11 @@ class WorkoutSessionHydrator(
         if (lastDiscomforts.isNotEmpty()) {
             updateState { it.copy(previousSessionDiscomforts = lastDiscomforts) }
         }
-        val targetMinutes = getState().customTargetDurationMinutes ?: restoredSession.targetDurationMinutes
+        val targetMinutes = resolveEffectiveSessionTargetMinutes(
+            customTargetDurationMinutes = getState().customTargetDurationMinutes,
+            targetDurationMinutes = getState().targetDurationMinutes,
+            sessionTargetDurationMinutes = restoredSession.targetDurationMinutes,
+        )
         if (targetMinutes != null) {
             val elapsedSeconds = ((System.currentTimeMillis() - restoredStartTime) / 1000L).coerceAtLeast(0)
             val remainingSeconds = ((targetMinutes * 60) - elapsedSeconds).toInt()

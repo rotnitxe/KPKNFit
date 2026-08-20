@@ -7,9 +7,9 @@ import com.example.kpkn.screens.workout.WorkoutVoiceIntensityKind
 enum class VoiceAnnouncementKind {
     /** Always spoken (on/off, confirm prompts, errors, auto-confirm). */
     CRITICAL,
-    /** Rest start / adaptive hint / step re-announce after rest. */
+    /** Rest start / adaptive hint / session remaining 15-5-1-0. */
     ESSENTIAL,
-    /** Ten-seconds remaining, pacing. */
+    /** Ten-seconds remaining, slow-pace hints. */
     COMPLETE,
 }
 

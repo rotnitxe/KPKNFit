@@ -90,6 +90,7 @@ internal fun SupersetGroupEditorCard(
     onDragStart: (Offset) -> Unit = {},
     onDrag: (Offset) -> Unit = {},
     onDragEnd: () -> Unit = {},
+    onDragCancel: () -> Unit = onDragEnd,
     onOpenSupersetCreator: (String?, List<String>) -> Unit,
     onUpdateSupersetRest: (String, Int?, Int?, Int?) -> Unit,
     onUpdateRoundRest: (String, Int, Int?, Int?) -> Unit = { _, _, _, _ -> },
@@ -161,18 +162,23 @@ internal fun SupersetGroupEditorCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                var handleWindowOrigin by remember(group.id) { mutableStateOf(Offset.Zero) }
                 Box(
                     modifier = Modifier
                         .size(48.dp)
+                        .onGloballyPositioned { coords ->
+                            val b = coords.boundsInWindow()
+                            handleWindowOrigin = Offset(b.left, b.top)
+                        }
                         .pointerInput(group.id) {
                             detectDragGestures(
                                 onDragStart = { offset ->
                                     haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                    onDragStart(offset)
+                                    onDragStart(handleWindowOrigin + offset)
                                 },
                                 onDragCancel = {
                                     haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                                    onDragEnd()
+                                    onDragCancel()
                                 },
                                 onDragEnd = {
                                     haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)

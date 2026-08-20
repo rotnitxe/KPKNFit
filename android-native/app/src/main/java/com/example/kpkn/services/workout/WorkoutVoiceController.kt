@@ -849,9 +849,10 @@ class WorkoutVoiceController(
         text: String,
         queueFlush: Boolean = true,
         priority: WorkoutSpeechPriority = WorkoutSpeechPriority.NORMAL,
+        kind: VoiceAnnouncementKind = VoiceAnnouncementKind.COMPLETE,
     ) {
-        if (!allows(VoiceAnnouncementKind.COMPLETE)) return
-        speakWhilePaused(priority = priority) {
+        if (!allows(kind)) return
+        speakWhilePaused(priority = priority, kind = kind) {
             ttsManager.speak(text, queueFlush = queueFlush)
         }
     }

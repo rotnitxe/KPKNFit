@@ -346,6 +346,21 @@ fun SessionEditorViewModel.moveExerciseToPart(
     } else {
         session.parts.firstOrNull { it.id == sourcePartId }?.exercises.orEmpty()
     }
+    val sourceIndex = sourceExercises.indexOfFirst { it.id == exerciseId }
+    if (sourceIndex < 0) return@updateSession session
+    // No-op: same position (F2/N10).
+    if (sourcePartId == targetPartId && targetIndex != null) {
+        val draggedSource = sourceExercises[sourceIndex]
+        val groupId = draggedSource.supersetGroupRefOrLegacyId()
+        val blockSize = if (!groupId.isNullOrBlank()) {
+            sourceExercises.count { it.supersetGroupRefOrLegacyId() == groupId }.coerceAtLeast(1)
+        } else {
+            1
+        }
+        if (targetIndex == sourceIndex || targetIndex == sourceIndex + blockSize) {
+            return@updateSession session
+        }
+    }
     val draggedSource = sourceExercises.firstOrNull { it.id == exerciseId } ?: return@updateSession session
     val isCardio = draggedSource.isCardio || (sourcePartId != null && session.parts.firstOrNull { it.id == sourcePartId }?.isCardioPart() == true)
 

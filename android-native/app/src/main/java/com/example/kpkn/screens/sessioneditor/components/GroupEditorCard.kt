@@ -350,9 +350,10 @@ internal fun GroupEditorCard(
     isDropTarget: Boolean,
     onBoundsChange: (Rect) -> Unit,
     onContentBoundsChange: (Rect) -> Unit,
-    onDragStart: (Rect?) -> Unit = {},
+    onDragStart: (Rect?, Offset) -> Unit = { _, _ -> },
     onDrag: (Float) -> Unit,
     onDragEnd: () -> Unit,
+    onDragCancel: () -> Unit = onDragEnd,
     onAddExercise: () -> Unit,
     onOpenMobilityPicker: () -> Unit = {},
     onRemoveMobility: (String) -> Unit = {},
@@ -389,11 +390,12 @@ internal fun GroupEditorCard(
                 onBoundsChange(cardBoundsInWindow!!)
             }
             .graphicsLayer {
-                translationY = dragOffsetY
-                scaleX = if (isDragging) 1.03f else dropScale
-                scaleY = if (isDragging) 1.03f else dropScale
-                alpha = if (isDragging) 0.9f else 1f
-                shadowElevation = if (isDragging) 12.dp.toPx() else 0f
+                // F1: ghost preview moves; original card stays fixed and attenuated.
+                translationY = 0f
+                scaleX = if (isDragging) 1f else dropScale
+                scaleY = if (isDragging) 1f else dropScale
+                alpha = if (isDragging) 0.28f else 1f
+                shadowElevation = 0f
             }
             .zIndex(if (isDragging) 100f else 0f),
     ) {
@@ -433,18 +435,29 @@ internal fun GroupEditorCard(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
+                        var handleWindowOrigin by remember(part.id) { mutableStateOf(Offset.Zero) }
                         Box(
                             modifier = Modifier
                                 .width(32.dp)
                                 .height(44.dp)
+                                .onGloballyPositioned { coords ->
+                                    val b = coords.boundsInWindow()
+                                    handleWindowOrigin = Offset(b.left, b.top)
+                                }
                                 .pointerInput(part.id) {
                                     detectDragGestures(
-                                        onDragStart = {
+                                        onDragStart = { offset ->
                                             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            onDragStart(cardBoundsInWindow)
+                                            onDragStart(cardBoundsInWindow, handleWindowOrigin + offset)
                                         },
-                                        onDragCancel = { haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove); onDragEnd() },
-                                        onDragEnd = { haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove); onDragEnd() },
+                                        onDragCancel = {
+                                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                            onDragCancel()
+                                        },
+                                        onDragEnd = {
+                                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                            onDragEnd()
+                                        },
                                         onDrag = { change, dragAmount ->
                                             change.consume()
                                             onDrag(dragAmount.y)
@@ -455,7 +468,7 @@ internal fun GroupEditorCard(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.DragHandle,
-                                contentDescription = "Mantén pulsado para reordenar grupo",
+                                contentDescription = "Arrastra para reordenar grupo",
                                 tint = Color.White.copy(alpha = if (isDragging) 0.7f else 0.36f),
                                 modifier = Modifier.size(24.dp),
                             )

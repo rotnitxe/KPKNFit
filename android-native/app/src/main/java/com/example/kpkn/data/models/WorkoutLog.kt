@@ -221,6 +221,7 @@ data class OngoingWorkoutState(
     val persistedLoadModeByExercise: Map<String, LoadModeV2> = emptyMap(),
     val customTargetDurationMinutes: Int? = null,
     val pacingAlertMode: String = "final", // off | final | soft | strict
+    val localBudgetStartedAtMs: Map<String, Long> = emptyMap(),
     val exerciseNotes: Map<String, String> = emptyMap(),
     val exercisePhotos: Map<String, List<String>> = emptyMap(),
     val sessionMilestones: List<SessionMilestone> = emptyList(),

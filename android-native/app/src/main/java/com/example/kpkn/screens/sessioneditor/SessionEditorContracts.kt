@@ -13,6 +13,8 @@ enum class SessionEditorSheet {
     WARMUP,
     MOBILITY_PICKER,
     CARDIO_PICKER,
+    /** Diálogo: colocar nuevo espacio de cardio al inicio o al final. */
+    CARDIO_PLACEMENT,
     SUPERSERIE_MANAGER,
     SUPERSET_CREATOR,
     RELATIONSHIP_PICKER,
@@ -120,6 +122,12 @@ data class PendingTransferToDays(
 enum class SessionSaveScope {
     SESSION_ONLY,
     MESOCYCLE,
+}
+
+/** Dónde insertar un espacio de cardio nuevo en la sesión. */
+enum class CardioSpacePlacement {
+    START,
+    END,
 }
 
 sealed interface SessionEditorAction {

@@ -36,8 +36,8 @@
 - Verify the real code and Room schema when older docs disagree.
 
 <!-- KAUPOLIKAN_DYNAMIC_MAP_START -->
-Generated at: 2026-08-19T04:10:50.035Z
-Kotlin files: 516
+Generated at: 2026-08-19T20:02:26.281Z
+Kotlin files: 523
 Room version detected in KpknDatabase.kt: 23
 
 ### Entities
@@ -158,6 +158,7 @@ Room version detected in KpknDatabase.kt: 23
 - android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeRecoveryEngine.kt
 - android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeTtcEngine.kt
 - android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeUtils.kt
+- android-native/app/src/main/java/com/example/kpkn/domain/auge/CardioRingDrainEngine.kt
 - android-native/app/src/main/java/com/example/kpkn/domain/auge/DiscomfortAggregationEngine.kt
 - android-native/app/src/main/java/com/example/kpkn/domain/auge/DiscomfortSuggestionEngine.kt
 - android-native/app/src/main/java/com/example/kpkn/domain/auge/ExerciseFatigueIndex.kt

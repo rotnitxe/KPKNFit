@@ -277,46 +277,47 @@ internal fun CardioEditorCard(
                 )
             }
 
-            // Slider de RPE programado de 1 a 10.  HIIT/SIT keeps the exact
-            // target in its config; the slider remains useful as a quick
-            // fallback when switching modes.
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                Row(
+            // Slider de RPE programado de 1 a 10. En HIIT/SIT se oculta: ese
+            // modo tiene su propio slider exacto dentro del panel HIIT/SIT.
+            if (programMode != CardioProgramMode.HIIT_SIT) {
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
-                    Text("RPE programado", fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.88f))
-                    Text(
-                        "${currentIntensityLevel}/10 · ${intensityRpeAnchor(currentIntensityLevel)}",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = accentColor,
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("RPE programado", fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.88f))
+                        Text(
+                            "${currentIntensityLevel}/10 · ${intensityRpeAnchor(currentIntensityLevel)}",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = accentColor,
+                        )
+                    }
+                    Slider(
+                        value = currentIntensityLevel.toFloat(),
+                        onValueChange = { newValue ->
+                            val rounded = newValue.roundToInt().coerceIn(1, 10)
+                            if (rounded != currentIntensityLevel) {
+                                val newIntensity = CardioIntensity.fromLevel(rounded)
+                                onChange(details.copy(intensityLevel = rounded, intensity = newIntensity))
+                            }
+                        },
+                        valueRange = 1f..10f,
+                        steps = 8,
+                        colors = SliderDefaults.colors(
+                            thumbColor = Color.White,
+                            activeTrackColor = accentColor,
+                            inactiveTrackColor = accentColor.copy(alpha = 0.20f),
+                            activeTickColor = Color.White.copy(alpha = 0.6f),
+                            inactiveTickColor = accentColor.copy(alpha = 0.35f),
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
-                Slider(
-                    value = currentIntensityLevel.toFloat(),
-                    onValueChange = { newValue ->
-                        val rounded = newValue.roundToInt().coerceIn(1, 10)
-                        if (rounded != currentIntensityLevel) {
-                            val newIntensity = CardioIntensity.fromLevel(rounded)
-                            onChange(details.copy(intensityLevel = rounded, intensity = newIntensity))
-                        }
-                    },
-                    valueRange = 1f..10f,
-                    steps = 8,
-                    colors = SliderDefaults.colors(
-                        thumbColor = Color.White,
-                        activeTrackColor = accentColor,
-                        inactiveTrackColor = accentColor.copy(alpha = 0.20f),
-                        activeTickColor = Color.White.copy(alpha = 0.6f),
-                        inactiveTickColor = accentColor.copy(alpha = 0.35f),
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
-                )
             }
 
             when (programMode) {

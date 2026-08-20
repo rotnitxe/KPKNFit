@@ -115,6 +115,7 @@ class WorkoutPersistenceController(
                     persistedLoadModeByExercise = state.persistedLoadModeByExercise,
                     customTargetDurationMinutes = state.customTargetDurationMinutes,
                     pacingAlertMode = state.pacingAlertMode.toStored(),
+                    localBudgetStartedAtMs = state.localBudgetStartedAtMs,
                     exerciseNotes = state.exerciseNotes,
                     exercisePhotos = state.exercisePhotos,
                     sessionMilestones = state.sessionMilestones,

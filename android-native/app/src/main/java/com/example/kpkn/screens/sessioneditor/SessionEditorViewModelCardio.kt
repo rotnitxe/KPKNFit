@@ -22,18 +22,38 @@ fun SessionEditorViewModel.openCardioPicker(partId: String? = null, exerciseId: 
     }
 }
 
+fun SessionEditorViewModel.commitStrengthSpace() {
+    updateUi { it.copy(strengthSpaceCommitted = true) }
+}
+
 fun SessionEditorViewModel.createCardioSpace() {
     val existingCardio = currentUiState.session?.cardioPart()
     if (existingCardio != null) {
         openCardioPicker(existingCardio.id)
     } else {
-        openCardioPicker(null)
+        updateUi { it.copy(sheet = SessionEditorSheet.CARDIO_PLACEMENT) }
+    }
+}
+
+fun SessionEditorViewModel.confirmCardioPlacement(placement: CardioSpacePlacement) {
+    // Un solo update atómico: evita perder la preferencia al abrir el picker.
+    updateUi {
+        it.copy(
+            cardioSpacePlacement = placement,
+            sheet = SessionEditorSheet.CARDIO_PICKER,
+            pickerTargetPartId = null,
+            pickerTargetExerciseId = null,
+            quickActionsPartId = null,
+            quickActionsExerciseId = null,
+            warmupExerciseId = null,
+        )
     }
 }
 
 fun SessionEditorViewModel.addCardioToPart(item: CardioCatalogItem) {
     val targetPartId = currentUiState.pickerTargetPartId
     val targetExerciseId = currentUiState.pickerTargetExerciseId
+    val placement = currentUiState.cardioSpacePlacement ?: CardioSpacePlacement.END
 
     if (targetExerciseId != null) {
         updateExercise(targetPartId, targetExerciseId) { current ->
@@ -96,8 +116,14 @@ fun SessionEditorViewModel.addCardioToPart(item: CardioCatalogItem) {
                 isCardioGroup = true,
                 exercises = listOf(exercise),
             )
-            session.copy(parts = session.parts + newCardioPart)
+            val parts = when (placement) {
+                CardioSpacePlacement.START -> listOf(newCardioPart) + session.parts
+                CardioSpacePlacement.END -> session.parts + newCardioPart
+            }
+            session.copy(parts = parts)
         }
     }
+    // Conservar cardioSpacePlacement: con parts=[cardio] START y END son idénticos
+    // en el modelo; el list builder usa esta preferencia para el orden visual.
     closeSheet()
 }

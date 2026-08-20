@@ -188,11 +188,19 @@ internal fun WorkoutV2Body(
                 onSetAbsoluteTimeLimit = { minutes, persist ->
                     viewModel.setAbsoluteSessionTimeLimit(minutes, persistToSession = persist)
                 },
+                onClearTimeLimit = { persist ->
+                    viewModel.clearSessionTimeLimit(persistToSession = persist)
+                },
                 pacingAlertMode = uiState.pacingAlertMode,
                 onPacingAlertModeChange = { viewModel.setPacingAlertMode(it) },
-                currentTargetMinutes = uiState.customTargetDurationMinutes
-                    ?: uiState.targetDurationMinutes
-                    ?: uiState.session?.targetDurationMinutes,
+                currentTargetMinutes = resolveEffectiveSessionTargetMinutes(
+                    customTargetDurationMinutes = uiState.customTargetDurationMinutes,
+                    targetDurationMinutes = uiState.targetDurationMinutes,
+                    sessionTargetDurationMinutes = uiState.session?.targetDurationMinutes,
+                ),
+                sessionHasProgrammedTime = uiState.session?.targetDurationMinutes != null,
+                pacingAlertMessage = uiState.pacingAlertMessage,
+                coachPaceAlert = uiState.coachPaceAlert,
                 exerciseTag = headerExerciseTag,
                 isSuperset = currentExercise?.isInSuperset() == true,
                 exerciseReadiness = currentExerciseReadiness,
@@ -659,33 +667,45 @@ internal fun WorkoutV2Body(
                         uiState.session?.parts?.firstOrNull { part -> part.exercises.any { it.id == exId } }
                     }
 
-                    var exerciseSecondsElapsed by remember(currentExercise.id) { mutableStateOf(0) }
-                    var partSecondsElapsed by remember(currentPart?.id) { mutableStateOf(0) }
+                    val exerciseBudgetKey = "ex:${currentExercise.id}"
+                    val partBudgetKey = currentPart?.id?.let { "part:$it" }
+                    val skipExerciseBudget = currentExercise.isCardio
+                    val skipPartBudget = currentPart?.isCardioPart() == true
 
-                    LaunchedEffect(currentExercise.id) {
-                        exerciseSecondsElapsed = 0
-                        while (true) {
-                            kotlinx.coroutines.delay(1000L)
-                            exerciseSecondsElapsed++
+                    LaunchedEffect(exerciseBudgetKey, skipExerciseBudget) {
+                        if (!skipExerciseBudget) viewModel.ensureLocalBudgetStart(exerciseBudgetKey)
+                    }
+                    LaunchedEffect(partBudgetKey, skipPartBudget) {
+                        if (partBudgetKey != null && !skipPartBudget) {
+                            viewModel.ensureLocalBudgetStart(partBudgetKey)
                         }
                     }
 
-                    LaunchedEffect(currentPart?.id) {
-                        partSecondsElapsed = 0
+                    var localBudgetTick by remember { mutableIntStateOf(0) }
+                    LaunchedEffect(currentExercise.id, currentPart?.id) {
                         while (true) {
                             kotlinx.coroutines.delay(1000L)
-                            partSecondsElapsed++
+                            localBudgetTick++
                         }
                     }
+                    val nowMs = remember(localBudgetTick) { System.currentTimeMillis() }
 
-                    // Presupuestos locales independientes (ejercicio y/o grupo).
-                    val exerciseBudgetMin = currentExercise.targetDurationMinutes
-                    val partBudgetMin = currentPart?.targetDurationMinutes
+                    val exerciseSecondsElapsed = uiState.localBudgetStartedAtMs[exerciseBudgetKey]?.let { started ->
+                        ((nowMs - started) / 1000L).toInt().coerceAtLeast(0)
+                    } ?: 0
+                    val partSecondsElapsed = partBudgetKey?.let { key ->
+                        uiState.localBudgetStartedAtMs[key]?.let { started ->
+                            ((nowMs - started) / 1000L).toInt().coerceAtLeast(0)
+                        }
+                    } ?: 0
+
+                    val exerciseBudgetMin = currentExercise.targetDurationMinutes.takeUnless { skipExerciseBudget }
+                    val partBudgetMin = currentPart?.targetDurationMinutes.takeUnless { skipPartBudget }
                     if (exerciseBudgetMin != null && exerciseBudgetMin > 0) {
                         val progress = (exerciseSecondsElapsed.toFloat() / (exerciseBudgetMin * 60)).coerceIn(0f, 1f)
-                        LaunchedEffect("ex:${currentExercise.id}", progress) {
+                        LaunchedEffect(exerciseBudgetKey, progress) {
                             viewModel.checkLocalBudgetGuide(
-                                scopeKey = "ex:${currentExercise.id}",
+                                scopeKey = exerciseBudgetKey,
                                 scopeLabel = spokenWorkoutExerciseName(currentExercise),
                                 progress = progress,
                                 isExerciseScope = true,
@@ -694,9 +714,9 @@ internal fun WorkoutV2Body(
                     }
                     if (partBudgetMin != null && partBudgetMin > 0) {
                         val progress = (partSecondsElapsed.toFloat() / (partBudgetMin * 60)).coerceIn(0f, 1f)
-                        LaunchedEffect("part:${currentPart?.id}", progress) {
+                        LaunchedEffect(partBudgetKey, progress) {
                             viewModel.checkLocalBudgetGuide(
-                                scopeKey = "part:${currentPart?.id.orEmpty()}",
+                                scopeKey = partBudgetKey.orEmpty(),
                                 scopeLabel = currentPart?.name.orEmpty(),
                                 progress = progress,
                                 isExerciseScope = false,
@@ -704,9 +724,9 @@ internal fun WorkoutV2Body(
                         }
                     }
 
-                    val targetMin = currentExercise.targetDurationMinutes ?: currentPart?.targetDurationMinutes
+                    val targetMin = exerciseBudgetMin ?: partBudgetMin
                     if (targetMin != null && targetMin > 0) {
-                        val isExerciseBudget = currentExercise.targetDurationMinutes != null
+                        val isExerciseBudget = exerciseBudgetMin != null
                         val elapsedSeconds = if (isExerciseBudget) exerciseSecondsElapsed else partSecondsElapsed
                         val targetSeconds = targetMin * 60
                         val progress = (elapsedSeconds.toFloat() / targetSeconds).coerceIn(0f, 1f)
@@ -726,9 +746,9 @@ internal fun WorkoutV2Body(
                             trackColor = Color.White.copy(alpha = 0.08f),
                         )
                         val statusLabel = when {
-                            progress >= 1f -> "Presupuesto agotado"
-                            progress >= 0.9f -> "90% del presupuesto"
-                            progress >= 0.75f -> "75% del presupuesto"
+                            progress >= 1f -> "Tiempo agotado"
+                            progress >= 0.9f -> "90%"
+                            progress >= 0.75f -> "75%"
                             else -> null
                         }
                         if (statusLabel != null) {

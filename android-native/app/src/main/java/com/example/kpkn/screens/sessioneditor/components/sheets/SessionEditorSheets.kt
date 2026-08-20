@@ -421,6 +421,8 @@ internal fun SessionEditorSheets(
     // AUGE is rendered as an in-composition Liquid Glass overlay in SessionEditorScreen
     // (sibling of hazeSource). Do NOT put it in KpknSheet — blur would die.
     if (uiState.sheet == SessionEditorSheet.AUGE) return
+    // Placement dialog is rendered in SessionEditorScreen (KpknAlertDialog).
+    if (uiState.sheet == SessionEditorSheet.CARDIO_PLACEMENT) return
 
     val warmupExercise = session.allExercises().find { it.id == uiState.warmupExerciseId }
     val quickActionExercise = uiState.quickActionsExerciseId?.let { targetId ->
@@ -612,6 +614,7 @@ internal fun SessionEditorSheets(
                 isReplacing = uiState.pickerTargetExerciseId != null,
                 onAdd = onAddCardio,
             )
+            SessionEditorSheet.CARDIO_PLACEMENT -> Unit
             SessionEditorSheet.SUPERSERIE_MANAGER -> {
                 val supersetExercises = uiState.supersetManagerSupersetId
                     ?.let { SupersetRules.orderedMembers(session, it) }

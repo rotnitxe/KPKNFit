@@ -70,7 +70,7 @@ class NutritionMigrationTest {
     }
 
     @Test
-    fun `migracion v20 a v23 preserva datos nutricionales y agrega historial`() {
+    fun migracionV20aV23_preservaDatosNutricionalesYAgregaHistorial() {
         seedV20()
 
         val db = helper.runMigrationsAndValidate(

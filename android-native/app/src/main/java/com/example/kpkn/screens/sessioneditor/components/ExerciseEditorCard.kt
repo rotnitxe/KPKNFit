@@ -114,6 +114,7 @@ internal fun ExerciseEditorCard(
     onDragStart: (Offset) -> Unit,
     onDrag: (Offset) -> Unit,
     onDragEnd: () -> Unit,
+    onDragCancel: () -> Unit = onDragEnd,
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
     onDeleteExercise: () -> Unit,
     onAddSet: (String?) -> Unit,
@@ -264,15 +265,30 @@ internal fun ExerciseEditorCard(
             ) {
             // Drag handle — caja angosta para no empujar el título; altura táctil conservada.
             if (enableDrag) {
+                var handleWindowOrigin by remember(exercise.id) { mutableStateOf(Offset.Zero) }
                 Box(
                     modifier = Modifier
                         .width(28.dp)
                         .height(44.dp)
+                        .onGloballyPositioned { coords ->
+                            val b = coords.boundsInWindow()
+                            handleWindowOrigin = Offset(b.left, b.top)
+                        }
                         .pointerInput(exercise.id) {
                             detectDragGestures(
-                                onDragStart = { offset -> haptics.performHapticFeedback(HapticFeedbackType.LongPress); onDragStart(offset) },
-                                onDragCancel = { haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove); onDragEnd() },
-                                onDragEnd = { haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove); onDragEnd() },
+                                onDragStart = { offset ->
+                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    // Window-space pointer (F1/N4) — not handle-local.
+                                    onDragStart(handleWindowOrigin + offset)
+                                },
+                                onDragCancel = {
+                                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    onDragCancel()
+                                },
+                                onDragEnd = {
+                                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    onDragEnd()
+                                },
                                 onDrag = { change, dragAmount ->
                                     change.consume()
                                     onDrag(Offset(dragAmount.x, dragAmount.y))
@@ -283,7 +299,7 @@ internal fun ExerciseEditorCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.DragHandle,
-                        contentDescription = "Mantén pulsado para reordenar ejercicio",
+                        contentDescription = "Arrastra para reordenar ejercicio",
                         tint = accentColor.copy(alpha = if (isDragging) 0.9f else 0.48f),
                         modifier = Modifier.size(18.dp),
                     )

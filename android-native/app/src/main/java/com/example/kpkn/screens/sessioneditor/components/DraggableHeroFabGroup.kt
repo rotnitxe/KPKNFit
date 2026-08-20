@@ -3,7 +3,8 @@ package com.example.kpkn.screens.sessioneditor.components
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateOffsetAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -17,7 +18,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -37,6 +40,9 @@ private const val SCREEN_MARGIN_DP = 8
  * y el FAB de Tiempo. Se mueven juntos por toda la pantalla en tiempo real; el
  * que se agarra se mueve primero (1:1 con el dedo) y el secundario lo persigue
  * de forma inmediata con un muelle elástico en tiempo real (leve retraso elástico).
+ *
+ * El tap se detecta si el pointer se levanta antes del touch slop. detectDragGestures
+ * no dispara onDragEnd en un tap, así que no sirve como click.
  */
 @Composable
 internal fun DraggableHeroFabGroup(
@@ -77,11 +83,9 @@ internal fun DraggableHeroFabGroup(
             )
         }
 
-        // Posición del grupo en píxeles
         var groupOffset by remember { mutableStateOf(Offset.Zero) }
         var dragSource by remember { mutableStateOf<FabDragSource?>(null) }
 
-        // Muelle elástico para el seguidor: reacciona en tiempo real continuo con leve retraso elástico
         val followerOffset by animateOffsetAsState(
             targetValue = groupOffset,
             animationSpec = spring(
@@ -127,12 +131,9 @@ internal fun DraggableHeroFabGroup(
             groupOffset = clampGroup(groupOffset + amount)
         }
 
-        // El FAB líder toma groupOffset (directo con el dedo); el seguidor toma followerOffset (con retraso elástico en tiempo real)
         val currentAssistantOffset = if (dragSource == FabDragSource.ASSISTANT) groupOffset else followerOffset
         val currentTimeOffset = if (dragSource == FabDragSource.TIME) groupOffset else followerOffset
 
-        // 1. FAB Asistente (Ojo)
-        var assistantDragDist by remember { mutableStateOf(0f) }
         Box(
             modifier = Modifier
                 .offset {
@@ -142,35 +143,19 @@ internal fun DraggableHeroFabGroup(
                     )
                 }
                 .size(ASSISTANT_FAB_SIZE_DP.dp)
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDragStart = {
-                            assistantDragDist = 0f
-                            dragSource = FabDragSource.ASSISTANT
-                        },
-                        onDrag = { change, dragAmount ->
-                            change.consume()
-                            assistantDragDist += dragAmount.getDistance()
-                            dragBy(Offset(dragAmount.x, dragAmount.y))
-                        },
-                        onDragEnd = {
-                            if (assistantDragDist < 12f) {
-                                onAssistantClick()
-                            }
-                            dragSource = null
-                        },
-                        onDragCancel = {
-                            dragSource = null
-                        },
+                .pointerInput(onAssistantClick) {
+                    detectFabTapOrDrag(
+                        onPress = { dragSource = FabDragSource.ASSISTANT },
+                        onDrag = { dragBy(it) },
+                        onRelease = { dragSource = null },
+                        onTap = onAssistantClick,
                     )
                 },
         ) {
             assistantFab(Modifier.fillMaxSize())
         }
 
-        // 2. FAB Tiempo (si aplica)
         if (timeFab != null) {
-            var timeDragDist by remember { mutableStateOf(0f) }
             Box(
                 modifier = Modifier
                     .offset {
@@ -180,31 +165,54 @@ internal fun DraggableHeroFabGroup(
                         )
                     }
                     .size(TIME_FAB_SIZE_DP.dp)
-                    .pointerInput(Unit) {
-                        detectDragGestures(
-                            onDragStart = {
-                                timeDragDist = 0f
-                                dragSource = FabDragSource.TIME
-                            },
-                            onDrag = { change, dragAmount ->
-                                change.consume()
-                                timeDragDist += dragAmount.getDistance()
-                                dragBy(Offset(dragAmount.x, dragAmount.y))
-                            },
-                            onDragEnd = {
-                                if (timeDragDist < 12f) {
-                                    onTimeClick()
-                                }
-                                dragSource = null
-                            },
-                            onDragCancel = {
-                                dragSource = null
-                            },
+                    .pointerInput(onTimeClick) {
+                        detectFabTapOrDrag(
+                            onPress = { dragSource = FabDragSource.TIME },
+                            onDrag = { dragBy(it) },
+                            onRelease = { dragSource = null },
+                            onTap = onTimeClick,
                         )
                     },
             ) {
                 timeFab(Modifier.fillMaxSize())
             }
+        }
+    }
+}
+
+/** Tap si el pointer se levanta antes del slop; drag a partir de ahí. */
+private suspend fun PointerInputScope.detectFabTapOrDrag(
+    onPress: () -> Unit,
+    onDrag: (Offset) -> Unit,
+    onRelease: () -> Unit,
+    onTap: () -> Unit,
+) {
+    awaitEachGesture {
+        awaitFirstDown(requireUnconsumed = false)
+        onPress()
+        var dragging = false
+        var totalDistance = 0f
+        val slop = viewConfiguration.touchSlop
+        try {
+            while (true) {
+                val event = awaitPointerEvent()
+                val change = event.changes.firstOrNull() ?: break
+                if (!change.pressed) {
+                    if (!dragging) onTap()
+                    break
+                }
+                val delta = change.positionChange()
+                totalDistance += delta.getDistance()
+                if (!dragging && totalDistance > slop) {
+                    dragging = true
+                }
+                if (dragging) {
+                    change.consume()
+                    onDrag(delta)
+                }
+            }
+        } finally {
+            onRelease()
         }
     }
 }

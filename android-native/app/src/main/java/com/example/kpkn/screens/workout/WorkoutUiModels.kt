@@ -211,6 +211,7 @@ data class WorkoutUiState(
     val recordingSetKey: String? = null,
     val coachPaceAlert: String? = null,
     val pacingAlertMode: PacingAlertMode = PacingAlertMode.FINAL,
+    val localBudgetStartedAtMs: Map<String, Long> = emptyMap(),
     val pendingVolumeAdvances: List<MuscleAdvance> = emptyList(),
     val showVolumeAdvanceModal: Boolean = false,
     val isRestMinimized: Boolean = false,

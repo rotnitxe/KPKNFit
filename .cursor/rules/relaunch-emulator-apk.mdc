@@ -1,0 +1,16 @@
+---
+description: Tras cada pedido, reinstalar y relanzar KPKN en el emulador abierto
+alwaysApply: true
+---
+
+# Relanzar APK en el emulador
+
+Al terminar un pedido del usuario (implementación, fix o “muéstrame esto”), reinstala y abre la app en el emulador que esté `device`, sin esperar a que lo vuelva a pedir.
+
+1. SDK: `%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe`
+2. Serial: el emulador en estado `device` (`emulator-5554` si hay varios y uno está `offline`)
+3. Instalar: `powershell -NoProfile -File .opencode/scripts/run-gradle.ps1 -Tasks "installBaseDebug"`
+4. Relanzar:
+   - `adb -s <serial> shell am force-stop com.example.kpkn`
+   - `adb -s <serial> shell am start -n com.example.kpkn/.MainActivity`
+5. Si no hay emulador `device`, dilo en una frase. No instales en un dispositivo físico salvo que el usuario lo pida.
