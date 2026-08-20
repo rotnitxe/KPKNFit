@@ -353,7 +353,8 @@ internal fun GroupEditorCard(
     onDragStart: (Rect?, Offset) -> Unit = { _, _ -> },
     onDrag: (Float) -> Unit,
     onDragEnd: () -> Unit,
-    onDragCancel: () -> Unit = onDragEnd,
+    // Default must NOT commit (N2): cancel is a no-op unless the caller wires cancelPartDrag/cancelExerciseDrag.
+    onDragCancel: () -> Unit = {},
     onAddExercise: () -> Unit,
     onOpenMobilityPicker: () -> Unit = {},
     onRemoveMobility: (String) -> Unit = {},

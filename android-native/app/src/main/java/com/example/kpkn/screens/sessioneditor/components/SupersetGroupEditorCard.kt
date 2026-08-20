@@ -90,7 +90,8 @@ internal fun SupersetGroupEditorCard(
     onDragStart: (Offset) -> Unit = {},
     onDrag: (Offset) -> Unit = {},
     onDragEnd: () -> Unit = {},
-    onDragCancel: () -> Unit = onDragEnd,
+    // Default must NOT commit (N2): cancel is a no-op unless the caller wires cancelExerciseDrag.
+    onDragCancel: () -> Unit = {},
     onOpenSupersetCreator: (String?, List<String>) -> Unit,
     onUpdateSupersetRest: (String, Int?, Int?, Int?) -> Unit,
     onUpdateRoundRest: (String, Int, Int?, Int?) -> Unit = { _, _, _, _ -> },

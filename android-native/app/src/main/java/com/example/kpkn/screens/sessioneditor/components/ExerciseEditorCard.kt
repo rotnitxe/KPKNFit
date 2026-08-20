@@ -114,7 +114,8 @@ internal fun ExerciseEditorCard(
     onDragStart: (Offset) -> Unit,
     onDrag: (Offset) -> Unit,
     onDragEnd: () -> Unit,
-    onDragCancel: () -> Unit = onDragEnd,
+    // Default must NOT commit (N2): cancel is a no-op unless the caller wires cancelExerciseDrag.
+    onDragCancel: () -> Unit = {},
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
     onDeleteExercise: () -> Unit,
     onAddSet: (String?) -> Unit,
