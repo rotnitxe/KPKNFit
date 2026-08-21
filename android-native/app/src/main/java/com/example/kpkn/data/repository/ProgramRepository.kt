@@ -8,6 +8,7 @@ import com.example.kpkn.domain.training.ProgramActiveStateEngine
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ProgramMigrationEngine
 import com.example.kpkn.domain.training.ProgramProgressEngine
+import com.example.kpkn.domain.training.BlockTransitionEngine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -25,6 +26,8 @@ import kotlinx.coroutines.sync.withLock
 import androidx.room.withTransaction
 import java.util.Calendar
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * ProgramRepository — Single source of truth para programas, historial,
@@ -41,6 +44,9 @@ class ProgramRepository private constructor(
     private val ownsDatabase: Boolean = false,
 ) {
 
+    /** Test-only read-back seam; production callers continue using repository APIs. */
+    internal fun databaseForTests(): KpknDatabase = db
+
     private val repositoryJob = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.IO + repositoryJob)
 
@@ -48,6 +54,10 @@ class ProgramRepository private constructor(
 
     private val _programs = MutableStateFlow<List<Program>>(emptyList())
     val programs: StateFlow<List<Program>> = _programs.asStateFlow()
+    /** Serializes program blobs so an older async editor write cannot win later. */
+    private val programWriteMutex = Mutex()
+    private val programWriteSequence = AtomicLong(0L)
+    private val newestProgramWrite = ConcurrentHashMap<String, Long>()
 
     private val _programQueue = MutableStateFlow<List<String>>(emptyList())
     val programQueue: StateFlow<List<String>> = _programQueue.asStateFlow()
@@ -57,22 +67,36 @@ class ProgramRepository private constructor(
 
     fun addProgram(program: Program) {
         val normalized = program.normalizedIdentityFields()
+        val version = reserveProgramWrite(normalized.id)
         _programs.update { it + normalized }
-        scope.launch { db.programDao().upsert(normalized.toEntity()) }
+        scope.launch { persistProgramIfNewest(normalized, version) }
     }
 
     fun updateProgram(program: Program) {
         val normalized = program.normalizedIdentityFields()
+        val version = reserveProgramWrite(normalized.id)
         _programs.update { list -> list.map { if (it.id == normalized.id) normalized else it } }
         repairActiveStateIfNeeded(normalized)
-        scope.launch { db.programDao().upsert(normalized.toEntity()) }
+        scope.launch { persistProgramIfNewest(normalized, version) }
     }
 
     suspend fun updateProgramNow(program: Program) {
         val normalized = program.normalizedIdentityFields()
+        val version = reserveProgramWrite(normalized.id)
         _programs.update { list -> list.map { if (it.id == normalized.id) normalized else it } }
         repairActiveStateIfNeeded(normalized)
-        withContext(Dispatchers.IO) { db.programDao().upsert(normalized.toEntity()) }
+        withContext(Dispatchers.IO) { persistProgramIfNewest(normalized, version) }
+    }
+
+    private fun reserveProgramWrite(programId: String): Long =
+        programWriteSequence.incrementAndGet().also { version -> newestProgramWrite[programId] = version }
+
+    private suspend fun persistProgramIfNewest(program: Program, version: Long) {
+        programWriteMutex.withLock {
+            if (newestProgramWrite[program.id] == version) {
+                db.programDao().upsert(program.toEntity())
+            }
+        }
     }
 
     private fun repairActiveStateIfNeeded(program: Program) {
@@ -81,7 +105,7 @@ class ProgramRepository private constructor(
         val repaired = ProgramActiveStateEngine.repairForProgram(program, active)
         if (repaired != null && repaired != active) {
             _activeProgramState.value = repaired
-            scope.launch { db.stateDao().upsertActiveProgram(repaired.toEntity()) }
+            persistActiveProgramStateAsync(repaired)
         }
     }
 
@@ -163,18 +187,21 @@ class ProgramRepository private constructor(
     }
 
     fun deleteProgram(programId: String) {
+        val version = reserveProgramWrite(programId)
         _programs.update { list -> list.filter { it.id != programId } }
         val nextQueue = _programQueue.value.filterNot { it == programId }
         _programQueue.value = nextQueue
         if (_activeProgramState.value?.programId == programId) {
             clearActiveProgram()
         }
-        if (_ongoingWorkout.value?.programId == programId) {
-            _ongoingWorkout.value = null
-            scope.launch { db.stateDao().clearOngoingWorkout() }
-        }
+        // The in-flight workout writer and lifecycle flush share this mutex.
+        // The program check is intentionally inside the lane: a stale
+        // startWorkout must not win after this delete has removed the cache row.
+        clearOngoingWorkoutForProgram(programId)
         scope.launch {
-            db.programDao().delete(programId)
+            programWriteMutex.withLock {
+                if (newestProgramWrite[programId] == version) db.programDao().delete(programId)
+            }
             val updatedSettings = _settings.value.copy(programQueueIds = nextQueue)
             _settings.value = updatedSettings
             db.settingsDao().upsert(updatedSettings.toEntity())
@@ -220,12 +247,13 @@ class ProgramRepository private constructor(
     /** Synchronous wipe for Robolectric tests — avoids SQLite races between async clears and writes. */
     internal fun resetAllStateSync() {
         runBlocking(Dispatchers.IO + NonCancellable) {
+            val activeVersion = reserveActiveStateWrite()
             _programs.value = emptyList()
             _programQueue.value = emptyList()
             _activeProgramState.value = null
             _ongoingWorkout.value = null
             db.programDao().deleteAll()
-            db.stateDao().clearActiveProgram()
+            persistActiveProgramStateIfLatest(null, activeVersion)
             db.stateDao().clearOngoingWorkout()
         }
     }
@@ -236,33 +264,102 @@ class ProgramRepository private constructor(
 
     private val _activeProgramState = MutableStateFlow<ActiveProgramState?>(null)
     val activeProgramState: StateFlow<ActiveProgramState?> = _activeProgramState.asStateFlow()
+    /** Serializes active-state cache writes so a repair cannot overwrite a newer cursor. */
+    private val activeStateWriteMutex = Mutex()
+    private val activeStateWriteSequence = AtomicLong(0L)
+    @Volatile private var newestActiveStateWrite: Long = 0L
+
+    private fun reserveActiveStateWrite(): Long =
+        activeStateWriteSequence.incrementAndGet().also { newestActiveStateWrite = it }
+
+    /**
+     * The active cursor has one write lane.  A null value is a real tombstone,
+     * not a cache-only update: it must win over an older in-flight upsert so a
+     * cleared/archived program cannot be resurrected by a late coroutine.
+     */
+    private fun persistActiveProgramStateAsync(state: ActiveProgramState?) {
+        val version = reserveActiveStateWrite()
+        scope.launch {
+            persistActiveProgramStateIfLatest(state, version)
+        }
+    }
+
+    /** Synchronous counterpart used by lifecycle flush; still version-guarded. */
+    private suspend fun persistActiveProgramStateNow(
+        state: ActiveProgramState?,
+        version: Long = reserveActiveStateWrite(),
+    ) {
+        persistActiveProgramStateIfLatest(state, version)
+    }
+
+    /** Single guarded Room lane used by async commands and transactions. */
+    private suspend fun persistActiveProgramStateIfLatest(
+        state: ActiveProgramState?,
+        version: Long,
+    ) {
+        activeStateWriteMutex.withLock {
+            persistActiveProgramStateLocked(state, version)
+        }
+    }
+
+    /**
+     * Room-only half of the active-state lane.  Callers must already hold
+     * [activeStateWriteMutex]; keeping this separate is required when the
+     * write participates in an enclosing Room transaction.  Acquiring the
+     * mutex from inside that transaction reverses the async lane's order
+     * (mutex -> Room) and can deadlock with a pending writer.
+     */
+    private suspend fun persistActiveProgramStateLocked(
+        state: ActiveProgramState?,
+        version: Long,
+    ) {
+        if (newestActiveStateWrite != version) return
+        if (state == null) {
+            db.stateDao().clearActiveProgram()
+        } else {
+            db.stateDao().upsertActiveProgram(state.toEntity())
+        }
+    }
 
     fun startProgram(programId: String) {
         val program = _programs.value.find { it.id == programId }
         val resolved = program?.let { buildDefaultActiveProgramState(it, programId) }
+            ?.let { state -> ProgramActiveStateEngine.repairForProgram(program, state) }
         val state = resolved ?: ActiveProgramState(programId = programId, status = ProgramStatus.ACTIVE)
         _activeProgramState.value = state
-        scope.launch { db.stateDao().upsertActiveProgram(state.toEntity()) }
+        persistActiveProgramStateAsync(state)
     }
 
     fun pauseProgram() {
         _activeProgramState.update { it?.copy(status = ProgramStatus.PAUSED) }
-        _activeProgramState.value?.let { scope.launch { db.stateDao().upsertActiveProgram(it.toEntity()) } }
+        _activeProgramState.value?.let(::persistActiveProgramStateAsync)
     }
 
     fun resumeProgram() {
         _activeProgramState.update { it?.copy(status = ProgramStatus.ACTIVE) }
-        _activeProgramState.value?.let { scope.launch { db.stateDao().upsertActiveProgram(it.toEntity()) } }
+        _activeProgramState.value?.let(::persistActiveProgramStateAsync)
     }
 
     fun advanceWeek(nextWeekId: String) {
         _activeProgramState.update { it?.copy(currentWeekId = nextWeekId) }
-        _activeProgramState.value?.let { scope.launch { db.stateDao().upsertActiveProgram(it.toEntity()) } }
+        _activeProgramState.value?.let(::persistActiveProgramStateAsync)
+    }
+
+    /** Commits a domain-engine cursor transition without rebuilding it heuristically. */
+    fun updateActiveProgramState(state: ActiveProgramState) {
+        val program = _programs.value.firstOrNull { it.id == state.programId }
+        val resolved = if (
+            program?.structure == ProgramStructure.COMPLEX && program.runState != null
+        ) {
+            ProgramActiveStateEngine.repairForProgram(program, state) ?: state
+        } else state
+        _activeProgramState.value = resolved
+        persistActiveProgramStateAsync(resolved)
     }
 
     fun clearActiveProgram() {
         _activeProgramState.value = null
-        scope.launch { db.stateDao().clearActiveProgram() }
+        persistActiveProgramStateAsync(null)
     }
 
     // ─── Workout History ──────────────────────────────────────────────────────
@@ -303,6 +400,7 @@ class ProgramRepository private constructor(
                 val program = getProgramById(log.programId)
                 val active = _activeProgramState.value
                 val isCalendarized = program?.isSimpleCalendarizedProgram == true
+                val isComplex = program?.structure == ProgramStructure.COMPLEX
                 val breakId = program?.activeCalendarBreakId
 
                 val enriched = if (isCalendarized) {
@@ -320,17 +418,27 @@ class ProgramRepository private constructor(
                         calendarBreakId = log.calendarBreakId ?: breakId,
                     ).normalizedIdentityFields()
                 } else {
-                    val cycleNumber = log.cycleNumber
+                    val cycleNumber = if (isComplex) 1 else log.cycleNumber
                         ?: program?.runState?.cycleNumber
                         ?: active?.currentCycleNumber
                         ?: 1
                     val templateWeekId = log.weekId?.let {
                         ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it
+                    } ?: active?.currentWeekId?.let {
+                        ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it
                     }
-                    val resolvedInstanceId = log.weekInstanceId
-                        ?: active?.currentWeekInstanceId
-                        ?: templateWeekId?.let { ProgramProgressEngine.instanceIdFor(cycleNumber, it) }
-                        ?: log.weekId
+                    val resolvedInstanceId = if (isComplex) {
+                        log.weekInstanceId
+                            ?: active?.currentWeekInstanceId
+                            ?: program?.runState?.weekInstanceId
+                            ?: templateWeekId
+                            ?: log.weekId
+                    } else {
+                        log.weekInstanceId
+                            ?: active?.currentWeekInstanceId
+                            ?: templateWeekId?.let { ProgramProgressEngine.instanceIdFor(cycleNumber, it) }
+                            ?: log.weekId
+                    }
                     log.copy(
                         programRunId = log.programRunId ?: program?.runState?.runId ?: active?.programRunId,
                         cycleNumber = cycleNumber,
@@ -343,8 +451,8 @@ class ProgramRepository private constructor(
                 val historyForProgress = listOf(enriched) + _history.value.filterNot { it.id == enriched.id }
                 val progress = if (
                     program != null &&
-                    program.isSimpleProgram &&
-                    !program.isSimpleCalendarizedProgram &&
+                    !isCalendarized &&
+                    (program.isSimpleProgram || program.structure == ProgramStructure.COMPLEX) &&
                     enriched.calendarBreakId.isNullOrBlank()
                 ) {
                     ProgramProgressEngine.advanceAfterSessionComplete(
@@ -353,6 +461,7 @@ class ProgramRepository private constructor(
                         completedSession = Session(id = enriched.sessionId, name = enriched.sessionName),
                         weekInstanceId = enriched.weekInstanceId ?: enriched.weekId.orEmpty(),
                         logs = historyForProgress,
+                        transitionContext = buildTransitionContext(program, historyForProgress),
                     )
                 } else {
                     null
@@ -368,27 +477,84 @@ class ProgramRepository private constructor(
                     else -> null
                 }
 
-                db.withTransaction {
-                    db.workoutLogDao().insert(enriched.toEntity())
-                    db.stateDao().clearOngoingWorkout()
-                    if (nextProgram != null) {
-                        db.programDao().upsert(nextProgram.toEntity())
+                val nextProgramVersion = nextProgram?.let { reserveProgramWrite(it.id) }
+                // Reserve the active-state version before entering the Room
+                // transaction. A concurrent updateActiveProgramState can then
+                // supersede this cursor instead of being overwritten by a
+                // late finalization write.
+                val repairedActiveVersion = repairedActive?.let { reserveActiveStateWrite() }
+                suspend fun persistFinalization() {
+                    // Keep the lock order identical to the async lane:
+                    // active mutex first, then Room.  The transaction uses the
+                    // locked-only helper and therefore never acquires a mutex
+                    // while Room already owns its transaction connection.
+                    activeStateWriteMutex.withLock {
+                        db.withTransaction {
+                            db.workoutLogDao().insert(enriched.toEntity())
+                            db.stateDao().clearOngoingWorkout()
+                            if (nextProgram != null && nextProgramVersion != null && newestProgramWrite[nextProgram.id] == nextProgramVersion) {
+                                db.programDao().upsert(nextProgram.toEntity())
+                            }
+                            if (repairedActive != null && repairedActiveVersion != null) {
+                                persistActiveProgramStateLocked(repairedActive, repairedActiveVersion)
+                            }
+                        }
                     }
-                    if (repairedActive != null) {
-                        db.stateDao().upsertActiveProgram(repairedActive.toEntity())
-                    }
+                }
+                if (nextProgram != null) {
+                    programWriteMutex.withLock { persistFinalization() }
+                } else {
+                    persistFinalization()
                 }
 
                 _history.value = historyForProgress
                 _ongoingWorkout.value = null
-                if (nextProgram != null) {
+                if (nextProgram != null && nextProgramVersion != null && newestProgramWrite[nextProgram.id] == nextProgramVersion) {
                     _programs.update { list -> list.map { if (it.id == nextProgram.id) nextProgram else it } }
                 }
-                if (repairedActive != null) {
+                if (repairedActive != null && repairedActiveVersion != null && newestActiveStateWrite == repairedActiveVersion) {
                     _activeProgramState.value = repairedActive
                 }
             }
         }
+    }
+
+    /**
+     * Builds the transition evidence from persisted workout history. A missing
+     * readiness measurement intentionally stays null: this layer must not
+     * manufacture a readiness score just to satisfy the AUGE gate. Stress EMA,
+     * athlete-reported fatigue, and overtrained muscles all come from logs.
+     */
+    private fun buildTransitionContext(
+        program: Program,
+        history: List<WorkoutLog>,
+    ): BlockTransitionEngine.TransitionContext {
+        val relevant = history
+            .asSequence()
+            .filter { it.programId == program.id }
+            .sortedBy { it.date }
+            .toList()
+        val stressScores = relevant.mapNotNull { it.sessionStressScore?.takeIf { score -> score.isFinite() } }
+        var stressEma = 0.0
+        stressScores.forEachIndexed { index, score ->
+            stressEma = if (index == 0) score else {
+                // Same smoothing constant used by AugeFatigueEngine's
+                // mesocycle EMA; no synthetic score is introduced.
+                (0.17 * score) + (0.83 * stressEma)
+            }
+        }
+        val measuredFatigue = relevant
+            .asReversed()
+            .firstNotNullOfOrNull { it.fatigueLevel?.coerceIn(1, 10)?.times(10.0) }
+        return BlockTransitionEngine.TransitionContext(
+            cumulativeFatigue = measuredFatigue,
+            // WorkoutLog currently has no persisted readiness verdict. Keep
+            // this null so shouldSuggestAutoDeload cannot infer one.
+            readinessScore = null,
+            settings = _settings.value,
+            mesocycleStressEma = stressEma,
+            overtrainedMuscles = BlockTransitionEngine.detectOvertrained(program, relevant),
+        )
     }
 
     fun getLogsForProgram(programId: String): List<WorkoutLog> =
@@ -406,6 +572,15 @@ class ProgramRepository private constructor(
     fun startWorkout(state: OngoingWorkoutState) {
         runBlocking(Dispatchers.IO + NonCancellable) {
             ongoingWorkoutMutex.withLock {
+                // A blank program id is the explicit ad-hoc workout sentinel.
+                // Any non-blank id must still exist in the authoritative cache;
+                // otherwise a delayed start for a deleted program would revive
+                // an ongoing Room row after deleteProgram returned.
+                if (state.programId.isNotBlank() && _programs.value.none { it.id == state.programId }) {
+                    _ongoingWorkout.value = null
+                    db.stateDao().clearOngoingWorkout()
+                    return@withLock
+                }
                 val normalized = state.normalizedIdentityFields()
                 _ongoingWorkout.value = normalized
                 db.stateDao().upsertOngoingWorkout(normalized.toEntity())
@@ -447,6 +622,16 @@ class ProgramRepository private constructor(
         }
     }
 
+    private fun clearOngoingWorkoutForProgram(programId: String) {
+        runBlocking(Dispatchers.IO + NonCancellable) {
+            ongoingWorkoutMutex.withLock {
+                if (_ongoingWorkout.value?.programId != programId) return@withLock
+                _ongoingWorkout.value = null
+                db.stateDao().clearOngoingWorkout()
+            }
+        }
+    }
+
     /** Clears ongoing in memory and waits for Room delete. */
     suspend fun clearOngoingWorkoutAndFlush() {
         withContext(Dispatchers.IO + NonCancellable) {
@@ -463,25 +648,41 @@ class ProgramRepository private constructor(
      * before the background write coroutine completes.
      */
     suspend fun flushPendingWrites() {
-        val currentWorkout = _ongoingWorkout.value
-        val currentPrograms = _programs.value
+        // Reserve both lanes before taking their snapshots. A concurrent
+        // command that mutates either cache after this point receives a newer
+        // version and supersedes this lifecycle flush.
+        val activeVersion = reserveActiveStateWrite()
+        val programIds = _programs.value.map { it.id }
+        val programVersions = programIds.associateWith(::reserveProgramWrite)
         val currentActiveProgram = _activeProgramState.value
+        val currentPrograms = _programs.value.filter { it.id in programVersions }
         val latestLogs = _history.value.take(32)
         withContext(Dispatchers.IO + NonCancellable) {
-            currentPrograms.forEach { program ->
-                db.programDao().upsert(program.normalizedIdentityFields().toEntity())
-            }
+            // Finalization acquires ongoing→program; keep the same order here
+            // so a lifecycle flush cannot deadlock a concurrent completion.
             ongoingWorkoutMutex.withLock {
-                val workout = _ongoingWorkout.value ?: currentWorkout
+                val workout = _ongoingWorkout.value
                 if (workout != null) {
                     db.stateDao().upsertOngoingWorkout(workout.toEntity())
+                } else {
+                    db.stateDao().clearOngoingWorkout()
                 }
             }
-            if (currentActiveProgram != null) {
-                db.stateDao().upsertActiveProgram(currentActiveProgram.toEntity())
-            }
-            latestLogs.forEach { log ->
-                db.workoutLogDao().insert(log.toEntity())
+            // Keep program→active→Room ordering aligned with finalizeWorkout.
+            programWriteMutex.withLock {
+                currentPrograms.forEach { program ->
+                    val version = programVersions[program.id] ?: return@forEach
+                    if (newestProgramWrite[program.id] == version) {
+                        db.programDao().upsert(program.normalizedIdentityFields().toEntity())
+                    }
+                }
+                // Null is an explicit tombstone. The same versioned lane is
+                // used for both upsert and clear so an old cursor cannot be
+                // revived on process stop.
+                persistActiveProgramStateNow(currentActiveProgram, activeVersion)
+                latestLogs.forEach { log ->
+                    db.workoutLogDao().insert(log.toEntity())
+                }
             }
         }
     }
@@ -685,8 +886,8 @@ class ProgramRepository private constructor(
                     scope.launch { db.stateDao().upsertOngoingWorkout(ongoingWorkout.toEntity()) }
                 }
 
-                if (normalizedActiveProgram != activeProgram && normalizedActiveProgram != null) {
-                    scope.launch { db.stateDao().upsertActiveProgram(normalizedActiveProgram.toEntity()) }
+                if (normalizedActiveProgram != activeProgram) {
+                    persistActiveProgramStateAsync(normalizedActiveProgram)
                 }
 
                 withContext(Dispatchers.Main) {
@@ -827,6 +1028,30 @@ class ProgramRepository private constructor(
                     currentMacrocycleId = location?.macrocycleId,
                     currentBlockId = location?.blockId,
                     currentMesocycleId = location?.mesocycleId,
+                )
+            }
+        }
+
+        if (structure == ProgramStructure.COMPLEX) {
+            val requestedWeekId = runState?.weekId
+                ?.let { ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it }
+            val requestedLocation = requestedWeekId?.let {
+                com.example.kpkn.domain.training.ProgramHierarchyIndex(this).locateWeek(it)
+            }
+            if (requestedLocation != null) {
+                return ActiveProgramState(
+                    programId = programId,
+                    status = if (runState?.status == ProgramRunStatus.COMPLETED) ProgramStatus.COMPLETED else ProgramStatus.ACTIVE,
+                    currentMacrocycleIndex = requestedLocation.macroIndex,
+                    currentBlockIndex = requestedLocation.blockIndex,
+                    currentMesocycleIndex = requestedLocation.globalMesoIndex,
+                    currentWeekId = requestedLocation.week.id,
+                    currentWeekInstanceId = requestedLocation.week.id,
+                    currentCycleNumber = 1,
+                    programRunId = runState?.runId,
+                    currentMacrocycleId = requestedLocation.macrocycleId,
+                    currentBlockId = requestedLocation.blockId,
+                    currentMesocycleId = requestedLocation.mesocycleId,
                 )
             }
         }

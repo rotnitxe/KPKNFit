@@ -134,26 +134,17 @@ fun ExerciseDiscomfortReport.normalizedIdentityFields(): ExerciseDiscomfortRepor
 
 fun Session.normalizedIdentityFields(): Session = copy(
     exercises = exercises.map { it.normalizedIdentityFields() },
-    parts = parts.map { part ->
-        SessionPart(
-            id = part.id,
-            name = part.name,
-            exercises = part.exercises.map { it.normalizedIdentityFields() },
-            color = part.color,
-        )
-    },
+    // Keep the complete multimodal part payload. Reconstructing SessionPart here
+    // used to erase duration, cardio/mobility flags, series and configuration on
+    // every repository write.
+    parts = parts.map { part -> part.copy(exercises = part.exercises.map { it.normalizedIdentityFields() }) },
     sessionB = sessionB?.normalizedIdentityFields(),
     sessionC = sessionC?.normalizedIdentityFields(),
     sessionD = sessionD?.normalizedIdentityFields(),
     trainingBackup = trainingBackup?.copy(
         exercises = trainingBackup.exercises.map { it.normalizedIdentityFields() },
         parts = trainingBackup.parts.map { backupPart ->
-            SessionPart(
-                id = backupPart.id,
-                name = backupPart.name,
-                exercises = backupPart.exercises.map { it.normalizedIdentityFields() },
-                color = backupPart.color,
-            )
+            backupPart.copy(exercises = backupPart.exercises.map { it.normalizedIdentityFields() })
         },
     ),
 )
