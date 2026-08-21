@@ -26,7 +26,7 @@ fun SessionEditorViewModel.togglePartCollapsed(partId: String) {
 }
 
 fun SessionEditorViewModel.addPart() {
-    val currentParts = currentUiState.session?.parts.orEmpty()
+    val currentParts = currentUiState.activeVariantSession?.parts.orEmpty()
     val nextColor = PART_COLORS[currentParts.size % PART_COLORS.size]
     updateSession {
         it.copy(parts = it.parts + SessionPart(UUID.randomUUID().toString(), "Grupo ${it.parts.size + 1}", color = nextColor))
@@ -80,7 +80,7 @@ fun SessionEditorViewModel.openPicker(partId: String?, exerciseId: String? = nul
 }
 
 fun SessionEditorViewModel.openRelationshipPicker(partId: String?, exerciseId: String) {
-    val current = currentUiState.session ?: return
+    val current = currentUiState.activeVariantSession ?: return
     val target = if (partId == null) {
         current.exercises.firstOrNull { it.id == exerciseId }
     } else {
@@ -124,7 +124,7 @@ fun SessionEditorViewModel.clearExerciseSelection() {
 
 fun SessionEditorViewModel.linkExerciseRelativeTo(partId: String?, exerciseId: String, anchorExerciseId: String?) {
     val state = currentUiState
-    val session = state.session ?: return
+    val session = state.activeVariantSession ?: return
     val anchor = if (anchorExerciseId == null) {
         null
     } else {
@@ -179,7 +179,7 @@ fun SessionEditorViewModel.getRuleDefaultsForPart(partId: String?): SessionEdito
 }
 
 fun SessionEditorViewModel.addExerciseToPart(partId: String?, info: ExerciseMuscleInfo): String {
-    val currentSession = currentUiState.session
+    val currentSession = currentUiState.activeVariantSession
     val newExercise = createExerciseFromInfo(info, repository.history.value).let { base ->
         if (currentSession?.isMeetDay == true) base.asCompetitionMovement() else base
     }.withSessionEditorDefaults(getRuleDefaultsForPart(partId), info)
@@ -195,7 +195,7 @@ fun SessionEditorViewModel.addExerciseToPart(partId: String?, info: ExerciseMusc
 }
 
 fun SessionEditorViewModel.addExercisesToPart(partId: String?, infos: List<ExerciseMuscleInfo>): List<String> {
-    val currentSession = currentUiState.session
+    val currentSession = currentUiState.activeVariantSession
     val newExercises = infos.map { info ->
         createExerciseFromInfo(info, repository.history.value).let { base ->
             if (currentSession?.isMeetDay == true) base.asCompetitionMovement() else base
@@ -226,7 +226,7 @@ fun SessionEditorViewModel.addExercisesAsSupersetToPart(
     config: CatalogSupersetConfig,
 ): List<String> {
     if (infos.size < 2) return addExercisesToPart(partId, infos)
-    val currentSession = currentUiState.session ?: return emptyList()
+    val currentSession = currentUiState.activeVariantSession ?: return emptyList()
     if (partId != null && currentSession.parts.none { it.id == partId }) return emptyList()
     val rounds = config.rounds.coerceAtLeast(1)
     val newExercises = infos.map { info ->
@@ -278,7 +278,7 @@ fun SessionEditorViewModel.addExercisesAsSupersetToPart(
 }
 
 fun SessionEditorViewModel.addBlankExerciseToPart(partId: String?): String {
-    val currentSession = currentUiState.session
+    val currentSession = currentUiState.activeVariantSession
     val newExercise = createBlankExercise().let { base ->
         if (currentSession?.isMeetDay == true) base.asCompetitionMovement() else base
     }.withSessionEditorDefaults(getRuleDefaultsForPart(partId))
@@ -576,7 +576,7 @@ fun SessionEditorViewModel.openExerciseQuickActions(partId: String?, exerciseId:
 fun SessionEditorViewModel.triggerQuickActionOpenPicker() {
     val state = currentUiState
     val exerciseId = state.quickActionsExerciseId ?: return
-    val targetExercise = state.session
+    val targetExercise = state.activeVariantSession
         ?.let { session ->
             if (state.quickActionsPartId == null) {
                 session.exercises.firstOrNull { it.id == exerciseId }
@@ -669,8 +669,8 @@ fun SessionEditorViewModel.triggerQuickActionLinkSuperset() {
     val state = currentUiState
     val exerciseId = state.quickActionsExerciseId ?: return
     val sourceExercises = state.quickActionsPartId?.let { partId ->
-        state.session?.parts?.firstOrNull { it.id == partId }?.exercises
-    } ?: state.session?.exercises
+        state.activeVariantSession?.parts?.firstOrNull { it.id == partId }?.exercises
+    } ?: state.activeVariantSession?.exercises
     val currentIndex = sourceExercises?.indexOfFirst { it.id == exerciseId } ?: -1
     val nextExerciseId = sourceExercises?.getOrNull(currentIndex + 1)?.id
     if (nextExerciseId != null) {

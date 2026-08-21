@@ -32,7 +32,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -80,6 +79,9 @@ import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateApplyDecision
 import com.example.kpkn.data.sessions.SessionTemplateApplyMode
+import com.example.kpkn.data.sessions.SessionTemplateDurationClass
+import com.example.kpkn.data.sessions.SessionTemplateFocusCategory
+import com.example.kpkn.data.splits.Difficulty
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import com.example.kpkn.screens.sessioneditor.SessionEstimatedRings
 import com.example.kpkn.screens.sessioneditor.buildMuscleVolumeRows
@@ -120,6 +122,24 @@ internal fun AssistantGlassOverlay(
     onSelectTemplate: (SessionTemplate) -> Unit,
     onConfirmApplyTemplate: (SessionTemplateApplyMode) -> Unit,
     onCancelTemplateApply: () -> Unit,
+    archivedUserTemplates: List<SessionTemplate> = emptyList(),
+    onArchiveUserTemplate: (String) -> Unit = {},
+    onRestoreUserTemplate: (String) -> Unit = {},
+    onDeleteUserTemplate: (String) -> Unit = {},
+    onEditUserTemplate: suspend (
+        SessionTemplate,
+        String,
+        String,
+        Difficulty,
+        SessionTemplateFocusCategory?,
+        SessionTemplateDurationClass,
+        List<String>,
+        List<String>,
+        Boolean,
+    ) -> Result<Unit> = { _, _, _, _, _, _, _, _, _ -> Result.success(Unit) },
+    onSaveCurrentTemplate: suspend (String, String) -> Result<SessionTemplate> = { _, _ ->
+        Result.failure(IllegalStateException("Guardado de plantillas no disponible en esta superficie"))
+    },
 ) {
     // Uses KpknSheet (portal + LocalHazeState) so blur samples MainActivity's hazeSource.
     // Do NOT pass the session-local hazeState — the sheet is not a sibling of that source.
@@ -132,6 +152,12 @@ internal fun AssistantGlassOverlay(
             onSelectTemplate = onSelectTemplate,
             onConfirmApplyTemplate = onConfirmApplyTemplate,
             onCancelTemplateApply = onCancelTemplateApply,
+            archivedUserTemplates = archivedUserTemplates,
+            onArchiveUserTemplate = onArchiveUserTemplate,
+            onRestoreUserTemplate = onRestoreUserTemplate,
+            onDeleteUserTemplate = onDeleteUserTemplate,
+            onEditUserTemplate = onEditUserTemplate,
+            onSaveCurrentTemplate = onSaveCurrentTemplate,
         )
     }
 }
@@ -145,6 +171,24 @@ internal fun AssistantSheet(
     onSelectTemplate: (SessionTemplate) -> Unit,
     onConfirmApplyTemplate: (SessionTemplateApplyMode) -> Unit,
     onCancelTemplateApply: () -> Unit,
+    archivedUserTemplates: List<SessionTemplate> = emptyList(),
+    onArchiveUserTemplate: (String) -> Unit = {},
+    onRestoreUserTemplate: (String) -> Unit = {},
+    onDeleteUserTemplate: (String) -> Unit = {},
+    onEditUserTemplate: suspend (
+        SessionTemplate,
+        String,
+        String,
+        Difficulty,
+        SessionTemplateFocusCategory?,
+        SessionTemplateDurationClass,
+        List<String>,
+        List<String>,
+        Boolean,
+    ) -> Result<Unit> = { _, _, _, _, _, _, _, _, _ -> Result.success(Unit) },
+    onSaveCurrentTemplate: suspend (String, String) -> Result<SessionTemplate> = { _, _ ->
+        Result.failure(IllegalStateException("Guardado de plantillas no disponible en esta superficie"))
+    },
 ) {
     val report = uiState.assistantReport
     val summary = uiState.augeSummary
@@ -197,6 +241,12 @@ internal fun AssistantSheet(
                 onSelectTemplate = onSelectTemplate,
                 onConfirmApplyTemplate = onConfirmApplyTemplate,
                 onCancelApply = onCancelTemplateApply,
+                archivedUserTemplates = archivedUserTemplates,
+                onArchiveUserTemplate = onArchiveUserTemplate,
+                onRestoreUserTemplate = onRestoreUserTemplate,
+                onDeleteUserTemplate = onDeleteUserTemplate,
+                onEditUserTemplate = onEditUserTemplate,
+                onSaveCurrentTemplate = onSaveCurrentTemplate,
             )
             else -> AssistantMainTab(uiState = uiState)
         }
@@ -621,6 +671,24 @@ internal fun AssistantTemplatesTab(
     onSelectTemplate: (SessionTemplate) -> Unit,
     onConfirmApplyTemplate: (SessionTemplateApplyMode) -> Unit,
     onCancelApply: () -> Unit,
+    archivedUserTemplates: List<SessionTemplate> = emptyList(),
+    onArchiveUserTemplate: (String) -> Unit = {},
+    onRestoreUserTemplate: (String) -> Unit = {},
+    onDeleteUserTemplate: (String) -> Unit = {},
+    onEditUserTemplate: suspend (
+        SessionTemplate,
+        String,
+        String,
+        Difficulty,
+        SessionTemplateFocusCategory?,
+        SessionTemplateDurationClass,
+        List<String>,
+        List<String>,
+        Boolean,
+    ) -> Result<Unit> = { _, _, _, _, _, _, _, _, _ -> Result.success(Unit) },
+    onSaveCurrentTemplate: suspend (String, String) -> Result<SessionTemplate> = { _, _ ->
+        Result.failure(IllegalStateException("Guardado de plantillas no disponible en esta superficie"))
+    },
 ) {
     OutlinedTextField(
         value = searchQuery,
@@ -647,6 +715,12 @@ internal fun AssistantTemplatesTab(
         templates = templates,
         searchQuery = searchQuery,
         onSelectTemplate = onSelectTemplate,
+        archivedUserTemplates = archivedUserTemplates,
+        onArchiveUserTemplate = onArchiveUserTemplate,
+        onRestoreUserTemplate = onRestoreUserTemplate,
+        onDeleteUserTemplate = onDeleteUserTemplate,
+        onEditUserTemplate = onEditUserTemplate,
+        onSaveCurrentTemplate = onSaveCurrentTemplate,
         exerciseIndex = exerciseCatalogSnapshot().associateBy { it.id.lowercase() },
         glassDark = true,
     )

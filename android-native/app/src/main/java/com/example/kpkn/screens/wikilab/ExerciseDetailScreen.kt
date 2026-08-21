@@ -31,6 +31,7 @@ import com.example.kpkn.screens.wikilab.components.CaupolicanSquatInteractiveVie
 import com.example.kpkn.screens.wikilab.components.ExerciseFatigueScenarios
 import com.example.kpkn.screens.wikilab.components.SquatVariant
 import com.example.kpkn.domain.exercises.adaptedExerciseDescription
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 // ─── MAIN SCREEN ──────────────────────────────────────────────────────────
 
@@ -282,23 +283,17 @@ fun ExerciseDetailScreen(
         )
     }
     if (confirmDelete) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { confirmDelete = false },
-            title = { Text("Eliminar ejercicio", color = Color.White) },
-            text = { Text("¿Eliminar «${exercise.name}»? Esta acción no se puede deshacer.", color = Color.White.copy(alpha = 0.8f)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    CustomExerciseRepository.delete(exercise.id)
-                    confirmDelete = false
-                    onBack()
-                }) { Text("Eliminar", color = Color(0xFFEF4444)) }
+            title = "Eliminar ejercicio",
+            text = "¿Eliminar «${exercise.name}»? Esta acción no se puede deshacer.",
+            confirmLabel = "Eliminar",
+            onConfirm = {
+                CustomExerciseRepository.delete(exercise.id)
+                confirmDelete = false
+                onBack()
             },
-            dismissButton = {
-                TextButton(onClick = { confirmDelete = false }) {
-                    Text("Cancelar", color = Color.White)
-                }
-            },
-            containerColor = Color(0xFF101418),
+            dismissLabel = "Cancelar",
         )
     }
 }

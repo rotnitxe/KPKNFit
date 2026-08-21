@@ -115,6 +115,7 @@ internal fun CardioEditorCard(
                 ).forEach { (mode, label) ->
                     CardioModeChip(
                         selected = programMode == mode,
+                        modifier = Modifier.weight(1f),
                         onClick = {
                             if (programMode != mode) when (mode) {
                                 CardioProgramMode.STEADY -> onChange(
@@ -174,6 +175,7 @@ internal fun CardioEditorCard(
                         CardioTargetMode.entries.forEach { mode ->
                             CardioModeChip(
                                 selected = currentTargetMode == mode,
+                                modifier = Modifier.weight(1f),
                                 onClick = {
                                     when (mode) {
                                         CardioTargetMode.DURATION -> {
@@ -399,19 +401,21 @@ private fun CardioModeChip(
     onClick: () -> Unit,
     label: String,
     accentColor: Color,
+    modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = Modifier.clickable(onClick = onClick),
+        modifier = modifier.clickable(onClick = onClick),
         shape = RoundedCornerShape(999.dp),
-        color = accentColor.copy(alpha = if (selected) 0.30f else 0.06f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = if (selected) 0.90f else 0.40f)),
+        color = if (selected) accentColor.copy(alpha = 0.28f) else Color.White.copy(alpha = 0.08f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, if (selected) accentColor.copy(alpha = 0.85f) else Color.White.copy(alpha = 0.14f)),
     ) {
         Text(
             label,
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-            color = if (selected) Color.White else Color.White.copy(alpha = 0.70f),
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+            color = if (selected) Color.White else Color.White.copy(alpha = 0.75f),
+            fontWeight = if (selected) FontWeight.Black else FontWeight.Medium,
             style = MaterialTheme.typography.labelSmall,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
     }
 }

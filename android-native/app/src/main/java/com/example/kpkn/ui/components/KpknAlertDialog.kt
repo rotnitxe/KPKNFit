@@ -35,7 +35,7 @@ import androidx.compose.ui.zIndex
 import dev.chrisbanes.haze.HazeState
 
 /**
- * Canonical KPKN Liquid Glass alert dialog.
+ * Canonical KPKN DarkMica alert dialog.
  *
  * In-composition centered glass card (via [KpknPortal]) — never a Material AlertDialog window,
  * so Haze can sample the activity hazeSource for live blur.

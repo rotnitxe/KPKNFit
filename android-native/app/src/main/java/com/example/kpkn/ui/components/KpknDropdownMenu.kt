@@ -15,7 +15,7 @@ import androidx.compose.ui.window.PopupProperties
 import dev.chrisbanes.haze.HazeState
 
 /**
- * Canonical KPKN Liquid Glass [DropdownMenu].
+ * Canonical KPKN DarkMica [DropdownMenu].
  */
 @Composable
 fun KpknDropdownMenu(

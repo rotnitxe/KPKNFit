@@ -842,7 +842,7 @@ fun KPKNApp(
                 }
             }
 
-            // ─── Liquid Glass bottom bar ───────────────────────────────────
+            // ─── DarkMica bottom bar ───────────────────────────────────────
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)

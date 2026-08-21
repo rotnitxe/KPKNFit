@@ -9,7 +9,7 @@ import com.example.kpkn.data.models.cardioPart
 import java.util.UUID
 
 fun SessionEditorViewModel.openCardioPicker(partId: String? = null, exerciseId: String? = null) {
-    val targetPart = partId ?: currentUiState.session?.cardioPart()?.id
+    val targetPart = partId ?: currentUiState.activeVariantSession?.cardioPart()?.id
     updateUi {
         it.copy(
             sheet = SessionEditorSheet.CARDIO_PICKER,
@@ -27,7 +27,7 @@ fun SessionEditorViewModel.commitStrengthSpace() {
 }
 
 fun SessionEditorViewModel.createCardioSpace() {
-    val existingCardio = currentUiState.session?.cardioPart()
+    val existingCardio = currentUiState.activeVariantSession?.cardioPart()
     if (existingCardio != null) {
         openCardioPicker(existingCardio.id)
     } else {

@@ -33,7 +33,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -45,7 +45,6 @@ import com.example.kpkn.ui.components.KpknSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -63,13 +62,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG
 import com.example.kpkn.data.models.DiscomfortCatalogEntry
+import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.LocalHazeState
-import com.example.kpkn.ui.components.kpknGlassStyle
+import com.example.kpkn.ui.components.kpknGlassOrFallback
+import com.example.kpkn.ui.components.kpknHazeEffect
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeEffect
 import java.util.Locale
-import com.example.kpkn.ui.components.KpknAlertDialog
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -102,7 +101,7 @@ internal fun WorkoutDrawer(
                     .fillMaxSize()
                     .then(
                         if (hazeState != null) {
-                            Modifier.hazeEffect(state = hazeState, style = kpknGlassStyle())
+                            Modifier.kpknHazeEffect(hazeState)
                         } else {
                             Modifier.background(KpknGlass.FallbackScrim)
                         }
@@ -125,15 +124,23 @@ internal fun WorkoutDrawer(
             ),
             modifier = Modifier.align(Alignment.BottomCenter),
         ) {
-            Surface(
+            val panelShape = RoundedCornerShape(
+                topStart = KpknGlass.SheetCornerRadius,
+                topEnd = KpknGlass.SheetCornerRadius,
+            )
+            val panelInteraction = remember { MutableInteractionSource() }
+            // DarkMica panel — sibling of the scrim (not nested in hazeSource).
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
-                    .navigationBarsPadding(),
-                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-                color = Color(0xFF1E1E1E).copy(alpha = 0.40f),
-                tonalElevation = 0.dp,
-                shadowElevation = 8.dp,
+                    .navigationBarsPadding()
+                    .kpknGlassOrFallback(hazeState = hazeState, shape = panelShape)
+                    .clickable(
+                        interactionSource = panelInteraction,
+                        indication = null,
+                        onClick = {},
+                    ),
             ) {
                 Column(
                     modifier = Modifier

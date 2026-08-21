@@ -25,8 +25,8 @@ graph TD
 Responsible for persistence, local assets, and remote calls.
 
 *   **Room Database (`data/db/`):**
-    *   `KpknDatabase.kt` — single database, **version 19**, ~34 entities.
-    *   Entities: `Entities.kt`, `WikiLabEntities.kt`, `PerformanceRangeEntity.kt`, `PerformanceSnapshotEntity.kt`. Complex models are serialized to JSON strings (Kotlinx Serialization) in a `data` column.
+    *   `KpknDatabase.kt` — single database, **version 23**, entities + JSON blobs.
+    *   Entities: `Entities.kt`, `WikiLabEntities.kt`, `PerformanceRangeEntity.kt`, `PerformanceSnapshotEntity.kt`. Complex models (`Program`, `Settings`, …) are serialized to JSON strings (Kotlinx Serialization) in a `data` column — **no Room migration** when only adding optional JSON fields.
     *   DAOs: `Daos.kt`, `WikiLabDao.kt`. FTS4 virtual table (`global_foods_fts`) powers food search.
     *   **Offline-First:** every read/write passes through Room; network sync is a secondary concern.
     *   `DatabaseBackupHelper.kt` — full-database JSON export/import (used for cross-platform migration and user backups).
@@ -42,7 +42,7 @@ Pure Kotlin business logic with zero Android dependencies — the most heavily t
 
 *   **AUGE Recovery System (`domain/auge/`):** `AugeRecoveryEngine` (three battery rings: muscular, CNS, spinal), `AugeFatigueEngine` (exponential decay per muscle), `AugeTtcEngine` (time-to-recovery), `InterferenceEngine` (structural muscle interference), `ExerciseReadinessEngine` (articular readiness), `AugeAdaptiveEngine`, `DiscomfortAggregationEngine`, `NutritionRecoveryEngine`, `SessionIntensityEngine`, plus classifiers and utilities.
 *   **Nutrition Engine (`domain/nutrition/`):** `FoodParser`, `SmartFoodResolver`, `TextNormalizer`, `PhoneticEs` (Spanish phonetics), `SubjectivePortionEngine` ("media taza" → grams), `MacroCalculator`/`MacroValidator`, cooking-method factors, dataset knowledge.
-*   **Training (`domain/training/`):** `LoopEngine` (set progression: warmup, drop-sets, myo-reps, failure), `VolumeCalculator`, `ProgramCalendarEngine`, `ProgramAnalyticsEngine`, `SplitApplicationEngine`.
+*   **Training (`domain/training/`):** `LoopEngine`, `VolumeCalculator`, `ProgramCalendarEngine`, `ProgramAnalyticsEngine`, `SplitApplicationEngine`, `PeriodizationEngine`, `BlockProgressionEngine` (prescripción semanal por bloque), `BlockTransitionEngine` (avance / deload AUGE / test 1RM), `ProgramProgressEngine` (SIMPLE + COMPLEX).
 *   **Workout (`domain/workout/`):** `SupersetRules`, `WorkoutContextRecurrenceEngine`, `WorkoutPerformanceHomologationEngine` (V2 performance tracking).
 *   **Exercises (`domain/exercises/`):** `ExerciseIdentity`, `ExerciseMatchEngine`, `ExerciseMuscleResolver`, `ExerciseAnatomy`, variant grouping/preference, catalog insights and filters.
 *   **Session Assistant (`domain/sessionassistant/`):** `SessionAssistantEngine` — suggests rest reductions, supersets, or volume cuts when a session exceeds its target duration.

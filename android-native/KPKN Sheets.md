@@ -1,4 +1,4 @@
-# KPKN Sheets — Lineamientos (Liquid Glass + contraste)
+# KPKN Sheets — Lineamientos (DarkMica + contraste)
 
 > **Contrato de producto para bottom sheets con blur KPKN.**
 > Complementa [`Blur KPKN.md`](./Blur%20KPKN.md) (física del blur / Haze).

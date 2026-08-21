@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.home.OnboardingState
+import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
 
@@ -75,7 +76,8 @@ fun WelcomeOnboardingOverlay(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.55f))
+            // Soft dim — heavy black scrim masked DarkMica into "same as before".
+            .background(Color(0xFF0A0A0C).copy(alpha = 0.42f))
             .pointerInput(Unit) {
                 awaitPointerEventScope {
                     while (true) {
@@ -91,7 +93,10 @@ fun WelcomeOnboardingOverlay(
                 .padding(horizontal = 20.dp)
                 .imePadding()
                 .verticalScroll(rememberScrollState())
-                .kpknGlass(hazeState, RoundedCornerShape(28.dp)),
+                .kpknGlass(
+                    hazeState = hazeState,
+                    shape = RoundedCornerShape(KpknGlass.DialogCornerRadius),
+                ),
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),
@@ -415,7 +420,11 @@ private fun OnboardingCard(
 ) {
     Surface(
         shape = RoundedCornerShape(18.dp),
-        color = if (done) Color(0xFF4CAF50).copy(alpha = 0.16f) else Color.White.copy(alpha = 0.06f),
+        color = if (done) {
+            Color(0xFF4CAF50).copy(alpha = 0.18f)
+        } else {
+            Color(0xFF3A3A44).copy(alpha = 0.55f)
+        },
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
@@ -482,7 +491,7 @@ private fun SummaryRow(
 ) {
     Surface(
         shape = RoundedCornerShape(14.dp),
-        color = Color.White.copy(alpha = 0.06f),
+        color = Color(0xFF3A3A44).copy(alpha = 0.55f),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(

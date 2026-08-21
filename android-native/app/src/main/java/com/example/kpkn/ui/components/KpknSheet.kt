@@ -53,7 +53,7 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
 /**
- * Canonical KPKN Liquid Glass bottom sheet.
+ * Canonical KPKN DarkMica bottom sheet.
  *
  * Height is **content-proportional** (wrap), capped by [maxHeightFraction] so tall content
  * can still scroll without covering the whole screen by default.

@@ -5,16 +5,17 @@ migrations.
 
 ## Persistence
 
-- Room database: `KpknDatabase`, schema version 20.
-- Historical migrations: explicit chain from 1 through 20.
-- Exported schema: `android-native/app/schemas/com.example.kpkn.data.db.KpknDatabase/20.json`.
+- Room database: `KpknDatabase`, schema version **23** (código autoridad; docs antiguos pueden decir v20).
+- Historical migrations: explicit chain through 23.
+- Exported schemas: `android-native/app/schemas/com.example.kpkn.data.db.KpknDatabase/`.
 - Production uses the explicit migration chain. Destructive migration fallback
   is not enabled.
 - Program payloads are stored in `ProgramEntity.data` as Kotlin Serialization
   JSON with `ignoreUnknownKeys = true` and `encodeDefaults = true`.
-- `Program` does not yet have its own serialized schema-version field. Domain
-  compatibility is currently handled by nullable/defaulted fields plus
-  `ProgramMigrationEngine`.
+- Campos nuevos de bloque (`Block.goal` / `Block.progressionScheme` /
+  `ProgramWeek.progressionIndex`) viajan en el JSON **sin** migración Room:
+  enums **nuevos** únicamente (nunca valores nuevos en enums legacy — dbJson
+  sin `coerceInputValues`).
 
 ## Baseline gates
 

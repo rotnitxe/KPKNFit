@@ -3,6 +3,7 @@ package com.example.kpkn.screens.workout
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -50,6 +52,7 @@ import com.example.kpkn.screens.auge.AugeViewModel
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknGlassDialog
+import com.example.kpkn.ui.components.kpknGlassOrFallback
 import com.example.kpkn.screens.workout.components.WorkoutReadinessSheet
 import dev.chrisbanes.haze.HazeState
 import java.time.LocalDate
@@ -152,11 +155,18 @@ internal fun WorkoutSessionOverlaysHost(
         val discomfortLabels = uiState.previousSessionDiscomforts.mapNotNull { id ->
             DISCOMFORT_CATALOG.find { it.id == id }?.label
         }
-        Surface(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp),
-            shape = RoundedCornerShape(16.dp),
-            color = Color(0xFF1A2744),
-            border = BorderStroke(1.dp, Color(0xFF448AFF).copy(alpha = 0.3f)),
+        val bannerHaze = null // Nested under workout hazeSource — FallbackScrim only.
+        val bannerShape = RoundedCornerShape(16.dp)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 6.dp)
+                .kpknGlassOrFallback(
+                    hazeState = bannerHaze,
+                    shape = bannerShape,
+                    additionalScrim = Color(0xFF1A2744).copy(alpha = 0.35f),
+                )
+                .border(BorderStroke(1.dp, Color(0xFF448AFF).copy(alpha = 0.3f)), bannerShape),
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {

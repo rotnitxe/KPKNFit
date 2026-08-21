@@ -46,6 +46,7 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.LoopEngine
 import com.example.kpkn.domain.training.ProgramAnalyticsEngine
 import com.example.kpkn.domain.training.CompetitionSessionSync
+import com.example.kpkn.domain.training.BlockTransitionEngine
 import com.example.kpkn.screens.auge.AugeViewModel
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknGlassDialog
@@ -86,6 +87,8 @@ fun ProgramDetailScreen(
     val simpleRoadmapLoopMarkers by viewModel.simpleRoadmapLoopMarkers.collectAsState()
     val isSimpleProgram by viewModel.isSimpleProgram.collectAsState()
     val activeProgramState by viewModel.activeProgramState.collectAsState()
+    val activeBlockId by viewModel.activeBlockId.collectAsState()
+    val blockTransitionBanner by viewModel.blockTransitionBanner.collectAsState()
     val showSimpleCalendarizationSheet by viewModel.showSimpleCalendarizationSheet.collectAsState()
     val calendarizationStartDate by viewModel.calendarizationStartDate.collectAsState()
     val calendarizationEndDate by viewModel.calendarizationEndDate.collectAsState()
@@ -105,6 +108,10 @@ fun ProgramDetailScreen(
     var openVolumeSheetToken by remember { mutableIntStateOf(0) }
     var notifiedLoopWeekId by remember { mutableStateOf<String?>(null) }
     var showSplitPage by rememberSaveable { mutableStateOf(false) }
+    var showOneRmDialog by rememberSaveable { mutableStateOf(false) }
+    var squat1RmText by rememberSaveable { mutableStateOf("") }
+    var bench1RmText by rememberSaveable { mutableStateOf("") }
+    var deadlift1RmText by rememberSaveable { mutableStateOf("") }
 
     // Edge case: program not found
     val p = program
@@ -171,6 +178,7 @@ fun ProgramDetailScreen(
                 sncBattery = augeSnapshot.ringScore(RecoveryChannelId.SYSTEM),
                 spinalBattery = augeSnapshot.ringScore(RecoveryChannelId.STRUCTURE),
                 isVolumeCalibrated = p.volumeRecommendations.isNotEmpty() && p.athleteProfileScore != null,
+                blockProgressLabel = viewModel.blockProgressLabel(),
                 onBack = onBack,
                 onStartPause = {
                     if (isActive) viewModel.pauseProgram()
@@ -270,6 +278,7 @@ fun ProgramDetailScreen(
                 onCreateSession = onCreateSession,
                 onOpenProgram = onOpenProgram,
                 onOpenSplitPage = { showSplitPage = true },
+                onOpenOneRmDialog = { showOneRmDialog = true },
             )
         }
         }
@@ -312,6 +321,51 @@ fun ProgramDetailScreen(
                 TextButton(onClick = { showVolumeSetupNotice = false }) {
                     Text("Más tarde")
                 }
+            },
+        )
+    }
+
+    if (showOneRmDialog) {
+        AlertDialog(
+            onDismissRequest = { showOneRmDialog = false },
+            title = { Text("Registrar 1RM", fontWeight = FontWeight.Black) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Introduce los máximos válidos de la sesión de test.")
+                    OutlinedTextField(
+                        value = squat1RmText,
+                        onValueChange = { squat1RmText = it },
+                        label = { Text("Sentadilla (kg)") },
+                        singleLine = true,
+                    )
+                    OutlinedTextField(
+                        value = bench1RmText,
+                        onValueChange = { bench1RmText = it },
+                        label = { Text("Banca (kg)") },
+                        singleLine = true,
+                    )
+                    OutlinedTextField(
+                        value = deadlift1RmText,
+                        onValueChange = { deadlift1RmText = it },
+                        label = { Text("Peso muerto (kg)") },
+                        singleLine = true,
+                    )
+                }
+            },
+            confirmButton = {
+                val squat = squat1RmText.toDoubleOrNull()
+                val bench = bench1RmText.toDoubleOrNull()
+                val deadlift = deadlift1RmText.toDoubleOrNull()
+                Button(
+                    enabled = squat != null && squat > 0 && bench != null && bench > 0 && deadlift != null && deadlift > 0,
+                    onClick = {
+                        viewModel.recordPendingOneRmTest(squat!!, bench!!, deadlift!!)
+                        showOneRmDialog = false
+                    },
+                ) { Text("Guardar y continuar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showOneRmDialog = false }) { Text("Cancelar") }
             },
         )
     }
@@ -395,9 +449,12 @@ private fun TrainingPanel(
     onCreateSession: (String, String, Int, Int, Int, Boolean) -> Unit,
     onOpenProgram: (String) -> Unit = {},
     onOpenSplitPage: () -> Unit = {},
+    onOpenOneRmDialog: () -> Unit = {},
 ) {
     val currentWeekId by viewModel.activeProgramState.collectAsState()
     val editorUiState by viewModel.uiState.collectAsState()
+    val activeBlockId by viewModel.activeBlockId.collectAsState()
+    val blockTransitionBanner by viewModel.blockTransitionBanner.collectAsState()
     val showSimpleCalendarizationSheet by viewModel.showSimpleCalendarizationSheet.collectAsState()
     val calendarizationStartDate by viewModel.calendarizationStartDate.collectAsState()
     val calendarizationEndDate by viewModel.calendarizationEndDate.collectAsState()
@@ -517,7 +574,7 @@ private fun TrainingPanel(
     }
 
     Column {
-        Spacer(Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         if (structureSubTab != StructureSubTab.VOLUMEN) {
             BlockRoadmap(
@@ -532,6 +589,7 @@ private fun TrainingPanel(
                 currentCycle = program.runState?.cycleNumber
                     ?: program.loopState?.currentCycle?.takeIf { it > 0 }
                     ?: 1,
+                activeBlockId = activeBlockId,
                 onSelectBlock = { viewModel.selectBlock(it) },
                 onSelectWeek = { viewModel.selectWeek(it) },
                 onAddSimpleWeek = { viewModel.addWeekToSimpleProgram() },
@@ -539,7 +597,16 @@ private fun TrainingPanel(
                 onAddAdvancedBlock = { name, description -> viewModel.addAdvancedBlockFromRoadmap(name, description) },
                 onUpdateWeek = { weekId, name, description -> viewModel.updateWeekMetadata(weekId, name, description) },
                 onDeleteWeek = { weekId -> viewModel.deleteWeekFromRoadmap(weekId) },
-                onUpdateBlock = { blockId, name, description -> viewModel.updateBlockMetadata(blockId, name, description) },
+                onUpdateBlock = { blockId, name, description, goal, scheme ->
+                    viewModel.updateBlockMetadata(
+                        blockId = blockId,
+                        name = name,
+                        description = description,
+                        goal = goal,
+                        progressionScheme = scheme,
+                    )
+                },
+                blockProgressionPreview = { blockId -> viewModel.previewBlockProgression(blockId) },
                 onDeleteBlock = { blockId -> viewModel.deleteBlockFromRoadmap(blockId) },
                 copiedWeekId = copiedRoadmapWeekId,
                 onCopyWeek = { copiedRoadmapWeekId = it },
@@ -554,7 +621,53 @@ private fun TrainingPanel(
                 },
             )
 
-            Spacer(Modifier.height(8.dp))
+            blockTransitionBanner?.let { banner ->
+                Spacer(modifier = Modifier.height(8.dp))
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    shape = RoundedCornerShape(12.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(
+                            banner.message,
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        )
+                        Column(horizontalAlignment = Alignment.End) {
+                            if (banner.requiresExplicitConfirmation) {
+                                if (banner.kind == BlockTransitionEngine.DecisionKind.INSERT_DELOAD) {
+                                    TextButton(onClick = { viewModel.acceptPendingDeload() }) {
+                                        Text("ACEPTAR DESCARGA")
+                                    }
+                                    TextButton(onClick = { viewModel.rejectPendingDeload() }) {
+                                        Text("RECHAZAR")
+                                    }
+                                } else {
+                                    TextButton(onClick = onOpenOneRmDialog) {
+                                        Text("REGISTRAR RESULTADO")
+                                    }
+                                    TextButton(onClick = { viewModel.skipPendingOneRmTest() }) {
+                                        Text("OMITIR")
+                                    }
+                                }
+                            }
+                            TextButton(onClick = { viewModel.dismissBlockTransitionBanner() }) {
+                                Text(if (banner.requiresExplicitConfirmation) "MÁS TARDE" else "OK")
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
         }
 
         if (structureSubTab == StructureSubTab.SEMANA) {
@@ -564,7 +677,7 @@ private fun TrainingPanel(
             ) {
                 Text("VER SPLITS", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color.White.copy(alpha = 0.7f))
             }
-            Spacer(Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(4.dp))
         }
 
         when (structureSubTab) {
@@ -770,7 +883,7 @@ private fun TrainingPanel(
             else -> {} // SPLIT — movido a botón dentro de Semana
         }
 
-        Spacer(Modifier.height(120.dp))
+        Spacer(modifier = Modifier.height(120.dp))
     }
 
     pendingCompetitionCreation?.let { pending ->
@@ -1290,18 +1403,19 @@ private fun EmptyProgramState(onAddStructure: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text("\uD83D\uDCCB", fontSize = 40.sp)
-            Spacer(Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Text("Programa vacío", fontSize = 16.sp, fontWeight = FontWeight.Black)
-            Spacer(Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 "Agrega estructura para comenzar",
                 fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Spacer(Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = onAddStructure) {
                 Text("Agregar estructura", fontWeight = FontWeight.Bold)
             }
         }
     }
 }
+

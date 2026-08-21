@@ -25,8 +25,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import com.example.kpkn.ui.components.KpknDropdownMenu
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -344,14 +344,10 @@ internal fun InlineSetRow(
                         Icon(Icons.Default.KeyboardArrowDown, null, tint = Color.White.copy(alpha = 0.7f), modifier = Modifier.size(13.dp))
                     }
                 }
-                DropdownMenu(
+                KpknDropdownMenu(
                     expanded = showLoadModeMenu,
                     onDismissRequest = { showLoadModeMenu = false },
-                    modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
                     shape = RoundedCornerShape(12.dp),
-                    containerColor = DarkEditorChip,
-                    tonalElevation = 0.dp,
-                    shadowElevation = 0.dp,
                 ) {
                     listOf(
                         LoadModeV2.LOAD to "Carga externa",
@@ -544,14 +540,10 @@ internal fun InlineSetRow(
                                         .matchParentSize()
                                         .clickable { showIntensityMenu = true },
                                 )
-                                DropdownMenu(
+                                KpknDropdownMenu(
                                     expanded = showIntensityMenu,
                                     onDismissRequest = { showIntensityMenu = false },
-                                    modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f), RoundedCornerShape(12.dp)),
                                     shape = RoundedCornerShape(12.dp),
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                    tonalElevation = 0.dp,
-                                    shadowElevation = 0.dp,
                                 ) {
                                     listOf(
                                         IntensityMode.RPE to "RPE",

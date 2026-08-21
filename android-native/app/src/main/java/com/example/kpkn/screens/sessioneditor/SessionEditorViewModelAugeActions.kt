@@ -359,7 +359,7 @@ internal fun SessionEditorViewModel.convertFailureToRir(session: Session): Sessi
 }
 
 internal fun SessionEditorViewModel.orderedExerciseIdsForAlert(alert: SessionEditorAugeAlert): Set<String> {
-    val currentSession = currentUiState.session ?: return emptySet()
+    val currentSession = currentUiState.activeVariantSession ?: return emptySet()
     val rankedExerciseIds = currentUiState.augeSummary.topExercises.map { it.exerciseId }
     return when {
         alert.exerciseId != null -> linkedSetOf(alert.exerciseId)
@@ -389,4 +389,3 @@ internal fun SessionEditorViewModel.exerciseMatchesPrimaryMuscle(exercise: Exerc
             VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle, it.emphasis) == target
     }
 }
-

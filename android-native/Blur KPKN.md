@@ -1,10 +1,10 @@
-# Blur KPKN — Efecto "Liquid Glass" oficial
+# Blur KPKN — Efecto "DarkMica" oficial
 
 > **LEE ESTO ENTERO ANTES DE TOCAR UNA SOLA LÍNEA DE BLUR.**
-> Este documento es la **única fuente de verdad** del efecto vidrio esmerilado (Liquid Glass) en la
-> app nativa de KPKN. No es una sugerencia: es un contrato. Si tu superficie con blur no sigue este
-> patrón, **el blur no va a funcionar** y vas a entregar un círculo gris plano creyendo que hiciste
-> vidrio.
+> Este documento es la **única fuente de verdad** del efecto mica oscura (DarkMica; evolucionado
+> desde Liquid Glass) en la app nativa de KPKN. No es una sugerencia: es un contrato. Si tu
+> superficie con blur no sigue este patrón, **el blur no va a funcionar** y vas a entregar un
+> círculo gris plano creyendo que hiciste mica.
 
 El look validado es el del **roadmap dock inferior del editor de sesiones** y el **FAB del asistente**.
 
@@ -191,16 +191,21 @@ Usamos [Haze](https://github.com/chrisbanes/haze) (`dev.chrisbanes.haze`), ya in
 
 ## 3. Valores canónicos (NO tocar)
 
-Definidos en `ui/components/KpknGlass.kt`. Incluyen el pase **oscuro para sheets** (asistente
-y resto de `KpknSheet`) para evitar vidrio lechoso.
+Definidos en `ui/components/KpknGlass.kt`. Look **DarkMica**: gris oscuro translúcido +
+blur leve (ni Liquid Glass cristalino ni panel 100% sólido).
 
-| Parámetro         | Valor                              | Rol                                                       |
-|-------------------|------------------------------------|-----------------------------------------------------------|
-| `blurRadius`      | `40.dp`                            | Fuerza del desenfoque. Alto = lectura clara de "vidrio".  |
-| `tint`            | `Color.White` alpha `0.015`        | Brillo esmerilado (… → 0.03 → 0.015).                     |
-| `backgroundColor` | `Color.Black` alpha `0.84`         | Scrim oscuro canónico (… → 0.68 → 0.84).                     |
-| `noiseFactor`     | `0.04`                             | Grano fino, evita banding en degradados planos.           |
-| borde             | `Color.White` alpha `0.08`, `1.dp` | Filo del vidrio (hairline).                               |
+| Parámetro     | Valor                              | Rol                                                         |
+|---------------|------------------------------------|-------------------------------------------------------------|
+| `Base`        | `Color(0xFF0E0E0E)` alpha `0.94`   | Underlay gris neutro (menos transparente).                  |
+| `EffectAlpha` | `0.42`                             | Opacidad de la capa blur. **No subir** para “más blur”.     |
+| `blurRadius`  | `100.dp`                           | Desenfoque fuerte (rings/fondo ilegibles).                  |
+| `tint`        | `Color(0xFF0E0E0E)` alpha `0.58`   | Tinte neutro sobre el sample.                               |
+| `noiseFactor` | `0.02`                             | Grano discreto.                                             |
+| borde         | `White` @ `0.05`, `1.dp`           | Filo sobrio.                                                |
+| fallbacks     | `#0E0E0E` ~opaco                   | Sin Haze / cross-window.                                    |
+
+API: `Modifier.kpknGlass` / `Modifier.kpknHazeEffect` = `background(Base)` + `hazeEffect { alpha }`.
+No uses `hazeEffect(kpknGlassStyle())` a pelo.
 
 ---
 

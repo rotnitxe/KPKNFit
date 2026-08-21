@@ -35,6 +35,7 @@ import com.example.kpkn.screens.wikilab.wikilabMuscleColor
 import java.util.Locale
 import kotlin.math.roundToInt
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknDropdownMenu
 
 internal enum class WorkoutExerciseContextTab {
     HISTORY,
@@ -201,7 +202,7 @@ internal fun WorkoutExerciseTabs(
                         tint = if (overflowSelected) sessionAccentColor else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                DropdownMenu(
+                KpknDropdownMenu(
                     expanded = overflowMenuExpanded,
                     onDismissRequest = { overflowMenuExpanded = false },
                 ) {

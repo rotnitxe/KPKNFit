@@ -1,4 +1,10 @@
 package com.example.kpkn.screens.programdetail.components
+/**
+ * Macrocycle editor implementation (legacy monolito).
+ * Edición de Block.goal / progressionScheme y preview de progresión viven en
+ * [BlockRoadmap] (diálogos del roadmap) para cambios mínimos y acotados; esta
+ * fachada no duplica esa lógica (plan 2026-08-20 Fase C).
+ */
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -24,7 +30,6 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -92,6 +97,7 @@ import com.example.kpkn.data.programs.PROGRAM_TEMPLATES
 import com.example.kpkn.data.programs.ProgramTemplateOption
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.protocols.Protocol
+import com.example.kpkn.data.protocols.isVisibleForApplication
 import com.example.kpkn.domain.training.ProgramProtocolEngine
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.domain.training.ProgramCalendarEngine
@@ -1948,7 +1954,16 @@ internal fun LegacyLibrarySection(
                     1 -> advancedTemplates.forEach { template ->
                         TemplatePreviewCard(template = template, onClick = { onApplyTemplate(template) })
                     }
-                    else -> PROTOCOL_LIBRARY.forEach { protocol ->
+                    else -> {
+                        val visibleProtocols = PROTOCOL_LIBRARY.filter { it.isVisibleForApplication }
+                        if (visibleProtocols.isEmpty()) {
+                            Text(
+                                "No hay protocolos verificables publicados todavía. Las recetas de terceros se mantienen fuera del catálogo hasta poder reproducirlas fielmente.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.White.copy(alpha = 0.72f),
+                            )
+                        }
+                        visibleProtocols.forEach { protocol ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -1976,6 +1991,7 @@ internal fun LegacyLibrarySection(
                                 }
                             }
                         }
+                    }
                     }
                 }
             }

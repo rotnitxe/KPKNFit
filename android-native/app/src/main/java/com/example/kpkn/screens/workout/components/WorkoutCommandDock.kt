@@ -3,12 +3,15 @@ package com.example.kpkn.screens.workout.components
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,12 +23,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import dev.chrisbanes.haze.HazeState
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.services.workout.VoicePipelineStage
 import com.example.kpkn.services.workout.VoiceSessionState
+import com.example.kpkn.ui.components.kpknGlassOrFallback
+import dev.chrisbanes.haze.HazeState
 
-@Suppress("UNUSED_PARAMETER")
 @Composable
 fun WorkoutCommandDock(
     exercise: Exercise?,
@@ -103,14 +106,18 @@ fun WorkoutCommandDock(
     val showVoiceChip = voiceSessionEnabled && voiceIndicatorText.isNotBlank()
     val micInteractionSource = remember { MutableInteractionSource() }
 
-    val primaryButtonText = remember(exercise, setIndex, activeSide, isUnilateral) {
-        if (exercise == null) "Completar Serie"
-        else if (isUnilateral && activeSide != null) {
-            val sideLabel = if (activeSide == "left") "Izquierda" else "Derecha"
-            "Completar S${setIndex + 1} · $sideLabel"
-        } else {
-            "Completar S${setIndex + 1}"
+    val primaryIconTint = if (primaryActionEnabled) {
+        sessionAccentColor
+    } else {
+        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.46f)
+    }
+    val micIconTint = if (voiceSessionEnabled) {
+        when {
+            isListening -> Color(0xFF4CAF50)
+            else -> voiceIndicatorColor
         }
+    } else {
+        Color.White.copy(alpha = 0.92f)
     }
 
     Box(
@@ -128,84 +135,80 @@ fun WorkoutCommandDock(
                 enter = slideInVertically(initialOffsetY = { it / 2 }) + fadeIn(),
                 exit = slideOutVertically(targetOffsetY = { it / 2 }) + fadeOut()
             ) {
-                Surface(
-                    modifier = Modifier.widthIn(max = 292.dp),
-                    shape = WorkoutUiTokens.ChipShape,
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.66f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+                Row(
+                    modifier = Modifier
+                        .widthIn(max = 292.dp)
+                        .kpknGlassOrFallback(hazeState, WorkoutUiTokens.ChipShape)
+                        .padding(horizontal = 10.dp, vertical = 7.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(voiceIndicatorColor)
+                            .then(
+                                if (isListening) Modifier
+                                    .scale(pulseScale)
+                                    .alpha(pulseAlpha)
+                                else Modifier
+                            )
+                    )
+                    // Live mic level meter when RMS is available
+                    if (isListening && voiceSessionState.rmsLevel != 0f) {
+                        val chipRmsNorm = ((voiceSessionState.rmsLevel + 2f) / 12f).coerceIn(0.08f, 1f)
                         Box(
                             modifier = Modifier
-                                .size(8.dp)
+                                .width(3.dp)
+                                .height((12.dp * chipRmsNorm).coerceAtLeast(3.dp))
                                 .clip(CircleShape)
-                                .background(voiceIndicatorColor)
-                                .then(
-                                    if (isListening) Modifier
-                                        .scale(pulseScale)
-                                        .alpha(pulseAlpha)
-                                    else Modifier
-                                )
+                                .background(voiceIndicatorColor.copy(alpha = 0.85f)),
                         )
-                        // Live mic level meter when RMS is available
-                        if (isListening && voiceSessionState.rmsLevel != 0f) {
-                            val rmsNorm = ((voiceSessionState.rmsLevel + 2f) / 12f).coerceIn(0.08f, 1f)
-                            Box(
-                                modifier = Modifier
-                                    .width(3.dp)
-                                    .height((12.dp * rmsNorm).coerceAtLeast(3.dp))
-                                    .clip(CircleShape)
-                                    .background(voiceIndicatorColor.copy(alpha = 0.85f)),
-                            )
-                        }
+                    }
+                    Text(
+                        text = voiceIndicatorText,
+                        color = Color.White,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (voiceSessionState.lastHeardSummary.isNotBlank()) {
                         Text(
-                            text = voiceIndicatorText,
-                            color = Color.White,
+                            text = voiceSessionState.lastHeardSummary,
+                            color = Color.White.copy(alpha = 0.72f),
                             style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    if (voiceSessionState.usingOnDeviceRecognizer && isListening) {
+                        Text(
+                            text = if (voiceSessionState.usingNativeFallback) "fallback" else "vosk local",
+                            color = Color(0xFF81C784),
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                        )
+                    }
+                    voiceSessionState.activeRouteLabel?.takeIf { it.isNotBlank() }?.let { route ->
+                        Text(
+                            text = route,
+                            color = Color.White.copy(alpha = 0.7f),
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    if (voiceSessionState.errorMessage != null && voiceSessionState.stage == VoicePipelineStage.ERROR_RECOVERY) {
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            text = "(${voiceSessionState.errorMessage})",
+                            color = Color(0xFFFFCDD2),
+                            style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-                        if (voiceSessionState.lastHeardSummary.isNotBlank()) {
-                            Text(
-                                text = voiceSessionState.lastHeardSummary,
-                                color = Color.White.copy(alpha = 0.72f),
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                        if (voiceSessionState.usingOnDeviceRecognizer && isListening) {
-                            Text(
-                                text = if (voiceSessionState.usingNativeFallback) "fallback" else "vosk local",
-                                color = Color(0xFF81C784),
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 1,
-                            )
-                        }
-                        voiceSessionState.activeRouteLabel?.takeIf { it.isNotBlank() }?.let { route ->
-                            Text(
-                                text = route,
-                                color = Color.White.copy(alpha = 0.7f),
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                        if (voiceSessionState.errorMessage != null && voiceSessionState.stage == VoicePipelineStage.ERROR_RECOVERY) {
-                            Spacer(modifier.width(4.dp))
-                            Text(
-                                text = "(${voiceSessionState.errorMessage})",
-                                color = Color(0xFFFFCDD2),
-                                style = MaterialTheme.typography.bodySmall,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
                     }
                 }
             }
@@ -216,18 +219,15 @@ fun WorkoutCommandDock(
                     .height(72.dp),
                 contentAlignment = Alignment.BottomEnd,
             ) {
-                FloatingActionButton(
-                    onClick = { if (primaryActionEnabled) onPrimaryAction() },
+                Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .size(56.dp),
-                    shape = CircleShape,
-                    containerColor = if (primaryActionEnabled) sessionAccentColor else MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = if (primaryActionEnabled) {
-                        if (0.2126f * sessionAccentColor.red + 0.7152f * sessionAccentColor.green + 0.0722f * sessionAccentColor.blue > 0.45f) Color.Black else Color.White
-                    } else {
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.46f)
-                    },
+                        .size(56.dp)
+                        .kpknGlassOrFallback(hazeState, CircleShape)
+                        .clickable(enabled = primaryActionEnabled) {
+                            onPrimaryAction()
+                        },
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = when {
@@ -240,35 +240,27 @@ fun WorkoutCommandDock(
                             isUpdateMode -> "Actualizar serie"
                             else -> "Completar serie"
                         },
+                        tint = primaryIconTint,
                         modifier = Modifier.size(28.dp),
                     )
                 }
-                SmallFloatingActionButton(
-                    onClick = {
-                        onToggleVoice()
-                    },
+                Box(
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        .padding(start = 0.dp, top = 0.dp)
                         .size(48.dp)
                         .then(
                             if (isListening) Modifier
                                 .scale(pulseScale)
                                 .alpha(pulseAlpha)
                             else Modifier
+                        )
+                        .kpknGlassOrFallback(hazeState, CircleShape)
+                        .clickable(
+                            interactionSource = micInteractionSource,
+                            indication = null,
+                            onClick = onToggleVoice,
                         ),
-                    shape = CircleShape,
-                    containerColor = when {
-                        voiceSessionEnabled && isListening -> Color(0xFF4CAF50)
-                        voiceSessionEnabled -> voiceIndicatorColor.copy(alpha = 0.95f)
-                        else -> MaterialTheme.colorScheme.surface.copy(alpha = 0.94f)
-                    },
-                    contentColor = if (voiceSessionEnabled) Color.Black else Color.White.copy(alpha = 0.92f),
-                    elevation = FloatingActionButtonDefaults.elevation(
-                        defaultElevation = 6.dp,
-                        pressedElevation = 8.dp,
-                    ),
-                    interactionSource = micInteractionSource,
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = if (voiceSessionEnabled) Icons.Default.Mic else Icons.Default.MicOff,
@@ -276,6 +268,7 @@ fun WorkoutCommandDock(
                             !voiceSessionEnabled -> "Activar control por voz"
                             else -> "Desactivar control por voz"
                         },
+                        tint = micIconTint,
                         modifier = Modifier.size(24.dp),
                     )
                 }
@@ -308,3 +301,4 @@ private fun rememberVoicePulse(enabled: Boolean): Pair<Float, Float> {
     )
     return pulseScale to pulseAlpha
 }
+

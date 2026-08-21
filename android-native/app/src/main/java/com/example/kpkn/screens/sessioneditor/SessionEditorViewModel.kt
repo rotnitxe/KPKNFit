@@ -117,11 +117,15 @@ class SessionEditorViewModel(
 
     /** Combined (system + user) template list, updated reactively. */
     val allTemplates: StateFlow<List<SessionTemplate>> = templateRepository.allTemplates
+    /** User-owned templates, including archived entries for explicit management. */
+    val userTemplates: StateFlow<List<SessionTemplate>> = templateRepository.userTemplates
     internal val exerciseIndex: Map<String, ExerciseMuscleInfo>
         get() = catalogExerciseIndex()
     private var augeJob: Job? = null
     private var autoSaveJob: Job? = null
     private var loadSessionJob: Job? = null
+    /** One template command at a time; prevents stale async REPLACE overwrites. */
+    internal var templateApplyJob: Job? = null
     private var textHistoryDebounceJob: Job? = null
     private var textHistoryBaseline: Session? = null
 
@@ -555,7 +559,7 @@ class SessionEditorViewModel(
     }
 
     internal fun loadHistory() {
-        val currentSession = _uiState.value.session ?: return
+        val currentSession = _uiState.value.activeVariantSession ?: _uiState.value.session ?: return
         viewModelScope.launch {
             val logs = repository.getLogsForSession(currentSession.id).sortedByDescending { it.date }
             val feedbackByLogId = logs.mapNotNull { log ->
@@ -781,7 +785,7 @@ class SessionEditorViewModel(
             assistantJob = viewModelScope.launch(Dispatchers.Default) {
                 delay(2500)
                 val s = _uiState.value
-                val sess = s.session ?: return@launch
+                val sess = s.activeVariantSession ?: s.session ?: return@launch
                 // Si se abrió AUGE entretanto, el otro path ya se encargó
                 if (s.sheet == SessionEditorSheet.AUGE) return@launch
                 val prog = repository.getProgramById(s.programId)
@@ -823,7 +827,7 @@ class SessionEditorViewModel(
 
     fun refreshAssistantImmediate() {
         val state = _uiState.value
-        val session = state.session ?: return
+        val session = state.activeVariantSession ?: state.session ?: return
         assistantJob?.cancel()
         viewModelScope.launch(Dispatchers.Default) {
             recalcAndPushAuge(state, session)
@@ -838,17 +842,9 @@ class SessionEditorViewModel(
 
     /** Text edits: debounce autosave; no AUGE recalc for name/description. */
     private fun updateSessionTextField(transform: (Session) -> Session) {
-        val current = _uiState.value.session ?: return
-        _uiState.update { state ->
-            val base = state.session ?: return@update state
-            val updated = transform(base).copy(lastModifiedAtMs = System.currentTimeMillis())
-            state.copy(
-                session = updated,
-                dayOfWeek = updated.dayOfWeek ?: state.dayOfWeek,
-                hasUnsavedChanges = updated != state.originalSession,
-            )
-        }
-        scheduleAutoSave()
+        if (_uiState.value.activeVariantSession == null) return
+        // Names/descriptions belong to the active variant just like exercises.
+        updateSession(reason = "Texto de sesión", transform = transform)
         textHistoryDebounceJob?.cancel()
         textHistoryDebounceJob = viewModelScope.launch {
             delay(800)
@@ -856,7 +852,7 @@ class SessionEditorViewModel(
         }
     }
     fun updateSessionMeetDay(isMeetDay: Boolean) {
-        val current = _uiState.value.session ?: return
+        val current = _uiState.value.activeVariantSession ?: _uiState.value.session ?: return
         if (!isMeetDay) {
             val backup = current.trainingBackup
             if (backup != null && backup.catalogSchemaVersion < 2) {
@@ -948,7 +944,7 @@ class SessionEditorViewModel(
     fun refreshTimeCoachSuggestions() {
         viewModelScope.launch(Dispatchers.Default) {
             val state = _uiState.value
-            val session = state.session ?: return@launch
+            val session = state.activeVariantSession ?: state.session ?: return@launch
             val settingsForBreakdown = repository.settings.value
             val breakdown = state.sessionTimeBreakdown ?: runCatching {
 calculateSessionTimeBreakdown(
@@ -1070,7 +1066,7 @@ calculateSessionTimeBreakdown(
 
     /** Reloads trained versions for the current session (e.g. after finishing a workout). */
     fun refreshTrainedVersions() {
-        val sessionId = _uiState.value.session?.id ?: return
+        val sessionId = _uiState.value.activeVariantSession?.id ?: _uiState.value.session?.id ?: return
         _uiState.update {
             it.copy(localDraftHistory = trainedVersionStore.loadForSession(sessionId))
         }

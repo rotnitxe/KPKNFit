@@ -44,7 +44,7 @@ import com.example.kpkn.ui.components.KpknAlertDialog
 fun ProgramsScreen(
     onNavigateToProgram: (String) -> Unit,
     onCreateProgram: () -> Unit,
-    viewModel: ProgramsViewModel = viewModel { ProgramsViewModel() },
+    viewModel: ProgramsViewModel = viewModel(),
 ) {
     val programs by viewModel.programs.collectAsState()
     val archivedPrograms by viewModel.archivedPrograms.collectAsState()

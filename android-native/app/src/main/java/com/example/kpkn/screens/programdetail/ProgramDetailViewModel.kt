@@ -8,6 +8,8 @@ import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.Block
+import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.models.BlockProgressionScheme
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.HYPERTROPHY_ROLE_MULTIPLIERS
 import com.example.kpkn.data.models.Mesocycle
@@ -17,6 +19,7 @@ import com.example.kpkn.data.models.ProgramCalendarizationMode
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.ProgramStatus
+import com.example.kpkn.data.models.PendingProgramActionType
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.WorkoutLog
@@ -33,6 +36,8 @@ import com.example.kpkn.data.models.suggestCalendarTrainingDays
 import com.example.kpkn.data.models.toSimpleProgramSnapshot
 import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.training.BlockProgressionEngine
+import com.example.kpkn.domain.training.BlockTransitionEngine
 import com.example.kpkn.domain.training.ProgramDetailHelpers
 import com.example.kpkn.domain.training.AppClock
 import com.example.kpkn.domain.training.IdProvider
@@ -89,6 +94,14 @@ data class ProgramDetailUiState(
     val macrocycleCompetitionDate: String? = null,
 )
 
+/** Banner de transición de bloque (evento → StateFlow; sin lógica inline en Compose). */
+data class BlockTransitionBanner(
+    val kind: BlockTransitionEngine.DecisionKind,
+    val message: String,
+    val nextBlockId: String? = null,
+    val requiresExplicitConfirmation: Boolean = false,
+)
+
 data class WeekCopyConflict(
     val weekId: String,
     val weekName: String,
@@ -116,8 +129,10 @@ class ProgramDetailViewModel(
     // ─── UI State ─────────────────────────────────────────────────────────
 
     private val _uiState = MutableStateFlow(ProgramDetailUiState())
-
     val uiState: StateFlow<ProgramDetailUiState> = _uiState
+
+    private val _blockTransitionBanner = MutableStateFlow<BlockTransitionBanner?>(null)
+    val blockTransitionBanner: StateFlow<BlockTransitionBanner?> = _blockTransitionBanner
 
     // ─── Raw Data from Repository ─────────────────────────────────────────
 
@@ -411,6 +426,28 @@ class ProgramDetailViewModel(
                     _uiState.update { it.copy(selectedWeekId = weeks.first().id) }
                 }
             }.collect {}
+        }
+
+        // A realization block is a hard gate persisted in ProgramRunState.  It
+        // survives process death and is rendered again only when a new pending
+        // action arrives; dismissing the banner never advances the program.
+        viewModelScope.launch {
+            program
+                .map { it?.runState?.pendingAction }
+                .distinctUntilChanged()
+                .collect { action ->
+                    if (action != null) {
+                        _blockTransitionBanner.value = BlockTransitionBanner(
+                            kind = when (action.type) {
+                                PendingProgramActionType.CONFIRM_DELOAD -> BlockTransitionEngine.DecisionKind.INSERT_DELOAD
+                                PendingProgramActionType.CONFIRM_1RM_TEST -> BlockTransitionEngine.DecisionKind.PROPOSE_1RM_TEST
+                            },
+                            message = action.message,
+                            nextBlockId = action.nextBlockId,
+                            requiresExplicitConfirmation = true,
+                        )
+                    }
+                }
         }
     }
 
@@ -813,7 +850,13 @@ class ProgramDetailViewModel(
         updateProgram(updated)
     }
 
-    fun updateBlockMetadata(blockId: String, name: String, description: String?) {
+    fun updateBlockMetadata(
+        blockId: String,
+        name: String,
+        description: String?,
+        goal: BlockGoal? = null,
+        progressionScheme: BlockProgressionScheme? = null,
+    ) {
         val current = program.value ?: return
         val normalizedDescription = description?.trim()?.takeIf { it.isNotEmpty() }
         val updated = current.copy(
@@ -821,9 +864,20 @@ class ProgramDetailViewModel(
                 macro.copy(
                     blocks = macro.blocks.map { block ->
                         if (block.id == blockId) {
+                            val nextGoal = goal ?: block.goal
+                            val nextScheme = progressionScheme ?: block.progressionScheme
                             block.copy(
                                 name = name.trim().ifBlank { block.name },
                                 description = normalizedDescription,
+                                goal = nextGoal,
+                                progressionScheme = nextScheme,
+                                // Metadata edits must not pretend that the old
+                                // week prescriptions are still atomic.  Keep
+                                // the user's draft intact and expose an
+                                // explicit materialization-needed state until
+                                // the progression engine is run/confirmed.
+                                materializationPending = block.materializationPending ||
+                                    nextGoal != block.goal || nextScheme != block.progressionScheme,
                             )
                         } else block
                     }
@@ -831,6 +885,122 @@ class ProgramDetailViewModel(
             }
         )
         repository.updateProgram(updated)
+    }
+
+    fun dismissBlockTransitionBanner() {
+        _blockTransitionBanner.value = null
+    }
+
+    fun publishBlockTransition(decision: BlockTransitionEngine.TransitionDecision) {
+        if (decision.kind == BlockTransitionEngine.DecisionKind.HOLD_INCOMPLETE) return
+        if (decision.kind == BlockTransitionEngine.DecisionKind.INSERT_DELOAD) {
+            val current = program.value ?: return
+            val run = current.runState ?: com.example.kpkn.data.models.ProgramRunState(
+                runId = ProgramProgressEngine.newRunId(),
+            )
+            val gated = (decision.updatedProgram ?: current).copy(
+                runState = run.copy(
+                    pendingAction = com.example.kpkn.data.models.PendingProgramAction(
+                        type = PendingProgramActionType.CONFIRM_DELOAD,
+                        message = decision.message,
+                        nextBlockId = decision.nextBlockId,
+                    ),
+                ),
+            )
+            repository.updateProgram(gated)
+            return
+        }
+        _blockTransitionBanner.value = BlockTransitionBanner(
+            kind = decision.kind,
+            message = decision.message,
+            nextBlockId = decision.nextBlockId,
+            requiresExplicitConfirmation = decision.kind == BlockTransitionEngine.DecisionKind.PROPOSE_1RM_TEST,
+        )
+        decision.updatedProgram?.let { repository.updateProgram(it) }
+    }
+
+    /** Accepts the persisted AUGE deload proposal and moves the cursor into it. */
+    fun acceptPendingDeload() = resolvePendingDeload(accept = true)
+
+    /** Rejects the persisted AUGE deload proposal and removes its generated block. */
+    fun rejectPendingDeload() = resolvePendingDeload(accept = false)
+
+    private fun resolvePendingDeload(accept: Boolean) {
+        val current = program.value ?: return
+        val result = ProgramProgressEngine.resolvePendingDeload(
+            program = current,
+            activeState = activeProgramState.value?.takeIf { it.programId == current.id },
+            accept = accept,
+        )
+        if (result.program == current) return
+        updateProgram(result.program)
+        result.activeState?.let(repository::updateActiveProgramState)
+        _blockTransitionBanner.value = null
+    }
+
+    /** Records the three competition 1RMs and then advances the persisted cursor. */
+    fun recordPendingOneRmTest(squat1RM: Double, bench1RM: Double, deadlift1RM: Double) {
+        val current = program.value ?: return
+        val result = ProgramProgressEngine.resolvePendingOneRmTest(
+            program = current,
+            activeState = activeProgramState.value?.takeIf { it.programId == current.id },
+            resolution = com.example.kpkn.data.models.OneRmResolution(
+                status = com.example.kpkn.data.models.OneRmResolutionStatus.RECORDED,
+                squat1RM = squat1RM,
+                bench1RM = bench1RM,
+                deadlift1RM = deadlift1RM,
+            ),
+        )
+        if (result.program == current) return
+        updateProgram(result.program)
+        result.activeState?.let(repository::updateActiveProgramState)
+        _blockTransitionBanner.value = null
+    }
+
+    /** Explicitly declines the test while still persisting the audit decision. */
+    fun skipPendingOneRmTest() {
+        val current = program.value ?: return
+        val result = ProgramProgressEngine.resolvePendingOneRmTest(
+            program = current,
+            activeState = activeProgramState.value?.takeIf { it.programId == current.id },
+            resolution = com.example.kpkn.data.models.OneRmResolution(
+                status = com.example.kpkn.data.models.OneRmResolutionStatus.SKIPPED,
+                note = "Atleta omitió el registro de 1RM",
+            ),
+        )
+        if (result.program == current) return
+        updateProgram(result.program)
+        result.activeState?.let(repository::updateActiveProgramState)
+        _blockTransitionBanner.value = null
+    }
+
+    /** Legacy entrypoint retained for integrations; records SKIPPED explicitly. */
+    fun confirmPendingOneRmTestAndContinue() = skipPendingOneRmTest()
+
+    fun blockProgressLabel(): String? {
+        val p = program.value ?: return null
+        if (p.structure != ProgramStructure.COMPLEX) return null
+        val blocks = p.macrocycles.flatMap { it.blocks }
+        if (blocks.isEmpty()) return null
+        val activeId = activeBlockId.value ?: _uiState.value.selectedBlockId ?: blocks.first().id
+        val index = blocks.indexOfFirst { it.id == activeId }.takeIf { it >= 0 } ?: 0
+        val block = blocks[index]
+        val weeks = block.mesocycles.flatMap { it.weeks }
+        val weekId = _uiState.value.selectedWeekId
+        val weekIdx = weeks.indexOfFirst { it.id == weekId }.takeIf { it >= 0 } ?: 0
+        val goalLabel = block.goal?.label
+            ?: block.mesocycles.firstOrNull()?.goal?.label
+            ?: "Bloque"
+        val remaining = (weeks.size - weekIdx - 1).coerceAtLeast(0)
+        return "Bloque ${index + 1}/${blocks.size} · $goalLabel · quedan $remaining sem"
+    }
+
+    fun previewBlockProgression(blockId: String): String? {
+        val block = program.value?.macrocycles?.flatMap { it.blocks }?.firstOrNull { it.id == blockId }
+            ?: return null
+        val weeks = block.mesocycles.firstOrNull()?.weeks?.size ?: return null
+        if (weeks < 2) return "Bloque de 1 semana: sin cambio semanal."
+        return BlockProgressionEngine.previewDiff(block, weeks - 1, weeks)?.summary
     }
 
     fun deleteWeekFromRoadmap(weekId: String) {

@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
@@ -35,16 +34,16 @@ import com.example.kpkn.domain.workout.WarmupCalibrationEngine
 import com.example.kpkn.domain.workout.WarmupEffort
 import com.example.kpkn.domain.workout.WarmupEffortReport
 import com.example.kpkn.screens.workout.toTrimmedNumberString
-import com.example.kpkn.ui.components.kpknGlassStyle
+import com.example.kpkn.ui.components.kpknGlass
+import com.example.kpkn.ui.components.kpknHazeEffect
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeEffect
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 /**
- * Full-screen blur overlay for approximation (warm-up) sets in live sessions.
+ * Full-screen DarkMica overlay for approximation (warm-up) sets in live sessions.
  * Features a circular progression ramp, prominent percentages, inline rest timers,
- * clean direct load input, effort rating, sticky bottom actions with soft fade,
+ * clean direct load input, effort rating, sticky bottom DarkMica actions,
  * and real-time auto-regulation via WarmupCalibrationEngine.
  */
 @Composable
@@ -126,10 +125,14 @@ fun WorkoutWarmupOverlay(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .hazeEffect(state = hazeState, style = kpknGlassStyle())
-            .zIndex(6f)
-            .background(Color(0xFF0C1017).copy(alpha = 0.88f)),
+            .zIndex(6f),
     ) {
+        // Fullscreen DarkMica backdrop — sibling of content + sticky footer.
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .kpknHazeEffect(hazeState),
+        )
         // Scrolleable content with bottom padding for the sticky bottom bar
         Column(
             modifier = Modifier
@@ -463,22 +466,15 @@ fun WorkoutWarmupOverlay(
             }
         }
 
-        // ─── 6. Botones Sticky Inferiores con Efecto KPKN Glass y Desvanecido Suave ───
+        // ─── 6. Sticky footer DarkMica (sibling of haze backdrop; no opaque gradient) ───
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .background(
-                    brush = Brush.verticalGradient(
-                        0.0f to Color.Transparent,
-                        0.25f to Color(0xFF0C1017).copy(alpha = 0.70f),
-                        0.55f to Color(0xFF0C1017).copy(alpha = 0.96f),
-                        1.0f to Color(0xFF0C1017),
-                    ),
-                )
+                .kpknGlass(hazeState, WorkoutUiTokens.DockShape)
                 .navigationBarsPadding()
                 .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding)
-                .padding(top = 36.dp, bottom = 14.dp),
+                .padding(top = 16.dp, bottom = 14.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

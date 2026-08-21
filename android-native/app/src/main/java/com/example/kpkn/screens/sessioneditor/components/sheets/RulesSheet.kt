@@ -61,6 +61,8 @@ import com.example.kpkn.ui.components.KpknSheetGlassChip
 import com.example.kpkn.ui.components.KpknSheetLightChip
 import com.example.kpkn.ui.components.KpknSheetTokens
 import com.example.kpkn.ui.components.KpknSheetWhiteButton
+import com.example.kpkn.ui.components.LocalHazeState
+import com.example.kpkn.ui.components.kpknGlassOrFallback
 import com.example.kpkn.ui.components.kpknSheetGlassFieldColors
 import java.util.Locale
 
@@ -1257,10 +1259,12 @@ internal fun StickyActionBar(
     modifier: Modifier = Modifier,
     onApply: () -> Unit,
 ) {
+    val hazeState = LocalHazeState.current
+    val barShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color.Black)
+            .kpknGlassOrFallback(hazeState, barShape)
             .navigationBarsPadding()
             .padding(horizontal = 18.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,

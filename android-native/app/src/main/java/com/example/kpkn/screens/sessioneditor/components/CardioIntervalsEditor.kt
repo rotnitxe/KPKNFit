@@ -1,39 +1,54 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -45,11 +60,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.CardioBlockType
 import com.example.kpkn.data.models.CardioCatalog
 import com.example.kpkn.data.models.CardioDetails
-import com.example.kpkn.data.models.CardioHiitTemplates
 import com.example.kpkn.data.models.CardioIntervalBlock
 import com.example.kpkn.data.models.CardioIntervalPattern
 import com.example.kpkn.data.models.CardioIntervalPrograms
@@ -60,6 +77,7 @@ import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
 import java.util.UUID
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun CardioIntervalsEditor(
     details: CardioDetails,
@@ -68,9 +86,23 @@ internal fun CardioIntervalsEditor(
 ) {
     val hasIntervals = details.hasIntervals()
     var showTemplatePicker by remember { mutableStateOf(false) }
+    var selectedBlockIdx by remember(details.intervalBlocks.size) { mutableIntStateOf(0) }
+    var showCompactListOverview by remember { mutableStateOf(false) }
+
+    // Asegurar índice válido
+    val validSelectedIdx = if (details.intervalBlocks.isNotEmpty()) {
+        selectedBlockIdx.coerceIn(0, details.intervalBlocks.lastIndex)
+    } else 0
+
     var totalMinutesText by remember(details.totalIntervalSeconds(), details.targetDurationSeconds) {
         mutableStateOf(((details.targetDurationSeconds ?: details.totalIntervalSeconds()).coerceAtLeast(60) / 60).toString())
     }
+
+    val catalogInfo = remember(details.type) { CardioCatalog.findByType(details.type) }
+    val catalogSupportsSpeed = catalogInfo?.supportsSpeed ?: true
+    val catalogSupportsIncline = catalogInfo?.supportsIncline ?: false
+    val catalogSupportsRpm = catalogInfo?.supportsRpm ?: false
+    val catalogSupportsWatts = catalogInfo?.supportsWatts ?: false
 
     Column(
         modifier = Modifier
@@ -81,6 +113,7 @@ internal fun CardioIntervalsEditor(
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        // Cabecera
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -90,19 +123,20 @@ internal fun CardioIntervalsEditor(
                 Text("Circuitos / Intervalos", color = Color.White, fontWeight = FontWeight.Black, style = MaterialTheme.typography.bodyMedium)
                 Text(
                     if (hasIntervals) "${details.intervalBlocks.size} bloques · ${details.intervalRounds} ronda(s) · ${formatMinutes(details.totalIntervalSeconds())}"
-                    else "Programa velocidades por tramos, como en la cinta",
+                    else "Programa velocidades por tramos y pirámides",
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.White.copy(alpha = 0.62f),
                 )
             }
             Text(
-                "Modo intervalos activo",
+                "Modo intervalos",
                 color = accentColor,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
             )
         }
 
+        // Duración total escalable
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             IntervalAccentField(
                 value = totalMinutesText,
@@ -122,53 +156,66 @@ internal fun CardioIntervalsEditor(
                 modifier = Modifier.weight(1f),
             )
             Text(
-                "El patrón escala automáticamente; cada bloque sigue siendo editable.",
-                modifier = Modifier.weight(1.2f).align(Alignment.CenterVertically),
+                "El patrón escala automáticamente todos los bloques en proporción.",
+                modifier = Modifier
+                    .weight(1.2f)
+                    .align(Alignment.CenterVertically),
                 style = MaterialTheme.typography.labelSmall,
                 color = Color.White.copy(alpha = 0.62f),
             )
         }
 
+        // Selector de Patrones con FlowRow limpio y moderno
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("Patrón", color = Color.White.copy(alpha = 0.75f), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-            CardioIntervalPrograms.specs.chunked(3).forEach { row ->
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-                    row.forEach { spec ->
-                        val selected = details.intervalBlocks.isNotEmpty() &&
-                            spec.pattern != CardioIntervalPattern.CUSTOM &&
-                            details.intervalBlocks.any { it.type == CardioBlockType.WARMUP } &&
-                            details.intervalBlocks.count { it.type == CardioBlockType.WORK } >= spec.units.count { it.type == CardioBlockType.WORK }
-                        Surface(
-                            modifier = Modifier.weight(1f).clickable {
-                                if (spec.pattern == CardioIntervalPattern.CUSTOM) {
-                                    onChange(details.copy(hiit = null))
-                                } else {
-                                    val total = totalMinutesText.toIntOrNull()?.coerceIn(1, 240)?.times(60)
-                                        ?: details.totalIntervalSeconds().coerceAtLeast(20 * 60)
-                                    onChange(
-                                        CardioIntervalProgramBuilder.buildDetails(
-                                            pattern = spec.pattern,
-                                            totalSeconds = total,
-                                            type = details.type,
-                                            baseLevel = details.resolvedIntensityLevel(),
-                                            base = details.copy(hiit = null),
-                                        ),
-                                    )
-                                }
-                            },
-                            shape = RoundedCornerShape(999.dp),
-                            color = accentColor.copy(alpha = if (selected) 0.28f else 0.06f),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = if (selected) 0.85f else 0.30f)),
-                        ) {
-                            Text(spec.label, modifier = Modifier.padding(horizontal = 7.dp, vertical = 5.dp), color = Color.White, style = MaterialTheme.typography.labelSmall, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium)
-                        }
+            Text("Patrón de intervalo", color = Color.White.copy(alpha = 0.75f), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                CardioIntervalPrograms.specs.forEach { spec ->
+                    val selected = details.intervalBlocks.isNotEmpty() &&
+                        spec.pattern != CardioIntervalPattern.CUSTOM &&
+                        details.intervalBlocks.any { it.type == CardioBlockType.WARMUP } &&
+                        details.intervalBlocks.count { it.type == CardioBlockType.WORK } >= spec.units.count { it.type == CardioBlockType.WORK }
+
+                    Surface(
+                        modifier = Modifier.clickable {
+                            if (spec.pattern == CardioIntervalPattern.CUSTOM) {
+                                onChange(details.copy(hiit = null))
+                            } else {
+                                val total = totalMinutesText.toIntOrNull()?.coerceIn(1, 240)?.times(60)
+                                    ?: details.totalIntervalSeconds().coerceAtLeast(20 * 60)
+                                onChange(
+                                    CardioIntervalProgramBuilder.buildDetails(
+                                        pattern = spec.pattern,
+                                        totalSeconds = total,
+                                        type = details.type,
+                                        baseLevel = details.resolvedIntensityLevel(),
+                                        base = details.copy(hiit = null),
+                                    ),
+                                )
+                                selectedBlockIdx = 0
+                            }
+                        },
+                        shape = RoundedCornerShape(999.dp),
+                        color = if (selected) accentColor.copy(alpha = 0.28f) else Color.White.copy(alpha = 0.08f),
+                        border = BorderStroke(1.dp, if (selected) accentColor.copy(alpha = 0.85f) else Color.White.copy(alpha = 0.14f)),
+                    ) {
+                        Text(
+                            spec.label,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            color = if (selected) Color.White else Color.White.copy(alpha = 0.75f),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = if (selected) FontWeight.Black else FontWeight.Medium,
+                        )
                     }
-                    repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
                 }
             }
         }
 
         if (!hasIntervals) {
+            // Estado inicial sin intervalos
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 Button(
                     onClick = {
@@ -177,6 +224,7 @@ internal fun CardioIntervalsEditor(
                             CardioIntervalBlock(id = UUID.randomUUID().toString(), type = CardioBlockType.RECOVER, durationSeconds = 60, speedKmh = 5.0, intensityLevel = 3),
                         )
                         onChange(details.copy(intervalBlocks = seed, intervalRounds = 1, targetDurationSeconds = seed.sumOf { it.durationSeconds }))
+                        selectedBlockIdx = 0
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = accentColor, contentColor = Color.Black),
                     shape = RoundedCornerShape(999.dp),
@@ -196,91 +244,192 @@ internal fun CardioIntervalsEditor(
                 }
             }
         } else {
-            // Rounds stepper
+            // Control de Rondas estilizado y compacto (sin botones gigantes)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text("Rondas del circuito", color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    IconButton(
-                        onClick = {
-                            val newRounds = (details.intervalRounds - 1).coerceAtLeast(1)
-                            val total = details.intervalBlocks.sumOf { it.durationSeconds } * newRounds
-                            onChange(details.copy(intervalRounds = newRounds, targetDurationSeconds = total))
-                        },
-                        modifier = Modifier.size(28.dp).clip(RoundedCornerShape(8.dp)).background(Color.White.copy(alpha = 0.12f)),
-                    ) { Text("−", color = Color.White, fontWeight = FontWeight.Black) }
-                    Text("${details.intervalRounds}×", color = Color.White, fontWeight = FontWeight.Black, modifier = Modifier.padding(horizontal = 4.dp))
-                    IconButton(
-                        onClick = {
-                            val newRounds = (details.intervalRounds + 1).coerceAtMost(20)
-                            val total = details.intervalBlocks.sumOf { it.durationSeconds } * newRounds
-                            onChange(details.copy(intervalRounds = newRounds, targetDurationSeconds = total))
-                        },
-                        modifier = Modifier.size(28.dp).clip(RoundedCornerShape(8.dp)).background(accentColor.copy(alpha = 0.35f)),
-                    ) { Text("+", color = Color.White, fontWeight = FontWeight.Black) }
+                Column {
+                    Text("Rondas del circuito", color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        if (details.intervalRounds > 1) "Se repite ${details.intervalRounds} veces" else "1 vuelta completa",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.55f),
+                    )
                 }
+
+                // Stepper de rondas estilizado
+                CompactRoundStepper(
+                    rounds = details.intervalRounds,
+                    accentColor = accentColor,
+                    onRoundsChange = { newRounds ->
+                        val total = details.intervalBlocks.sumOf { it.durationSeconds } * newRounds
+                        onChange(details.copy(intervalRounds = newRounds, targetDurationSeconds = total))
+                    },
+                )
             }
 
-            // Mini preview chart
-            CardioIntervalChart(details = details, accentColor = accentColor, modifier = Modifier.fillMaxWidth(), showLabels = false, compact = true)
+            // Gráfico interactivo centrado que llena el ancho y permite seleccionar bloques al tocar
+            CardioIntervalChart(
+                details = details,
+                accentColor = accentColor,
+                modifier = Modifier.fillMaxWidth(),
+                showLabels = false,
+                compact = true,
+                selectedBlockIndex = validSelectedIdx,
+                onSelectBlockIndex = { idx ->
+                    selectedBlockIdx = idx
+                },
+            )
 
-            // Blocks list
-            details.intervalBlocks.forEachIndexed { idx, block ->
-                CardioBlockRow(
-                    block = block,
-                    index = idx,
+            // Selector horizontal de peldaños (Timeline de la pirámide/circuito)
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "Peldaños del circuito (${details.intervalBlocks.size})",
+                        color = Color.White.copy(alpha = 0.85f),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    TextButton(
+                        onClick = { showCompactListOverview = !showCompactListOverview },
+                        modifier = Modifier.height(28.dp),
+                    ) {
+                        Icon(
+                            if (showCompactListOverview) Icons.Default.Tune else Icons.Default.FormatListBulleted,
+                            contentDescription = null,
+                            tint = accentColor,
+                            modifier = Modifier.size(14.dp),
+                        )
+                        Text(
+                            if (showCompactListOverview) " Ver inspector" else " Ver lista",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = accentColor,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
+
+                // Timeline de peldaños interactivo
+                CardioIntervalStepBar(
+                    blocks = details.intervalBlocks,
+                    selectedIdx = validSelectedIdx,
+                    accentColor = accentColor,
+                    onSelectIdx = { selectedBlockIdx = it },
+                )
+            }
+
+            if (!showCompactListOverview && details.intervalBlocks.isNotEmpty()) {
+                // INSPECTOR DE BLOQUE SELECCIONADO (Diseño amigable, compacto y no repetitivo)
+                val activeBlock = details.intervalBlocks[validSelectedIdx]
+
+                CardioActiveBlockInspector(
+                    block = activeBlock,
+                    index = validSelectedIdx,
                     total = details.intervalBlocks.size,
                     accentColor = accentColor,
-                    catalogSupportsSpeed = CardioCatalog.findByType(details.type)?.supportsSpeed ?: true,
-                    catalogSupportsIncline = CardioCatalog.findByType(details.type)?.supportsIncline ?: false,
-                    catalogSupportsRpm = CardioCatalog.findByType(details.type)?.supportsRpm ?: false,
-                    catalogSupportsWatts = CardioCatalog.findByType(details.type)?.supportsWatts ?: false,
+                    catalogSupportsSpeed = catalogSupportsSpeed,
+                    catalogSupportsIncline = catalogSupportsIncline,
+                    catalogSupportsRpm = catalogSupportsRpm,
+                    catalogSupportsWatts = catalogSupportsWatts,
                     onUpdate = { updated ->
                         val newBlocks = details.intervalBlocks.toMutableList()
-                        newBlocks[idx] = updated
+                        newBlocks[validSelectedIdx] = updated
                         val total = newBlocks.sumOf { it.durationSeconds } * details.intervalRounds.coerceIn(1, 99)
                         onChange(details.copy(intervalBlocks = newBlocks, targetDurationSeconds = total))
                     },
                     onDelete = {
+                        val newBlocks = details.intervalBlocks.filterIndexed { i, _ -> i != validSelectedIdx }
+                        val total = if (newBlocks.isEmpty()) 20 * 60 else newBlocks.sumOf { it.durationSeconds } * details.intervalRounds.coerceIn(1, 99)
+                        onChange(details.copy(intervalBlocks = newBlocks, targetDurationSeconds = total))
+                        if (validSelectedIdx >= newBlocks.size && newBlocks.isNotEmpty()) {
+                            selectedBlockIdx = newBlocks.lastIndex
+                        }
+                    },
+                    onDuplicate = {
+                        val duplicate = activeBlock.copy(id = UUID.randomUUID().toString())
+                        val newBlocks = details.intervalBlocks.toMutableList()
+                        newBlocks.add(validSelectedIdx + 1, duplicate)
+                        val total = newBlocks.sumOf { it.durationSeconds } * details.intervalRounds.coerceIn(1, 99)
+                        onChange(details.copy(intervalBlocks = newBlocks, targetDurationSeconds = total))
+                        selectedBlockIdx = validSelectedIdx + 1
+                    },
+                    onPrevious = if (validSelectedIdx > 0) {
+                        { selectedBlockIdx = validSelectedIdx - 1 }
+                    } else null,
+                    onNext = if (validSelectedIdx < details.intervalBlocks.lastIndex) {
+                        { selectedBlockIdx = validSelectedIdx + 1 }
+                    } else null,
+                )
+            } else if (showCompactListOverview) {
+                // VISTA DE LISTA COMPACTA DE TODOS LOS BLOQUES
+                CardioCompactBlocksOverview(
+                    blocks = details.intervalBlocks,
+                    selectedIdx = validSelectedIdx,
+                    accentColor = accentColor,
+                    catalogSupportsSpeed = catalogSupportsSpeed,
+                    onSelectIdx = { selectedBlockIdx = it },
+                    onDelete = { idx ->
                         val newBlocks = details.intervalBlocks.filterIndexed { i, _ -> i != idx }
                         val total = if (newBlocks.isEmpty()) 20 * 60 else newBlocks.sumOf { it.durationSeconds } * details.intervalRounds.coerceIn(1, 99)
                         onChange(details.copy(intervalBlocks = newBlocks, targetDurationSeconds = total))
+                        if (validSelectedIdx >= newBlocks.size && newBlocks.isNotEmpty()) {
+                            selectedBlockIdx = newBlocks.lastIndex
+                        }
                     },
-                    onMoveUp = if (idx > 0) {
-                        {
+                    onMoveUp = { idx ->
+                        if (idx > 0) {
                             val newBlocks = details.intervalBlocks.toMutableList()
                             val tmp = newBlocks[idx - 1]
                             newBlocks[idx - 1] = newBlocks[idx]
                             newBlocks[idx] = tmp
                             onChange(details.copy(intervalBlocks = newBlocks))
+                            selectedBlockIdx = idx - 1
                         }
-                    } else null,
-                    onMoveDown = if (idx < details.intervalBlocks.size - 1) {
-                        {
+                    },
+                    onMoveDown = { idx ->
+                        if (idx < details.intervalBlocks.size - 1) {
                             val newBlocks = details.intervalBlocks.toMutableList()
                             val tmp = newBlocks[idx + 1]
                             newBlocks[idx + 1] = newBlocks[idx]
                             newBlocks[idx] = tmp
                             onChange(details.copy(intervalBlocks = newBlocks))
+                            selectedBlockIdx = idx + 1
                         }
-                    } else null,
+                    },
                 )
             }
 
+            // Acciones inferiores
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 TextButton(
                     onClick = {
-                        val newBlock = CardioIntervalBlock(id = UUID.randomUUID().toString(), type = CardioBlockType.WORK, durationSeconds = 60, speedKmh = 9.0, intensityLevel = 7)
+                        val newBlock = CardioIntervalBlock(
+                            id = UUID.randomUUID().toString(),
+                            type = CardioBlockType.WORK,
+                            durationSeconds = 60,
+                            speedKmh = 9.0,
+                            intensityLevel = 7,
+                        )
                         val newBlocks = details.intervalBlocks + newBlock
                         val total = newBlocks.sumOf { it.durationSeconds } * details.intervalRounds.coerceIn(1, 99)
                         onChange(details.copy(intervalBlocks = newBlocks, targetDurationSeconds = total))
+                        selectedBlockIdx = newBlocks.lastIndex
                     },
                     modifier = Modifier.weight(1f),
-                ) { Icon(Icons.Default.Add, null, Modifier.size(16.dp)); Text(" Añadir bloque", fontWeight = FontWeight.Bold) }
-                TextButton(onClick = { showTemplatePicker = true }, modifier = Modifier.weight(1f)) {
+                ) {
+                    Icon(Icons.Default.Add, null, Modifier.size(16.dp))
+                    Text(" Añadir bloque", fontWeight = FontWeight.Bold)
+                }
+                TextButton(
+                    onClick = { showTemplatePicker = true },
+                    modifier = Modifier.weight(1f),
+                ) {
                     Icon(Icons.Default.AutoAwesome, null, Modifier.size(16.dp), tint = accentColor)
                     Text(" Plantilla", color = accentColor, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 4.dp))
                 }
@@ -294,17 +443,138 @@ internal fun CardioIntervalsEditor(
             accentColor = accentColor,
             onSelect = { template ->
                 val newDetails = template.toDetails(details.type, details.intensity)
-                // Preserve GPS/distance flags from current details where relevant
                 onChange(newDetails.copy(requiresGps = details.requiresGps, supportsDistance = details.supportsDistance))
                 showTemplatePicker = false
+                selectedBlockIdx = 0
             },
             onDismiss = { showTemplatePicker = false },
         )
     }
 }
 
+/** Stepper compacto y estilizado de rondas con pastilla redondeada */
 @Composable
-private fun CardioBlockRow(
+internal fun CompactRoundStepper(
+    rounds: Int,
+    accentColor: Color,
+    onRoundsChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    minRounds: Int = 1,
+    maxRounds: Int = 30,
+) {
+    Surface(
+        shape = RoundedCornerShape(999.dp),
+        color = Color.White.copy(alpha = 0.08f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.16f)),
+        modifier = modifier.height(32.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(if (rounds > minRounds) Color.White.copy(alpha = 0.15f) else Color.Transparent)
+                    .clickable(enabled = rounds > minRounds) { onRoundsChange((rounds - 1).coerceAtLeast(minRounds)) },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("−", color = if (rounds > minRounds) Color.White else Color.White.copy(alpha = 0.3f), fontWeight = FontWeight.Black, fontSize = 14.sp)
+            }
+
+            Text(
+                "${rounds}×",
+                color = Color.White,
+                fontWeight = FontWeight.Black,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(horizontal = 6.dp),
+            )
+
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(if (rounds < maxRounds) accentColor.copy(alpha = 0.40f) else Color.Transparent)
+                    .clickable(enabled = rounds < maxRounds) { onRoundsChange((rounds + 1).coerceAtMost(maxRounds)) },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("+", color = if (rounds < maxRounds) Color.White else Color.White.copy(alpha = 0.3f), fontWeight = FontWeight.Black, fontSize = 14.sp)
+            }
+        }
+    }
+}
+
+/** Selector horizontal de peldaños (Timeline) */
+@Composable
+private fun CardioIntervalStepBar(
+    blocks: List<CardioIntervalBlock>,
+    selectedIdx: Int,
+    accentColor: Color,
+    onSelectIdx: (Int) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        blocks.forEachIndexed { idx, block ->
+            val isSelected = idx == selectedIdx
+            val blockColor = when (block.type) {
+                CardioBlockType.WARMUP -> Color(0xFF10B981)
+                CardioBlockType.WORK -> accentColor
+                CardioBlockType.RECOVER -> Color(0xFF38BDF8)
+                CardioBlockType.COOLDOWN -> Color(0xFF10B981)
+            }
+
+            val badgeLabel = when {
+                block.speedKmh != null -> "${block.speedKmh.toInt()}k"
+                block.intensityLevel != null -> "N${block.intensityLevel}"
+                block.watts != null -> "${block.watts}W"
+                else -> CardioIntervalEngine.blockTypeShortLabel(block.type)
+            }
+
+            Surface(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { onSelectIdx(idx) },
+                shape = RoundedCornerShape(8.dp),
+                color = if (isSelected) blockColor.copy(alpha = 0.35f) else Color.White.copy(alpha = 0.07f),
+                border = BorderStroke(
+                    if (isSelected) 1.5.dp else 1.dp,
+                    if (isSelected) blockColor else Color.White.copy(alpha = 0.12f),
+                ),
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "#${idx + 1}",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        fontWeight = FontWeight.Bold,
+                        color = if (isSelected) Color.White else Color.White.copy(alpha = 0.60f),
+                    )
+                    Text(
+                        badgeLabel,
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.SemiBold,
+                        color = if (isSelected) Color.White else blockColor.copy(alpha = 0.85f),
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** Inspector único para editar el bloque actualmente seleccionado */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CardioActiveBlockInspector(
     block: CardioIntervalBlock,
     index: Int,
     total: Int,
@@ -315,8 +585,9 @@ private fun CardioBlockRow(
     catalogSupportsWatts: Boolean,
     onUpdate: (CardioIntervalBlock) -> Unit,
     onDelete: () -> Unit,
-    onMoveUp: (() -> Unit)?,
-    onMoveDown: (() -> Unit)?,
+    onDuplicate: () -> Unit,
+    onPrevious: (() -> Unit)?,
+    onNext: (() -> Unit)?,
 ) {
     var showDurationPicker by remember { mutableStateOf(false) }
     var speedText by remember(block.id) { mutableStateOf(block.speedKmh?.let { if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() } ?: "") }
@@ -327,51 +598,143 @@ private fun CardioBlockRow(
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = accentColor.copy(alpha = 0.08f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.18f)),
+        border = BorderStroke(1.dp, accentColor.copy(alpha = 0.25f)),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("${index + 1}. ${CardioIntervalEngine.blockTypeLabel(block.type)}", color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+            // Barra superior del inspector con navegación rápida
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Surface(
+                        shape = CircleShape,
+                        color = accentColor.copy(alpha = 0.25f),
+                        modifier = Modifier.size(22.dp),
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text("${index + 1}", color = Color.White, fontWeight = FontWeight.Black, fontSize = 11.sp)
+                        }
+                    }
+                    Text(
+                        "${CardioIntervalEngine.blockTypeLabel(block.type)} (${index + 1}/$total)",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                }
+
                 Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
-                    if (onMoveUp != null) IconButton(onClick = onMoveUp, modifier = Modifier.size(26.dp)) { Icon(Icons.Default.ArrowUpward, null, tint = Color.White.copy(alpha = 0.7f), modifier = Modifier.size(16.dp)) }
-                    if (onMoveDown != null) IconButton(onClick = onMoveDown, modifier = Modifier.size(26.dp)) { Icon(Icons.Default.ArrowDownward, null, tint = Color.White.copy(alpha = 0.7f), modifier = Modifier.size(16.dp)) }
-                    IconButton(onClick = onDelete, modifier = Modifier.size(26.dp)) { Icon(Icons.Default.Delete, null, tint = Color(0xFFF87171), modifier = Modifier.size(16.dp)) }
+                    IconButton(
+                        onClick = onPrevious ?: {},
+                        enabled = onPrevious != null,
+                        modifier = Modifier.size(26.dp),
+                    ) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Anterior",
+                            tint = if (onPrevious != null) Color.White.copy(alpha = 0.85f) else Color.White.copy(alpha = 0.25f),
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                    IconButton(
+                        onClick = onNext ?: {},
+                        enabled = onNext != null,
+                        modifier = Modifier.size(26.dp),
+                    ) {
+                        Icon(
+                            Icons.Default.ArrowForward,
+                            contentDescription = "Siguiente",
+                            tint = if (onNext != null) Color.White.copy(alpha = 0.85f) else Color.White.copy(alpha = 0.25f),
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                    IconButton(onClick = onDuplicate, modifier = Modifier.size(26.dp)) {
+                        Icon(Icons.Default.ContentCopy, contentDescription = "Duplicar bloque", tint = accentColor, modifier = Modifier.size(15.dp))
+                    }
+                    IconButton(onClick = onDelete, modifier = Modifier.size(26.dp)) {
+                        Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color(0xFFF87171), modifier = Modifier.size(16.dp))
+                    }
                 }
             }
-            // Type chips
+
+            // Selector de tipo de bloque
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
                 CardioBlockType.entries.forEach { t ->
                     val selected = block.type == t
+                    val typeColor = when (t) {
+                        CardioBlockType.WARMUP -> Color(0xFF10B981)
+                        CardioBlockType.WORK -> accentColor
+                        CardioBlockType.RECOVER -> Color(0xFF38BDF8)
+                        CardioBlockType.COOLDOWN -> Color(0xFF10B981)
+                    }
                     Surface(
                         shape = RoundedCornerShape(999.dp),
-                        color = if (selected) accentColor.copy(alpha = 0.28f) else Color.White.copy(alpha = 0.07f),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, if (selected) accentColor.copy(alpha = 0.85f) else Color.White.copy(alpha = 0.12f)),
-                        modifier = Modifier.clickable { onUpdate(block.copy(type = t)) },
+                        color = if (selected) typeColor.copy(alpha = 0.28f) else Color.White.copy(alpha = 0.07f),
+                        border = BorderStroke(1.dp, if (selected) typeColor.copy(alpha = 0.85f) else Color.White.copy(alpha = 0.12f)),
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { onUpdate(block.copy(type = t)) },
                     ) {
                         Text(
                             CardioIntervalEngine.blockTypeShortLabel(t),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            modifier = Modifier.padding(vertical = 5.dp),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = if (selected) FontWeight.Black else FontWeight.Medium,
                             color = if (selected) Color.White else Color.White.copy(alpha = 0.7f),
+                            textAlign = TextAlign.Center,
                         )
                     }
                 }
             }
-            // Duration
-            Box(modifier = Modifier.fillMaxWidth()) {
-                IntervalAccentField(
-                    value = formatMinutes(block.durationSeconds),
-                    onValueChange = {},
-                    label = "Duración",
-                    accentColor = accentColor,
-                    readOnly = true,
-                    trailingIcon = { Icon(Icons.Default.Timer, null, tint = accentColor, modifier = Modifier.size(16.dp)) },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Box(Modifier.matchParentSize().clickable { showDurationPicker = true })
+
+            // Duración con ajuste rápido y selector
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+                Box(modifier = Modifier.weight(1f)) {
+                    IntervalAccentField(
+                        value = formatMinutes(block.durationSeconds),
+                        onValueChange = {},
+                        label = "Duración",
+                        accentColor = accentColor,
+                        readOnly = true,
+                        trailingIcon = { Icon(Icons.Default.Timer, null, tint = accentColor, modifier = Modifier.size(16.dp)) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Box(Modifier.matchParentSize().clickable { showDurationPicker = true })
+                }
+
+                // Botones rápidos de ajuste de tiempo (+15s / -15s)
+                Row(
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color.White.copy(alpha = 0.08f),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+                        modifier = Modifier.clickable {
+                            val nextSec = (block.durationSeconds - 15).coerceAtLeast(15)
+                            onUpdate(block.copy(durationSeconds = nextSec))
+                        },
+                    ) {
+                        Text("-15s", modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp), color = Color.White, style = MaterialTheme.typography.labelSmall)
+                    }
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = accentColor.copy(alpha = 0.18f),
+                        border = BorderStroke(1.dp, accentColor.copy(alpha = 0.35f)),
+                        modifier = Modifier.clickable {
+                            val nextSec = block.durationSeconds + 15
+                            onUpdate(block.copy(durationSeconds = nextSec))
+                        },
+                    ) {
+                        Text("+15s", modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp), color = Color.White, style = MaterialTheme.typography.labelSmall)
+                    }
+                }
             }
+
             if (showDurationPicker) {
                 KpknNativeTimePickerDialog(
                     title = "Duración del bloque",
@@ -386,82 +749,178 @@ private fun CardioBlockRow(
                     onDismiss = { showDurationPicker = false },
                 )
             }
-            // Conditional fields
-            if (catalogSupportsSpeed) {
-                IntervalAccentField(
-                    value = speedText,
-                    onValueChange = { v ->
-                        speedText = v.filter { it.isDigit() || it == '.' || it == ',' }.take(6)
-                        val parsed = speedText.replace(',', '.').toDoubleOrNull()
-                        onUpdate(block.copy(speedKmh = parsed))
-                    },
-                    label = "Velocidad (km/h)",
-                    accentColor = accentColor,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth(),
-                )
+
+            // Campos condicionales de parámetros
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                if (catalogSupportsSpeed) {
+                    IntervalAccentField(
+                        value = speedText,
+                        onValueChange = { v ->
+                            speedText = v.filter { it.isDigit() || it == '.' || it == ',' }.take(6)
+                            val parsed = speedText.replace(',', '.').toDoubleOrNull()
+                            onUpdate(block.copy(speedKmh = parsed))
+                        },
+                        label = "Velocidad (km/h)",
+                        accentColor = accentColor,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                if (catalogSupportsIncline) {
+                    IntervalAccentField(
+                        value = inclineText,
+                        onValueChange = { v ->
+                            inclineText = v.filter { it.isDigit() || it == '.' || it == '-' }.take(5)
+                            val parsed = inclineText.replace(',', '.').toDoubleOrNull()
+                            onUpdate(block.copy(inclinePercent = parsed))
+                        },
+                        label = "Inclinación (%)",
+                        accentColor = accentColor,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                if (catalogSupportsRpm) {
+                    IntervalAccentField(
+                        value = rpmText,
+                        onValueChange = { v ->
+                            rpmText = v.filter { it.isDigit() }.take(4)
+                            onUpdate(block.copy(rpm = rpmText.toIntOrNull()))
+                        },
+                        label = "RPM",
+                        accentColor = accentColor,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                if (catalogSupportsWatts) {
+                    IntervalAccentField(
+                        value = wattsText,
+                        onValueChange = { v ->
+                            wattsText = v.filter { it.isDigit() }.take(4)
+                            onUpdate(block.copy(watts = wattsText.toIntOrNull()))
+                        },
+                        label = "Vatios (W)",
+                        accentColor = accentColor,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                if (!catalogSupportsSpeed) {
+                    var levelText by remember(block.id) { mutableStateOf(block.intensityLevel?.toString() ?: "") }
+                    IntervalAccentField(
+                        value = levelText,
+                        onValueChange = { v ->
+                            levelText = v.filter { it.isDigit() }.take(2)
+                            onUpdate(block.copy(intensityLevel = levelText.toIntOrNull()?.coerceIn(1, 10)))
+                        },
+                        label = "Nivel 1-10",
+                        accentColor = accentColor,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
-            if (catalogSupportsIncline) {
-                IntervalAccentField(
-                    value = inclineText,
-                    onValueChange = { v ->
-                        inclineText = v.filter { it.isDigit() || it == '.' || it == '-' }.take(5)
-                        val parsed = inclineText.replace(',', '.').toDoubleOrNull()
-                        onUpdate(block.copy(inclinePercent = parsed))
-                    },
-                    label = "Inclinación (%)",
-                    accentColor = accentColor,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth(),
-                )
+        }
+    }
+}
+
+/** Vista panorámica en formato de tabla compacta */
+@Composable
+private fun CardioCompactBlocksOverview(
+    blocks: List<CardioIntervalBlock>,
+    selectedIdx: Int,
+    accentColor: Color,
+    catalogSupportsSpeed: Boolean,
+    onSelectIdx: (Int) -> Unit,
+    onDelete: (Int) -> Unit,
+    onMoveUp: (Int) -> Unit,
+    onMoveDown: (Int) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.White.copy(alpha = 0.05f))
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        blocks.forEachIndexed { idx, block ->
+            val isSelected = idx == selectedIdx
+            val typeColor = when (block.type) {
+                CardioBlockType.WARMUP -> Color(0xFF10B981)
+                CardioBlockType.WORK -> accentColor
+                CardioBlockType.RECOVER -> Color(0xFF38BDF8)
+                CardioBlockType.COOLDOWN -> Color(0xFF10B981)
             }
-            if (catalogSupportsRpm) {
-                IntervalAccentField(
-                    value = rpmText,
-                    onValueChange = { v ->
-                        rpmText = v.filter { it.isDigit() }.take(4)
-                        onUpdate(block.copy(rpm = rpmText.toIntOrNull()))
-                    },
-                    label = "RPM",
-                    accentColor = accentColor,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            if (catalogSupportsWatts) {
-                IntervalAccentField(
-                    value = wattsText,
-                    onValueChange = { v ->
-                        wattsText = v.filter { it.isDigit() }.take(4)
-                        onUpdate(block.copy(watts = wattsText.toIntOrNull()))
-                    },
-                    label = "Vatios (W)",
-                    accentColor = accentColor,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            if (!catalogSupportsSpeed) {
-                // Intensidad genérica 1-10 como fallback cuando no hay velocidad (elíptica, escaladora, o bici/remo como nivel)
-                var levelText by remember(block.id) { mutableStateOf(block.intensityLevel?.toString() ?: "") }
-                IntervalAccentField(
-                    value = levelText,
-                    onValueChange = { v ->
-                        levelText = v.filter { it.isDigit() }.take(2)
-                        onUpdate(block.copy(intensityLevel = levelText.toIntOrNull()?.coerceIn(1, 10)))
-                    },
-                    label = "Intensidad 1-10",
-                    accentColor = accentColor,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-                )
+
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = if (isSelected) accentColor.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.03f),
+                border = BorderStroke(1.dp, if (isSelected) accentColor.copy(alpha = 0.6f) else Color.Transparent),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onSelectIdx(idx) },
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text(
+                        "#${idx + 1}",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White.copy(alpha = 0.6f),
+                    )
+                    Text(
+                        CardioIntervalEngine.blockTypeShortLabel(block.type),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Black,
+                        color = typeColor,
+                        modifier = Modifier.width(52.dp),
+                    )
+                    Text(
+                        formatMinutes(block.durationSeconds),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White,
+                        modifier = Modifier.weight(1f),
+                    )
+                    if (catalogSupportsSpeed && block.speedKmh != null) {
+                        Text(
+                            "${block.speedKmh} km/h",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.85f),
+                        )
+                    } else if (block.intensityLevel != null) {
+                        Text(
+                            "Nivel ${block.intensityLevel}",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.85f),
+                        )
+                    }
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        IconButton(onClick = { onMoveUp(idx) }, enabled = idx > 0, modifier = Modifier.size(24.dp)) {
+                            Icon(Icons.Default.ArrowUpward, null, tint = if (idx > 0) Color.White.copy(alpha = 0.7f) else Color.White.copy(alpha = 0.2f), modifier = Modifier.size(14.dp))
+                        }
+                        IconButton(onClick = { onMoveDown(idx) }, enabled = idx < blocks.size - 1, modifier = Modifier.size(24.dp)) {
+                            Icon(Icons.Default.ArrowDownward, null, tint = if (idx < blocks.size - 1) Color.White.copy(alpha = 0.7f) else Color.White.copy(alpha = 0.2f), modifier = Modifier.size(14.dp))
+                        }
+                        IconButton(onClick = { onDelete(idx) }, modifier = Modifier.size(24.dp)) {
+                            Icon(Icons.Default.Delete, null, tint = Color(0xFFF87171), modifier = Modifier.size(14.dp))
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun IntervalAccentField(
+internal fun IntervalAccentField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
@@ -476,7 +935,12 @@ private fun IntervalAccentField(
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = modifier.clip(shape).background(accentColor.copy(alpha = if (focused) 0.14f else 0.08f)).border(1.dp, accentColor.copy(alpha = if (focused) 0.90f else 0.50f), shape).onFocusChanged { focused = it.isFocused }.padding(horizontal = 10.dp, vertical = 7.dp),
+        modifier = modifier
+            .clip(shape)
+            .background(accentColor.copy(alpha = if (focused) 0.14f else 0.08f))
+            .border(1.dp, accentColor.copy(alpha = if (focused) 0.90f else 0.35f), shape)
+            .onFocusChanged { focused = it.isFocused }
+            .padding(horizontal = 10.dp, vertical = 7.dp),
         readOnly = readOnly,
         singleLine = true,
         keyboardOptions = keyboardOptions,
@@ -530,3 +994,4 @@ private fun rescaleIntervalDetails(details: CardioDetails, totalSeconds: Int): C
     val actual = scaled.sumOf { it.durationSeconds } * rounds
     return details.copy(intervalBlocks = scaled, intervalRounds = rounds, targetDurationSeconds = actual)
 }
+

@@ -37,12 +37,12 @@ import com.example.kpkn.domain.body.goalProgressPercent
 import com.example.kpkn.domain.body.dailyMedianSeries
 import com.example.kpkn.domain.body.ewmaTrend
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
-import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.components.KpknSnackbar
+import com.example.kpkn.ui.components.kpknGlass
+import com.example.kpkn.ui.components.showKpknSnackbar
+import com.example.kpkn.ui.components.SnackbarType
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.launch
 import java.time.ZoneId
@@ -393,16 +393,19 @@ fun BodyProgressScreen(
                             bodyViewModel.deleteLegacyMeasurement(entry.id)
                             snackbarScope.launch {
                                 if (manualEntry) {
-                                    val result = snackbarHostState.showSnackbar(
+                                    val result = snackbarHostState.showKpknSnackbar(
                                         message = "Medición eliminada",
+                                        type = SnackbarType.SUCCESS,
                                         actionLabel = "Deshacer",
-                                        withDismissAction = true,
                                     )
                                     if (result == SnackbarResult.ActionPerformed) {
                                         bodyViewModel.addLegacyMeasurement(entry)
                                     }
                                 } else {
-                                    snackbarHostState.showSnackbar("Medición eliminada")
+                                    snackbarHostState.showKpknSnackbar(
+                                        message = "Medición eliminada",
+                                        type = SnackbarType.SUCCESS,
+                                    )
                                 }
                             }
                         },
@@ -472,29 +475,12 @@ fun BodyProgressScreen(
         }
 
         val pillShape = RoundedCornerShape(999.dp)
-        val yellowGlassStyle = remember {
-            HazeStyle(
-                blurRadius = KpknGlass.BlurRadius,
-                tint = HazeTint(Color(0xFFFFD600).copy(alpha = 0.14f)),
-                backgroundColor = Color.Black.copy(alpha = 0.45f),
-                noiseFactor = KpknGlass.NoiseFactor,
-            )
-        }
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .navigationBarsPadding()
                 .padding(end = 16.dp, bottom = 106.dp)
-                .clip(pillShape)
-                .hazeEffect(
-                    state = bodyHazeState,
-                    style = yellowGlassStyle,
-                )
-                .border(
-                    width = 1.dp,
-                    color = Color(0xFFFFD600).copy(alpha = 0.45f),
-                    shape = pillShape,
-                )
+                .kpknGlass(hazeState = bodyHazeState, shape = pillShape)
                 .clickable {
                     editingEntry = null
                     showAddMeasurement = true
@@ -508,14 +494,14 @@ fun BodyProgressScreen(
             ) {
                 Surface(
                     shape = CircleShape,
-                    color = Color(0xFFFFD600).copy(alpha = 0.22f),
+                    color = Color.White.copy(alpha = 0.12f),
                     modifier = Modifier.size(26.dp),
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = "Registrar medidas",
-                            tint = Color(0xFFFFD600),
+                            tint = Color.White,
                             modifier = Modifier.size(18.dp),
                         )
                     }
@@ -525,7 +511,7 @@ fun BodyProgressScreen(
                     text = "Registrar medidas",
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleSmall,
-                    color = Color(0xFFFFFBEB),
+                    color = Color.White,
                     letterSpacing = 0.2.sp,
                 )
             }
@@ -536,7 +522,9 @@ fun BodyProgressScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = contextualBottomBarClearance + 64.dp),
-        )
+        ) { data ->
+            KpknSnackbar(data)
+        }
     }
 
     // ── Add Measurement Sheet ────────────────────────────────────────────────

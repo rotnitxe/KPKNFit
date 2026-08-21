@@ -32,12 +32,14 @@ import com.example.kpkn.data.models.MobilityUnit
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.exercises.catalogv2.JointInvolvementV2
 import com.example.kpkn.domain.exercises.catalogv2.JointRoleV2
-import com.example.kpkn.ui.components.kpknGlassStyle
+import com.example.kpkn.ui.components.KpknGlassDialog
+import com.example.kpkn.ui.components.kpknGlass
+import com.example.kpkn.ui.components.kpknHazeEffect
+import com.example.kpkn.ui.components.kpknSheetDialogTextButtonColors
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeEffect
 
 /**
- * Full-screen blur overlay for mobility preparation in live sessions.
+ * Full-screen DarkMica overlay for mobility preparation in live sessions.
  * Displays global countdown timer, target joint involvement, biomechanical focus,
  * full-name checklist items, and optional complementary mobility drills.
  */
@@ -91,10 +93,14 @@ fun WorkoutMobilityOverlay(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .hazeEffect(state = hazeState, style = kpknGlassStyle())
-            .zIndex(6f)
-            .background(Color(0xFF0C1017).copy(alpha = 0.88f)),
+            .zIndex(6f),
     ) {
+        // Fullscreen DarkMica backdrop — sibling of content + sticky footer.
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .kpknHazeEffect(hazeState),
+        )
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -471,77 +477,74 @@ fun WorkoutMobilityOverlay(
                     }
                 }
                 selectedJoint?.let { joint ->
-                    androidx.compose.ui.window.Dialog(onDismissRequest = { selectedJoint = null }) {
-                        Surface(
-                            shape = RoundedCornerShape(18.dp),
-                            color = Color(0xFF151B26),
-                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
+                    KpknGlassDialog(
+                        onDismissRequest = { selectedJoint = null },
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(10.dp),
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = sessionAccentColor.copy(alpha = 0.14f),
                                 ) {
-                                    Surface(
-                                        shape = RoundedCornerShape(8.dp),
-                                        color = sessionAccentColor.copy(alpha = 0.14f),
-                                    ) {
-                                        Text(
-                                            formatJointName(joint.jointId),
-                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                            style = MaterialTheme.typography.labelMedium,
-                                            fontWeight = FontWeight.Black,
-                                            color = sessionAccentColor,
-                                        )
-                                    }
                                     Text(
-                                        when (joint.role) {
-                                            JointRoleV2.PRIMARY -> "Rol principal"
-                                            JointRoleV2.SECONDARY -> "Rol secundario"
-                                            JointRoleV2.STABILIZER -> "Rol estabilizador"
-                                        },
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White.copy(alpha = 0.60f),
+                                        formatJointName(joint.jointId),
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Black,
+                                        color = sessionAccentColor,
                                     )
                                 }
                                 Text(
-                                    text = buildJointKinesiologyDescription(joint, exercise),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    lineHeight = 18.sp,
-                                    color = Color.White.copy(alpha = 0.88f),
+                                    when (joint.role) {
+                                        JointRoleV2.PRIMARY -> "Rol principal"
+                                        JointRoleV2.SECONDARY -> "Rol secundario"
+                                        JointRoleV2.STABILIZER -> "Rol estabilizador"
+                                    },
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White.copy(alpha = 0.60f),
                                 )
-                                if (joint.actions.isNotEmpty()) {
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                        modifier = Modifier.fillMaxWidth(),
-                                    ) {
-                                        joint.actions.forEach { action ->
-                                            Surface(
-                                                shape = RoundedCornerShape(999.dp),
-                                                color = Color.White.copy(alpha = 0.06f),
-                                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
-                                            ) {
-                                                Text(
-                                                    action,
-                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    fontWeight = FontWeight.Medium,
-                                                    color = Color.White.copy(alpha = 0.75f),
-                                                )
-                                            }
+                            }
+                            Text(
+                                text = buildJointKinesiologyDescription(joint, exercise),
+                                style = MaterialTheme.typography.bodySmall,
+                                lineHeight = 18.sp,
+                                color = Color.White.copy(alpha = 0.88f),
+                            )
+                            if (joint.actions.isNotEmpty()) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    joint.actions.forEach { action ->
+                                        Surface(
+                                            shape = RoundedCornerShape(999.dp),
+                                            color = Color.White.copy(alpha = 0.06f),
+                                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+                                        ) {
+                                            Text(
+                                                action,
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Medium,
+                                                color = Color.White.copy(alpha = 0.75f),
+                                            )
                                         }
                                     }
                                 }
-                                TextButton(
-                                    onClick = { selectedJoint = null },
-                                    modifier = Modifier.align(Alignment.End),
-                                ) {
-                                    Text("Cerrar", fontWeight = FontWeight.Bold, color = sessionAccentColor)
-                                }
+                            }
+                            TextButton(
+                                onClick = { selectedJoint = null },
+                                modifier = Modifier.align(Alignment.End),
+                                colors = kpknSheetDialogTextButtonColors(),
+                            ) {
+                                Text("Cerrar", fontWeight = FontWeight.Bold, color = sessionAccentColor)
                             }
                         }
                     }
@@ -652,22 +655,15 @@ fun WorkoutMobilityOverlay(
             }
         }
 
-        // ─── 6. Botones Sticky Inferiores con Efecto KPKN Glass y Desvanecido Suave ───
+        // ─── 6. Sticky footer DarkMica (sibling of haze backdrop; no opaque gradient) ───
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .background(
-                    brush = androidx.compose.ui.graphics.Brush.verticalGradient(
-                        0.0f to Color.Transparent,
-                        0.25f to Color(0xFF0C1017).copy(alpha = 0.70f),
-                        0.55f to Color(0xFF0C1017).copy(alpha = 0.96f),
-                        1.0f to Color(0xFF0C1017),
-                    ),
-                )
+                .kpknGlass(hazeState, WorkoutUiTokens.DockShape)
                 .navigationBarsPadding()
                 .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding)
-                .padding(top = 36.dp, bottom = 14.dp),
+                .padding(top = 16.dp, bottom = 14.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

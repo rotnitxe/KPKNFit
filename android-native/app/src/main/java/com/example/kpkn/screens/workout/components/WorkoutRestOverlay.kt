@@ -24,9 +24,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import com.example.kpkn.ui.components.kpknGlassStyle
+import com.example.kpkn.ui.components.kpknHazeEffect
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeEffect
 import java.util.Locale
 
 import com.example.kpkn.data.models.*
@@ -64,7 +63,7 @@ fun RestTimerOverlay(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .hazeEffect(state = hazeState, style = kpknGlassStyle())
+            .kpknHazeEffect(hazeState)
             .zIndex(6f),
     ) {
         AnimatedContent(

@@ -47,7 +47,6 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -55,6 +54,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import com.example.kpkn.ui.components.KpknAlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -147,7 +147,16 @@ fun NutritionWizardScreen(
                     Column(Modifier.padding(12.dp)) { state.errors.values.forEach { Text(it, color = Color(0xFFFFD5D5), style = MaterialTheme.typography.bodySmall) } }
                 }
             }
-            Row(Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    // Fullscreen wizard lives under activity hazeSource — live Haze would be nested/dead.
+                    .kpknGlassOrFallback(null, RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                    .navigationBarsPadding()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 if (state.canGoBack) TextButton(onClick = viewModel::back, modifier = Modifier.height(52.dp)) { Icon(Icons.Default.ArrowBack, null); Spacer(Modifier.size(6.dp)); Text("Atrás", color = Color.White) }
                 Button(
                     onClick = { if (state.step == NutritionWizardStep.REVIEW) { if (viewModel.save() != null) onDone() } else viewModel.next() },
@@ -164,12 +173,20 @@ fun NutritionWizardScreen(
             }
         }
     }
-    if (showDiscard) AlertDialog(
-        onDismissRequest = { showDiscard = false }, title = { Text("¿Descartar cambios?") },
-        text = { Text("El borrador se conservará mientras esta pantalla siga abierta, pero cerrar ahora descarta sus cambios.") },
-        confirmButton = { TextButton(onClick = { viewModel.markDiscarded(); showDiscard = false; onCancel() }) { Text("Descartar") } },
-        dismissButton = { TextButton(onClick = { showDiscard = false }) { Text("Seguir editando") } },
-    )
+    if (showDiscard) {
+        KpknAlertDialog(
+            onDismissRequest = { showDiscard = false },
+            title = "¿Descartar cambios?",
+            text = "El borrador se conservará mientras esta pantalla siga abierta, pero cerrar ahora descarta sus cambios.",
+            confirmLabel = "Descartar",
+            onConfirm = {
+                viewModel.markDiscarded()
+                showDiscard = false
+                onCancel()
+            },
+            dismissLabel = "Seguir editando",
+        )
+    }
 }
 
 @Composable

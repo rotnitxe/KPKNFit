@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.programs
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
@@ -8,6 +9,8 @@ import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.programs.resolveProgramTemplate
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.repository.SessionTemplateRepository
+import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.domain.calculations.getTotalWeeks
 import com.example.kpkn.domain.calculations.getSessionExerciseCount
 import com.example.kpkn.domain.training.ProgramTemplateEngine
@@ -28,9 +31,19 @@ import kotlinx.coroutines.flow.stateIn
  *
  * No Hilt — uses ProgramRepository singleton for state
  */
-class ProgramsViewModel : ViewModel() {
+class ProgramsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = ProgramRepository.getInstance()
+    private val sessionTemplateRepository = SessionTemplateRepository.getInstance(application)
+
+    /**
+     * Opt-in USER templates are hydrated off-main by the repository.  Program
+     * creation consumes this same list as split preview/application once it is
+     * ready; before hydration it intentionally falls back to the published
+     * system catalog rather than pretending USER generation is available.
+     */
+    val generationTemplates: StateFlow<List<SessionTemplate>> =
+        sessionTemplateRepository.generationTemplates
 
     // ─── Reactive State (StateFlow) ────────────────────────────────────────
 
@@ -194,7 +207,16 @@ class ProgramsViewModel : ViewModel() {
                 else -> ProgramMode.HYPERTROPHY
             },
         )
-        val result = ProgramTemplateEngine.applyTemplate(base, template)
+        val result = ProgramTemplateEngine.applyTemplate(
+            current = base,
+            template = template,
+            // During Room hydration the repository can briefly report ready
+            // before the derived generation StateFlow has emitted its first
+            // catalog.  An explicit empty list disables the engine's safe
+            // system-catalog fallback, so only pass USER-aware candidates once
+            // there is an actual list to use.
+            generationTemplates = generationTemplates.value.takeIf { it.isNotEmpty() },
+        )
         repository.addProgram(result.program)
         return programId
     }

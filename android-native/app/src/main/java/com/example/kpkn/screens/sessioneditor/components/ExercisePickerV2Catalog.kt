@@ -6,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.pager.HorizontalPager
@@ -82,7 +83,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -513,7 +516,7 @@ internal fun ExercisePickerV2Catalog(
                 .kpknGlassOrFallback(
                     hazeState = glassHaze,
                     shape = catalogShape,
-                    additionalScrim = Color.Black.copy(alpha = 0.12f),
+                    additionalScrim = Color.Black.copy(alpha = 0.06f),
                 )
         },
     ) {
@@ -648,7 +651,7 @@ private fun CatalogFilterHeader(
             .kpknGlassOrFallback(
                 hazeState = hazeState,
                 shape = RoundedCornerShape(16.dp),
-                additionalScrim = Color.Black.copy(alpha = 0.12f),
+                additionalScrim = Color.Black.copy(alpha = 0.06f),
             )
             .padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -785,7 +788,7 @@ private fun FloatingCatalogSearch(
             .kpknGlassOrFallback(
                 hazeState = hazeState,
                 shape = shape,
-                additionalScrim = Color.Black.copy(alpha = 0.16f),
+                additionalScrim = Color.Black.copy(alpha = 0.08f),
             ),
     ) {
         CatalogSearchField(
@@ -872,6 +875,7 @@ private fun ColumnScope.CatalogReadyContent(
     targetGroupName: String? = null,
 ) {
     val scope = rememberCoroutineScope()
+    val haptics = LocalHapticFeedback.current
     val definitionsById = remember(catalog) {
         catalog.families.flatMap { it.definitions }.associateBy { it.id }
     }
@@ -1212,14 +1216,35 @@ private fun ColumnScope.CatalogReadyContent(
                             Color.Transparent
                         },
                     )
-                    .clickable {
-                        // La tarjeta solo controla la expansión. La selección queda
-                        // reservada al botón inferior, incluso para ejercicios sin ejes.
-                        expandedDefinitionId = toggleCatalogDefinitionExpansion(
-                            currentDefinitionId = expandedDefinitionId,
-                            tappedDefinitionId = definition.id,
-                        )
-                    },
+                    .combinedClickable(
+                        onClick = {
+                            expandedDefinitionId = toggleCatalogDefinitionExpansion(
+                                currentDefinitionId = expandedDefinitionId,
+                                tappedDefinitionId = definition.id,
+                            )
+                        },
+                        onLongClick = if (!hasOptions) {
+                            {
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                if (isSelected) {
+                                    val next = selectedRows.value - definition.id
+                                    selectedRows.value = next
+                                    onSelectionChange(next.values.toList())
+                                } else {
+                                    val info = exactInfo(catalog, definition, resolvedConfigurationId)
+                                    if (info != null) {
+                                        if (editingExisting) {
+                                            onSelect(info)
+                                        } else {
+                                            val next = selectedRows.value + (definition.id to info)
+                                            selectedRows.value = next
+                                            onSelectionChange(next.values.toList())
+                                        }
+                                    }
+                                }
+                            }
+                        } else null,
+                    ),
             ) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     // Músculos que trabaja: arriba del título, texto pequeño y cian tenue.
@@ -1514,6 +1539,7 @@ private fun ColumnScope.CatalogReadyContent(
                     if (selectedListExpanded) {
                         SelectedExercisesAppendix(
                             selected = selectedRows.value.entries.toList(),
+                            hazeState = hazeState,
                             onRemove = { id ->
                                 val next = selectedRows.value - id
                                 selectedRows.value = next
@@ -2394,6 +2420,7 @@ private fun searchMatchChipLabels(
 @Composable
 private fun SelectedExercisesAppendix(
     selected: List<Map.Entry<String, ExerciseMuscleInfo>>,
+    hazeState: HazeState?,
     onRemove: (String) -> Unit,
     onMove: (Int, Int) -> Unit,
     onTap: (String) -> Unit,
@@ -2405,8 +2432,11 @@ private fun SelectedExercisesAppendix(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(shape)
-            .background(Color(0xFF1B222B))
+            .kpknGlassOrFallback(
+                hazeState = hazeState,
+                shape = shape,
+                additionalScrim = Color.Black.copy(alpha = 0.06f),
+            )
             .border(
                 BorderStroke(1.dp, Color.White.copy(alpha = 0.22f)),
                 shape,

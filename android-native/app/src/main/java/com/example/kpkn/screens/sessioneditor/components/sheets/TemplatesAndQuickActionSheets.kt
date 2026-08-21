@@ -27,7 +27,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -87,6 +86,7 @@ import com.example.kpkn.ui.components.KpknAlertDialog
 @Composable
 internal fun TemplatesSheet(
     templates: List<SessionTemplate>,
+    archivedUserTemplates: List<SessionTemplate> = emptyList(),
     searchQuery: String,
     applyDecision: SessionTemplateApplyDecision?,
     onSearchChange: (String) -> Unit,
@@ -94,6 +94,23 @@ internal fun TemplatesSheet(
     onConfirmApplyTemplate: (SessionTemplateApplyMode) -> Unit,
     onCancelApply: () -> Unit,
     onDismiss: () -> Unit,
+    onArchiveUserTemplate: (String) -> Unit = {},
+    onRestoreUserTemplate: (String) -> Unit = {},
+    onDeleteUserTemplate: (String) -> Unit = {},
+    onEditUserTemplate: suspend (
+        SessionTemplate,
+        String,
+        String,
+        com.example.kpkn.data.splits.Difficulty,
+        com.example.kpkn.data.sessions.SessionTemplateFocusCategory?,
+        com.example.kpkn.data.sessions.SessionTemplateDurationClass,
+        List<String>,
+        List<String>,
+        Boolean,
+    ) -> Result<Unit> = { _, _, _, _, _, _, _, _, _ -> Result.success(Unit) },
+    onSaveCurrentTemplate: suspend (String, String) -> Result<SessionTemplate> = { _, _ ->
+        Result.failure(IllegalStateException("Guardado de plantillas no disponible en esta superficie"))
+    },
 ) {
     KpknSheet(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -152,6 +169,12 @@ internal fun TemplatesSheet(
                     templates = templates,
                     searchQuery = searchQuery,
                     onSelectTemplate = onSelectTemplate,
+                    archivedUserTemplates = archivedUserTemplates,
+                    onArchiveUserTemplate = onArchiveUserTemplate,
+                    onRestoreUserTemplate = onRestoreUserTemplate,
+                    onDeleteUserTemplate = onDeleteUserTemplate,
+                    onEditUserTemplate = onEditUserTemplate,
+                    onSaveCurrentTemplate = onSaveCurrentTemplate,
                     // Las plantillas V3 guardan la configuración V2 completa
                     // (incluidos implemento, estación y lateralidad). El
                     // snapshot base solo contiene las definiciones padre y no

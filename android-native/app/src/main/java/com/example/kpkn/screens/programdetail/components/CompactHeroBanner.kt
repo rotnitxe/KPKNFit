@@ -34,7 +34,6 @@ import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import com.example.kpkn.ui.components.KpknSheet
 import androidx.compose.material3.Surface
@@ -120,6 +119,7 @@ fun CompactHeroBanner(
     onIncreaseVolumeCurrentWeek: () -> Unit,
     onReduceVolumeCurrentWeek: () -> Unit,
     openVolumeSheetToken: Int = 0,
+    blockProgressLabel: String? = null,
     modifier: Modifier = Modifier,
 ) {
     val coverGradient = remember(coverValue) { resolveGradient(coverValue) }
@@ -208,6 +208,16 @@ fun CompactHeroBanner(
                         containerColor = glassColor,
                         borderColor = strokeColor,
                     )
+
+                    if (!blockProgressLabel.isNullOrBlank()) {
+                        CompactHeroPill(
+                            label = blockProgressLabel,
+                            accent = Color(0xFF67E8F9),
+                            contentColor = primaryTextColor,
+                            containerColor = glassColor,
+                            borderColor = strokeColor,
+                        )
+                    }
 
                     Box {
                         CompactFocusPill(

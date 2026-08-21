@@ -16,7 +16,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.*
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,6 +34,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.models.BlockProgressionScheme
 import com.example.kpkn.domain.training.RoadmapBlock
 import com.example.kpkn.domain.training.RoadmapLoopMarker
 import com.example.kpkn.domain.training.WeekWithMeta
@@ -42,6 +52,7 @@ fun BlockRoadmap(
     isSimpleCalendarized: Boolean = false,
     simpleLoopMarkers: List<RoadmapLoopMarker> = emptyList(),
     currentCycle: Int = 0,
+    activeBlockId: String? = null,
     onSelectBlock: (String) -> Unit,
     onSelectWeek: (String) -> Unit,
     onAddSimpleWeek: (() -> Unit)? = null,
@@ -49,8 +60,10 @@ fun BlockRoadmap(
     onAddAdvancedBlock: ((String, String?) -> Unit)? = null,
     onUpdateWeek: (String, String, String?) -> Unit = { _, _, _ -> },
     onDeleteWeek: (String) -> Unit = {},
-    onUpdateBlock: (String, String, String?) -> Unit = { _, _, _ -> },
+    onUpdateBlock: (String, String, String?, BlockGoal?, BlockProgressionScheme?) -> Unit = { _, _, _, _, _ -> },
+    blockProgressionPreview: ((String) -> String?)? = null,
     onDeleteBlock: (String) -> Unit = {},
+
     copiedWeekId: String? = null,
     onCopyWeek: (String) -> Unit = {},
     onPasteWeek: (String) -> Unit = {},
@@ -112,6 +125,12 @@ fun BlockRoadmap(
                 ) {
                     items(roadmapBlocks) { block ->
                         val isSelected = block.id == selectedBlockId
+                        val isActive = block.id == activeBlockId
+                        val weekProgress = if (isActive && currentWeeks.isNotEmpty()) {
+                            val idx = currentWeeks.indexOfFirst { it.id == (selectedWeekId ?: currentWeekId) }
+                                .takeIf { it >= 0 } ?: 0
+                            "semana ${idx + 1}/${block.totalWeeks}"
+                        } else null
                         Surface(
                             modifier = Modifier
                                 .height(42.dp)
@@ -121,15 +140,33 @@ fun BlockRoadmap(
                                     onLongClick = { editingBlock = block },
                                 ),
                             shape = RoundedCornerShape(12.dp),
-                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = when {
+                                isSelected -> MaterialTheme.colorScheme.primary
+                                isActive -> MaterialTheme.colorScheme.tertiaryContainer
+                                else -> MaterialTheme.colorScheme.surfaceVariant
+                            },
+                            contentColor = when {
+                                isSelected -> MaterialTheme.colorScheme.onPrimary
+                                isActive -> MaterialTheme.colorScheme.onTertiaryContainer
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            border = if (isActive && !isSelected) {
+                                BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary)
+                            } else null,
                         ) {
                             Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(block.name, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
                                 Text(
-                                    block.dateRangeLabel?.let { "${block.totalWeeks}sem · $it" } ?: "${block.totalWeeks}sem",
+                                    if (block.materializationPending) "Prescripción pendiente"
+                                    else weekProgress
+                                        ?: block.dateRangeLabel?.let { "${block.totalWeeks}sem · $it" }
+                                        ?: "${block.totalWeeks}sem",
                                     fontSize = 8.sp,
-                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                    color = (when {
+                                        isSelected -> MaterialTheme.colorScheme.onPrimary
+                                        isActive -> MaterialTheme.colorScheme.onTertiaryContainer
+                                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                    }).copy(alpha = 0.7f),
                                     maxLines = 1,
                                 )
                             }
@@ -258,14 +295,81 @@ fun BlockRoadmap(
     }
 
     editingBlock?.let { block ->
+        var draftGoal by remember(block.id, block.goal) { mutableStateOf(block.goal) }
+        var draftScheme by remember(block.id, block.progressionScheme) { mutableStateOf(block.progressionScheme) }
+        val preview = blockProgressionPreview?.invoke(block.id)
         MetadataDialog(
             title = "Editar bloque",
             initialName = block.name,
             initialDescription = block.description,
             deleteLabel = if (roadmapBlocks.size > 1) "Eliminar bloque" else null,
+            extraContent = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Objetivo del bloque", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf(
+                            BlockGoal.ACCUMULATION,
+                            BlockGoal.INTENSIFICATION,
+                            BlockGoal.SPECIFICITY,
+                            BlockGoal.REALIZATION,
+                            BlockGoal.PEAK,
+                            BlockGoal.DELOAD,
+                            BlockGoal.TAPER,
+                        ).forEach { goal ->
+                            val selected = draftGoal == goal
+                            Surface(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable { draftGoal = goal },
+                                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                            ) {
+                                Text(
+                                    goal.label.take(4),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    fontSize = 9.sp,
+                                    color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                    Text("Progresión", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf(
+                            BlockProgressionScheme.PERCENT_RM,
+                            BlockProgressionScheme.LINEAR_LOAD,
+                            BlockProgressionScheme.UNDULATING,
+                            BlockProgressionScheme.RPE_CAP,
+                        ).forEach { scheme ->
+                            val selected = draftScheme == scheme
+                            Surface(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable { draftScheme = scheme },
+                                color = if (selected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant,
+                            ) {
+                                Text(
+                                    scheme.name.take(8),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    fontSize = 8.sp,
+                                    color = if (selected) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                    if (!preview.isNullOrBlank()) {
+                        Text(
+                            "Al superar el bloque: $preview",
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            },
             onDismiss = { editingBlock = null },
             onSave = { name, description ->
-                onUpdateBlock(block.id, name, description)
+                // One atomic VM update: metadata and prescription must never
+                // race through two asynchronous repository writes.
+                onUpdateBlock(block.id, name, description, draftGoal, draftScheme)
                 editingBlock = null
             },
             onDelete = {
@@ -678,6 +782,7 @@ private fun MetadataDialog(
     initialName: String,
     initialDescription: String?,
     deleteLabel: String?,
+    extraContent: (@Composable () -> Unit)? = null,
     onDismiss: () -> Unit,
     onSave: (String, String?) -> Unit,
     onDelete: (() -> Unit)? = null,
@@ -705,6 +810,7 @@ private fun MetadataDialog(
                     maxLines = 3,
                     modifier = Modifier.fillMaxWidth(),
                 )
+                extraContent?.invoke()
             }
         },
         confirmButton = {

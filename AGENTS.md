@@ -36,7 +36,7 @@ KPKN Fit is a local-first native Android application with an iOS parity port and
 - Read `.opencode/kpkn-map.md` before broad repository searches.
 - Durable agent memory lives in `.opencode/memory/MEMORY.md` and `.opencode/memory/USER.md`.
 - Architecture references are `docs/ARCHITECTURE.md`, `docs/ANDROID_ARCHITECTURE_MAP.md`, and `docs/ANDROID_UI_SCREENS_MAP.md`.
-- The code and exported Room schema are authoritative when documentation disagrees. The current Room database is v20; some older docs still say v19.
+- The code and exported Room schema are authoritative when documentation disagrees. The current Room database is **v23**; some older docs still say v20/v19.
 
 ## Agent Workflow (Orquestador → Constructor → Auditor)
 

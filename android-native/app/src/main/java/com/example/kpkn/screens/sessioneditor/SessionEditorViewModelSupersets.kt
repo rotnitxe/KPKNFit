@@ -115,7 +115,7 @@ fun SessionEditorViewModel.removeFromSuperset(partId: String?, exerciseId: Strin
     // ─── New SupersetGroup API ──────────────────────────────────────────────────
 
 fun SessionEditorViewModel.openSupersetCreator(partId: String?, exerciseIds: List<String>) {
-    val session = currentUiState.session
+    val session = currentUiState.activeVariantSession
     val defaults = currentUiState.ruleDefaults
     val defaultSupersetBetween = if (defaults.applyToNewItems) defaults.supersetBetweenRestSeconds.coerceAtLeast(0) else 60
     val defaultSupersetAfter = if (defaults.applyToNewItems) defaults.supersetRoundRestSeconds.coerceAtLeast(0) else 120
@@ -321,7 +321,7 @@ fun SessionEditorViewModel.triggerQuickActionCreateSuperset() {
 fun SessionEditorViewModel.triggerQuickActionManageSuperset() {
     val state = currentUiState
     val exerciseId = state.quickActionsExerciseId ?: return
-    val exercise = state.session?.allExercises()?.firstOrNull { it.id == exerciseId } ?: return
+    val exercise = state.activeVariantSession?.allExercises()?.firstOrNull { it.id == exerciseId } ?: return
     val groupId = exercise.supersetGroupRefOrLegacyId() ?: return
     openSupersetManager(state.quickActionsPartId, groupId)
     updateUi {

@@ -54,6 +54,7 @@ import com.example.kpkn.ui.theme.AppThemeMode
 import com.example.kpkn.ui.theme.RingBlue
 import com.example.kpkn.ui.theme.RingRed
 import com.example.kpkn.ui.theme.RingYellow
+import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
 import java.time.LocalDate
@@ -852,14 +853,17 @@ private fun NutritionTodayGlassOverlay(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.38f)),
+            .background(Color(0xFF0A0A0C).copy(alpha = 0.42f)),
         contentAlignment = Alignment.Center,
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
-                .kpknGlass(hazeState, RoundedCornerShape(28.dp)),
+                .kpknGlass(
+                    hazeState = hazeState,
+                    shape = RoundedCornerShape(KpknGlass.DialogCornerRadius),
+                ),
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),

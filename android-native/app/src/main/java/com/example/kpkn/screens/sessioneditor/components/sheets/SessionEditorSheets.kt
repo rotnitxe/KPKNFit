@@ -98,7 +98,6 @@ import androidx.compose.material.icons.filled.TipsAndUpdates
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
@@ -113,7 +112,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -188,8 +186,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.zIndex
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.viewinterop.AndroidView
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeTint
@@ -411,14 +407,32 @@ internal fun SessionEditorSheets(
     onConfirmApplyTemplate: (SessionTemplateApplyMode) -> Unit,
     onCancelTemplateApply: () -> Unit,
     onTemplateSearchChange: (String) -> Unit,
+    archivedUserTemplates: List<SessionTemplate> = emptyList(),
+    onArchiveUserTemplate: (String) -> Unit = {},
+    onRestoreUserTemplate: (String) -> Unit = {},
+    onDeleteUserTemplate: (String) -> Unit = {},
+    onEditUserTemplate: suspend (
+        SessionTemplate,
+        String,
+        String,
+        com.example.kpkn.data.splits.Difficulty,
+        com.example.kpkn.data.sessions.SessionTemplateFocusCategory?,
+        com.example.kpkn.data.sessions.SessionTemplateDurationClass,
+        List<String>,
+        List<String>,
+        Boolean,
+    ) -> Result<Unit> = { _, _, _, _, _, _, _, _, _ -> Result.success(Unit) },
+    onSaveCurrentTemplate: suspend (String, String) -> Result<SessionTemplate> = { _, _ ->
+        Result.failure(IllegalStateException("Guardado de plantillas no disponible en esta superficie"))
+    },
 ) {
-    val session = uiState.session ?: return
+    val session = uiState.activeVariantSession ?: uiState.session ?: return
     if (uiState.sheet == SessionEditorSheet.NONE) return
     val mobilityTargetSeries = uiState.quickActionsExerciseId
         ?.let { targetId -> session.allExercises().firstOrNull { it.id == targetId }?.mobilitySeries }
         .orEmpty()
 
-    // AUGE is rendered as an in-composition Liquid Glass overlay in SessionEditorScreen
+    // AUGE is rendered as an in-composition DarkMica overlay in SessionEditorScreen
     // (sibling of hazeSource). Do NOT put it in KpknSheet — blur would die.
     if (uiState.sheet == SessionEditorSheet.AUGE) return
     // Placement dialog is rendered in SessionEditorScreen (KpknAlertDialog).
@@ -446,7 +460,7 @@ internal fun SessionEditorSheets(
              safeTopInset = true,
            maxHeightFraction = 1f,
            stableHeightFraction = 1f,
-           additionalGlassScrim = Color.Black.copy(alpha = 0.22f),
+           additionalGlassScrim = Color.Black.copy(alpha = 0.10f),
        ) {
               Column(
                  modifier = Modifier.fillMaxSize(),
@@ -683,6 +697,7 @@ internal fun SessionEditorSheets(
             )
             SessionEditorSheet.TEMPLATES -> TemplatesSheet(
                 templates = allTemplates,
+                archivedUserTemplates = archivedUserTemplates,
                 searchQuery = uiState.templateSearchQuery,
                 applyDecision = uiState.templateApplyDecision,
                 onSearchChange = onTemplateSearchChange,
@@ -690,6 +705,11 @@ internal fun SessionEditorSheets(
                 onConfirmApplyTemplate = onConfirmApplyTemplate,
                 onCancelApply = onCancelTemplateApply,
                 onDismiss = onDismiss,
+                onArchiveUserTemplate = onArchiveUserTemplate,
+                onRestoreUserTemplate = onRestoreUserTemplate,
+                onDeleteUserTemplate = onDeleteUserTemplate,
+                onEditUserTemplate = onEditUserTemplate,
+                onSaveCurrentTemplate = onSaveCurrentTemplate,
             )
             SessionEditorSheet.NONE -> Unit
         }

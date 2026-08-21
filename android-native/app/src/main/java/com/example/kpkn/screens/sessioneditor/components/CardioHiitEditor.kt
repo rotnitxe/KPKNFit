@@ -122,12 +122,14 @@ internal fun CardioHiitEditor(
                     selected = config.protocol == HiitProtocol.HIIT,
                     label = "HIIT",
                     accentColor = accentColor,
+                    modifier = Modifier.weight(1f),
                     onClick = { update(config.copy(protocol = HiitProtocol.HIIT, targetRpe = config.targetRpe.coerceIn(1.0, 9.5))) },
                 )
                 HiitChip(
                     selected = config.protocol == HiitProtocol.SIT,
                     label = "SIT · all-out",
                     accentColor = accentColor,
+                    modifier = Modifier.weight(1f),
                     onClick = { update(config.copy(protocol = HiitProtocol.SIT, targetRpe = 10.0)) },
                 )
             }
@@ -167,11 +169,14 @@ internal fun CardioHiitEditor(
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween,
                                 ) {
-                                    HiitCompactIntField(config.rounds, accentColor, Modifier.width(56.dp)) {
-                                        update(config.copy(rounds = it.coerceIn(1, 99)))
-                                    }
-                                    Text(" rondas", color = Color.White.copy(alpha = 0.55f), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall)
+                                    Text("Rondas de esfuerzo", color = Color.White.copy(alpha = 0.85f), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall)
+                                    CompactRoundStepper(
+                                        rounds = config.rounds,
+                                        accentColor = accentColor,
+                                        onRoundsChange = { update(config.copy(rounds = it.coerceIn(1, 99))) },
+                                    )
                                 }
                             }
                             Row(
@@ -195,7 +200,7 @@ internal fun CardioHiitEditor(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .border(1.dp, accentColor.copy(alpha = 0.32f), RoundedCornerShape(8.dp))
-                                .padding(8.dp),
+                            .padding(8.dp),
                         ) {
                             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 HiitTimeField("Descanso entre series", "", config.restBetweenSetsSeconds, accentColor, Modifier.fillMaxWidth()) {
@@ -204,11 +209,16 @@ internal fun CardioHiitEditor(
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween,
                                 ) {
-                                    HiitCompactIntField(config.sets, accentColor, Modifier.width(56.dp)) {
-                                        update(config.copy(sets = it.coerceIn(2, 5)))
-                                    }
-                                    Text(" series", color = Color.White.copy(alpha = 0.55f), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall)
+                                    Text("Series totales", color = Color.White.copy(alpha = 0.85f), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall)
+                                    CompactRoundStepper(
+                                        rounds = config.sets,
+                                        accentColor = accentColor,
+                                        minRounds = 2,
+                                        maxRounds = 5,
+                                        onRoundsChange = { update(config.copy(sets = it.coerceIn(2, 5))) },
+                                    )
                                 }
                             }
                         }
@@ -224,12 +234,20 @@ internal fun CardioHiitEditor(
             Text("Objetivo del bloque de trabajo", color = Color.White.copy(alpha = 0.75f), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
             if (gpsAvailable) {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-                    HiitChip(config.workTargetType == HiitWorkTarget.TIME, "Tiempo de trabajo", accentColor) {
-                        update(config.copy(workTargetType = HiitWorkTarget.TIME))
-                    }
-                    HiitChip(config.workTargetType == HiitWorkTarget.DISTANCE, "Distancia", accentColor) {
-                        update(config.copy(workTargetType = HiitWorkTarget.DISTANCE))
-                    }
+                    HiitChip(
+                        selected = config.workTargetType == HiitWorkTarget.TIME,
+                        label = "Tiempo de trabajo",
+                        accentColor = accentColor,
+                        modifier = Modifier.weight(1f),
+                        onClick = { update(config.copy(workTargetType = HiitWorkTarget.TIME)) },
+                    )
+                    HiitChip(
+                        selected = config.workTargetType == HiitWorkTarget.DISTANCE,
+                        label = "Distancia",
+                        accentColor = accentColor,
+                        modifier = Modifier.weight(1f),
+                        onClick = { update(config.copy(workTargetType = HiitWorkTarget.DISTANCE)) },
+                    )
                 }
             }
             if (config.workTargetType == HiitWorkTarget.DISTANCE) {
@@ -271,14 +289,27 @@ internal fun CardioHiitEditor(
 }
 
 @Composable
-private fun HiitChip(selected: Boolean, label: String, accentColor: Color, onClick: () -> Unit) {
+private fun HiitChip(
+    selected: Boolean,
+    label: String,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
     Surface(
-        modifier = Modifier.clickable(onClick = onClick),
+        modifier = modifier.clickable(onClick = onClick),
         shape = RoundedCornerShape(999.dp),
-        color = accentColor.copy(alpha = if (selected) 0.30f else 0.06f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = if (selected) 0.9f else 0.4f)),
+        color = if (selected) accentColor.copy(alpha = 0.28f) else Color.White.copy(alpha = 0.08f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, if (selected) accentColor.copy(alpha = 0.85f) else Color.White.copy(alpha = 0.14f)),
     ) {
-        Text(label, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), color = Color.White, style = MaterialTheme.typography.labelSmall, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium)
+        Text(
+            label,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            color = if (selected) Color.White else Color.White.copy(alpha = 0.75f),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = if (selected) FontWeight.Black else FontWeight.Medium,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        )
     }
 }
 

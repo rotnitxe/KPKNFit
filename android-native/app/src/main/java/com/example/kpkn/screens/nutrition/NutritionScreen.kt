@@ -38,14 +38,10 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.*
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
 import com.example.kpkn.ui.components.KpknAlertDialog
-import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.LocalHazeState
 import com.example.kpkn.ui.components.kpknGlass
 import com.example.kpkn.ui.components.kpknGlassOrFallback
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 private val PROTEIN_COLOR = Color(0xFFEF5350)
 private val CARBS_COLOR = Color(0xFF7E57C2)
@@ -219,29 +215,12 @@ fun NutritionScreen(
         }
 
         val pillShape = RoundedCornerShape(999.dp)
-        val yellowGlassStyle = remember {
-            HazeStyle(
-                blurRadius = KpknGlass.BlurRadius,
-                tint = HazeTint(Color(0xFFFFD600).copy(alpha = 0.14f)),
-                backgroundColor = Color.Black.copy(alpha = 0.45f),
-                noiseFactor = KpknGlass.NoiseFactor,
-            )
-        }
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .navigationBarsPadding()
                 .padding(end = 16.dp, bottom = 106.dp)
-                .clip(pillShape)
-                .hazeEffect(
-                    state = nutritionHazeState,
-                    style = yellowGlassStyle,
-                )
-                .border(
-                    width = 1.dp,
-                    color = Color(0xFFFFD600).copy(alpha = 0.45f),
-                    shape = pillShape,
-                )
+                .kpknGlass(hazeState = nutritionHazeState, shape = pillShape)
                 .clickable {
                     if (activePlan == null) {
                         showPlanRequiredDialog = true
@@ -261,14 +240,14 @@ fun NutritionScreen(
             ) {
                 Surface(
                     shape = CircleShape,
-                    color = Color(0xFFFFD600).copy(alpha = 0.22f),
+                    color = Color.White.copy(alpha = 0.12f),
                     modifier = Modifier.size(26.dp),
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = "Registrar comida",
-                            tint = Color(0xFFFFD600),
+                            tint = Color.White,
                             modifier = Modifier.size(18.dp),
                         )
                     }
@@ -278,7 +257,7 @@ fun NutritionScreen(
                     text = "Registrar comida",
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleSmall,
-                    color = Color(0xFFFFFBEB),
+                    color = Color.White,
                     letterSpacing = 0.2.sp,
                 )
             }

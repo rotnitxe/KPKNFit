@@ -45,6 +45,7 @@ import com.example.kpkn.data.learn.ContentBlock
 import com.example.kpkn.data.learn.ContentType
 import com.example.kpkn.data.learn.LearnModule
 import com.example.kpkn.data.repository.LearnRepository
+import com.example.kpkn.ui.components.kpknGlassOrFallback
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,9 +83,14 @@ fun LearnReaderScreen(
             )
         },
         bottomBar = {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = Color.Black,
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    // Reader is under activity hazeSource (Scaffold slot) — FallbackScrim only.
+                    .kpknGlassOrFallback(
+                        hazeState = null,
+                        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                    ),
             ) {
                 Button(
                     onClick = onStartQuiz,

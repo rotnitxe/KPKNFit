@@ -58,6 +58,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.components.LocalHazeState
+import com.example.kpkn.ui.components.kpknGlassOrFallback
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -896,13 +898,16 @@ internal fun FinishWorkoutSheet(
                 Spacer(Modifier.height(100.dp))
             }
 
-            // 7. STICKY ACTION DOCK
+            // 7. STICKY ACTION DOCK (DarkMica chrome; confirm FAB stays solid primary CTA)
+            val dockHaze = LocalHazeState.current
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
                     .zIndex(1f)
-                    .padding(horizontal = 20.dp, vertical = 14.dp),
+                    .padding(horizontal = 12.dp, vertical = 10.dp)
+                    .kpknGlassOrFallback(dockHaze, RoundedCornerShape(28.dp))
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
             ) {
                 // Independent alignments keep the 64dp check geometrically
                 // centered even when the compact right button is wider than

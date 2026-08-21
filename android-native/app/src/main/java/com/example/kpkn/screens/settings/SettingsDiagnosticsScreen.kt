@@ -51,6 +51,7 @@ import com.example.kpkn.services.diagnostics.KpknDiagnosticStorage
 import com.example.kpkn.services.diagnostics.KpknReportManager
 import com.example.kpkn.services.diagnostics.ReportEnrichmentScheduler
 import com.example.kpkn.services.workout.WorkoutVoiceDiagnosticLogger
+import com.example.kpkn.ui.components.KpknAlertDialog
 import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -229,7 +230,7 @@ fun SettingsDiagnosticsScreen(onBack: () -> Unit) {
     }
 
     selectedReport?.let { markdown ->
-        androidx.compose.material3.AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = { selectedReport = null },
             confirmButton = { TextButton(onClick = { selectedReport = null }) { Text("Cerrar") } },
             title = { Text("Reporte") },

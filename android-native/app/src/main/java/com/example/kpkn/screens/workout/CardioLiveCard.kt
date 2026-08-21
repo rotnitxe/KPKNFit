@@ -8,7 +8,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -16,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import com.example.kpkn.ui.components.KpknAlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -326,30 +326,24 @@ internal fun CardioLiveCard(
     }
 
     if (showRecordConfirmation) {
-        AlertDialog(
+        KpknAlertDialog(
             onDismissRequest = {
                 showRecordConfirmation = false
                 onCancelRecord()
             },
-            title = { Text("Confirmar cardio") },
-            text = {
-                Text(
-                    "Registrar ${formatCardioTime(durationSeconds)}" +
-                        (recordedDistanceKm?.let { " · ${formatCardioDistance(it)}" } ?: "") +
-                        " como resultado de esta sesión?",
-                )
+            title = "Confirmar cardio",
+            text = "Registrar ${formatCardioTime(durationSeconds)}" +
+                (recordedDistanceKm?.let { " · ${formatCardioDistance(it)}" } ?: "") +
+                " como resultado de esta sesión?",
+            confirmLabel = "Registrar",
+            onConfirm = {
+                showRecordConfirmation = false
+                onRecord(durationSeconds, recordedDistanceKm, heartRate)
             },
-            confirmButton = {
-                TextButton(onClick = {
-                    showRecordConfirmation = false
-                    onRecord(durationSeconds, recordedDistanceKm, heartRate)
-                }) { Text("Registrar") }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showRecordConfirmation = false
-                    onCancelRecord()
-                }) { Text("Cancelar") }
+            dismissLabel = "Cancelar",
+            onDismiss = {
+                showRecordConfirmation = false
+                onCancelRecord()
             },
         )
     }

@@ -37,7 +37,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.DirectionsRun
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -156,6 +155,8 @@ fun SessionEditorScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val allTemplates by viewModel.allTemplates.collectAsStateWithLifecycle()
+    val userTemplates by viewModel.userTemplates.collectAsStateWithLifecycle()
+    val archivedUserTemplates = remember(userTemplates) { userTemplates.filter { it.isArchived } }
     val session = uiState.activeVariantSession ?: uiState.session
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -920,6 +921,26 @@ fun SessionEditorScreen(
                 onSelectTemplate = viewModel::selectTemplate,
                 onConfirmApplyTemplate = viewModel::confirmTemplateApply,
                 onCancelTemplateApply = viewModel::cancelTemplateApply,
+                archivedUserTemplates = archivedUserTemplates,
+                onArchiveUserTemplate = viewModel::archiveUserTemplate,
+                onRestoreUserTemplate = viewModel::restoreUserTemplate,
+                onDeleteUserTemplate = viewModel::deleteUserTemplate,
+                onEditUserTemplate = { template, name, description, difficulty, focus, duration, splitIds, dayLabels, autoGeneration ->
+                    viewModel.updateUserTemplateMetadataNow(
+                        template = template,
+                        name = name,
+                        description = description,
+                        difficulty = difficulty,
+                        focusCategory = focus,
+                        durationClass = duration,
+                        splitIds = splitIds,
+                        splitDayLabels = dayLabels,
+                        autoGenerationEligible = autoGeneration,
+                    )
+                },
+                onSaveCurrentTemplate = { name, description ->
+                    viewModel.saveCurrentSessionAsTemplateNow(name, description)
+                },
             )
         }
     }
@@ -1096,6 +1117,26 @@ fun SessionEditorScreen(
         onConfirmApplyTemplate = viewModel::confirmTemplateApply,
         onCancelTemplateApply = viewModel::cancelTemplateApply,
         onTemplateSearchChange = viewModel::setTemplateSearchQuery,
+        archivedUserTemplates = archivedUserTemplates,
+        onArchiveUserTemplate = viewModel::archiveUserTemplate,
+        onRestoreUserTemplate = viewModel::restoreUserTemplate,
+        onDeleteUserTemplate = viewModel::deleteUserTemplate,
+        onEditUserTemplate = { template, name, description, difficulty, focus, duration, splitIds, dayLabels, autoGeneration ->
+            viewModel.updateUserTemplateMetadataNow(
+                template = template,
+                name = name,
+                description = description,
+                difficulty = difficulty,
+                focusCategory = focus,
+                durationClass = duration,
+                splitIds = splitIds,
+                splitDayLabels = dayLabels,
+                autoGenerationEligible = autoGeneration,
+            )
+        },
+        onSaveCurrentTemplate = { name, description ->
+            viewModel.saveCurrentSessionAsTemplateNow(name, description)
+        },
         setTargetDuration = viewModel::setTargetDuration,
         setPartTargetDuration = viewModel::setPartTargetDuration,
         setExerciseTargetDuration = viewModel::setExerciseTargetDuration,

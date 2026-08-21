@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -24,17 +25,23 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -46,10 +53,15 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.sessions.SessionTemplate
+import com.example.kpkn.data.sessions.SessionTemplateDurationClass
+import com.example.kpkn.data.sessions.SessionTemplateFocusCategory
+import com.example.kpkn.data.sessions.SessionTemplateSourceType
 import com.example.kpkn.data.splits.Difficulty
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
+import com.example.kpkn.data.splits.isVisibleForApplication
 import com.example.kpkn.domain.templates.SessionTemplateDurationBucket
 import com.example.kpkn.domain.templates.TemplateCatalogFilterLogic
 import com.example.kpkn.domain.templates.TemplateCatalogFilters
@@ -61,6 +73,51 @@ import com.example.kpkn.domain.templates.TemplateSessionType
 import com.example.kpkn.domain.templates.TemplateSessionZone
 import com.example.kpkn.screens.sessioneditor.CompactCatalogFilterChip
 import com.example.kpkn.ui.components.KpknDropdownMenu
+import kotlinx.coroutines.launch
+
+/**
+ * Result-driven state for the USER-template save dialog.  The dialog owns this
+ * small state machine so it cannot disappear before the Room-backed command
+ * has completed.  Keeping it here also makes the button -> command contract
+ * directly testable without a Compose hierarchy.
+ */
+internal sealed interface UserTemplateSaveState {
+    data object Idle : UserTemplateSaveState
+    data object Saving : UserTemplateSaveState
+    data class Error(val message: String) : UserTemplateSaveState
+    data class Success(val template: SessionTemplate) : UserTemplateSaveState
+}
+
+internal suspend fun executeUserTemplateSave(
+    name: String,
+    description: String,
+    onSave: suspend (String, String) -> Result<SessionTemplate>,
+): UserTemplateSaveState {
+    val normalizedName = name.trim()
+    if (normalizedName.isBlank()) {
+        return UserTemplateSaveState.Error("Escribe un nombre para la plantilla.")
+    }
+    return runCatching { onSave(normalizedName, description.trim()) }
+        .fold(
+            onSuccess = { result ->
+                result.fold(
+                    onSuccess = { template -> UserTemplateSaveState.Success(template) },
+                    onFailure = { error ->
+                        UserTemplateSaveState.Error(
+                            error.message?.takeIf { it.isNotBlank() }
+                                ?: "No se pudo guardar la plantilla. Intenta nuevamente.",
+                        )
+                    },
+                )
+            },
+            onFailure = { error ->
+                UserTemplateSaveState.Error(
+                    error.message?.takeIf { it.isNotBlank() }
+                        ?: "No se pudo guardar la plantilla. Intenta nuevamente.",
+                )
+            },
+        )
+}
 
 /** Chips amigables de grupo / día (sin Powerlifting / Minimalista / Recuperación como primarios). */
 private val FriendlyGroupChips = listOf(
@@ -87,6 +144,25 @@ internal fun TemplateCatalogBrowser(
     searchQuery: String,
     onSelectTemplate: (SessionTemplate) -> Unit,
     exerciseIndex: Map<String, ExerciseMuscleInfo>,
+    /** Archived USER templates stay out of application results but remain manageable. */
+    archivedUserTemplates: List<SessionTemplate> = emptyList(),
+    onArchiveUserTemplate: (String) -> Unit = {},
+    onRestoreUserTemplate: (String) -> Unit = {},
+    onDeleteUserTemplate: (String) -> Unit = {},
+    onEditUserTemplate: suspend (
+        SessionTemplate,
+        String,
+        String,
+        Difficulty,
+        SessionTemplateFocusCategory?,
+        SessionTemplateDurationClass,
+        List<String>,
+        List<String>,
+        Boolean,
+    ) -> Result<Unit> = { _, _, _, _, _, _, _, _, _ -> Result.success(Unit) },
+    onSaveCurrentTemplate: suspend (String, String) -> Result<SessionTemplate> = { _, _ ->
+        Result.failure(IllegalStateException("Guardado de plantillas no disponible en esta superficie"))
+    },
     glassDark: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
@@ -94,12 +170,14 @@ internal fun TemplateCatalogBrowser(
     val bodyColor = if (glassDark) Color.White else MaterialTheme.colorScheme.onSurface
     val mutedColor = if (glassDark) Color.White.copy(alpha = 0.55f) else MaterialTheme.colorScheme.onSurfaceVariant
     val rowBg = if (glassDark) Color.White.copy(alpha = 0.06f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+    var templateBeingEdited by remember { mutableStateOf<SessionTemplate?>(null) }
+    var showSaveDialog by remember { mutableStateOf(false) }
 
     // Keep first paint independent from the expensive AUGE/ring calculation.
     // Duration and difficulty filters already have metadata fallbacks; detailed
     // facets are calculated lazily only when a card is expanded.
     val facetsById = emptyMap<String, com.example.kpkn.domain.templates.SessionTemplateFacets>()
-    val splits = remember { SPLIT_TEMPLATES.filterNot { it.id == "custom" } }
+    val splits = remember { SPLIT_TEMPLATES.filter { it.id != "custom" && it.isVisibleForApplication } }
 
     var groupMode by rememberSaveable { mutableStateOf(TemplateGroupMode.MUSCLE_GROUP.name) }
     var sessionTypeName by rememberSaveable { mutableStateOf(TemplateSessionType.ALL.name) }
@@ -161,6 +239,53 @@ internal fun TemplateCatalogBrowser(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(bottom = 8.dp),
     ) {
+        val visibleUserTemplates = templates.filter { it.sourceType == SessionTemplateSourceType.USER }
+        item(key = "user-template-management") {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Mis plantillas",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Black,
+                            color = titleColor,
+                            modifier = Modifier.weight(1f),
+                        )
+                        FilledTonalButton(
+                            onClick = { showSaveDialog = true },
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                        ) { Text("Guardar sesión") }
+                    }
+                    if (visibleUserTemplates.isEmpty() && archivedUserTemplates.isEmpty()) {
+                        Text(
+                            "Todavía no tienes plantillas guardadas.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = mutedColor,
+                        )
+                    }
+                    visibleUserTemplates.forEach { template ->
+                        UserTemplateManagementRow(
+                            template = template,
+                            archived = false,
+                            mutedColor = mutedColor,
+                            onArchive = onArchiveUserTemplate,
+                            onRestore = onRestoreUserTemplate,
+                            onDelete = onDeleteUserTemplate,
+                            onEdit = { templateBeingEdited = it },
+                        )
+                    }
+                    archivedUserTemplates.forEach { template ->
+                        UserTemplateManagementRow(
+                            template = template,
+                            archived = true,
+                            mutedColor = mutedColor,
+                            onArchive = onArchiveUserTemplate,
+                            onRestore = onRestoreUserTemplate,
+                            onDelete = onDeleteUserTemplate,
+                            onEdit = { templateBeingEdited = it },
+                        )
+                    }
+                }
+        }
         item(key = "filters-header") {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
@@ -296,6 +421,316 @@ internal fun TemplateCatalogBrowser(
                         }
                     }
                 }
+            }
+        }
+    }
+    templateBeingEdited?.let { template ->
+        UserTemplateMetadataDialog(
+            template = template,
+            onDismiss = { templateBeingEdited = null },
+            onSave = { name, description, difficulty, focus, duration, splitIds, dayLabels, autoGeneration ->
+                onEditUserTemplate(
+                    template,
+                    name,
+                    description,
+                    difficulty,
+                    focus,
+                    duration,
+                    splitIds,
+                    dayLabels,
+                    autoGeneration,
+                )
+            },
+        )
+    }
+    if (showSaveDialog) {
+        SaveUserTemplateDialog(
+            onDismiss = { showSaveDialog = false },
+            onSave = onSaveCurrentTemplate,
+        )
+    }
+}
+
+@Composable
+private fun UserTemplateManagementRow(
+    template: SessionTemplate,
+    archived: Boolean,
+    mutedColor: Color,
+    onArchive: (String) -> Unit,
+    onRestore: (String) -> Unit,
+    onDelete: (String) -> Unit,
+    onEdit: (SessionTemplate) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(template.name, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(if (archived) "Archivada" else "Disponible · ${template.exerciseCount} ejercicios", style = MaterialTheme.typography.labelSmall, color = mutedColor)
+        }
+        if (archived) {
+            TextButton(onClick = { onRestore(template.id) }) { Text("Restaurar") }
+        } else {
+            TextButton(onClick = { onArchive(template.id) }) { Text("Archivar") }
+        }
+        TextButton(onClick = { onEdit(template) }) { Text("Editar") }
+        TextButton(onClick = { onDelete(template.id) }) { Text("Borrar") }
+    }
+}
+
+@Composable
+private fun UserTemplateMetadataDialog(
+    template: SessionTemplate,
+    onDismiss: () -> Unit,
+    onSave: suspend (
+        String,
+        String,
+        Difficulty,
+        SessionTemplateFocusCategory?,
+        SessionTemplateDurationClass,
+        List<String>,
+        List<String>,
+        Boolean,
+    ) -> Result<Unit>,
+) {
+    var name by remember(template.id) { mutableStateOf(template.name) }
+    var description by remember(template.id) { mutableStateOf(template.description) }
+    var difficulty by remember(template.id) { mutableStateOf(template.difficulty) }
+    var focus by remember(template.id) { mutableStateOf(template.focusCategory) }
+    var duration by remember(template.id) { mutableStateOf(template.durationClass) }
+    var splitIds by remember(template.id) { mutableStateOf(template.splitIds.joinToString(", ")) }
+    var dayLabels by remember(template.id) { mutableStateOf(template.splitDayLabels.joinToString(", ")) }
+    var autoGeneration by remember(template.id) { mutableStateOf(template.autoGenerationEligible) }
+    var expandedField by remember { mutableStateOf<String?>(null) }
+    var isSaving by remember(template.id) { mutableStateOf(false) }
+    var saveError by remember(template.id) { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
+
+    AlertDialog(
+        onDismissRequest = { if (!isSaving) onDismiss() },
+        // A system BACK first hides the IME.  Do not let that same event
+        // dismiss the dialog and bypass the durable Result contract.
+        properties = DialogProperties(dismissOnBackPress = false),
+        title = { Text("Editar plantilla", fontWeight = FontWeight.Black) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 520.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                OutlinedTextField(name, { name = it }, label = { Text("Nombre") }, singleLine = true, enabled = !isSaving)
+                OutlinedTextField(
+                    description,
+                    { description = it },
+                    label = { Text("Descripción") },
+                    minLines = 2,
+                    enabled = !isSaving,
+                )
+                TemplateMetadataDropdown(
+                    label = "Dificultad",
+                    value = difficulty.name,
+                    expanded = expandedField == "difficulty",
+                    onExpand = { expandedField = "difficulty" },
+                    onDismiss = { expandedField = null },
+                    values = Difficulty.entries.map { it.name },
+                    onValue = { value -> difficulty = Difficulty.entries.first { it.name == value } },
+                )
+                TemplateMetadataDropdown(
+                    label = "Foco",
+                    value = focus?.name ?: "Sin foco",
+                    expanded = expandedField == "focus",
+                    onExpand = { expandedField = "focus" },
+                    onDismiss = { expandedField = null },
+                    values = listOf("Sin foco") + SessionTemplateFocusCategory.entries.map { it.name },
+                    onValue = { value -> focus = SessionTemplateFocusCategory.entries.firstOrNull { it.name == value } },
+                )
+                TemplateMetadataDropdown(
+                    label = "Duración",
+                    value = duration.name,
+                    expanded = expandedField == "duration",
+                    onExpand = { expandedField = "duration" },
+                    onDismiss = { expandedField = null },
+                    values = SessionTemplateDurationClass.entries.map { it.name },
+                    onValue = { value -> duration = SessionTemplateDurationClass.entries.first { it.name == value } },
+                )
+                OutlinedTextField(
+                    splitIds,
+                    { splitIds = it },
+                    label = { Text("Split IDs (separados por coma)") },
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    dayLabels,
+                    { dayLabels = it },
+                    label = { Text("Etiquetas de día (separadas por coma)") },
+                    singleLine = true,
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = autoGeneration, onCheckedChange = { if (!isSaving) autoGeneration = it })
+                    Text("Permitir autogeneración semanal")
+                }
+                saveError?.let { error ->
+                    Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (isSaving) return@Button
+                    isSaving = true
+                    saveError = null
+                    scope.launch {
+                        val result = runCatching {
+                            onSave(
+                                name.trim(),
+                                description.trim(),
+                                difficulty,
+                                focus,
+                                duration,
+                                splitIds.split(',').map(String::trim).filter(String::isNotBlank),
+                                dayLabels.split(',').map(String::trim).filter(String::isNotBlank),
+                                autoGeneration,
+                            )
+                        }.getOrElse { Result.failure(it) }
+                        if (result.isSuccess) {
+                            isSaving = false
+                            onDismiss()
+                        } else {
+                            isSaving = false
+                            saveError = result.exceptionOrNull()?.message
+                                ?: "No se pudieron actualizar los metadatos."
+                        }
+                    }
+                },
+                enabled = name.isNotBlank() && !isSaving,
+            ) {
+                if (isSaving) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Guardando…")
+                } else {
+                    Text("Guardar")
+                }
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss, enabled = !isSaving) { Text("Cancelar") } },
+    )
+}
+
+@Composable
+private fun SaveUserTemplateDialog(
+    onDismiss: () -> Unit,
+    onSave: suspend (String, String) -> Result<SessionTemplate>,
+) {
+    var name by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var saveState by remember { mutableStateOf<UserTemplateSaveState>(UserTemplateSaveState.Idle) }
+    val scope = rememberCoroutineScope()
+    val isSaving = saveState is UserTemplateSaveState.Saving
+    AlertDialog(
+        onDismissRequest = { if (!isSaving) onDismiss() },
+        // Keep the form mounted while the IME is being dismissed; only the
+        // Room-backed success path below may close it after a save.
+        properties = DialogProperties(dismissOnBackPress = false),
+        title = { Text("Guardar sesión como plantilla", fontWeight = FontWeight.Black) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Nombre") },
+                    singleLine = true,
+                    enabled = !isSaving,
+                )
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Descripción") },
+                    minLines = 2,
+                    enabled = !isSaving,
+                )
+                val error = (saveState as? UserTemplateSaveState.Error)?.message
+                if (error != null) {
+                    Text(
+                        text = error,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (isSaving) return@Button
+                    saveState = UserTemplateSaveState.Saving
+                    scope.launch {
+                        val result = executeUserTemplateSave(name, description, onSave)
+                        saveState = result
+                        if (result is UserTemplateSaveState.Success) {
+                            // The suspend command returned only after Room accepted
+                            // the row; closing now lets the Flow render the read-back.
+                            onDismiss()
+                        }
+                    }
+                },
+                enabled = name.isNotBlank() && !isSaving,
+            ) {
+                if (isSaving) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Guardando…")
+                } else {
+                    Text("Guardar")
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !isSaving) { Text("Cancelar") }
+        },
+    )
+}
+
+@Composable
+private fun TemplateMetadataDropdown(
+    label: String,
+    value: String,
+    expanded: Boolean,
+    onExpand: () -> Unit,
+    onDismiss: () -> Unit,
+    values: List<String>,
+    onValue: (String) -> Unit,
+) {
+    Box(modifier = Modifier.fillMaxWidth()) {
+        FilledTonalButton(
+            onClick = onExpand,
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+        ) {
+            Text("$label: $value", modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+        KpknDropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
+            values.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        onValue(option)
+                        onDismiss()
+                    },
+                )
             }
         }
     }

@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.ui.components.kpknGlassOrFallback
 
 internal enum class ExerciseDrainOverlayChannel {
     ENERGY,
@@ -40,12 +40,10 @@ internal fun ExerciseDrainOverlayCard(
     state: ExerciseDrainOverlayState,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.97f),
-        tonalElevation = 10.dp,
-        shadowElevation = 18.dp,
+    val shape = RoundedCornerShape(18.dp)
+    // Nested under workout hazeSource — FallbackScrim DarkMica (no dead live Haze).
+    Box(
+        modifier = modifier.kpknGlassOrFallback(null, shape),
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
