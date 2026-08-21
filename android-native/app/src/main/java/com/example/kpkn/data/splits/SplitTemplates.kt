@@ -12,6 +12,28 @@ enum class Difficulty {
     PRINCIPIANTE, INTERMEDIO, AVANZADO,
 }
 
+/** Publicación editorial explícita: las recetas no verificadas son internas. */
+@Serializable
+enum class SplitPublicationStatus {
+    VERIFIED,
+    KPKN_NATIVE,
+    HIDDEN_UNVERIFIED,
+}
+
+@Serializable
+enum class SplitDayRequirement { REQUIRED, OPTIONAL }
+
+@Serializable
+data class SplitDayDefinition(
+    val dayKey: String,
+    val label: String,
+    val foci: List<String> = emptyList(),
+    val requiredRoles: List<String> = emptyList(),
+    val ordinal: Int,
+    val requirement: SplitDayRequirement = SplitDayRequirement.REQUIRED,
+    val protocolDayKey: String? = null,
+)
+
 @Serializable
 data class SplitTemplate(
     val id: String,
@@ -23,9 +45,70 @@ data class SplitTemplate(
     val pros: List<String> = emptyList(),
     val cons: List<String> = emptyList(),
     val sessionDescriptions: Map<String, String> = emptyMap(),
+    val publicationStatus: SplitPublicationStatus = SplitPublicationStatus.HIDDEN_UNVERIFIED,
+    val dayDefinitions: List<SplitDayDefinition> = emptyList(),
+) {
+    /** Effective day definitions: prefer typed definitions, fallback to pattern inference for legacy JSON. */
+    fun effectiveDayDefinitions(): List<SplitDayDefinition> {
+        if (dayDefinitions.isNotEmpty()) return dayDefinitions
+        return pattern.mapIndexed { index, label ->
+            val normalized = label.lowercase().trim()
+            val isRest = normalized == "descanso"
+            val dayKey = when {
+                isRest -> "rest_$index"
+                normalized.contains("sentadilla") && normalized.contains("banca") -> "squat_bench_$index"
+                normalized.contains("peso muerto") && normalized.contains("banca") -> "deadlift_bench_$index"
+                normalized.contains("sentadilla") -> "squat_$index"
+                normalized.contains("peso muerto") || normalized.contains("deadlift") -> "deadlift_$index"
+                normalized.contains("banca") || normalized.contains("bench") -> "bench_$index"
+                else -> normalized.replace(Regex("[^a-z0-9]+"), "_").trim('_').ifBlank { "day_$index" }
+            }
+            val foci = when {
+                normalized.contains("sentadilla") && normalized.contains("banca") -> listOf("SQUAT", "BENCH")
+                normalized.contains("peso muerto") && normalized.contains("banca") -> listOf("DEADLIFT", "BENCH")
+                normalized.contains("sentadilla") || normalized.contains("squat") -> listOf("SQUAT")
+                normalized.contains("peso muerto") || normalized.contains("deadlift") -> listOf("DEADLIFT")
+                normalized.contains("banca") || normalized.contains("bench") -> listOf("BENCH")
+                normalized.contains("sbd") -> listOf("SQUAT", "BENCH", "DEADLIFT")
+                isRest -> emptyList()
+                else -> emptyList()
+            }
+            val requiredRoles = when {
+                normalized.contains("sentadilla") && normalized.contains("banca") -> listOf("COMPETITION_SQUAT", "COMPETITION_BENCH")
+                isRest -> emptyList()
+                foci.isNotEmpty() -> foci.map { "COMPETITION_$it" }
+                else -> emptyList()
+            }
+            SplitDayDefinition(
+                dayKey = dayKey,
+                label = label,
+                foci = foci,
+                requiredRoles = requiredRoles,
+                ordinal = index,
+                requirement = if (isRest) SplitDayRequirement.OPTIONAL else SplitDayRequirement.REQUIRED,
+                protocolDayKey = if (tags.contains(SplitTag.POWERLIFTING) && !isRest) dayKey else null,
+            )
+        }
+    }
+}
+
+val SplitTemplate.isVisibleForApplication: Boolean
+    get() = publicationStatus != SplitPublicationStatus.HIDDEN_UNVERIFIED
+
+/**
+ * Only these definitions have a KPKN recipe contract. The rest remain in the
+ * source index for migration/audit, but cannot be selected or generated.
+ */
+private val KPKN_NATIVE_SPLIT_IDS = setOf(
+    "custom",
+    "ul_x4", "ppl_ul", "fullbody_x3", "ppl_x6", "ul_x6", "ppl_arnold",
+    "phat_hybrid", "ant_post_x4", "arnold_ul", "ant_post_x6", "bro_split",
+    "hybrid_fb_ap", "minimalist_x2", "weekend_warrior", "glute_focus",
+    "beach_body", "fullbody_x5", "push_pull_x4", "ul_arms", "heavy_light",
+    "ppl_x3", "fullbody_x4", "ul_fb_x3", "pl_sbd_x3", "pl_classic_4",
 )
 
-val SPLIT_TEMPLATES: List<SplitTemplate> = listOf(
+private val RAW_SPLIT_TEMPLATES: List<SplitTemplate> = listOf(
     SplitTemplate("custom", "Crear desde Cero", "Lienzo en blanco.", listOf(SplitTag.PERSONALIZADO), List(7) { "Descanso" }, Difficulty.AVANZADO, listOf("Libertad total de diseño"), listOf("Requiere conocimiento avanzado")),
     SplitTemplate("ul_x4", "Upper / Lower x4", "El estándar de oro. Equilibrio perfecto.", listOf(SplitTag.RECOMENDADO_KPKN, SplitTag.BALANCEADO), listOf("Torso", "Pierna", "Descanso", "Torso", "Pierna", "Descanso", "Descanso"), Difficulty.INTERMEDIO, listOf("Frecuencia 2x/semana óptima", "48-72h recuperación"), listOf("Requiere 4 días mínimos")),
     SplitTemplate("ppl_ul", "PPL + Upper/Lower", "Híbrido de 5 días. Volumen y frecuencia.", listOf(SplitTag.RECOMENDADO_KPKN, SplitTag.ALTO_VOLUMEN, SplitTag.BALANCEADO), listOf("Torso", "Pierna", "Descanso", "Empuje", "Tirón", "Pierna", "Descanso"), Difficulty.INTERMEDIO, listOf("Combina frecuencia UL con PPL", "5 días manejables"), listOf("Coordinación compleja")),
@@ -46,13 +129,31 @@ val SPLIT_TEMPLATES: List<SplitTemplate> = listOf(
     SplitTemplate("fullbody_x5", "Cuerpo Completo x5", "Alta frecuencia estilo noruego.", listOf(SplitTag.ALTA_FRECUENCIA, SplitTag.ALTA_TOLERANCIA), listOf("Cuerpo Completo", "Cuerpo Completo", "Cuerpo Completo", "Cuerpo Completo", "Cuerpo Completo", "Descanso", "Descanso"), Difficulty.AVANZADO, listOf("Frecuencia 5x/semana MÁXIMA", "Ideal para fuerza"), listOf("Fatiga EXTREMA", "Solo avanzados")),
     SplitTemplate("push_pull_x4", "Push / Pull x4", "Simple y brutal.", listOf(SplitTag.BALANCEADO), listOf("Empuje + Cuádriceps", "Tirón + Isquios", "Descanso", "Empuje + Cuádriceps", "Tirón + Isquios", "Descanso", "Descanso"), Difficulty.INTERMEDIO, listOf("Frecuencia 2x/semana", "Integración pierna natural"), listOf("Sesiones de empuje largas")),
     SplitTemplate("texas_method", "Estilo Texas", "Ondulación diaria.", listOf(SplitTag.POWERLIFTING, SplitTag.BAJA_FRECUENCIA), listOf("Día Volumen (5x5)", "Descanso", "Día Recuperación", "Descanso", "Día Intensidad", "Descanso", "Descanso"), Difficulty.INTERMEDIO, listOf("Progresión lineal probada", "Ideal para fuerza"), listOf("Solo 3 días", "Frecuencia baja para hipertrofia")),
-    SplitTemplate("smolov_base", "Alta Frecuencia Base", "Inspirado en Smolov Jr.", listOf(SplitTag.POWERLIFTING, SplitTag.ALTA_FRECUENCIA, SplitTag.ALTA_TOLERANCIA), listOf("Sesión 1 (4x9)", "Descanso", "Sesión 2 (5x7)", "Sesión 3 (7x5)", "Descanso", "Sesión 4 (10x3)", "Descanso"), Difficulty.AVANZADO, listOf("Volumen EXTREMO", "Ganancias de fuerza rápidas"), listOf("Solo ciclos cortos", "Fatiga extrema")),
+    SplitTemplate(
+        "smolov_base",
+        "Smolov Jr. (especialización)",
+        "ADVERTENCIA: especialización brutal de un lift (p. ej. sentadilla) 4×/semana. NO es un split general ni recomendación por defecto. Solo ciclos cortos con alta tolerancia a fatiga.",
+        listOf(SplitTag.POWERLIFTING, SplitTag.ALTA_FRECUENCIA, SplitTag.ALTA_TOLERANCIA),
+        listOf("Sesión 1 (4x9)", "Descanso", "Sesión 2 (5x7)", "Sesión 3 (7x5)", "Descanso", "Sesión 4 (10x3)", "Descanso"),
+        Difficulty.AVANZADO,
+        listOf("Volumen EXTREMO concentrado", "Ganancias de fuerza rápidas en un lift"),
+        listOf("NO usar como split habitual", "Fatiga extrema / riesgo de sobreentrenamiento", "Solo élite o ciclos ≤3–4 semanas"),
+    ),
     SplitTemplate("pl_sbd_x3", "SBD Full Body x3", "Alta especificidad.", listOf(SplitTag.POWERLIFTING, SplitTag.ALTA_TOLERANCIA), listOf("SBD Día 1", "Descanso", "SBD Día 2", "Descanso", "SBD Día 3", "Descanso", "Descanso"), Difficulty.AVANZADO, listOf("Especificidad máxima en SBD", "Técnica altamente practicada"), listOf("Fatiga articular alta", "Solo powerlifters")),
     SplitTemplate("pl_hf_bench", "PL: Bench Freq 4", "Sq x3, Bp x4, Dl x2.", listOf(SplitTag.POWERLIFTING, SplitTag.ALTA_FRECUENCIA), listOf("Sentadilla/Banca", "Peso Muerto/Banca", "Descanso", "Sentadilla/Banca", "Variante DL/Banca", "Sentadilla/Accesorios", "Descanso"), Difficulty.AVANZADO, listOf("Frecuencia 4x/semana banca", "Ideal para especialización"), listOf("Fatiga de hombros crítica")),
     SplitTemplate("pl_classic_4", "PL: Clásico 4 Días", "Base sólida de powerlifting.", listOf(SplitTag.POWERLIFTING, SplitTag.BALANCEADO), listOf("Sentadilla/Banca", "Peso Muerto", "Descanso", "Banca Volumen", "Sentadilla/Peso Muerto", "Descanso", "Descanso"), Difficulty.INTERMEDIO, listOf("Balance clásico", "4 días manejables", "Ideal para intermedios"), listOf("Progreso puede estancarse")),
     SplitTemplate("sheiko_3day", "Sheiko Clásico (3 Días)", "Estilo soviético.", listOf(SplitTag.POWERLIFTING, SplitTag.ALTA_FRECUENCIA, SplitTag.ALTA_TOLERANCIA), listOf("Sentadilla/Banca", "Descanso", "Peso Muerto/Banca", "Descanso", "Sentadilla/Banca", "Descanso", "Descanso"), Difficulty.AVANZADO, listOf("Volumen ALTÍSIMO", "Técnica altamente refinada"), listOf("Volumen BRUTAL", "Solo avanzados")),
     SplitTemplate("sheiko_4day", "Sheiko 4 Días", "Volumen distribuido.", listOf(SplitTag.POWERLIFTING, SplitTag.ALTA_FRECUENCIA), listOf("Sentadilla", "Banca", "Descanso", "Peso Muerto", "Banca", "Descanso", "Descanso"), Difficulty.AVANZADO, listOf("Volumen distribuido", "Más recuperación"), listOf("Volumen total brutal")),
-    SplitTemplate("bulgarian_lite", "Método Búlgaro (Lite)", "Alta intensidad diaria.", listOf(SplitTag.ALTA_FRECUENCIA, SplitTag.ALTA_TOLERANCIA, SplitTag.POWERLIFTING), listOf("SBD Max", "SBD Max", "SBD Max", "SBD Max", "SBD Max", "Descanso", "Descanso"), Difficulty.AVANZADO, listOf("Intensidad máxima diaria", "Adaptación neural EXTREMA"), listOf("Solo élite", "Riesgo ALTÍSIMO")),
+    SplitTemplate(
+        "bulgarian_lite",
+        "Método Búlgaro (Lite)",
+        "Alta frecuencia SBD con autorregulación: el 'máximo' es el del día (RPE/sensación), no un %RM fijo quemado en la plantilla. Si se prescribe % fijo, contradice el protocolo.",
+        listOf(SplitTag.ALTA_FRECUENCIA, SplitTag.ALTA_TOLERANCIA, SplitTag.POWERLIFTING),
+        listOf("SBD Max", "SBD Max", "SBD Max", "SBD Max", "SBD Max", "Descanso", "Descanso"),
+        Difficulty.AVANZADO,
+        listOf("Intensidad máxima diaria autoregulada", "Adaptación neural EXTREMA"),
+        listOf("Solo élite", "Riesgo ALTÍSIMO", "Requiere autorregulación real (no % fijos)"),
+    ),
     SplitTemplate("russian_bear", "Oso Ruso", "Volumen brutal con cargas moderadas.", listOf(SplitTag.ALTO_VOLUMEN, SplitTag.ALTA_TOLERANCIA), listOf("Sentadilla/Banca", "Descanso", "Peso Muerto/Press", "Descanso", "Sentadilla/Banca", "Descanso", "Descanso"), Difficulty.INTERMEDIO, listOf("Volumen alto con cargas manejables"), listOf("Volumen total alto", "Requiere buena nutrición")),
     SplitTemplate("westside_conjugate", "Westside (Conjugado)", "Método Louie Simmons.", listOf(SplitTag.POWERLIFTING, SplitTag.BALANCEADO), listOf("ME Lower", "ME Upper", "Descanso", "DE Lower", "DE Upper", "Descanso", "Descanso"), Difficulty.AVANZADO, listOf("Desarrollo fuerza/potencia", "Variación constante"), listOf("Equipamiento específico", "Curva de aprendizaje alta")),
     SplitTemplate("coan_split", "Split Ed Coan", "La distribución del GOAT.", listOf(SplitTag.POWERLIFTING, SplitTag.BALANCEADO), listOf("Sentadilla/Pierna", "Descanso", "Press Banca/Pecho", "Peso Muerto/Espalda", "Hombros/Brazos", "Descanso", "Descanso"), Difficulty.INTERMEDIO, listOf("Diseñado por el mejor powerlifter", "4 días manejables"), listOf("Requiere buena recuperación")),
@@ -77,3 +178,13 @@ val SPLIT_TEMPLATES: List<SplitTemplate> = listOf(
     SplitTemplate("fullbody_x4", "Cuerpo Completo x4", "Alta frecuencia con volumen distribuido en cuatro sesiones.", listOf(SplitTag.ALTA_FRECUENCIA, SplitTag.BALANCEADO), listOf("Cuerpo Completo A", "Cuerpo Completo B", "Descanso", "Cuerpo Completo C", "Cuerpo Completo D", "Descanso", "Descanso"), Difficulty.INTERMEDIO, listOf("Frecuencia alta sin entrenar todos los días", "Buen puente entre x3 y x5"), listOf("Puede ser exigente si todas las sesiones son pesadas")),
     SplitTemplate("ul_fb_x3", "Upper / Lower + Cuerpo Completo", "Tres días: torso, pierna y cuerpo completo para cubrir frecuencia 2 sin mucho calendario.", listOf(SplitTag.BALANCEADO), listOf("Torso", "Descanso", "Pierna", "Descanso", "Cuerpo Completo", "Descanso", "Descanso"), Difficulty.PRINCIPIANTE, listOf("Frecuencia 2x práctica", "Ideal para agendas de 3 días"), listOf("El día full body debe mantenerse controlado")),
 )
+
+val SPLIT_TEMPLATES: List<SplitTemplate> = RAW_SPLIT_TEMPLATES.map { split ->
+    split.copy(
+        publicationStatus = if (split.id in KPKN_NATIVE_SPLIT_IDS) {
+            SplitPublicationStatus.KPKN_NATIVE
+        } else {
+            SplitPublicationStatus.HIDDEN_UNVERIFIED
+        },
+    )
+}

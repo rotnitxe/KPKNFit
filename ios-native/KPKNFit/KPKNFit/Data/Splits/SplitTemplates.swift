@@ -1,11 +1,28 @@
 import Foundation
 
+public enum SplitDayRequirement { case REQUIRED, OPTIONAL }
+
+public struct SplitDayDefinition {
+    public let dayKey: String
+    public let label: String
+    public let foci: [String]
+    public let requiredRoles: [String]
+    public let ordinal: Int
+    public let requirement: SplitDayRequirement
+    public let protocolDayKey: String?
+
+    public init(dayKey: String, label: String, foci: [String] = [], requiredRoles: [String] = [], ordinal: Int, requirement: SplitDayRequirement = .REQUIRED, protocolDayKey: String? = nil) {
+        self.dayKey = dayKey; self.label = label; self.foci = foci; self.requiredRoles = requiredRoles; self.ordinal = ordinal; self.requirement = requirement; self.protocolDayKey = protocolDayKey
+    }
+}
+
 public struct SplitTemplate {
     public let id: String
     public let name: String
     public let description: String
     public let tags: [SplitTag]
     public let pattern: [String]
+    public let dayDefinitions: [SplitDayDefinition]
     public let difficulty: Difficulty
     public let pros: [String]
     public let cons: [String]
@@ -17,6 +34,7 @@ public struct SplitTemplate {
         _ description: String,
         _ tags: [SplitTag] = [],
         _ pattern: [String] = [],
+        _ dayDefinitions: [SplitDayDefinition] = [],
         _ difficulty: Difficulty = .INTERMEDIO,
         _ pros: [String] = [],
         _ cons: [String] = [],
@@ -27,10 +45,35 @@ public struct SplitTemplate {
         self.description = description
         self.tags = tags
         self.pattern = pattern
+        self.dayDefinitions = dayDefinitions
         self.difficulty = difficulty
         self.pros = pros
         self.cons = cons
         self.sessionDescriptions = sessionDescriptions
+    }
+
+    public func effectiveDayDefinitions() -> [SplitDayDefinition] {
+        if !dayDefinitions.isEmpty { return dayDefinitions }
+        return pattern.enumerated().map { (index, label) in
+            let normalized = label.lowercased().trimmingCharacters(in: .whitespaces)
+            let isRest = normalized == "descanso"
+            let dayKey: String
+            if isRest { dayKey = "rest_\(index)" }
+            else if normalized.contains("sentadilla") && normalized.contains("banca") { dayKey = "squat_bench_\(index)" }
+            else if normalized.contains("sentadilla") { dayKey = "squat_\(index)" }
+            else if normalized.contains("peso muerto") { dayKey = "deadlift_\(index)" }
+            else if normalized.contains("banca") { dayKey = "bench_\(index)" }
+            else if normalized.contains("sbd") { dayKey = "sbd_\(index)" }
+            else { dayKey = "day_\(index)" }
+            let foci: [String]
+            if normalized.contains("sentadilla") && normalized.contains("banca") { foci = ["SQUAT","BENCH"] }
+            else if normalized.contains("sentadilla") { foci = ["SQUAT"] }
+            else if normalized.contains("peso muerto") { foci = ["DEADLIFT"] }
+            else if normalized.contains("banca") { foci = ["BENCH"] }
+            else if normalized.contains("sbd") { foci = ["SQUAT","BENCH","DEADLIFT"] }
+            else { foci = [] }
+            return SplitDayDefinition(dayKey: dayKey, label: label, foci: foci, requiredRoles: foci.map { "COMPETITION_\($0)" }, ordinal: index, requirement: isRest ? .OPTIONAL : .REQUIRED, protocolDayKey: tags.contains(.POWERLIFTING) && !isRest ? dayKey : nil)
+        }
     }
 }
 
