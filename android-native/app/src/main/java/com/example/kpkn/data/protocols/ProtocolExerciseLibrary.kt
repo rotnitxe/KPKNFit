@@ -21,6 +21,7 @@ private val PERFORMANCE_PROFILE_BY_CONFIGURATION = mapOf(
     "quads_prensa_piernas__bilateral" to "quads_prensa_piernas__bilateral__prensa_piernas",
     "front_squat__barbell" to "front_squat__barbell__sentadilla_frontal",
     "high_bar_back_squat__barbell" to "high_bar_back_squat__barbell__sentadilla_trasera",
+    "low_bar_back_squat__barbell" to "low_bar_back_squat__barbell__sentadilla_trasera",
     "romanian_deadlift__bilateral__barbell" to "romanian_deadlift__barbell__peso_muerto_rumano",
     "floor_press__barbell" to "floor_press__barbell__floor_press",
     "tren_superior_fondos__default" to "tren_superior_fondos__bodyweight__fondos",
@@ -46,6 +47,7 @@ enum class ProtocolLiftFocus { SQUAT, BENCH, DEADLIFT, OVERHEAD_PRESS, PULL, GEN
 object ProtocolExerciseLibrary {
 
     val SQUAT_MAIN = ProtocolLift("Sentadilla Trasera Barra Alta con Barra Recta", "high_bar_back_squat__barbell")
+    val LOW_BAR_SQUAT_MAIN = ProtocolLift("Sentadilla Trasera Low-Bar de Competición", "low_bar_back_squat__barbell")
     val SQUAT_TECHNIQUE = ProtocolLift("Sentadilla Frontal con Barra Recta", "front_squat__barbell")
     val BENCH_MAIN = ProtocolLift("Press de Banca Plano con Barra", "bench_press__barbell")
     val BENCH_TECHNIQUE = ProtocolLift("Press en el Suelo con Barra", "floor_press__barbell")
@@ -80,6 +82,23 @@ object ProtocolExerciseLibrary {
     private val CORE_ACCESSORIES = listOf(
         ProtocolLift("Plancha Frontal", "core_plancha__default"),
     )
+
+    private val ALL_LIFTS = listOf(
+        SQUAT_MAIN,
+        LOW_BAR_SQUAT_MAIN,
+        SQUAT_TECHNIQUE,
+        BENCH_MAIN,
+        BENCH_TECHNIQUE,
+        DEADLIFT_MAIN,
+        DEADLIFT_TECHNIQUE,
+        OHP_MAIN,
+    ) + SQUAT_ACCESSORIES + BENCH_ACCESSORIES + DEADLIFT_ACCESSORIES +
+        PULL_ACCESSORIES + SHOULDER_ARM_ACCESSORIES + CORE_ACCESSORIES
+
+    /** Resolve an explicit protocol recipe without using localized labels. */
+    fun fromConfigurationId(configurationId: String): ProtocolLift =
+        ALL_LIFTS.firstOrNull { it.exerciseDbId == configurationId }
+            ?: error("Protocol recipe references an unregistered configuration: $configurationId")
 
     private val rotation = listOf(SQUAT_MAIN, BENCH_MAIN, DEADLIFT_MAIN, OHP_MAIN)
 

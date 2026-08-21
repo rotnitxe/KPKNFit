@@ -54,6 +54,7 @@ data class Program(
     val calendarBreaks: List<CalendarBreak> = emptyList(),
     val runState: ProgramRunState? = null,
     val loopOccurrences: List<LoopOccurrence> = emptyList(),
+    val powerliftingProfile: PowerliftingProfile? = null,
 )
 
 enum class ProgramMode { POWERLIFTING, HYPERTROPHY, POWERBUILDING }
@@ -148,11 +149,24 @@ data class Macrocycle(
 )
 
 @Serializable
+enum class BlockMaterializationStatus { GENERATED, OUTDATED, USER_MODIFIED }
+
+@Serializable
 data class Block(
     val id: String,
     val name: String,
     val description: String? = null,
     val mesocycles: List<Mesocycle> = emptyList(),
+    /** Objetivo de bloque (enum NUEVO; opcional para no romper JSON legacy). */
+    val goal: BlockGoal? = null,
+    /** Esquema de progresión semanal dentro del bloque (enum NUEVO). */
+    val progressionScheme: BlockProgressionScheme? = null,
+    /** Metadata changed without silently rewriting user prescriptions. */
+    val materializationPending: Boolean = false,
+    val materializationStatus: BlockMaterializationStatus = BlockMaterializationStatus.GENERATED,
+    val sourceDefinitionId: String? = null,
+    val sourceRevision: String? = null,
+    val prescriptionOrigin: String? = null,
 )
 
 @Serializable
@@ -172,6 +186,29 @@ enum class MesocycleGoal(val label: String) {
     CUSTOM("Custom"),
 }
 
+/** Objetivo a nivel de bloque (separado de [MesocycleGoal] para no mutar enums legacy en dbJson). */
+enum class BlockGoal(val label: String) {
+    ACCUMULATION("Acumulación"),
+    INTENSIFICATION("Intensificación"),
+    /** Trabajo específico de competición antes del pico. */
+    SPECIFICITY("Especificidad"),
+    REALIZATION("Realización"),
+    DELOAD("Descarga"),
+    DENSITY("Densidad / Metabolitos"),
+    PEAK("Pico"),
+    TAPER("Taper"),
+    CUSTOM("Custom"),
+}
+
+/** Cómo se actualiza la prescripción semana a semana dentro de un bloque. */
+enum class BlockProgressionScheme {
+    NONE,
+    LINEAR_LOAD,
+    UNDULATING,
+    PERCENT_RM,
+    RPE_CAP,
+}
+
 @Serializable
 data class ProgramWeek(
     val id: String,
@@ -184,9 +221,16 @@ data class ProgramWeek(
     val startDate: String? = null,
     val endDate: String? = null,
     val trainingDayDates: Map<Int, String> = emptyMap(),
+    /** Índice 1-based de progresión dentro del bloque (opcional; default null = legacy). */
+    val progressionIndex: Int? = null,
+    /** A rest week completes by design; an empty training week never does. */
+    val executionKind: WeekExecutionKind = WeekExecutionKind.TRAINING,
 )
 
 enum class WeekVariant { A, B, C, D }
+
+@Serializable
+enum class WeekExecutionKind { TRAINING, DELOAD, REST }
 
 @Serializable
 data class Loop(

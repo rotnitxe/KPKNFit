@@ -42,9 +42,43 @@ data class ProgramRunState(
     val mesocycleId: String? = null,
     val completedSessionIds: Set<String> = emptySet(),
     val status: ProgramRunStatus = ProgramRunStatus.ACTIVE,
+    /** A mandatory human decision; COMPLEX progression must not skip it. */
+    val pendingAction: PendingProgramAction? = null,
+    /** Latest explicit 1RM resolution; never inferred from confirmation alone. */
+    val oneRmResolution: OneRmResolution? = null,
+    /** Append-only audit trail for recorded/skipped gate decisions. */
+    val oneRmAuditTrail: List<OneRmResolution> = emptyList(),
 )
 
 enum class ProgramRunStatus { ACTIVE, PAUSED, BREAK, COMPLETED }
+
+@Serializable
+enum class OneRmResolutionStatus { RECORDED, SKIPPED }
+
+@Serializable
+data class OneRmResolution(
+    val status: OneRmResolutionStatus,
+    val squat1RM: Double? = null,
+    val bench1RM: Double? = null,
+    val deadlift1RM: Double? = null,
+    val resolvedAtMs: Long = System.currentTimeMillis(),
+    val note: String? = null,
+)
+
+@Serializable
+data class PendingProgramAction(
+    val type: PendingProgramActionType,
+    val message: String,
+    val nextBlockId: String? = null,
+)
+
+@Serializable
+enum class PendingProgramActionType {
+    /** Athlete must explicitly record or skip the realization/peak 1RM test. */
+    CONFIRM_1RM_TEST,
+    /** AUGE proposed a generated deload; it is not active until accepted. */
+    CONFIRM_DELOAD,
+}
 
 /** Instancia concreta de una regla de loop con estado de ciclo. */
 @Serializable

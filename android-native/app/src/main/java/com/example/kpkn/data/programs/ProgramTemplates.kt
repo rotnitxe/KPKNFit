@@ -1,6 +1,8 @@
 package com.example.kpkn.data.programs
 
 import com.example.kpkn.data.models.Block
+import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.models.BlockProgressionScheme
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.MesocycleGoal
 import com.example.kpkn.data.models.Macrocycle
@@ -22,6 +24,8 @@ data class ProgramTemplateOption(
     val blockNames: List<String> = emptyList(),
     val blockWeekCounts: List<Int> = emptyList(),
     val blockGoals: List<MesocycleGoal> = emptyList(),
+    /** Semántica explícita de bloque; legacy [blockGoals] sigue siendo el fallback. */
+    val blockGoalSemantics: List<BlockGoal> = emptyList(),
 )
 
 private fun genericBlockNames(count: Int): List<String> = (1..count).map { "Bloque $it" }
@@ -77,6 +81,11 @@ val PROGRAM_TEMPLATES: List<ProgramTemplateOption> = listOf(
             MesocycleGoal.INTENSIFICATION,
             MesocycleGoal.REALIZATION,
         ),
+        blockGoalSemantics = listOf(
+            BlockGoal.ACCUMULATION,
+            BlockGoal.INTENSIFICATION,
+            BlockGoal.PEAK,
+        ),
     ),
     ProgramTemplateOption(
         id = "power-16-4",
@@ -95,6 +104,12 @@ val PROGRAM_TEMPLATES: List<ProgramTemplateOption> = listOf(
             MesocycleGoal.REALIZATION,
             MesocycleGoal.DELOAD,
         ),
+        blockGoalSemantics = listOf(
+            BlockGoal.ACCUMULATION,
+            BlockGoal.INTENSIFICATION,
+            BlockGoal.PEAK,
+            BlockGoal.TAPER,
+        ),
     ),
     ProgramTemplateOption(
         id = "power-20-5",
@@ -110,9 +125,16 @@ val PROGRAM_TEMPLATES: List<ProgramTemplateOption> = listOf(
         blockGoals = listOf(
             MesocycleGoal.ACCUMULATION,
             MesocycleGoal.INTENSIFICATION,
-            MesocycleGoal.ACCUMULATION,
+            MesocycleGoal.REALIZATION,
             MesocycleGoal.REALIZATION,
             MesocycleGoal.DELOAD,
+        ),
+        blockGoalSemantics = listOf(
+            BlockGoal.ACCUMULATION,
+            BlockGoal.INTENSIFICATION,
+            BlockGoal.SPECIFICITY,
+            BlockGoal.PEAK,
+            BlockGoal.TAPER,
         ),
     ),
     ProgramTemplateOption(
@@ -131,6 +153,11 @@ val PROGRAM_TEMPLATES: List<ProgramTemplateOption> = listOf(
             MesocycleGoal.INTENSIFICATION,
             MesocycleGoal.REALIZATION,
         ),
+        blockGoalSemantics = listOf(
+            BlockGoal.ACCUMULATION,
+            BlockGoal.INTENSIFICATION,
+            BlockGoal.PEAK,
+        ),
     ),
     ProgramTemplateOption(
         id = "powerbuild-16-4",
@@ -148,6 +175,16 @@ val PROGRAM_TEMPLATES: List<ProgramTemplateOption> = listOf(
             MesocycleGoal.INTENSIFICATION,
             MesocycleGoal.ACCUMULATION,
             MesocycleGoal.REALIZATION,
+        ),
+        // Hipertrofia dirigida is a specificity block, not a phase
+        // regression back to accumulation.  The legacy mesocycle goal stays
+        // ACCUMULATION for serialized compatibility, while the executable
+        // block semantic keeps the phase order monotonic.
+        blockGoalSemantics = listOf(
+            BlockGoal.ACCUMULATION,
+            BlockGoal.INTENSIFICATION,
+            BlockGoal.SPECIFICITY,
+            BlockGoal.REALIZATION,
         ),
     ),
     ProgramTemplateOption(
@@ -223,10 +260,25 @@ fun ProgramTemplateOption.buildProgramDraft(baseProgram: Program): Program {
                 else -> MesocycleGoal.INTENSIFICATION
             }
         }
+        val blockGoal = blockGoalSemantics.getOrNull(index) ?: when (goal) {
+            MesocycleGoal.ACCUMULATION -> BlockGoal.ACCUMULATION
+            MesocycleGoal.INTENSIFICATION -> BlockGoal.INTENSIFICATION
+            MesocycleGoal.REALIZATION -> BlockGoal.REALIZATION
+            MesocycleGoal.DELOAD -> BlockGoal.DELOAD
+            MesocycleGoal.CUSTOM -> BlockGoal.CUSTOM
+        }
+        val scheme = when (blockGoal) {
+            BlockGoal.TAPER, BlockGoal.DELOAD -> BlockProgressionScheme.PERCENT_RM
+            BlockGoal.REALIZATION, BlockGoal.PEAK -> BlockProgressionScheme.RPE_CAP
+            BlockGoal.SPECIFICITY -> BlockProgressionScheme.PERCENT_RM
+            else -> BlockProgressionScheme.PERCENT_RM
+        }
 
         Block(
             id = UUID.randomUUID().toString(),
             name = blockName,
+            goal = blockGoal,
+            progressionScheme = scheme,
             mesocycles = listOf(
                 Mesocycle(
                     id = UUID.randomUUID().toString(),
@@ -236,6 +288,7 @@ fun ProgramTemplateOption.buildProgramDraft(baseProgram: Program): Program {
                         ProgramWeek(
                             id = UUID.randomUUID().toString(),
                             name = "Semana $weekIndex",
+                            progressionIndex = weekIndex,
                         )
                     },
                 ),
@@ -247,6 +300,17 @@ fun ProgramTemplateOption.buildProgramDraft(baseProgram: Program): Program {
         structure = type,
         structureTemplateId = id,
         weekDays = baseProgram.weekDays ?: 7,
+        // A new structure owns a new executable cursor. Never carry an active
+        // run, loops or calendar break state into a graph with fresh IDs.
+        runState = null,
+        loops = emptyList(),
+        loopState = null,
+        loopOccurrences = emptyList(),
+        events = emptyList(),
+        calendarBreaks = emptyList(),
+        pausedCyclicSnapshot = null,
+        blockSplitSelections = emptyMap(),
+        weekSplitSelections = emptyMap(),
         macrocycles = listOf(
             Macrocycle(
                 id = UUID.randomUUID().toString(),

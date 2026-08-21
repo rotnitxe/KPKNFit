@@ -40,6 +40,29 @@ public enum MesocycleGoal: String, Codable {
     }
 }
 
+/// Objetivo a nivel de bloque (enum NUEVO; no muta MesocycleGoal legacy).
+public enum BlockGoal: String, Codable {
+    case ACCUMULATION, INTENSIFICATION, SPECIFICITY, REALIZATION, DELOAD, DENSITY, PEAK, TAPER, CUSTOM
+
+    public var label: String {
+        switch self {
+        case .ACCUMULATION: return "Acumulación"
+        case .INTENSIFICATION: return "Intensificación"
+        case .SPECIFICITY: return "Especificidad"
+        case .REALIZATION: return "Realización"
+        case .DELOAD: return "Descarga"
+        case .DENSITY: return "Densidad / Metabolitos"
+        case .PEAK: return "Pico"
+        case .TAPER: return "Taper"
+        case .CUSTOM: return "Custom"
+        }
+    }
+}
+
+public enum BlockProgressionScheme: String, Codable {
+    case NONE, LINEAR_LOAD, UNDULATING, PERCENT_RM, RPE_CAP
+}
+
 public enum WeekVariant: String, Codable {
     case A, B, C, D
 }
@@ -113,12 +136,23 @@ public struct Block: Identifiable, Codable {
     public let name: String
     public let description: String?
     public let mesocycles: [Mesocycle]
+    public let goal: BlockGoal?
+    public let progressionScheme: BlockProgressionScheme?
 
-    public init(id: String, name: String, description: String? = nil, mesocycles: [Mesocycle] = []) {
+    public init(
+        id: String,
+        name: String,
+        description: String? = nil,
+        mesocycles: [Mesocycle] = [],
+        goal: BlockGoal? = nil,
+        progressionScheme: BlockProgressionScheme? = nil
+    ) {
         self.id = id
         self.name = name
         self.description = description
         self.mesocycles = mesocycles
+        self.goal = goal
+        self.progressionScheme = progressionScheme
     }
 }
 
@@ -155,6 +189,7 @@ public struct ProgramWeek: Identifiable, Codable {
     public let startDate: String?
     public let endDate: String?
     public let trainingDayDates: [Int: String]
+    public let progressionIndex: Int?
 
     public init(
         id: String,
@@ -166,7 +201,8 @@ public struct ProgramWeek: Identifiable, Codable {
         loopId: String? = nil,
         startDate: String? = nil,
         endDate: String? = nil,
-        trainingDayDates: [Int: String] = [:]
+        trainingDayDates: [Int: String] = [:],
+        progressionIndex: Int? = nil
     ) {
         self.id = id
         self.name = name
@@ -178,6 +214,7 @@ public struct ProgramWeek: Identifiable, Codable {
         self.startDate = startDate
         self.endDate = endDate
         self.trainingDayDates = trainingDayDates
+        self.progressionIndex = progressionIndex
     }
 }
 

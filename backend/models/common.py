@@ -274,6 +274,7 @@ class ProgramWeek(BaseModel):
     id: str
     name: str = ""
     sessions: list[Session] = []
+    progressionIndex: int | None = None
 
 
 class Mesocycle(BaseModel):
@@ -282,7 +283,14 @@ class Mesocycle(BaseModel):
 
 
 class Block(BaseModel):
+    id: str | None = None
+    name: str | None = None
+    description: str | None = None
     mesocycles: list[Mesocycle] = []
+    # Campos nuevos de solo-lectura (paridad Android BlockGoal / BlockProgressionScheme).
+    # Enums NUEVOS en Android; aquí se reflejan como Optional[str] para no romper payloads.
+    goal: str | None = None
+    progressionScheme: str | None = None
 
 
 class Macrocycle(BaseModel):

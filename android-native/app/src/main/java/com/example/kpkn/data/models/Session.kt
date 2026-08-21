@@ -35,6 +35,13 @@ data class Session(
     val lastModifiedAtMs: Long = 0L,
     val targetDurationMinutes: Int? = null,
     val volumeAdvances: List<VolumeAdvance> = emptyList(),
+    /**
+     * Completion is explicit for advanced programs.  Legacy sessions default to
+     * REQUIRED so upgrading a saved plan cannot silently make a week complete.
+     */
+    val requirement: SessionRequirement = SessionRequirement.REQUIRED,
+    /** Distinguishes generated empty placeholders from an intentional user draft. */
+    val origin: SessionOrigin = SessionOrigin.USER_DRAFT,
 ) {
     fun allSupersetGroups(): List<SupersetGroup> {
         val local = supersetGroups.ifEmpty { legacySupersetGroups() }
@@ -59,6 +66,12 @@ data class Session(
     }
 
     fun allExercises(): List<Exercise> = exercises + parts.flatMap { it.exercises }
+}
+
+@Serializable
+enum class SessionOrigin {
+    USER_DRAFT,
+    GENERATED_PLACEHOLDER,
 }
 
 @Serializable
@@ -439,6 +452,9 @@ enum class CardioType {
     CURVED_TREADMILL,
     SLED,
 }
+
+@Serializable
+enum class SessionRequirement { REQUIRED, OPTIONAL }
 
 enum class CardioIntensity(val defaultRpe: Double) {
     BAJA(5.0),
