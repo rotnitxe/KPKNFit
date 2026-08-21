@@ -6,6 +6,7 @@ import com.example.kpkn.data.sessions.SessionTemplateSourceType
 import com.example.kpkn.data.sessions.SessionTemplateTag
 import com.example.kpkn.data.splits.Difficulty
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
+import com.example.kpkn.data.splits.isVisibleForApplication
 import com.example.kpkn.data.splits.SplitTemplate
 import com.example.kpkn.domain.exercises.ExerciseCatalogRegion
 
@@ -359,7 +360,7 @@ object TemplateCatalogFilterLogic {
         templates: List<SessionTemplate>,
         facetsById: Map<String, SessionTemplateFacets>,
         mode: TemplateGroupMode,
-        splits: List<SplitTemplate> = SPLIT_TEMPLATES.filterNot { it.id == "custom" },
+        splits: List<SplitTemplate> = SPLIT_TEMPLATES.filter { it.id != "custom" && it.isVisibleForApplication },
     ): List<TemplateCatalogSection> {
         if (templates.isEmpty()) return emptyList()
 

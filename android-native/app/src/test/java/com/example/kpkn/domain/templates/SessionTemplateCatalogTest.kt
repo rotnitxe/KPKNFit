@@ -218,24 +218,57 @@ class SessionTemplateCatalogTest {
     }
 
     @Test
-    fun specializedSplitsUseOnlyPowerliftingTemplates() {
+    fun specializedSplitsUseExactPowerliftingRecipesOrFailClosed() {
         SPLIT_TEMPLATES.filter { SplitTag.POWERLIFTING in it.tags }.forEach { split ->
-            split.pattern.filterNot { it.equals("Descanso", ignoreCase = true) }.forEach { dayLabel ->
+            val plan = SessionTemplateSuggestionEngine.suggestWeek(
+                split = split,
+                templates = SESSION_TEMPLATES_SYSTEM,
+                exerciseIndex = emptyMap(),
+            )
+            assertEquals(
+                split.pattern.count { !it.equals("Descanso", ignoreCase = true) },
+                plan.days.size,
+            )
+            plan.days.forEach { day ->
                 val candidates = SessionTemplateCatalogPolicy.templatesForSplitDay(
                     splitId = split.id,
-                    dayLabel = dayLabel,
+                    dayLabel = day.dayLabel,
                     templates = SESSION_TEMPLATES_SYSTEM,
                 )
-                assertTrue(
-                    "El split especializado '${split.name}' no tiene plantilla para '$dayLabel'",
-                    candidates.isNotEmpty(),
-                )
-                assertTrue(
-                    "El día '$dayLabel' de '${split.name}' mezcló una plantilla no powerlifting: ${candidates.map { it.id }}",
-                    candidates.all(SessionTemplateCatalogPolicy::isPowerliftingTemplate),
-                )
+                if (day.template == null) {
+                    // A named third-party/highly-specialized split without an
+                    // exact day recipe must be unavailable, never silently
+                    // substituted with a generic hypertrophy or SBD workout.
+                    assertTrue(
+                        "${split.name}/${day.dayLabel} debe explicar la indisponibilidad",
+                        !day.unavailabilityReason.isNullOrBlank(),
+                    )
+                    assertTrue(
+                        "${split.name}/${day.dayLabel} no puede tener fallback especializado implícito",
+                        candidates.isEmpty(),
+                    )
+                } else {
+                    assertTrue(
+                        "El día '${day.dayLabel}' de '${split.name}' mezcló una plantilla no powerlifting: ${candidates.map { it.id }}",
+                        candidates.all(SessionTemplateCatalogPolicy::isPowerliftingTemplate),
+                    )
+                    assertTrue(
+                        "La sugerencia de ${split.name}/${day.dayLabel} debe venir de las recetas exactas",
+                        candidates.any { it.id == day.template.id },
+                    )
+                }
             }
         }
+
+        // KPKN sí publica su split SBD nativo: el comportamiento fail-closed
+        // no puede dejar sin ruta al programa de fuerza propio y verificable.
+        val nativeSbd = SPLIT_TEMPLATES.first { it.id == "pl_sbd_x3" }
+        val nativePlan = SessionTemplateSuggestionEngine.suggestWeek(
+            split = nativeSbd,
+            templates = SESSION_TEMPLATES_SYSTEM,
+            exerciseIndex = emptyMap(),
+        )
+        assertTrue("El split SBD nativo debe estar materializable", nativePlan.days.all { it.template != null })
     }
 
     @Test
@@ -313,7 +346,7 @@ class SessionTemplateCatalogTest {
     }
 
     @Test
-    fun nonCustomSplitsHaveTemplatesForEveryTrainingDay() {
+    fun nonCustomSplitsHaveTemplatesOrAnExplicitSpecializedUnavailability() {
         SPLIT_TEMPLATES.filterNot { it.id == "custom" }.forEach { split ->
             val dayGroups = SessionTemplateCatalogPolicy.templatesForSplit(split, SESSION_TEMPLATES_SYSTEM, exerciseDatabaseById)
             val trainingDays = split.pattern.filterNot { it.equals("Descanso", ignoreCase = true) }
@@ -324,10 +357,17 @@ class SessionTemplateCatalogTest {
                 dayGroups.size,
             )
             dayGroups.forEach { group ->
-                assertTrue(
-                    "El día '${group.dayLabel}' del split '${split.name}' no tiene plantillas compatibles",
-                    group.templates.isNotEmpty(),
-                )
+                if (group.templates.isEmpty()) {
+                    assertTrue(
+                        "Sólo un split especializado puede quedar no publicable sin receta exacta: ${split.name}/${group.dayLabel}",
+                        SplitTag.POWERLIFTING in split.tags,
+                    )
+                } else if (SplitTag.POWERLIFTING in split.tags) {
+                    assertTrue(
+                        "${split.name}/${group.dayLabel} debe usar recetas PL exactas",
+                        group.templates.all(SessionTemplateCatalogPolicy::isPowerliftingTemplate),
+                    )
+                }
             }
         }
     }

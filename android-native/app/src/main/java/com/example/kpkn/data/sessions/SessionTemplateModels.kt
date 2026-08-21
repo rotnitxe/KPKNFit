@@ -53,6 +53,17 @@ enum class SessionTemplateSourceType {
     USER,
 }
 
+/**
+ * Separates normal training blueprints from meet-day payloads. Legacy JSON
+ * intentionally defaults to [TRAINING], the only kind accepted by weekly plans.
+ */
+@Serializable
+enum class SessionTemplateKind { TRAINING, MEET_DAY }
+
+/** Publication is fail-closed for system content and opt-in for USER content. */
+@Serializable
+enum class SessionTemplatePublicationStatus { VERIFIED, KPKN_NATIVE, HIDDEN_UNVERIFIED }
+
 @Serializable
 enum class SessionTemplateFocusCategory {
     PIERNAS,
@@ -125,6 +136,17 @@ data class SessionTemplate(
     val primaryFocusMuscle: String? = null,
     val durationClass: SessionTemplateDurationClass = SessionTemplateDurationClass.STANDARD,
     val equipmentBias: SessionTemplateEquipmentBias = SessionTemplateEquipmentBias.MIXED,
+    /** Normal weekly templates are training blueprints; meet days are never suggested. */
+    val kind: SessionTemplateKind = SessionTemplateKind.TRAINING,
+    /** Hidden definitions may remain in local diagnostics but are never auto-applied. */
+    val publicationStatus: SessionTemplatePublicationStatus = SessionTemplatePublicationStatus.VERIFIED,
+    /** USER templates stay editor-only until their metadata and audit are explicitly complete. */
+    val autoGenerationEligible: Boolean = false,
+    /** Stable archetypes/protocol keys; labels remain presentation-only. */
+    val dayArchetypes: List<String> = emptyList(),
+    val protocolDayKeys: List<String> = emptyList(),
+    val sourceDefinitionId: String? = null,
+    val sourceRevision: String? = null,
 )
 
 // ─── Application logic ────────────────────────────────────────────────────────

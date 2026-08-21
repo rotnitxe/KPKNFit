@@ -7,6 +7,8 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateFocusCategory
+import com.example.kpkn.data.sessions.SessionTemplateKind
+import com.example.kpkn.data.sessions.SessionTemplatePublicationStatus
 import com.example.kpkn.data.sessions.SessionTemplateSourceType
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.SplitTag
@@ -130,6 +132,11 @@ object SessionTemplateCatalogPolicy {
         dayLabel: String,
         templates: List<SessionTemplate>
     ): List<SessionTemplate> {
+        val eligible = templates.filter { template ->
+            template.kind == SessionTemplateKind.TRAINING &&
+                template.publicationStatus != SessionTemplatePublicationStatus.HIDDEN_UNVERIFIED &&
+                !template.isArchived
+        }
         val specializedSplit = isSpecializedSplit(splitId)
         val rawDayArchetype = dayArchetype(dayLabel)
         // Specialized strength splits often label their days as "Volumen",
@@ -141,17 +148,21 @@ object SessionTemplateCatalogPolicy {
         } else {
             rawDayArchetype
         }
-        val exact = templates.filter { template ->
+        val exact = eligible.filter { template ->
             template.splitIds.contains(splitId) && template.splitDayLabels.any { it.equals(dayLabel, ignoreCase = true) }
         }
-        val sameSplitArchetype = templates.filter { template ->
+        // A specialised split has a recipe contract. A label similarity, a
+        // generic SBD card or an unrelated hypertrophy session is never an
+        // acceptable fallback for Westside/Texas/Smolov/Sheiko-style days.
+        if (specializedSplit) return exact.sortedBy { it.sortOrder }
+        val sameSplitArchetype = eligible.filter { template ->
             template.splitIds.contains(splitId) &&
                 templateArchetype(template) == dayArchetype
         }
-        val sharedArchetype = templates.filter { template ->
+        val sharedArchetype = eligible.filter { template ->
             template.splitIds.isNotEmpty() && templateArchetype(template) == dayArchetype
         }
-        val independentArchetype = templates.filter { template ->
+        val independentArchetype = eligible.filter { template ->
             !specializedSplit && template.splitIds.isEmpty() && template.focusCategory != null &&
                 template.focusCategory in focusCategoriesFor(dayLabel)
         }
@@ -159,21 +170,9 @@ object SessionTemplateCatalogPolicy {
         // Specialized splits may share only a validated template of the same
         // powerlifting pattern. They must never fall through to an unrelated
         // independent hypertrophy template.
-        val specializedShared = if (specializedSplit) {
-            templates.filter { template ->
-                isPowerliftingTemplate(template) &&
-                    (
-                        templateArchetype(template) == dayArchetype ||
-                            dayArchetype in setOf("powerlifting", "full", "upper", "pull", "generic")
-                        )
-            }
-        } else {
-            emptyList()
-        }
-
         val exactMapped = exact.map { it to 1 }
         val sameSplitMapped = sameSplitArchetype.map { it to 2 }
-        val sharedMapped = (if (specializedSplit) specializedShared else sharedArchetype).map { it to 3 }
+        val sharedMapped = sharedArchetype.map { it to 3 }
         val independentMapped = independentArchetype.map { it to 4 }
 
         val ranked = (exactMapped + sameSplitMapped + sharedMapped + independentMapped)

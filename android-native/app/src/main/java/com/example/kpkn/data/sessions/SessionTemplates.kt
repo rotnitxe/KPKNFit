@@ -18,8 +18,10 @@ private const val V3_DEFAULT_SETUP_SECONDS = 30
 private const val LOW_VOLUME_MIN_SETS = 8
 private const val LOW_VOLUME_MAX_SETS = 12
 private const val LOW_VOLUME_TARGET_SETS_PER_EXERCISE = 2
-/** Must match the approved exercise_catalog_v2.json asset. */
+/** Must match the approved exercise_catalog_v2.json asset (identidad V2 de ejercicios). */
 internal const val TEMPLATE_CATALOG_REVISION = "v2-approved-2026-08-12-a"
+/** Revisión del paquete de plantillas de sesión (v4: cuarentena + gates P0/P1 + recetas PL verificables). */
+internal const val SESSION_TEMPLATE_PACKAGE_REVISION = "v4-approved-2026-08-21-a"
 
 /**
  * Performance profiles are part of the compiled v2 identity.  Keeping this
@@ -90,6 +92,7 @@ private val TEMPLATE_PERFORMANCE_PROFILE_BY_CONFIGURATION = mapOf(
     "lying_leg_curl__bilateral__machine" to "lying_leg_curl__machine__curl_isquios",
     "lying_leg_curl__unilateral__machine" to "lying_leg_curl__machine__curl_isquios",
     "low_bar_back_squat__smith_machine" to "low_bar_back_squat__smith_machine__sentadilla_trasera",
+    "low_bar_back_squat__barbell" to "low_bar_back_squat__barbell__sentadilla_trasera",
     "lying_pullover__dumbbells" to "lying_pullover__dumbbells__pullover_banca",
     "military_press__barbell" to "military_press__barbell__press_militar",
     "military_press__dumbbells" to "military_press__dumbbells__press_militar",
@@ -3314,6 +3317,7 @@ private val V3_DISPLAY_NAMES = mapOf(
     "front_squat__smith_machine" to "Sentadilla Frontal en Smith",
     "high_bar_back_squat__barbell" to "Sentadilla Trasera Barra Alta con Barra",
     "high_bar_back_squat__smith_machine" to "Sentadilla Trasera Barra Alta en Smith",
+    "low_bar_back_squat__barbell" to "Sentadilla Trasera Barra Baja de Competición",
     "hip_abduction__seated__machine__bilateral" to "Abducción de Cadera Sentado en Máquina",
     "hip_thrust__bilateral__machine" to "Hip Thrust en Máquina",
     "lat_pulldown__bilateral__machine" to "Jalón al Pecho en Máquina",
@@ -3490,6 +3494,7 @@ private fun v3Exercise(
     reps: Int,
     rpe: Double,
     restSeconds: Int,
+    isCompetitionLift: Boolean = false,
 ): Exercise {
     require(isV3ConfigurationAllowed(configurationId)) {
         "Configuración no permitida en plantilla v3: $configurationId"
@@ -3512,6 +3517,7 @@ private fun v3Exercise(
         performanceProfileId = profileId,
         selectedAspects = null,
         occurrenceId = exerciseId,
+        isCompetitionLift = isCompetitionLift,
     )
 }
 
@@ -3810,6 +3816,7 @@ private fun v3Template(
     splitDayLabels: List<String> = emptyList(),
     durationClass: SessionTemplateDurationClass = SessionTemplateDurationClass.STANDARD,
     equipmentBias: SessionTemplateEquipmentBias = SessionTemplateEquipmentBias.MIXED,
+    weeklyVolumePolicyId: String? = null,
 ): SessionTemplate {
     val parts = exercises.mapIndexed { index, group ->
         v3Part(id, index, if (index == 0) "Trabajo principal" else "Accesorios", group)
@@ -3839,10 +3846,15 @@ private fun v3Template(
         splitDayLabels = splitDayLabels,
         focusCategory = focus,
         shortDescription = description,
-        weeklyVolumePolicyId = if (difficulty == Difficulty.PRINCIPIANTE) "beginner_machine" else "hypertrophy_base",
+        weeklyVolumePolicyId = weeklyVolumePolicyId ?: when {
+            focus == SessionTemplateFocusCategory.POWERLIFTING -> "powerlifting_base"
+            difficulty == Difficulty.PRINCIPIANTE -> "beginner_machine"
+            else -> "hypertrophy_base"
+        },
         primaryFocusMuscle = primaryFocusMuscle,
         durationClass = durationClass,
         equipmentBias = equipmentBias,
+        publicationStatus = SessionTemplatePublicationStatus.KPKN_NATIVE,
     )
 }
 
@@ -3853,15 +3865,18 @@ private fun safePowerliftingTemplates(): List<SessionTemplate> {
         title: String,
         primary: String,
         groups: List<List<Exercise>>,
+        splitIds: List<String> = emptyList(),
+        difficulty: Difficulty = Difficulty.AVANZADO,
     ) = v3Template(
         id = id,
         name = "Powerlifting · $title",
         description = "Sesión especializada con un único levantamiento pesado, trabajo técnico separado y accesorios de cobertura.",
         focus = SessionTemplateFocusCategory.POWERLIFTING,
-        difficulty = Difficulty.AVANZADO,
+        difficulty = difficulty,
         primaryFocusMuscle = primary,
         tags = listOf(SessionTemplateTag.POWERLIFTING, SessionTemplateTag.FUERZA),
         exercises = groups,
+        splitIds = splitIds,
         splitDayLabels = listOf(label),
         equipmentBias = SessionTemplateEquipmentBias.MIXED,
     )
@@ -3869,7 +3884,7 @@ private fun safePowerliftingTemplates(): List<SessionTemplate> {
     val sbd1 = pl(
         "sys-v3-pl-sbd-1", "SBD Día 1", "SBD · Sentadilla", "Cuádriceps",
         listOf(
-            listOf(v3Exercise("pl-sbd-1", "principal", "high_bar_back_squat__barbell", 3, 4, 8.0, 210)),
+            listOf(v3Exercise("pl-sbd-1", "principal", "low_bar_back_squat__barbell", 3, 4, 8.0, 210, isCompetitionLift = true)),
             listOf(
                 v3Exercise("pl-sbd-1", "banca", "bench_press__barbell", 3, 5, 7.5, 150),
                 v3Exercise("pl-sbd-1", "remo", "chest_supported_row__dumbbells__wide", 2, 8, 8.0, 120),
@@ -3877,23 +3892,25 @@ private fun safePowerliftingTemplates(): List<SessionTemplate> {
                 v3Exercise("pl-sbd-1", "triceps", "triceps_pushdown__bilateral__cable", 2, 10, 8.0, 75),
             ),
         ),
+        splitIds = listOf("pl_sbd_x3"),
     )
     val sbd2 = pl(
         "sys-v3-pl-sbd-2", "SBD Día 2", "SBD · Peso muerto", "Isquiosurales",
         listOf(
-            listOf(v3Exercise("pl-sbd-2", "principal", "conventional_deadlift__bilateral__barbell", 3, 3, 8.0, 240)),
+            listOf(v3Exercise("pl-sbd-2", "principal", "conventional_deadlift__bilateral__barbell", 3, 3, 8.0, 240, isCompetitionLift = true)),
             listOf(
-                v3Exercise("pl-sbd-2", "banca", "bench_press__smith_machine", 3, 6, 7.5, 150),
+                v3Exercise("pl-sbd-2", "banca", "bench_press__barbell", 3, 6, 7.5, 150),
                 v3Exercise("pl-sbd-2", "jalon", "lat_pulldown__bilateral__cable", 2, 8, 8.0, 120),
                 v3Exercise("pl-sbd-2", "gluteo", "hip_thrust__bilateral__machine", 2, 10, 8.0, 90),
                 v3Exercise("pl-sbd-2", "core", "core_press_pallof__default", 2, 12, 7.5, 60),
             ),
         ),
+        splitIds = listOf("pl_sbd_x3"),
     )
     val sbd3 = pl(
         "sys-v3-pl-sbd-3", "SBD Día 3", "SBD · Banca", "Pectorales",
         listOf(
-            listOf(v3Exercise("pl-sbd-3", "principal", "bench_press__barbell", 4, 4, 8.0, 180)),
+            listOf(v3Exercise("pl-sbd-3", "principal", "bench_press__barbell", 4, 4, 8.0, 180, isCompetitionLift = true)),
             listOf(
                 v3Exercise("pl-sbd-3", "tecnica", "front_squat__barbell", 2, 5, 7.0, 150),
                 v3Exercise("pl-sbd-3", "remo", "conventional_row__machine", 2, 10, 8.0, 90),
@@ -3901,6 +3918,47 @@ private fun safePowerliftingTemplates(): List<SessionTemplate> {
                 v3Exercise("pl-sbd-3", "triceps", "triceps_pushdown__bilateral__cable", 2, 12, 8.0, 75),
             ),
         ),
+        splitIds = listOf("pl_sbd_x3"),
+    )
+    val classicDay1 = pl(
+        "sys-v3-pl-classic-1", "Sentadilla/Banca", "Clásico 4 · Sentadilla", "Cuádriceps",
+        listOf(
+            listOf(v3Exercise("pl-classic-1", "principal", "low_bar_back_squat__barbell", 4, 5, 7.5, 210, isCompetitionLift = true)),
+            listOf(v3Exercise("pl-classic-1", "banca", "bench_press__barbell", 3, 6, 7.0, 180),
+                v3Exercise("pl-classic-1", "remo", "chest_supported_row__dumbbells__wide", 3, 8, 7.5, 120)),
+        ),
+        splitIds = listOf("pl_classic_4"),
+        difficulty = Difficulty.INTERMEDIO,
+    )
+    val classicDay2 = pl(
+        "sys-v3-pl-classic-2", "Peso Muerto", "Clásico 4 · Peso muerto", "Isquiosurales",
+        listOf(
+            listOf(v3Exercise("pl-classic-2", "principal", "conventional_deadlift__bilateral__barbell", 3, 4, 7.5, 240, isCompetitionLift = true)),
+            listOf(v3Exercise("pl-classic-2", "jalon", "lat_pulldown__bilateral__cable", 3, 8, 7.5, 120),
+                v3Exercise("pl-classic-2", "femoral", "lying_leg_curl__bilateral__machine", 3, 10, 7.5, 90)),
+        ),
+        splitIds = listOf("pl_classic_4"),
+        difficulty = Difficulty.INTERMEDIO,
+    )
+    val classicDay4 = pl(
+        "sys-v3-pl-classic-4", "Banca Volumen", "Clásico 4 · Banca", "Pectorales",
+        listOf(
+            listOf(v3Exercise("pl-classic-4", "principal", "bench_press__barbell", 4, 6, 7.5, 180, isCompetitionLift = true)),
+            listOf(v3Exercise("pl-classic-4", "triceps", "triceps_pushdown__bilateral__cable", 3, 10, 7.5, 90),
+                v3Exercise("pl-classic-4", "remo", "conventional_row__machine", 3, 8, 7.5, 120)),
+        ),
+        splitIds = listOf("pl_classic_4"),
+        difficulty = Difficulty.INTERMEDIO,
+    )
+    val classicDay5 = pl(
+        "sys-v3-pl-classic-5", "Sentadilla/Peso Muerto", "Clásico 4 · Técnica", "Cuádriceps",
+        listOf(
+            listOf(v3Exercise("pl-classic-5", "principal", "low_bar_back_squat__barbell", 3, 4, 7.0, 210, isCompetitionLift = true)),
+            listOf(v3Exercise("pl-classic-5", "bisagra", "conventional_deadlift__bilateral__barbell", 3, 3, 7.0, 210),
+                v3Exercise("pl-classic-5", "core", "core_press_pallof__default", 2, 12, 7.0, 60)),
+        ),
+        splitIds = listOf("pl_classic_4"),
+        difficulty = Difficulty.INTERMEDIO,
     )
     val recovery = pl(
         "sys-v3-pl-recuperacion", "Día Recuperación", "Recuperación técnica", "Pectorales",
@@ -3913,7 +3971,7 @@ private fun safePowerliftingTemplates(): List<SessionTemplate> {
             ),
         ),
     )
-    return listOf(sbd1, sbd2, sbd3, recovery)
+    return listOf(sbd1, sbd2, sbd3, classicDay1, classicDay2, classicDay4, classicDay5, recovery)
 }
 
 private fun expandedCommonTemplates(): List<SessionTemplate> {

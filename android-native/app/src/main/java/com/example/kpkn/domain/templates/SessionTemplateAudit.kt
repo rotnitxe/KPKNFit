@@ -3,6 +3,7 @@ package com.example.kpkn.domain.templates
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.sessions.SessionTemplate
@@ -217,6 +218,31 @@ object SessionTemplateAudit {
         val targetRpes = mutableListOf<Double>()
         var durationSeconds = 0
 
+        fun mobilityDurationSeconds(series: List<com.example.kpkn.data.models.MobilitySeries>): Int =
+            series.sumOf { item ->
+                val seconds = item.durationSeconds?.takeIf { it > 0 } ?: 0
+                seconds * item.sets.coerceAtLeast(1)
+            }
+
+        fun exerciseDurationSeconds(exercise: Exercise): Int {
+            val info = resolveCatalogInfoNormalized(exercise, exerciseIndex)
+            val setup = info?.setupTime?.takeIf { it > 0 } ?: DEFAULT_SETUP_SECONDS
+            val executable = if (exercise.cardioDetails != null) {
+                setup + cardioDurationSeconds(exercise.cardioDetails)
+            } else {
+                val setCount = exercise.sets.size
+                val rest = exercise.restTime?.takeIf { it > 0 }
+                    ?: info?.averageRestSeconds?.takeIf { it > 0 }
+                    ?: DEFAULT_REST_SECONDS
+                val execution = setCount * EXECUTION_SECONDS_PER_SET
+                val restTotal = if (setCount > 1) rest * (setCount - 1) else 0
+                setup + execution + restTotal + mobilityDurationSeconds(exercise.mobilitySeries)
+            }
+            // Exercise target is a minimum for that exercise, never an extra
+            // block added on top of its executable estimate.
+            return maxOf(executable, (exercise.targetDurationMinutes ?: 0).coerceAtLeast(0) * 60)
+        }
+
         exercises.forEach { exercise ->
             val info = resolveCatalogInfoNormalized(exercise, exerciseIndex)
             val resolvedId = info?.id?.trim()?.lowercase()
@@ -244,14 +270,44 @@ object SessionTemplateAudit {
                 resolveSetTargetRpe(set.targetRPE, set.targetRIR)?.let { targetRpes += it }
             }
 
-            val setup = info?.setupTime?.takeIf { it > 0 } ?: DEFAULT_SETUP_SECONDS
-            val rest = exercise.restTime?.takeIf { it > 0 }
-                ?: info?.averageRestSeconds?.takeIf { it > 0 }
-                ?: DEFAULT_REST_SECONDS
-            val execution = setCount * EXECUTION_SECONDS_PER_SET
-            val restTotal = if (setCount > 1) rest * (setCount - 1) else 0
-            durationSeconds += setup + execution + restTotal
         }
+
+        // Sum loose exercises and parts separately so a part target/config acts
+        // as a floor for that part instead of being counted twice.
+        durationSeconds += session.exercises.sumOf(::exerciseDurationSeconds)
+        session.parts.forEach { part ->
+            val executable = part.exercises.sumOf(::exerciseDurationSeconds) +
+                mobilityDurationSeconds(part.mobilitySeries)
+            val contractual = maxOf(
+                (part.targetDurationMinutes ?: 0).coerceAtLeast(0) * 60,
+                (part.mobilityConfig?.totalMinutes ?: 0).coerceAtLeast(0) * 60,
+            )
+            durationSeconds += maxOf(executable, contractual)
+        }
+
+        // Warm-up is real scheduled work and must be included even when no
+        // strength exercise is present in the session.
+        session.warmup.forEach { warmup ->
+            // Calculations.calculateSessionTimeBreakdown treats an explicit
+            // duration as the total for this warm-up item, not per set.  When
+            // it is absent, use the same 4 s/rep estimate plus the 15 s
+            // transition between warm-up items.
+            val itemSeconds = if ((warmup.duration ?: 0) > 0) {
+                warmup.duration!!
+            } else {
+                val sets = warmup.sets?.coerceAtLeast(1) ?: 1
+                val reps = warmup.reps?.filter(Char::isDigit)?.toIntOrNull() ?: 10
+                sets * reps * 4
+            }
+            durationSeconds += itemSeconds + 15
+        }
+
+        // Session target wraps the whole schedule. It is a contractual floor,
+        // not another block to sum with part/exercise targets.
+        durationSeconds = maxOf(
+            durationSeconds,
+            (session.targetDurationMinutes ?: 0).coerceAtLeast(0) * 60,
+        )
 
         val estimatedDurationMinutes = (durationSeconds / 60.0)
             .roundToInt()
@@ -287,5 +343,18 @@ object SessionTemplateAudit {
     ): Map<String, ExerciseMuscleInfo> {
         if (exerciseIndex.keys.all { it == it.trim().lowercase() }) return exerciseIndex
         return exerciseIndex.mapKeys { it.key.trim().lowercase() }
+    }
+
+    private fun cardioDurationSeconds(details: CardioDetails): Int {
+        val hiit = details.hiit
+        if (hiit != null) {
+            val rounds = hiit.rounds.coerceAtLeast(1)
+            val sets = hiit.sets.coerceAtLeast(1)
+            val interval = hiit.workSeconds.coerceAtLeast(0) + hiit.restSeconds.coerceAtLeast(0)
+            val betweenSets = (sets - 1).coerceAtLeast(0) * hiit.restBetweenSetsSeconds.coerceAtLeast(0)
+            return hiit.warmupSeconds.coerceAtLeast(0) + hiit.cooldownSeconds.coerceAtLeast(0) +
+                sets * (rounds * interval - hiit.restSeconds.coerceAtLeast(0)) + betweenSets
+        }
+        return details.effectiveDurationSeconds()
     }
 }

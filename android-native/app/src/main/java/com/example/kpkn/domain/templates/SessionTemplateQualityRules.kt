@@ -96,6 +96,11 @@ object SessionTemplateQualityRules {
         checkLowerCompleteness(template, resolved, issues)
         checkExerciseCountAdvanced(template, exercises, issues)
         checkFocusDeclared(template, issues)
+        checkMultimodalPrescription(template, issues)
+        checkHeavyCompoundRest(resolved, issues)
+        checkPowerliftingMainLiftContract(template, resolved, issues)
+        checkTwoHeavyLowerSameDay(template, resolved, issues)
+        checkRestRangesByCategory(template, resolved, issues)
 
         return TemplateQualityReport(templateId = template.id, issues = issues)
     }
@@ -704,6 +709,298 @@ object SessionTemplateQualityRules {
                 code = "FOCUS_UNDECLARED",
                 message = "shortDescription vacío y el nombre no declara enfoque: '${template.name}'",
             )
+        }
+    }
+
+    /** Timed/cardio/mobility payloads must carry executable durations, not just labels. */
+    private fun checkMultimodalPrescription(
+        template: SessionTemplate,
+        issues: MutableList<TemplateQualityIssue>,
+    ) {
+        val session = template.session
+        // Parts are first-class session content.  Looking only at the loose
+        // exercise list silently skipped cardio/mobility blocks created by the
+        // editor and made their duration gates unenforceable.  Keep track of
+        // exercises owned by a dedicated modality part as well: those payloads
+        // may intentionally omit strength sets because their executable recipe
+        // lives in the cardio/mobility fields of the part.
+        val modalityPartExerciseIds = session.parts
+            .filter { it.isCardioGroup || it.isMobilityGroup }
+            .flatMap { it.exercises }
+            .map { it.id }
+            .toSet()
+        session.allExercises().forEach { exercise ->
+            val isModalityExercise = exercise.id in modalityPartExerciseIds ||
+                exercise.cardioDetails != null ||
+                exercise.mobilitySeries.isNotEmpty() ||
+                exercise.mobilityConfig != null
+            if (!isModalityExercise &&
+                !SessionTemplateEngine.exerciseHasExecutableStrengthPrescription(exercise)
+            ) {
+                issues += TemplateQualityIssue(
+                    TemplateQualitySeverity.P0,
+                    "STRENGTH_PRESCRIPTION_MISSING",
+                    "Ejercicio de fuerza '${exercise.name}' no tiene series ejecutables",
+                )
+            }
+            val cardio = exercise.cardioDetails
+            if (cardio != null) {
+                if (!SessionTemplateEngine.isExecutableCardio(cardio)) {
+                    issues += TemplateQualityIssue(
+                        TemplateQualitySeverity.P0,
+                        "CARDIO_DURATION_INVALID",
+                        "Cardio '${exercise.name}' no tiene una duración/intervalos ejecutables",
+                    )
+                }
+            }
+            exercise.mobilitySeries.forEach { series ->
+                if (!SessionTemplateEngine.isExecutableMobility(series)) {
+                    issues += TemplateQualityIssue(
+                        TemplateQualitySeverity.P0,
+                        "MOBILITY_DURATION_INVALID",
+                        "Movilidad '${series.name}' tiene series o duración inválida",
+                    )
+                }
+            }
+            if (exercise.mobilityConfig != null &&
+                !SessionTemplateEngine.isExecutableMobilityConfig(exercise.mobilityConfig)
+            ) {
+                issues += TemplateQualityIssue(
+                    TemplateQualitySeverity.P0,
+                    "MOBILITY_DURATION_INVALID",
+                    "Movilidad '${exercise.name}' no tiene una duración total ejecutable",
+                )
+            }
+        }
+        session.parts.flatMap { it.mobilitySeries }.forEach { series ->
+            if (!SessionTemplateEngine.isExecutableMobility(series)) {
+                issues += TemplateQualityIssue(
+                    TemplateQualitySeverity.P0,
+                    "MOBILITY_DURATION_INVALID",
+                    "Bloque de movilidad '${series.name}' tiene series o duración inválida",
+                )
+            }
+        }
+        session.parts.forEach { part ->
+            if (part.mobilityConfig != null &&
+                !SessionTemplateEngine.isExecutableMobilityConfig(part.mobilityConfig)
+            ) {
+                issues += TemplateQualityIssue(
+                    TemplateQualitySeverity.P0,
+                    "MOBILITY_DURATION_INVALID",
+                    "Bloque de movilidad '${part.name}' no tiene una duración total ejecutable",
+                )
+            }
+        }
+        session.parts.forEach { part ->
+            val cardioPartInvalid = part.isCardioGroup &&
+                (part.exercises.isEmpty() || part.exercises.any { exercise ->
+                    exercise.cardioDetails?.let(SessionTemplateEngine::isExecutableCardio) != true
+                })
+            if (cardioPartInvalid) {
+                issues += TemplateQualityIssue(
+                    TemplateQualitySeverity.P0,
+                    "CARDIO_DURATION_INVALID",
+                    "Bloque de cardio '${part.name}' no tiene una receta temporal ejecutable",
+                )
+            }
+            val mobilityPartHasPayload = part.mobilitySeries.isNotEmpty() ||
+                SessionTemplateEngine.isExecutableMobilityConfig(part.mobilityConfig) ||
+                part.exercises.any { exercise ->
+                    exercise.mobilitySeries.isNotEmpty() ||
+                        SessionTemplateEngine.isExecutableMobilityConfig(exercise.mobilityConfig)
+                }
+            val mobilityPartInvalid = part.isMobilityGroup &&
+                (!mobilityPartHasPayload ||
+                    part.mobilitySeries.any { !SessionTemplateEngine.isExecutableMobility(it) } ||
+                    part.exercises.any { exercise ->
+                        exercise.mobilitySeries.isEmpty() &&
+                            !SessionTemplateEngine.isExecutableMobilityConfig(exercise.mobilityConfig)
+                    })
+            if (mobilityPartInvalid) {
+                issues += TemplateQualityIssue(
+                    TemplateQualitySeverity.P0,
+                    "MOBILITY_DURATION_INVALID",
+                    "Bloque de movilidad '${part.name}' no tiene series ni duración ejecutable",
+                )
+            }
+        }
+        session.warmup.forEach { warmup ->
+            if (!SessionTemplateEngine.isExecutableWarmup(warmup)) {
+                issues += TemplateQualityIssue(
+                    TemplateQualitySeverity.P0,
+                    "WARMUP_DURATION_INVALID",
+                    "Calentamiento '${warmup.name}' tiene una duración inválida",
+                )
+            }
+        }
+
+        // A label, target duration, empty modality group or empty warm-up is
+        // visible editor content but cannot be executed.  Keep overwrite
+        // confirmation broad (SessionTemplateEngine.sessionHasContent) while
+        // making the published/generation gate agree with the strict program
+        // execution contract.
+        if (!SessionTemplateEngine.sessionHasExecutableContent(session)) {
+            issues += TemplateQualityIssue(
+                TemplateQualitySeverity.P0,
+                "SESSION_EXECUTION_MISSING",
+                "La sesión '${template.name}' no contiene una receta ejecutable",
+            )
+        }
+    }
+
+    /** Heavy compound work should expose enough rest for safe execution. */
+    private fun checkHeavyCompoundRest(
+        resolved: List<Pair<Exercise, ExerciseMuscleInfo?>>,
+        issues: MutableList<TemplateQualityIssue>,
+    ) {
+        resolved.forEach { (exercise, info) ->
+            if (!isCompound(info)) return@forEach
+            val lowRepStrength = exercise.sets.any { set -> (set.targetReps ?: Int.MAX_VALUE) <= 6 }
+            val explicitStrengthLabel = listOfNotNull(
+                exercise.targetSessionGoal,
+                exercise.name,
+                exercise.canonicalExerciseId,
+                exercise.exerciseDbId,
+            ).any { label ->
+                val normalized = label.lowercase()
+                normalized.contains("fuerza") ||
+                    normalized.contains("strength") ||
+                    normalized.contains("powerlifting") ||
+                    normalized.contains("competition") ||
+                    normalized.contains("competici") ||
+                    normalized.contains("sbd")
+            } || exercise.isCompetitionLift
+            val highIntensity = exercise.sets.any { set ->
+                (set.targetRPE ?: set.targetRIR?.let { (10 - it).toDouble() } ?: 0.0) >= 8.0 ||
+                    (set.targetPercentageRM ?: 0.0) >= 80.0
+            }
+            // RPE/%RM alone is not enough: an 8–12-rep hypertrophy compound
+            // can legitimately use 90–120 seconds.  Heavy strength work is
+            // the intersection of intensity and low reps or an explicit PL /
+            // fuerza contract.
+            val heavy = highIntensity && (lowRepStrength || explicitStrengthLabel)
+            val rest = exercise.restTime ?: info?.averageRestSeconds ?: 0
+            if (heavy && rest < 180) {
+                issues += TemplateQualityIssue(
+                    TemplateQualitySeverity.P1,
+                    "HEAVY_COMPOUND_REST_SHORT",
+                    "Compuesto pesado '${exercise.name}' prescribe solo ${rest}s de descanso (<180s)",
+                )
+            }
+        }
+    }
+
+    /** Public PL recipes must mark the exact SBD lift and give it competition rest. */
+    private fun checkPowerliftingMainLiftContract(
+        template: SessionTemplate,
+        resolved: List<Pair<Exercise, ExerciseMuscleInfo?>>,
+        issues: MutableList<TemplateQualityIssue>,
+    ) {
+        val exactPowerliftingSplit = template.splitIds.any { it == "pl_sbd_x3" || it == "pl_classic_4" }
+        if (!exactPowerliftingSplit || !SessionTemplateCatalogPolicy.isPowerliftingTemplate(template)) return
+        val main = resolved.firstOrNull()?.first ?: return
+        val id = listOfNotNull(main.catalogConfigurationId, main.exerciseDbId, main.exerciseId)
+            .joinToString(" ").lowercase()
+        if (!main.isCompetitionLift || id.contains("smith")) {
+            issues += TemplateQualityIssue(
+                TemplateQualitySeverity.P0,
+                "PL_MAIN_LIFT_MARKER_MISSING",
+                "Receta powerlifting '${template.id}' no marca un levantamiento SBD de competición exacto",
+            )
+        }
+        if ((main.restTime ?: 0) < 180) {
+            issues += TemplateQualityIssue(
+                TemplateQualitySeverity.P0,
+                "PL_MAIN_REST_SHORT",
+                "Receta powerlifting '${template.id}' prescribe menos de 180s para el principal",
+            )
+        }
+    }
+
+    /** Two heavy lower compounds same session only if recipe explicitly allows (P0). */
+    private fun checkTwoHeavyLowerSameDay(
+        template: SessionTemplate,
+        resolved: List<Pair<Exercise, ExerciseMuscleInfo?>>,
+        issues: MutableList<TemplateQualityIssue>,
+    ) {
+        if (template.sourceType != SessionTemplateSourceType.SYSTEM) return
+        // SBD powerlifting recipes intentionally combine squat+deadlift variants
+        if (template.id.startsWith("sys-sbd-") || template.id.startsWith("sys-v3-pl-sbd") || template.id.startsWith("sys-v3-pl-classic")) return
+        val heavyLower = resolved.filter { (exercise, info) ->
+            if (!isCompound(info)) return@filter false
+            val primaries = primaryMuscles(info).map { it.lowercase() }.toSet()
+            val isLower = primaries.any { it in LEG_MUSCLES.map(String::lowercase) }
+            if (!isLower) return@filter false
+            val rpe = exercise.sets.mapNotNull { it.targetRPE ?: it.targetRIR?.let { rir -> (10 - rir).toDouble() } }.maxOrNull() ?: 0.0
+            val pct = exercise.sets.mapNotNull { it.targetPercentageRM }.maxOrNull() ?: 0.0
+            val lowRep = exercise.sets.any { (it.targetReps ?: Int.MAX_VALUE) <= 6 }
+            val heavy = (rpe >= 8.0 || pct >= 80.0) && (lowRep || exercise.isCompetitionLift)
+            heavy
+        }
+        if (heavyLower.size >= 2) {
+            val names = heavyLower.joinToString(" + ") { it.first.name }
+            issues += TemplateQualityIssue(
+                TemplateQualitySeverity.P0,
+                "TWO_HEAVY_LOWER_SAME_DAY",
+                "Dos compuestos pesados de tren inferior el mismo día sin receta que lo permita: $names",
+            )
+        }
+    }
+
+    /** Rest ranges by category: main 180-300, technique 120-240, compound accessory 90-180, isolation 45-120. */
+    private fun checkRestRangesByCategory(
+        template: SessionTemplate,
+        resolved: List<Pair<Exercise, ExerciseMuscleInfo?>>,
+        issues: MutableList<TemplateQualityIssue>,
+    ) {
+        if (template.sourceType != SessionTemplateSourceType.SYSTEM) return
+        resolved.forEach { (exercise, info) ->
+            val rest = exercise.restTime ?: info?.averageRestSeconds ?: return@forEach
+            val isMain = exercise.isCompetitionLift
+            val isIso = isIsolation(info)
+            val isComp = isCompound(info)
+            when {
+                isMain -> {
+                    if (rest < 180 || rest > 300) {
+                        issues += TemplateQualityIssue(
+                            TemplateQualitySeverity.P1,
+                            "MAIN_REST_OUT_OF_RANGE",
+                            "Levantamiento principal '${exercise.name}' descanso ${rest}s fuera de 180-300s",
+                        )
+                    }
+                }
+                isComp && !isMain -> {
+                    // Heuristic: heavy technique vs accessory by RPE
+                    val maxRpe = exercise.sets.mapNotNull { it.targetRPE ?: it.targetRIR?.let { rir -> (10 - rir).toDouble() } }.maxOrNull() ?: 0.0
+                    if (maxRpe >= 8.0) {
+                        if (rest < 120 || rest > 240) {
+                            issues += TemplateQualityIssue(
+                                TemplateQualitySeverity.P1,
+                                "TECHNIQUE_REST_OUT_OF_RANGE",
+                                "Compuesto técnico '${exercise.name}' descanso ${rest}s fuera de 120-240s",
+                            )
+                        }
+                    } else {
+                        if (rest < 90 || rest > 180) {
+                            issues += TemplateQualityIssue(
+                                TemplateQualitySeverity.P1,
+                                "COMPOUND_ACCESSORY_REST_OUT_OF_RANGE",
+                                "Accesorio compuesto '${exercise.name}' descanso ${rest}s fuera de 90-180s",
+                            )
+                        }
+                    }
+                }
+                isIso -> {
+                    if (rest < 45 || rest > 120) {
+                        issues += TemplateQualityIssue(
+                            TemplateQualitySeverity.P1,
+                            "ISOLATION_REST_OUT_OF_RANGE",
+                            "Aislamiento '${exercise.name}' descanso ${rest}s fuera de 45-120s",
+                        )
+                    }
+                }
+            }
         }
     }
 }

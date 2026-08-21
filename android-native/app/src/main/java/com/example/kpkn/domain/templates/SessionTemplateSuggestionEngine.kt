@@ -62,7 +62,8 @@ object SessionTemplateSuggestionEngine {
                 allCandidates
             } else {
                 allCandidates.filter { candidate ->
-                    SessionTemplateQualityRules.audit(candidate, exerciseIndex).p0.isEmpty()
+                    val report = SessionTemplateQualityRules.audit(candidate, exerciseIndex)
+                    report.p0.isEmpty() && report.p1.isEmpty()
                 }
             }
             val forcedId = prefs.forcedTemplateByDayIndex[dayIndex]
@@ -88,6 +89,7 @@ object SessionTemplateSuggestionEngine {
                         weeklyVolume = weeklyVolume,
                         drainsSoFar = drains,
                         metrics = metrics,
+                        preserveSpecializedRecipes = SessionTemplateCatalogPolicy.isSpecializedSplit(split.id),
                     ),
                 )
             }.sortedByDescending { it.score }
@@ -119,6 +121,7 @@ object SessionTemplateSuggestionEngine {
                         weeklyVolume = weeklyVolume,
                         drainsSoFar = drains,
                         metrics = metrics,
+                        preserveSpecializedRecipes = SessionTemplateCatalogPolicy.isSpecializedSplit(split.id),
                     )
                 else -> scored.first().score
             }
@@ -180,6 +183,7 @@ object SessionTemplateSuggestionEngine {
         weeklyVolume: Map<String, Double>,
         drainsSoFar: List<PredictedDrain>,
         metrics: TemplateScoreCache,
+        preserveSpecializedRecipes: Boolean,
     ): Double {
         var score = 0.0
 
@@ -201,18 +205,30 @@ object SessionTemplateSuggestionEngine {
             score += 40.0
         }
 
-        val sameLabelEarlier = chosen.filter { it.dayLabel.equals(dayLabel, ignoreCase = true) }
-        val sameIdCount = sameLabelEarlier.count { it.template?.id == candidate.id }
+        // Normal splits often spell repeated days A/B/C, so exact-label
+        // diversity is too weak: Full Body x3 could receive the same session
+        // three times.  Compare by day archetype instead.  Specialized
+        // powerlifting schedules are the exception: their exact S/B/D recipe
+        // is contractual and must not be changed by a diversity heuristic.
+        val currentArchetype = SessionTemplateCatalogPolicy.dayArchetype(dayLabel)
+        val comparableEarlier = if (preserveSpecializedRecipes) {
+            chosen.filter { it.dayLabel.equals(dayLabel, ignoreCase = true) }
+        } else {
+            chosen.filter {
+                SessionTemplateCatalogPolicy.dayArchetype(it.dayLabel) == currentArchetype
+            }
+        }
+        val sameIdCount = comparableEarlier.count { it.template?.id == candidate.id }
         score -= 100.0 * sameIdCount
 
-        val sameFocusMuscleCount = sameLabelEarlier.count { prior ->
+        val sameFocusMuscleCount = comparableEarlier.count { prior ->
             val a = prior.template?.primaryFocusMuscle
             val b = candidate.primaryFocusMuscle
             a != null && b != null && a.equals(b, ignoreCase = true)
         }
         score -= 60.0 * sameFocusMuscleCount
 
-        val sameFocusCategoryCount = sameLabelEarlier.count { prior ->
+        val sameFocusCategoryCount = comparableEarlier.count { prior ->
             prior.template?.focusCategory != null &&
                 prior.template.focusCategory == candidate.focusCategory
         }
