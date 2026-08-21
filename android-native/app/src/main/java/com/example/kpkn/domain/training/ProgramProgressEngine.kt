@@ -6,9 +6,15 @@ import com.example.kpkn.data.models.LoopState
 import com.example.kpkn.data.models.LoopStatus
 import com.example.kpkn.data.models.ProgramRunState
 import com.example.kpkn.data.models.ProgramRunStatus
+import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
+import com.example.kpkn.data.models.PendingProgramAction
+import com.example.kpkn.data.models.PendingProgramActionType
+import com.example.kpkn.data.models.OneRmResolution
+import com.example.kpkn.data.models.OneRmResolutionStatus
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SimpleProgramKind
+import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.isSimpleCalendarizedProgram
 import com.example.kpkn.data.models.isSimpleProgram
@@ -164,10 +170,14 @@ object ProgramProgressEngine {
         cycleNumber: Int,
         programRunId: String? = null,
     ): Boolean {
-        val requiredSessions = week.sessions.filter { it.isMainSession || week.sessions.size == 1 }
+        if (week.executionKind == WeekExecutionKind.REST) return true
+        // Completion is declared at the session level.  "main" is a presentation
+        // hint, not permission to silently skip the other programmed days.
+        val requiredSessions = week.sessions.filter { it.requirement == com.example.kpkn.data.models.SessionRequirement.REQUIRED }
         if (requiredSessions.isEmpty()) {
-            // Empty base weeks are vacuously complete; empty loop events stay pending until sessions exist and are logged.
-            return !week.isLoopWeek
+            // A blank TRAINING/DELOAD week is an authoring error, never a free
+            // transition.  REST is handled explicitly above.
+            return false
         }
         val instanceLogs = logsForInstance(logs, programId, instanceId, cycleNumber, programRunId)
         return requiredSessions.all { session -> instanceLogs.any { it.sessionId == session.id } }
@@ -178,7 +188,18 @@ object ProgramProgressEngine {
         completedSession: Session,
         weekInstanceId: String,
         logs: List<WorkoutLog>,
+        transitionContext: BlockTransitionEngine.TransitionContext? = null,
     ): ProgressAdvanceResult {
+        if (program.structure == ProgramStructure.COMPLEX) {
+            return advanceComplexAfterSessionComplete(
+                program = program,
+                activeState = activeState,
+                completedSession = completedSession,
+                weekInstanceId = weekInstanceId,
+                logs = logs,
+                transitionContext = transitionContext ?: BlockTransitionEngine.TransitionContext(),
+            )
+        }
         if (!program.isSimpleProgram) return ProgressAdvanceResult(program, activeState)
         // Calendarized simple programs pause the cyclic cursor; logs must not advance the base cycle.
         if (program.isSimpleCalendarizedProgram || program.simpleProgramKind == SimpleProgramKind.CALENDARIZED) {
@@ -278,6 +299,432 @@ object ProgramProgressEngine {
         }
 
         return completeCycle(workingProgram, activeState, cycleNumber, logs)
+    }
+
+    /**
+     * Explicitly resolves the 1RM gate created after a realization block.  The
+     * caller must invoke this only after recording/confirming the test; there is
+     * intentionally no automatic fallback that skips the athlete decision.
+     */
+    /** Records the athlete's S/B/D result (or an explicit skip) before advancing. */
+    fun resolvePendingOneRmTest(
+        program: Program,
+        activeState: ActiveProgramState?,
+        resolution: OneRmResolution,
+    ): ProgressAdvanceResult {
+        val run = program.runState ?: return ProgressAdvanceResult(program, activeState)
+        require(run.pendingAction?.type == PendingProgramActionType.CONFIRM_1RM_TEST) {
+            "No hay un test 1RM pendiente de resolver."
+        }
+        if (resolution.status == OneRmResolutionStatus.RECORDED) {
+            require(resolution.squat1RM != null && resolution.squat1RM > 0.0) { "Registra un 1RM de sentadilla válido." }
+            require(resolution.bench1RM != null && resolution.bench1RM > 0.0) { "Registra un 1RM de banca válido." }
+            require(resolution.deadlift1RM != null && resolution.deadlift1RM > 0.0) { "Registra un 1RM de peso muerto válido." }
+        }
+        val withResolution = if (resolution.status == OneRmResolutionStatus.RECORDED) {
+            program.copy(
+                goals = (program.goals ?: com.example.kpkn.data.models.ProgramGoals()).copy(
+                    squat1RM = resolution.squat1RM,
+                    bench1RM = resolution.bench1RM,
+                    deadlift1RM = resolution.deadlift1RM,
+                ),
+                runState = run.copy(
+                    oneRmResolution = resolution,
+                    oneRmAuditTrail = run.oneRmAuditTrail + resolution,
+                ),
+            )
+        } else {
+            program.copy(runState = run.copy(
+                oneRmResolution = resolution,
+                oneRmAuditTrail = run.oneRmAuditTrail + resolution,
+            ))
+        }
+        return advanceAfterPendingAction(withResolution, activeState)
+    }
+
+    /**
+     * Backwards-compatible command for callers that only had a confirmation
+     * button. It now records an explicit SKIPPED resolution instead of silently
+     * treating confirmation as a measured 1RM.
+     */
+    fun continueAfterPendingAction(
+        program: Program,
+        activeState: ActiveProgramState?,
+    ): ProgressAdvanceResult = resolvePendingOneRmTest(
+        program,
+        activeState,
+        OneRmResolution(status = OneRmResolutionStatus.SKIPPED, note = "Compatibilidad: omitido"),
+    )
+
+    /**
+     * Resolves the AUGE deload proposal. Accepting moves the cursor into the
+     * generated, reduced-volume block. Rejecting removes that candidate and
+     * advances to the originally scheduled next block. Both paths clear the
+     * pending action and are safe to persist/read back.
+     */
+    fun resolvePendingDeload(
+        program: Program,
+        activeState: ActiveProgramState?,
+        accept: Boolean,
+    ): ProgressAdvanceResult {
+        val run = program.runState ?: return ProgressAdvanceResult(program, activeState)
+        val action = run.pendingAction ?: return ProgressAdvanceResult(program, activeState)
+        require(action.type == PendingProgramActionType.CONFIRM_DELOAD) {
+            "No hay una propuesta de descarga pendiente de resolver."
+        }
+
+        val targetId = action.nextBlockId
+        val resolvedProgram = if (accept || targetId.isNullOrBlank()) {
+            program
+        } else {
+            program.copy(
+                macrocycles = program.macrocycles.map { macro ->
+                    macro.copy(blocks = macro.blocks.filterNot { it.id == targetId })
+                },
+            )
+        }
+        val ordered = resolvedProgram.macrocycles.flatMap { it.blocks }
+        val targetBlock = if (accept) {
+            targetId?.let { id -> ordered.firstOrNull { it.id == id } }
+        } else {
+            val currentIndex = ordered.indexOfFirst { it.id == run.blockId }
+            ordered.getOrNull(currentIndex + 1)
+        }
+        val targetWeek = targetBlock?.mesocycles?.flatMap { it.weeks }?.firstOrNull()
+        if (targetWeek == null) {
+            val completedRun = run.copy(
+                weekInstanceId = null,
+                weekId = null,
+                completedSessionIds = emptySet(),
+                status = ProgramRunStatus.COMPLETED,
+                pendingAction = null,
+            )
+            return ProgressAdvanceResult(
+                program = resolvedProgram.copy(runState = completedRun),
+                activeState = activeState?.copy(status = com.example.kpkn.data.models.ProgramStatus.COMPLETED),
+                advancedCycle = true,
+            )
+        }
+        val location = ProgramHierarchyIndex(resolvedProgram).locateWeek(targetWeek.id)
+        val updatedRun = run.copy(
+            weekInstanceId = targetWeek.id,
+            weekId = targetWeek.id,
+            macrocycleId = location?.macrocycleId,
+            blockId = location?.blockId ?: targetBlock.id,
+            mesocycleId = location?.mesocycleId,
+            completedSessionIds = emptySet(),
+            status = ProgramRunStatus.ACTIVE,
+            pendingAction = null,
+        )
+        return ProgressAdvanceResult(
+            program = resolvedProgram.copy(runState = updatedRun),
+            activeState = activeState?.copy(
+                status = com.example.kpkn.data.models.ProgramStatus.ACTIVE,
+                currentWeekId = targetWeek.id,
+                currentWeekInstanceId = targetWeek.id,
+                currentMacrocycleId = location?.macrocycleId,
+                currentBlockId = location?.blockId ?: targetBlock.id,
+                currentMesocycleId = location?.mesocycleId,
+                currentMacrocycleIndex = location?.macroIndex ?: activeState.currentMacrocycleIndex,
+                currentBlockIndex = location?.blockIndex ?: activeState.currentBlockIndex,
+                currentMesocycleIndex = location?.globalMesoIndex ?: activeState.currentMesocycleIndex,
+                programRunId = updatedRun.runId,
+            ),
+            advancedWeek = true,
+        )
+    }
+
+    private fun advanceAfterPendingAction(
+        program: Program,
+        activeState: ActiveProgramState?,
+    ): ProgressAdvanceResult {
+        val run = program.runState ?: return ProgressAdvanceResult(program, activeState)
+        val action = run.pendingAction ?: return ProgressAdvanceResult(program, activeState)
+        if (action.type != PendingProgramActionType.CONFIRM_1RM_TEST) {
+            return ProgressAdvanceResult(program, activeState)
+        }
+        val targetBlock = action.nextBlockId?.let { targetId ->
+            program.macrocycles.flatMap { it.blocks }.firstOrNull { it.id == targetId }
+        }
+        val targetWeek = targetBlock?.mesocycles?.flatMap { it.weeks }?.firstOrNull()
+        if (targetWeek == null) {
+            val completed = program.copy(runState = run.copy(
+                weekInstanceId = null,
+                weekId = null,
+                completedSessionIds = emptySet(),
+                status = ProgramRunStatus.COMPLETED,
+                pendingAction = null,
+            ))
+            return ProgressAdvanceResult(
+                program = completed,
+                activeState = activeState?.copy(status = com.example.kpkn.data.models.ProgramStatus.COMPLETED),
+                advancedCycle = true,
+            )
+        }
+        val location = ProgramHierarchyIndex(program).locateWeek(targetWeek.id)
+        val updatedRun = run.copy(
+            weekInstanceId = targetWeek.id,
+            weekId = targetWeek.id,
+            macrocycleId = location?.macrocycleId,
+            blockId = location?.blockId ?: targetBlock.id,
+            mesocycleId = location?.mesocycleId,
+            completedSessionIds = emptySet(),
+            status = ProgramRunStatus.ACTIVE,
+            pendingAction = null,
+        )
+        return ProgressAdvanceResult(
+            program = program.copy(runState = updatedRun),
+            activeState = activeState?.copy(
+                status = com.example.kpkn.data.models.ProgramStatus.ACTIVE,
+                currentWeekId = targetWeek.id,
+                currentWeekInstanceId = targetWeek.id,
+                currentMacrocycleId = location?.macrocycleId,
+                currentBlockId = location?.blockId ?: targetBlock.id,
+                currentMesocycleId = location?.mesocycleId,
+                currentMacrocycleIndex = location?.macroIndex ?: activeState.currentMacrocycleIndex,
+                currentBlockIndex = location?.blockIndex ?: activeState.currentBlockIndex,
+                currentMesocycleIndex = location?.globalMesoIndex ?: activeState.currentMesocycleIndex,
+                programRunId = updatedRun.runId,
+            ),
+            advancedWeek = true,
+        )
+    }
+
+    /**
+     * Avance lineal por semanas de programas COMPLEX (sin ciclos infinitos).
+     * Al cerrar la última semana de un bloque, delega en [BlockTransitionEngine].
+     */
+    private fun advanceComplexAfterSessionComplete(
+        program: Program,
+        activeState: ActiveProgramState?,
+        completedSession: Session,
+        weekInstanceId: String,
+        logs: List<WorkoutLog>,
+        transitionContext: BlockTransitionEngine.TransitionContext,
+    ): ProgressAdvanceResult {
+        if (
+            program.runState?.status == ProgramRunStatus.BREAK ||
+            program.runState?.status == ProgramRunStatus.PAUSED ||
+            program.runState?.status == ProgramRunStatus.COMPLETED ||
+            program.runState?.pendingAction != null
+        ) {
+            return ProgressAdvanceResult(program, activeState)
+        }
+        val hierarchy = ProgramHierarchyIndex(program)
+        val templateWeekId = templateWeekIdFromInstance(weekInstanceId) ?: weekInstanceId
+        val location = hierarchy.locateWeek(templateWeekId)
+            ?: hierarchy.locateWeek(weekInstanceId)
+            ?: return ProgressAdvanceResult(program, activeState)
+
+        // Complex programs have a real finite cursor.  A late/out-of-order log is
+        // retained in history but cannot jump the active phase.
+        val canonicalWeekId = program.runState?.weekId
+            ?: activeState?.currentWeekId?.let { templateWeekIdFromInstance(it) ?: it }
+        if (!canonicalWeekId.isNullOrBlank() && canonicalWeekId != location.week.id) {
+            return ProgressAdvanceResult(program, activeState)
+        }
+
+        val runId = program.runState?.runId ?: activeState?.programRunId
+        val weekComplete = isWeekInstanceComplete(
+            week = location.week,
+            logs = logs,
+            programId = program.id,
+            instanceId = weekInstanceId,
+            cycleNumber = 1,
+            programRunId = runId,
+        )
+        if (!weekComplete) {
+            val updatedRun = program.runState?.copy(
+                weekInstanceId = location.week.id,
+                weekId = location.week.id,
+                macrocycleId = location.macrocycleId,
+                blockId = location.blockId,
+                mesocycleId = location.mesocycleId,
+                completedSessionIds = (program.runState?.completedSessionIds ?: emptySet()) + completedSession.id,
+            ) ?: ProgramRunState(
+                runId = runId ?: newRunId(),
+                cycleNumber = 1,
+                weekInstanceId = location.week.id,
+                weekId = location.week.id,
+                macrocycleId = location.macrocycleId,
+                blockId = location.blockId,
+                mesocycleId = location.mesocycleId,
+                completedSessionIds = setOf(completedSession.id),
+            )
+            return ProgressAdvanceResult(
+                program = program.copy(runState = updatedRun),
+                activeState = activeState?.copy(
+                    currentWeekId = location.week.id,
+                    currentWeekInstanceId = location.week.id,
+                    currentBlockId = location.blockId,
+                    currentMacrocycleId = location.macrocycleId,
+                    currentMesocycleId = location.mesocycleId,
+                    currentMacrocycleIndex = location.macroIndex,
+                    currentBlockIndex = location.blockIndex,
+                    currentMesocycleIndex = location.globalMesoIndex,
+                ),
+            )
+        }
+
+        val block = program.macrocycles.getOrNull(location.macroIndex)?.blocks?.getOrNull(location.blockIndex)
+            ?: return ProgressAdvanceResult(program, activeState)
+        val weeksInBlock = block.mesocycles.flatMap { it.weeks }
+        val weekPos = weeksInBlock.indexOfFirst { it.id == location.week.id }
+        if (weekPos >= 0 && weekPos < weeksInBlock.lastIndex) {
+            val nextWeek = weeksInBlock[weekPos + 1]
+            val nextLocation = hierarchy.locateWeek(nextWeek.id)
+            val updatedRun = (program.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
+                cycleNumber = 1,
+                weekInstanceId = nextWeek.id,
+                weekId = nextWeek.id,
+                macrocycleId = nextLocation?.macrocycleId,
+                blockId = nextLocation?.blockId ?: block.id,
+                mesocycleId = nextLocation?.mesocycleId,
+                completedSessionIds = emptySet(),
+                pendingAction = null,
+            )
+            return ProgressAdvanceResult(
+                program = program.copy(runState = updatedRun),
+                activeState = activeState?.copy(
+                    currentWeekId = nextWeek.id,
+                    currentWeekInstanceId = nextWeek.id,
+                    currentBlockId = nextLocation?.blockId ?: block.id,
+                    currentMacrocycleId = nextLocation?.macrocycleId ?: location.macrocycleId,
+                    currentMesocycleId = nextLocation?.mesocycleId ?: location.mesocycleId,
+                    currentMacrocycleIndex = nextLocation?.macroIndex ?: location.macroIndex,
+                    currentBlockIndex = nextLocation?.blockIndex ?: location.blockIndex,
+                    currentMesocycleIndex = nextLocation?.globalMesoIndex ?: location.globalMesoIndex,
+                    programRunId = updatedRun.runId,
+                ),
+                advancedWeek = true,
+            )
+        }
+
+        // Última semana del bloque → transición.
+        val decision = BlockTransitionEngine.evaluate(
+            program = program,
+            completedBlockId = block.id,
+            logs = logs,
+            context = transitionContext,
+            activeState = activeState,
+        )
+        var working = decision.updatedProgram ?: program
+        if (decision.kind == BlockTransitionEngine.DecisionKind.HOLD_INCOMPLETE) {
+            return ProgressAdvanceResult(
+                program = working.copy(
+                    runState = (working.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
+                        weekInstanceId = location.week.id,
+                        weekId = location.week.id,
+                        macrocycleId = location.macrocycleId,
+                        blockId = location.blockId,
+                        mesocycleId = location.mesocycleId,
+                    ),
+                ),
+                activeState = activeState,
+            )
+        }
+        val nextBlockId = decision.nextBlockId
+        val nextBlock = nextBlockId?.let { id -> working.macrocycles.flatMap { it.blocks }.firstOrNull { it.id == id } }
+        val nextWeek = nextBlock?.mesocycles?.flatMap { it.weeks }?.firstOrNull()
+        val workingHierarchy = ProgramHierarchyIndex(working)
+        val nextLocation = nextWeek?.let { workingHierarchy.locateWeek(it.id) }
+
+        if (decision.kind == BlockTransitionEngine.DecisionKind.PROPOSE_1RM_TEST) {
+            val pending = PendingProgramAction(
+                type = PendingProgramActionType.CONFIRM_1RM_TEST,
+                message = decision.message,
+                nextBlockId = nextBlockId,
+            )
+            val pendingRun = (working.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
+                cycleNumber = 1,
+                weekInstanceId = location.week.id,
+                weekId = location.week.id,
+                macrocycleId = location.macrocycleId,
+                blockId = location.blockId,
+                mesocycleId = location.mesocycleId,
+                completedSessionIds = emptySet(),
+                status = ProgramRunStatus.ACTIVE,
+                pendingAction = pending,
+            )
+            return ProgressAdvanceResult(
+                program = working.copy(runState = pendingRun),
+                activeState = activeState?.copy(programRunId = pendingRun.runId),
+            )
+        }
+
+        // AUGE may generate a safe, scaled deload candidate, but completing a
+        // workout must never silently mutate the athlete's macrocycle. Persist
+        // the candidate and a durable accept/reject gate while keeping the
+        // cursor on the completed block until the athlete decides.
+        if (decision.kind == BlockTransitionEngine.DecisionKind.INSERT_DELOAD) {
+            val pending = PendingProgramAction(
+                type = PendingProgramActionType.CONFIRM_DELOAD,
+                message = decision.message,
+                nextBlockId = nextBlockId,
+            )
+            val pendingRun = (working.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
+                cycleNumber = 1,
+                weekInstanceId = location.week.id,
+                weekId = location.week.id,
+                macrocycleId = location.macrocycleId,
+                blockId = location.blockId,
+                mesocycleId = location.mesocycleId,
+                completedSessionIds = emptySet(),
+                status = ProgramRunStatus.ACTIVE,
+                pendingAction = pending,
+            )
+            return ProgressAdvanceResult(
+                program = working.copy(runState = pendingRun),
+                activeState = activeState?.copy(programRunId = pendingRun.runId),
+            )
+        }
+
+        if (nextWeek == null) {
+            val completedRun = (working.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
+                cycleNumber = 1,
+                weekInstanceId = null,
+                weekId = null,
+                macrocycleId = location.macrocycleId,
+                blockId = location.blockId,
+                mesocycleId = location.mesocycleId,
+                completedSessionIds = emptySet(),
+                status = ProgramRunStatus.COMPLETED,
+                pendingAction = null,
+            )
+            return ProgressAdvanceResult(
+                program = working.copy(runState = completedRun),
+                activeState = activeState?.copy(status = com.example.kpkn.data.models.ProgramStatus.COMPLETED, programRunId = completedRun.runId),
+                advancedCycle = true,
+            )
+        }
+
+        val updatedRun = (working.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
+            cycleNumber = 1,
+            weekInstanceId = nextWeek.id,
+            weekId = nextWeek.id,
+            macrocycleId = nextLocation?.macrocycleId,
+            blockId = nextLocation?.blockId ?: nextBlockId,
+            mesocycleId = nextLocation?.mesocycleId,
+            completedSessionIds = emptySet(),
+            status = ProgramRunStatus.ACTIVE,
+            pendingAction = null,
+        )
+        working = working.copy(runState = updatedRun)
+        return ProgressAdvanceResult(
+            program = working,
+            activeState = activeState?.copy(
+                currentWeekId = nextWeek.id,
+                currentWeekInstanceId = nextWeek.id,
+                currentBlockId = nextBlockId ?: activeState.currentBlockId,
+                currentMacrocycleId = nextLocation?.macrocycleId ?: activeState.currentMacrocycleId,
+                currentMesocycleId = nextLocation?.mesocycleId ?: activeState.currentMesocycleId,
+                currentMacrocycleIndex = nextLocation?.macroIndex ?: activeState.currentMacrocycleIndex,
+                currentBlockIndex = nextLocation?.blockIndex ?: activeState.currentBlockIndex,
+                currentMesocycleIndex = nextLocation?.globalMesoIndex ?: activeState.currentMesocycleIndex,
+                programRunId = updatedRun.runId,
+            ),
+            advancedWeek = true,
+        )
     }
 
     private fun markLoopOccurrenceCompletedIfNeeded(

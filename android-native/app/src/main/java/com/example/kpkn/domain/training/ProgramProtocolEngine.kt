@@ -1,8 +1,11 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.Block
+import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.models.BlockProgressionScheme
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.MesocycleGoal
@@ -13,13 +16,18 @@ import com.example.kpkn.data.models.ScheduleMode
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.SimpleProgramKind
+import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.data.models.WarmupSetDefinition
+import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.data.models.alignTemporalMetadata
 import com.example.kpkn.data.models.resolvedSchedulePlan
 import com.example.kpkn.data.protocols.Protocol
 import com.example.kpkn.data.protocols.ProtocolBlock
+import com.example.kpkn.data.protocols.ProtocolDayRecipe
 import com.example.kpkn.data.protocols.ProtocolExerciseLibrary
 import com.example.kpkn.data.protocols.ProtocolLift
 import com.example.kpkn.data.protocols.ProtocolLiftFocus
+import com.example.kpkn.data.protocols.isVisibleForApplication
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 
 data class ProtocolSessionPartRecipe(
@@ -34,6 +42,9 @@ data class ProtocolSessionRecipe(
     val mainLift: ProtocolLift,
     val accessoryCount: Int,
     val parts: List<ProtocolSessionPartRecipe>,
+    val accessoryLifts: List<ProtocolLift> = emptyList(),
+    val mainRestSeconds: Int? = null,
+    val accessoryRestSeconds: Int? = null,
 )
 
 /**
@@ -50,11 +61,18 @@ object ProgramProtocolEngine {
         idProvider: IdProvider = UuidIdProvider,
         enhancedDayDifferentiation: Boolean = false,
     ): Program {
+        require(protocol.isVisibleForApplication) {
+            "El protocolo '${protocol.id}' no está publicado: falta una receta verificable día por día."
+        }
+        require(protocol.blocks.isNotEmpty()) {
+            "El protocolo '${protocol.id}' no tiene bloques materializables."
+        }
         val resolvedSplitId = protocol.defaultSplit
             ?.let(::resolveSplitId)
             ?: program.selectedSplitId?.let(::resolveSplitId)
             ?: error("El protocolo '${protocol.id}' debe declarar defaultSplit o el programa debe tener selectedSplitId")
         val splitPattern = SPLIT_TEMPLATES.first { it.id == resolvedSplitId }.pattern
+        val startDay = program.resolvedSchedulePlan().weekStartDay ?: program.startDay ?: 1
         val sessionParts = protocol.sessionCategories.ifEmpty {
             listOf("Parte principal", "Suplementario", "Accesorios")
         }
@@ -68,11 +86,15 @@ object ProgramProtocolEngine {
                 idProvider = idProvider,
                 cycleWeekOffset = cycleWeekOffset,
                 enhancedDayDifferentiation = enhancedDayDifferentiation,
+                startDay = startDay,
             ).also {
                 cycleWeekOffset += protocolBlock.weeks.coerceAtLeast(1)
             }
         }
         val structure = if (blocks.size > 1) ProgramStructure.COMPLEX else ProgramStructure.SIMPLE
+        val trainingDays = SplitApplicationEngine.patternToTrainingDays(splitPattern, startDay)
+            .map { it.dayOfWeek }
+            .toSet()
         val applied = program.copy(
             structure = structure,
             structureTemplateId = protocol.id,
@@ -83,15 +105,19 @@ object ProgramProtocolEngine {
             },
             calendarization = if (structure == ProgramStructure.COMPLEX) program.calendarization else null,
             pausedCyclicSnapshot = if (structure == ProgramStructure.SIMPLE) null else program.pausedCyclicSnapshot,
-            loops = if (structure == ProgramStructure.SIMPLE) emptyList() else program.loops,
-            loopState = if (structure == ProgramStructure.SIMPLE) null else program.loopState,
-            loopOccurrences = if (structure == ProgramStructure.SIMPLE) emptyList() else program.loopOccurrences,
+            runState = null,
+            loops = emptyList(),
+            loopState = null,
+            loopOccurrences = emptyList(),
+            events = emptyList(),
+            calendarBreaks = emptyList(),
             schedulePlan = program.resolvedSchedulePlan().copy(
                 mode = if (program.resolvedSchedulePlan().anchorDate.isNullOrBlank()) {
                     ScheduleMode.FLOATING
                 } else {
                     program.resolvedSchedulePlan().mode
                 },
+                trainingDays = trainingDays,
             ),
             selectedSplitId = resolvedSplitId,
             blockSplitSelections = emptyMap(),
@@ -104,11 +130,56 @@ object ProgramProtocolEngine {
                 ),
             ),
         ).alignTemporalMetadata()
-        // Bridge F4: red de seguridad — si algún protocolo quedara sin sesiones
-        // ejecutables (p.ej. bloques sin días de entrenamiento), se rellena con
-        // sugerencias reales del split declarado. Con contenido propio, es un no-op.
-        val split = SessionPrefillBridge.resolveSplit(applied, protocolDefaultSplitId = applied.selectedSplitId)
-        return SessionPrefillBridge.prefillIfEmpty(applied, split)
+        // A protocol owns its prescription.  Do not fill a broken recipe with a
+        // generic split: that would silently turn a named method into something
+        // else.  Calendar dates are just a projection of the materialized days.
+        val hydrated = hydrateProgramGoals(applied)
+        val executable = if (ProgramCalendarEngine.isCalendarized(hydrated)) {
+            ProgramCalendarEngine.materializeWeekDates(hydrated)
+        } else {
+            hydrated
+        }
+        return ProgramExecutionContract.requireExecutable(executable)
+    }
+
+    /** Attach recorded S/B/D goals to the exact competition configurations. */
+    private fun hydrateProgramGoals(program: Program): Program {
+        val goals = program.goals ?: return program
+        fun referenceFor(exercise: Exercise): Double? {
+            val id = listOfNotNull(
+                exercise.catalogConfigurationId,
+                exercise.canonicalExerciseId,
+                exercise.exerciseDbId,
+                exercise.exerciseId,
+            ).firstOrNull()?.lowercase() ?: return exercise.reference1RM
+            val goal = when (id) {
+                "low_bar_back_squat__barbell", "high_bar_back_squat__barbell" -> goals.squat1RM
+                "bench_press__barbell" -> goals.bench1RM
+                "conventional_deadlift__bilateral__barbell" -> goals.deadlift1RM
+                else -> null
+            }
+            return goal?.takeIf { it > 0.0 } ?: exercise.reference1RM
+        }
+        fun mapSession(session: Session): Session = session.copy(
+            exercises = session.exercises.map { it.copy(reference1RM = referenceFor(it)) },
+            parts = session.parts.map { part ->
+                part.copy(exercises = part.exercises.map { it.copy(reference1RM = referenceFor(it)) })
+            },
+            sessionB = session.sessionB?.let(::mapSession),
+            sessionC = session.sessionC?.let(::mapSession),
+            sessionD = session.sessionD?.let(::mapSession),
+        )
+        return program.copy(
+            macrocycles = program.macrocycles.map { macro ->
+                macro.copy(blocks = macro.blocks.map { block ->
+                    block.copy(mesocycles = block.mesocycles.map { meso ->
+                        meso.copy(weeks = meso.weeks.map { week ->
+                            week.copy(sessions = week.sessions.map(::mapSession))
+                        })
+                    })
+                })
+            },
+        )
     }
 
     private fun buildBlock(
@@ -119,8 +190,10 @@ object ProgramProtocolEngine {
         idProvider: IdProvider,
         cycleWeekOffset: Int,
         enhancedDayDifferentiation: Boolean,
+        startDay: Int,
     ): Block {
         val goal = resolveGoal(protocolBlock.goal)
+        val blockGoal = resolveBlockGoal(protocolBlock.goal)
         val totalWeeksInBlock = protocolBlock.weeks.coerceAtLeast(1)
         return Block(
             id = idProvider.newId(),
@@ -129,6 +202,8 @@ object ProgramProtocolEngine {
                 append("Intensidad ${protocolBlock.intensityMin}-${protocolBlock.intensityMax}%")
                 protocolBlock.volumeModifier?.let { append(" · Volumen ×${"%.2f".format(it)}") }
             },
+            goal = blockGoal,
+            progressionScheme = progressionSchemeFor(protocol, blockGoal),
             mesocycles = listOf(
                 Mesocycle(
                     id = idProvider.newId(),
@@ -139,6 +214,8 @@ object ProgramProtocolEngine {
                             id = idProvider.newId(),
                             name = "Semana $weekNumber",
                             description = "Objetivo ${protocolBlock.goal} · ${protocolBlock.intensityMin}-${protocolBlock.intensityMax}% 1RM",
+                            progressionIndex = weekNumber,
+                            executionKind = if (goal == MesocycleGoal.DELOAD) WeekExecutionKind.DELOAD else WeekExecutionKind.TRAINING,
                             sessions = buildSessions(
                                 splitPattern,
                                 sessionParts,
@@ -150,6 +227,7 @@ object ProgramProtocolEngine {
                                 idProvider,
                                 cycleWeekOffset + weekNumber,
                                 enhancedDayDifferentiation,
+                                startDay,
                             ),
                         )
                     },
@@ -169,11 +247,10 @@ object ProgramProtocolEngine {
         idProvider: IdProvider,
         absoluteWeekNumber: Int,
         enhancedDayDifferentiation: Boolean,
+        startDay: Int,
     ): List<Session> {
-        val trainingDays = splitPattern
-            .mapIndexedNotNull { index, label ->
-                if (label.equals("Descanso", ignoreCase = true)) null else (index + 1) to label
-            }
+        val trainingDays = SplitApplicationEngine.patternToTrainingDays(splitPattern, startDay)
+            .map { it.dayOfWeek to it.label }
             .ifEmpty { listOf(1 to protocol.name) }
 
         val effectiveParts = if (enhancedDayDifferentiation && parts.size < 3) {
@@ -184,17 +261,23 @@ object ProgramProtocolEngine {
 
         return trainingDays.mapIndexed { sessionIndex, (dayOfWeek, label) ->
             val isMain = sessionIndex == 0
-            val recipe = sessionRecipeForDay(
-                dayLabel = label,
-                sessionIndex = sessionIndex,
-                partNames = effectiveParts,
-                enhancedDayDifferentiation = enhancedDayDifferentiation,
-            )
-            val accessories = ProtocolExerciseLibrary.accessoriesFor(
-                recipe.mainLift,
-                weekNumber,
-                recipe.accessoryCount,
-            )
+            val explicitDayRecipe = protocol.dayRecipes.getOrNull(sessionIndex)
+            val recipe = explicitDayRecipe?.let { explicitSessionRecipe(it, effectiveParts) }
+                ?: sessionRecipeForDay(
+                    dayLabel = label,
+                    sessionIndex = sessionIndex,
+                    partNames = effectiveParts,
+                    enhancedDayDifferentiation = enhancedDayDifferentiation,
+                )
+            val accessories = if (explicitDayRecipe != null) {
+                recipe.accessoryLifts
+            } else {
+                ProtocolExerciseLibrary.accessoriesFor(
+                    recipe.mainLift,
+                    weekNumber,
+                    recipe.accessoryCount,
+                )
+            }
             var accessoryCursor = 0
             Session(
                 id = idProvider.newId(),
@@ -207,15 +290,22 @@ object ProgramProtocolEngine {
                 focus = protocolBlock.goal,
                 parts = effectiveParts.mapIndexed { partIndex, partName ->
                     val recipePart = recipe.parts[partIndex]
-                    val lifts = when {
-                        partIndex < 2 -> listOf(recipe.mainLift)
-                        !enhancedDayDifferentiation -> listOf(
-                            liftForPart(partIndex, recipe.mainLift, accessories),
-                        )
-                        else -> accessories
-                            .drop(accessoryCursor)
+                    val lifts = if (explicitDayRecipe != null) {
+                        if (partIndex == 0) listOf(recipe.mainLift)
+                        else accessories.drop(accessoryCursor)
                             .take(recipePart.exerciseCount)
                             .also { accessoryCursor += it.size }
+                    } else {
+                        when {
+                            partIndex < 2 -> listOf(recipe.mainLift)
+                            !enhancedDayDifferentiation -> listOf(
+                                liftForPart(partIndex, recipe.mainLift, accessories),
+                            )
+                            else -> accessories
+                                .drop(accessoryCursor)
+                                .take(recipePart.exerciseCount)
+                                .also { accessoryCursor += it.size }
+                        }
                     }
                     SessionPart(
                         id = idProvider.newId(),
@@ -231,12 +321,53 @@ object ProgramProtocolEngine {
                                 totalWeeksInBlock = totalWeeksInBlock,
                                 absoluteWeekNumber = absoluteWeekNumber,
                                 idProvider = idProvider,
+                                restSeconds = if (explicitDayRecipe != null) {
+                                    if (partIndex == 0) recipe.mainRestSeconds else recipe.accessoryRestSeconds
+                                } else null,
+                                competitionPart = if (explicitDayRecipe != null) partIndex == 0 else partIndex < 2,
                             )
                         },
                     )
                 },
             )
         }
+    }
+
+    private fun explicitSessionRecipe(
+        dayRecipe: ProtocolDayRecipe,
+        partNames: List<String>,
+    ): ProtocolSessionRecipe {
+        require(dayRecipe.mainRestSeconds >= 180) {
+            "La receta '${dayRecipe.dayLabel}' debe descansar al menos 180s en el principal."
+        }
+        require(dayRecipe.accessoryRestSeconds > 0) {
+            "La receta '${dayRecipe.dayLabel}' debe declarar descanso de accesorios."
+        }
+        val main = ProtocolExerciseLibrary.fromConfigurationId(dayRecipe.mainLiftConfigurationId)
+        val accessories = dayRecipe.accessoryExerciseConfigurationIds.map(
+            ProtocolExerciseLibrary::fromConfigurationId,
+        )
+        val safeParts = partNames.ifEmpty { listOf("Principal", "Accesorios específicos") }
+        var remaining = accessories.size
+        val parts = safeParts.mapIndexed { index, name ->
+            val count = when {
+                index == 0 -> 1
+                index == safeParts.lastIndex -> remaining
+                else -> 0
+            }
+            remaining -= count
+            ProtocolSessionPartRecipe(name = name, exerciseCount = count)
+        }
+        return ProtocolSessionRecipe(
+            dayLabel = dayRecipe.dayLabel,
+            focus = ProtocolExerciseLibrary.focusForDayLabel(dayRecipe.dayLabel),
+            mainLift = main,
+            accessoryCount = accessories.size,
+            parts = parts,
+            accessoryLifts = accessories,
+            mainRestSeconds = dayRecipe.mainRestSeconds,
+            accessoryRestSeconds = dayRecipe.accessoryRestSeconds,
+        )
     }
 
     fun sessionRecipeForDay(
@@ -303,8 +434,10 @@ object ProgramProtocolEngine {
         totalWeeksInBlock: Int,
         absoluteWeekNumber: Int,
         idProvider: IdProvider,
+        restSeconds: Int? = null,
+        competitionPart: Boolean = partIndex < 2,
     ): Exercise {
-        val resolvedLift = if (partIndex == 0 && goal == MesocycleGoal.ACCUMULATION) {
+        val resolvedLift = if (protocol.dayRecipes.isEmpty() && partIndex == 0 && goal == MesocycleGoal.ACCUMULATION) {
             ProtocolExerciseLibrary.techniqueVariantFor(lift)
         } else {
             lift
@@ -330,11 +463,16 @@ object ProgramProtocolEngine {
             },
         )
         val sets = (1..prescription.sets).map {
+            val mainLift = competitionPart
             ExerciseSet(
                 id = idProvider.newId(),
                 targetReps = prescription.reps,
-                targetPercentageRM = prescription.percentageRM,
-                targetRPE = prescription.rpe,
+                // %1RM is a load anchor for the main/competition lift only.
+                // Accessories remain executable as REPS + RPE and cannot
+                // accidentally inherit a squat/bench/deadlift 1RM.
+                targetPercentageRM = prescription.percentageRM.takeIf { mainLift },
+                targetRPE = prescription.rpe.takeIf { !mainLift },
+                intensityMode = if (mainLift) IntensityMode.SOLO_RM else IntensityMode.RPE,
             )
         }
         return Exercise(
@@ -350,15 +488,60 @@ object ProgramProtocolEngine {
             catalogConfigurationId = resolvedLift.exerciseDbId,
             performanceProfileId = resolvedLift.performanceProfileId,
             occurrenceId = idProvider.newId(),
+            restTime = restSeconds,
+            // Only the competition main lift receives a conservative approach
+            // ramp.  reference1RM stays null here and is hydrated from the
+            // athlete's recorded history/calibration at execution time.
+            warmupSets = if (competitionPart && partIndex == 0 && resolvedLift.isCompetitionLift) {
+                listOf(
+                    WarmupSetDefinition(idProvider.newId(), 40.0, 5, restBetween = 60),
+                    WarmupSetDefinition(idProvider.newId(), 60.0, 3, restBetween = 90),
+                    WarmupSetDefinition(idProvider.newId(), 75.0, 1, restBetween = 120),
+                )
+            } else {
+                emptyList()
+            },
+            trainingMode = if (competitionPart) TrainingMode.RM else TrainingMode.REPS,
+            isCompetitionLift = competitionPart && partIndex == 0 && resolvedLift.isCompetitionLift,
         )
     }
+
+    private val ProtocolLift.isCompetitionLift: Boolean
+        get() = exerciseDbId in setOf(
+            ProtocolExerciseLibrary.SQUAT_MAIN.exerciseDbId,
+            ProtocolExerciseLibrary.LOW_BAR_SQUAT_MAIN.exerciseDbId,
+            ProtocolExerciseLibrary.BENCH_MAIN.exerciseDbId,
+            ProtocolExerciseLibrary.DEADLIFT_MAIN.exerciseDbId,
+        )
 
     private fun resolveGoal(raw: String): MesocycleGoal = when (raw.trim().lowercase()) {
         "acumulación", "acumulacion", "accumulation" -> MesocycleGoal.ACCUMULATION
         "intensificación", "intensificacion", "intensification" -> MesocycleGoal.INTENSIFICATION
         "realización", "realizacion", "realization", "pico" -> MesocycleGoal.REALIZATION
         "descarga", "deload" -> MesocycleGoal.DELOAD
+        // MesocycleGoal predates the block-level TAPER enum.  A taper is a
+        // deload prescription with an explicit TAPER block label, so it must
+        // receive the reduced sets/reps/RPE policy rather than CUSTOM 7.5.
+        "taper" -> MesocycleGoal.DELOAD
         else -> MesocycleGoal.CUSTOM
+    }
+
+    private fun resolveBlockGoal(raw: String): BlockGoal = when (raw.trim().lowercase()) {
+        "acumulación", "acumulacion", "accumulation" -> BlockGoal.ACCUMULATION
+        "intensificación", "intensificacion", "intensification" -> BlockGoal.INTENSIFICATION
+        "especificidad", "specificity" -> BlockGoal.SPECIFICITY
+        "realización", "realizacion", "realization" -> BlockGoal.REALIZATION
+        "pico", "peak" -> BlockGoal.PEAK
+        "descarga", "deload" -> BlockGoal.DELOAD
+        "taper" -> BlockGoal.TAPER
+        "densidad", "metabolitos", "density" -> BlockGoal.DENSITY
+        else -> BlockGoal.CUSTOM
+    }
+
+    private fun progressionSchemeFor(protocol: Protocol, goal: BlockGoal): BlockProgressionScheme = when {
+        protocol.tags.any { it.equals("autoregulacion", true) || it.equals("rpe", true) } -> BlockProgressionScheme.RPE_CAP
+        goal == BlockGoal.DENSITY -> BlockProgressionScheme.UNDULATING
+        else -> BlockProgressionScheme.PERCENT_RM
     }
 
     fun resolveSplitId(raw: String): String {

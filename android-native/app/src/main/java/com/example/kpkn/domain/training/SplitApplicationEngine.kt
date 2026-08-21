@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.data.exercises.isExerciseCatalogV2RuntimeReady
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
@@ -9,15 +10,18 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
+import com.example.kpkn.data.models.SessionOrigin
 import com.example.kpkn.data.models.resolvedSchedulePlan
 import com.example.kpkn.data.sessions.SESSION_TEMPLATES_SYSTEM
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateApplyMode
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.SplitTemplate
+import com.example.kpkn.data.splits.isVisibleForApplication
 import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.templates.SessionTemplateCatalogPolicy
 import com.example.kpkn.domain.templates.SessionTemplateEngine
+import com.example.kpkn.domain.templates.SessionClonePurpose
 import com.example.kpkn.domain.templates.SessionTemplateQualityRules
 import com.example.kpkn.domain.templates.SessionTemplateSuggestionEngine
 import com.example.kpkn.domain.templates.SuggestionPrefs
@@ -81,6 +85,8 @@ data class SplitImpactSummary(
     val affectedWeeks: Int,
     val affectedSessions: Int,
     val willReplaceSessions: Boolean,
+    /** Explicit migration contract shown before applying a split. */
+    val migrationNote: String? = null,
 ) {
     val isLargeDestructiveChange: Boolean
         get() = willReplaceSessions && (affectedWeeks > 1 || affectedSessions > 4)
@@ -98,6 +104,17 @@ data class SplitApplicationRequest(
     val migrationMode: SessionMigrationMode = SessionMigrationMode.MIGRATE,
     val perBlockSelections: Map<String, String> = emptyMap(),
     val prebuiltPrefs: SuggestionPrefs = SuggestionPrefs(),
+    /** Never resolve custom through the all-rest catalog sentinel. */
+    val customSplitPattern: List<String> = emptyList(),
+    val customSplitName: String? = null,
+    val customSplitDescription: String? = null,
+    /**
+     * The exact catalog used by availability, preview and materialization.
+     * Null means the caller has not hydrated USER templates yet and preserves
+     * the legacy system-only default.  An explicit empty list is intentional:
+     * it fails closed instead of silently falling back to hidden/user data.
+     */
+    val generationTemplates: List<SessionTemplate>? = null,
 )
 
 object SplitApplicationEngine {
@@ -136,10 +153,17 @@ object SplitApplicationEngine {
                 affectedSessions += week.sessions.size
             }
         }
+        val targetTrainingDays = request.selectedSplit.pattern.count { !it.equals("Descanso", ignoreCase = true) }
+        val migrationNote = if (request.migrationMode == SessionMigrationMode.MIGRATE) {
+            "Se conservarán $affectedSessions sesiones y se reasignarán sobre $targetTrainingDays días de entrenamiento."
+        } else {
+            null
+        }
         return SplitImpactSummary(
             affectedWeeks = affectedWeeks,
             affectedSessions = affectedSessions,
             willReplaceSessions = request.migrationMode != SessionMigrationMode.MIGRATE && affectedSessions > 0,
+            migrationNote = migrationNote,
         )
     }
 
@@ -149,7 +173,7 @@ object SplitApplicationEngine {
 
     fun apply(request: SplitApplicationRequest): Program {
         val blockAssignments = if (request.advancedMode == AdvancedSplitMode.PER_BLOCK) request.perBlockSelections else emptyMap()
-        val selectedSplit = request.selectedSplit
+        val selectedSplit = resolveRequestedSplit(request, request.selectedSplit.id)
         val effectiveStartDay = if (ProgramCalendarEngine.isCalendarized(request.program)) {
             request.program.resolvedSchedulePlan().weekStartDay ?: request.program.startDay ?: request.startDay
         } else {
@@ -183,7 +207,12 @@ object SplitApplicationEngine {
             else -> targetWeekIds.forEach { weekSelections[it] = selectedSplit.id }
         }
 
-        return request.program.copy(
+        val unavailable = prebuiltUnavailabilityReasons(request, selectedSplit, blockAssignments)
+        require(request.migrationMode != SessionMigrationMode.PREBUILT || unavailable.isEmpty()) {
+            "No se puede generar el split: ${unavailable.joinToString(" · ")}"
+        }
+
+        val applied = request.program.copy(
             startDay = effectiveStartDay,
             selectedSplitId = globalSplitId,
             customSplitPattern = if (selectedSplit.id == "custom") selectedSplit.pattern else request.program.customSplitPattern,
@@ -199,7 +228,7 @@ object SplitApplicationEngine {
                 macro.copy(
                     blocks = macro.blocks.map { block ->
                         val blockSplit = if (request.advancedMode == AdvancedSplitMode.PER_BLOCK) {
-                            SPLIT_TEMPLATES.firstOrNull { it.id == blockAssignments[block.id] } ?: selectedSplit
+                            resolveRequestedSplit(request, blockAssignments[block.id] ?: selectedSplit.id)
                         } else selectedSplit
                         block.copy(
                             mesocycles = block.mesocycles.map { meso ->
@@ -212,9 +241,12 @@ object SplitApplicationEngine {
                                                 pattern = blockSplit.pattern,
                                                 sessionDescriptions = blockSplit.sessionDescriptions,
                                                 startDay = effectiveStartDay,
-                                                existingSessions = week.sessions,
-                                                migrationMode = request.migrationMode,
-                                                prefs = request.prebuiltPrefs,
+                                            existingSessions = week.sessions,
+                                            migrationMode = request.migrationMode,
+                                                templates = effectiveTemplates(request),
+                                                // Difficulty and safety preferences follow the split
+                                                // actually applied to this block, not the global picker.
+                                                prefs = prefsForBlock(request, blockSplit),
                                             )
                                         )
                                     }
@@ -225,12 +257,74 @@ object SplitApplicationEngine {
                 )
             }
         )
+        return reconcileSchedule(applied, effectiveStartDay)
     }
+
+    /** Exact PREBUILT gate used by UI and by [apply] before persistence. */
+    fun prebuiltUnavailabilityReasons(request: SplitApplicationRequest): List<String> {
+        val selectedSplit = runCatching {
+            resolveRequestedSplit(request, request.selectedSplit.id)
+        }.getOrElse { error ->
+            // Keep this inspection API explanatory for hidden definitions. The
+            // mutating apply() path still throws the same fail-closed error.
+            return listOf(error.message ?: "El split no está disponible.")
+        }
+        return prebuiltUnavailabilityReasons(
+            request = request,
+            selectedSplit = selectedSplit,
+            blockAssignments = if (request.advancedMode == AdvancedSplitMode.PER_BLOCK) request.perBlockSelections else emptyMap(),
+        )
+    }
+
+    private fun effectiveTemplates(request: SplitApplicationRequest): List<SessionTemplate> =
+        request.generationTemplates?.takeIf { it.isNotEmpty() } ?: SESSION_TEMPLATES_SYSTEM
+
+    private fun prebuiltUnavailabilityReasons(
+        request: SplitApplicationRequest,
+        selectedSplit: SplitTemplate,
+        blockAssignments: Map<String, String>,
+    ): List<String> {
+        if (request.migrationMode != SessionMigrationMode.PREBUILT) return emptyList()
+        return buildWeekOptions(request.program)
+            .filter { shouldApplyToWeek(request, it.blockId, it.id) }
+            .flatMap { week ->
+                val split = if (request.advancedMode == AdvancedSplitMode.PER_BLOCK) {
+                    resolveRequestedSplit(request, blockAssignments[week.blockId] ?: selectedSplit.id)
+                } else selectedSplit
+                prebuiltWeekPreview(
+                    split = split,
+                    prefs = prefsForBlock(request, split),
+                    templates = effectiveTemplates(request),
+                ).days.filterNot { it.isAvailable }.map { day ->
+                    "${week.name}: ${split.name} / ${day.dayLabel}: ${day.unavailabilityReason ?: "sin receta publicada"}"
+                }
+            }
+    }
+
+    /**
+     * PER_BLOCK is an explicit boundary: a forced template/focus map authored
+     * for the global picker must never leak into another block's split. Until
+     * block-scoped preference storage exists, drop those maps in this mode and
+     * retain only the split's validated difficulty.
+     */
+    private fun prefsForBlock(
+        request: SplitApplicationRequest,
+        split: SplitTemplate,
+    ): SuggestionPrefs = request.prebuiltPrefs.copy(
+        preferredDifficulty = split.difficulty,
+        forcedTemplateByDayIndex = if (request.advancedMode == AdvancedSplitMode.PER_BLOCK) emptyMap() else request.prebuiltPrefs.forcedTemplateByDayIndex,
+        preferredFocusMuscleByDayIndex = if (request.advancedMode == AdvancedSplitMode.PER_BLOCK) emptyMap() else request.prebuiltPrefs.preferredFocusMuscleByDayIndex,
+    )
     fun prebuiltWeekPreview(
         split: SplitTemplate,
         prefs: SuggestionPrefs = SuggestionPrefs(preferredDifficulty = split.difficulty),
         templates: List<SessionTemplate> = SESSION_TEMPLATES_SYSTEM,
-        exerciseIndex: Map<String, ExerciseMuscleInfo> = catalogExerciseIndex(),
+        // A partial index is not an audit source: treating it as one turns
+        // verified recipes into false "unavailable" days while the approved
+        // V2 asset is still loading (and makes concurrent test fixtures leak
+        // into prefill decisions). Explicit callers may still pass a test or
+        // diagnostic index deliberately.
+        exerciseIndex: Map<String, ExerciseMuscleInfo> = runtimeApprovedExerciseIndex(),
     ): PrebuiltWeekPreview {
         val plan = SessionTemplateSuggestionEngine.suggestWeek(
             split = split,
@@ -278,8 +372,16 @@ object SplitApplicationEngine {
         migrationMode: SessionMigrationMode,
         prefs: SuggestionPrefs = SuggestionPrefs(),
         templates: List<SessionTemplate> = SESSION_TEMPLATES_SYSTEM,
-        exerciseIndex: Map<String, ExerciseMuscleInfo> = catalogExerciseIndex(),
+        exerciseIndex: Map<String, ExerciseMuscleInfo> = runtimeApprovedExerciseIndex(),
     ): List<Session> {
+        // A custom pattern is user data, not the historical "all-rest" catalog
+        // sentinel. Reject it before deriving trainingDays so an empty result
+        // cannot masquerade as a successful application.
+        if (splitId == "custom") {
+            require(pattern.size == 7 && pattern.any { !it.equals("Descanso", ignoreCase = true) }) {
+                "Un split personalizado debe incluir al menos un día de entrenamiento."
+            }
+        }
         val trainingDays = patternToTrainingDays(pattern, startDay)
         if (trainingDays.isEmpty()) return emptyList()
 
@@ -293,6 +395,7 @@ object SplitApplicationEngine {
             assignedDays = listOf(day.dayOfWeek),
             scheduleLabel = day.label,
             isMainSession = true,
+            origin = SessionOrigin.GENERATED_PLACEHOLDER,
         )
 
         if (migrationMode == SessionMigrationMode.PREBUILT) {
@@ -361,12 +464,64 @@ object SplitApplicationEngine {
 
     private fun resolveSplitForSuggestion(splitId: String?, pattern: List<String>): SplitTemplate? {
         if (splitId == null) return null
-        SPLIT_TEMPLATES.firstOrNull { it.id == splitId }?.let { return it }
+        // "custom" is a real user pattern, not the all-rest catalog sentinel.
+        if (splitId == "custom") {
+            require(pattern.size == 7 && pattern.any { !it.equals("Descanso", true) }) {
+                "Un split personalizado debe incluir al menos un día de entrenamiento."
+            }
+            return SplitTemplate(
+                id = "custom",
+                name = "Mi split",
+                description = "",
+                pattern = pattern,
+            )
+        }
+        SPLIT_TEMPLATES.firstOrNull { it.id == splitId }?.let {
+            require(it.isVisibleForApplication) {
+                "No se puede generar el split '${it.name}': está oculto porque falta una receta verificable día por día."
+            }
+            return it
+        }
         return SplitTemplate(
             id = splitId,
             name = splitId,
             description = "",
             pattern = pattern,
+        )
+    }
+
+    /**
+     * Quality validation may reject a system template only when the complete,
+     * approved V2 catalog is loaded. Until then publication metadata remains
+     * authoritative; an incomplete transient map cannot manufacture a P0.
+     */
+    private fun runtimeApprovedExerciseIndex(): Map<String, ExerciseMuscleInfo> =
+        if (isExerciseCatalogV2RuntimeReady()) catalogExerciseIndex() else emptyMap()
+
+    private fun resolveRequestedSplit(request: SplitApplicationRequest, splitId: String): SplitTemplate {
+        if (splitId != "custom") {
+            val resolved = SPLIT_TEMPLATES.firstOrNull { it.id == splitId }
+                ?: request.selectedSplit.takeIf { it.id == splitId }
+                ?: error("Split '$splitId' no existe.")
+            require(resolved.isVisibleForApplication) {
+                "No se puede generar el split '${resolved.name}': está oculto porque falta una receta verificable día por día."
+            }
+            return resolved
+        }
+        val pattern = request.customSplitPattern.takeIf { it.isNotEmpty() }
+            ?: request.selectedSplit.takeIf { it.id == "custom" && it.pattern.any { label -> !label.equals("Descanso", true) } }?.pattern
+            ?: request.program.customSplitPattern
+        require(pattern.size == 7 && pattern.any { !it.equals("Descanso", ignoreCase = true) }) {
+            "Un split personalizado debe incluir al menos un día de entrenamiento."
+        }
+        return SplitTemplate(
+            id = "custom",
+            name = request.customSplitName ?: request.selectedSplit.takeIf { it.id == "custom" }?.name ?: request.program.customSplitName ?: "Mi split",
+            description = request.customSplitDescription ?: request.selectedSplit.takeIf { it.id == "custom" }?.description ?: request.program.customSplitDescription.orEmpty(),
+            tags = request.selectedSplit.takeIf { it.id == "custom" }?.tags.orEmpty(),
+            pattern = pattern,
+            difficulty = request.selectedSplit.takeIf { it.id == "custom" }?.difficulty ?: com.example.kpkn.data.splits.Difficulty.INTERMEDIO,
+            sessionDescriptions = request.selectedSplit.takeIf { it.id == "custom" }?.sessionDescriptions.orEmpty(),
         )
     }
 
@@ -378,7 +533,28 @@ object SplitApplicationEngine {
         return template.shortDescription.takeIf { it.isNotBlank() } ?: template.name
     }
     fun copySessionsWithNewIds(sessions: List<Session>): List<Session> {
-        return normalizeMainSessions(sessions.map { it.deepCopyWithNewIds() })
+        return normalizeMainSessions(
+            sessions.map { SessionTemplateEngine.cloneSessionContent(it, SessionClonePurpose.WEEK_DUPLICATE) }
+        )
+    }
+
+    private fun reconcileSchedule(program: Program, effectiveStartDay: Int): Program {
+        val trainingDays = program.macrocycles
+            .flatMap { it.blocks }
+            .flatMap { it.mesocycles }
+            .flatMap { it.weeks }
+            .flatMap { it.sessions }
+            .mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
+            .toSet()
+        val existingTrainingDays = program.resolvedSchedulePlan().trainingDays.filter { it in 1..7 }.toSet()
+        val plan = program.resolvedSchedulePlan().copy(
+            weekStartDay = effectiveStartDay,
+            trainingDays = trainingDays.ifEmpty { existingTrainingDays },
+        )
+        val synced = program.copy(schedulePlan = plan)
+        return if (ProgramCalendarEngine.isCalendarized(synced)) {
+            ProgramCalendarEngine.materializeWeekDates(synced)
+        } else synced
     }
 
     fun applyStartDayChange(
@@ -388,13 +564,13 @@ object SplitApplicationEngine {
         temporalScope: StartDayTemporalScope,
         sessionMode: StartDaySessionMode,
     ): Program {
-        val oldStartDay = program.startDay ?: 1
+        val oldStartDay = program.resolvedSchedulePlan().weekStartDay ?: program.startDay ?: 1
         val targetIds = when (temporalScope) {
             StartDayTemporalScope.ALL_WEEKS -> buildWeekOptions(program).map { it.id }.toSet()
             StartDayTemporalScope.FROM_SELECTED_WEEK -> weekIdsFrom(program, selectedWeekId)
         }
 
-        return program.copy(
+        val updated = program.copy(
             startDay = newStartDay,
             macrocycles = program.macrocycles.map { macro ->
                 macro.copy(
@@ -423,6 +599,11 @@ object SplitApplicationEngine {
                 )
             }
         )
+        // Keep the schedule-plan cursor and calendar projection in sync with
+        // the session-day mutation.  This is deliberately done after all
+        // selected weeks are shifted so dated programs get one coherent
+        // rematerialization rather than a stale day map.
+        return reconcileSchedule(updated, newStartDay)
     }
 
     fun patternToTrainingDays(pattern: List<String>, startDay: Int): List<SplitPatternDay> {
@@ -612,31 +793,6 @@ object SplitApplicationEngine {
     private fun rotateDays(startDay: Int): List<Int> {
         val safe = startDay.coerceIn(1, 7)
         return (safe..7).toList() + (1 until safe).toList()
-    }
-
-    private fun Session.deepCopyWithNewIds(): Session {
-        return copy(
-            id = UUID.randomUUID().toString(),
-            lastModifiedAtMs = System.currentTimeMillis(),
-            parts = parts.map { part ->
-                part.copy(
-                    id = UUID.randomUUID().toString(),
-                    exercises = part.exercises.map { it.deepCopyWithNewIds() },
-                )
-            },
-            exercises = exercises.map { it.deepCopyWithNewIds() },
-            sessionB = sessionB?.deepCopyWithNewIds(),
-            sessionC = sessionC?.deepCopyWithNewIds(),
-            sessionD = sessionD?.deepCopyWithNewIds(),
-        )
-    }
-
-    private fun Exercise.deepCopyWithNewIds(): Exercise {
-        return copy(
-            id = UUID.randomUUID().toString(),
-            warmupSets = warmupSets.map { it.copy(id = UUID.randomUUID().toString()) },
-            sets = sets.map { it.copy(id = UUID.randomUUID().toString()) },
-        )
     }
 
     private val upperBodyKeywords = setOf("Pectorales", "Dorsales", "Trapecio", "Bíceps", "Tríceps", "Deltoides")

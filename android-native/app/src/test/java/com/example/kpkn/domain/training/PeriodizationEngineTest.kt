@@ -43,6 +43,18 @@ class PeriodizationEngineTest {
     }
 
     @Test
+    fun percentageForWeek_can_unload_from_peak_to_taper() {
+        val weeks = (1..4).map {
+            PeriodizationEngine.percentageForWeek(60, 82, it, 4, descending = true)
+        }
+        assertEquals(82.0, weeks[0], 0.001)
+        assertEquals(74.6667, weeks[1], 0.001)
+        assertEquals(67.3333, weeks[2], 0.001)
+        assertEquals(60.0, weeks[3], 0.001)
+        assertTrue(weeks.zipWithNext().all { (from, to) -> to <= from })
+    }
+
+    @Test
     fun prescriptionFor_varies_reps_and_rpe_by_goal() {
         val accumulation = PeriodizationEngine.prescriptionFor(
             goal = MesocycleGoal.ACCUMULATION,

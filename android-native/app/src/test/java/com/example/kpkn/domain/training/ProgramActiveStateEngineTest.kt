@@ -5,6 +5,9 @@ import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramRunState
+import com.example.kpkn.data.models.ProgramRunStatus
+import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.SimpleProgramKind
@@ -65,6 +68,61 @@ class ProgramActiveStateEngineTest {
         assertEquals("mc", repaired?.currentMacrocycleId)
     }
 
+    @Test
+    fun repair_complex_uses_run_cursor_when_active_row_is_stale() {
+        val program = advancedProgramWithTwoWeeks(
+            runState = ProgramRunState(
+                runId = "run-2",
+                weekId = "w2",
+                weekInstanceId = "w2",
+                macrocycleId = "mc1",
+                blockId = "b1",
+                mesocycleId = "m1",
+                status = ProgramRunStatus.ACTIVE,
+            ),
+        )
+        val stale = ActiveProgramState(
+            programId = program.id,
+            status = ProgramStatus.COMPLETED,
+            currentWeekId = "w1",
+            currentWeekInstanceId = "w1",
+            currentBlockId = "stale-block",
+            programRunId = "stale-run",
+        )
+
+        val repaired = ProgramActiveStateEngine.repairForProgram(program, stale)
+
+        assertEquals(ProgramStatus.ACTIVE, repaired?.status)
+        assertEquals("w2", repaired?.currentWeekId)
+        assertEquals("w2", repaired?.currentWeekInstanceId)
+        assertEquals("b1", repaired?.currentBlockId)
+        assertEquals("run-2", repaired?.programRunId)
+    }
+
+    @Test
+    fun repair_complex_completed_run_clears_stale_week_and_preserves_completed_status() {
+        val program = advancedProgramWithTwoWeeks(
+            runState = ProgramRunState(
+                runId = "run-done",
+                weekId = null,
+                weekInstanceId = null,
+                macrocycleId = "mc1",
+                blockId = "b1",
+                mesocycleId = "m1",
+                status = ProgramRunStatus.COMPLETED,
+            ),
+        )
+        val repaired = ProgramActiveStateEngine.repairForProgram(
+            program,
+            ActiveProgramState(programId = program.id, currentWeekId = "w1", status = ProgramStatus.ACTIVE),
+        )
+
+        assertEquals(ProgramStatus.COMPLETED, repaired?.status)
+        assertEquals("", repaired?.currentWeekId)
+        assertEquals(null, repaired?.currentWeekInstanceId)
+        assertEquals("run-done", repaired?.programRunId)
+    }
+
     private fun advancedProgram(): Program = Program(
         id = "prog",
         name = "Avanzado",
@@ -88,5 +146,34 @@ class ProgramActiveStateEngineTest {
                 ),
             ),
         ),
+    )
+
+    private fun advancedProgramWithTwoWeeks(runState: ProgramRunState): Program = Program(
+        id = "prog",
+        name = "Avanzado",
+        structure = ProgramStructure.COMPLEX,
+        macrocycles = listOf(
+            Macrocycle(
+                id = "mc1",
+                name = "Macro",
+                blocks = listOf(
+                    Block(
+                        id = "b1",
+                        name = "Bloque 1",
+                        mesocycles = listOf(
+                            Mesocycle(
+                                id = "m1",
+                                name = "Meso 1",
+                                weeks = listOf(
+                                    ProgramWeek(id = "w1", name = "W1"),
+                                    ProgramWeek(id = "w2", name = "W2"),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+        runState = runState,
     )
 }

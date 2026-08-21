@@ -53,10 +53,18 @@ object PeriodizationEngine {
      * Ondulación mínima de %1RM dentro del bloque: sube gradualmente de
      * intensityMin (semana 1) a intensityMax (última semana del bloque).
      */
-    fun percentageForWeek(intensityMin: Int, intensityMax: Int, weekNumber: Int, totalWeeksInBlock: Int): Double {
+    fun percentageForWeek(
+        intensityMin: Int,
+        intensityMax: Int,
+        weekNumber: Int,
+        totalWeeksInBlock: Int,
+        descending: Boolean = false,
+    ): Double {
         if (totalWeeksInBlock <= 1) return (intensityMin + intensityMax) / 2.0
         val progress = ((weekNumber - 1).toDouble() / (totalWeeksInBlock - 1).toDouble()).coerceIn(0.0, 1.0)
-        return intensityMin + (intensityMax - intensityMin) * progress
+        val start = if (descending) intensityMax else intensityMin
+        val end = if (descending) intensityMin else intensityMax
+        return start + (end - start) * progress
     }
 
     fun prescriptionFor(
@@ -75,7 +83,16 @@ object PeriodizationEngine {
             ?.getOrNull((weekNumber - 1).coerceAtLeast(0))
             ?.coerceIn(1, 20)
             ?: repsForGoal(baseReps, goal),
-        percentageRM = percentageForWeek(intensityMin, intensityMax, weekNumber, totalWeeksInBlock),
+        // A deload/taper is a controlled unload, not a late-block intensity
+        // ramp.  Protocols may still declare their conventional min/max in
+        // ascending order; reverse that range only for the unload goal.
+        percentageRM = percentageForWeek(
+            intensityMin,
+            intensityMax,
+            weekNumber,
+            totalWeeksInBlock,
+            descending = goal == MesocycleGoal.DELOAD && intensityMin < intensityMax,
+        ),
         rpe = rpeForGoal(goal),
     )
 }

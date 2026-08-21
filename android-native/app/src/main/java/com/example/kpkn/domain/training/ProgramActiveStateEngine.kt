@@ -2,6 +2,7 @@ package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramRunStatus
 import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.isSimpleProgram
@@ -20,6 +21,43 @@ object ProgramActiveStateEngine {
                 currentBlockId = null,
                 currentMesocycleId = null,
             )
+        }
+
+        // COMPLEX programs have a durable run cursor.  The persisted run state
+        // is the source of truth for both the phase and lifecycle status; the
+        // active-state row is only a materialized index/cache and may lag after
+        // a program blob write.  Never recover a stale week from that cache.
+        if (program.structure == com.example.kpkn.data.models.ProgramStructure.COMPLEX) {
+            val run = program.runState
+            if (run != null) {
+                val runWeekId = run.weekId?.let {
+                    ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it
+                }
+                val location = runWeekId?.let(hierarchy::locateWeek)
+                    ?: locations.firstOrNull {
+                        it.macrocycleId == run.macrocycleId &&
+                            it.blockId == run.blockId &&
+                            it.mesocycleId == run.mesocycleId
+                    }
+                val mappedStatus = when (run.status) {
+                    ProgramRunStatus.COMPLETED -> ProgramStatus.COMPLETED
+                    ProgramRunStatus.PAUSED, ProgramRunStatus.BREAK -> ProgramStatus.PAUSED
+                    ProgramRunStatus.ACTIVE -> ProgramStatus.ACTIVE
+                }
+                return state.copy(
+                    status = mappedStatus,
+                    currentMacrocycleIndex = location?.macroIndex ?: 0,
+                    currentBlockIndex = location?.blockIndex ?: 0,
+                    currentMesocycleIndex = location?.globalMesoIndex ?: 0,
+                    currentWeekId = if (run.status == ProgramRunStatus.COMPLETED) "" else location?.week?.id ?: runWeekId.orEmpty(),
+                    currentWeekInstanceId = if (run.status == ProgramRunStatus.COMPLETED) null else run.weekInstanceId ?: runWeekId,
+                    currentMacrocycleId = run.macrocycleId ?: location?.macrocycleId,
+                    currentBlockId = run.blockId ?: location?.blockId,
+                    currentMesocycleId = run.mesocycleId ?: location?.mesocycleId,
+                    currentCycleNumber = run.cycleNumber,
+                    programRunId = run.runId,
+                )
+            }
         }
 
         if (program.isSimpleProgram && program.simpleProgramKind == SimpleProgramKind.CYCLIC) {

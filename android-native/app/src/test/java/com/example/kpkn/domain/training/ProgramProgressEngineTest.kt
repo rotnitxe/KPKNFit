@@ -9,13 +9,42 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.SessionRequirement
 import com.example.kpkn.data.models.SimpleProgramKind
+import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.data.models.WorkoutLog
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ProgramProgressEngineTest {
+
+    @Test
+    fun `all required sessions must be logged and blank training weeks never auto-complete`() {
+        val week = ProgramWeek(
+            id = "w",
+            name = "Semana",
+            sessions = listOf(
+                Session(id = "required-a", name = "A"),
+                Session(id = "required-b", name = "B"),
+                Session(id = "optional", name = "Opcional", requirement = SessionRequirement.OPTIONAL),
+            ),
+        )
+        val firstLog = WorkoutLog(
+            id = "a", programId = "p", sessionId = "required-a", sessionName = "A",
+            date = "2026-01-01T10:00:00.000Z", durationMinutes = 45, weekId = "w",
+        )
+        assertTrue(!ProgramProgressEngine.isWeekInstanceComplete(week, listOf(firstLog), "p", "w", 1))
+        val secondLog = firstLog.copy(id = "b", sessionId = "required-b", sessionName = "B")
+        assertTrue(ProgramProgressEngine.isWeekInstanceComplete(week, listOf(firstLog, secondLog), "p", "w", 1))
+        assertTrue(!ProgramProgressEngine.isWeekInstanceComplete(ProgramWeek("blank", "Vacía"), emptyList(), "p", "blank", 1))
+        assertTrue(
+            ProgramProgressEngine.isWeekInstanceComplete(
+                ProgramWeek("rest", "Descanso", executionKind = WeekExecutionKind.REST),
+                emptyList(), "p", "rest", 1,
+            ),
+        )
+    }
 
     private fun simpleTwoWeekProgram(): Program = Program(
         id = "prog",

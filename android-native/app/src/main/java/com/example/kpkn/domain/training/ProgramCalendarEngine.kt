@@ -11,6 +11,7 @@ import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.data.models.resolvedSchedulePlan
 import com.example.kpkn.data.models.suggestCalendarTrainingDays
+import com.example.kpkn.domain.templates.SessionTemplateEngine
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -239,10 +240,22 @@ object ProgramCalendarEngine {
     }
 
     fun resolveTrainingDays(program: Program, week: ProgramWeek): Set<Int> {
-        val fromPlan = program.resolvedSchedulePlan().trainingDays.filter { it in 1..7 }
-        if (fromPlan.isNotEmpty()) return fromPlan.toSet()
+        // A global schedule plan is useful as a fallback, but it must not
+        // leak days from another block/week after a partial start-day change.
+        // Prefer the executable sessions owned by this week whenever they
+        // declare days; the plan below remains the program-wide contract for
+        // empty/legacy weeks.
+        val fromExecutableSessions = week.sessions
+            .filter(SessionTemplateEngine::sessionHasExecutableContent)
+            .mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
+            .toSet()
+        if (fromExecutableSessions.isNotEmpty()) return fromExecutableSessions
+
         val fromWeek = week.trainingDayDates.keys.filter { it in 1..7 }
         if (fromWeek.isNotEmpty()) return fromWeek.toSet()
+
+        val fromPlan = program.resolvedSchedulePlan().trainingDays.filter { it in 1..7 }
+        if (fromPlan.isNotEmpty()) return fromPlan.toSet()
         if (program.isSimpleProgram) {
             val fromSessions = week.sessions.mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
             if (fromSessions.isNotEmpty()) return fromSessions.toSet()

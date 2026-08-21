@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.*
+import com.example.kpkn.domain.templates.SessionTemplateEngine
 
 data class ProgramHierarchyLocation(
     val macrocycleId: String,
@@ -123,6 +124,112 @@ object ProgramStructureContract {
             }
             ProgramStructure.COMPLEX -> if (program.macrocycles.size != 1) add(ProgramStructureIssue.AdvancedRequiresOneMacrocycle)
         }
+    }
+}
+
+/**
+ * Executable-plan gate used before a generated structure is persisted or
+ * applied.  The hierarchy contract above intentionally stays permissive for
+ * editor drafts; this second gate is strict about a plan that claims to be
+ * runnable while still allowing an explicit REST week.
+ */
+sealed interface ProgramExecutionIssue {
+    val message: String
+
+    data class Structure(override val message: String) : ProgramExecutionIssue
+    data class EmptyNode(override val message: String) : ProgramExecutionIssue
+    data class EmptyTrainingWeek(override val message: String) : ProgramExecutionIssue
+    data class PhaseOrder(override val message: String) : ProgramExecutionIssue
+    data class PendingMaterialization(override val message: String) : ProgramExecutionIssue
+    data class StaleCursor(override val message: String) : ProgramExecutionIssue
+}
+
+object ProgramExecutionContract {
+    fun validate(program: Program): List<ProgramExecutionIssue> = buildList {
+        ProgramStructureContract.validate(program).forEach { issue ->
+            add(ProgramExecutionIssue.Structure(issue.toString()))
+        }
+        if (program.macrocycles.isEmpty()) {
+            add(ProgramExecutionIssue.EmptyNode("El programa no tiene macrociclos."))
+        }
+        val blocks = program.macrocycles.flatMap { it.blocks }
+        if (blocks.isEmpty()) {
+            add(ProgramExecutionIssue.EmptyNode("El programa no tiene bloques materializables."))
+        }
+
+        fun phaseOf(block: com.example.kpkn.data.models.Block): Int? = when (block.goal) {
+            com.example.kpkn.data.models.BlockGoal.ACCUMULATION -> 0
+            com.example.kpkn.data.models.BlockGoal.INTENSIFICATION -> 1
+            com.example.kpkn.data.models.BlockGoal.SPECIFICITY -> 2
+            com.example.kpkn.data.models.BlockGoal.REALIZATION,
+            com.example.kpkn.data.models.BlockGoal.PEAK -> 3
+            com.example.kpkn.data.models.BlockGoal.DELOAD,
+            com.example.kpkn.data.models.BlockGoal.TAPER -> 4
+            else -> null
+        }
+
+        // Phase order is scoped to each macrocycle.  A new macrocycle may
+        // intentionally restart at ACCUMULATION after the previous one tapered.
+        program.macrocycles.forEach { macrocycle ->
+            var previousPhase = -1
+            macrocycle.blocks.forEach { block ->
+            if (block.mesocycles.isEmpty()) {
+                add(ProgramExecutionIssue.EmptyNode("El bloque '${block.name}' no tiene mesociclos."))
+            }
+            if (block.materializationPending) {
+                add(ProgramExecutionIssue.PendingMaterialization("El bloque '${block.name}' requiere materializar su nueva prescripción."))
+            }
+            val phase = phaseOf(block)
+            if (phase != null && previousPhase > phase) {
+                add(ProgramExecutionIssue.PhaseOrder("El bloque '${block.name}' retrocede de fase ($previousPhase→$phase)."))
+            }
+            if (phase != null) previousPhase = phase
+
+            block.mesocycles.forEach { meso ->
+                if (meso.weeks.isEmpty()) {
+                    add(ProgramExecutionIssue.EmptyNode("El mesociclo '${meso.name}' no tiene semanas."))
+                }
+                meso.weeks.forEach { week ->
+                    if (week.executionKind != com.example.kpkn.data.models.WeekExecutionKind.REST) {
+                        val requiredSessions = week.sessions.filter {
+                            it.requirement == com.example.kpkn.data.models.SessionRequirement.REQUIRED
+                        }
+                        if (requiredSessions.any { !SessionTemplateEngine.sessionHasExecutableContent(it) }) {
+                            add(ProgramExecutionIssue.EmptyTrainingWeek(
+                                "La semana '${week.name}' contiene una sesión REQUIRED sin receta ejecutable.",
+                            ))
+                        } else if (week.sessions.none(SessionTemplateEngine::sessionHasExecutableContent)) {
+                            add(ProgramExecutionIssue.EmptyTrainingWeek("La semana '${week.name}' está vacía y no es REST."))
+                        }
+                    }
+                }
+            }
+            }
+        }
+
+        program.runState?.let { run ->
+            val index = ProgramHierarchyIndex(program)
+            if (run.weekId != null && index.locateWeek(run.weekId) == null) {
+                add(ProgramExecutionIssue.StaleCursor("El cursor apunta a una semana inexistente (${run.weekId})."))
+            }
+            if (run.blockId != null && blocks.none { it.id == run.blockId }) {
+                add(ProgramExecutionIssue.StaleCursor("El cursor apunta a un bloque inexistente (${run.blockId})."))
+            }
+            if (run.mesocycleId != null && blocks.flatMap { it.mesocycles }.none { it.id == run.mesocycleId }) {
+                add(ProgramExecutionIssue.StaleCursor("El cursor apunta a un mesociclo inexistente (${run.mesocycleId})."))
+            }
+            if (run.pendingAction != null && run.status == com.example.kpkn.data.models.ProgramRunStatus.COMPLETED) {
+                add(ProgramExecutionIssue.StaleCursor("Un programa completado conserva una acción pendiente."))
+            }
+        }
+    }
+
+    fun requireExecutable(program: Program): Program {
+        val issues = validate(program)
+        require(issues.isEmpty()) {
+            issues.joinToString("; ") { it.message }
+        }
+        return program
     }
 }
 

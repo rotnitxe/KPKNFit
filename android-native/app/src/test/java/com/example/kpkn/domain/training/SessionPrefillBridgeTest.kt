@@ -16,12 +16,12 @@ class SessionPrefillBridgeTest {
 
     @Test
     fun resolveDefaultSplitId_maps_track_labels_to_real_splits() {
-        assertEquals("pl_classic_4", SessionPrefillBridge.resolveDefaultSplitId("Powerlifting"))
+        assertEquals("pl_sbd_x3", SessionPrefillBridge.resolveDefaultSplitId("Powerlifting"))
         assertEquals("ppl_ul", SessionPrefillBridge.resolveDefaultSplitId("Powerbuilding"))
         assertEquals("ppl_x6", SessionPrefillBridge.resolveDefaultSplitId("Culturismo"))
         assertEquals("ul_x4", SessionPrefillBridge.resolveDefaultSplitId(null))
 
-        listOf("pl_classic_4", "ppl_ul", "ppl_x6", "ul_x4").forEach { id ->
+        listOf("pl_sbd_x3", "ppl_ul", "ppl_x6", "ul_x4").forEach { id ->
             assertTrue("$id debe existir en SPLIT_TEMPLATES", SPLIT_TEMPLATES.any { it.id == id })
         }
     }
@@ -39,12 +39,14 @@ class SessionPrefillBridgeTest {
         assertEquals("fullbody_x3", SessionPrefillBridge.resolveSplit(withSelection)?.id)
 
         val withoutSelection = Program(id = "p2", name = "P2")
-        assertEquals("pl_classic_4", SessionPrefillBridge.resolveSplit(withoutSelection, fallbackTrackLabel = "Powerlifting")?.id)
+        assertEquals("pl_sbd_x3", SessionPrefillBridge.resolveSplit(withoutSelection, fallbackTrackLabel = "Powerlifting")?.id)
     }
 
     @Test
     fun prefillIfEmpty_is_noop_when_program_already_has_sessions() {
-        val protocol = com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.first { it.id == "531-base" }
+        val protocol = com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.first { it.id == "531-base" }.copy(
+            publicationStatus = com.example.kpkn.data.protocols.ProtocolPublicationStatus.KPKN_NATIVE,
+        )
         val populated = ProgramProtocolEngine.applyProtocol(Program(id = "p", name = "P"), protocol)
         val split = SPLIT_TEMPLATES.first { it.id == "ul_x4" }
 

@@ -1,6 +1,8 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.ActiveProgramState
+import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.models.BlockProgressionScheme
 import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.LoopStatus
 import com.example.kpkn.data.models.LoopType
@@ -27,6 +29,9 @@ data class RoadmapBlock(
     val blockIndex: Int,
     val totalWeeks: Int,
     val dateRangeLabel: String? = null,
+    val goal: BlockGoal? = null,
+    val progressionScheme: BlockProgressionScheme? = null,
+    val materializationPending: Boolean = false,
 )
 
 data class WeekWithMeta(
@@ -90,6 +95,9 @@ object ProgramDetailHelpers {
                     blockIndex = blockIdx,
                     totalWeeks = block.mesocycles.sumOf { it.weeks.size },
                     dateRangeLabel = blockDateRanges[block.id],
+                    goal = block.goal,
+                    progressionScheme = block.progressionScheme,
+                    materializationPending = block.materializationPending,
                 )
             }
         }
