@@ -33,7 +33,7 @@ Responsible for persistence, local assets, and remote calls.
 *   **Repositories (`data/repository/`):** Single source of truth per domain: `ProgramRepository`, `AugeRepository`, `AugeMetricsRepository`, `NutritionRepository`, `WikiLabRepository`, `CompetitionRepository`, `SessionTemplateRepository`, `CustomExerciseRepository`, `LearnRepository`.
 *   **Models (`data/models/`):** Serializable domain models (`Program`, `Session`, `WorkoutLog`, `Settings`, `AugeModels`, `AugeAdaptiveModels`, `NutritionModels`, `CompetitionModels`, `WorkoutV2Models`, `EnergyModels`) plus hardcoded catalogs (`DiscomfortCatalog`, `MobilityExerciseCatalog`).
 *   **Static content loaders:** `exercises/ExerciseDatabase.kt`, `food/FoodDatabase.kt` + `food/FoodImporter.kt` (USDA + OpenFoodFacts Chile prepopulation, batched transactions), `WikiLabPrepopulate.kt` (anatomy JSONs → Room), `programs/`, `sessions/`, `splits/`, `protocols/`, `learn/`, `wikilab/` (bundled templates and content).
-*   **Remote (`data/remote/`):** `ExternalAiService.kt` — optional AI fallback (Gemini / OpenAI / DeepSeek) for hard nutrition parsing cases; `AiNutritionModels.kt` DTOs.
+*   **Remote (`data/remote/`):** no active nutrition parser dependency. Android nutrition descriptions are resolved by the local parser and curated dataset; legacy provider fields remain only for persisted-settings compatibility.
 *   **Voice (`data/voice/`):** `VoiceNutritionRecognizer.kt` — speech-to-food-log pipeline feeding the nutrition domain engines.
 
 ### 2. Domain Layer (`domain/`)

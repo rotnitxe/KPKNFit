@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Analizador de logs de voz de KPKN Fit.
 
-Lee los JSONL de `KPKN/voice/` (espejo SAF del teléfono) o de
-`filesDir/voice_diagnostics/` y resume métricas por sesión para detectar
+Lee los JSONL de `KPKN/logs/voice/` (espejo SAF del teléfono) o de
+`filesDir/kpkn_logs/voice/` y resume métricas por sesión para detectar
 regresiones entre builds y medir la calidad real del sistema de voz.
 
 Uso:
@@ -23,7 +23,7 @@ from pathlib import Path
 def iter_events(paths: list[Path]):
     for p in paths:
         if p.is_dir():
-            files = sorted(p.glob("*.jsonl"))
+        files = sorted(p.rglob("*.jsonl"))
         elif p.is_file():
             files = [p]
         else:
@@ -149,8 +149,8 @@ def main() -> int:
         paths.append(Path(d))
     if not paths:
         candidates = [
-            Path("KPKN/voice"),
-            Path("android-native/app/files/voice_diagnostics"),
+            Path("KPKN/logs/voice"),
+            Path("android-native/app/files/kpkn_logs/voice"),
         ]
         paths = [p for p in candidates if p.exists()]
 

@@ -9,10 +9,11 @@ import math
 import sys
 from pathlib import Path
 
-AREAS = {"voice", "workout", "nutrition", "performance", "auge", "reports"}
+AREAS = {"voice", "workout", "nutrition", "app"}
 REQUIRED = {
     "schemaVersion",
     "eventId",
+    "sequence",
     "timestamp",
     "elapsedMs",
     "area",
@@ -53,6 +54,10 @@ def validate_event(event: object) -> list[str]:
         errors.append("schemaVersion must be 2")
     if event.get("area") not in AREAS:
         errors.append(f"invalid area {event.get('area')!r}")
+    if "sequence" in event and (
+        not isinstance(event["sequence"], int) or isinstance(event["sequence"], bool)
+    ):
+        errors.append("sequence must be an integer")
     for key in ("eventId", "timestamp", "event", "screen", "sessionId", "traceId", "process"):
         if key in event and not isinstance(event[key], str):
             errors.append(f"{key} must be a string")

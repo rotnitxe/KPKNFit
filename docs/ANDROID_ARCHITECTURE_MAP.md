@@ -104,7 +104,7 @@ Located in `android-native/app/src/main/assets/`:
 
 ### 2.6 Additional Data Layer Services
 
-*   **External AI Services (`data/remote/ExternalAiService.kt`):** A remote fallback data provider connecting to Gemini (1.5/2.0), OpenAI (GPT-4o-mini), or DeepSeek. Used specifically for complex semantic parsing of nutrition voice commands if the local heuristic parser fails. DTOs in `AiNutritionModels.kt`.
+*   **Nutrition parsing:** Android descriptions use the local parser and curated offline dataset. There is no active DeepSeek/remote fallback in the native app; old settings values are decoded only for migration compatibility.
 *   **WikiLab Prepopulation (`data/WikiLabPrepopulate.kt`):** Executes on first launch to parse and relate the anatomical JSONs (joints, tendons, muscles) into the local Room database.
 *   **Bundled content loaders:** `data/programs/ProgramTemplates.kt`, `data/sessions/SessionTemplates.kt` (+ models), `data/splits/SplitTemplates.kt`, `data/protocols/ProtocolLibrary.kt`, `data/learn/` (courses/quizzes), `data/wikilab/TrainingConceptsData.kt`.
 *   **Voice (`data/voice/VoiceNutritionRecognizer.kt`):** Recognizer pipeline that turns dictated meals into parsed food logs.
