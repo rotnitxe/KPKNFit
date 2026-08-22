@@ -514,7 +514,7 @@ fun VolumeCalibrationSheet(
         ) {
             Text("Calibrar volumen", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
             Text(
-                "Usamos el perfil del atleta para proponerte series semanales por músculo. Este resultado también sincroniza el enfoque del programa.",
+                "Usamos tus datos y tu historial para proponerte series semanales por músculo. Este resultado también sincroniza el enfoque del programa.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
