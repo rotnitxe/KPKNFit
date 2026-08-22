@@ -8,9 +8,7 @@ import com.example.kpkn.telemetry.KpknTelemetry
 import com.example.kpkn.telemetry.nutrition.NutritionCrashHook
 import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
-import com.example.kpkn.data.secure.DeepSeekSettingsMigration
-import com.example.kpkn.services.diagnostics.ReportEnrichmentScheduler
-import com.example.kpkn.services.diagnostics.KpknDiagnosticNotificationManager
+import com.example.kpkn.data.secure.LegacyAiCredentialCleanup
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -35,11 +33,9 @@ class KpknApplication : Application() {
         val isMainProcess = Build.VERSION.SDK_INT < Build.VERSION_CODES.P ||
             Application.getProcessName() == packageName
         if (isMainProcess) {
-            KpknDiagnosticNotificationManager.ensureChannel(this)
             applicationScope.launch {
+                LegacyAiCredentialCleanup.clear(this@KpknApplication)
                 KpknDiagnosticLogger.recordHealthChecks(this@KpknApplication)
-                DeepSeekSettingsMigration.migrate(this@KpknApplication)
-                ReportEnrichmentScheduler.resumePending(this@KpknApplication)
             }
         }
         if (isMainProcess) {
@@ -73,5 +69,12 @@ class KpknApplication : Application() {
         val telemetry = KpknTelemetry.getInstance(this)
         telemetry.setUserProperty("app_version", BuildConfig.VERSION_NAME)
         telemetry.setUserProperty("app_version_code", BuildConfig.VERSION_CODE.toString())
+    }
+
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        if (level >= TRIM_MEMORY_UI_HIDDEN) {
+            KpknDiagnosticLogger.flushAsync()
+        }
     }
 }

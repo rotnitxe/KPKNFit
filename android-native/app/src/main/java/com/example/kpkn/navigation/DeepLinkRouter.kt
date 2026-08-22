@@ -107,15 +107,15 @@ object DeepLinkRouter {
             }
             "settings", "ajustes" -> {
                 when (second) {
-                    "general" -> ResolvedRoute(KpknRoute.SettingsGeneral.route)
-                    "profile", "perfil" -> ResolvedRoute(KpknRoute.SettingsProfile.route)
-                    "nutrition", "nutricion", "nutrición" -> ResolvedRoute(KpknRoute.SettingsNutrition.route)
+                    "general" -> ResolvedRoute(KpknRoute.Settings.route)
+                    "profile", "perfil" -> ResolvedRoute(KpknRoute.Profile.route)
+                    "nutrition", "nutricion", "nutrición" -> ResolvedRoute(KpknRoute.Settings.route)
                     "health-connect", "healthconnect", "salud" -> ResolvedRoute(KpknRoute.HealthConnect.route)
-                    "training", "entreno" -> ResolvedRoute(KpknRoute.SettingsTraining.route)
-                    "auge" -> ResolvedRoute(KpknRoute.SettingsAuge.route)
-                    "notifications", "notificaciones" -> ResolvedRoute(KpknRoute.SettingsNotifications.route)
-                    "data", "datos" -> ResolvedRoute(KpknRoute.SettingsData.route)
-                    "diagnostics", "diagnosticos", "diagnósticos" -> ResolvedRoute(KpknRoute.SettingsDiagnostics.route)
+                    "training", "entreno" -> ResolvedRoute(KpknRoute.Settings.route)
+                    "auge" -> ResolvedRoute(KpknRoute.Settings.route)
+                    "notifications", "notificaciones" -> ResolvedRoute(KpknRoute.Settings.route)
+                    "data", "datos" -> ResolvedRoute(KpknRoute.Settings.route)
+                    "diagnostics", "diagnosticos", "diagnósticos" -> ResolvedRoute(KpknRoute.Settings.route)
                     else -> ResolvedRoute(KpknRoute.Settings.route)
                 }
             }

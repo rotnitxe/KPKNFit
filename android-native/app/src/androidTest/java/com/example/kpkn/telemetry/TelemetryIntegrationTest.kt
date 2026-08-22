@@ -4,6 +4,10 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.kpkn.KpknApplication
+import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
+import java.io.File
+import androidx.test.core.app.ApplicationProvider
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -26,7 +30,12 @@ class TelemetryIntegrationTest {
     
     @Test
     fun telemetry_helper_should_be_accessible_from_app_context() {
-        // Test that telemetry can be accessed from the application context
-        // This would be tested in an instrumented test environment
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val root = File(context.filesDir, KpknDiagnosticLogger.LOG_ROOT)
+        assertTrue(root.isDirectory)
+        KpknDiagnosticLogger.officialAreas.forEach { area ->
+            assertTrue("missing canonical area $area", File(root, area).isDirectory)
+        }
+        assertTrue(KpknDiagnosticLogger.awaitIdle())
     }
 }

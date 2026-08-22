@@ -124,7 +124,8 @@ object TelemetryParameters {
     
     // AI parameters
     const val AI_TYPE = "ai_type" // nutrition, workout_advice, exercise_info
-    const val AI_MODEL = "ai_model" // qwen, gpt, deepseek
+    /** Legacy event key kept for imported historical exports; Android emits local parser events. */
+    const val AI_MODEL = "ai_model"
     const val AI_INPUT = "ai_input"
     const val AI_OUTPUT = "ai_output"
     

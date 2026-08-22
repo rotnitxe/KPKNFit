@@ -60,85 +60,14 @@
     <!-- ═══════════════════════════════════════════════════════════════
          AJUSTES — pantalla principal
     ═══════════════════════════════════════════════════════════════ -->
-    <string name="screen_settings_title">Ajustes</string>
-    <string name="screen_settings_cat_general">General</string>
-    <string name="screen_settings_cat_general_subtitle">Tema, animaciones, IA y feedback sensorial</string>
-    <string name="screen_settings_cat_profile">Perfil personal</string>
-    <string name="screen_settings_cat_profile_subtitle">Nombre, medidas corporales y tipo de atleta</string>
-    <string name="screen_settings_cat_nutrition">Nutrición</string>
-    <string name="screen_settings_cat_nutrition_subtitle">Calorías, macros, sueño y wizard</string>
-    <string name="screen_settings_cat_training">Entrenamiento</string>
-    <string name="screen_settings_cat_training_subtitle">Unidades, temporizador, logger y volumen</string>
-    <string name="screen_settings_cat_rings">Mis RINGS</string>
-    <string name="screen_settings_cat_rings_subtitle">Fatiga, recuperación y sensibilidad del motor AUGE</string>
-    <string name="screen_settings_cat_notifications">Notificaciones</string>
-    <string name="screen_settings_cat_notifications_subtitle">Recordatorios de entreno, comidas y sueño</string>
-    <string name="screen_settings_cat_data">Datos y app</string>
-    <string name="screen_settings_cat_data_subtitle">Exportar, restablecer y ver versión</string>
 
     <!-- ═══════════════════════════════════════════════════════════════
          AJUSTES — General
     ═══════════════════════════════════════════════════════════════ -->
-    <string name="screen_settings_general_title">General</string>
-
-    <!-- Sección: Apariencia -->
-    <string name="screen_settings_general_section_appearance">Apariencia</string>
-    <string name="screen_settings_general_theme">Tema de la app</string>
-    <string name="screen_settings_general_theme_desc">Prepara el terreno para futuros modos visuales nativos</string>
-    <string name="screen_settings_general_animations">Animaciones</string>
-    <string name="screen_settings_general_animations_desc">Activa las transiciones y microinteracciones de la interfaz</string>
-    <string name="screen_settings_general_reduced_motion">Modo ahorro rendimiento</string>
-    <string name="screen_settings_general_reduced_motion_desc">Reduce movimiento y efectos pesados para equipos más justos</string>
-
-    <!-- Sección: Sensorial -->
-    <string name="screen_settings_general_section_sensorial">Sensorial</string>
-    <string name="screen_settings_general_haptic">Vibración háptica</string>
-    <string name="screen_settings_general_haptic_desc">Feedback táctil en acciones clave de la app</string>
-    <string name="screen_settings_general_haptic_intensity">Intensidad háptica</string>
-    <string name="screen_settings_general_haptic_intensity_desc">Ajusta la fuerza del feedback</string>
-    <string name="screen_settings_general_sounds">Sonidos</string>
-    <string name="screen_settings_general_sounds_desc">Incluye avisos sonoros y celebraciones in-app</string>
-
-    <!-- Sección: Inteligencia Artificial -->
-    <string name="screen_settings_general_section_ai">Inteligencia artificial</string>
-    <string name="screen_settings_general_ai_local_food">Caupo AI para alimentos</string>
-    <string name="screen_settings_general_ai_local_food_desc">Prioriza Caupo AI en el dispositivo para interpretar comidas</string>
-    <string name="screen_settings_general_ai_provider">Proveedor IA</string>
-    <string name="screen_settings_general_ai_provider_desc">Proveedor principal para funciones asistidas</string>
-    <string name="screen_settings_general_api_key_gemini">Clave API Gemini</string>
-    <string name="screen_settings_general_api_key_gpt">Clave API GPT</string>
-    <string name="screen_settings_general_api_key_deepseek">Clave API DeepSeek</string>
-    <string name="screen_settings_general_ai_temperature">Temperatura IA</string>
-    <string name="screen_settings_general_ai_fallback">Usar fallback IA</string>
-    <string name="screen_settings_general_ai_fallback_desc">Si falla el proveedor principal, intenta el siguiente</string>
-    <string name="screen_settings_general_ai_max_tokens">Tokens máximos</string>
-
-    <!-- Sección: Idioma -->
-    <string name="screen_settings_general_section_language">Idioma</string>
-    <string name="screen_settings_general_language">Idioma de la app</string>
-    <string name="screen_settings_general_language_desc">Selecciona el idioma de la interfaz</string>
-    <string name="screen_settings_general_language_system">Usar idioma del sistema</string>
-    <string name="screen_settings_general_language_es">Español</string>
-    <string name="screen_settings_general_language_en">English</string>
 
     <!-- ═══════════════════════════════════════════════════════════════
          AJUSTES — Notificaciones
     ═══════════════════════════════════════════════════════════════ -->
-    <string name="screen_settings_notif_title">Notificaciones</string>
-    <string name="screen_settings_notif_section_workout">Entrenamiento</string>
-    <string name="screen_settings_notif_workout_reminder">Recordatorio de entrenamiento</string>
-    <string name="screen_settings_notif_workout_reminder_desc">Guarda la preferencia horaria para futuras notificaciones</string>
-    <string name="screen_settings_notif_workout_time">Hora del recordatorio</string>
-    <string name="screen_settings_notif_section_meals">Comidas</string>
-    <string name="screen_settings_notif_meal_reminder">Recordatorio de comidas</string>
-    <string name="screen_settings_notif_meal_reminder_desc">Activa horarios para las comidas principales</string>
-    <string name="screen_settings_notif_breakfast">Desayuno</string>
-    <string name="screen_settings_notif_lunch">Almuerzo</string>
-    <string name="screen_settings_notif_dinner">Cena</string>
-    <string name="screen_settings_notif_section_sleep">Sueño</string>
-    <string name="screen_settings_notif_sleep_reminder">Recordatorio de sueño</string>
-    <string name="screen_settings_notif_sleep_reminder_desc">Guarda el horario recomendado para ir cerrando el día</string>
-    <string name="screen_settings_notif_sleep_time">Hora recordatorio</string>
 
     <!-- ═══════════════════════════════════════════════════════════════
          NOTIFICACIONES — Canales
@@ -350,7 +279,7 @@
     <!-- ═══════════════════════════════════════════════════════════════
          CALIBRACIÓN DE VOLUMEN
     ═══════════════════════════════════════════════════════════════ -->
-    <string name="screen_calibration_desc">Usamos el perfil del atleta para proponerte series semanales por músculo. Este resultado también sincroniza el enfoque del programa.</string>
+    <string name="screen_calibration_desc">Usamos tus datos y tu historial para proponerte series semanales por músculo. Este resultado también sincroniza el enfoque del programa.</string>
     <string name="screen_calibration_main_goal">Objetivo principal</string>
     <string name="screen_calibration_main_goal_helper">Esto cambia el enfoque del programa y la base de recomendaciones.</string>
     <string name="screen_calibration_technique">Técnica</string>

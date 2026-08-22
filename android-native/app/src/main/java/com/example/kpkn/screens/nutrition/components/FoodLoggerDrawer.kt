@@ -32,7 +32,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.runtime.collectAsState
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.NutritionRepository
@@ -40,12 +39,8 @@ import com.example.kpkn.data.repository.NutritionCalibrationRepository
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.food.findFoodByNormalized
 import com.example.kpkn.data.food.findFoodExactByNormalized
-import com.example.kpkn.data.remote.DeepSeekV4FlashClient
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
-import com.example.kpkn.data.secure.DeepSeekCredentialStore
-import com.example.kpkn.data.remote.AiNutritionRequest
-import com.example.kpkn.data.remote.AiNutritionResult
 import com.example.kpkn.domain.nutrition.SmartFoodResolver
 import com.example.kpkn.domain.nutrition.SubjectivePortionEngine
 import com.example.kpkn.domain.nutrition.CookingStateResolver
@@ -184,19 +179,11 @@ fun FoodLoggerDrawer(
     var activeTab by remember { mutableIntStateOf(initialTab.coerceIn(0, 1)) }
     var showSuccess by remember { mutableStateOf(false) }
     var isAnalyzing by remember { mutableStateOf(false) }
-    var isUsingAiRoute by remember { mutableStateOf(false) }
     var reviewRequired by remember { mutableStateOf(false) }
     var analysisStage by remember { mutableStateOf<ParseStage?>(null) }
     var analysisElapsedMs by remember { mutableStateOf(0L) }
     var analysisStartedAtMs by remember { mutableStateOf(0L) }
     var analysisNotice by remember { mutableStateOf<AnalysisNotice?>(null) }
-
-    // D14 (beta): comparación con IA — panel de SOLO LECTURA. La IA entrega su
-    // propia interpretación en paralelo; no toca tags, aprendizaje ni templates.
-    // Se eliminará cuando el sistema local sea plenamente operativo.
-    var aiComparison by remember { mutableStateOf<AiNutritionResult?>(null) }
-    var isAiComparing by remember { mutableStateOf(false) }
-    var aiComparisonError by remember { mutableStateOf<String?>(null) }
 
     // E16/IT2: invalidación del aprendizaje desde la UI.
     var learnedMemoryCleared by remember { mutableStateOf(false) }
@@ -215,11 +202,6 @@ fun FoodLoggerDrawer(
         )
     }
 
-    // Modo de análisis: siempre determinístico con API externa opcional
-    var showApiKey by remember { mutableStateOf(false) }
-    var showApiConfigDialog by remember { mutableStateOf(false) }
-    var apiDraftKey by remember { mutableStateOf("") }
-    var apiDraftFallback by remember { mutableStateOf(true) }
     val listState = rememberLazyListState()
     val requestDismiss = {
         // Prevent accidental dismiss when there's content (description typed or foods added)
@@ -254,13 +236,6 @@ fun FoodLoggerDrawer(
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
-
-    fun openApiConfigDialog() {
-        apiDraftKey = DeepSeekCredentialStore.read(context).orEmpty()
-        apiDraftFallback = settings.aiFallbackEnabled
-        showApiKey = false
-        showApiConfigDialog = true
-    }
 
     fun updateCalibrationProfile(update: (com.example.kpkn.data.models.NutritionCalibrationProfile) -> com.example.kpkn.data.models.NutritionCalibrationProfile) {
         scope.launch(Dispatchers.IO) {
@@ -334,41 +309,6 @@ fun FoodLoggerDrawer(
                 title = "Faltó contexto en la descripción",
                 message = "Prueba con una descripción simple, por ejemplo alimento + cantidad, para obtener un registro más claro.",
                 tone = AnalysisNoticeTone.INFO,
-            )
-            engine.startsWith("external-api-failed-fallback-") -> AnalysisNotice(
-                title = "Se cambió a un análisis alternativo",
-                message = "No llegó una respuesta útil a tiempo, así que preparamos el registro con otra lectura para que no tengas que empezar de nuevo.",
-                tone = AnalysisNoticeTone.WARNING,
-            )
-            engine.startsWith("external-api-timeout-fallback-") -> AnalysisNotice(
-                title = "La lectura demoró demasiado",
-                message = "Usamos una alternativa automática para seguir con tu registro sin bloquearte.",
-                tone = AnalysisNoticeTone.WARNING,
-            )
-            engine.startsWith("external-api-empty-fallback-") -> AnalysisNotice(
-                title = "Revisa las cantidades sugeridas",
-                message = "La primera lectura no alcanzó para completar todo, así que armamos una propuesta base para que la confirmes.",
-                tone = AnalysisNoticeTone.INFO,
-            )
-            engine.startsWith("external-api-no-key-fallback-") -> AnalysisNotice(
-                title = "Se usó el modo simple",
-                message = "La comida se preparó con el modo básico de registro. Puedes revisar cantidades y guardar normalmente.",
-                tone = AnalysisNoticeTone.INFO,
-            )
-            engine == "external-api-empty" -> AnalysisNotice(
-                title = "No se pudo completar bien la comida",
-                message = "Prueba una descripción más concreta para obtener un resultado más útil.",
-                tone = AnalysisNoticeTone.WARNING,
-            )
-            engine == "external-api-failed" -> AnalysisNotice(
-                title = "No se pudo interpretar la comida",
-                message = "Hubo un problema al procesar la descripción. Intenta de nuevo o registra los alimentos manualmente.",
-                tone = AnalysisNoticeTone.WARNING,
-            )
-            engine == "external-api-timeout" -> AnalysisNotice(
-                title = "La lectura tomó demasiado tiempo",
-                message = "Intenta nuevamente o agrega los alimentos manualmente si quieres avanzar más rápido.",
-                tone = AnalysisNoticeTone.WARNING,
             )
             else -> null
         }
@@ -464,24 +404,20 @@ fun FoodLoggerDrawer(
         return true
     }
 
-    fun analyzeDescription(forceApi: Boolean = false) {
+    fun analyzeDescription() {
         if (description.isBlank() || isAnalyzing) return
-        // CRI-ANALYSIS: el sistema oficial SIEMPRE es local. DeepSeek es una ruta
-        // alternativa explícita (botón "Usar IA"), nunca el motor por defecto.
-        val useApi = forceApi || settings.useApiForDescriptions
-        isUsingAiRoute = forceApi
 
         analysisNotice = null
         analysisKcalRange = null
-        analysisStage = if (useApi) ParseStage.ESTIMATING else ParseStage.INTERPRETING
+        analysisStage = ParseStage.INTERPRETING
         analysisStartedAtMs = System.currentTimeMillis()
         analysisElapsedMs = 0L
         KpknDiagnosticLogger.event(
             namespace = "nutrition",
             name = "analysis_started",
             fields = mapOf(
-                "usesDeepSeek" to useApi,
                 "descriptionLength" to description.length,
+                "engine" to "local",
             ),
         )
 
@@ -491,7 +427,7 @@ fun FoodLoggerDrawer(
             source = if (!initialDescription.isNullOrBlank()) "shared" else "manual",
             fields = mapOf(
                 "descriptionLength" to descriptionSnapshot.length,
-                "engine" to if (useApi) "deepseek" else "local",
+                "engine" to "local",
             ),
         )
         NutritionTelemetry.markInFlight(analysisTrace.traceId, "start")
@@ -562,96 +498,8 @@ fun FoodLoggerDrawer(
                 detectedContext = ContextDetector.detect(descriptionSnapshot)
                 NutritionTelemetry.markInFlight(analysisTrace.traceId, "parse")
                 val parseStartedAtMs = System.currentTimeMillis()
-                val parsed = if (useApi) {
-                    val apiService = DeepSeekV4FlashClient(context)
-                    val knownFoods = nutritionRepo.mealTemplates.value.flatMap { template ->
-                        buildList {
-                            add(template.name)
-                            if (template.description.isNotBlank()) add(template.description)
-                            template.foods.forEach { add(it.foodName) }
-                        }
-                    }
-                    val request = AiNutritionRequest(
-                        description = descriptionSnapshot,
-                        knownFoods = knownFoods,
-                    )
-                    val result = withContext(Dispatchers.IO) {
-                        apiService.analyzeNutrition(request)
-                    }
-                    result.fold(
-                        onSuccess = { aiResult ->
-                            val rawItems = aiResult.items.map { item ->
-                                ParsedMealItem(
-                                    tag = item.canonicalName.ifBlank { item.rawText },
-                                    quantity = item.quantity?.toDouble() ?: 1.0,
-                                    amountGrams = item.grams,
-                                    cookingMethod = item.preparation?.let { prep ->
-                                        when (prep.lowercase()) {
-                                            "cocido" -> CookingMethod.COCIDO
-                                            "plancha" -> CookingMethod.PLANCHA
-                                            "horno" -> CookingMethod.HORNO
-                                            "frito" -> CookingMethod.FRITO
-                                            "crudo" -> CookingMethod.CRUDO
-                                            else -> null
-                                        }
-                                    },
-                                    portion = PortionPreset.MEDIUM,
-                                    analysisSource = AnalysisSource.EXTERNAL_API_ESTIMATE,
-                                    macroOverrides = item.nutritionPer100g?.let {
-                                        MacroOverrides(
-                                            calories = it.calories,
-                                            protein = it.protein,
-                                            carbs = it.carbs,
-                                            fats = it.fats,
-                                        )
-                                    },
-                                    reviewRequired = item.reviewRequired,
-                                    analysisConfidence = item.confidence,
-                                    // R5: gramos explícitos del LLM quedan bloqueados (no re-escalar por contexto/priors)
-                                    amountIntent = if (item.grams != null) AmountIntent.EXPLICIT_MASS else AmountIntent.UNSPECIFIED,
-                                )
-                            }
-                            val items = reconcileParsedFoodItems(rawItems)
-                            ParsedMealDescription(
-                                items = items,
-                                rawDescription = descriptionSnapshot,
-                                overallConfidence = aiResult.overallConfidence,
-                                analysisEngine = if (aiResult.usedModel) "external-api" else "deterministic",
-                                modelVersion = aiResult.modelVersion,
-                                containsEstimatedItems = true,
-                                requiresReview = items.any { it.reviewRequired },
-                            )
-                        },
-                        onFailure = { error ->
-                            if (settings.aiFallbackEnabled) {
-                                val fallback = withContext(Dispatchers.Default) {
-                                    parseMealDescription(descriptionSnapshot, descriptionRetrieval)
-                                }
-                                fallback.copy(
-                                    analysisEngine = "external-api-failed-fallback-deepseek"
-                                )
-                            } else {
-                                ParsedMealDescription(
-                                    items = emptyList(),
-                                    rawDescription = description,
-                                    analysisEngine = "external-api-failed",
-                                )
-                            }
-                        }
-                    )
-                } else {
-                    val userKnownFoods = nutritionRepo.mealTemplates.value.flatMap { template ->
-                        buildList {
-                            add(template.name)
-                            if (template.description.isNotBlank()) add(template.description)
-                            template.foods.forEach { food ->
-                                add(food.foodName)
-                            }
-                        }
-                    }
-                    withContext(Dispatchers.Default) {
-                        parseMealDescription(descriptionSnapshot, descriptionRetrieval)
-                    }
+                val parsed = withContext(Dispatchers.Default) {
+                    parseMealDescription(descriptionSnapshot, descriptionRetrieval)
                 }
                 analysisTrace.stageEnded(
                     name = "parse",
@@ -665,7 +513,7 @@ fun FoodLoggerDrawer(
                 // CRI-AUDIT (P2): si el parseo local devolvió 0 alimentos para un texto
                 // no-vacío, NUNCA dejar tags vacíos en silencio: caemos al último nivel
                 // para que el usuario siempre tenga algo que revisar y guardar.
-                if (tags.isEmpty() && !useApi && descriptionSnapshot.isNotBlank()) {
+                if (tags.isEmpty() && descriptionSnapshot.isNotBlank()) {
                     createLastResortManualTags(descriptionSnapshot)
                 }
                 lastAnalyzedDescription = descriptionSnapshot
@@ -768,33 +616,15 @@ fun FoodLoggerDrawer(
                     name = "analysis_finished",
                     fields = mapOf(
                         "tagCount" to tags.size,
-                        "usesDeepSeek" to useApi,
+                        "engine" to "local",
                     ),
                 )
                 NutritionTelemetry.clearInFlight()
                 isAnalyzing = false
-                isUsingAiRoute = false
                 analysisStage = null
                 analysisStartedAtMs = 0L
             }
         }
-    }
-
-    /** CRI-ANALYSIS: ruta alternativa explícita de IA. Solo se activa desde el botón
-     *  discreto "Usar IA" y requiere API key configurada. Nunca es el motor por defecto. */
-    fun analyzeWithAi() {
-        val key = DeepSeekCredentialStore.read(context).orEmpty().trim()
-        if (key.isBlank()) {
-            analysisNotice = AnalysisNotice(
-                title = "Configura tu API key para usar IA",
-                message = "Toca el engranaje de IA para ingresar tu clave de DeepSeek.",
-                tone = AnalysisNoticeTone.INFO,
-            )
-            openApiConfigDialog()
-            return
-        }
-        if (description.isBlank()) return
-        analyzeDescription(forceApi = true)
     }
 
     // CRI-AUDIT (P0): precalentar dataset + índice de alimentos al abrir el registro,
@@ -812,35 +642,6 @@ fun FoodLoggerDrawer(
         activeTab = initialTab.coerceIn(0, 1)
         if (tags.isEmpty()) {
             analyzeDescription()
-        }
-    }
-
-    /**
-     * D14 (beta): consulta la IA por separado y muestra SU interpretación como
-     * referencia de solo lectura. No persiste nada, no alimenta aprendizaje y
-     * no modifica los tags del registro local.
-     */
-    fun compareWithAi() {
-        if (description.isBlank() || isAiComparing) return
-        isAiComparing = true
-        aiComparison = null
-        aiComparisonError = null
-        scope.launch {
-            try {
-                val apiService = DeepSeekV4FlashClient(context)
-                val request = AiNutritionRequest(description = description)
-                val result = withContext(Dispatchers.IO) {
-                    apiService.analyzeNutrition(request)
-                }
-                result.fold(
-                    onSuccess = { aiComparison = it },
-                    onFailure = { aiComparisonError = it.message ?: "La IA no respondió." },
-                )
-            } catch (e: Exception) {
-                aiComparisonError = e.message ?: "Error al consultar la IA."
-            } finally {
-                isAiComparing = false
-            }
         }
     }
 
@@ -1396,66 +1197,6 @@ fun FoodLoggerDrawer(
         )
     }
 
-    if (showApiConfigDialog) {
-        KpknAlertDialog(
-            onDismissRequest = { showApiConfigDialog = false },
-            title = { Text("Configurar DeepSeek V4 Flash") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("La app usa exclusivamente deepseek-v4-flash. La key se cifra con Android Keystore.")
-                    TextField(
-                        value = apiDraftKey,
-                        onValueChange = { apiDraftKey = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text("API key de DeepSeek V4 Flash") },
-                        singleLine = true,
-                        visualTransformation = if (showApiKey) androidx.compose.ui.text.input.VisualTransformation.None else PasswordVisualTransformation(),
-                        trailingIcon = {
-                            IconButton(onClick = { showApiKey = !showApiKey }) {
-                                Icon(
-                                    imageVector = if (showApiKey) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                    contentDescription = if (showApiKey) "Ocultar API key" else "Mostrar API key",
-                                )
-                            }
-                        },
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Fallback local", fontWeight = FontWeight.SemiBold)
-                            Text("Si DeepSeek falla, conservar el parser local.")
-                        }
-                        Switch(checked = apiDraftFallback, onCheckedChange = { apiDraftFallback = it })
-                    }
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showApiConfigDialog = false }) { Text("Cancelar") }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val trimmed = apiDraftKey.trim()
-                        if (trimmed.isBlank()) DeepSeekCredentialStore.clear(context)
-                        else DeepSeekCredentialStore.write(context, trimmed)
-                        programRepo.updateSettings { current ->
-                            current.copy(
-                                apiProvider = ApiProvider.DEEPSEEK,
-                                apiKeys = ApiKeys(),
-                                aiFallbackEnabled = apiDraftFallback,
-                            )
-                        }
-                        showApiConfigDialog = false
-                    },
-                ) { Text("Guardar") }
-            },
-            shape = RoundedCornerShape(20.dp),
-        )
-    }
-
     if (showSettingsDialog) {
         KpknAlertDialog(
             onDismissRequest = { showSettingsDialog = false },
@@ -1725,16 +1466,13 @@ fun FoodLoggerDrawer(
                         }
 
                         AnimatedVisibility(
-                            visible = isUsingAiRoute && isAnalyzing,
+                            visible = isAnalyzing,
                             enter = fadeIn() + expandVertically(),
                             exit = fadeOut() + shrinkVertically(),
                         ) {
-                            AiAnalysisPanel(
-                                usingApi = isUsingAiRoute,
-                                providerLabel = "DeepSeek V4 Flash",
+                            LocalAnalysisPanel(
                                 stage = analysisStage,
                                 elapsedMs = analysisElapsedMs,
-                                fallbackEnabled = settings.aiFallbackEnabled,
                             )
                         }
 
@@ -2024,21 +1762,9 @@ fun FoodLoggerDrawer(
 }
 
 @Composable
-private fun AiAnalysisPanel(
-    usingApi: Boolean,
-    providerLabel: String,
-    stage: ParseStage?,
-    elapsedMs: Long,
-    fallbackEnabled: Boolean,
-) {
-    val messages = remember(usingApi, providerLabel, stage, fallbackEnabled) {
+private fun LocalAnalysisPanel(stage: ParseStage?, elapsedMs: Long) {
+    val messages = remember(stage) {
         when {
-            usingApi -> listOf(
-                "Leyendo tu descripción",
-                "Ordenando alimentos, cantidades y porciones",
-                if (fallbackEnabled) "Si hace falta, usaremos una alternativa para no detener el registro" else "Esperando una respuesta útil para completar la comida",
-                "Revisando que el resumen tenga sentido",
-            )
             stage == ParseStage.INTERPRETING -> listOf(
                 "Convirtiendo la comida en un registro editable",
                 "Comprobando porciones y cantidades",
@@ -2054,7 +1780,7 @@ private fun AiAnalysisPanel(
     }
 
     val messageIndex = ((elapsedMs / 2600L).toInt()).mod(messages.size.coerceAtLeast(1))
-    val infiniteTransition = rememberInfiniteTransition(label = "ai-analysis")
+    val infiniteTransition = rememberInfiniteTransition(label = "local-analysis")
     val pulseA by infiniteTransition.animateFloat(
         initialValue = 0.35f,
         targetValue = 1f,
@@ -2085,7 +1811,7 @@ private fun AiAnalysisPanel(
 
     Surface(
         shape = RoundedCornerShape(18.dp),
-        color = if (usingApi) Color(0xFF0F3557).copy(alpha = 0.09f) else PRO_COLOR.copy(alpha = 0.08f),
+        color = PRO_COLOR.copy(alpha = 0.08f),
         tonalElevation = 0.dp,
     ) {
         Column(
@@ -2104,9 +1830,9 @@ private fun AiAnalysisPanel(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Icon(
-                        imageVector = if (usingApi) Icons.Default.CloudSync else Icons.Default.Memory,
+                        imageVector = Icons.Default.Memory,
                         contentDescription = null,
-                        tint = if (usingApi) Color(0xFF1565C0) else PRO_COLOR,
+                        tint = PRO_COLOR,
                         modifier = Modifier.size(18.dp),
                     )
                     Text(
@@ -2122,7 +1848,7 @@ private fun AiAnalysisPanel(
                 )
             }
 
-            AnimatedContent(targetState = messages[messageIndex], label = "ai-message") { message ->
+            AnimatedContent(targetState = messages[messageIndex], label = "local-message") { message ->
                 Text(
                     text = message,
                     style = MaterialTheme.typography.bodyMedium,
@@ -2141,18 +1867,12 @@ private fun AiAnalysisPanel(
                             .size(10.dp)
                             .clip(RoundedCornerShape(50))
                             .background(
-                                if (usingApi) Color(0xFF1565C0).copy(alpha = alpha)
-                                else PRO_COLOR.copy(alpha = alpha)
+                                PRO_COLOR.copy(alpha = alpha)
                             )
                     )
                 }
                 Text(
-                    text = if (usingApi) {
-                        if (fallbackEnabled) "Estamos armando la mejor versión posible de tu comida"
-                        else "Esperando una respuesta útil para completar el registro"
-                    } else {
-                        "Estamos interpretando la comida para dejarla lista para guardar"
-                    },
+                    text = "Estamos interpretando la comida para dejarla lista para guardar",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -2163,7 +1883,7 @@ private fun AiAnalysisPanel(
                     .fillMaxWidth()
                     .height(6.dp)
                     .clip(RoundedCornerShape(999.dp)),
-                color = if (usingApi) Color(0xFF1565C0) else PRO_COLOR,
+                color = PRO_COLOR,
                 trackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             )
         }
@@ -2861,109 +2581,6 @@ private fun MacroOverrideCol(label: String, value: Double, step: Double = 1.0, o
             )
             IconButton(onClick = { onChange((value + step).coerceAtMost(9999.0)) }, modifier = Modifier.size(24.dp)) {
                 Icon(Icons.Default.Add, null, modifier = Modifier.size(12.dp))
-            }
-        }
-    }
-}
-
-/**
- * D14 (beta): panel de SOLO LECTURA con la interpretación de la IA para la misma
- * descripción. No guarda nada: sirve de referencia/contraste con el registro
- * local mientras el sistema local no sea plenamente operativo.
- */
-@Composable
-private fun AiComparisonPanel(
-    result: AiNutritionResult?,
-    isLoading: Boolean,
-    error: String?,
-) {
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = if (error != null) {
-            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
-        } else {
-            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.4f)
-        },
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Default.AutoAwesome, null, modifier = Modifier.size(14.dp), tint = PRO_COLOR)
-                Text(
-                    text = if (error != null) "La IA no pudo responder" else "Interpretación de la IA (solo lectura)",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                )
-            }
-            when {
-                isLoading -> {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    LinearProgressIndicator(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(4.dp)
-                            .clip(RoundedCornerShape(2.dp)),
-                    )
-                    Text(
-                        text = "La IA está interpretando la descripción…",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                error != null -> {
-                    Text(
-                        text = error,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-                result?.items.isNullOrEmpty() -> {
-                    Text(
-                        text = "La IA no reconoció alimentos en esta descripción.",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                else -> {
-                    // CRASH-FIX: lectura segura; el estado puede volverse null al recomponer.
-                    result?.items.orEmpty().forEach { item ->
-                        val name = item.canonicalName.ifBlank { item.rawText }
-                        val grams = item.grams
-                        val macros = item.nutritionPer100g
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                        ) {
-                            Text(
-                                text = name.trim().replaceFirstChar { it.uppercase() },
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            Text(
-                                text = buildString {
-                                    if (grams != null) append("${kotlin.math.round(grams).toInt()} g")
-                                    macros?.let { m ->
-                                        if (grams != null) append(" · ")
-                                        append("${kotlin.math.round(m.calories * (grams ?: 100.0) / 100.0).toInt()} kcal")
-                                    }
-                                },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                    val model = result.modelVersion
-                    if (!model.isNullOrBlank()) {
-                        Text(
-                            text = "Modelo: $model · no se guarda en tu registro",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        )
-                    }
-                }
             }
         }
     }

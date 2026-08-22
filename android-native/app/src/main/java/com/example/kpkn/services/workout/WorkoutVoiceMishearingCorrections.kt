@@ -16,11 +16,6 @@ internal object WorkoutVoiceMishearingCorrections {
         "carga corporal" to "peso corporal",
         "solo la varra" to "solo la barra",
         "la varra" to "la barra",
-        "capolican" to WorkoutVoiceReportTrigger.KEYWORD,
-        "capolica" to WorkoutVoiceReportTrigger.KEYWORD,
-        "caupolica" to WorkoutVoiceReportTrigger.KEYWORD,
-        "caupoli kan" to WorkoutVoiceReportTrigger.KEYWORD,
-        "caupolikan" to WorkoutVoiceReportTrigger.KEYWORD,
     )
 
     private val PAIR_CORRECTIONS = mapOf(

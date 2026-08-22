@@ -51,6 +51,14 @@ class DeepLinkRouterTest {
     }
 
     @Test
+    fun redirectsDeprecatedSettingsRoutesToTheNewSurfaces() {
+        assertEquals(KpknRoute.Profile.route, DeepLinkRouter.resolve(Uri.parse("kpkn://settings/profile"))?.route)
+        assertEquals(KpknRoute.Settings.route, DeepLinkRouter.resolve(Uri.parse("kpkn://settings/general"))?.route)
+        assertEquals(KpknRoute.Settings.route, DeepLinkRouter.resolve(Uri.parse("kpkn://settings/auge"))?.route)
+        assertEquals(KpknRoute.Settings.route, DeepLinkRouter.resolve(Uri.parse("kpkn://settings/diagnostics"))?.route)
+    }
+
+    @Test
     fun rejectsNonKpknOrInvalidLinks() {
         val otherHost = DeepLinkRouter.resolve(Uri.parse("https://example.com/nutrition"))
         val noId = DeepLinkRouter.resolve(Uri.parse("https://kpkn.fit/program"))

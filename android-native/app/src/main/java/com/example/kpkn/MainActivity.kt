@@ -8,8 +8,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Build
-import android.view.HapticFeedbackConstants
-import android.view.MotionEvent
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -69,11 +67,6 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
-import com.example.kpkn.services.diagnostics.KpknReportManager
-import com.example.kpkn.services.diagnostics.ReportEnrichmentScheduler
-import com.example.kpkn.services.diagnostics.ReportGestureDetector
-import com.example.kpkn.screens.reports.ReportDialog
-import com.example.kpkn.screens.reports.ReportRequestBus
 import com.example.kpkn.navigation.DeepLinkRouter
 import com.example.kpkn.navigation.KpknRoute
 import com.example.kpkn.navigation.addHealthConnectRoute
@@ -100,15 +93,7 @@ import com.example.kpkn.screens.programdetail.ProgramDetailScreen
 import com.example.kpkn.screens.programs.ProgramsScreen
 import com.example.kpkn.screens.programs.ProgramsViewModel
 import com.example.kpkn.screens.sessioneditor.SessionEditorScreen
-import com.example.kpkn.screens.settings.SettingsAugeScreen
-import com.example.kpkn.screens.settings.SettingsDataScreen
-import com.example.kpkn.screens.settings.SettingsDiagnosticsScreen
-import com.example.kpkn.screens.settings.SettingsGeneralScreen
-import com.example.kpkn.screens.settings.SettingsNotificationsScreen
-import com.example.kpkn.screens.settings.SettingsNutritionScreen
-import com.example.kpkn.screens.settings.SettingsProfileScreen
 import com.example.kpkn.screens.settings.SettingsScreen
-import com.example.kpkn.screens.settings.SettingsTrainingScreen
 import com.example.kpkn.screens.wikilab.*
 import com.example.kpkn.screens.workout.WorkoutScreen
 
@@ -148,48 +133,7 @@ import com.example.kpkn.ui.components.KpknAlertDialog
 class MainActivity : ComponentActivity() {
     private val pendingDeepLinkRoute = mutableStateOf<String?>(null)
     private val pendingSharedNutritionText = mutableStateOf<String?>(null)
-    private val reportGestureProgress = mutableStateOf(0f)
     private lateinit var telemetryHelper: TelemetryHelper
-    private var lastReportGestureHapticProgress = 0f
-
-    private val reportGestureDetector: ReportGestureDetector by lazy {
-        ReportGestureDetector.from(
-            view = window.decorView,
-            onCancel = ::dispatchSyntheticCancel,
-            onConfirmed = {
-                window.decorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                KpknDiagnosticLogger.event("app", "report_gesture_confirmed")
-            },
-            onReleased = {
-                ReportRequestBus.requestGesture(KpknDiagnosticLogger.currentScreen())
-                KpknDiagnosticLogger.event("reports", "report_gesture_released")
-            },
-            onProgress = { progress ->
-                reportGestureProgress.value = progress
-                if (progress >= 0.5f && lastReportGestureHapticProgress < 0.5f) {
-                    window.decorView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                }
-                lastReportGestureHapticProgress = progress
-                if (progress <= 0f) lastReportGestureHapticProgress = 0f
-            },
-        )
-    }
-    private var dispatchingSyntheticCancel = false
-
-    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
-        if (dispatchingSyntheticCancel) return super.dispatchTouchEvent(event)
-        val consumed = reportGestureDetector.onTouchEvent(event)
-        return if (consumed) true else super.dispatchTouchEvent(event)
-    }
-
-    private fun dispatchSyntheticCancel(event: MotionEvent) {
-        dispatchingSyntheticCancel = true
-        try {
-            super.dispatchTouchEvent(event)
-        } finally {
-            dispatchingSyntheticCancel = false
-        }
-    }
 
     override fun attachBaseContext(newBase: android.content.Context) {
         super.attachBaseContext(LocaleManager.wrapContext(newBase))
@@ -301,7 +245,6 @@ class MainActivity : ComponentActivity() {
                     onDeepLinkHandled = { pendingDeepLinkRoute.value = null },
                     pendingSharedNutritionText = pendingSharedNutritionText.value,
                     onSharedNutritionHandled = { pendingSharedNutritionText.value = null },
-                    reportGestureProgress = reportGestureProgress.value,
                 )
             }
         }
@@ -332,10 +275,10 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onStop() {
-        reportGestureDetector.cancel()
         KpknDiagnosticLogger.event("app", "activity_stop")
         super.onStop()
         telemetryHelper.logAppBackground()
+        KpknDiagnosticLogger.flushAsync()
         // Flush pending writes without blocking the main thread during background transition.
         lifecycleScope.launch(Dispatchers.IO) {
             runCatching {
@@ -474,7 +417,6 @@ fun KPKNApp(
     onDeepLinkHandled: () -> Unit = {},
     pendingSharedNutritionText: String? = null,
     onSharedNutritionHandled: () -> Unit = {},
-    reportGestureProgress: Float = 0f,
 ) {
     val context = LocalContext.current
     val telemetryHelper = remember { TelemetryHelper(context) }
@@ -489,8 +431,6 @@ fun KPKNApp(
         resolveRouteTemplate(currentRoute, currentBackStack?.arguments)
     }
     val previousRoute = remember { mutableStateOf<String?>(null) }
-    val pendingReport by ReportRequestBus.pending.collectAsState()
-
     val lifecycleOwner = LocalLifecycleOwner.current
     var showPermissionAlert by remember { mutableStateOf(false) }
     var missingPermissions by remember { mutableStateOf(emptyList<String>()) }
@@ -977,11 +917,11 @@ fun KPKNApp(
                         onClick = {
                             navController.navigate(KpknRoute.WikiLab.route) { launchSingleTop = true }
                         },
-                        icon = { WikiIcon(tint = navIconTint(wikiSel)) },
+                        icon = { WikiIcon(tint = if (wikiSel) Color(0xFF9DB6C9) else Color.White) },
                         label = {
                             Text(
                                 stringResource(R.string.nav_wikilab),
-                                color = if (wikiSel) MaterialTheme.colorScheme.primary else Color.White,
+                                color = if (wikiSel) Color(0xFF9DB6C9) else Color.White,
                                 style = MaterialTheme.typography.labelSmall,
                                 maxLines = 1,
                             )
@@ -1038,70 +978,6 @@ fun KPKNApp(
             }
         }
 
-        if (reportGestureProgress > 0f) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.18f))
-                    .zIndex(450f),
-                contentAlignment = Alignment.Center,
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(24.dp),
-                    tonalElevation = 8.dp,
-                    color = MaterialTheme.colorScheme.surface,
-                ) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 22.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Text("Preparando reporte", fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.height(12.dp))
-                        CircularProgressIndicator(
-                            progress = reportGestureProgress,
-                            modifier = Modifier.size(64.dp),
-                            strokeWidth = 6.dp,
-                        )
-                        Spacer(Modifier.height(10.dp))
-                        Text(
-                            "Mantené los dos dedos quietos",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    if (pendingReport != null) {
-        val reportRequest = pendingReport
-        val reportScope = rememberCoroutineScope()
-        ReportDialog(
-            request = reportRequest!!,
-            onDismiss = { ReportRequestBus.consume() },
-            onSave = { request ->
-                reportScope.launch {
-                    val result = withContext(Dispatchers.IO) {
-                        runCatching { KpknReportManager.create(context, request) }
-                    }
-                    result.onSuccess { created ->
-                        ReportEnrichmentScheduler.enqueue(context, created.reportId)
-                        ReportRequestBus.consume()
-                        Toast.makeText(
-                            context,
-                            "Reporte guardado. DeepSeek V4 Flash lo analizará en segundo plano.",
-                            Toast.LENGTH_LONG,
-                        ).show()
-                    }.onFailure {
-                        Toast.makeText(
-                            context,
-                            "No pude guardar el reporte localmente. Intentá de nuevo.",
-                            Toast.LENGTH_LONG,
-                        ).show()
-                    }
-                }
-            },
-        )
     }
 
     if (showPermissionAlert) {
@@ -1291,7 +1167,6 @@ private fun KPKNNavGraph(
                 themeMode = themeMode,
                 nutritionViewModel = nutritionViewModel,
                 onThemeChange = onThemeChange,
-                onNavigateToSettings = { navController.navigate(KpknRoute.Settings.route) },
                 onNavigateToProfile = { navController.navigate(KpknRoute.Profile.route) },
                 onNavigateToProgram = { programId ->
                     navController.navigate(KpknRoute.ProgramDetail.create(programId))
@@ -1342,8 +1217,7 @@ private fun KPKNNavGraph(
                         "wiki-concept" -> navController.navigate(KpknRoute.WikiLabConcepts.route)
                         "wiki-concept-detail" -> navController.navigate(KpknRoute.WikiLabConcepts.route)
                         "nutrition" -> navController.navigate(KpknRoute.Nutrition.route)
-                        "settings/notifications" -> navController.navigate(KpknRoute.SettingsNotifications.route)
-                        "settings/auge" -> navController.navigate(KpknRoute.SettingsAuge.route)
+                        "settings/notifications", "settings/auge", "settings/general", "settings/nutrition", "settings/training", "settings/data", "settings/diagnostics" -> navController.navigate(KpknRoute.Settings.route)
                         "learn", "cursos" -> navController.navigate(KpknRoute.Learn.route)
                         "powerlifter-corner" -> {
                             navController.navigate(KpknRoute.Competitions.route)
@@ -1563,6 +1437,7 @@ private fun KPKNNavGraph(
                     exercise = exercise,
                     onNavigateToMuscle = { navController.navigate(KpknRoute.WikiLabMuscleDetail.create(it)) },
                     onNavigateToJoint = { navController.navigate(KpknRoute.WikiLabJointDetail.create(it)) },
+                    onNavigateToPattern = { navController.navigate(KpknRoute.WikiLabPatternDetail.create(it)) },
                     onNavigateToExercise = { navController.navigate(KpknRoute.WikiLabExerciseDetail.create(it)) },
                 onBack = { navController.popBackStack() },
                 )
@@ -1661,54 +1536,19 @@ private fun KPKNNavGraph(
         composable(KpknRoute.Settings.route) {
             SettingsScreen(
                 onBack = { navController.popBackStack() },
-                onNavigateToGeneral = { navController.navigate(KpknRoute.SettingsGeneral.route) },
-                onNavigateToProfile = { navController.navigate(KpknRoute.SettingsProfile.route) },
-                onNavigateToNutrition = { navController.navigate(KpknRoute.SettingsNutrition.route) },
-                onNavigateToTraining = { navController.navigate(KpknRoute.SettingsTraining.route) },
-                onNavigateToAuge = { navController.navigate(KpknRoute.SettingsAuge.route) },
-                onNavigateToNotifications = { navController.navigate(KpknRoute.SettingsNotifications.route) },
-                onNavigateToData = { navController.navigate(KpknRoute.SettingsData.route) },
-                onNavigateToDiagnostics = { navController.navigate(KpknRoute.SettingsDiagnostics.route) },
-            )
-        }
-        composable(KpknRoute.SettingsGeneral.route) {
-            SettingsGeneralScreen(onBack = { navController.popBackStack() })
-        }
-        composable(KpknRoute.SettingsProfile.route) {
-            SettingsProfileScreen(onBack = { navController.popBackStack() })
-        }
-        composable(KpknRoute.SettingsNutrition.route) {
-            SettingsNutritionScreen(
-                onBack = { navController.popBackStack() },
-                onOpenPlanOverlay = {
-                    navController.navigate(KpknRoute.NutritionWizard.create(mode = "create"))
-                },
-                onOpenCalibration = { navController.navigate(KpknRoute.NutritionCalibration.route) },
-                showHealthConnect = healthConnectRouteAvailable(),
+                healthConnectAvailable = healthConnectRouteAvailable(),
                 onOpenHealthConnect = { navController.navigate(KpknRoute.HealthConnect.route) },
             )
         }
         composable(KpknRoute.NutritionCalibration.route) {
             NutritionCalibrationScreen(onBack = { navController.popBackStack() })
         }
-        composable(KpknRoute.SettingsTraining.route) {
-            SettingsTrainingScreen(onBack = { navController.popBackStack() })
-        }
-        composable(KpknRoute.SettingsAuge.route) {
-            SettingsAugeScreen(onBack = { navController.popBackStack() })
-        }
-        composable(KpknRoute.SettingsNotifications.route) {
-            SettingsNotificationsScreen(onBack = { navController.popBackStack() })
-        }
-        composable(KpknRoute.SettingsData.route) {
-            SettingsDataScreen(onBack = { navController.popBackStack() })
-        }
-        composable(KpknRoute.SettingsDiagnostics.route) {
-            SettingsDiagnosticsScreen(onBack = { navController.popBackStack() })
-        }
         addHealthConnectRoute(navController)
         composable(KpknRoute.Profile.route) {
-            ProfileScreen(onBack = { navController.popBackStack() })
+            ProfileScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToSettings = { navController.navigate(KpknRoute.Settings.route) },
+            )
         }
         composable(KpknRoute.ProgramDetail.route) { backStack ->
             val id = backStack.arguments?.getString(KpknRoute.ProgramDetail.ARG_PROGRAM_ID) ?: ""

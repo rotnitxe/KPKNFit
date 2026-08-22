@@ -22,19 +22,19 @@ import com.example.kpkn.data.models.ApiKeys
 import com.example.kpkn.data.models.ApiProvider
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.NutritionCalibrationProfile
-import com.example.kpkn.data.secure.DeepSeekCredentialStore
-import com.example.kpkn.data.secure.DeepSeekSettingsMigration
+import com.example.kpkn.data.models.MeasurementSchedule
+import com.example.kpkn.data.profile.ProfilePhotoStore
+import com.example.kpkn.data.secure.LegacyAiCredentialCleanup
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.BodyProgressRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.NutritionCalibrationRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.services.nutrition.NutritionNotificationManager
-import com.example.kpkn.services.diagnostics.ReportEnrichmentScheduler
+import com.example.kpkn.services.diagnostics.KpknDiagnosticStorage
 import com.example.kpkn.services.workout.WorkoutReminderManager
 import com.example.kpkn.ui.locale.LocaleManager
 import com.example.kpkn.domain.body.validateBodyValue
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -50,35 +50,12 @@ class SettingsViewModel : ViewModel() {
     private val programRepository = ProgramRepository.getInstance()
     private val nutritionRepository = NutritionRepository.getInstance()
     private var appContext: Context? = null
-    private val _deepSeekKey = MutableStateFlow<String?>(null)
-    val deepSeekKey: StateFlow<String?> = _deepSeekKey.asStateFlow()
-
     val settings: StateFlow<Settings> = programRepository.settings
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), Settings())
 
     fun setContext(context: Context) {
         val appContext = context.applicationContext
         this.appContext = appContext
-        loadDeepSeekKey(appContext)
-    }
-
-    fun loadDeepSeekKey(context: Context) {
-        viewModelScope.launch(Dispatchers.IO) {
-            DeepSeekSettingsMigration.migrate(context)
-            _deepSeekKey.value = DeepSeekCredentialStore.read(context)
-        }
-    }
-
-    fun saveDeepSeekKey(context: Context, value: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val trimmed = value.trim()
-            if (trimmed.isBlank()) DeepSeekCredentialStore.clear(context) else DeepSeekCredentialStore.write(context, trimmed)
-            programRepository.updateSettings {
-                it.copy(apiProvider = ApiProvider.DEEPSEEK, apiKeys = ApiKeys())
-            }
-            _deepSeekKey.value = trimmed.takeIf { it.isNotBlank() }
-            ReportEnrichmentScheduler.resumePending(context)
-        }
     }
 
     fun update(transform: (Settings) -> Settings) {
@@ -155,9 +132,8 @@ class SettingsViewModel : ViewModel() {
     }
 
     fun resetSettings() {
-        appContext?.let(DeepSeekCredentialStore::clear)
+        appContext?.let(LegacyAiCredentialCleanup::clear)
         programRepository.updateSettings { Settings() }
-        _deepSeekKey.value = null
     }
 
     fun resetOnboarding() {
@@ -170,42 +146,11 @@ class SettingsViewModel : ViewModel() {
         }
     }
 
+    /** Legacy share entry point kept for old callers; the new Settings UI uses SAF below. */
     fun exportData(context: Context) {
         viewModelScope.launch {
             runCatching {
-                val augeRepository = AugeRepository.getInstance(context.applicationContext)
-                val bodyRepository = BodyProgressRepository.getInstance(context.applicationContext)
-                bodyRepository.awaitReady()
-                val db = KpknDatabase.getInstance(context.applicationContext)
-                val payload = SettingsExportPayload(
-                    schemaVersion = EXPORT_SCHEMA_VERSION,
-                    exportedAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                    settings = programRepository.settings.value.copy(apiKeys = ApiKeys()),
-                    programs = programRepository.programs.value,
-                    workoutLogs = programRepository.history.value,
-                    activeProgramState = programRepository.activeProgramState.value,
-                    ongoingWorkout = programRepository.ongoingWorkout.value,
-                    nutritionLogs = nutritionRepository.nutritionLogs.value,
-                    nutritionPlans = nutritionRepository.nutritionPlans.value,
-                    activeNutritionPlanId = nutritionRepository.activeNutritionPlanId.value,
-                    pantryItems = db.nutritionDao().getAllPantryItems().map { it.toPantryItem() },
-                    mealTemplates = db.nutritionDao().getAllTemplates().map { it.toMealTemplate() },
-                    customFoods = nutritionRepository.getCustomFoodsForBackup(),
-                    learnedResolutions = db.learnedResolutionDao().getAll().map(::toBackup),
-                    foodCatalogMeta = nutritionRepository.getFoodCatalogMetaForBackup(),
-                    bodyObservations = bodyRepository.observations.value,
-                    bodyGoals = bodyRepository.goals.value,
-                    measurementSchedule = bodyRepository.measurementSchedule.value,
-                    calibrationProfile = NutritionCalibrationRepository
-                        .getInstance(context.applicationContext)
-                        .get(),
-                    dailyGoalSnapshots = nutritionRepository.getDailyGoalSnapshots(),
-                    wellbeingLogs = augeRepository.getWellbeingLogs(),
-                    sleepLogs = augeRepository.getLastNSleepLogs(30),
-                    sleepLogsExtended = augeRepository.getAllSleepLogsExtended(),
-                    postSessionFeedback = augeRepository.getPostSessionFeedbacks(),
-                    adaptiveCache = augeRepository.getAdaptiveCache(),
-                )
+                val payload = buildExportPayload(context)
                 val exportJson = dbJson.encodeToString(payload)
                 val fileName = "kpkn-export-${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))}.json"
                 val exportDir = File(context.cacheDir, "exports").apply { mkdirs() }
@@ -220,6 +165,66 @@ class SettingsViewModel : ViewModel() {
                 ).show()
             }
         }
+    }
+
+    fun exportData(context: Context, destination: Uri, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val exportJson = dbJson.encodeToString(buildExportPayload(context))
+                context.contentResolver.openOutputStream(destination)?.use { output ->
+                    output.bufferedWriter(Charsets.UTF_8).use { it.write(exportJson) }
+                } ?: error("No se pudo abrir el archivo de destino")
+            }.onSuccess {
+                withContext(Dispatchers.Main) { onSuccess() }
+            }.onFailure { error ->
+                withContext(Dispatchers.Main) { onError(error.message ?: "Error desconocido") }
+            }
+        }
+    }
+
+    private suspend fun buildExportPayload(context: Context): SettingsExportPayload {
+        val appContext = context.applicationContext
+        val augeRepository = AugeRepository.getInstance(appContext)
+        val bodyRepository = BodyProgressRepository.getInstance(appContext)
+        bodyRepository.awaitReady()
+        val db = KpknDatabase.getInstance(appContext)
+        val profilePhotoJpegBase64 = ProfilePhotoStore.readBase64(
+            appContext,
+            programRepository.settings.value.profilePicture,
+        )
+        return SettingsExportPayload(
+            schemaVersion = EXPORT_SCHEMA_VERSION,
+            exportedAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+            // Never carry a legacy provider URI in a portable backup. The token
+            // is emitted only when the private JPEG was actually read.
+            settings = programRepository.settings.value.copy(
+                apiKeys = ApiKeys(),
+                profilePicture = ProfilePhotoStore.STORAGE_TOKEN.takeIf { profilePhotoJpegBase64 != null },
+            ),
+            profilePhotoJpegBase64 = profilePhotoJpegBase64,
+            programs = programRepository.programs.value,
+            workoutLogs = programRepository.history.value,
+            activeProgramState = programRepository.activeProgramState.value,
+            ongoingWorkout = programRepository.ongoingWorkout.value,
+            nutritionLogs = nutritionRepository.nutritionLogs.value,
+            nutritionPlans = nutritionRepository.nutritionPlans.value,
+            activeNutritionPlanId = nutritionRepository.activeNutritionPlanId.value,
+            pantryItems = db.nutritionDao().getAllPantryItems().map { it.toPantryItem() },
+            mealTemplates = db.nutritionDao().getAllTemplates().map { it.toMealTemplate() },
+            customFoods = nutritionRepository.getCustomFoodsForBackup(),
+            learnedResolutions = db.learnedResolutionDao().getAll().map(::toBackup),
+            foodCatalogMeta = nutritionRepository.getFoodCatalogMetaForBackup(),
+            bodyObservations = bodyRepository.observations.value,
+            bodyGoals = bodyRepository.goals.value,
+            measurementSchedule = bodyRepository.measurementSchedule.value,
+            calibrationProfile = NutritionCalibrationRepository.getInstance(appContext).get(),
+            dailyGoalSnapshots = nutritionRepository.getDailyGoalSnapshots(),
+            wellbeingLogs = augeRepository.getWellbeingLogs(),
+            sleepLogs = augeRepository.getLastNSleepLogs(30),
+            sleepLogsExtended = augeRepository.getAllSleepLogsExtended(),
+            postSessionFeedback = augeRepository.getPostSessionFeedbacks(),
+            adaptiveCache = augeRepository.getAdaptiveCache(),
+        )
     }
 
     private fun shareExportFile(context: Context, file: File) {
@@ -251,12 +256,21 @@ class SettingsViewModel : ViewModel() {
                     "Formato de exportación no compatible: ${payload.schemaVersion}"
                 }
                 val db = KpknDatabase.getInstance(context)
+                if (payload.profilePhotoJpegBase64 == null) {
+                    ProfilePhotoStore.delete(context.applicationContext)
+                }
+                val restoredPhotoToken = payload.profilePhotoJpegBase64?.let {
+                    ProfilePhotoStore.saveBase64(context.applicationContext, it)
+                }
 
                 db.withTransaction {
+                    // Import is a restore, not a merge: stale rows must not survive a backup restore.
+                    db.clearAllTables()
                     db.settingsDao().upsert(
                         payload.settings.copy(
-                            apiProvider = ApiProvider.DEEPSEEK,
+                            apiProvider = ApiProvider.LOCAL,
                             apiKeys = ApiKeys(),
+                            profilePicture = restoredPhotoToken,
                         ).toEntity(),
                     )
                     payload.programs.forEach { db.programDao().upsert(it.toEntity()) }
@@ -283,16 +297,16 @@ class SettingsViewModel : ViewModel() {
                     }
                 }
 
-                BodyProgressRepository.getInstance(context.applicationContext)
-                    .refreshFromStorage()
-                payload.measurementSchedule?.let {
-                    BodyProgressRepository.getInstance(context.applicationContext)
-                        .updateMeasurementSchedule(it)
+                val bodyRepository = BodyProgressRepository.getInstance(context.applicationContext)
+                bodyRepository.refreshFromStorage()
+                bodyRepository.updateMeasurementSchedule(payload.measurementSchedule ?: MeasurementSchedule())
+                val calibrationRepository = NutritionCalibrationRepository.getInstance(context.applicationContext)
+                if (payload.calibrationProfile != null) calibrationRepository.save(payload.calibrationProfile) else calibrationRepository.clear()
+                if (payload.foodCatalogMeta != null) {
+                    nutritionRepository.restoreFoodCatalogMeta(payload.foodCatalogMeta)
+                } else {
+                    context.applicationContext.getSharedPreferences("nutrition_food_catalog", Context.MODE_PRIVATE).edit().clear().commit()
                 }
-                payload.calibrationProfile?.let {
-                    NutritionCalibrationRepository.getInstance(context.applicationContext).save(it)
-                }
-                payload.foodCatalogMeta?.let { nutritionRepository.restoreFoodCatalogMeta(it) }
 
                 val augeRepository = AugeRepository.getInstance(context.applicationContext)
                 augeRepository.importBackupSlice(
@@ -342,11 +356,14 @@ class SettingsViewModel : ViewModel() {
             runCatching {
                 val db = KpknDatabase.getInstance(context)
                 db.clearAllTables()
-                DeepSeekCredentialStore.clear(context)
-                _deepSeekKey.value = null
+                LegacyAiCredentialCleanup.clear(context)
 
                 context.getSharedPreferences("nutrition_food_catalog", Context.MODE_PRIVATE).edit().clear().commit()
                 BodyProgressRepository.getInstance(context.applicationContext).clearAllDataAndAwait()
+                ProfilePhotoStore.delete(context.applicationContext)
+                KpknDiagnosticStorage.clear(context.applicationContext)
+                File(context.applicationContext.filesDir, "kpkn_logs").deleteRecursively()
+                File(context.applicationContext.filesDir, "nutrition_telemetry").deleteRecursively()
 
                 programRepository.updateSettings { Settings() }
                 programRepository.refreshData()
@@ -417,6 +434,7 @@ private data class SettingsExportPayload(
     val schemaVersion: Int = 1,
     val exportedAt: String,
     val settings: Settings,
+    val profilePhotoJpegBase64: String? = null,
     val programs: List<com.example.kpkn.data.models.Program>,
     val workoutLogs: List<com.example.kpkn.data.models.WorkoutLog>,
     val activeProgramState: com.example.kpkn.data.models.ActiveProgramState?,
@@ -480,4 +498,4 @@ private data class LearnedResolutionBackup(
     )
 }
 
-private const val EXPORT_SCHEMA_VERSION = 2
+private const val EXPORT_SCHEMA_VERSION = 3

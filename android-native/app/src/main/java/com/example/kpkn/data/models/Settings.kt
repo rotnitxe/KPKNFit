@@ -54,8 +54,8 @@ data class Settings(
     val workoutLoggerMode: WorkoutLoggerMode = WorkoutLoggerMode.PRO,
     val sessionCompactView: Boolean = false,
 
-    /** Legacy enum retained only so old Settings JSON can be decoded during migration. */
-    val apiProvider: ApiProvider = ApiProvider.DEEPSEEK,
+    /** Local parser is the only active provider; legacy values are normalized on load/import. */
+    val apiProvider: ApiProvider = ApiProvider.LOCAL,
     val apiKeys: ApiKeys = ApiKeys(),
     val aiTemperature: Double = 0.7,
     val useApiForDescriptions: Boolean = false,
@@ -130,7 +130,13 @@ enum class WorkoutLoggerMode { PRO, SIMPLE }
 enum class VoiceVerbosity { COMPLETE, ESSENTIAL, SILENT }
 enum class VoiceNoiseProfile { GYM, QUIET }
 enum class VoiceCaptureMode { HANDS_FREE, MUSIC }
-enum class ApiProvider { GEMINI, GPT, DEEPSEEK }
+enum class ApiProvider {
+    LOCAL,
+    GEMINI,
+    GPT,
+    @Deprecated("Legacy persisted value; normalize to LOCAL")
+    DEEPSEEK,
+}
 enum class AppTheme { DEFAULT, DARK, DEEP_BLACK, VOLT, LIGHT }
 enum class HapticIntensity { LIGHT, MEDIUM, STRONG }
 enum class AthleteType {
@@ -142,6 +148,7 @@ enum class AthleteType {
 data class ApiKeys(
     val gemini: String? = null,
     val gpt: String? = null,
+    @Deprecated("Legacy persisted credential; cleared during Android settings migration")
     val deepseek: String? = null,
 )
 

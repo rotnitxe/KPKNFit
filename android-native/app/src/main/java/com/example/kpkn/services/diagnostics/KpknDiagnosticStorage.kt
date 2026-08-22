@@ -24,7 +24,7 @@ object KpknDiagnosticStorage {
     private const val KEY_TREE_LABEL = "tree_label"
     private const val ROOT_NAME = "KPKN"
     private const val LOGS_NAME = "logs"
-    private const val REPORTS_NAME = "reports"
+    private val OFFICIAL_AREAS = listOf("workout", "voice", "nutrition", "app")
     private const val MAX_MIRROR_FILES = 64
     private const val MAX_MIRROR_TOTAL_BYTES = 50L * 1024L * 1024L
     private const val PRUNE_EVERY_EVENTS = 32
@@ -51,8 +51,17 @@ object KpknDiagnosticStorage {
             .putString(KEY_TREE_URI, treeUri.toString())
             .putString(KEY_TREE_LABEL, label)
             .commit()
+        synchronized(fileUris) {
+            fileUris.clear()
+            mirroredRecoveryFiles.clear()
+            eventsSincePrune = 0
+            eventsSinceSync = 0
+        }
         ensureDirectoryPath(appContext, listOf(LOGS_NAME))
-        ensureDirectoryPath(appContext, listOf(REPORTS_NAME))
+        val today = UTC_DAY_FORMAT.format(java.time.Instant.now())
+        OFFICIAL_AREAS.forEach { area ->
+            ensureDirectoryPath(appContext, listOf(LOGS_NAME, area, today))
+        }
         mirrorRecoveryFiles(appContext)
         label
     }
@@ -68,7 +77,12 @@ object KpknDiagnosticStorage {
             }
         }
         appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().clear().commit()
-        synchronized(fileUris) { fileUris.clear() }
+        synchronized(fileUris) {
+            fileUris.clear()
+            mirroredRecoveryFiles.clear()
+            eventsSincePrune = 0
+            eventsSinceSync = 0
+        }
     }
 
     fun isConfigured(context: Context): Boolean = configuredTreeUri(context) != null
@@ -96,7 +110,9 @@ object KpknDiagnosticStorage {
             if (first.isFailure) {
                 val error = first.exceptionOrNull()
                 synchronized(fileUris) { fileUris.remove(source.absolutePath) }
-                runCatching { writeMirrorLine(appContext, area, date, source, line) }
+                // A provider may throw after committing an append. Replaying only the
+                // line can duplicate it, so recovery rewrites the complete local file.
+                runCatching { mirrorRecoveryFile(appContext, source) }
                     .onFailure { retryError ->
                         Log.e(TAG, "SAF mirror deferred; local source retained", retryError ?: error)
                     }
@@ -116,7 +132,7 @@ object KpknDiagnosticStorage {
         }
     }
 
-    /** Mirrors a local report/artifact to KPKN/reports without opening a picker. */
+    /** Mirrors a local artifact below the configured KPKN tree without opening a picker. */
     fun mirrorFile(context: Context, source: File, relativePath: String) {
         if (!source.isFile || !isConfigured(context)) return
         val appContext = context.applicationContext
@@ -152,9 +168,13 @@ object KpknDiagnosticStorage {
         }.distinctBy(File::getAbsolutePath)
         if (candidates.isEmpty()) return
         writer.execute {
-            candidates.filter { it.exists() && mirroredRecoveryFiles.add(it.absolutePath) }.forEach { source ->
+            candidates.filter(File::exists).forEach { source ->
+                if (!mirroredRecoveryFiles.add(source.absolutePath)) return@forEach
                 runCatching { mirrorRecoveryFile(appContext, source) }
-                    .onFailure { error -> Log.e(TAG, "Unable to recover ${source.name}", error) }
+                    .onFailure { error ->
+                        mirroredRecoveryFiles.remove(source.absolutePath)
+                        Log.e(TAG, "Unable to recover ${source.name}", error)
+                    }
             }
         }
     }
@@ -163,21 +183,31 @@ object KpknDiagnosticStorage {
         val root = context.filesDir
         val newRoot = File(root, KpknDiagnosticLogger.LOG_ROOT)
         val relative = when {
-            source.path.startsWith(newRoot.path) -> source.relativeTo(newRoot).path.replace('\\', '/')
+            source.path.startsWith(newRoot.path) -> {
+                val localRelative = source.relativeTo(newRoot).path.replace('\\', '/')
+                val legacyArea = localRelative.substringBefore('/').lowercase()
+                if (legacyArea in OFFICIAL_AREAS) {
+                    "$LOGS_NAME/$localRelative"
+                } else {
+                    val date = UTC_DAY_FORMAT.format(
+                        java.time.Instant.ofEpochMilli(source.lastModified().takeIf { it > 0 } ?: System.currentTimeMillis()),
+                    )
+                    "$LOGS_NAME/app/$date/legacy-$legacyArea-${source.name}"
+                }
+            }
             source.path.startsWith(File(root, "kpkn_diagnostics").path) -> {
                 val legacyRelative = source.relativeTo(File(root, "kpkn_diagnostics")).path.replace('\\', '/')
-                if (legacyRelative.startsWith("reports/")) legacyRelative else legacyLogRelative(source, legacyRelative)
+                legacyLogRelative(source, legacyRelative)
             }
             source.path.startsWith(File(root, "voice_diagnostics").path) ->
                 "${LOGS_NAME}/voice/${UTC_DAY_FORMAT.format(java.time.Instant.ofEpochMilli(source.lastModified()))}/${source.name}"
             source.path.startsWith(File(root, "nutrition_telemetry").path) ->
                 "${LOGS_NAME}/nutrition/${UTC_DAY_FORMAT.format(java.time.Instant.ofEpochMilli(source.lastModified()))}/${source.name}"
-            else -> "${LOGS_NAME}/performance/${UTC_DAY_FORMAT.format(java.time.Instant.now())}/${source.name}"
+            else -> "${LOGS_NAME}/app/${UTC_DAY_FORMAT.format(java.time.Instant.now())}/${source.name}"
         }
         val normalized = when {
             relative.startsWith("$LOGS_NAME/") -> relative
-            relative.startsWith("$REPORTS_NAME/") -> relative
-            else -> "$REPORTS_NAME/$relative"
+            else -> "$LOGS_NAME/$relative"
         }
         val segments = normalized.split('/').filter(String::isNotBlank)
         val directory = ensureDirectoryPath(context, segments.dropLast(1)) ?: return
@@ -213,7 +243,8 @@ object KpknDiagnosticStorage {
     private fun ensureDirectoryPath(context: Context, segments: List<String>): Uri? {
         val treeUri = configuredTreeUri(context) ?: return null
         var parent = treeDocumentUri(treeUri)
-        segments.forEach { segment ->
+        val rootedSegments = if (segments.firstOrNull() == ROOT_NAME) segments else listOf(ROOT_NAME) + segments
+        rootedSegments.forEach { segment ->
             parent = ensureDirectory(context, treeUri, parent, segment) ?: return null
         }
         return parent
@@ -348,11 +379,10 @@ object KpknDiagnosticStorage {
         "voice" -> "voice"
         "workout" -> "workout"
         "nutrition" -> "nutrition"
-        "performance", "app", "assistant", "programs", "learn", "health" -> "performance"
-        "auge" -> "auge"
-        "reports", "backend" -> "reports"
+        "performance", "app", "assistant", "programs", "learn", "health",
+        "auge", "reports", "backend" -> "app"
         "tts" -> "voice"
-        else -> "performance"
+        else -> "app"
     }
 
     private fun mimeFor(file: File): String = when (file.extension.lowercase()) {

@@ -1,19 +1,20 @@
 package com.example.kpkn.telemetry.nutrition
 
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
-import android.provider.DocumentsContract
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
-import java.io.File
+import com.example.kpkn.data.diagnostics.TelemetryPriority
 import java.time.Instant
-import java.util.Locale
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 /**
  * NutriTelemetry — telemetría exclusiva de nutrición.
@@ -33,15 +34,17 @@ import java.util.concurrent.atomic.AtomicLong
  */
 object NutritionTelemetry {
     const val SCHEMA_VERSION = KpknDiagnosticLogger.SCHEMA_VERSION
+    /** Legacy constant retained for source compatibility; no directory is created. */
+    @Deprecated("Nutrition telemetry is stored only in kpkn_logs/nutrition")
     internal const val DIR_NAME = "nutrition_telemetry"
 
     private const val PREFS = "nutrition_telemetry"
-    private const val KEY_ENABLED = "telemetry_enabled"
     private const val KEY_IN_FLIGHT = "in_flight_descriptor"
     private const val KEY_PENDING_CRASH_FILE = "pending_crash_file"
 
     @Volatile private var application: Context? = null
-    @Volatile private var store: NutritionTelemetryStore? = null
+    @Volatile private var initialized = false
+    private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val sessionId: String = newId()
     private val seq = AtomicLong(0L)
@@ -51,33 +54,24 @@ object NutritionTelemetry {
 
     @Synchronized
     fun initialize(context: Context) {
-        val alreadyReady = store != null
         val app = context.applicationContext
         application = app
-        if (!alreadyReady) {
-            val freshStore = NutritionTelemetryStore(
-                baseDir = File(app.filesDir, DIR_NAME),
-                sessionId = sessionId,
-            )
-            store = freshStore
-            freshStore.executeAsync {
-                freshStore.pruneIfNeeded()
+        if (!initialized) {
+            initialized = true
+            ioScope.launch {
                 consumePendingMarkers()
                 emit("session_start", mapOf("apiLevel" to Build.VERSION.SDK_INT))
             }
         }
     }
 
-    fun isInitialized(): Boolean = store != null
+    fun isInitialized(): Boolean = initialized
 
-    fun isEnabled(): Boolean = prefs()?.getBoolean(KEY_ENABLED, true) ?: true
+    /** Nutrition diagnostics are mandatory so parser/crash evidence cannot be disabled. */
+    fun isEnabled(): Boolean = true
 
-    fun setEnabled(enabled: Boolean) {
-        val was = isEnabled()
-        prefs()?.edit()?.putBoolean(KEY_ENABLED, enabled)?.apply()
-        if (enabled && !was) emit("telemetry_enabled")
-        if (!enabled && was) emit("telemetry_disabled")
-    }
+    @Deprecated("Nutrition telemetry is always enabled")
+    fun setEnabled(enabled: Boolean) = Unit
 
     // ─── API de eventos y trazas ─────────────────────────────────────────────
 
@@ -290,7 +284,9 @@ object NutritionTelemetry {
                 name = "app_crash",
                 fields = crashFields,
                 sessionId = sessionId,
+                priority = TelemetryPriority.CRITICAL,
             )
+            KpknDiagnosticLogger.flushSync()
             prefs(app)?.edit()
                 ?.putString(KEY_PENDING_CRASH_FILE, eventId ?: "central-log-write-failed")
                 ?.commit()
@@ -308,87 +304,16 @@ object NutritionTelemetry {
     /** Copia asíncrona de todos los JSONL/JSON al árbol SAF elegido por el usuario. */
     fun exportToAsync(context: Context, treeUri: Uri, onDone: (copied: Int, total: Int) -> Unit) {
         val app = context.applicationContext
-        if (store == null) {
-            onDone(0, 0)
-            return
+        ioScope.launch {
+            val result = runCatching {
+                com.example.kpkn.services.diagnostics.KpknDiagnosticStorage.configure(app, treeUri)
+                KpknDiagnosticLogger.flushSync()
+                com.example.kpkn.services.diagnostics.KpknDiagnosticStorage.mirrorRecoveryFiles(app)
+                val files = KpknDiagnosticLogger.filesForArea(app, "nutrition")
+                files.size to files.size
+            }.getOrDefault(0 to 0)
+            onDone(result.first, result.second.toInt())
         }
-        store?.executeAsync {
-            val result = runCatching { exportTo(app, treeUri) }.getOrDefault(0 to 0)
-            onDone(result.first, result.second)
-        }
-    }
-
-    private fun exportTo(context: Context, treeUri: Uri): Pair<Int, Int> {
-        if (!DocumentsContract.isTreeUri(treeUri)) return 0 to 0
-        runCatching {
-            context.contentResolver.takePersistableUriPermission(
-                treeUri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
-            )
-        }
-        val files = KpknDiagnosticLogger.filesForArea(context, "nutrition")
-        var copied = 0
-        files.forEach { source ->
-            runCatching {
-                val mime = when (source.extension.lowercase(Locale.US)) {
-                    "jsonl" -> "application/x-ndjson"
-                    "json" -> "application/json"
-                    else -> "application/octet-stream"
-                }
-                val target = findChild(context, treeUri, source.name)
-                    ?: createDocument(context, treeUri, source.name, mime)
-                    ?: error("No se pudo crear ${source.name}")
-                context.contentResolver.openOutputStream(target, "wt")?.use { output ->
-                    source.inputStream().use { input -> input.copyTo(output) }
-                    output.flush()
-                } ?: error("No se pudo escribir ${source.name}")
-                copied += 1
-            }
-        }
-        emit("telemetry_export", mapOf("filesCopied" to copied, "filesTotal" to files.size))
-        return copied to files.size
-    }
-
-
-    private fun createDocument(context: Context, treeUri: Uri, displayName: String, mimeType: String): Uri? {
-        val parent = DocumentsContract.buildDocumentUriUsingTree(
-            treeUri,
-            DocumentsContract.getTreeDocumentId(treeUri),
-        )
-        return runCatching {
-            DocumentsContract.createDocument(context.contentResolver, parent, mimeType, displayName.take(120))
-        }.getOrNull()
-    }
-
-    private fun findChild(context: Context, treeUri: Uri, displayName: String): Uri? {
-        val children = DocumentsContract.buildChildDocumentsUriUsingTree(
-            treeUri,
-            DocumentsContract.getTreeDocumentId(treeUri),
-        )
-        return runCatching {
-            context.contentResolver.query(
-                children,
-                arrayOf(
-                    DocumentsContract.Document.COLUMN_DOCUMENT_ID,
-                    DocumentsContract.Document.COLUMN_DISPLAY_NAME,
-                ),
-                null,
-                null,
-                null,
-            )?.use { cursor ->
-                val idIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
-                val nameIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
-                while (cursor.moveToNext()) {
-                    if (cursor.getString(nameIndex) == displayName) {
-                        return@use DocumentsContract.buildDocumentUriUsingTree(
-                            treeUri,
-                            cursor.getString(idIndex),
-                        )
-                    }
-                }
-                null
-            }
-        }.getOrNull()
     }
 
     // ─── Utilidades internas ─────────────────────────────────────────────────

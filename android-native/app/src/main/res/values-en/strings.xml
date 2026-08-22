@@ -56,90 +56,7 @@
     <string name="nav_training">Training</string>
     <string name="nav_nutrition">Nutrition</string>
     <string name="nav_body">Body</string>
-    <string name="nav_wikilab">Learn</string>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         SETTINGS — main screen
-    ═══════════════════════════════════════════════════════════════ -->
-    <string name="screen_settings_title">Settings</string>
-    <string name="screen_settings_cat_general">General</string>
-    <string name="screen_settings_cat_general_subtitle">Theme, animations, AI and haptic feedback</string>
-    <string name="screen_settings_cat_profile">Personal profile</string>
-    <string name="screen_settings_cat_profile_subtitle">Name, body measurements and athlete type</string>
-    <string name="screen_settings_cat_nutrition">Nutrition</string>
-    <string name="screen_settings_cat_nutrition_subtitle">Calories, macros, sleep and wizard</string>
-    <string name="screen_settings_cat_training">Training</string>
-    <string name="screen_settings_cat_training_subtitle">Units, rest timer, logger and volume</string>
-    <string name="screen_settings_cat_rings">My RINGS</string>
-    <string name="screen_settings_cat_rings_subtitle">Fatigue, recovery and AUGE engine sensitivity</string>
-    <string name="screen_settings_cat_notifications">Notifications</string>
-    <string name="screen_settings_cat_notifications_subtitle">Workout, meal and sleep reminders</string>
-    <string name="screen_settings_cat_data">Data &amp; app</string>
-    <string name="screen_settings_cat_data_subtitle">Export, reset and view version</string>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         SETTINGS — General
-    ═══════════════════════════════════════════════════════════════ -->
-    <string name="screen_settings_general_title">General</string>
-
-    <!-- Section: Appearance -->
-    <string name="screen_settings_general_section_appearance">Appearance</string>
-    <string name="screen_settings_general_theme">App theme</string>
-    <string name="screen_settings_general_theme_desc">Sets the stage for native visual modes in the future</string>
-    <string name="screen_settings_general_animations">Animations</string>
-    <string name="screen_settings_general_animations_desc">Enable transitions and micro-interactions in the UI</string>
-    <string name="screen_settings_general_reduced_motion">Performance saver mode</string>
-    <string name="screen_settings_general_reduced_motion_desc">Reduces motion and heavy effects for lower-end devices</string>
-
-    <!-- Section: Sensory -->
-    <string name="screen_settings_general_section_sensorial">Sensory</string>
-    <string name="screen_settings_general_haptic">Haptic vibration</string>
-    <string name="screen_settings_general_haptic_desc">Tactile feedback for key app actions</string>
-    <string name="screen_settings_general_haptic_intensity">Haptic intensity</string>
-    <string name="screen_settings_general_haptic_intensity_desc">Adjust the strength of the feedback</string>
-    <string name="screen_settings_general_sounds">Sounds</string>
-    <string name="screen_settings_general_sounds_desc">Includes audio cues and in-app celebrations</string>
-
-    <!-- Section: Artificial Intelligence -->
-    <string name="screen_settings_general_section_ai">Artificial intelligence</string>
-    <string name="screen_settings_general_ai_local_food">Caupo AI for food</string>
-    <string name="screen_settings_general_ai_local_food_desc">Prioritizes Caupo AI on-device for meal parsing</string>
-    <string name="screen_settings_general_ai_provider">AI provider</string>
-    <string name="screen_settings_general_ai_provider_desc">Primary provider for AI-assisted features</string>
-    <string name="screen_settings_general_api_key_gemini">Gemini API key</string>
-    <string name="screen_settings_general_api_key_gpt">GPT API key</string>
-    <string name="screen_settings_general_api_key_deepseek">DeepSeek API key</string>
-    <string name="screen_settings_general_ai_temperature">AI temperature</string>
-    <string name="screen_settings_general_ai_fallback">Use AI fallback</string>
-    <string name="screen_settings_general_ai_fallback_desc">If the primary provider fails, try the next one</string>
-    <string name="screen_settings_general_ai_max_tokens">Max tokens</string>
-
-    <!-- Section: Language -->
-    <string name="screen_settings_general_section_language">Language</string>
-    <string name="screen_settings_general_language">App language</string>
-    <string name="screen_settings_general_language_desc">Select the interface language</string>
-    <string name="screen_settings_general_language_system">Use system language</string>
-    <string name="screen_settings_general_language_es">Español</string>
-    <string name="screen_settings_general_language_en">English</string>
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         SETTINGS — Notifications
-    ═══════════════════════════════════════════════════════════════ -->
-    <string name="screen_settings_notif_title">Notifications</string>
-    <string name="screen_settings_notif_section_workout">Training</string>
-    <string name="screen_settings_notif_workout_reminder">Workout reminder</string>
-    <string name="screen_settings_notif_workout_reminder_desc">Saves the time preference for future notifications</string>
-    <string name="screen_settings_notif_workout_time">Reminder time</string>
-    <string name="screen_settings_notif_section_meals">Meals</string>
-    <string name="screen_settings_notif_meal_reminder">Meal reminder</string>
-    <string name="screen_settings_notif_meal_reminder_desc">Enable reminders for main meals</string>
-    <string name="screen_settings_notif_breakfast">Breakfast</string>
-    <string name="screen_settings_notif_lunch">Lunch</string>
-    <string name="screen_settings_notif_dinner">Dinner</string>
-    <string name="screen_settings_notif_section_sleep">Sleep</string>
-    <string name="screen_settings_notif_sleep_reminder">Sleep reminder</string>
-    <string name="screen_settings_notif_sleep_reminder_desc">Saves the recommended time to start winding down</string>
-    <string name="screen_settings_notif_sleep_time">Reminder time</string>
+    <string name="nav_wikilab">Aprende</string>
 
     <!-- ═══════════════════════════════════════════════════════════════
          NOTIFICATIONS — Channels
@@ -331,7 +248,7 @@
     <!-- ═══════════════════════════════════════════════════════════════
          VOLUME CALIBRATION
     ═══════════════════════════════════════════════════════════════ -->
-    <string name="screen_calibration_desc">We use the athlete profile to suggest weekly sets per muscle. This result also syncs the program focus.</string>
+    <string name="screen_calibration_desc">We use your data and history to suggest weekly sets per muscle. This result also syncs the program focus.</string>
     <string name="screen_calibration_main_goal">Main Objective</string>
     <string name="screen_calibration_main_goal_helper">This changes the program focus and the basis for recommendations.</string>
     <string name="screen_calibration_technique">Technique</string>

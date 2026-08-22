@@ -24,7 +24,8 @@ class KpknDiagnosticLoggerExportTest {
         assertEquals("voice", KpknDiagnosticLogger.areaFor("voice"))
         assertEquals("voice", KpknDiagnosticLogger.areaFor("tts"))
         assertEquals("nutrition", KpknDiagnosticLogger.areaFor("nutrition"))
-        assertEquals("auge", KpknDiagnosticLogger.areaFor("auge"))
-        assertEquals("reports", KpknDiagnosticLogger.areaFor("reports"))
+        assertEquals("app", KpknDiagnosticLogger.areaFor("auge"))
+        assertEquals("app", KpknDiagnosticLogger.areaFor("reports"))
+        assertEquals(listOf("workout", "voice", "nutrition", "app"), KpknDiagnosticLogger.officialAreas)
     }
 }

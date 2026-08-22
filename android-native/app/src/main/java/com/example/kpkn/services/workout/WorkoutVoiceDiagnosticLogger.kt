@@ -34,7 +34,6 @@ object WorkoutVoiceDiagnosticLogger {
     private var commandsOk = 0
     private var commandsFailed = 0
     private var nativeFallbacks = 0
-    private val voiceReports = linkedSetOf<String>()
 
     fun initialize(context: Context) = synchronized(lock) {
         appContext = context.applicationContext
@@ -52,7 +51,6 @@ object WorkoutVoiceDiagnosticLogger {
             commandsOk = 0
             commandsFailed = 0
             nativeFallbacks = 0
-            voiceReports.clear()
             active = true
             appendLocked(
                 "diagnostic_started",
@@ -113,7 +111,6 @@ object WorkoutVoiceDiagnosticLogger {
                 }
             }
             "native_fallback_attempt" -> nativeFallbacks += 1
-            "report_voice_saved" -> fields["reportId"]?.toString()?.takeIf(String::isNotBlank)?.let(voiceReports::add)
         }
         runCatching { appendLocked(name, fields) }
             .onFailure { error -> Log.e(TAG, "Unable to append voice diagnostic", error) }
@@ -217,7 +214,6 @@ object WorkoutVoiceDiagnosticLogger {
                     "commandsOk" to commandsOk,
                     "commandsFailed" to commandsFailed,
                     "nativeFallbacks" to nativeFallbacks,
-                    "voiceReports" to voiceReports.toList(),
                     "endedBy" to reason,
                 ),
             )
@@ -231,7 +227,6 @@ object WorkoutVoiceDiagnosticLogger {
         commandsOk = 0
         commandsFailed = 0
         nativeFallbacks = 0
-        voiceReports.clear()
     }
 
     private fun appendLocked(name: String, fields: Map<String, Any?> = emptyMap()) {
