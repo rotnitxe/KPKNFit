@@ -21,6 +21,12 @@ enum class ExerciseDragEndResult {
     Inactive,
 }
 
+/** Whether a drag keeps a whole superset together or moves one member. */
+enum class ExerciseDragScope {
+    BLOCK,
+    INDIVIDUAL,
+}
+
 /**
  * Snapshot of drag UI fields for ViewModel [StateFlow] observation (UDF).
  * Bounds maps stay on the controller; this covers gesture/target feedback only.
@@ -32,6 +38,7 @@ data class SessionEditorDragUiState(
     val exerciseDropTargetKey: String? = null,
     val exerciseDropTargetPartId: String? = null,
     val exerciseDropTargetIndex: Int? = null,
+    val exerciseDropTargetGroupId: String? = null,
     val exerciseDropOutOfRange: Boolean = false,
     val draggingPartId: String? = null,
     val draggingPartOffsetY: Float = 0f,
@@ -70,6 +77,7 @@ class SessionEditorDragController {
     var exerciseDropTargetKey by mutableStateOf<String?>(null)
     var exerciseDropTargetPartId by mutableStateOf<String?>(null)
     var exerciseDropTargetIndex by mutableStateOf<Int?>(null)
+    var exerciseDropTargetGroupId by mutableStateOf<String?>(null)
     var dragStartExerciseRect by mutableStateOf<Rect?>(null)
     /** @deprecated Prefer [dragPointerStartWindow]; kept for legacy grab-offset callers. */
     var dragStartGrabOffset by mutableStateOf(Offset(24f, 24f))
@@ -79,6 +87,7 @@ class SessionEditorDragController {
     var exerciseDropOutOfRange by mutableStateOf(false)
 
     var isExerciseDragging by mutableStateOf(false)
+    var draggingExerciseScope by mutableStateOf(ExerciseDragScope.BLOCK)
     var frozenExerciseBounds by mutableStateOf<Map<String, Rect>>(emptyMap())
     var frozenPartBounds by mutableStateOf<Map<String, Rect>>(emptyMap())
     var frozenPartFooterBounds by mutableStateOf<Map<String, Rect>>(emptyMap())
@@ -103,6 +112,7 @@ class SessionEditorDragController {
         exerciseDropTargetKey = exerciseDropTargetKey,
         exerciseDropTargetPartId = exerciseDropTargetPartId,
         exerciseDropTargetIndex = exerciseDropTargetIndex,
+        exerciseDropTargetGroupId = exerciseDropTargetGroupId,
         exerciseDropOutOfRange = exerciseDropOutOfRange,
         draggingPartId = draggingPartId,
         draggingPartOffsetY = draggingPartOffsetY,
@@ -153,6 +163,7 @@ class SessionEditorDragController {
         pointerStartWindow: Offset? = null,
         session: Session? = null,
         collapsedPartIds: Set<String> = emptySet(),
+        dragScope: ExerciseDragScope = ExerciseDragScope.BLOCK,
     ): Boolean {
         if (liveBounds != null) {
             liveBounds.forEach { (k, r) ->
@@ -172,8 +183,18 @@ class SessionEditorDragController {
             }
         }
 
-        // Superset-as-block: always drag via the first member's key / block rect.
-        val resolved = resolveSupersetBlockAnchor(partId, exerciseId, session)
+        // Header drags keep the superset together; member handles can opt into
+        // an individual move so a member can leave or join another group.
+        val resolved = if (dragScope == ExerciseDragScope.INDIVIDUAL) {
+            SupersetAnchor(
+                partId = partId,
+                exerciseId = exerciseId,
+                blockRect = exerciseBounds["$partId|$exerciseId"]
+                    ?: liveBounds?.get("$partId|$exerciseId"),
+            )
+        } else {
+            resolveSupersetBlockAnchor(partId, exerciseId, session)
+        }
         val resolvedPartId = resolved.partId
         val resolvedExerciseId = resolved.exerciseId
         val blockRect = resolved.blockRect
@@ -191,17 +212,23 @@ class SessionEditorDragController {
         exerciseDropTargetKey = null
         exerciseDropTargetPartId = null
         exerciseDropTargetIndex = null
+        exerciseDropTargetGroupId = null
         exerciseDropOutOfRange = false
         dragStartGrabOffset = grabOffset
         dragPointerStartWindow = pointerStartWindow
         dragStartExerciseRect = blockRect
         isExerciseDragging = true
+        draggingExerciseScope = dragScope
         accumulatedScrollPx = 0f
         collapsedPartIdsForDrag = collapsedPartIds
         lastExerciseDragSession = session
         lastExerciseDragGroupedParts = session?.parts?.filterNot { it.isUncategorizedPart() }
 
-        frozenExerciseBounds = collapseSupersetMemberBounds(exerciseBounds.toMap(), session)
+        frozenExerciseBounds = if (dragScope == ExerciseDragScope.INDIVIDUAL) {
+            exerciseBounds.toMap()
+        } else {
+            collapseSupersetMemberBounds(exerciseBounds.toMap(), session)
+        }
         frozenPartBounds = partBounds.toMap()
         frozenPartFooterBounds = partFooterBounds.toMap()
 
@@ -550,7 +577,7 @@ class SessionEditorDragController {
         if (targetPartId != null) {
             val sourceList = exerciseListFor(session, toNullablePartId(currentPartId))
             val draggedGroupId = sourceList.firstOrNull { it.id == activeExerciseId }?.supersetGroupRefOrLegacyId()
-            val draggedIds = if (draggedGroupId != null) {
+            val draggedIds = if (draggingExerciseScope == ExerciseDragScope.BLOCK && draggedGroupId != null) {
                 sourceList.filter { it.supersetGroupRefOrLegacyId() == draggedGroupId }.map { it.id }.toSet()
             } else {
                 setOf(activeExerciseId)
@@ -608,6 +635,25 @@ class SessionEditorDragController {
                     }
                 }
             }
+        }
+
+        exerciseDropTargetGroupId = if (draggingExerciseScope == ExerciseDragScope.INDIVIDUAL && targetPartId != null) {
+            // Joining a group is intentional only when the finger is over one
+            // of its visible member cards. Gaps are an explicit "outside the
+            // group" target, so a member can be pulled out even when dropped
+            // immediately after the group.
+            val targetListForGroup = exerciseListFor(session, toNullablePartId(targetPartId))
+            frozenExerciseBounds
+                .filterKeys { it.startsWith("$targetPartId|") }
+                .entries
+                .firstOrNull { (_, bounds) -> pointer.y >= bounds.top && pointer.y <= bounds.bottom }
+                ?.key
+                ?.substringAfter("|")
+                ?.let { hitExerciseId ->
+                    targetListForGroup.firstOrNull { it.id == hitExerciseId }?.supersetGroupRefOrLegacyId()
+                }
+        } else {
+            null
         }
 
         if (exerciseDropTargetPartId != targetPartId) {
@@ -708,7 +754,12 @@ class SessionEditorDragController {
         val sourceIndex = sourceList.indexOfFirst { it.id == exerciseId }
         if (sourceIndex < 0) return false
         val groupId = sourceList[sourceIndex].supersetGroupRefOrLegacyId()
-        val blockSize = if (groupId != null) {
+        if (draggingExerciseScope == ExerciseDragScope.INDIVIDUAL && groupId != exerciseDropTargetGroupId) {
+            // A membership change is a real move even if the insertion index
+            // happens to match the source index.
+            return false
+        }
+        val blockSize = if (draggingExerciseScope == ExerciseDragScope.BLOCK && groupId != null) {
             sourceList.count { it.supersetGroupRefOrLegacyId() == groupId }.coerceAtLeast(1)
         } else {
             1
@@ -724,11 +775,13 @@ class SessionEditorDragController {
         exerciseDropTargetKey = null
         exerciseDropTargetPartId = null
         exerciseDropTargetIndex = null
+        exerciseDropTargetGroupId = null
         exerciseDropOutOfRange = false
         dragStartExerciseRect = null
         dragStartGrabOffset = Offset(24f, 24f)
         dragPointerStartWindow = null
         isExerciseDragging = false
+        draggingExerciseScope = ExerciseDragScope.BLOCK
         frozenExerciseBounds = emptyMap()
         frozenPartBounds = emptyMap()
         frozenPartFooterBounds = emptyMap()
@@ -864,7 +917,7 @@ class SessionEditorDragController {
 
         val sourceList = exerciseListFor(session, toNullablePartId(currentPartId))
         val draggedGroupId = sourceList.firstOrNull { it.id == activeId }?.supersetGroupRefOrLegacyId()
-        val draggedIds = if (draggedGroupId != null) {
+        val draggedIds = if (draggingExerciseScope == ExerciseDragScope.BLOCK && draggedGroupId != null) {
             sourceList.filter { it.supersetGroupRefOrLegacyId() == draggedGroupId }.map { it.id }.toSet()
         } else {
             setOf(activeId)

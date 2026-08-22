@@ -44,6 +44,7 @@ class CardioGuideTest {
         val config = com.example.kpkn.data.models.CardioHiitConfig(targetRpe = 8.5)
         val guide = CardioGuideEngine.guide(CardioDetails(CardioType.AIR_BIKE, hiit = config))
         assertEquals(9, guide.rpeTarget)
+        assertEquals(8.5, guide.rpeTargetExact, 0.0)
         assertEquals("Cadencia según equipo", guide.cadenceRef)
     }
 }

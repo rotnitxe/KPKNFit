@@ -565,6 +565,7 @@ internal fun ExerciseSetsCarousel(
                                                         val default = UnilateralTarget(
                                                             weight = s.weight,
                                                             targetReps = s.targetReps,
+                                                            targetRepsRange = s.targetRepsRange,
                                                             targetDuration = s.targetDuration,
                                                             targetValue = s.plannedTargetV2,
                                                             targetRPE = s.targetRPE,
@@ -868,6 +869,7 @@ internal fun Exercise.toggledBilateralUnilateral(): Exercise {
                 val target = UnilateralTarget(
                     weight = set.weight,
                     targetReps = set.targetReps,
+                    targetRepsRange = set.targetRepsRange,
                     targetDuration = set.targetDuration,
                     targetValue = set.plannedTargetV2,
                     targetRPE = set.targetRPE,
@@ -891,6 +893,7 @@ internal fun Exercise.toggledBilateralUnilateral(): Exercise {
                     set.copy(
                         weight = source.weight,
                         targetReps = source.targetReps,
+                        targetRepsRange = source.targetRepsRange,
                         targetDuration = source.targetDuration,
                         plannedTargetV2 = source.targetValue,
                         targetRPE = source.targetRPE,

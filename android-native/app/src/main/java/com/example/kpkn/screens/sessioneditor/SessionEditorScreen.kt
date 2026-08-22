@@ -482,7 +482,17 @@ fun SessionEditorScreen(
     fun endExerciseDrag() {
         val activeSession = session ?: return
         val result = dragController.endExerciseDrag(activeSession) { fromPartId, exerciseId, toPartId, toIndex ->
-            viewModel.moveExerciseToPart(fromPartId, exerciseId, toPartId, toIndex)
+            viewModel.moveExerciseToPart(
+                sourcePartId = fromPartId,
+                exerciseId = exerciseId,
+                targetPartId = toPartId,
+                targetIndex = toIndex,
+                // Read the final projection after endExerciseDrag() recomputes
+                // the drop target. Capturing these before the final recompute
+                // could lose the group the card is being dropped into.
+                moveAsGroup = dragController.draggingExerciseScope == ExerciseDragScope.BLOCK,
+                targetGroupId = dragController.exerciseDropTargetGroupId,
+            )
         }
         if (result == ExerciseDragEndResult.OutOfRange) {
             scope.launch {
@@ -535,6 +545,7 @@ fun SessionEditorScreen(
         session.parts,
         session.exercises,
         session.supersetGroups,
+        session.cardioFirst,
         uiState.collapsedPartIds,
         uiState.strengthSpaceCommitted,
         uiState.cardioSpacePlacement,
@@ -871,6 +882,7 @@ fun SessionEditorScreen(
         } else {
             0
         }
+        val previewIsGroup = dragController.draggingExerciseScope == ExerciseDragScope.BLOCK && previewSupersetCount >= 2
         if (previewExercise != null && previewRect != null) {
             DragLiftPreview(
                 exercise = previewExercise,
@@ -878,8 +890,8 @@ fun SessionEditorScreen(
                 offsetProvider = { dragController.draggingExerciseOffset },
                 rootBounds = editorRootBounds,
                 modifier = Modifier.zIndex(500f),
-                titleOverride = if (previewSupersetCount >= 2) "Superserie" else null,
-                subtitleOverride = if (previewSupersetCount >= 2) {
+                titleOverride = if (previewIsGroup) "Superserie" else null,
+                subtitleOverride = if (previewIsGroup) {
                     "$previewSupersetCount ejercicios"
                 } else {
                     null

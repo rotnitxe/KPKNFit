@@ -401,6 +401,30 @@ class SessionEditorCardioSpaceTest {
         assertTrue(vm.uiState.value.strengthSpaceCommitted)
     }
 
+    @Test
+    fun testToggleCardioPlacementFlipsCardioFirst() = runBlocking {
+        val programId = "prog_toggle_cardio"
+        val sessionId = "session_toggle_cardio"
+        val initialSession = Session(
+            id = sessionId,
+            name = "Mixed",
+            exercises = listOf(Exercise(id = "e1", name = "Press")),
+            parts = listOf(SessionPart(id = "p_cardio", name = "Espacio de cardio", isCardioGroup = true, exercises = listOf(Exercise(id = "c1", name = "Cinta")))),
+            cardioFirst = false,
+        )
+        seedSimpleSession(programId, sessionId, initialSession)
+        val vm = loadEditor(programId, sessionId)
+        assertEquals(false, vm.uiState.value.session?.cardioFirst)
+
+        vm.toggleCardioPlacement()
+        assertEquals(true, vm.uiState.value.session?.cardioFirst)
+        assertEquals(CardioSpacePlacement.START, vm.uiState.value.cardioSpacePlacement)
+
+        vm.toggleCardioPlacement()
+        assertEquals(false, vm.uiState.value.session?.cardioFirst)
+        assertEquals(CardioSpacePlacement.END, vm.uiState.value.cardioSpacePlacement)
+    }
+
     private suspend fun seedSimpleSession(programId: String, sessionId: String, session: Session) {
         val program = Program(
             id = programId,

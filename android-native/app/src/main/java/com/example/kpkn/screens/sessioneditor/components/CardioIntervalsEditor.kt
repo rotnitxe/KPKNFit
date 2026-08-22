@@ -212,6 +212,17 @@ internal fun CardioIntervalsEditor(
                     }
                 }
             }
+            val selectedPattern = CardioIntervalPrograms.specs.firstOrNull { spec ->
+                spec.pattern != CardioIntervalPattern.CUSTOM &&
+                    details.intervalBlocks.isNotEmpty() &&
+                    details.intervalBlocks.count { it.type == CardioBlockType.WORK } >= spec.units.count { it.type == CardioBlockType.WORK }
+            }
+            Text(
+                selectedPattern?.description
+                    ?: "Elige un patrón para crear una base o usa Personalizado para editar bloque a bloque.",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White.copy(alpha = 0.58f),
+            )
         }
 
         if (!hasIntervals) {
@@ -240,7 +251,7 @@ internal fun CardioIntervalsEditor(
                     modifier = Modifier.weight(1f),
                 ) {
                     Icon(Icons.Default.AutoAwesome, null, Modifier.size(16.dp), tint = accentColor)
-                    Text(" Plantillas HIIT", fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 4.dp))
+                    Text(" Plantillas de intervalos", fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 4.dp))
                 }
             }
         } else {
@@ -281,6 +292,11 @@ internal fun CardioIntervalsEditor(
                 onSelectBlockIndex = { idx ->
                     selectedBlockIdx = idx
                 },
+            )
+            Text(
+                "Toca una barra para editarla · altura = intensidad · ancho = duración",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White.copy(alpha = 0.52f),
             )
 
             // Selector horizontal de peldaños (Timeline de la pirámide/circuito)
@@ -441,6 +457,7 @@ internal fun CardioIntervalsEditor(
         HiitTemplatePickerDialog(
             cardioType = details.type,
             accentColor = accentColor,
+            title = "Plantillas de intervalos",
             onSelect = { template ->
                 val newDetails = template.toDetails(details.type, details.intensity)
                 onChange(newDetails.copy(requiresGps = details.requiresGps, supportsDistance = details.supportsDistance))
@@ -994,4 +1011,3 @@ private fun rescaleIntervalDetails(details: CardioDetails, totalSeconds: Int): C
     val actual = scaled.sumOf { it.durationSeconds } * rounds
     return details.copy(intervalBlocks = scaled, intervalRounds = rounds, targetDurationSeconds = actual)
 }
-

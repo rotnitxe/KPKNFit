@@ -65,7 +65,7 @@ internal data class PartAccentPreset(
 ) {
     /** Brightest stop — used for chips/borders/text so cover darks stay readable. */
     val primary: Color
-        get() = colors.maxByOrNull { it.luminance() } ?: Color(0xFF00F0FF)
+        get() = colors.maxByOrNull { it.luminance() } ?: Color(0xFF6E8A95)
 
     val isGradient: Boolean get() = colors.distinct().size > 1
 
@@ -76,35 +76,37 @@ internal data class PartAccentPreset(
 }
 
 internal val partAccentSolids = listOf(
-    PartAccentPreset("#00F0FF", listOf(Color(0xFF00F0FF))),
-    PartAccentPreset("#3B82F6", listOf(Color(0xFF3B82F6))),
-    PartAccentPreset("#00F19F", listOf(Color(0xFF00F19F))),
-    PartAccentPreset("#A855F7", listOf(Color(0xFFA855F7))),
-    PartAccentPreset("#EAB308", listOf(Color(0xFFEAB308))),
-    PartAccentPreset("#F43F5E", listOf(Color(0xFFF43F5E))),
-    PartAccentPreset("#06B6D4", listOf(Color(0xFF06B6D4))),
-    PartAccentPreset("#8B5CF6", listOf(Color(0xFF8B5CF6))),
-    PartAccentPreset("#F97316", listOf(Color(0xFFF97316))),
-    PartAccentPreset("#EC4899", listOf(Color(0xFFEC4899))),
-    PartAccentPreset("#22C55E", listOf(Color(0xFF22C55E))),
-    PartAccentPreset("#14B8A6", listOf(Color(0xFF14B8A6))),
-    PartAccentPreset("#F59E0B", listOf(Color(0xFFF59E0B))),
-    PartAccentPreset("#EF4444", listOf(Color(0xFFEF4444))),
-    PartAccentPreset("#6366F1", listOf(Color(0xFF6366F1))),
-    PartAccentPreset("#84CC16", listOf(Color(0xFF84CC16))),
+    // IDs remain stable for persisted sessions; the rendered palette is now
+    // graphite/muted so accents guide hierarchy without a neon glow.
+    PartAccentPreset("#00F0FF", listOf(Color(0xFF5D8390))),
+    PartAccentPreset("#3B82F6", listOf(Color(0xFF5877A0))),
+    PartAccentPreset("#00F19F", listOf(Color(0xFF5A9A84))),
+    PartAccentPreset("#A855F7", listOf(Color(0xFF7D6C9B))),
+    PartAccentPreset("#EAB308", listOf(Color(0xFFA68F54))),
+    PartAccentPreset("#F43F5E", listOf(Color(0xFFA6626E))),
+    PartAccentPreset("#06B6D4", listOf(Color(0xFF557F8C))),
+    PartAccentPreset("#8B5CF6", listOf(Color(0xFF756B9A))),
+    PartAccentPreset("#F97316", listOf(Color(0xFFA4775A))),
+    PartAccentPreset("#EC4899", listOf(Color(0xFFA26786))),
+    PartAccentPreset("#22C55E", listOf(Color(0xFF5C8E6D))),
+    PartAccentPreset("#14B8A6", listOf(Color(0xFF568C84))),
+    PartAccentPreset("#F59E0B", listOf(Color(0xFFA48656))),
+    PartAccentPreset("#EF4444", listOf(Color(0xFFA56666))),
+    PartAccentPreset("#6366F1", listOf(Color(0xFF6D729D))),
+    PartAccentPreset("#84CC16", listOf(Color(0xFF78915A))),
 )
 
 internal val partAccentGradients = listOf(
-    PartAccentPreset("gradient://cyber", listOf(Color(0xFF00F0FF), Color(0xFFA855F7))),
-    PartAccentPreset("gradient://ocean", listOf(Color(0xFF06B6D4), Color(0xFF3B82F6))),
-    PartAccentPreset("gradient://sunset", listOf(Color(0xFFF97316), Color(0xFFF43F5E))),
-    PartAccentPreset("gradient://aurora", listOf(Color(0xFF00F19F), Color(0xFF06B6D4), Color(0xFF8B5CF6))),
-    PartAccentPreset("gradient://ember", listOf(Color(0xFFEAB308), Color(0xFFF97316), Color(0xFFEF4444))),
-    PartAccentPreset("gradient://violet", listOf(Color(0xFFA855F7), Color(0xFFEC4899))),
-    PartAccentPreset("gradient://mint", listOf(Color(0xFF22C55E), Color(0xFF14B8A6))),
-    PartAccentPreset("gradient://indigo-rose", listOf(Color(0xFF6366F1), Color(0xFFEC4899))),
-    PartAccentPreset("gradient://lime-cyan", listOf(Color(0xFF84CC16), Color(0xFF00F0FF))),
-    PartAccentPreset("gradient://gold-violet", listOf(Color(0xFFF59E0B), Color(0xFF8B5CF6))),
+    PartAccentPreset("gradient://cyber", listOf(Color(0xFF5D8390), Color(0xFF7D6C9B))),
+    PartAccentPreset("gradient://ocean", listOf(Color(0xFF557F8C), Color(0xFF5877A0))),
+    PartAccentPreset("gradient://sunset", listOf(Color(0xFFA4775A), Color(0xFFA6626E))),
+    PartAccentPreset("gradient://aurora", listOf(Color(0xFF5A9A84), Color(0xFF557F8C), Color(0xFF756B9A))),
+    PartAccentPreset("gradient://ember", listOf(Color(0xFFA68F54), Color(0xFFA4775A), Color(0xFFA56666))),
+    PartAccentPreset("gradient://violet", listOf(Color(0xFF7D6C9B), Color(0xFFA26786))),
+    PartAccentPreset("gradient://mint", listOf(Color(0xFF5C8E6D), Color(0xFF568C84))),
+    PartAccentPreset("gradient://indigo-rose", listOf(Color(0xFF6D729D), Color(0xFFA26786))),
+    PartAccentPreset("gradient://lime-cyan", listOf(Color(0xFF78915A), Color(0xFF5D8390))),
+    PartAccentPreset("gradient://gold-violet", listOf(Color(0xFFA48656), Color(0xFF756B9A))),
 )
 
 internal val PART_ACCENTS: List<PartAccentPreset> = partAccentSolids + partAccentGradients
@@ -129,7 +131,7 @@ internal fun resolvePartAccent(id: String?): PartAccentPreset {
 /** Soft tinted panel for set cards — subtle accent, always dark enough for white text. */
 internal fun Color.toSetCardBackground(): Color {
     val base = Color(0xFF1A1A20)
-    val mix = 0.16f
+    val mix = 0.09f
     return Color(
         red = (base.red + (red - base.red) * mix).coerceIn(0f, 1f),
         green = (base.green + (green - base.green) * mix).coerceIn(0f, 1f),
@@ -139,7 +141,7 @@ internal fun Color.toSetCardBackground(): Color {
 }
 
 /** Gentle cover/group wash for the exercise card container. */
-internal fun PartAccentPreset.exerciseCardBrush(): Brush = brush(alpha = 0.08f)
+internal fun PartAccentPreset.exerciseCardBrush(): Brush = brush(alpha = 0.035f)
 
 internal fun resolveCoverAccentId(background: SessionBackground?): String =
     background?.value?.takeIf { it.isNotBlank() }

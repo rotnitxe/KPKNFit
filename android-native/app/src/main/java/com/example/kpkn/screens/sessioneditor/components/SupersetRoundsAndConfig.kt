@@ -534,10 +534,10 @@ private fun RoundExerciseSetCard(
     val summary = buildList {
         if (exercise.isEffectivelyUnilateral()) {
             val t = set.leftTarget ?: set.rightTarget
-            t?.targetReps?.let { add("${it} reps") }
+            (t?.targetRepsRange?.format() ?: t?.targetReps?.toString())?.let { add("$it reps") }
             t?.targetRPE?.let { add("RPE ${formatEditableNumber(it)}") }
         } else {
-            set.targetReps?.let { add("${it} reps") }
+            (set.effectiveRepRange()?.format())?.let { add("$it reps") }
             predictedWeight?.let { add("~${formatEditableNumber(it)} kg") }
             set.targetRPE?.let { add("RPE ${formatEditableNumber(it)}") }
             set.targetRIR?.let { add("RIR $it") }
@@ -638,6 +638,7 @@ private fun RoundExerciseSetCard(
                                             val default = UnilateralTarget(
                                                 weight = current.weight,
                                                 targetReps = current.targetReps,
+                                                targetRepsRange = current.targetRepsRange,
                                                 targetDuration = current.targetDuration,
                                                 targetValue = current.plannedTargetV2,
                                                 targetRPE = current.targetRPE,

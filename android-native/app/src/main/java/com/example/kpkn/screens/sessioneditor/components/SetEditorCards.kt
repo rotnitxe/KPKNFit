@@ -169,7 +169,7 @@ fun SetEditorCard(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val borderAlpha = if (isFocused) 0.55f else if (!isValid) 0.55f else 0.14f
+    val borderAlpha = if (isFocused) 0.42f else if (!isValid) 0.55f else 0.10f
     val borderColor = if (!isValid) MaterialTheme.colorScheme.error else accentColor
     val borderWidth = if (isFocused || !isValid) 1.5.dp else 1.dp
     val cardBg = accentColor.toSetCardBackground()

@@ -523,7 +523,7 @@ internal fun countDisplaySets(exerciseSets: List<com.example.kpkn.data.models.Ex
     var total = 0.0
     val activeSets = exerciseSets.filterNot { it.isIneffective }
     val counted = activeSets.filter { set ->
-        ((set.completedReps ?: set.targetReps ?: 0) > 0 || (set.weight ?: 0.0) > 0.0)
+        ((set.completedReps ?: set.plannedRepAnchor() ?: 0) > 0 || (set.weight ?: 0.0) > 0.0)
     }
     val targetList = if (counted.isEmpty()) activeSets else counted
     targetList.forEach { set ->

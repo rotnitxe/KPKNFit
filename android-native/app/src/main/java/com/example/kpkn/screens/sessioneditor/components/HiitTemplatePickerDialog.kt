@@ -29,13 +29,14 @@ import com.example.kpkn.ui.components.kpknSheetDialogTextButtonColors
 internal fun HiitTemplatePickerDialog(
     cardioType: CardioType,
     accentColor: Color,
+    title: String = "Plantillas HIIT",
     onSelect: (HiitTemplate) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val templates = CardioHiitTemplates.forType(cardioType)
     KpknGlassDialog(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Plantillas HIIT", color = Color.White, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleMedium)
+            Text(title, color = Color.White, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleMedium)
             Text(
                 "Elige un circuito listo para usar. Todo queda editable después.",
                 style = MaterialTheme.typography.labelSmall,

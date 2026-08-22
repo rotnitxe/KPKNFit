@@ -10,6 +10,8 @@ import kotlin.math.roundToInt
 
 data class CardioGuide(
     val rpeTarget: Int,
+    /** Exact programmed value used by the editor and live summary (RPE may be fractional). */
+    val rpeTargetExact: Double = rpeTarget.toDouble(),
     val hrPercentRef: String? = null,
     val cadenceRef: String? = null,
 )
@@ -35,7 +37,12 @@ object CardioGuideEngine {
                 com.example.kpkn.data.models.CardioType.ELLIPTICAL,
             )
         ) "Cadencia según equipo" else null
-        return CardioGuide(rpeTarget = rpe, hrPercentRef = hr, cadenceRef = cadence)
+        return CardioGuide(
+            rpeTarget = rpe,
+            rpeTargetExact = details.resolvedRpe(),
+            hrPercentRef = hr,
+            cadenceRef = cadence,
+        )
     }
 
     fun rpeAnchor(rpe: Int): String = when (rpe.coerceIn(1, 10)) {
@@ -46,6 +53,8 @@ object CardioGuideEngine {
         9 -> "Muy duro"
         else -> "Máximo"
     }
+
+    fun rpeAnchor(rpe: Double): String = rpeAnchor(rpe.roundToInt())
 }
 
 object CardioCalorieTargetEngine {

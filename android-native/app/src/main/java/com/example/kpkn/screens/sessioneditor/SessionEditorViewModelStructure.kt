@@ -339,132 +339,23 @@ fun SessionEditorViewModel.moveExerciseToPart(
     exerciseId: String,
     targetPartId: String?,
     targetIndex: Int? = null,
+    moveAsGroup: Boolean = true,
+    targetGroupId: String? = null,
 ) = updateSession { session ->
-    if (sourcePartId == targetPartId && targetIndex == null) return@updateSession session
-    val sourceExercises = if (sourcePartId == null) {
-        session.exercises
-    } else {
-        session.parts.firstOrNull { it.id == sourcePartId }?.exercises.orEmpty()
-    }
-    val sourceIndex = sourceExercises.indexOfFirst { it.id == exerciseId }
-    if (sourceIndex < 0) return@updateSession session
-    // No-op: same position (F2/N10).
-    if (sourcePartId == targetPartId && targetIndex != null) {
-        val draggedSource = sourceExercises[sourceIndex]
-        val groupId = draggedSource.supersetGroupRefOrLegacyId()
-        val blockSize = if (!groupId.isNullOrBlank()) {
-            sourceExercises.count { it.supersetGroupRefOrLegacyId() == groupId }.coerceAtLeast(1)
-        } else {
-            1
-        }
-        if (targetIndex == sourceIndex || targetIndex == sourceIndex + blockSize) {
-            return@updateSession session
-        }
-    }
-    val draggedSource = sourceExercises.firstOrNull { it.id == exerciseId } ?: return@updateSession session
-    val isCardio = draggedSource.isCardio || (sourcePartId != null && session.parts.firstOrNull { it.id == sourcePartId }?.isCardioPart() == true)
-
-    val targetPart = if (targetPartId != null) session.parts.firstOrNull { it.id == targetPartId } else null
-    val targetIsCardio = targetPart?.isCardioPart() == true
-
-    // REGLA: Cardio NO se mezcla con Fuerza.
-    // - Si el ejercicio es cardio, SOLO puede moverse a un grupo de cardio.
-    // - Si el ejercicio es fuerza, NO puede moverse a un grupo de cardio.
-    if (isCardio && !targetIsCardio) return@updateSession session
-    if (!isCardio && targetIsCardio) return@updateSession session
-
-    val draggedGroupId = draggedSource.supersetGroupRefOrLegacyId()
-    if (!draggedGroupId.isNullOrBlank()) {
-        val group = session.allSupersetGroups().firstOrNull { it.id == draggedGroupId }
-        val memberIds = group?.exerciseOrder?.filter { id -> sourceExercises.any { it.id == id } }
-            ?: sourceExercises.filter { it.supersetGroupRefOrLegacyId() == draggedGroupId }.map { it.id }
-        if (memberIds.size > 1) {
-            val moving = memberIds.mapNotNull { id -> sourceExercises.firstOrNull { it.id == id } }
-            val strippedSession = if (sourcePartId == null) {
-                session.copy(exercises = session.exercises.filterNot { it.id in memberIds })
-            } else {
-                session.copy(parts = session.parts.map { part ->
-                    if (part.id != sourcePartId) part else part.copy(exercises = part.exercises.filterNot { it.id in memberIds })
-                })
-            }
-            fun insertInto(list: List<Exercise>): List<Exercise> {
-                val mutable = list.toMutableList()
-                val adjustedIndex = if (sourcePartId == targetPartId && targetIndex != null) {
-                    val firstSourceIndex = sourceExercises.indexOfFirst { it.id == memberIds.first() }
-                    // The drag controller reports the index in the pre-removal list.
-                    // Removing the moving block shifts every later target left by its size.
-                    if (targetIndex > firstSourceIndex) targetIndex - moving.size else targetIndex
-                } else {
-                    targetIndex ?: mutable.size
-                }
-                mutable.addAll(adjustedIndex.coerceIn(0, mutable.size), moving)
-                return mutable.toList()
-            }
-            return@updateSession if (targetPartId == null) {
-                strippedSession.copy(exercises = insertInto(strippedSession.exercises))
-            } else {
-                strippedSession.copy(parts = strippedSession.parts.map { part ->
-                    if (part.id != targetPartId) part else part.copy(exercises = insertInto(part.exercises))
-                })
-            }
-        }
-    }
-
-    var movedExercise: Exercise? = null
-    val strippedSession = if (sourcePartId == null) {
-        val remainingExercises = session.exercises.filterNot { exercise ->
-            val shouldMove = exercise.id == exerciseId
-            if (shouldMove) movedExercise = exercise
-            shouldMove
-        }
-        session.copy(exercises = remainingExercises)
-    } else {
-        val strippedParts = session.parts.map { part ->
-            if (part.id != sourcePartId) part
-            else part.copy(
-                exercises = part.exercises.filterNot { exercise ->
-                    val shouldMove = exercise.id == exerciseId
-                    if (shouldMove) movedExercise = exercise
-                    shouldMove
-                }
-            )
-        }
-        session.copy(parts = strippedParts)
-    }
-    val dragged = movedExercise ?: return@updateSession session
-
-    if (targetPartId == null) {
-        val mutable = strippedSession.exercises.toMutableList()
-        val sourceIndex = sourceExercises.indexOfFirst { it.id == exerciseId }
-        val requestedIndex = targetIndex ?: mutable.size
-        val adjustedIndex = if (sourcePartId == targetPartId && requestedIndex > sourceIndex) {
-            requestedIndex - 1
-        } else {
-            requestedIndex
-        }
-        val safeIndex = adjustedIndex.coerceIn(0, mutable.size)
-        mutable.add(safeIndex, dragged)
-        strippedSession.copy(exercises = mutable.toList())
-    } else {
-        strippedSession.copy(
-            parts = strippedSession.parts.map { part ->
-                if (part.id != targetPartId) part
-                else {
-                    val mutable = part.exercises.toMutableList()
-                    val sourceIndex = sourceExercises.indexOfFirst { it.id == exerciseId }
-                    val requestedIndex = targetIndex ?: mutable.size
-                    val adjustedIndex = if (sourcePartId == targetPartId && requestedIndex > sourceIndex) {
-                        requestedIndex - 1
-                    } else {
-                        requestedIndex
-                    }
-                    val safeIndex = adjustedIndex.coerceIn(0, mutable.size)
-                    mutable.add(safeIndex, dragged)
-                    part.copy(exercises = mutable.toList())
-                }
-            }
-        )
-    }
+    // One transaction for every drag scope. Keeping the ViewModel on the same
+    // pure engine as the controller prevents block moves and member moves from
+    // disagreeing about index correction, group membership or cardio zones.
+    SessionEditorMoveEngine.move(
+        session,
+        SessionEditorMoveRequest(
+            sourcePartId = sourcePartId,
+            exerciseId = exerciseId,
+            targetPartId = targetPartId,
+            targetIndex = targetIndex,
+            moveAsGroup = moveAsGroup,
+            targetGroupId = targetGroupId,
+        ),
+    )
 }
 
 fun SessionEditorViewModel.updateExercise(partId: String?, exerciseId: String, transform: (Exercise) -> Exercise) = updateSession { session ->
@@ -489,6 +380,7 @@ fun SessionEditorViewModel.addSet(partId: String?, exerciseId: String, side: Str
     fun ExerciseSet.defaultSideTarget(): UnilateralTarget = UnilateralTarget(
         weight = weight,
         targetReps = targetReps,
+        targetRepsRange = targetRepsRange,
         targetDuration = targetDuration,
         targetValue = plannedTargetV2,
         targetRPE = targetRPE,

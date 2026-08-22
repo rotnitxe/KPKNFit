@@ -128,12 +128,8 @@ internal fun CardioEditorCard(
                                 )
                                 CardioProgramMode.HIIT_SIT -> {
                                     val config = details.hiit ?: CardioHiitConfig(
-                                        targetRpe = details.resolvedRpe(),
-                                        protocol = if (details.resolvedRpe() >= 9.5) {
-                                            com.example.kpkn.data.models.HiitProtocol.SIT
-                                        } else {
-                                            com.example.kpkn.data.models.HiitProtocol.HIIT
-                                        },
+                                        targetRpe = 9.0,
+                                        protocol = com.example.kpkn.data.models.HiitProtocol.HIIT,
                                     )
                                     onChange(CardioHiitProgramBuilder.buildDetails(config, details.type, details))
                                 }
@@ -158,6 +154,15 @@ internal fun CardioEditorCard(
                     )
                 }
             }
+            Text(
+                text = when (programMode) {
+                    CardioProgramMode.STEADY -> "Una intensidad continua. Define tiempo, distancia o ambos y listo."
+                    CardioProgramMode.HIIT_SIT -> "Alterna esfuerzo y recuperación. HIIT parte en RPE 9; SIT parte en RPE 10."
+                    CardioProgramMode.INTERVALS -> "Construye una secuencia por bloques; la altura muestra intensidad y el ancho, duración."
+                },
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White.copy(alpha = 0.62f),
+            )
 
             // Selector de tipo de objetivo (Tiempo / Distancia / Ambos) — oculto cuando hay intervalos (duración deriva del circuito)
             if (programMode == CardioProgramMode.STEADY) {
@@ -309,7 +314,7 @@ internal fun CardioEditorCard(
                             }
                         },
                         valueRange = 1f..10f,
-                        steps = 8,
+                        steps = 0,
                         colors = SliderDefaults.colors(
                             thumbColor = Color.White,
                             activeTrackColor = accentColor,

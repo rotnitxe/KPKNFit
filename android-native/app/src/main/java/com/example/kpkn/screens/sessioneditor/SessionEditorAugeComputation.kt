@@ -601,7 +601,7 @@ internal fun computeSessionAugeComputation(
             val completedSet = CompletedSet(
                 id = set.id,
                 weight = calculatedWeight,
-                reps = set.targetReps ?: 8,
+                reps = set.plannedRepAnchor() ?: 8,
                 rpe = set.targetRPE,
                 rir = set.targetRIR,
                 actualIntensityMode = set.intensityMode,

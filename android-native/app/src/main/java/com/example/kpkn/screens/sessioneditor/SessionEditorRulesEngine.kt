@@ -86,6 +86,7 @@ object SessionEditorRulesEngine {
             }
             fun UnilateralTarget.applyRuleDefaults(): UnilateralTarget = copy(
                 targetReps = effectiveReps,
+                targetRepsRange = null,
                 targetRPE = if (mode == IntensityMode.RPE) effectiveIntensity else null,
                 targetRIR = if (mode == IntensityMode.RIR) effectiveIntensity.roundToInt().coerceIn(0, 6) else null,
                 intensityMode = mode,
@@ -95,11 +96,13 @@ object SessionEditorRulesEngine {
                 if (existing?.isEmptySlot == true) return@List existing
                 val target = (existing ?: ExerciseSet(id = UUID.randomUUID().toString())).copy(
                     targetReps = effectiveReps,
+                    targetRepsRange = null,
                     targetRPE = if (mode == IntensityMode.RPE) effectiveIntensity else null,
                     targetRIR = if (mode == IntensityMode.RIR) effectiveIntensity.roundToInt().coerceIn(0, 6) else null,
                     intensityMode = mode,
                     targetPercentageRM = null,
                     isFailure = mode == IntensityMode.FAILURE,
+                    isAmrap = false,
                 )
                 val normalized = normalizeSet(target, this)
                 if (!isEffectivelyUnilateral()) {
@@ -308,6 +311,7 @@ object SessionEditorRulesEngine {
         val normalized = when (exercise.trainingMode) {
             TrainingMode.RM -> set.copy(
                 intensityMode = IntensityMode.LOAD,
+                targetRepsRange = null,
                 targetRPE = null,
                 targetRIR = null,
                 isFailure = false,
@@ -324,12 +328,47 @@ object SessionEditorRulesEngine {
                 isFailure = false,
                 isAmrap = false,
             )
+            TrainingMode.AMRAP -> set.copy(
+                intensityMode = IntensityMode.AMRAP,
+                targetReps = set.targetRepsRange?.max ?: set.targetReps ?: set.plannedTargetV2?.roundToInt(),
+                targetDuration = null,
+                targetRPE = null,
+                targetRIR = null,
+                isFailure = false,
+                isAmrap = true,
+            )
             else -> {
-                val resolvedMode = when (set.intensityMode) {
-                    null, IntensityMode.SOLO_RM -> IntensityMode.RPE
-                    else -> set.intensityMode
+                // Switching the exercise away from AMRAP must be reversible;
+                // otherwise the stale set marker silently turns it back on.
+                if (set.isAmrap || set.intensityMode == IntensityMode.AMRAP) {
+                    set.copy(
+                        intensityMode = null,
+                        targetRPE = null,
+                        targetRIR = null,
+                        isFailure = false,
+                        isAmrap = false,
+                    )
+                } else {
+                    val resolvedMode = when (set.intensityMode) {
+                        // Null is a deliberate authoring choice: the live session must
+                        // not synthesize an RPE/RIR input for a set without intensity.
+                        null -> null
+                        IntensityMode.SOLO_RM -> IntensityMode.SOLO_RM
+                        else -> set.intensityMode
+                    }
+                    if (resolvedMode == IntensityMode.AMRAP) {
+                        set.copy(
+                            intensityMode = IntensityMode.AMRAP,
+                            targetReps = set.targetRepsRange?.max ?: set.targetReps ?: set.plannedTargetV2?.roundToInt(),
+                            targetRPE = null,
+                            targetRIR = null,
+                            isFailure = false,
+                            isAmrap = true,
+                        )
+                    } else {
+                        set.copy(intensityMode = resolvedMode)
+                    }
                 }
-                set.copy(intensityMode = resolvedMode)
             }
         }
         val autoWeight = calculateSuggestedLoad(exercise, normalized)

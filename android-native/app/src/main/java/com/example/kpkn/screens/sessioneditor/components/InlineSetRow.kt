@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.domain.calculations.estimatePercent1RM
+import com.example.kpkn.domain.training.RepRangeParser
 import com.example.kpkn.screens.sessioneditor.components.SetCardDensity
 import com.example.kpkn.screens.sessioneditor.components.SetEditorCard
 import com.example.kpkn.screens.sessioneditor.components.SessionEditorBreakpoint
@@ -91,7 +92,9 @@ internal fun shouldShowPlannedIntensity(
         set.targetRIR != null ||
         set.targetPercentageRM != null ||
         set.weight != null ||
-        set.isFailure
+        set.isFailure ||
+        set.isAmrap ||
+        set.intensityMode == IntensityMode.AMRAP
 }
 
 @Composable
@@ -155,11 +158,11 @@ internal fun InlineSetRow(
         onUpdate(updater)
     }
     val setStateKeySuffix = if (isUnilateral) activeUniSide else "B"
-    val sliderPercent = remember(set.targetPercentageRM, set.targetReps, set.intensityMode, predictedWeight, reference1RM) {
+    val sliderPercent = remember(set.targetPercentageRM, set.targetReps, set.targetRepsRange, set.intensityMode, predictedWeight, reference1RM) {
         when {
             isRmMode && set.targetPercentageRM != null -> set.targetPercentageRM
             predictedWeight != null && reference1RM != null && reference1RM > 0 -> ((predictedWeight / reference1RM) * 100.0).coerceIn(40.0, 100.0)
-            set.targetReps != null -> estimatePercent1RM(set.targetReps)
+            set.plannedRepAnchor() != null -> estimatePercent1RM(set.plannedRepAnchor()!!)
             else -> 75.0
         }
     }
@@ -173,12 +176,12 @@ internal fun InlineSetRow(
     val displayedWeight = predictedWeight
     val metricLabel = when (trainingMode) {
         TrainingMode.RM -> "Reps est."
-        TrainingMode.REPS -> if (isAmrapMode) "Reps mín." else "Reps"
+        TrainingMode.REPS -> if (isAmrapMode) "Reps mín." else "Reps / rango"
         TrainingMode.TIME -> if (isAmrapMode) "Tiempo mín." else "Tiempo"
         TrainingMode.DISTANCE -> if (isAmrapMode) "Dist. mín." else "Dist."
         TrainingMode.CUSTOM -> if (isAmrapMode) "${customUnit?.ifBlank { "Unidad" } ?: "Unidad"} mín." else (customUnit?.ifBlank { "Unidad" } ?: "Unidad")
         TrainingMode.SOLO_RPE -> "RPE obj."
-        TrainingMode.AMRAP -> "AMRAP"
+        TrainingMode.AMRAP -> "AMRAP / mín."
     }
     val activeSideTarget = if (isUnilateral) {
         if (activeUniSide == "L") set.leftTarget else set.rightTarget
@@ -224,7 +227,18 @@ internal fun InlineSetRow(
         -> formatEditableNumber(
             if (isUnilateral && activeSideTarget != null) activeSideTarget.targetValue else set.plannedTargetV2
         ).ifBlank { (uniOrSetInt({ it.targetReps }, { it?.targetReps })?.toString()).orEmpty() }
-        else -> (uniOrSetInt({ it.targetReps }, { it?.targetReps })?.toString()).orEmpty()
+        else -> {
+            val range = if (isUnilateral) activeSideTarget?.targetRepsRange else set.targetRepsRange
+            val plannedReps = uniOrSetInt({ it.targetReps }, { it?.targetReps })
+            // AMRAP stores the optional range as a minimum plus a legacy max
+            // mirror. The editor must expose the minimum here; showing 4–6 in
+            // a field labelled “Reps mín.” incorrectly suggests a fixed target.
+            if (isAmrapMode) {
+                range?.min?.toString() ?: plannedReps?.toString().orEmpty()
+            } else {
+                range?.format() ?: plannedReps?.toString().orEmpty()
+            }
+        }
     }
     val intensityValue = when (set.intensityMode ?: IntensityMode.RPE) {
         IntensityMode.RPE -> formatEditableNumber(uniOrSetDbl({ it.targetRPE }, { it?.targetRPE }))
@@ -276,9 +290,9 @@ internal fun InlineSetRow(
     val estimatedText = Color.White.copy(alpha = 0.90f)
     val estimatedSubtle = Color.White.copy(alpha = 0.58f)
     // Tono oscuro con el énfasis de la tarjeta para el bloque de intensidad.
-    val intensitySurface = lerp(DarkEditorChip, accentColor, 0.16f)
-    val intensityBorder = accentColor.copy(alpha = 0.26f)
-    val intensityLabelColor = lerp(Color.White, accentColor, 0.45f)
+    val intensitySurface = lerp(DarkEditorChip, accentColor, 0.08f)
+    val intensityBorder = accentColor.copy(alpha = 0.18f)
+    val intensityLabelColor = lerp(Color.White, accentColor, 0.30f)
 
     Column(
         modifier = if (fillHeight) Modifier.fillMaxWidth().fillMaxHeight() else Modifier.fillMaxWidth(),
@@ -440,7 +454,7 @@ internal fun InlineSetRow(
                         label = metricLabel,
                         value = metricValue,
                         stateKey = "metric-${set.id}-${setStateKeySuffix}",
-                        keyboardType = KeyboardType.Number,
+                        keyboardType = if (trainingMode == TrainingMode.REPS || trainingMode == TrainingMode.AMRAP) KeyboardType.Ascii else KeyboardType.Number,
                         modifier = Modifier.weight(if (isAmrapMode) if (isNarrowScreen) 1.2f else 1.35f else 0.55f),
                     ) { input ->
                         commitEditedField(
@@ -450,7 +464,13 @@ internal fun InlineSetRow(
                                 TrainingMode.DISTANCE,
                                 TrainingMode.CUSTOM,
                                 -> it.copy(targetValue = input.safeDoubleOrNull())
-                                else -> it.copy(targetReps = input.safeIntOrNull())
+                                else -> {
+                                    val parsed = RepRangeParser.parse(input)
+                                    it.copy(
+                                        targetReps = parsed?.max ?: input.safeIntOrNull(),
+                                        targetRepsRange = parsed?.takeIf { range -> range.min != range.max },
+                                    )
+                                }
                             }
                         } else { current ->
                             when (trainingMode) {
@@ -458,7 +478,13 @@ internal fun InlineSetRow(
                                 TrainingMode.DISTANCE,
                                 TrainingMode.CUSTOM,
                                 -> current.copy(plannedTargetV2 = input.safeDoubleOrNull())
-                                else -> current.copy(targetReps = input.safeIntOrNull())
+                                else -> {
+                                    val parsed = RepRangeParser.parse(input)
+                                    current.copy(
+                                        targetReps = parsed?.max ?: input.safeIntOrNull(),
+                                        targetRepsRange = parsed?.takeIf { range -> range.min != range.max },
+                                    )
+                                }
                             }
                         },
                         )
@@ -501,6 +527,7 @@ internal fun InlineSetRow(
                                                 targetRPE = current.targetRPE ?: 8.0,
                                                 targetRIR = null,
                                                 isFailure = false,
+                                                isAmrap = false,
                                             )
                                         }
                                     },
@@ -556,9 +583,9 @@ internal fun InlineSetRow(
                                                 showIntensityMenu = false
                                                 val updater: (ExerciseSet) -> ExerciseSet = {
                                                     when (mode) {
-                                                        IntensityMode.RPE -> it.copy(intensityMode = IntensityMode.RPE, isFailure = false, targetRPE = it.targetRPE ?: 8.0, targetRIR = null, targetPercentageRM = null)
-                                                        IntensityMode.RIR -> it.copy(intensityMode = IntensityMode.RIR, isFailure = false, targetRIR = it.targetRIR ?: 2, targetRPE = null, targetPercentageRM = null)
-                                                        IntensityMode.FAILURE -> it.copy(intensityMode = IntensityMode.FAILURE, isFailure = true, targetRIR = null, targetRPE = null, targetPercentageRM = null)
+                                                        IntensityMode.RPE -> it.copy(intensityMode = IntensityMode.RPE, isFailure = false, isAmrap = false, targetRPE = it.targetRPE ?: 8.0, targetRIR = null, targetPercentageRM = null)
+                                                        IntensityMode.RIR -> it.copy(intensityMode = IntensityMode.RIR, isFailure = false, isAmrap = false, targetRIR = it.targetRIR ?: 2, targetRPE = null, targetPercentageRM = null)
+                                                        IntensityMode.FAILURE -> it.copy(intensityMode = IntensityMode.FAILURE, isFailure = true, isAmrap = false, targetRIR = null, targetRPE = null, targetPercentageRM = null)
                                                         else -> it
                                                     }
                                                 }
@@ -569,8 +596,8 @@ internal fun InlineSetRow(
                                                         val temp = ExerciseSet(id = "", targetRPE = currentSide.targetRPE, targetRIR = currentSide.targetRIR, intensityMode = currentSide.intensityMode ?: current.intensityMode, weight = currentSide.weight, targetPercentageRM = current.targetPercentageRM)
                                                         val updated = updater(temp)
                                                         val newSide = currentSide.copy(targetRPE = updated.targetRPE, targetRIR = updated.targetRIR, intensityMode = updated.intensityMode, weight = updated.weight)
-                                                        if (side == "L") current.copy(leftTarget = newSide, isFailure = updated.isFailure, intensityMode = updated.intensityMode, targetPercentageRM = updated.targetPercentageRM)
-                                                        else current.copy(rightTarget = newSide, isFailure = updated.isFailure, intensityMode = updated.intensityMode, targetPercentageRM = updated.targetPercentageRM)
+                                                        if (side == "L") current.copy(leftTarget = newSide, isFailure = updated.isFailure, isAmrap = false, intensityMode = updated.intensityMode, targetPercentageRM = updated.targetPercentageRM)
+                                                        else current.copy(rightTarget = newSide, isFailure = updated.isFailure, isAmrap = false, intensityMode = updated.intensityMode, targetPercentageRM = updated.targetPercentageRM)
                                                     }
                                                 } else {
                                                     commitEditedField(updater)

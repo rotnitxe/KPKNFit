@@ -432,7 +432,7 @@ class SessionEditorViewModel(
                 val sideValues = exercises.mapNotNull { it.restBetweenSidesSeconds }.sorted()
                 val medianSide = if (sideValues.isEmpty()) 0 else sideValues[sideValues.size / 2]
                 val avgSets = exercises.map { it.sets.size.coerceAtLeast(1) }.average().takeIf { it.isFinite() }?.roundToInt()?.coerceIn(1, 6) ?: 3
-                val avgReps = exercises.flatMap { it.sets }.mapNotNull { it.targetReps }.average().takeIf { it.isFinite() }?.roundToInt()?.coerceIn(1, 30) ?: 10
+                val avgReps = exercises.flatMap { it.sets }.mapNotNull { it.plannedRepAnchor() }.average().takeIf { it.isFinite() }?.roundToInt()?.coerceIn(1, 30) ?: 10
                 val avgRpe = exercises.flatMap { it.sets }.mapNotNull { it.targetRPE }.average().takeIf { it.isFinite() }?.coerceIn(1.0, 10.0) ?: 8.0
                 val supersetGroups = draft.allSupersetGroups()
                 val avgBetween = supersetGroups.map { it.restBetweenExercises }.average().takeIf { it.isFinite() }?.roundToInt()?.coerceIn(0, 600) ?: 60

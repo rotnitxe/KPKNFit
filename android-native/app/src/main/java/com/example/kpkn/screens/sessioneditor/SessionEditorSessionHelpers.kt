@@ -112,11 +112,13 @@ internal fun Exercise.withSessionEditorDefaults(
             val existing = sets.getOrNull(index) ?: ExerciseSet(id = UUID.randomUUID().toString())
             existing.copy(
                 targetReps = safeReps,
+                targetRepsRange = null,
                 targetRPE = if (mode == IntensityMode.RPE) effectiveIntensity else null,
                 targetRIR = if (mode == IntensityMode.RIR) effectiveIntensity.roundToInt().coerceIn(0, 6) else null,
                 targetPercentageRM = null,
                 intensityMode = mode,
                 isFailure = mode == IntensityMode.FAILURE,
+                isAmrap = false,
             )
         }
         return copy(
@@ -442,34 +444,61 @@ internal fun Exercise.resolveSharedPerformance(history: List<WorkoutLog>): Share
 }
 
 internal fun ExerciseSet.normalizeSet(exercise: Exercise): ExerciseSet {
-    val normalized = if (isFailure || intensityMode == IntensityMode.FAILURE) {
-        copy(
+    val normalized = when {
+        exercise.trainingMode == TrainingMode.AMRAP -> copy(
+            intensityMode = IntensityMode.AMRAP,
+            targetReps = effectiveRepRange()?.max ?: targetReps ?: plannedTargetV2?.roundToInt(),
+            targetDuration = null,
+            plannedTargetV2 = null,
+            targetPercentageRM = null,
+            targetRPE = null,
+            targetRIR = null,
+            isFailure = false,
+            isAmrap = true,
+        )
+        // The exercise training mode is the persisted source of truth.  When a
+        // user switches an AMRAP exercise back to regular reps/time/etc., clear
+        // the old AMRAP marker instead of letting a stale set keep re-enabling
+        // it on every subsequent normalization pass.
+        isAmrap || intensityMode == IntensityMode.AMRAP -> copy(
+            intensityMode = null,
+            targetRPE = null,
+            targetRIR = null,
+            isFailure = false,
+            isAmrap = false,
+        )
+        isFailure || intensityMode == IntensityMode.FAILURE -> copy(
             intensityMode = IntensityMode.FAILURE,
             targetRPE = null,
             targetRIR = null,
             isFailure = true,
         )
-    } else when (exercise.trainingMode) {
-        TrainingMode.RM -> copy(
-            intensityMode = IntensityMode.LOAD,
-            targetRPE = null,
-            targetRIR = null,
-            isFailure = false,
-            isAmrap = false,
-            targetPercentageRM = (targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0),
-        )
-        TrainingMode.SOLO_RPE -> copy(
-            intensityMode = IntensityMode.RPE,
-            targetRPE = (targetRPE ?: 8.0).coerceIn(1.0, 10.0),
-            targetRIR = null,
-            targetPercentageRM = null,
-            targetReps = null,
-            targetDuration = null,
-            isFailure = false,
-            isAmrap = false,
-        )
-        else -> {
-            if (intensityMode == IntensityMode.SOLO_RM) copy(intensityMode = null) else this
+        else -> when (exercise.trainingMode) {
+            TrainingMode.RM -> copy(
+                intensityMode = IntensityMode.LOAD,
+                targetRepsRange = null,
+                targetRPE = null,
+                targetRIR = null,
+                isFailure = false,
+                isAmrap = false,
+                targetPercentageRM = (targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0),
+            )
+            TrainingMode.SOLO_RPE -> copy(
+                intensityMode = IntensityMode.RPE,
+                targetRPE = (targetRPE ?: 8.0).coerceIn(1.0, 10.0),
+                targetRIR = null,
+                targetPercentageRM = null,
+                targetReps = null,
+                targetDuration = null,
+                isFailure = false,
+                isAmrap = false,
+            )
+            else -> {
+                when {
+                    intensityMode == IntensityMode.SOLO_RM -> copy(intensityMode = null)
+                    else -> this
+                }
+            }
         }
     }
     val autoWeight = calculateSuggestedLoad(exercise, normalized)

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -47,7 +48,7 @@ import com.example.kpkn.data.models.HiitProtocol
 import com.example.kpkn.data.models.HiitWorkTarget
 import com.example.kpkn.domain.cardio.CardioHiitProgramBuilder
 import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
-import kotlin.math.roundToInt
+import androidx.compose.foundation.rememberScrollState
 
 /** Authoring panel for the explicit HIIT/SIT mode. */
 @Composable
@@ -56,7 +57,7 @@ internal fun CardioHiitEditor(
     accentColor: Color,
     onChange: (CardioDetails) -> Unit,
 ) {
-    val config = details.hiit ?: CardioHiitConfig(targetRpe = details.resolvedRpe())
+    val config = details.hiit ?: CardioHiitConfig(targetRpe = 9.0, protocol = HiitProtocol.HIIT)
     var showAllPresets by remember { mutableStateOf(false) }
 
     val effective = CardioHiitProgramBuilder.effectiveStructure(config)
@@ -96,6 +97,37 @@ internal fun CardioHiitEditor(
                 }
             }
 
+            Text(
+                "Elige una plantilla para empezar; después ajusta rondas, tiempos y objetivo. El RPE se mueve de forma continua.",
+                color = Color.White.copy(alpha = 0.62f),
+                style = MaterialTheme.typography.labelSmall,
+            )
+
+            Text(
+                "Plantillas rápidas",
+                color = Color.White.copy(alpha = 0.76f),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                CardioHiitTemplates.all.filter { it.protocol == config.protocol }.take(4).forEach { template ->
+                    HiitChip(
+                        selected = config.protocol == template.protocol &&
+                            effective.rounds == template.rounds &&
+                            config.workSeconds == template.toConfig().workSeconds,
+                        label = template.name,
+                        accentColor = accentColor,
+                        modifier = Modifier.width(138.dp),
+                        onClick = { update(template.toConfig()) },
+                    )
+                }
+            }
+
             if (showAllPresets) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     CardioHiitTemplates.all.forEach { template ->
@@ -123,14 +155,28 @@ internal fun CardioHiitEditor(
                     label = "HIIT",
                     accentColor = accentColor,
                     modifier = Modifier.weight(1f),
-                    onClick = { update(config.copy(protocol = HiitProtocol.HIIT, targetRpe = config.targetRpe.coerceIn(1.0, 9.5))) },
+                    onClick = {
+                        update(
+                            config.copy(
+                                protocol = HiitProtocol.HIIT,
+                                targetRpe = if (config.protocol == HiitProtocol.HIIT) config.targetRpe else 9.0,
+                            ),
+                        )
+                    },
                 )
                 HiitChip(
                     selected = config.protocol == HiitProtocol.SIT,
                     label = "SIT · all-out",
                     accentColor = accentColor,
                     modifier = Modifier.weight(1f),
-                    onClick = { update(config.copy(protocol = HiitProtocol.SIT, targetRpe = 10.0)) },
+                    onClick = {
+                        update(
+                            config.copy(
+                                protocol = HiitProtocol.SIT,
+                                targetRpe = if (config.protocol == HiitProtocol.SIT) config.targetRpe else 10.0,
+                            ),
+                        )
+                    },
                 )
             }
 
@@ -272,11 +318,10 @@ internal fun CardioHiitEditor(
             Slider(
                 value = config.targetRpe.toFloat(),
                 onValueChange = { value ->
-                    val rpe = (value * 2f).roundToInt() / 2.0
-                    update(config.copy(targetRpe = if (config.protocol == HiitProtocol.SIT) 10.0 else rpe))
+                    update(config.copy(targetRpe = value.toDouble().coerceIn(1.0, 10.0)))
                 },
                 valueRange = 1f..10f,
-                steps = 17,
+                steps = 0,
                 colors = SliderDefaults.colors(
                     thumbColor = Color.White,
                     activeTrackColor = accentColor,

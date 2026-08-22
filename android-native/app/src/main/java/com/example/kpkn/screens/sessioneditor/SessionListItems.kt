@@ -76,16 +76,26 @@ sealed class SessionListItem {
         override val stableKey: String = "strength-add-actions"
     }
 
+    data object CardioAddActions : SessionListItem() {
+        override val stableKey: String = "cardio-add-actions"
+    }
+
     /** Zero-height gap after loose exercises for the end-of-loose drop indicator (N9). */
     data object LooseEndGap : SessionListItem() {
         override val stableKey: String = "loose-end-gap"
     }
 
-    data object CardioDivider : SessionListItem() {
+    data class CardioDivider(
+        val showCardioFirst: Boolean = false,
+        val canMove: Boolean = false,
+    ) : SessionListItem() {
         override val stableKey: String = "cardio-divider"
     }
 
-    data object StrengthDivider : SessionListItem() {
+    data class StrengthDivider(
+        val showCardioFirst: Boolean = false,
+        val canMove: Boolean = false,
+    ) : SessionListItem() {
         override val stableKey: String = "strength-divider"
     }
 
@@ -110,28 +120,31 @@ fun buildSessionListItems(
     }
 
     val groupedParts = session.parts.filterNot { it.isUncategorizedPart() }
-    val firstPartIsCardio = groupedParts.firstOrNull()?.isCardioPart() == true
     val strengthParts = groupedParts.filterNot { it.isCardioPart() }
     val cardioParts = groupedParts.filter { it.isCardioPart() }
+    val hasStrength = session.exercises.isNotEmpty() || strengthParts.isNotEmpty()
+    val hasCardio = cardioParts.isNotEmpty()
+    val hasBothSpaces = hasStrength && hasCardio
+
     val showCardioFirst = when {
-        cardioParts.isEmpty() -> false
-        // Con parts de fuerza, el orden en `parts` manda.
-        strengthParts.isNotEmpty() -> firstPartIsCardio
-        // Solo cardio en parts: START y END dejan la misma lista → usar preferencia.
+        !hasCardio -> false
         cardioAtStart != null -> cardioAtStart
-        else -> firstPartIsCardio
+        session.cardioFirst -> true
+        strengthParts.isNotEmpty() && groupedParts.firstOrNull()?.isCardioPart() == true -> true
+        else -> false
     }
-    val emitStrengthDivider = showStrengthDivider || showCardioFirst || cardioParts.isNotEmpty()
+    val emitStrengthDivider = showStrengthDivider || showCardioFirst || hasCardio
 
     if (showCardioFirst) {
         // --- 1. BLOQUE CARDIO ARRIBA ---
-        items += SessionListItem.CardioDivider
+        items += SessionListItem.CardioDivider(showCardioFirst = true, canMove = hasBothSpaces)
         cardioParts.forEach { part ->
-            appendPartItems(items, part, session, collapsedPartIds)
+            appendCardioPartExercises(items, part)
         }
+        items += SessionListItem.CardioAddActions
 
         // --- 2. BLOQUE FUERZA ABAJO ---
-        items += SessionListItem.StrengthDivider
+        items += SessionListItem.StrengthDivider(showCardioFirst = true, canMove = hasBothSpaces)
         if (session.exercises.isNotEmpty()) {
             appendExerciseItems(
                 items = items,
@@ -150,7 +163,7 @@ fun buildSessionListItems(
     } else {
         // --- 1. BLOQUE FUERZA ARRIBA ---
         if (emitStrengthDivider) {
-            items += SessionListItem.StrengthDivider
+            items += SessionListItem.StrengthDivider(showCardioFirst = false, canMove = hasBothSpaces)
         }
         if (session.exercises.isNotEmpty()) {
             appendExerciseItems(
@@ -170,15 +183,25 @@ fun buildSessionListItems(
         items += SessionListItem.StrengthAddActions
 
         // --- 2. BLOQUE CARDIO ABAJO (si existe) ---
-        if (cardioParts.isNotEmpty()) {
-            items += SessionListItem.CardioDivider
+        if (hasCardio) {
+            items += SessionListItem.CardioDivider(showCardioFirst = false, canMove = hasBothSpaces)
             cardioParts.forEach { part ->
-                appendPartItems(items, part, session, collapsedPartIds)
+                appendCardioPartExercises(items, part)
             }
+            items += SessionListItem.CardioAddActions
         }
     }
 
     return items
+}
+
+private fun appendCardioPartExercises(
+    items: MutableList<SessionListItem>,
+    part: SessionPart,
+) {
+    part.exercises.forEachIndexed { index, exercise ->
+        items += SessionListItem.PartExercise(part.id, exercise.id, index)
+    }
 }
 
 private fun appendPartItems(

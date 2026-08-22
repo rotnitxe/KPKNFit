@@ -264,7 +264,7 @@ internal fun SessionEditorViewModel.convertExerciseToDropSet(session: Session, e
                 dropSets = listOf(
                     com.example.kpkn.data.models.DropSetData(
                         weight = set.weight ?: 0.0,
-                        reps = (set.targetReps ?: 8) / 2,
+                        reps = (set.plannedRepAnchor() ?: 8) / 2,
                     ),
                 ),
             )

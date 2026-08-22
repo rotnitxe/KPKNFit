@@ -93,7 +93,7 @@ class SessionListItemsTest {
     }
 
     @Test
-    fun buildSessionListItems_withCardioSpaceAppendsCardioDividerAndCardioPart() {
+    fun buildSessionListItems_withCardioSpaceAppendsCardioDividerAndCardioExercisesWithoutGroupHeader() {
         val strengthPart = SessionPart(id = "p1", name = "Pecho", exercises = listOf(Exercise(id = "e1", name = "Press")))
         val cardioPart = SessionPart(id = "p2", name = "Espacio de cardio", isCardioGroup = true, exercises = listOf(Exercise(id = "c1", name = "Cinta")))
         val session = Session(id = "s1", name = "Mixto", parts = listOf(strengthPart, cardioPart))
@@ -102,30 +102,51 @@ class SessionListItemsTest {
         val headerP1Idx = items.indexOfFirst { it is SessionListItem.PartHeader && it.partId == "p1" }
         val strengthActionsIdx = items.indexOfFirst { it is SessionListItem.StrengthAddActions }
         val dividerIdx = items.indexOfFirst { it is SessionListItem.CardioDivider }
-        val headerP2Idx = items.indexOfFirst { it is SessionListItem.PartHeader && it.partId == "p2" }
+        val cardioExIdx = items.indexOfFirst { it is SessionListItem.PartExercise && it.exerciseId == "c1" }
+        val cardioAddIdx = items.indexOfFirst { it is SessionListItem.CardioAddActions }
 
         assertTrue(headerP1Idx in 0..<strengthActionsIdx)
         assertTrue(strengthActionsIdx < dividerIdx)
-        assertTrue(dividerIdx < headerP2Idx)
+        assertTrue(dividerIdx < cardioExIdx)
+        assertTrue(cardioExIdx < cardioAddIdx)
+        // Group header for cardio should NOT be present (no group card for cardio)
+        assertTrue(items.none { it is SessionListItem.PartHeader && it.partId == "p2" })
     }
 
     @Test
     fun buildSessionListItems_withCardioAtTopRendersCardioFirstAndStrengthDividerBelow() {
         val cardioPart = SessionPart(id = "p2", name = "Espacio de cardio", isCardioGroup = true, exercises = listOf(Exercise(id = "c1", name = "Cinta")))
         val strengthPart = SessionPart(id = "p1", name = "Pecho", exercises = listOf(Exercise(id = "e1", name = "Press")))
-        val session = Session(id = "s1", name = "Mixto", parts = listOf(cardioPart, strengthPart))
+        val session = Session(id = "s1", name = "Mixto", parts = listOf(cardioPart, strengthPart), cardioFirst = true)
         val items = buildSessionListItems(session)
 
         val cardioDividerIdx = items.indexOfFirst { it is SessionListItem.CardioDivider }
-        val headerP2Idx = items.indexOfFirst { it is SessionListItem.PartHeader && it.partId == "p2" }
+        val cardioExIdx = items.indexOfFirst { it is SessionListItem.PartExercise && it.exerciseId == "c1" }
+        val cardioAddIdx = items.indexOfFirst { it is SessionListItem.CardioAddActions }
         val strengthDividerIdx = items.indexOfFirst { it is SessionListItem.StrengthDivider }
         val headerP1Idx = items.indexOfFirst { it is SessionListItem.PartHeader && it.partId == "p1" }
         val strengthActionsIdx = items.indexOfFirst { it is SessionListItem.StrengthAddActions }
 
-        assertTrue(cardioDividerIdx in 0..<headerP2Idx)
-        assertTrue(headerP2Idx < strengthDividerIdx)
+        assertTrue(cardioDividerIdx in 0..<cardioExIdx)
+        assertTrue(cardioExIdx < cardioAddIdx)
+        assertTrue(cardioAddIdx < strengthDividerIdx)
         assertTrue(strengthDividerIdx < headerP1Idx)
         assertTrue(headerP1Idx < strengthActionsIdx)
+    }
+
+    @Test
+    fun buildSessionListItems_dividersIndicateCanMoveWhenBothSpacesExist() {
+        val looseExercise = Exercise(id = "e1", name = "Press")
+        val cardioPart = SessionPart(id = "p2", name = "Espacio de cardio", isCardioGroup = true, exercises = listOf(Exercise(id = "c1", name = "Cinta")))
+        val session = Session(id = "s1", name = "Mixto", exercises = listOf(looseExercise), parts = listOf(cardioPart))
+        val items = buildSessionListItems(session)
+
+        val cardioDivider = items.filterIsInstance<SessionListItem.CardioDivider>().first()
+        val strengthDivider = items.filterIsInstance<SessionListItem.StrengthDivider>().first()
+
+        assertTrue(cardioDivider.canMove)
+        assertTrue(strengthDivider.canMove)
+        assertEquals(false, cardioDivider.showCardioFirst)
     }
 
     @Test

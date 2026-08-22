@@ -219,7 +219,7 @@ internal fun ExerciseEditorCard(
         .background(accent.exerciseCardBrush())
         .then(
             when {
-                isSupersetExercise -> Modifier.border(1.dp, accentColor.copy(alpha = 0.28f), cardShape)
+                isSupersetExercise -> Modifier.border(1.dp, accentColor.copy(alpha = 0.20f), cardShape)
                 containerHighlight.alpha > 0f -> Modifier.background(containerHighlight)
                 else -> Modifier
             },
@@ -243,7 +243,7 @@ internal fun ExerciseEditorCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
-                .background(accentColor.copy(alpha = if (expanded) 0.45f else 0.18f)),
+                .background(accentColor.copy(alpha = if (expanded) 0.30f else 0.12f)),
         )
 
         // Header row — always visible, tap to expand/collapse. The swipe target

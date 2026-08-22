@@ -20,7 +20,7 @@ internal fun formatEditableNumber(value: Double?): String {
     return if (value == asLong.toDouble()) asLong.toString() else value.toString()
 }
 
-internal fun String.toEditorColor(default: Color = Color(0xFF00F0FF)): Color =
+internal fun String.toEditorColor(default: Color = Color(0xFF6E8A95)): Color =
     resolvePartAccent(this).primary
 
 internal fun formatEditorOneDecimal(value: Double): String = "%.1f".format(value)
@@ -45,7 +45,7 @@ internal fun formatRestSummary(restTime: Int?): String {
 
 internal fun formatExerciseCollapsedSummary(exercise: Exercise): String? {
     if (exercise.sets.isEmpty()) return null
-    val reps = exercise.sets.mapNotNull { it.targetReps }.distinct()
+    val reps = exercise.sets.mapNotNull { it.effectiveRepRange()?.format() }.distinct()
     val loads = exercise.sets.mapNotNull { it.weight }.distinct()
     val repsPart = when {
         reps.size == 1 -> "${exercise.sets.size}×${reps.first()}"

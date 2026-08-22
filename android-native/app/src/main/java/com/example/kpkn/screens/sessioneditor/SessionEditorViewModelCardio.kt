@@ -36,6 +36,10 @@ fun SessionEditorViewModel.createCardioSpace() {
 }
 
 fun SessionEditorViewModel.confirmCardioPlacement(placement: CardioSpacePlacement) {
+    val isStart = placement == CardioSpacePlacement.START
+    updateSession { session ->
+        session.copy(cardioFirst = isStart)
+    }
     // Un solo update atómico: evita perder la preferencia al abrir el picker.
     updateUi {
         it.copy(
@@ -50,10 +54,24 @@ fun SessionEditorViewModel.confirmCardioPlacement(placement: CardioSpacePlacemen
     }
 }
 
+fun SessionEditorViewModel.toggleCardioPlacement() {
+    updateSession { session ->
+        val newCardioFirst = !session.cardioFirst
+        session.copy(cardioFirst = newCardioFirst)
+    }
+    updateUi {
+        val isFirst = currentUiState.session?.cardioFirst == true
+        it.copy(
+            cardioSpacePlacement = if (isFirst) CardioSpacePlacement.START else CardioSpacePlacement.END,
+        )
+    }
+}
+
 fun SessionEditorViewModel.addCardioToPart(item: CardioCatalogItem) {
     val targetPartId = currentUiState.pickerTargetPartId
     val targetExerciseId = currentUiState.pickerTargetExerciseId
-    val placement = currentUiState.cardioSpacePlacement ?: CardioSpacePlacement.END
+    val placement = currentUiState.cardioSpacePlacement
+        ?: if (currentUiState.session?.cardioFirst == true) CardioSpacePlacement.START else CardioSpacePlacement.END
 
     if (targetExerciseId != null) {
         updateExercise(targetPartId, targetExerciseId) { current ->
@@ -94,12 +112,14 @@ fun SessionEditorViewModel.addCardioToPart(item: CardioCatalogItem) {
         cardioDetails = details,
         targetDurationMinutes = (details.targetDurationSeconds?.let { it / 60 } ?: 20).coerceAtLeast(1),
     )
+    val isStart = placement == CardioSpacePlacement.START
     updateSession { session ->
         val existingCardioPart = targetPartId?.let { pid -> session.parts.firstOrNull { it.id == pid } }
             ?: session.cardioPart()
 
         if (existingCardioPart != null) {
             session.copy(
+                cardioFirst = isStart,
                 parts = session.parts.map { part ->
                     if (part.id == existingCardioPart.id) {
                         part.copy(exercises = part.exercises + exercise)
@@ -120,7 +140,10 @@ fun SessionEditorViewModel.addCardioToPart(item: CardioCatalogItem) {
                 CardioSpacePlacement.START -> listOf(newCardioPart) + session.parts
                 CardioSpacePlacement.END -> session.parts + newCardioPart
             }
-            session.copy(parts = parts)
+            session.copy(
+                cardioFirst = isStart,
+                parts = parts,
+            )
         }
     }
     // Conservar cardioSpacePlacement: con parts=[cardio] START y END son idénticos
