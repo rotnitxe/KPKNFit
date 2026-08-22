@@ -2,7 +2,6 @@ package com.example.kpkn.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -20,18 +19,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -55,6 +56,12 @@ fun SectionHeader(
 // Equivalent to PWA: SwipeToDeleteCard (inline in ProgramsView.tsx)
 // Swipe left to reveal delete action. Threshold: 80dp.
 
+private enum class SwipeDeleteState {
+    Idle,
+    Revealed,
+    Confirmed,
+}
+
 @Composable
 fun SwipeToDeleteCard(
     onDelete: () -> Unit,
@@ -71,80 +78,94 @@ fun SwipeToDeleteCard(
 
     val offsetX = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
-    var revealed by remember { mutableStateOf(false) }
-    var armed by remember { mutableStateOf(false) }
-    var deleting by remember { mutableStateOf(false) }
+    var state by remember { mutableStateOf(SwipeDeleteState.Idle) }
+    var thresholdReached by remember { mutableStateOf(false) }
+    val revealed = state == SwipeDeleteState.Revealed
     val deleteRevealProgress = (-offsetX.value / maxReveal).coerceIn(0f, 1f)
+    val deleteSurface = Color.Black.copy(alpha = 0.94f)
+    val deleteAccent = MaterialTheme.colorScheme.error
 
-    LaunchedEffect(deleting) {
-        if (!deleting) return@LaunchedEffect
-        delay(190)
-        onDelete()
+    fun resetReveal() {
+        state = SwipeDeleteState.Idle
+        thresholdReached = false
+        scope.launch {
+            offsetX.animateTo(
+                targetValue = 0f,
+                animationSpec = spring(dampingRatio = 0.78f, stiffness = 650f),
+            )
+        }
+    }
+
+    fun commitDelete() {
+        if (state == SwipeDeleteState.Confirmed) return
+        state = SwipeDeleteState.Confirmed
+        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+        scope.launch {
+            offsetX.animateTo(
+                targetValue = -maxReveal * 1.18f,
+                animationSpec = spring(dampingRatio = 0.72f, stiffness = 520f),
+            )
+            onDelete()
+        }
     }
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(shape),
+            .clip(shape)
+            // Keep the swipe action discoverable for TalkBack as well as touch.
+            // The state text is intentionally short so it is announced after each
+            // release without drowning out the exercise title.
+            .semantics {
+                stateDescription = when (state) {
+                    SwipeDeleteState.Idle -> "Desliza a la izquierda para eliminar"
+                    SwipeDeleteState.Revealed -> "Acción revelada"
+                    SwipeDeleteState.Confirmed -> "Eliminando"
+                }
+                customActions = buildList {
+                    add(CustomAccessibilityAction("Eliminar") {
+                        commitDelete()
+                        true
+                    })
+                    if (state == SwipeDeleteState.Revealed) {
+                        add(CustomAccessibilityAction("Cancelar") {
+                            resetReveal()
+                            true
+                        })
+                    }
+                }
+            },
     ) {
-        // Reactive delete background: slides with a parallax off the row and
-        // intensifies once the gesture arms the delete (no longer a static image).
+        // The action is deliberately sober: a black reveal with a single
+        // red-accented trash button, instead of a red neon underlay.
         Box(
             modifier = Modifier
                 .matchParentSize()
-                .offset { IntOffset((offsetX.value * 0.35f).roundToInt(), 0) }
-                .background(
-                    Brush.horizontalGradient(
-                        colors = (if (armed) {
-                            listOf(
-                                Color(0xFF2A0A0F),
-                                Color(0xFF8A2030),
-                                MaterialTheme.colorScheme.error,
-                            )
-                        } else {
-                            listOf(
-                                Color(0xFF21090D),
-                                Color(0xFF641722),
-                                MaterialTheme.colorScheme.error.copy(alpha = 0.94f),
-                            )
-                        }).map { color -> color.copy(alpha = color.alpha * deleteRevealProgress) },
-                    ),
-                ),
+                .background(deleteSurface),
             contentAlignment = Alignment.CenterEnd,
         ) {
-            // The label slides in only when a meaningful reveal happens.
             AnimatedVisibility(
                 visible = revealed,
                 enter = fadeIn() + slideInHorizontally { it / 2 },
                 exit = fadeOut(),
             ) {
-                val iconScale by animateFloatAsState(
-                    targetValue = if (armed) 1.3f else 1f,
-                    animationSpec = spring(dampingRatio = 0.55f, stiffness = 500f),
-                    label = "swipe-delete-icon",
-                )
-                Row(
-                    modifier = Modifier.padding(end = 20.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                Column(
+                    modifier = Modifier
+                        .width(112.dp)
+                        .fillMaxHeight()
+                        .padding(end = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Eliminar",
-                        tint = Color.White,
+                    IconButton(
+                        onClick = ::commitDelete,
                         modifier = Modifier
-                            .size(18.dp)
-                            .graphicsLayer {
-                                scaleX = iconScale
-                                scaleY = iconScale
-                            },
-                    )
-                    Text(
-                        "Eliminar",
-                        color = Color.White,
-                        fontWeight = FontWeight.Black,
-                        style = MaterialTheme.typography.labelSmall,
-                    )
+                            .size(52.dp)
+                            .background(deleteAccent.copy(alpha = 0.18f), RoundedCornerShape(16.dp)),
+                    ) {
+                        Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = deleteAccent, modifier = Modifier.size(22.dp))
+                    }
+                    Text("Eliminar", color = Color.White.copy(alpha = 0.82f), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall)
                 }
             }
         }
@@ -154,11 +175,7 @@ fun SwipeToDeleteCard(
             modifier = Modifier
                 .offset { IntOffset(offsetX.value.roundToInt(), 0) }
                 .graphicsLayer {
-                    if (deleting) {
-                        alpha = 0f
-                        scaleX = 0.96f
-                        scaleY = 0.96f
-                    }
+                    alpha = 1f - (deleteRevealProgress * 0.18f)
                 }
                 .draggable(
                     orientation = Orientation.Horizontal,
@@ -167,49 +184,42 @@ fun SwipeToDeleteCard(
                         val next = (offsetX.value + delta).coerceIn(-maxReveal, 0f)
                         scope.launch { offsetX.snapTo(next) }
                         val r = next < -revealTrigger
-                        if (r != revealed) revealed = r
+                        if (r && state == SwipeDeleteState.Idle) state = SwipeDeleteState.Revealed
+                        if (!r && state == SwipeDeleteState.Revealed && next > -revealTrigger) {
+                            state = SwipeDeleteState.Idle
+                        }
                         val a = next <= -deleteThreshold
-                        if (a != armed) {
-                            armed = a
-                            if (a) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        if (a != thresholdReached) {
+                            thresholdReached = a
+                            if (a) haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                         }
                     },
                     onDragStopped = {
                         if (offsetX.value <= -deleteThreshold) {
-                            if (animateDeletion) {
-                                revealed = true
-                                deleting = true
-                                scope.launch {
-                                    offsetX.animateTo(
-                                        targetValue = -maxReveal * 1.35f,
-                                        animationSpec = spring(dampingRatio = 0.6f, stiffness = 400f),
-                                    )
-                                }
-                            } else {
-                                revealed = false
-                                armed = false
-                                scope.launch {
-                                    offsetX.animateTo(
-                                        targetValue = 0f,
-                                        animationSpec = spring(dampingRatio = 0.75f, stiffness = 650f),
-                                    )
-                                }
-                                onDelete()
-                            }
-                        } else {
-                            revealed = false
-                            armed = false
+                            state = SwipeDeleteState.Revealed
+                            thresholdReached = false
                             scope.launch {
                                 offsetX.animateTo(
-                                    targetValue = 0f,
-                                    animationSpec = spring(dampingRatio = 0.75f, stiffness = 650f),
+                                    targetValue = -maxReveal,
+                                    animationSpec = spring(dampingRatio = 0.78f, stiffness = 650f),
                                 )
                             }
+                        } else {
+                            resetReveal()
                         }
                     },
                 ),
         ) {
             content()
+            // The content darkens as it moves, making the delete action read as
+            // a reveal instead of a harsh red flash.
+            if (deleteRevealProgress > 0f) {
+                Box(
+                    Modifier
+                        .matchParentSize()
+                        .background(Color.Black.copy(alpha = deleteRevealProgress * 0.76f)),
+                )
+            }
         }
     }
 }
