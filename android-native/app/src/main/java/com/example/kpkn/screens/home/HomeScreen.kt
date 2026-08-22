@@ -12,7 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -55,6 +54,7 @@ import com.example.kpkn.ui.theme.RingBlue
 import com.example.kpkn.ui.theme.RingRed
 import com.example.kpkn.ui.theme.RingYellow
 import com.example.kpkn.ui.components.KpknGlass
+import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
 import java.time.LocalDate
@@ -70,7 +70,6 @@ typealias HomeGlassOverlayChange = (
 fun HomeScreen(
     themeMode: AppThemeMode,
     onThemeChange: (AppThemeMode) -> Unit,
-    onNavigateToSettings: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToProgram: (String) -> Unit = {},
     onCreateProgram: () -> Unit = {},
@@ -102,6 +101,7 @@ fun HomeScreen(
     val nutritionRepo = remember { NutritionRepository.getInstance() }
     var showFoodLogger by remember { mutableStateOf(false) }
     var showNutritionOverlay by remember { mutableStateOf(false) }
+    var showAugeRecommendations by remember { mutableStateOf(false) }
     val nutritionLogs by nutritionRepo.nutritionLogs.collectAsState()
     var selectedMealForLogger by remember {
         mutableStateOf(
@@ -237,7 +237,6 @@ fun HomeScreen(
             isRestDay = uiState.primarySession == null && (uiState.isRestDay || uiState.todaySessions.isEmpty()),
             dailyCalorieGoal = uiState.dailyCalorieGoal,
             consumedCalories = uiState.todayNutritionTotals.calories.toInt(),
-            onSettingsClick = onNavigateToSettings,
             onStartWorkout = onStartWorkout,
             onCreateProgram = onCreateProgram,
             onAddMeal = { showFoodLogger = true },
@@ -301,7 +300,9 @@ fun HomeScreen(
                 onNavigateToProgram = onNavigateToProgram,
                 onCreateProgram = onCreateProgram,
                 onNavigateToCard = onNavigateToCard,
-                onNavigate = onNavigate,
+                onNavigate = { destination ->
+                    if (destination == "settings/auge") showAugeRecommendations = true else onNavigate(destination)
+                },
                 autoDeloadMessage = augeSnapshot.autoDeloadMessage,
                 overtrainedMuscles = uiState.overtrainedMuscles,
                  onAddMeal = { showFoodLogger = true },
@@ -316,6 +317,23 @@ fun HomeScreen(
                 nutritionRepo = nutritionRepo,
                 selectedMealForLogger = selectedMealForLogger,
                 onDismiss = { showFoodLogger = false },
+            )
+        }
+        if (showAugeRecommendations) {
+            KpknAlertDialog(
+                onDismissRequest = { showAugeRecommendations = false },
+                title = { Text("Recomendación de recuperación", fontWeight = FontWeight.Black) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("KPKN detectó señales de fatiga y te muestra una recomendación calculada para tu sesión.")
+                        augeSnapshot.autoDeloadMessage?.takeIf { it.isNotBlank() }?.let { Text(it) }
+                        if (uiState.overtrainedMuscles.isNotEmpty()) {
+                            Text("Zonas con fatiga acumulada: ${uiState.overtrainedMuscles.joinToString(", ")}.")
+                        }
+                        Text("No necesitas ajustar ningún sistema manualmente; la recomendación se actualizará con tus próximas sesiones.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                },
+                confirmButton = { TextButton(onClick = { showAugeRecommendations = false }) { Text("Cerrar") } },
             )
         }
     }
@@ -413,7 +431,7 @@ private fun HomeWithProgram(
                 AlertActionCard(
                     title = "Auto-deload sugerido",
                     body = autoDeloadMessage,
-                    actionLabel = "Ver AUGE",
+                    actionLabel = "Ver recomendación",
                     onAction = { onNavigate("settings/auge") },
                     emphasize = false,
                 )
@@ -556,7 +574,6 @@ private fun HomeTopBar(
     isRestDay: Boolean,
     dailyCalorieGoal: Int,
     consumedCalories: Int,
-    onSettingsClick: () -> Unit,
     onStartWorkout: (Session, Program) -> Unit,
     onCreateProgram: () -> Unit,
     onAddMeal: () -> Unit,
@@ -679,13 +696,8 @@ private fun HomeTopBar(
                         )
                     }
                 }
-                Row {
-                    IconButton(onClick = onNavigateToProfile) {
-                        Icon(Icons.Default.Person, contentDescription = "Perfil", modifier = Modifier.size(22.dp), tint = MaterialTheme.colorScheme.onSurface)
-                    }
-                    IconButton(onClick = onSettingsClick) {
-                        Icon(Icons.Default.Settings, contentDescription = "Ajustes", modifier = Modifier.size(22.dp), tint = MaterialTheme.colorScheme.onSurface)
-                    }
+                IconButton(onClick = onNavigateToProfile) {
+                    Icon(Icons.Default.Person, contentDescription = "Perfil", modifier = Modifier.size(22.dp), tint = MaterialTheme.colorScheme.onSurface)
                 }
             }
         }

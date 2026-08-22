@@ -96,7 +96,7 @@ fun PatternsListScreen(
                         text = pattern.name,
                         style = MaterialTheme.typography.bodyLarge.copy(
                             fontFamily = FontFamily.Serif,
-                            color = Color(0xFF29B6F6)
+                            color = APRENDE_LINK_COLOR
                         ),
                         fontWeight = FontWeight.Bold,
                     )
@@ -131,7 +131,7 @@ fun PatternsListScreen(
                     )
                     
                     Spacer(Modifier.height(10.dp))
-                    HorizontalDivider(color = Color(0xFF1A1A1A), thickness = 1.dp)
+                    HorizontalDivider(color = APRENDE_DIVIDER, thickness = 1.dp)
                 }
             }
 

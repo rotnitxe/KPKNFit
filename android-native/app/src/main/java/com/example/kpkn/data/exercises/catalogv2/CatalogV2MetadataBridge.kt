@@ -38,6 +38,7 @@ fun ExerciseMuscleInfo.toResolvedExerciseProfileV2(): ResolvedExerciseProfileV2?
         primaryMuscles = metadata.anatomy.primaryMuscles,
         secondaryMuscles = metadata.anatomy.secondaryMuscles,
         stabilizerMuscles = metadata.anatomy.stabilizerMuscles,
+        muscleNotes = metadata.anatomy.muscleNotes,
         efc = metadata.fatigue.efc,
         cnc = metadata.fatigue.cnc,
         ssc = metadata.fatigue.ssc,

@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.exercises.catalogv2.toLegacyDefaultCatalog
 import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.exercises.VariantGroupIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,6 +39,9 @@ private var exerciseDatabaseByIdCache: Map<String, ExerciseMuscleInfo> = emptyMa
 private var v2ConfigurationLookupCache: Map<String, ExerciseMuscleInfo> = emptyMap()
 
 @Volatile
+private var approvedExerciseCatalogV2Cache: ExerciseCatalogV2? = null
+
+@Volatile
 private var exerciseCatalogInitialized = false
 
 fun initializeExerciseDatabase(context: Context) {
@@ -54,6 +58,7 @@ fun initializeExerciseDatabase(context: Context) {
             throw IllegalStateException("Approved exercise catalog v2 failed to load", failure)
         }
         staticExerciseCache = v2Catalog.toLegacyDefaultCatalog().map(::normalizeExerciseLabels)
+        approvedExerciseCatalogV2Cache = v2Catalog
         val exercises = buildMergedExerciseCatalog()
         exerciseDatabaseCache = exercises
         v2ConfigurationLookupCache = v2Catalog.toLegacyConfigurationLookup()
@@ -102,6 +107,13 @@ fun exerciseCatalogSnapshot(): List<ExerciseMuscleInfo> = exerciseDatabaseCache.
 
 /** Explicit v2 index; callers cannot construct identities from visible names. */
 fun catalogExerciseIndex(): Map<String, ExerciseMuscleInfo> = exerciseDatabaseByIdCache
+
+/**
+ * Approved catalog identity for Aprende and other read-only encyclopedic
+ * surfaces.  The returned model is immutable; no editor functions are
+ * exposed here and no variant is reconstructed from display text.
+ */
+fun approvedExerciseCatalogV2(): ExerciseCatalogV2? = approvedExerciseCatalogV2Cache
 
 /** Search terms live on v2 definitions; no redirect table is used at runtime. */
 fun catalogSearchRedirects(): Map<String, String> = emptyMap()

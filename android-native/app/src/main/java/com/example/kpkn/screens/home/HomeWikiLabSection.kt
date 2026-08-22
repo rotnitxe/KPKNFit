@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.wikilab.TRAINING_CONCEPTS_DATABASE
 import com.example.kpkn.navigation.KpknRoute
+import com.example.kpkn.screens.wikilab.APRENDE_DIVIDER
+import com.example.kpkn.screens.wikilab.APRENDE_LINK_COLOR
 import kotlinx.coroutines.delay
 import java.time.LocalDate
 
@@ -35,7 +37,9 @@ fun HomeWikiLabSection(onNavigate: (String) -> Unit) {
     val concept = remember(today) {
         TRAINING_CONCEPTS_DATABASE[Math.floorMod(today.toEpochDay().toInt(), TRAINING_CONCEPTS_DATABASE.size)]
     }
-    val accent = concept.category.color
+    // Category remains useful as editorial metadata, but it must not dictate
+    // the visual palette of the home surface.
+    val accent = APRENDE_LINK_COLOR
 
     Column(
         modifier = Modifier
@@ -47,7 +51,7 @@ fun HomeWikiLabSection(onNavigate: (String) -> Unit) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "ENCICLOPEDIA",
+                "APRENDE",
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Black,
@@ -55,18 +59,18 @@ fun HomeWikiLabSection(onNavigate: (String) -> Unit) {
                 color = Color.White.copy(alpha = 0.76f),
             )
             IconButton(onClick = { onNavigate(KpknRoute.WikiLab.route) }, modifier = Modifier.size(34.dp)) {
-                Icon(Icons.Default.Search, contentDescription = "Buscar en Enciclopedia", tint = accent, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.Search, contentDescription = "Buscar en Aprende", tint = accent, modifier = Modifier.size(18.dp))
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Box(Modifier.width(3.dp).heightIn(min = 94.dp).background(accent))
+            Box(Modifier.width(3.dp).heightIn(min = 94.dp).background(APRENDE_DIVIDER))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     "CONCEPTO DEL DÍA · ${concept.category.label.uppercase()}",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 0.9.sp,
-                    color = accent,
+                    color = Color.White.copy(alpha = 0.58f),
                 )
                 Text(
                     concept.name,

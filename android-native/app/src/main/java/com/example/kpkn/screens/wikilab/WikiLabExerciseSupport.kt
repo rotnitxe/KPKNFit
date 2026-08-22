@@ -1,10 +1,18 @@
 package com.example.kpkn.screens.wikilab
 
 import androidx.compose.ui.graphics.Color
+import com.example.kpkn.data.exercises.catalogv2.decodeCatalogRichMetadata
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.exercises.resolveExercise
 import com.example.kpkn.data.models.InvolvedMuscle
+import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.repository.WikiLabRepository
+import com.example.kpkn.domain.exercises.catalogv2.AprendeOntology
+import com.example.kpkn.domain.exercises.catalogv2.AprendeSimilarityBand
+import com.example.kpkn.domain.exercises.catalogv2.AprendeSimilarityEngine
+import com.example.kpkn.domain.exercises.catalogv2.AprendeSimilarityInput
+import com.example.kpkn.domain.exercises.catalogv2.AprendeMuscleRole
 import com.example.kpkn.domain.training.VolumeCalculator
 
 internal data class WikiLabExerciseLink(
@@ -36,13 +44,35 @@ private val CANONICAL_MUSCLE_COLORS = mapOf(
 internal fun wikilabMuscleColor(name: String): Color =
     CANONICAL_MUSCLE_COLORS[name] ?: Color(0xFF757575)
 
+/** Local Aprende tokens. Anatomy is content, not a color legend. */
+internal val APRENDE_BACKGROUND: Color = Color.Black
+internal val APRENDE_PANEL: Color = Color(0xFF121212)
+internal val APRENDE_PANEL_ELEVATED: Color = Color(0xFF181818)
+internal val APRENDE_DIVIDER: Color = Color(0xFF2A2A2A)
+internal val APRENDE_TEXT: Color = Color.White
+internal val APRENDE_TEXT_SECONDARY: Color = Color.White.copy(alpha = 0.72f)
+internal val APRENDE_TEXT_MUTED: Color = Color.White.copy(alpha = 0.5f)
+internal val APRENDE_LINK_COLOR: Color = Color(0xFF9DB6C9)
+
+/** Compatibility alias used by existing Learn surfaces. */
+internal val APRENDE_MUTED_FILL: Color = APRENDE_PANEL
+
+internal fun aprendeMuscleColor(@Suppress("UNUSED_PARAMETER") name: String): Color =
+    Color(0xFF7F8D96)
+
 internal fun resolveWikiLabExerciseLinks(
     ids: List<String>,
     subtitle: String = "",
 ): List<WikiLabExerciseLink> {
+    // Static anatomy labels use only the versioned decisions in
+    // AprendeOntology; an arbitrary display-name match is intentionally not
+    // accepted here.
     val seen = linkedSetOf<String>()
     return ids.mapNotNull { requestedId ->
-        val exercise = resolveExercise(requestedId) ?: resolveExerciseFromNaturalLanguage(requestedId) ?: return@mapNotNull null
+        val canonicalId = resolveExercise(requestedId)?.id
+            ?: AprendeOntology.legacyExerciseId(requestedId)
+            ?: return@mapNotNull null
+        val exercise = resolveExercise(canonicalId) ?: return@mapNotNull null
         if (!seen.add(exercise.id)) return@mapNotNull null
         WikiLabExerciseLink(
             id = exercise.id,
@@ -51,46 +81,6 @@ internal fun resolveWikiLabExerciseLinks(
         )
     }
 }
-
-private fun resolveExerciseFromNaturalLanguage(raw: String): com.example.kpkn.data.models.ExerciseMuscleInfo? {
-    val query = normalizeForLookup(raw)
-    if (query.isBlank()) return null
-
-    val normalizedTokens = query.split(" ").filter { it.isNotBlank() }
-    if (normalizedTokens.isEmpty()) return null
-
-    return com.example.kpkn.data.exercises.exerciseCatalogSnapshot()
-        .asSequence()
-        .map { exercise ->
-            val name = normalizeForLookup(exercise.name)
-            val alias = normalizeForLookup(exercise.alias.orEmpty())
-            val haystack = "$name $alias"
-            val tokenHits = normalizedTokens.count { token -> haystack.contains(token) }
-            val score = when {
-                name == query || alias == query -> 200
-                name.contains(query) || alias.contains(query) -> 150
-                else -> tokenHits * 22
-            }
-            exercise to score
-        }
-        .filter { (_, score) -> score > 0 }
-        .sortedWith(compareByDescending<Pair<com.example.kpkn.data.models.ExerciseMuscleInfo, Int>> { it.second }.thenBy { it.first.name.length })
-        .map { it.first }
-        .firstOrNull()
-}
-
-private fun normalizeForLookup(raw: String): String =
-    raw.lowercase()
-        .replace("á", "a")
-        .replace("é", "e")
-        .replace("í", "i")
-        .replace("ó", "o")
-        .replace("ú", "u")
-        .replace("ü", "u")
-        .replace("ñ", "n")
-        .replace("-", " ")
-        .replace("_", " ")
-        .trim()
 
 internal fun resolveWikiLabMuscleId(muscleName: String): String? = when (muscleName) {
     "Pectorales" -> "pectoral"
@@ -117,6 +107,12 @@ internal fun canonicalMuscleDisplayName(raw: String, emphasis: String? = null): 
 
 internal fun canonicalWikiLabMuscleId(raw: String, emphasis: String? = null): String? =
     resolveWikiLabMuscleId(canonicalMuscleDisplayName(raw, emphasis))
+
+internal fun canonicalWikiLabMuscleIdFromCatalogId(catalogMuscleId: String): String? =
+    AprendeOntology.wikiLabMuscleId(catalogMuscleId)
+
+internal fun canonicalWikiLabPatternId(catalogPatternId: String): String? =
+    AprendeOntology.wikiLabPatternId(catalogPatternId)
 
 internal fun canonicalWikiLabMuscleIdFromEntityId(muscleId: String): String? {
     val entity = WikiLabRepository.getMuscleById(muscleId)
@@ -177,3 +173,151 @@ internal fun collapseInvolvedMusclesToCanonical(muscles: List<InvolvedMuscle>): 
     }
     return grouped.values.toList()
 }
+
+internal data class AprendeSimilarItem(
+    val exercise: ExerciseMuscleInfo,
+    val rationale: String,
+    val score: Int,
+)
+
+internal data class AprendeExerciseRelations(
+    val equivalent: List<AprendeSimilarItem> = emptyList(),
+    val patternVariants: List<AprendeSimilarItem> = emptyList(),
+    val anatomicalTransfer: List<AprendeSimilarItem> = emptyList(),
+)
+
+/**
+ * Builds explicit relations from the resolved v2 profile. There is no
+ * name-based or inferred setup fallback here. Custom exercises are kept in
+ * the catalog display but do not receive synthetic v2 relations.
+ */
+internal fun buildAprendeExerciseRelations(
+    info: ExerciseMuscleInfo,
+    catalog: List<ExerciseMuscleInfo>,
+    limit: Int = 4,
+): AprendeExerciseRelations {
+    val current = info.decodeCatalogRichMetadata() ?: return AprendeExerciseRelations()
+    val currentInput = current.toAprendeSimilarityInput(info)
+    val candidatePairs = catalog.asSequence()
+        .filterNot { it.isCustom }
+        .mapNotNull { candidate ->
+            candidate.decodeCatalogRichMetadata()?.let { candidate to it.toAprendeSimilarityInput(candidate) }
+        }
+        // The shared index contains both the parent definition entry and the
+        // explicit configuration entry for a default variant. They are the
+        // same editorial record, so compare configuration identity rather
+        // than allowing a relation list to show that record twice.
+        .filterNot { (_, input) -> input.configurationId == current.identity.configurationId }
+        .distinctBy { (_, input) -> input.configurationId ?: input.id }
+        .toList()
+    val candidateById = candidatePairs.associateBy { (candidate, _) -> candidate.id }
+    val matches = AprendeSimilarityEngine.rank(
+        current = currentInput,
+        candidates = candidateById.values.map { (_, input) -> input },
+        limit = maxOf(limit * 3, limit),
+    )
+
+    fun item(match: com.example.kpkn.domain.exercises.catalogv2.AprendeSimilarityMatch): AprendeSimilarItem {
+        val candidate = candidateById.getValue(match.candidate.id).first
+        val rationale = when {
+            match.sameIntent -> "Misma intención de reemplazo: ${candidate.name}."
+            match.sameDefinition -> "Otra configuración de la misma definición."
+            match.samePattern && match.sharedJoints > 0 -> "Comparte patrón y articulaciones relevantes."
+            match.sharedMuscles > 0 && match.sharedJoints > 0 -> "Comparte músculos y articulaciones relevantes."
+            match.sharedMuscles > 0 -> "Comparte musculatura objetivo."
+            else -> "Comparte el patrón de movimiento."
+        }
+        return AprendeSimilarItem(candidate, rationale, match.score)
+    }
+
+    fun top(band: AprendeSimilarityBand): List<AprendeSimilarItem> = matches
+        .filter { it.band == band }
+        .take(limit)
+        .map(::item)
+
+    return AprendeExerciseRelations(
+        equivalent = top(AprendeSimilarityBand.EQUIVALENT),
+        patternVariants = top(AprendeSimilarityBand.PATTERN_VARIANT),
+        anatomicalTransfer = top(AprendeSimilarityBand.ANATOMICAL_TRANSFER),
+    )
+}
+
+private fun com.example.kpkn.domain.exercises.catalogv2.ResolvedExerciseMetadataV2.toAprendeSimilarityInput(
+    info: ExerciseMuscleInfo,
+): AprendeSimilarityInput = AprendeSimilarityInput(
+    id = info.id,
+    displayName = info.name,
+    definitionId = identity.definitionId,
+    replacementGroup = replacement.replacementGroup,
+    preservesIntent = replacement.preservesIntent.toSet(),
+    movementPatternId = canonicalWikiLabPatternId(biomechanics.movementPatternId)
+        ?: biomechanics.movementPatternId,
+    muscles = (
+        anatomy.primaryMuscles + anatomy.secondaryMuscles + anatomy.stabilizerMuscles
+        ).toSet(),
+    musclesByRole = mapOf(
+        AprendeMuscleRole.PRIMARY to anatomy.primaryMuscles.toSet(),
+        AprendeMuscleRole.SECONDARY to anatomy.secondaryMuscles.toSet(),
+        AprendeMuscleRole.STABILIZER to anatomy.stabilizerMuscles.toSet(),
+    ),
+    joints = anatomy.jointInvolvement.map { it.jointId }.toSet(),
+    bodyRegion = biomechanics.bodyRegion,
+    kineticChain = biomechanics.kineticChain,
+    laterality = biomechanics.laterality,
+    equipmentId = biomechanics.equipmentId,
+    configurationId = identity.configurationId,
+)
+
+/** Reverse links are derived from the current resolved catalog, never from
+ * stale hand-authored example lists. */
+internal fun catalogExercisesForMuscle(muscleId: String, limit: Int = 8): List<WikiLabExerciseLink> {
+    val acceptedCatalogMuscleIds = AprendeOntology.catalogMuscleIdsForWikiLabEntity(muscleId)
+    return approvedCatalogExerciseEntries()
+        .filter { exercise ->
+            if (exercise.isCustom) return@filter false
+            val metadata = exercise.decodeCatalogRichMetadata() ?: return@filter false
+            val ids = metadata.anatomy.primaryMuscles +
+                metadata.anatomy.secondaryMuscles +
+                metadata.anatomy.stabilizerMuscles
+            ids.any { it in acceptedCatalogMuscleIds }
+        }
+        .sortedBy { it.name }
+        .take(limit)
+        .map { it.toWikiLabExerciseLink() }
+}
+
+internal fun catalogExercisesForJoint(jointId: String, limit: Int = 8): List<WikiLabExerciseLink> =
+    approvedCatalogExerciseEntries()
+        .filter { exercise ->
+            exercise.decodeCatalogRichMetadata()?.anatomy?.jointInvolvement?.any { it.jointId == jointId } == true
+        }
+        .sortedBy { it.name }
+        .take(limit)
+        .map { it.toWikiLabExerciseLink() }
+
+internal fun catalogExercisesForPattern(patternId: String, limit: Int = 8): List<WikiLabExerciseLink> =
+    approvedCatalogExerciseEntries()
+        .filter { exercise ->
+            canonicalWikiLabPatternId(exercise.decodeCatalogRichMetadata()?.biomechanics?.movementPatternId.orEmpty()) == patternId
+        }
+        .sortedBy { it.name }
+        .take(limit)
+        .map { it.toWikiLabExerciseLink() }
+
+private fun ExerciseMuscleInfo.toWikiLabExerciseLink(): WikiLabExerciseLink =
+    WikiLabExerciseLink(
+        id = id,
+        name = name,
+        subtitle = listOfNotNull(equipment, catalogVariantChips.takeIf { it.isNotEmpty() }?.joinToString(" · "))
+            .joinToString(" · "),
+    )
+
+/** Full approved source for reverse links: defaults plus every explicit
+ * configuration, with the default configuration deduplicated by identity. */
+private fun approvedCatalogExerciseEntries(): List<ExerciseMuscleInfo> =
+    catalogExerciseIndex()
+        .values
+        .asSequence()
+        .filterNot { it.isCustom }
+        .distinctBy { it.catalogConfigurationId ?: it.id }
+        .toList()

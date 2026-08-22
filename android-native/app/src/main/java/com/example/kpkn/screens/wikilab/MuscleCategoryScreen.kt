@@ -30,14 +30,13 @@ import com.example.kpkn.data.repository.WikiLabRepository
 private data class BodyPartDef(
     val key: String,
     val label: String,
-    val color: Color,
 )
 
 private val BODY_PARTS = listOf(
-    BodyPartDef("upper", "Tren superior", Color(0xFF1E88E5)),
-    BodyPartDef("lower", "Tren inferior", Color(0xFF43A047)),
-    BodyPartDef("core", "Core", Color(0xFFFF8F00)),
-    BodyPartDef("spine", "Columna", Color(0xFF9C27B0)),
+    BodyPartDef("upper", "Tren superior"),
+    BodyPartDef("lower", "Tren inferior"),
+    BodyPartDef("core", "Core"),
+    BodyPartDef("spine", "Columna"),
 )
 
 // ─── MAIN SCREEN ──────────────────────────────────────────────────────────
@@ -158,11 +157,11 @@ fun MuscleCategoryScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Surface(Modifier.size(6.dp), CircleShape, bp.color) {}
+                                    Surface(Modifier.size(6.dp), CircleShape, APRENDE_DIVIDER) {}
                                     Spacer(Modifier.width(8.dp))
                                     Text(bp.label, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif), color = Color.White)
                                 }
-                                Text("$count artículos", style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.Bold, color = bp.color)
+                                Text("$count artículos", style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.68f))
                             }
                         }
                     }
@@ -180,7 +179,6 @@ fun MuscleCategoryScreen(
                     items(musclesInPart, key = { it.id }) { muscle ->
                         MuscleAtlasCard(
                             muscle = muscle,
-                            color = bp.color,
                             onClick = { onNavigateToMuscle(muscle.id) },
                         )
                     }
@@ -211,7 +209,6 @@ private fun WikiSectionHeader(title: String) {
 @Composable
 private fun MuscleAtlasCard(
     muscle: MuscleGroupEntity,
-    color: Color,
     onClick: () -> Unit,
 ) {
     Column(
@@ -224,7 +221,7 @@ private fun MuscleAtlasCard(
             text = muscle.name,
             style = MaterialTheme.typography.bodyLarge.copy(
                 fontFamily = FontFamily.Serif,
-                color = Color(0xFF29B6F6)
+                color = APRENDE_LINK_COLOR
             ),
             fontWeight = FontWeight.Bold,
         )
@@ -242,11 +239,11 @@ private fun MuscleAtlasCard(
             Text(
                 text = "Volumen de Mantenimiento (MEV): ${muscle.mev} series semanales",
                 style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
-                color = color
+                color = Color.White.copy(alpha = 0.68f)
             )
         }
         
         Spacer(Modifier.height(10.dp))
-        HorizontalDivider(color = Color(0xFF1A1A1A), thickness = 1.dp)
+        HorizontalDivider(color = APRENDE_DIVIDER, thickness = 1.dp)
     }
 }

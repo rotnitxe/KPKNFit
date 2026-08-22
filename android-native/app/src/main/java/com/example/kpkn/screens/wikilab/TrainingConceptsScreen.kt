@@ -2,7 +2,6 @@ package com.example.kpkn.screens.wikilab
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -132,6 +131,12 @@ fun TrainingConceptsScreen(
                                     fontWeight = if (selectedCategory == null) FontWeight.Bold else FontWeight.Medium,
                                 )
                             },
+                            colors = FilterChipDefaults.filterChipColors(
+                                containerColor = Color.Transparent,
+                                selectedContainerColor = APRENDE_MUTED_FILL,
+                                labelColor = Color.White.copy(alpha = 0.72f),
+                                selectedLabelColor = Color.White,
+                            ),
                             shape = RoundedCornerShape(4.dp),
                         )
                     }
@@ -146,11 +151,19 @@ fun TrainingConceptsScreen(
                                     fontWeight = if (selectedCategory == cat) FontWeight.Bold else FontWeight.Medium,
                                 )
                             },
+                            colors = FilterChipDefaults.filterChipColors(
+                                containerColor = Color.Transparent,
+                                selectedContainerColor = APRENDE_MUTED_FILL,
+                                labelColor = Color.White.copy(alpha = 0.72f),
+                                selectedLabelColor = Color.White,
+                                iconColor = APRENDE_LINK_COLOR,
+                                selectedLeadingIconColor = APRENDE_LINK_COLOR,
+                            ),
                             leadingIcon = {
                                 Surface(
                                     modifier = Modifier.size(8.dp),
                                     shape = CircleShape,
-                                    color = cat.color,
+                                    color = APRENDE_DIVIDER,
                                 ) {}
                             },
                             shape = RoundedCornerShape(4.dp),
@@ -193,7 +206,7 @@ private fun ConceptListRow(
             text = concept.name,
             style = MaterialTheme.typography.bodyLarge.copy(
                 fontFamily = FontFamily.Serif,
-                color = Color(0xFF29B6F6)
+                color = APRENDE_LINK_COLOR
             ),
             fontWeight = FontWeight.Bold,
         )
@@ -207,7 +220,7 @@ private fun ConceptListRow(
         )
         
         Spacer(Modifier.height(10.dp))
-        HorizontalDivider(color = Color(0xFF1A1A1A), thickness = 1.dp)
+        HorizontalDivider(color = APRENDE_DIVIDER, thickness = 1.dp)
     }
 }
 
@@ -271,7 +284,7 @@ fun ConceptDetailScreen(
                         style = MaterialTheme.typography.headlineLarge.copy(
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.Black,
-                            color = concept.category.color
+                            color = Color.White
                         )
                     )
                 }
@@ -325,7 +338,7 @@ fun ConceptDetailScreen(
                                 Surface(
                                     modifier = Modifier.padding(top = 8.dp).size(6.dp),
                                     shape = CircleShape,
-                                    color = Color(0xFFFF8F00),
+                                    color = APRENDE_DIVIDER,
                                 ) {}
                                 Spacer(Modifier.width(10.dp))
                                 Text(
@@ -371,7 +384,7 @@ fun ConceptDetailScreen(
                                     "${i + 1}.",
                                     style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF1E88E5),
+                                    color = Color.White.copy(alpha = 0.72f),
                                 )
                                 Spacer(Modifier.width(8.dp))
                                 Text(
@@ -432,7 +445,7 @@ fun ConceptDetailScreen(
                                 Surface(
                                     modifier = Modifier.size(6.dp),
                                     shape = CircleShape,
-                                    color = related.category.color,
+                                    color = APRENDE_DIVIDER,
                                 ) {}
                                 Spacer(Modifier.width(10.dp))
                                 Column {
@@ -440,7 +453,7 @@ fun ConceptDetailScreen(
                                         text = related.name,
                                         style = MaterialTheme.typography.bodyMedium.copy(
                                             fontFamily = FontFamily.Serif,
-                                            color = Color(0xFF29B6F6)
+                                            color = APRENDE_LINK_COLOR
                                         ),
                                         fontWeight = FontWeight.Bold,
                                     )
@@ -473,7 +486,7 @@ private fun WikiSectionHeader(title: String) {
             color = Color.White
         )
         Spacer(Modifier.height(4.dp))
-        HorizontalDivider(color = Color(0xFF2C2C2C), thickness = 1.dp)
+        HorizontalDivider(color = APRENDE_DIVIDER, thickness = 1.dp)
     }
 }
 
@@ -484,7 +497,6 @@ private fun WikiConceptInfobox(concept: TrainingConcept) {
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
-        border = BorderStroke(1.dp, Color(0xFF2C2C2C)),
         shape = RoundedCornerShape(4.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -495,7 +507,7 @@ private fun WikiConceptInfobox(concept: TrainingConcept) {
                 color = Color.White,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
-            HorizontalDivider(color = Color(0xFF2C2C2C))
+            HorizontalDivider(color = APRENDE_DIVIDER)
             
             InfoboxRow("Concepto", concept.name)
             InfoboxRow("Categoría", concept.category.label)

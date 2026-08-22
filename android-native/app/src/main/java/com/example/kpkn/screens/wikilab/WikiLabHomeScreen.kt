@@ -7,7 +7,6 @@ import android.graphics.Typeface
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -15,7 +14,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material.icons.Icons
@@ -53,12 +51,12 @@ import kotlin.math.sqrt
 // MUTED LENS PALETTE
 // ═══════════════════════════════════════════════════════════════════════
 
-private val LENS_EXERCISE = Color(0xFFC27A7A)
-private val LENS_MUSCLE = Color(0xFFA07AB0)
-private val LENS_JOINT = Color(0xFF7A9AB8)
-private val LENS_PATTERN = Color(0xFF7AAA7A)
-private val LENS_CHAIN = Color(0xFFC0A870)
-private val LENS_CONCEPT = Color(0xFF7A9CA8)
+private val LENS_EXERCISE = Color(0xFF9DB6C9)
+private val LENS_MUSCLE = Color(0xFF86939B)
+private val LENS_JOINT = Color(0xFF9AA5AC)
+private val LENS_PATTERN = Color(0xFF7F8D96)
+private val LENS_CHAIN = Color(0xFF8C979D)
+private val LENS_CONCEPT = Color(0xFF9AA5AC)
 
 // ═══════════════════════════════════════════════════════════════════════
 // WIKI LENS TYPES
@@ -130,7 +128,7 @@ fun WikiLabHomeScreen(
                 val canonical = WikiLabRepository.getMuscleById(canonicalId)
                 if (canonical != null) canonical to canonicalId else null
             } else null
-        }
+        }.sortedBy { it.first.id }
     }
 
     // ─── Search results ──────────────────────────────────────────────
@@ -147,7 +145,7 @@ fun WikiLabHomeScreen(
                     .thenBy { it.name }
             )
             .take(5).mapTo(results) {
-                SearchResult(it.id, it.name, "Ejercicio", SearchResultType.EXERCISE, Color(0xFFE53935))
+                SearchResult(it.id, it.name, "Ejercicio", SearchResultType.EXERCISE, APRENDE_LINK_COLOR)
             }
 
         muscles.filter { it.name.lowercase().contains(q) || it.description.lowercase().contains(q) }
@@ -155,23 +153,26 @@ fun WikiLabHomeScreen(
                 val canonicalId = canonicalWikiLabMuscleIdFromEntityId(it.id) ?: return@mapNotNull null
                 WikiLabRepository.getMuscleById(canonicalId)
             }.distinctBy { it.id }
+            .sortedBy { it.id }
             .take(5)
             .mapTo(results) {
-                SearchResult(it.id, it.name, "Músculo · ${WikiLabRepository.getBodyPartLabel(it.bodyPart)}", SearchResultType.MUSCLE, Color(0xFF9C27B0))
+                SearchResult(it.id, it.name, "Músculo · ${WikiLabRepository.getBodyPartLabel(it.bodyPart)}", SearchResultType.MUSCLE, APRENDE_LINK_COLOR)
             }
 
         joints.filter { it.name.lowercase().contains(q) || it.description.lowercase().contains(q) }
+            .sortedBy { it.id }
             .take(4).mapTo(results) {
-                SearchResult(it.id, it.name, "Articulación · ${WikiLabRepository.getJointTypeLabel(it.type)}", SearchResultType.JOINT, Color(0xFF1E88E5))
+                SearchResult(it.id, it.name, "Articulación · ${WikiLabRepository.getJointTypeLabel(it.type)}", SearchResultType.JOINT, APRENDE_LINK_COLOR)
             }
 
         patterns.filter { it.name.lowercase().contains(q) || it.description.lowercase().contains(q) }
+            .sortedBy { it.id }
             .take(4).mapTo(results) {
-                SearchResult(it.id, it.name, "Patrón de Movimiento", SearchResultType.PATTERN, Color(0xFF43A047))
+                SearchResult(it.id, it.name, "Patrón de Movimiento", SearchResultType.PATTERN, APRENDE_LINK_COLOR)
             }
 
         searchConcepts(searchQuery).take(5).mapTo(results) {
-            SearchResult(it.id, it.name, "Concepto · ${it.category.label}", SearchResultType.CONCEPT, it.category.color)
+            SearchResult(it.id, it.name, "Concepto · ${it.category.label}", SearchResultType.CONCEPT, APRENDE_LINK_COLOR)
         }
 
         results
@@ -182,23 +183,23 @@ fun WikiLabHomeScreen(
         val list = mutableListOf<WikiLensConcept>()
         var idx = 0
 
-        for (ex in exerciseCatalog.shuffled().take(12)) {
+        for (ex in exerciseCatalog.sortedBy { it.id }.take(12)) {
             list.add(WikiLensConcept("ex$idx", ex.id, ex.name.take(12), WikiLensConceptType.EXERCISE, LENS_EXERCISE))
             idx++
         }
-        for ((muscle, canonicalId) in canonicalMuscles.take(10)) {
+        for ((muscle, canonicalId) in canonicalMuscles.sortedBy { it.first.id }.take(10)) {
             list.add(WikiLensConcept("mu$idx", canonicalId, muscle.name.take(14), WikiLensConceptType.MUSCLE, LENS_MUSCLE))
             idx++
         }
-        for (j in joints.shuffled().take(8)) {
+        for (j in joints.sortedBy { it.id }.take(8)) {
             list.add(WikiLensConcept("jo$idx", j.id, j.name.take(12), WikiLensConceptType.JOINT, LENS_JOINT))
             idx++
         }
-        for (p in patterns.shuffled().take(6)) {
+        for (p in patterns.sortedBy { it.id }.take(6)) {
             list.add(WikiLensConcept("pa$idx", p.id, p.name.take(12), WikiLensConceptType.PATTERN, LENS_PATTERN))
             idx++
         }
-        for (ch in chains) {
+        for (ch in chains.sortedBy { it.id }) {
             list.add(WikiLensConcept("ch$idx", ch.id, ch.name.take(14), WikiLensConceptType.CHAIN, chainColor(ch.id)))
             idx++
         }
@@ -212,7 +213,7 @@ fun WikiLabHomeScreen(
             "rom" to "ROM",
             "deload" to "Deload",
         )
-        for (c in TRAINING_CONCEPTS_DATABASE.shuffled().take(8)) {
+        for (c in TRAINING_CONCEPTS_DATABASE.sortedBy { it.id }.take(8)) {
             val label = conceptShortNames[c.id] ?: c.name.take(10)
             list.add(WikiLensConcept("co$idx", c.id, label, WikiLensConceptType.CONCEPT, LENS_CONCEPT))
             idx++
@@ -259,7 +260,7 @@ fun WikiLabHomeScreen(
 
     LazyColumn(
         state = listState,
-        modifier = Modifier.fillMaxSize().background(Color.Black),
+        modifier = Modifier.fillMaxSize().background(APRENDE_BACKGROUND),
         contentPadding = PaddingValues(bottom = 180.dp),
     ) {
         // ═══════════════════════════════════════════════════════════════
@@ -505,7 +506,6 @@ private fun WikiConceptLens(
                     .size(lensSize)
                     .align(Alignment.BottomCenter)
                     .background(Color(0xFF040404))
-                    .border(BorderStroke(1.5.dp, Color(0xFF161616)), CircleShape)
                     .clip(CircleShape)
                     .pointerInput(Unit) {
                         detectTransformGestures { _, pan, zoom, _ ->
@@ -608,7 +608,7 @@ private fun WikiConceptLens(
                 }
                 drawIntoCanvas { canvas ->
                     canvas.nativeCanvas.drawTextOnPath(
-                        "Enciclopedia",
+                        "Aprende",
                         arcPath,
                         0f,
                         -4.dp.toPx(),
@@ -676,8 +676,7 @@ private fun WikiSectionTile(
             .height(78.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF121212)),
-        border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
+                    colors = CardDefaults.cardColors(containerColor = APRENDE_PANEL),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(
@@ -719,8 +718,7 @@ private fun FeaturedConceptCard(
             .width(220.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF121212)),
-        border = BorderStroke(1.dp, Color(0xFF1E1E1E)),
+        colors = CardDefaults.cardColors(containerColor = APRENDE_PANEL),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
@@ -783,7 +781,7 @@ private fun SearchResultCard(
             .padding(horizontal = 16.dp, vertical = 3.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        colors = CardDefaults.cardColors(containerColor = APRENDE_PANEL_ELEVATED),
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -838,12 +836,8 @@ private fun SearchResultCard(
 // ═══════════════════════════════════════════════════════════════════════
 
 private fun chainColor(id: String): Color = when (id) {
-    "tren-superior" -> Color(0xFF7A9AB8)
-    "tren-inferior" -> Color(0xFF7AAA7A)
-    "core" -> Color(0xFFC0A870)
-    "cadena-anterior" -> Color(0xFFC27A7A)
-    "cadena-posterior" -> Color(0xFFA07AB0)
-    else -> Color(0xFF7A7A7A)
+    "tren-superior", "tren-inferior", "core", "cadena-anterior", "cadena-posterior" -> APRENDE_LINK_COLOR
+    else -> Color(0xFF7F8D96)
 }
 
 @Composable

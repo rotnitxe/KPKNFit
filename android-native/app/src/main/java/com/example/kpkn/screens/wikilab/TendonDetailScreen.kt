@@ -2,8 +2,6 @@ package com.example.kpkn.screens.wikilab
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -91,7 +89,7 @@ fun TendonDetailScreen(
                         style = MaterialTheme.typography.headlineLarge.copy(
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.Black,
-                            color = Color(0xFFFF8F00)
+                            color = Color.White
                         )
                     )
                     tendon.description?.let {
@@ -139,14 +137,14 @@ fun TendonDetailScreen(
                                     .padding(start = 12.dp).padding(vertical = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), Color(0xFF9C27B0)) {}
+                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), APRENDE_LINK_COLOR) {}
                                 Spacer(Modifier.width(10.dp))
                                 Column {
                                     Text(
                                         text = muscle.name,
                                         style = MaterialTheme.typography.bodyMedium.copy(
                                             fontFamily = FontFamily.Serif,
-                                            color = Color(0xFF9C27B0)
+                                            color = APRENDE_LINK_COLOR
                                         ),
                                         fontWeight = FontWeight.Bold
                                     )
@@ -177,14 +175,14 @@ fun TendonDetailScreen(
                                     .padding(start = 12.dp).padding(vertical = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), Color(0xFF1E88E5)) {}
+                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), APRENDE_LINK_COLOR) {}
                                 Spacer(Modifier.width(10.dp))
                                 Column {
                                     Text(
                                         text = joint.name,
                                         style = MaterialTheme.typography.bodyMedium.copy(
                                             fontFamily = FontFamily.Serif,
-                                            color = Color(0xFF1E88E5)
+                                            color = APRENDE_LINK_COLOR
                                         ),
                                         fontWeight = FontWeight.Bold
                                     )
@@ -260,13 +258,13 @@ fun TendonDetailScreen(
                                     .padding(start = 12.dp).padding(vertical = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), Color(0xFF66BB6A)) {}
+                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), APRENDE_LINK_COLOR) {}
                                 Spacer(Modifier.width(10.dp))
                                 Text(
                                     text = exercise.name,
                                     style = MaterialTheme.typography.bodyMedium.copy(
                                         fontFamily = FontFamily.Serif,
-                                        color = Color(0xFF66BB6A)
+                                        color = APRENDE_LINK_COLOR
                                     ),
                                     fontWeight = FontWeight.Bold
                                 )
@@ -329,7 +327,6 @@ private fun WikiTendonInfobox(tendon: TendonEntity) {
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
-        border = BorderStroke(1.dp, Color(0xFF2C2C2C)),
         shape = RoundedCornerShape(4.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

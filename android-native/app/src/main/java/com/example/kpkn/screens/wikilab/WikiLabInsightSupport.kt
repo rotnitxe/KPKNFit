@@ -1,8 +1,6 @@
 package com.example.kpkn.screens.wikilab
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,9 +33,6 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.db.JointEntity
 import com.example.kpkn.data.db.MuscleGroupEntity
 import com.example.kpkn.data.db.TendonEntity
-import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
-import com.example.kpkn.data.models.ExerciseMuscleInfo
-import com.example.kpkn.data.models.MuscleRole
 
 internal data class WikiLabPatternInsight(
     val summary: String,
@@ -303,8 +298,7 @@ internal fun WikiLabInsightCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF141414))
-            .border(BorderStroke(1.dp, Color(0xFF2C2C2C)), RoundedCornerShape(4.dp))
+            .background(APRENDE_MUTED_FILL)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -338,7 +332,7 @@ internal fun WikiLabInsightCard(
                         .padding(top = 6.dp)
                         .size(7.dp),
                     shape = RoundedCornerShape(50),
-                    color = accent,
+                    color = accent.copy(alpha = 0.72f),
                 ) {}
                 Spacer(Modifier.width(10.dp))
                 Text(
@@ -466,7 +460,7 @@ internal fun buildJointGuide(joint: JointEntity): WikiLabVisualGuide {
                 "Escápula y caja torácica suelen decidir el hombro más que el húmero solo.",
                 "Cuando falla el control, aparecen pinzamientos o compensaciones rápidas.",
             ),
-            accent = Color(0xFF1E88E5),
+            accent = APRENDE_LINK_COLOR,
             icon = Icons.Default.Visibility,
         )
 
@@ -478,7 +472,7 @@ internal fun buildJointGuide(joint: JointEntity): WikiLabVisualGuide {
                 "Demasiada traslación o valgo suele indicar que otra región dejó de ayudar.",
                 "La carga protectora suele venir de progresar control y tolerancia, no de inmovilizar.",
             ),
-            accent = Color(0xFF1E88E5),
+            accent = APRENDE_LINK_COLOR,
             icon = Icons.Default.Insights,
         )
 
@@ -490,7 +484,7 @@ internal fun buildJointGuide(joint: JointEntity): WikiLabVisualGuide {
                 "Compara movilidad disponible con estabilidad bajo carga.",
                 "Las molestias repetidas suelen venir de exceso o defecto de movimiento relativo.",
             ),
-            accent = Color(0xFF1E88E5),
+            accent = APRENDE_LINK_COLOR,
             icon = Icons.Default.Visibility,
         )
     }
@@ -505,7 +499,7 @@ internal fun buildTendonGuide(tendon: TendonEntity): WikiLabVisualGuide {
             "La señal útil es cómo responde 24 a 48 horas después, no solo al terminar.",
             "Isométricos, tempo y rango parcial suelen servir como escalones antes de volver al gesto completo.",
         ),
-        accent = Color(0xFFFF8F00),
+        accent = APRENDE_LINK_COLOR,
         icon = Icons.Default.Healing,
     )
 }
@@ -513,99 +507,9 @@ internal fun buildTendonGuide(tendon: TendonEntity): WikiLabVisualGuide {
 internal fun recommendedExercisesForMuscle(
     muscle: MuscleGroupEntity,
     limit: Int = 6,
-): List<WikiLabExerciseLink> {
-    val targets = canonicalExerciseMusclesFor(muscle)
-    val catalog = exerciseCatalogSnapshot()
-    if (targets.isEmpty() || catalog.isEmpty()) return emptyList()
-
-    return catalog
-        .mapNotNull { exercise ->
-            val score = scoreExerciseForMuscle(exercise, targets)
-            if (score <= 0.0) return@mapNotNull null
-            exercise to score
-        }
-        .sortedWith(
-            compareByDescending<Pair<ExerciseMuscleInfo, Double>> { it.second }
-                .thenBy { it.first.technicalDifficulty ?: Double.MAX_VALUE }
-                .thenBy { it.first.name },
-        )
-        .take(limit)
-        .map { (exercise, _) ->
-            WikiLabExerciseLink(
-                id = exercise.id,
-                name = exercise.name,
-                subtitle = listOfNotNull(exercise.type, exercise.force, exercise.equipment)
-                    .joinToString(" · "),
-            )
-        }
-}
-
-private fun scoreExerciseForMuscle(
-    exercise: ExerciseMuscleInfo,
-    targets: Set<String>,
-): Double {
-    if (targets.isEmpty()) return 0.0
-
-    var score = 0.0
-    exercise.involvedMuscles.forEach { involved ->
-        if (involved.muscle !in targets) return@forEach
-        score += when (involved.role) {
-            MuscleRole.PRIMARY -> 4.0
-            MuscleRole.SECONDARY -> 2.0
-            MuscleRole.STABILIZER -> 0.8
-            MuscleRole.NEUTRALIZER -> 0.5
-        }
-        score += involved.volumeContribution ?: 0.0
-    }
-
-    if (score == 0.0) return 0.0
-
-    score += when (exercise.tier) {
-        "T1" -> 1.2
-        "T2" -> 0.8
-        else -> 0.3
-    }
-    score += when (exercise.type) {
-        "Básico" -> 0.9
-        "Accesorio" -> 0.7
-        "Aislamiento" -> 0.6
-        else -> 0.0
-    }
-    return score
-}
-
-private fun canonicalExerciseMusclesFor(muscle: MuscleGroupEntity): Set<String> {
-    val id = muscle.id.lowercase()
-    return buildSet {
-        when {
-            id.startsWith("pectoral") -> add("Pectorales")
-            id == "espalda" || id.contains("dorsal") || id.contains("redondo") -> add("Dorsales")
-            id == "hombros" || id.contains("deltoides") -> add("Deltoides")
-            id == "brazos" || id.contains("tríceps") -> add("Tríceps")
-            id == "brazos" || id.contains("bíceps") -> add("Bíceps")
-            id.contains("antebrazo") -> add("Antebrazo")
-            id == "abdomen" -> add("Abdomen")
-            id == "core" -> add("Core")
-            id == "piernas" || id.contains("cuádr") -> add("Cuádriceps")
-            id == "piernas" || id.contains("isquio") -> add("Isquiosurales")
-            id == "piernas" || id.contains("glúte") -> add("Glúteos")
-            id == "piernas" || id.contains("aductor") -> add("Aductores")
-            id == "piernas" || id.contains("pantorr") -> add("Pantorrillas")
-            id.contains("trapecio") -> add("Trapecio")
-            id.contains("romboid") -> {
-                add("Trapecio")
-                add("Dorsales")
-            }
-            id.contains("erectores") || muscle.bodyPart == "spine" -> add("Erectores Espinales")
-            id.contains("cuello") -> add("Cuello")
-        }
-    }
-}
+): List<WikiLabExerciseLink> = catalogExercisesForMuscle(muscle.id, limit)
 
 private fun wikiLabBodyPartAccent(bodyPart: String?): Color = when (bodyPart) {
-    "upper" -> Color(0xFF1E88E5)
-    "lower" -> Color(0xFF43A047)
-    "core" -> Color(0xFFFF8F00)
-    "spine" -> Color(0xFF9C27B0)
-    else -> Color(0xFF757575)
+    "upper", "lower", "core", "spine" -> APRENDE_LINK_COLOR
+    else -> Color(0xFF7F8D96)
 }

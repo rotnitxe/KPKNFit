@@ -1,6 +1,5 @@
 package com.example.kpkn.screens.wikilab
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,31 +8,36 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.foundation.border
-import androidx.compose.foundation.BorderStroke
-import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
-import com.example.kpkn.data.models.*
+import com.example.kpkn.data.exercises.catalogv2.decodeCatalogRichMetadata
+import com.example.kpkn.data.models.AnatomicalConsideration
+import com.example.kpkn.data.models.CommonMistake
+import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.InvolvedMuscle
+import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.repository.CustomExerciseRepository
+import com.example.kpkn.data.repository.WikiLabRepository
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseBodyRegionV2
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseKineticChainV2
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseLateralityV2
+import com.example.kpkn.domain.exercises.catalogv2.JointInvolvementV2
+import com.example.kpkn.domain.exercises.catalogv2.JointRoleV2
 import com.example.kpkn.screens.sessioneditor.components.SmartExerciseEditorDialog
 import com.example.kpkn.screens.wikilab.components.CaupolicanSquatInteractiveViewer
-import com.example.kpkn.screens.wikilab.components.ExerciseFatigueScenarios
 import com.example.kpkn.screens.wikilab.components.SquatVariant
-import com.example.kpkn.domain.exercises.adaptedExerciseDescription
 import com.example.kpkn.ui.components.KpknAlertDialog
-
-// ─── MAIN SCREEN ──────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,43 +45,46 @@ fun ExerciseDetailScreen(
     exercise: ExerciseMuscleInfo,
     onNavigateToMuscle: ((String) -> Unit)? = null,
     onNavigateToJoint: ((String) -> Unit)? = null,
+    onNavigateToPattern: ((String) -> Unit)? = null,
     onNavigateToExercise: ((String) -> Unit)? = null,
     onBack: () -> Unit,
 ) {
-    val canonicalInvolved = remember(exercise.id, exercise.involvedMuscles) {
+    val metadata = remember(exercise.id, exercise.catalogRichMetadataJson) {
+        exercise.decodeCatalogRichMetadata()
+    }
+    val legacyMuscles = remember(exercise.id, exercise.involvedMuscles) {
         collapseInvolvedMusclesToCanonical(exercise.involvedMuscles)
     }
-    val fatigue = remember(exercise.id) { com.example.kpkn.domain.exercises.calculateFriendlyFatigue(exercise) }
     val customExercises by CustomExerciseRepository.customExercises.collectAsState()
     val catalog = remember(customExercises) {
-        (exerciseCatalogSnapshot() + customExercises)
+        (com.example.kpkn.data.exercises.catalogExerciseIndex().values + customExercises)
             .associateBy { it.id.lowercase() }
             .values
             .toList()
     }
-
-    val isSquatExercise = remember(exercise.id, exercise.name) {
-        val id = exercise.id.lowercase()
-        val name = exercise.name.lowercase()
-        id.contains("high_bar") || id.contains("low_bar") ||
-        name.contains("barra alta") || name.contains("barra baja") ||
-        name.contains("high bar") || name.contains("low bar")
+    val relations = remember(exercise.id, catalog) {
+        buildAprendeExerciseRelations(exercise, catalog)
     }
-    var selectedTechnicalOption by remember(exercise.id) { mutableStateOf<Pair<TechnicalAspect, AspectOption>?>(null) }
+    val isSquatExercise = remember(metadata?.identity?.definitionId) {
+        // This visual is editorially curated for two v2 definitions. Do not
+        // infer it from a custom exercise's visible name or equipment.
+        metadata?.identity?.definitionId?.lowercase() in setOf(
+            "high_bar_back_squat",
+            "low_bar_back_squat",
+        )
+    }
     var showEditor by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
 
     Scaffold(
-        containerColor = Color.Black,
+        containerColor = APRENDE_BACKGROUND,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        exercise.name,
+                        text = "Aprende",
                         fontFamily = FontFamily.Serif,
                         fontWeight = FontWeight.Black,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
                         color = Color.White,
                     )
                 },
@@ -92,12 +99,12 @@ fun ExerciseDetailScreen(
                             Icon(Icons.Default.Edit, "Editar ejercicio", tint = Color.White)
                         }
                         IconButton(onClick = { confirmDelete = true }) {
-                            Icon(Icons.Default.Delete, "Eliminar ejercicio", tint = Color(0xFFEF4444))
+                            Icon(Icons.Default.Delete, "Eliminar ejercicio", tint = Color(0xFFCF8F8F))
                         }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Black,
+                    containerColor = APRENDE_BACKGROUND,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White,
                 ),
@@ -105,37 +112,34 @@ fun ExerciseDetailScreen(
         },
     ) { padding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black)
-                .padding(padding),
+            modifier = Modifier.fillMaxSize().background(APRENDE_BACKGROUND).padding(padding),
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // ─── Title & Description ──────────────────────────────────────
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = exercise.name,
+                        text = metadata?.display?.displayName ?: exercise.name,
                         style = MaterialTheme.typography.headlineLarge.copy(
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.Black,
-                            color = Color.White
-                        )
+                            color = Color.White,
+                        ),
                     )
-                    
-                    exercise.alias?.let { alias ->
-                        Text(
-                            text = "También conocido como: $alias",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontFamily = FontFamily.Serif,
-                                color = Color.White.copy(alpha = 0.5f),
-                            ),
-                        )
+                    if (metadata == null) {
+                        exercise.alias?.takeIf { it.isNotBlank() }?.let { alias ->
+                            Text(
+                                text = "También conocido como: $alias",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontFamily = FontFamily.Serif,
+                                    color = Color.White.copy(alpha = 0.5f),
+                                ),
+                            )
+                        }
                     }
-                    
-                    exercise.description?.let { desc ->
-                        Spacer(Modifier.height(8.dp))
+                    val description = metadata?.editorial?.description?.takeIf { it.isNotBlank() }
+                        ?: exercise.description
+                    description?.let { desc ->
                         Text(
                             text = desc,
                             style = MaterialTheme.typography.bodyMedium.copy(
@@ -148,121 +152,141 @@ fun ExerciseDetailScreen(
                 }
             }
 
-            if (!exercise.catalogOptionAxes.isNullOrEmpty()) {
+            if (metadata != null && (exercise.catalogVariantChips.isNotEmpty() || metadata.display.displaySummary.isNotBlank())) {
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(
-                            "Variantes técnicas",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
-                            color = Color.White,
-                        )
+                        WikiSectionHeader("Configuración seleccionada")
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            items(
-                                exercise.catalogOptionAxes.orEmpty().flatMap { aspect ->
-                                    aspect.options.map { aspect to it }
-                                },
-                            ) { (aspect, option) ->
-                                AssistChip(
-                                    onClick = { selectedTechnicalOption = aspect to option },
-                                    label = { Text(option.name) },
-                                )
+                            items(exercise.catalogVariantChips.ifEmpty { listOf(metadata.display.displaySummary) }) { chip ->
+                                Surface(
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = APRENDE_PANEL,
+                                ) {
+                                    Text(
+                                        chip,
+                                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif),
+                                        color = APRENDE_TEXT_SECONDARY,
+                                    )
+                                }
                             }
                         }
-                        selectedTechnicalOption?.let { (aspect, option) ->
-                            Surface(
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp),
-                                color = Color.White.copy(alpha = 0.08f),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
-                            ) {
-                                Text(
-                                    adaptedExerciseDescription(exercise, mapOf(aspect.id to option.id)),
-                                    modifier = Modifier.padding(12.dp),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.White.copy(alpha = 0.86f),
-                                )
-                            }
+                        metadata.editorial.variantRationale.takeIf { it.isNotBlank() }?.let { rationale ->
+                            Text(
+                                rationale,
+                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
+                                color = Color.White.copy(alpha = 0.72f),
+                                lineHeight = 18.sp,
+                            )
                         }
                     }
                 }
             }
 
-            // ─── Caupolicán Animated Exercise Movement Viewer ──────────────
             if (isSquatExercise) {
                 item {
-                    val defaultVariant = if (exercise.id.lowercase().contains("low") || exercise.name.lowercase().contains("baja")) {
+                    val defaultVariant = if (metadata?.identity?.definitionId == "low_bar_back_squat") {
                         SquatVariant.LOW_BAR
                     } else {
                         SquatVariant.HIGH_BAR
                     }
                     CaupolicanSquatInteractiveViewer(
                         initialVariant = defaultVariant,
-                        modifier = Modifier.padding(vertical = 4.dp)
+                        modifier = Modifier.padding(vertical = 4.dp),
                     )
                 }
             }
 
-            // ─── Infobox (Wikipedia Table) ────────────────────────────────
-            item {
-                WikiInfobox(exercise, fatigue.overall.toDouble())
-            }
+            item { WikiInfobox(exercise, metadata) }
 
-            // ─── Músculos Involucrados (Wikipedia inline list) ────────────
-            if (canonicalInvolved.isNotEmpty()) {
+            if (metadata != null) {
                 item {
                     Column {
-                        WikiSectionHeader("Músculos Involucrados")
+                        WikiSectionHeader("Músculos involucrados")
                         Spacer(Modifier.height(8.dp))
-                        WikiMuscleInvolvement(
-                            muscles = canonicalInvolved,
-                            onNavigateToMuscle = onNavigateToMuscle
-                        )
+                        WikiCatalogMuscles(metadata, onNavigateToMuscle)
                     }
+                }
+                if (metadata.anatomy.jointInvolvement.isNotEmpty()) {
+                    item {
+                        Column {
+                            WikiSectionHeader("Articulaciones y acciones")
+                            Spacer(Modifier.height(8.dp))
+                            WikiCatalogJoints(metadata.anatomy.jointInvolvement, onNavigateToJoint)
+                        }
+                    }
+                }
+                val patternId = canonicalWikiLabPatternId(metadata.biomechanics.movementPatternId)
+                val pattern = patternId?.let(WikiLabRepository::getPatternById)
+                if (pattern != null) {
+                    item {
+                        Column {
+                            WikiSectionHeader("Patrón de movimiento")
+                            Spacer(Modifier.height(8.dp))
+                            WikiLinkedLine(
+                                label = pattern.name,
+                                detail = "${metadata.biomechanics.movementPatternId} · ${bodyRegionLabel(metadata.biomechanics.bodyRegion)}",
+                                onClick = { onNavigateToPattern?.invoke(pattern.id) },
+                                clickable = onNavigateToPattern != null,
+                            )
+                        }
+                    }
+                }
+                if (metadata.editorial.benefits.isNotEmpty()) {
+                    item { WikiCatalogBulletSection("Beneficios", metadata.editorial.benefits) }
+                }
+                if (metadata.editorial.technique.isNotBlank()) {
+                    item {
+                        Column {
+                            WikiSectionHeader("Técnica")
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                metadata.editorial.technique,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+                                color = Color.White.copy(alpha = 0.88f),
+                                lineHeight = 21.sp,
+                            )
+                        }
+                    }
+                }
+                if (metadata.coaching.setup.isNotEmpty()) {
+                    item { WikiCatalogBulletSection("Preparación", metadata.coaching.setup) }
+                }
+                if (metadata.coaching.execution.isNotEmpty()) {
+                    item { WikiCatalogBulletSection("Ejecución", metadata.coaching.execution) }
+                }
+                if (metadata.coaching.cues.isNotEmpty()) {
+                    item { WikiCatalogBulletSection("Claves técnicas", metadata.coaching.cues) }
+                }
+                if (metadata.coaching.commonMistakes.isNotEmpty()) {
+                    item { WikiCatalogBulletSection("Errores comunes", metadata.coaching.commonMistakes) }
+                }
+            } else {
+                if (legacyMuscles.isNotEmpty()) {
+                    item {
+                        Column {
+                            WikiSectionHeader("Músculos involucrados")
+                            Spacer(Modifier.height(8.dp))
+                            WikiMuscleInvolvement(legacyMuscles, onNavigateToMuscle)
+                        }
+                    }
+                }
+                exercise.anatomicalConsiderations?.let { considerations ->
+                    item { WikiAnatomicalSectionBlock(considerations) }
+                }
+                exercise.commonMistakes?.let { mistakes ->
+                    item { WikiLegacyMistakesBlock(mistakes) }
                 }
             }
 
-            // ─── Anatomical Considerations ────────────────────────────────
-            if (exercise.anatomicalConsiderations != null) {
-                item {
-                    Column {
-                        WikiSectionHeader("Consideraciones Anatómicas")
-                        Spacer(Modifier.height(8.dp))
-                        WikiAnatomicalSection(exercise.anatomicalConsiderations)
-                    }
-                }
-            }
-
-            // ─── Common Mistakes ──────────────────────────────────────────
-            if (exercise.commonMistakes != null) {
-                item {
-                    Column {
-                        WikiSectionHeader("Errores Comunes")
-                        Spacer(Modifier.height(8.dp))
-                        WikiMistakesSection(exercise.commonMistakes)
-                    }
-                }
-            }
-
-            // ─── Fatigue Scenarios ────────────────────────────────────────
-            if (exercise.involvedMuscles.isNotEmpty()) {
-                item {
-                    Column {
-                        WikiSectionHeader("Estimación de Drenaje y Fatiga")
-                        Spacer(Modifier.height(8.dp))
-                        ExerciseFatigueScenarios(exercise = exercise)
-                    }
-                }
-            }
-
-            // ─── Ejercicios similares ─────────────────────────────────────
             item {
                 Column {
-                    WikiSectionHeader("Ejercicios Similares y Alternativas")
+                    WikiSectionHeader("Ejercicios relacionados")
                     Spacer(Modifier.height(8.dp))
                     ExerciseSimilarThreeBand(
                         info = exercise,
                         catalog = catalog,
+                        relations = relations,
                         onOpenExercise = { id -> onNavigateToExercise?.invoke(id) },
                     )
                 }
@@ -298,195 +322,183 @@ fun ExerciseDetailScreen(
     }
 }
 
-// ─── WIKIPEDIA UI COMPONENTS ──────────────────────────────────────────────
-
 @Composable
 private fun WikiSectionHeader(title: String) {
     Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 4.dp)) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif),
-            fontWeight = FontWeight.Black,
-            color = Color.White
-        )
+        Text(title, style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.Black, color = Color.White)
         Spacer(Modifier.height(4.dp))
-        HorizontalDivider(color = Color(0xFF2C2C2C), thickness = 1.dp)
+        HorizontalDivider(color = APRENDE_DIVIDER, thickness = 1.dp)
     }
 }
 
 @Composable
-private fun WikiInfobox(exercise: ExerciseMuscleInfo, fatigueScore: Double) {
+private fun WikiInfobox(
+    exercise: ExerciseMuscleInfo,
+    metadata: com.example.kpkn.domain.exercises.catalogv2.ResolvedExerciseMetadataV2?,
+) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
-        border = BorderStroke(1.dp, Color(0xFF2C2C2C)),
-        shape = RoundedCornerShape(4.dp)
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = APRENDE_PANEL_ELEVATED),
+        shape = RoundedCornerShape(4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
-        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                text = "Ficha Técnica Enciclopédica",
-                style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif),
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-            HorizontalDivider(color = Color(0xFF2C2C2C))
-            
-            exercise.category?.let { InfoboxRow("Categoría", it) }
-            exercise.equipment?.let { InfoboxRow("Equipamiento", it) }
-            exercise.type?.let { InfoboxRow("Mecánica", it) }
-            // Tier is a legacy programming label and is intentionally not
-            // synthesized for v2.  Omit the row when the catalog does not
-            // provide one instead of rendering a placeholder.
-            exercise.tier?.let { InfoboxRow("Nivel (Tier)", it) }
-            exercise.force?.let { InfoboxRow("Fuerza", it) }
-            InfoboxRow("Fatiga General", "${"%.1f".format(fatigueScore)} / 5.0")
+        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Ficha técnica", style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.align(Alignment.CenterHorizontally))
+            HorizontalDivider(color = APRENDE_DIVIDER)
+            if (metadata != null) {
+                InfoboxRow("Catálogo", metadata.identity.catalogRevision)
+                InfoboxRow("Variante", metadata.display.displaySummary)
+                InfoboxRow("Equipamiento", exercise.equipment ?: metadata.biomechanics.equipmentId)
+                InfoboxRow("Región", bodyRegionLabel(metadata.biomechanics.bodyRegion))
+                InfoboxRow("Cadena", kineticChainLabel(metadata.biomechanics.kineticChain))
+                InfoboxRow("Lateralidad", lateralityLabel(metadata.biomechanics.laterality))
+                InfoboxRow("Articulación", exercise.articulationType ?: "—")
+            } else {
+                exercise.category?.let { InfoboxRow("Categoría", it) }
+                exercise.equipment?.let { InfoboxRow("Equipamiento", it) }
+                exercise.type?.let { InfoboxRow("Mecánica", it) }
+                exercise.tier?.let { InfoboxRow("Nivel", it) }
+                exercise.force?.let { InfoboxRow("Fuerza", it) }
+            }
         }
     }
 }
 
 @Composable
 private fun InfoboxRow(label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
-            fontWeight = FontWeight.Bold,
-            color = Color.White.copy(alpha = 0.5f)
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
-            fontWeight = FontWeight.Medium,
-            color = Color.White
-        )
+    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        Text(label, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f))
+        Text(value, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.Medium, color = Color.White, textAlign = androidx.compose.ui.text.style.TextAlign.End)
     }
 }
 
 @Composable
-private fun WikiMuscleInvolvement(
-    muscles: List<InvolvedMuscle>,
-    onNavigateToMuscle: ((String) -> Unit)?
+private fun WikiCatalogMuscles(
+    metadata: com.example.kpkn.domain.exercises.catalogv2.ResolvedExerciseMetadataV2,
+    onNavigate: ((String) -> Unit)?,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        muscles.forEach { m ->
-            val color = wikilabMuscleColor(m.muscle)
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(
-                    modifier = Modifier.size(6.dp),
-                    shape = RoundedCornerShape(50),
-                    color = color
-                ) {}
-                Spacer(Modifier.width(10.dp))
-                
-                val canonicalId = canonicalWikiLabMuscleId(m.muscle, m.emphasis)
-                val isClickable = onNavigateToMuscle != null && canonicalId != null
-                
-                Text(
-                    text = m.muscle + (m.emphasis?.let { " ($it)" } ?: ""),
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontFamily = FontFamily.Serif,
-                        color = if (isClickable) Color(0xFF29B6F6) else Color.White
-                    ),
-                    fontWeight = FontWeight.Bold,
-                    modifier = if (isClickable) Modifier.clickable { canonicalId?.let(onNavigateToMuscle!!) } else Modifier
-                )
-                
-                Spacer(Modifier.width(8.dp))
-                val roleText = when (m.role) {
-                    MuscleRole.PRIMARY -> "Primario"
-                    MuscleRole.SECONDARY -> "Secundario"
-                    else -> "Estabilizador"
-                }
-                Text(
-                    text = "· $roleText",
-                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
-                    color = Color.White.copy(alpha = 0.5f)
-                )
-                
-                m.volumeContribution?.let { act ->
-                    Spacer(Modifier.weight(1f))
-                    Text(
-                        text = "Aporte: +${"%.2f".format(act)}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.6f)
-                    )
-                }
-            }
+    val notes = metadata.anatomy.muscleNotes.associateBy { it.muscleId }
+    val ids = buildList {
+        addAll(metadata.anatomy.primaryMuscles)
+        addAll(metadata.anatomy.secondaryMuscles)
+        addAll(metadata.anatomy.stabilizerMuscles)
+    }.distinct()
+    ids.forEach { catalogId ->
+        val wikiId = canonicalWikiLabMuscleIdFromCatalogId(catalogId)
+        val entity = wikiId?.let(WikiLabRepository::getMuscleById)
+        val label = entity?.name ?: catalogId
+        val role = when {
+            catalogId in metadata.anatomy.primaryMuscles -> "Principal"
+            catalogId in metadata.anatomy.secondaryMuscles -> "Secundario"
+            else -> "Estabilizador"
+        }
+        WikiLinkedLine(label, role + (notes[catalogId]?.note?.let { " · $it" } ?: ""), { if (wikiId != null) onNavigate?.invoke(wikiId) }, wikiId != null && onNavigate != null)
+    }
+}
+
+@Composable
+private fun WikiCatalogJoints(joints: List<JointInvolvementV2>, onNavigate: ((String) -> Unit)?) {
+    joints.forEach { involvement ->
+        val joint = WikiLabRepository.getJointById(involvement.jointId)
+        WikiLinkedLine(
+            label = joint?.name ?: involvement.jointId,
+            detail = "${jointRoleLabel(involvement.role)} · ${involvement.actions.joinToString(", ")} · ${involvement.note}",
+            onClick = { onNavigate?.invoke(involvement.jointId) },
+            clickable = joint != null && onNavigate != null,
+        )
+    }
+}
+
+@Composable
+private fun WikiLinkedLine(label: String, detail: String, onClick: () -> Unit, clickable: Boolean) {
+    Column(modifier = Modifier.fillMaxWidth().then(if (clickable) Modifier.clickable(onClick = onClick) else Modifier).padding(vertical = 6.dp)) {
+        Text(label, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif, color = if (clickable) APRENDE_LINK_COLOR else Color.White), fontWeight = FontWeight.Bold)
+        Text(detail, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif), color = Color.White.copy(alpha = 0.68f), lineHeight = 17.sp)
+        HorizontalDivider(color = APRENDE_DIVIDER)
+    }
+}
+
+@Composable
+private fun WikiCatalogBulletSection(title: String, bullets: List<String>) {
+    Column {
+        WikiSectionHeader(title)
+        Spacer(Modifier.height(8.dp))
+        bullets.forEach { bullet ->
+            Text("• $bullet", style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif), color = Color.White.copy(alpha = 0.86f), lineHeight = 20.sp, modifier = Modifier.padding(vertical = 2.dp))
         }
     }
 }
 
 @Composable
-private fun WikiAnatomicalSection(considerations: List<AnatomicalConsideration>) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+private fun WikiMuscleInvolvement(muscles: List<InvolvedMuscle>, onNavigateToMuscle: ((String) -> Unit)?) {
+    muscles.forEach { muscle ->
+        val canonicalId = canonicalWikiLabMuscleId(muscle.muscle, muscle.emphasis)
+        WikiLinkedLine(
+            label = muscle.muscle,
+            detail = when (muscle.role) {
+                MuscleRole.PRIMARY -> "Principal"
+                MuscleRole.SECONDARY -> "Secundario"
+                MuscleRole.STABILIZER -> "Estabilizador"
+                MuscleRole.NEUTRALIZER -> "Neutralizador"
+            } + (muscle.biomechanicalReason?.let { " · $it" } ?: ""),
+            onClick = { if (canonicalId != null) onNavigateToMuscle?.invoke(canonicalId) },
+            clickable = canonicalId != null && onNavigateToMuscle != null,
+        )
+    }
+}
+
+@Composable
+private fun WikiAnatomicalSectionBlock(considerations: List<AnatomicalConsideration>) {
+    Column {
+        WikiSectionHeader("Consideraciones anatómicas")
+        Spacer(Modifier.height(8.dp))
         considerations.forEach { c ->
-            Column {
-                Text(
-                    text = "• " + c.trait,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                Text(
-                    text = c.advice,
-                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
-                    color = Color.White.copy(alpha = 0.8f),
-                    lineHeight = 18.sp,
-                    modifier = Modifier.padding(start = 12.dp)
-                )
-            }
+            Text("• ${c.trait}", style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.Bold, color = Color.White)
+            Text(c.advice, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif), color = Color.White.copy(alpha = 0.78f), lineHeight = 18.sp, modifier = Modifier.padding(start = 12.dp, bottom = 6.dp))
         }
     }
 }
 
 @Composable
-private fun WikiMistakesSection(mistakes: List<CommonMistake>) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        mistakes.forEach { m ->
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = Color(0xFFE53935)
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        text = m.mistake,
-                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFE53935)
-                    )
-                }
-                Row(
-                    modifier = Modifier.padding(start = 20.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = Color(0xFF43A047)
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        text = m.correction,
-                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif),
-                        color = Color(0xFF43A047)
-                    )
+private fun WikiLegacyMistakesBlock(mistakes: List<CommonMistake>) {
+    Column {
+        WikiSectionHeader("Errores comunes")
+        Spacer(Modifier.height(8.dp))
+        mistakes.forEach { mistake ->
+            Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(vertical = 4.dp)) {
+                Icon(Icons.Default.Close, null, modifier = Modifier.size(14.dp), tint = Color(0xFFCF8F8F))
+                Spacer(Modifier.width(6.dp))
+                Column {
+                    Text(mistake.mistake, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif), fontWeight = FontWeight.Bold, color = Color.White)
+                    Text(mistake.correction, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif), color = Color.White.copy(alpha = 0.76f))
                 }
             }
         }
     }
+}
+
+private fun bodyRegionLabel(value: ExerciseBodyRegionV2): String = when (value) {
+    ExerciseBodyRegionV2.UPPER -> "Tren superior"
+    ExerciseBodyRegionV2.LOWER -> "Tren inferior"
+    ExerciseBodyRegionV2.CORE -> "Core"
+    ExerciseBodyRegionV2.FULL -> "Cuerpo completo"
+}
+
+private fun kineticChainLabel(value: ExerciseKineticChainV2): String = when (value) {
+    ExerciseKineticChainV2.ANTERIOR -> "Anterior"
+    ExerciseKineticChainV2.POSTERIOR -> "Posterior"
+    ExerciseKineticChainV2.FULL -> "Completa"
+}
+
+private fun lateralityLabel(value: ExerciseLateralityV2): String = when (value) {
+    ExerciseLateralityV2.BILATERAL -> "Bilateral"
+    ExerciseLateralityV2.UNILATERAL -> "Unilateral"
+    ExerciseLateralityV2.ALTERNATING -> "Alterna"
+    ExerciseLateralityV2.NOT_APPLICABLE -> "No aplica"
+}
+
+private fun jointRoleLabel(value: JointRoleV2): String = when (value) {
+    JointRoleV2.PRIMARY -> "Principal"
+    JointRoleV2.SECONDARY -> "Secundaria"
+    JointRoleV2.STABILIZER -> "Estabilizadora"
 }

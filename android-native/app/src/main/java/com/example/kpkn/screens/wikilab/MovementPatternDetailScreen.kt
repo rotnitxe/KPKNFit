@@ -1,8 +1,6 @@
 package com.example.kpkn.screens.wikilab
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -55,6 +53,7 @@ fun MovementPatternDetailScreen(
     val exampleExercises = remember(exerciseIds) {
         resolveWikiLabExerciseLinks(exerciseIds)
     }
+    val catalogExercises = remember(pattern.id) { catalogExercisesForPattern(pattern.id) }
     val insight = remember(pattern.id) { patternInsightFor(pattern.id) }
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -100,7 +99,7 @@ fun MovementPatternDetailScreen(
                         style = MaterialTheme.typography.headlineLarge.copy(
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.Black,
-                            color = Color(0xFF43A047)
+                            color = Color.White
                         )
                     )
                     Text(
@@ -124,7 +123,7 @@ fun MovementPatternDetailScreen(
                 item {
                     WikiLabInsightCard(
                         title = "LECTURA BIOMECÁNICA",
-                        accent = Color(0xFF7E57C2),
+                        accent = APRENDE_LINK_COLOR,
                         icon = Icons.Default.Insights,
                         summary = it.summary,
                         bullets = it.mobilityDemands,
@@ -135,7 +134,7 @@ fun MovementPatternDetailScreen(
                 item {
                     WikiLabInsightCard(
                         title = "CUES Y ERRORES COMUNES",
-                        accent = Color(0xFFFB8C00),
+                        accent = APRENDE_LINK_COLOR,
                         icon = Icons.Default.Rule,
                         summary = "Piensa estas pistas como una lista corta de control para enseñar, depurar o revisar el patrón en video.",
                         bullets = it.setupCues + it.commonErrors.map { error -> "Error frecuente: $error" },
@@ -157,13 +156,13 @@ fun MovementPatternDetailScreen(
                                     .padding(start = 12.dp).padding(vertical = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), Color(0xFF9C27B0)) {}
+                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), APRENDE_LINK_COLOR) {}
                                 Spacer(Modifier.width(10.dp))
                                 Text(
                                     text = muscle.name,
                                     style = MaterialTheme.typography.bodyMedium.copy(
                                         fontFamily = FontFamily.Serif,
-                                        color = Color(0xFF9C27B0)
+                                        color = APRENDE_LINK_COLOR
                                     ),
                                     fontWeight = FontWeight.Bold
                                 )
@@ -193,13 +192,13 @@ fun MovementPatternDetailScreen(
                                     .padding(start = 12.dp).padding(vertical = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), Color(0xFF1E88E5)) {}
+                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), APRENDE_LINK_COLOR) {}
                                 Spacer(Modifier.width(10.dp))
                                 Text(
                                     text = joint.name,
                                     style = MaterialTheme.typography.bodyMedium.copy(
                                         fontFamily = FontFamily.Serif,
-                                        color = Color(0xFF1E88E5)
+                                        color = APRENDE_LINK_COLOR
                                     ),
                                     fontWeight = FontWeight.Bold
                                 )
@@ -229,16 +228,37 @@ fun MovementPatternDetailScreen(
                                     .padding(start = 12.dp).padding(vertical = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), Color(0xFF66BB6A)) {}
+                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), APRENDE_LINK_COLOR) {}
                                 Spacer(Modifier.width(10.dp))
                                 Text(
                                     text = exercise.name,
                                     style = MaterialTheme.typography.bodyMedium.copy(
                                         fontFamily = FontFamily.Serif,
-                                        color = Color(0xFF66BB6A)
+                                        color = APRENDE_LINK_COLOR
                                     ),
                                     fontWeight = FontWeight.Bold
                                 )
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (catalogExercises.isNotEmpty()) {
+                item {
+                    Column {
+                        WikiSectionHeader("Ejercicios conectados al catálogo")
+                        Spacer(Modifier.height(8.dp))
+                        catalogExercises.forEach { exercise ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().clickable { onNavigateToExercise(exercise.id) }.padding(vertical = 5.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(exercise.name, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif, color = APRENDE_LINK_COLOR), fontWeight = FontWeight.Bold)
+                                if (exercise.subtitle.isNotBlank()) {
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("· ${exercise.subtitle}", style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif), color = Color.White.copy(alpha = 0.55f))
+                                }
                             }
                         }
                     }
@@ -313,7 +333,7 @@ fun KineticChainDetailScreen(
                         style = MaterialTheme.typography.headlineLarge.copy(
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.Black,
-                            color = Color(0xFF1E88E5)
+                            color = Color.White
                         )
                     )
                     Text(
@@ -374,7 +394,7 @@ fun KineticChainDetailScreen(
                                 Surface(
                                     modifier = Modifier.size(6.dp),
                                     shape = RoundedCornerShape(50),
-                                    color = Color(0xFF9C27B0),
+                                    color = APRENDE_LINK_COLOR,
                                 ) {}
                                 Spacer(Modifier.width(10.dp))
                                 Column(modifier = Modifier.weight(1f)) {
@@ -382,7 +402,7 @@ fun KineticChainDetailScreen(
                                         text = displayName,
                                         style = MaterialTheme.typography.bodyMedium.copy(
                                             fontFamily = FontFamily.Serif,
-                                            color = if (isClickable) Color(0xFF29B6F6) else Color.White
+                                            color = if (isClickable) APRENDE_LINK_COLOR else Color.White
                                         ),
                                         fontWeight = FontWeight.Bold,
                                     )
@@ -433,7 +453,6 @@ private fun WikiPatternInfobox(
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
-        border = BorderStroke(1.dp, Color(0xFF2C2C2C)),
         shape = RoundedCornerShape(4.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

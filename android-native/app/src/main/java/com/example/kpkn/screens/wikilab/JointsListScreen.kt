@@ -110,8 +110,6 @@ fun JointsListScreen(
             }
 
             val bodyPartOrder = listOf("upper" to "Tren superior", "lower" to "Tren inferior", "spine" to "Columna")
-            val bodyPartColors = mapOf("upper" to Color(0xFF1E88E5), "lower" to Color(0xFF43A047), "spine" to Color(0xFF9C27B0))
-
             bodyPartOrder.forEach { (key, label) ->
                 val jointsInGroup = grouped[key] ?: emptyList()
                 if (jointsInGroup.isNotEmpty()) {
@@ -120,7 +118,6 @@ fun JointsListScreen(
                     }
 
                     items(jointsInGroup, key = { it.id }) { joint ->
-                        val color = bodyPartColors[joint.bodyPart] ?: Color(0xFF757575)
                         val injuries = WikiLabRepository.parseInjuries(joint.commonInjuries)
                         val muscleCount = WikiLabRepository.parseStringList(joint.musclesCrossing).size
 
@@ -134,7 +131,7 @@ fun JointsListScreen(
                                 text = joint.name,
                                 style = MaterialTheme.typography.bodyLarge.copy(
                                     fontFamily = FontFamily.Serif,
-                                    color = Color(0xFF29B6F6)
+                                    color = APRENDE_LINK_COLOR
                                 ),
                                 fontWeight = FontWeight.Bold,
                             )
@@ -144,7 +141,7 @@ fun JointsListScreen(
                             Text(
                                 text = "Tipo: " + WikiLabRepository.getJointTypeLabel(joint.type),
                                 style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
-                                color = color,
+                                color = Color.White.copy(alpha = 0.68f),
                             )
                             
                             Spacer(Modifier.height(2.dp))
@@ -156,7 +153,7 @@ fun JointsListScreen(
                             )
                             
                             Spacer(Modifier.height(10.dp))
-                            HorizontalDivider(color = Color(0xFF1A1A1A), thickness = 1.dp)
+                            HorizontalDivider(color = APRENDE_DIVIDER, thickness = 1.dp)
                         }
                     }
                 }

@@ -26,6 +26,9 @@ interface WikiLabDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMuscles(muscles: List<MuscleGroupEntity>)
 
+    @Query("DELETE FROM muscle_groups")
+    suspend fun clearMuscles()
+
     // ─── Joints ──────────────────────────────────────────────────────────
 
     @Query("SELECT * FROM joints ORDER BY name")
@@ -42,6 +45,9 @@ interface WikiLabDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertJoints(joints: List<JointEntity>)
+
+    @Query("DELETE FROM joints")
+    suspend fun clearJoints()
 
     // ─── Tendons ─────────────────────────────────────────────────────────
 
@@ -63,6 +69,9 @@ interface WikiLabDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTendons(tendons: List<TendonEntity>)
 
+    @Query("DELETE FROM tendons")
+    suspend fun clearTendons()
+
     // ─── Movement Patterns ───────────────────────────────────────────────
 
     @Query("SELECT * FROM movement_patterns ORDER BY name")
@@ -77,6 +86,9 @@ interface WikiLabDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPatterns(patterns: List<MovementPatternEntity>)
 
+    @Query("DELETE FROM movement_patterns")
+    suspend fun clearPatterns()
+
     // ─── Kinetic Chains ──────────────────────────────────────────────────
 
     @Query("SELECT * FROM kinetic_chains ORDER BY name")
@@ -90,6 +102,9 @@ interface WikiLabDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertChains(chains: List<KineticChainEntity>)
+
+    @Query("DELETE FROM kinetic_chains")
+    suspend fun clearChains()
 
     // ─── Bulk Count (for prepopulate check) ──────────────────────────────
 

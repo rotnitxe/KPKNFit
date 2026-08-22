@@ -25,8 +25,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.foundation.border
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.db.MuscleGroupEntity
@@ -76,7 +74,9 @@ fun MuscleGroupDetailScreen(
     val recExerciseIds = WikiLabRepository.parseStringList(muscle.recommendedExercises)
     val recommendedExercises = remember(muscle.id, recExerciseIds) {
         val direct = resolveWikiLabExerciseLinks(recExerciseIds)
-        if (direct.isNotEmpty()) direct else recommendedExercisesForMuscle(muscle)
+        (direct + recommendedExercisesForMuscle(muscle))
+            .distinctBy { it.id }
+            .take(8)
     }
     val visualGuide = remember(muscle.id) { buildMuscleGuide(muscle) }
 
@@ -287,13 +287,13 @@ fun MuscleGroupDetailScreen(
                                         .padding(start = 12.dp).padding(vertical = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Surface(Modifier.size(6.dp), RoundedCornerShape(50), Color(0xFF29B6F6)) {}
+                                    Surface(Modifier.size(6.dp), RoundedCornerShape(50), APRENDE_LINK_COLOR) {}
                                     Spacer(Modifier.width(10.dp))
                                     Text(
                                         text = joint.name,
                                         style = MaterialTheme.typography.bodyMedium.copy(
                                             fontFamily = FontFamily.Serif,
-                                            color = Color(0xFF29B6F6)
+                                            color = APRENDE_LINK_COLOR
                                         ),
                                         fontWeight = FontWeight.Bold
                                     )
@@ -324,13 +324,13 @@ fun MuscleGroupDetailScreen(
                                         .padding(start = 12.dp).padding(vertical = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Surface(Modifier.size(6.dp), RoundedCornerShape(50), Color(0xFFFF8F00)) {}
+                                    Surface(Modifier.size(6.dp), RoundedCornerShape(50), APRENDE_LINK_COLOR) {}
                                     Spacer(Modifier.width(10.dp))
                                     Text(
                                         text = tendon.name,
                                         style = MaterialTheme.typography.bodyMedium.copy(
                                             fontFamily = FontFamily.Serif,
-                                            color = Color(0xFFFF8F00)
+                                            color = APRENDE_LINK_COLOR
                                         ),
                                         fontWeight = FontWeight.Bold
                                     )
@@ -355,13 +355,13 @@ fun MuscleGroupDetailScreen(
                                     .padding(start = 12.dp).padding(vertical = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), Color(0xFF66BB6A)) {}
+                                Surface(Modifier.size(6.dp), RoundedCornerShape(50), APRENDE_LINK_COLOR) {}
                                 Spacer(Modifier.width(10.dp))
                                 Text(
                                     text = exercise.name,
                                     style = MaterialTheme.typography.bodyMedium.copy(
                                         fontFamily = FontFamily.Serif,
-                                        color = Color(0xFF66BB6A)
+                                        color = APRENDE_LINK_COLOR
                                     ),
                                     fontWeight = FontWeight.Bold
                                 )
@@ -415,7 +415,7 @@ private fun WikiSectionHeader(title: String) {
             color = Color.White
         )
         Spacer(Modifier.height(4.dp))
-        HorizontalDivider(color = Color(0xFF2C2C2C), thickness = 1.dp)
+        HorizontalDivider(color = APRENDE_DIVIDER, thickness = 1.dp)
     }
 }
 
@@ -425,8 +425,7 @@ private fun WikiMuscleInfobox(muscle: MuscleGroupEntity, bodyPart: String) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
-        border = BorderStroke(1.dp, Color(0xFF2C2C2C)),
+        colors = CardDefaults.cardColors(containerColor = APRENDE_MUTED_FILL),
         shape = RoundedCornerShape(4.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -437,7 +436,7 @@ private fun WikiMuscleInfobox(muscle: MuscleGroupEntity, bodyPart: String) {
                 color = Color.White,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
-            HorizontalDivider(color = Color(0xFF2C2C2C))
+            HorizontalDivider(color = APRENDE_DIVIDER)
             
             InfoboxRow("Parte del Cuerpo", bodyPart)
             muscle.origin?.let { InfoboxRow("Origen", it) }
@@ -510,11 +509,8 @@ private fun VolumeBadge(label: String, value: String, description: String, color
 }
 
 private fun bodyPartColor(bodyPart: String?): Color = when (bodyPart) {
-    "upper" -> Color(0xFF1E88E5)
-    "lower" -> Color(0xFF43A047)
-    "core" -> Color(0xFFFF8F00)
-    "spine" -> Color(0xFF9C27B0)
-    else -> Color(0xFF757575)
+    "upper", "lower", "core", "spine" -> APRENDE_LINK_COLOR
+    else -> Color(0xFF7F8D96)
 }
 
 internal data class EntityItem(

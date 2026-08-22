@@ -2,8 +2,6 @@ package com.example.kpkn.screens.wikilab
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.*
@@ -225,7 +223,7 @@ private fun LiftSelector(selected: LiftType, onSelect: (LiftType) -> Unit) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(4.dp))
             .background(Color(0xFF141414))
-            .border(BorderStroke(1.dp, Color(0xFF2C2C2C)), RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(4.dp))
             .padding(16.dp),
     ) {
         Text(
@@ -1278,7 +1276,6 @@ private fun QuickSummaryRow(solve: BiomechanicalSolve) {
                 modifier = Modifier.widthIn(min = 100.dp),
                 shape = RoundedCornerShape(4.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
-                border = BorderStroke(1.dp, Color(0xFF2C2C2C)),
             ) {
                 Column(
                     modifier = Modifier.padding(10.dp),
@@ -1358,7 +1355,7 @@ private fun BiomechanicsControls(
             .fillMaxWidth()
             .clip(RoundedCornerShape(4.dp))
             .background(Color(0xFF141414))
-            .border(BorderStroke(1.dp, Color(0xFF2C2C2C)), RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(4.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1430,7 +1427,7 @@ private fun AnthropometryControlsCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(4.dp))
             .background(Color(0xFF141414))
-            .border(BorderStroke(1.dp, Color(0xFF2C2C2C)), RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(4.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1491,7 +1488,7 @@ private fun JointAnglesCard(solve: BiomechanicalSolve) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(4.dp))
             .background(Color(0xFF141414))
-            .border(BorderStroke(1.dp, Color(0xFF2C2C2C)), RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(4.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1531,7 +1528,7 @@ private fun LeverMechanicsCard(solve: BiomechanicalSolve) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(4.dp))
             .background(Color(0xFF141414))
-            .border(BorderStroke(1.dp, Color(0xFF2C2C2C)), RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(4.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1574,7 +1571,7 @@ private fun TorqueAnalysisCard(solve: BiomechanicalSolve) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(4.dp))
             .background(Color(0xFF141414))
-            .border(BorderStroke(1.dp, Color(0xFF2C2C2C)), RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(4.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1632,7 +1629,7 @@ private fun AnthropometryCard(anthro: Anthropometry) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(4.dp))
             .background(Color(0xFF141414))
-            .border(BorderStroke(1.dp, Color(0xFF2C2C2C)), RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(4.dp))
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1684,7 +1681,7 @@ private fun BiomechanicsDisclaimerCard() {
             .fillMaxWidth()
             .clip(RoundedCornerShape(4.dp))
             .background(Color(0xFF141414))
-            .border(BorderStroke(1.dp, Color(0xFF2C2C2C)), RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(4.dp))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {

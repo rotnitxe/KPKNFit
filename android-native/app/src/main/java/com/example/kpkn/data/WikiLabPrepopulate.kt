@@ -13,6 +13,11 @@ import kotlinx.serialization.json.jsonPrimitive
 
 private val prepopulateJson = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
+/** Static Aprende content revision; bump when bundled anatomy or links change. */
+const val APRENDE_CONTENT_REVISION = "aprende-v2-2026-08-22"
+private const val APRENDE_CONTENT_PREFS = "aprende_content"
+private const val APRENDE_CONTENT_PREF_KEY = "revision"
+
 private fun logWikiLabError(category: String, throwable: Throwable) {
     if (com.example.kpkn.BuildConfig.DEBUG) {
         android.util.Log.e("WikiLabPrepopulate", "Error prepopulating $category", throwable)
@@ -25,9 +30,26 @@ private fun logWikiLabError(category: String, throwable: Throwable) {
  */
 suspend fun prepopulateWikiLabAssets(context: Context, db: KpknDatabase) = withContext(Dispatchers.IO) {
     val dao = db.wikiLabDao()
-
-    // Skip if already populated
-    if (dao.getMuscleCount() > 0) return@withContext
+    val preferences = context.getSharedPreferences(APRENDE_CONTENT_PREFS, Context.MODE_PRIVATE)
+    val currentRevision = preferences.getString(APRENDE_CONTENT_PREF_KEY, null)
+    val counts = listOf(
+        dao.getMuscleCount(),
+        dao.getJointCount(),
+        dao.getTendonCount(),
+        dao.getPatternCount(),
+        dao.getChainCount(),
+    )
+    val hasData = counts.any { it > 0 }
+    val populated = counts.all { it > 0 }
+    if (populated && currentRevision == APRENDE_CONTENT_REVISION) return@withContext
+    if (hasData && (!populated || currentRevision != APRENDE_CONTENT_REVISION)) {
+        dao.clearMuscles()
+        dao.clearJoints()
+        dao.clearTendons()
+        dao.clearPatterns()
+        dao.clearChains()
+    }
+    var failures = 0
 
     val assets = context.assets
 
@@ -58,6 +80,7 @@ suspend fun prepopulateWikiLabAssets(context: Context, db: KpknDatabase) = withC
         }
         dao.insertMuscles(muscleEntities)
     } catch (e: Exception) {
+        failures++
         logWikiLabError("muscles", e)
     }
 
@@ -81,6 +104,7 @@ suspend fun prepopulateWikiLabAssets(context: Context, db: KpknDatabase) = withC
         }
         dao.insertJoints(jointEntities)
     } catch (e: Exception) {
+        failures++
         logWikiLabError("joints", e)
     }
 
@@ -101,6 +125,7 @@ suspend fun prepopulateWikiLabAssets(context: Context, db: KpknDatabase) = withC
         }
         dao.insertTendons(tendonEntities)
     } catch (e: Exception) {
+        failures++
         logWikiLabError("tendons", e)
     }
 
@@ -122,6 +147,7 @@ suspend fun prepopulateWikiLabAssets(context: Context, db: KpknDatabase) = withC
         }
         dao.insertPatterns(patternEntities)
     } catch (e: Exception) {
+        failures++
         logWikiLabError("patterns", e)
     }
 
@@ -140,7 +166,12 @@ suspend fun prepopulateWikiLabAssets(context: Context, db: KpknDatabase) = withC
         }
         dao.insertChains(chainEntities)
     } catch (e: Exception) {
+        failures++
         logWikiLabError("chains", e)
+    }
+
+    if (failures == 0) {
+        preferences.edit().putString(APRENDE_CONTENT_PREF_KEY, APRENDE_CONTENT_REVISION).apply()
     }
 }
 

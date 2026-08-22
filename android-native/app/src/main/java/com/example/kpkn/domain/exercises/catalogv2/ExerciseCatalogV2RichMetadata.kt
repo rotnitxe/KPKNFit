@@ -27,6 +27,7 @@ data class ExerciseAnatomyMetadataV2(
     val primaryMuscles: List<String>,
     val secondaryMuscles: List<String> = emptyList(),
     val stabilizerMuscles: List<String> = emptyList(),
+    val muscleNotes: List<MuscleNoteV2> = emptyList(),
     val targetRegions: List<String> = emptyList(),
     val jointActions: List<String> = emptyList(),
     val jointInvolvement: List<JointInvolvementV2> = emptyList(),
@@ -163,6 +164,7 @@ fun ResolvedExerciseProfileV2.toRichMetadata(
         primaryMuscles = primaryMuscles,
         secondaryMuscles = secondaryMuscles,
         stabilizerMuscles = stabilizerMuscles,
+        muscleNotes = muscleNotes,
         jointInvolvement = jointInvolvement,
     ),
     biomechanics = ExerciseBiomechanicsMetadataV2(

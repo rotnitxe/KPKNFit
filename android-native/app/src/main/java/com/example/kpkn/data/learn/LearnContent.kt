@@ -337,28 +337,28 @@ private val herramientasKpkn = LearnModule(
     id = "herramientas-kpkn",
     title = "Herramientas de KPKN",
     category = LearnCategory.TOOLS,
-    shortDescription = "Aprovecha al máximo WikiLab y el asistente de nutrición",
+    shortDescription = "Aprovecha al máximo Aprende y el asistente de nutrición",
     icon = "\uD83D\uDD27",
     estimatedMinutes = 11,
     submodules = listOf(
         LearnSubmodule(
             id = "hk-1",
-            title = "WikiLab: tu enciclopedia",
+            title = "Aprende: tu enciclopedia",
             content = listOf(
-                ContentBlock(ContentType.HEADING, text = "¿Qué es WikiLab?"),
-                ContentBlock(ContentType.PARAGRAPH, text = "WikiLab es la enciclopedia de entrenamiento de KPKN. Contiene bases de datos de ejercicios, músculos, articulaciones, patrones de movimiento y más."),
+                ContentBlock(ContentType.HEADING, text = "¿Qué es Aprende?"),
+                ContentBlock(ContentType.PARAGRAPH, text = "Aprende es la enciclopedia de entrenamiento de KPKN. Contiene el catálogo aprobado de ejercicios, músculos, articulaciones, patrones de movimiento y biomecánica."),
                 ContentBlock(ContentType.BULLET, items = listOf(
-                    "Catálogo de ejercicios con métricas de fatiga",
+                    "Catálogo de ejercicios con variantes exactas",
                     "Mapa muscular interactivo",
                     "Detalle biomecánico de cada ejercicio",
-                    "Ejercicios similares por categoría",
+                    "Ejercicios similares por intención, patrón y anatomía",
                 )),
-                ContentBlock(ContentType.TIP, text = "Usa WikiLab para entender por qué un ejercicio te deja más fatigado que otro. Las métricas de fatiga te lo explican."),
+                ContentBlock(ContentType.TIP, text = "Usa Aprende para entender cómo se relacionan un ejercicio, sus músculos, articulaciones y patrón de movimiento."),
                 ContentBlock(ContentType.HEADING, text = "Creador de ejercicios"),
                 ContentBlock(ContentType.PARAGRAPH, text = "¿Tienes un ejercicio que no está en el catálogo? Crea el tuyo propio. KPKN inferirá automáticamente sus métricas de fatiga basándose en el tipo, equipo y patrón de fuerza."),
             ),
             quiz = listOf(
-                QuizQuestion("hk1-q1", "¿Qué contiene WikiLab?", listOf("Solo recetas", "Ejercicios, músculos, articulaciones y biomecánica", "Solo videos", "Redes sociales"), 1, "WikiLab es la enciclopedia completa de entrenamiento de KPKN."),
+                QuizQuestion("hk1-q1", "¿Qué contiene Aprende?", listOf("Solo recetas", "Ejercicios, músculos, articulaciones y biomecánica", "Solo videos", "Redes sociales"), 1, "Aprende es la enciclopedia de entrenamiento de KPKN."),
             ),
         ),
         LearnSubmodule(
@@ -384,7 +384,7 @@ private val herramientasKpkn = LearnModule(
         ),
     ),
     finalQuiz = listOf(
-        QuizQuestion("hk-f1", "¿Qué es WikiLab?", listOf("Un chat", "Enciclopedia de entrenamiento", "Un foro", "Una tienda"), 1, "WikiLab es la enciclopedia completa con ejercicios, músculos y biomecánica."),
+        QuizQuestion("hk-f1", "¿Qué es Aprende?", listOf("Un chat", "Enciclopedia de entrenamiento", "Un foro", "Una tienda"), 1, "Aprende es la enciclopedia con ejercicios, músculos y biomecánica."),
         QuizQuestion("hk-f2", "¿Qué mide la adaptación?", listOf("Peso corporal", "Fatiga, recuperación y readiness", "Temperatura", "Nada"), 1, "Mide tu estado de entrenamiento."),
         QuizQuestion("hk-f3", "¿Cómo mejora el sistema?", listOf("Comprando suplementos", "Completando cuestionarios post-sesión", "No mejora", "Con cardio"), 1, "Aprende de tus respuestas para personalizar las recomendaciones."),
     ),
