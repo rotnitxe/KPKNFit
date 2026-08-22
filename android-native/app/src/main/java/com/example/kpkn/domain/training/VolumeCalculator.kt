@@ -7,6 +7,7 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
+import com.example.kpkn.data.models.plannedRepAnchor
 import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.Exercise
@@ -212,7 +213,7 @@ object VolumeCalculator {
             } else if (set.completedReps != null) {
                 set.completedReps > 0
             } else {
-                (set.targetReps ?: 0) > 0 || (set.weight ?: 0.0) > 0.0
+                (set.plannedRepAnchor() ?: 0) > 0 || (set.weight ?: 0.0) > 0.0
             }
         }
         return if (counted == 0) exerciseSets.count { !it.isIneffective } else counted

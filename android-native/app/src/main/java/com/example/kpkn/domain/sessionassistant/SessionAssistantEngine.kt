@@ -15,6 +15,7 @@ import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
+import com.example.kpkn.data.models.plannedRepAnchor
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.models.AugeMetrics
@@ -261,7 +262,7 @@ object SessionAssistantEngine {
                 val completedSet = CompletedSet(
                     id = set.id,
                     weight = calculatedWeight,
-                    reps = set.targetReps ?: 8,
+                    reps = set.plannedRepAnchor() ?: 8,
                     rpe = set.targetRPE,
                     rir = set.targetRIR,
                     actualIntensityMode = set.intensityMode,

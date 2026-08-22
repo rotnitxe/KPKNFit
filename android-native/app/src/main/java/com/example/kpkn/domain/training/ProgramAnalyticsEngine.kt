@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.models.plannedRepAnchor
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import kotlin.math.abs
@@ -186,7 +187,7 @@ object ProgramAnalyticsEngine {
         rows.forEach { row ->
             val sets = row.exercise.effectiveSetCount().toDouble()
             if (sets <= 0.0) return@forEach
-            val targetReps = row.exercise.sets.mapNotNull { it.targetReps }.averageOrNull() ?: 8.0
+            val targetReps = row.exercise.sets.mapNotNull { it.plannedRepAnchor() }.averageOrNull() ?: 8.0
             val restSeconds = row.exercise.restTime ?: row.info?.averageRestSeconds ?: 90
             val estimatedMinutes = sets * ((restSeconds + 45).coerceAtLeast(30)) / 60.0
             val stability = stabilityDemandFor(row)
@@ -632,7 +633,7 @@ object ProgramAnalyticsEngine {
             ?: exerciseId.lowercase().let { catalog[it] }
 
     private fun Exercise.effectiveSetCount(): Int {
-        val counted = sets.count { !it.isIneffective && ((it.targetReps ?: 0) > 0 || (it.weight ?: 0.0) > 0.0) }
+        val counted = sets.count { !it.isIneffective && ((it.plannedRepAnchor() ?: 0) > 0 || (it.weight ?: 0.0) > 0.0) }
         return if (counted > 0) counted else sets.count { !it.isIneffective }
     }
 

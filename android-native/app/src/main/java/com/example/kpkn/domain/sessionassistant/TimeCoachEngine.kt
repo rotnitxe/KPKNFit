@@ -7,6 +7,7 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.RestPauseData
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
+import com.example.kpkn.data.models.plannedRepAnchor
 import com.example.kpkn.domain.calculations.SessionTimeBreakdown
 import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
 import com.example.kpkn.domain.workout.SupersetRules
@@ -320,7 +321,7 @@ object TimeCoachEngine {
                     p.exercises.any { it.id == a.id || it.id == b.id }
                 }?.id
                 val sets = max(a.sets.size, b.sets.size).coerceIn(2, 4)
-                val reps = a.sets.firstOrNull()?.targetReps ?: 8
+                val reps = a.sets.firstOrNull()?.plannedRepAnchor() ?: 8
                 val rest = minOf(a.restTime ?: 90, b.restTime ?: 90).coerceAtLeast(60)
                 val action = TimeCoachAction.ReplaceWithCompound(
                     removeExerciseIds = listOf(a.id, b.id),
@@ -528,8 +529,8 @@ object TimeCoachEngine {
                 isRestPause = false,
                 restPauses = emptyList(),
                 dropSets = listOf(
-                    DropSetData(weight = (first.weight ?: 0.0) * 0.85, reps = (first.targetReps ?: 8) / 2),
-                    DropSetData(weight = (first.weight ?: 0.0) * 0.7, reps = (first.targetReps ?: 8) / 2),
+                    DropSetData(weight = (first.weight ?: 0.0) * 0.85, reps = (first.plannedRepAnchor() ?: 8) / 2),
+                    DropSetData(weight = (first.weight ?: 0.0) * 0.7, reps = (first.plannedRepAnchor() ?: 8) / 2),
                 ),
             )
             exercise.copy(sets = listOf(dense))
@@ -546,8 +547,8 @@ object TimeCoachEngine {
                 isDropSet = false,
                 dropSets = emptyList(),
                 restPauses = listOf(
-                    RestPauseData(restTime = 15, reps = (first.targetReps ?: 8) / 2),
-                    RestPauseData(restTime = 15, reps = (first.targetReps ?: 8) / 3),
+                    RestPauseData(restTime = 15, reps = (first.plannedRepAnchor() ?: 8) / 2),
+                    RestPauseData(restTime = 15, reps = (first.plannedRepAnchor() ?: 8) / 3),
                 ),
             )
             exercise.copy(sets = listOf(dense))

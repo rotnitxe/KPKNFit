@@ -476,7 +476,7 @@ object TrainingEnergyEngine {
 
                 val rpeMult = AugeFatigueEngine.calculateRpeMultiplier(plannedRpe)
                 val resolved = resolvePlannedExternalLoadKg(exercise, plannedSet, weightUnit)
-                val plannedReps = plannedSet.targetReps?.toDouble()
+                val plannedReps = plannedSet.plannedRepAnchor()?.toDouble()
                     ?: plannedSet.targetDuration?.toDouble()?.div(3.0)
                     ?: 0.0
 

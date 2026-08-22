@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.MesocycleGoal
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.plannedRepAnchor
 import com.example.kpkn.data.protocols.ProtocolBlock
 import com.example.kpkn.domain.templates.SessionClonePurpose
 import com.example.kpkn.domain.templates.SessionTemplateEngine
@@ -218,7 +219,7 @@ object BlockProgressionEngine {
             }
             if (exercise.sets.isEmpty()) return exercise
             val baseSets = exercise.sets.size.coerceAtLeast(1)
-            val baseReps = exercise.sets.mapNotNull { it.targetReps }.average().let { avg ->
+            val baseReps = exercise.sets.mapNotNull { it.plannedRepAnchor() }.average().let { avg ->
                 if (avg.isNaN()) 8 else avg.roundToInt().coerceIn(1, 20)
             }
             val rx = PeriodizationEngine.prescriptionFor(

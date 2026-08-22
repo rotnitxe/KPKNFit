@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.MobilitySeries
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.models.plannedRepAnchor
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import kotlin.math.exp
 import kotlin.math.pow
@@ -86,7 +87,7 @@ fun calculateWeightFrom1RM(e1rm: Double, reps: Int): Double {
  */
 fun calculateWeightFrom1RMAndIntensity(reference1RM: Double, set: ExerciseSet): Double? {
     if (reference1RM <= 0) return null
-    val reps = set.targetReps ?: return null
+    val reps = set.plannedRepAnchor() ?: return null
     if (reps <= 0) return null
 
     val effectiveReps = when {
@@ -161,7 +162,7 @@ private fun calculateAssistedLoadFromPr(
 private fun plannedMetricForMode(set: ExerciseSet, trainingMode: TrainingMode): Double? = when (trainingMode) {
     TrainingMode.TIME -> set.targetDuration?.toDouble()
     TrainingMode.SOLO_RPE -> null
-    else -> set.targetReps?.toDouble()
+    else -> set.plannedRepAnchor()?.toDouble()
 }
 
 private fun effectiveMetricForSuggestion(set: ExerciseSet, trainingMode: TrainingMode): Double? {
@@ -248,7 +249,7 @@ fun calculateSuggestedLoad(exercise: Exercise, set: ExerciseSet): Double? {
     val referenceCapacity = resolveReferenceCapacity(exercise) ?: return null
     val suggested = when (exercise.trainingMode) {
         TrainingMode.RM -> {
-            val percent = (set.targetPercentageRM ?: estimatePercent1RM(set.targetReps ?: 1)).coerceIn(40.0, 100.0)
+            val percent = (set.targetPercentageRM ?: estimatePercent1RM(set.plannedRepAnchor() ?: 1)).coerceIn(40.0, 100.0)
             referenceCapacity * percent / 100.0
         }
         TrainingMode.SOLO_RPE -> null
@@ -292,7 +293,7 @@ fun calculateSuggestedLoad(
     val referenceCapacity = resolveReferenceCapacity(exercise, history) ?: return null
     val suggested = when (exercise.trainingMode) {
         TrainingMode.RM -> {
-            val percent = (set.targetPercentageRM ?: estimatePercent1RM(set.targetReps ?: 1)).coerceIn(40.0, 100.0)
+            val percent = (set.targetPercentageRM ?: estimatePercent1RM(set.plannedRepAnchor() ?: 1)).coerceIn(40.0, 100.0)
             referenceCapacity * percent / 100.0
         }
         TrainingMode.SOLO_RPE -> null
@@ -324,9 +325,9 @@ fun calculateEstimatedMetric(exercise: Exercise, set: ExerciseSet): Double? = wh
     TrainingMode.DISTANCE,
     TrainingMode.CUSTOM,
     TrainingMode.REPS,
-    -> set.targetReps?.toDouble()
+    -> set.plannedRepAnchor()?.toDouble()
     TrainingMode.SOLO_RPE -> null
-    TrainingMode.AMRAP -> set.targetReps?.toDouble()
+    TrainingMode.AMRAP -> set.plannedRepAnchor()?.toDouble()
 }
 
 // ─── RPE / RIR conversions ───────────────────────────────────────────────────
@@ -420,7 +421,7 @@ fun estimatePercent1RM(repsToFailure: Int): Double {
 }
 
 fun getEffectiveRepsForRM(set: ExerciseSet): Int? {
-    val reps = set.targetReps ?: return null
+    val reps = set.plannedRepAnchor() ?: return null
     return when (set.intensityMode) {
         IntensityMode.FAILURE, IntensityMode.AMRAP, IntensityMode.SOLO_RM -> reps
         IntensityMode.RIR -> reps + (set.targetRIR ?: 0)

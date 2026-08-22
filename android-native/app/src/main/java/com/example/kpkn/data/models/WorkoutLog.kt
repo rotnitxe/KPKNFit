@@ -84,6 +84,7 @@ enum class PlanDeviationType {
     WEIGHT_HIGH, WEIGHT_LOW,
     UNPLANNED_FAILURE, UNPLANNED_DROPSET, UNPLANNED_REST_PAUSE,
     REPS_HIGH, REPS_LOW,
+    AMRAP_BELOW_MINIMUM,
 }
 
 @Serializable
@@ -140,6 +141,9 @@ data class CompletedSet(
     val performanceMode: PerformanceMode? = null,
     val actualIntensityMode: IntensityMode? = null,
     val actualIntensityValue: Double? = null,
+    val amrapPerformed: Boolean = false,
+    val amrapMinimumReps: Int? = null,
+    val amrapBelowMinimum: Boolean = false,
     val debt: Double = 0.0,
     val contextProfileId: String? = null,
     val tagId: String? = null,

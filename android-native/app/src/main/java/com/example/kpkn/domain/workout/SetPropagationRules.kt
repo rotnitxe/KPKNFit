@@ -49,7 +49,10 @@ fun ExerciseSet.copyEditedFieldFrom(
             if (sourceTarget == null) return null
             val base = target ?: UnilateralTarget()
             return when (field) {
-                SetPropagationField.REPS -> base.copy(targetReps = sourceTarget.targetReps)
+                SetPropagationField.REPS -> base.copy(
+                    targetReps = sourceTarget.targetReps,
+                    targetRepsRange = sourceTarget.targetRepsRange,
+                )
                 SetPropagationField.DURATION -> base.copy(targetDuration = sourceTarget.targetDuration)
                 SetPropagationField.LOAD -> base.copy(weight = sourceTarget.weight)
                 SetPropagationField.INTENSITY -> base.copy(
@@ -67,7 +70,10 @@ fun ExerciseSet.copyEditedFieldFrom(
         }
     }
     return when (field) {
-        SetPropagationField.REPS -> copy(targetReps = source.targetReps)
+        SetPropagationField.REPS -> copy(
+            targetReps = source.targetReps,
+            targetRepsRange = source.targetRepsRange,
+        )
         SetPropagationField.DURATION -> copy(targetDuration = source.targetDuration)
         SetPropagationField.LOAD -> copy(weight = source.weight)
         SetPropagationField.LOAD_MODE -> copy(loadModeV2 = source.loadModeV2)
@@ -112,6 +118,7 @@ fun ExerciseSet.copyPlannedValueFrom(
 ): ExerciseSet {
     val copiedBase = copy(
         targetReps = source.targetReps,
+        targetRepsRange = source.targetRepsRange,
         targetDuration = source.targetDuration,
         plannedTargetV2 = source.plannedTargetV2,
         targetPercentageRM = source.targetPercentageRM,

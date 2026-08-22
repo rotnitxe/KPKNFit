@@ -42,6 +42,8 @@ data class Session(
     val requirement: SessionRequirement = SessionRequirement.REQUIRED,
     /** Distinguishes generated empty placeholders from an intentional user draft. */
     val origin: SessionOrigin = SessionOrigin.USER_DRAFT,
+    /** Whether cardio exercises are positioned before strength exercises. */
+    val cardioFirst: Boolean = false,
 ) {
     fun allSupersetGroups(): List<SupersetGroup> {
         val local = supersetGroups.ifEmpty { legacySupersetGroups() }
@@ -65,7 +67,11 @@ data class Session(
         }
     }
 
-    fun allExercises(): List<Exercise> = exercises + parts.flatMap { it.exercises }
+    fun allExercises(): List<Exercise> {
+        val strengthExercises = exercises + parts.filterNot { it.isCardioPart() }.flatMap { it.exercises }
+        val cardioExercises = parts.filter { it.isCardioPart() }.flatMap { it.exercises }
+        return if (cardioFirst) cardioExercises + strengthExercises else strengthExercises + cardioExercises
+    }
 }
 
 @Serializable
@@ -430,7 +436,7 @@ data class CardioHiitConfig(
     val workTargetType: HiitWorkTarget = HiitWorkTarget.TIME,
     val workTargetValue: Double? = null,
     val protocol: HiitProtocol = HiitProtocol.HIIT,
-    val targetRpe: Double = 9.0,
+    val targetRpe: Double = if (protocol == HiitProtocol.SIT) 10.0 else 9.0,
     val restNature: HiitRestNature = HiitRestNature.ACTIVE,
     val beepsEnabled: Boolean = true,
     val voiceCuesEnabled: Boolean = true,
@@ -488,10 +494,39 @@ data class PlannedTechnique(
     val params: Map<String, String> = emptyMap(),
 )
 
+/**
+ * Optional repetition interval for a strength set.
+ *
+ * The persisted range is intentionally separate from [ExerciseSet.targetReps]
+ * so old session JSON remains readable.  Writers mirror [max] to
+ * targetReps, while readers use the accessors below to support both shapes.
+ */
+@Serializable
+data class RepRange(
+    val min: Int,
+    val max: Int,
+) {
+    init {
+        require(min > 0) { "RepRange.min must be positive" }
+        require(max >= min) { "RepRange.max must be >= min" }
+    }
+
+    fun contains(reps: Int): Boolean = reps in min..max
+    fun format(): String = if (min == max) min.toString() else "$min–$max"
+}
+
+/** Returns the valid planned range, falling back to the legacy fixed target. */
+fun ExerciseSet.effectiveRepRange(): RepRange? = targetRepsRange
+    ?: targetReps?.takeIf { it > 0 }?.let { RepRange(it, it) }
+
+/** The single repetition anchor used by load/e1RM calculations. */
+fun ExerciseSet.plannedRepAnchor(): Int? = effectiveRepRange()?.max
+
 @Serializable
 data class UnilateralTarget(
     val weight: Double? = null,
     val targetReps: Int? = null,
+    val targetRepsRange: RepRange? = null,
     val targetDuration: Int? = null,
     val targetValue: Double? = null,
     val targetRPE: Double? = null,
@@ -505,6 +540,7 @@ data class ExerciseSet(
     /** Preserves a deleted superset round without reindexing later rounds. */
     val isEmptySlot: Boolean = false,
     val targetReps: Int? = null,
+    val targetRepsRange: RepRange? = null,
     val targetDuration: Int? = null,
     val targetRPE: Double? = null,
     val targetRIR: Int? = null,

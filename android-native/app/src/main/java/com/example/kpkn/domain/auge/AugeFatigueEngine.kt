@@ -847,7 +847,7 @@ object AugeFatigueEngine {
                 val syntheticSet = CompletedSet(
                     id = "",
                     weight = calculatedWeight,
-                    reps = s.targetReps ?: 8,
+                    reps = s.plannedRepAnchor() ?: 8,
                     rpe = s.targetRPE,
                     rir = s.targetRIR,
                     actualIntensityMode = s.intensityMode,

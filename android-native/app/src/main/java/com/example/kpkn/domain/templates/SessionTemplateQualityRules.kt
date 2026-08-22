@@ -5,6 +5,7 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.MuscleRole
+import com.example.kpkn.data.models.plannedRepAnchor
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateFocusCategory
 import com.example.kpkn.data.sessions.SessionTemplateSourceType
@@ -856,7 +857,7 @@ object SessionTemplateQualityRules {
     ) {
         resolved.forEach { (exercise, info) ->
             if (!isCompound(info)) return@forEach
-            val lowRepStrength = exercise.sets.any { set -> (set.targetReps ?: Int.MAX_VALUE) <= 6 }
+            val lowRepStrength = exercise.sets.any { set -> (set.plannedRepAnchor() ?: Int.MAX_VALUE) <= 6 }
             val explicitStrengthLabel = listOfNotNull(
                 exercise.targetSessionGoal,
                 exercise.name,
@@ -934,7 +935,7 @@ object SessionTemplateQualityRules {
             if (!isLower) return@filter false
             val rpe = exercise.sets.mapNotNull { it.targetRPE ?: it.targetRIR?.let { rir -> (10 - rir).toDouble() } }.maxOrNull() ?: 0.0
             val pct = exercise.sets.mapNotNull { it.targetPercentageRM }.maxOrNull() ?: 0.0
-            val lowRep = exercise.sets.any { (it.targetReps ?: Int.MAX_VALUE) <= 6 }
+            val lowRep = exercise.sets.any { (it.plannedRepAnchor() ?: Int.MAX_VALUE) <= 6 }
             val heavy = (rpe >= 8.0 || pct >= 80.0) && (lowRep || exercise.isCompetitionLift)
             heavy
         }

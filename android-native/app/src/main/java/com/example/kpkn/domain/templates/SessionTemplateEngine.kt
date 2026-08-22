@@ -16,6 +16,7 @@ import com.example.kpkn.data.models.UnilateralTarget
 import com.example.kpkn.data.models.WarmupExercise
 import com.example.kpkn.data.models.WarmupSetDefinition
 import com.example.kpkn.data.models.isCompetitionMeet
+import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateApplyMode
@@ -164,7 +165,7 @@ object SessionTemplateEngine {
         val explicitFailureOrAmrap = set.isFailure || set.isAmrap ||
             set.intensityMode == com.example.kpkn.data.models.IntensityMode.FAILURE ||
             set.intensityMode == com.example.kpkn.data.models.IntensityMode.AMRAP
-        return (set.targetReps ?: 0) > 0 ||
+        return (set.effectiveRepRange()?.max ?: 0) > 0 ||
             (set.targetDuration ?: 0) > 0 ||
             set.targetRPE != null ||
             set.targetRIR != null ||
@@ -184,7 +185,7 @@ object SessionTemplateEngine {
         if (target == null) return false
         val explicitFailureOrAmrap = target.intensityMode == com.example.kpkn.data.models.IntensityMode.FAILURE ||
             target.intensityMode == com.example.kpkn.data.models.IntensityMode.AMRAP
-        return (target.targetReps ?: 0) > 0 ||
+        return (target.targetRepsRange?.max ?: target.targetReps ?: 0) > 0 ||
             (target.targetDuration ?: 0) > 0 ||
             (target.targetValue ?: 0.0) > 0.0 ||
             (target.weight ?: 0.0) > 0.0 ||

@@ -235,7 +235,8 @@ class SessionSerializationTest {
                             sets = listOf(
                                 ExerciseSet(
                                     id = "set-1",
-                                    targetReps = 5,
+                                    targetReps = 6,
+                                    targetRepsRange = RepRange(min = 4, max = 6),
                                     targetRPE = 8.0,
                                     targetPercentageRM = 80.0,
                                     intensityMode = IntensityMode.LOAD,
@@ -273,6 +274,8 @@ class SessionSerializationTest {
         assertEquals(UnilateralSideOrder.RIGHT_LEFT, decoded.parts.first().exercises.first().unilateralSideOrder)
         assertEquals(25, decoded.parts.first().exercises.first().restBetweenSidesSeconds)
         assertEquals(true, decoded.parts.first().exercises.first().sets.first().isCalibrator)
+        assertEquals(RepRange(4, 6), decoded.parts.first().exercises.first().sets.first().targetRepsRange)
+        assertEquals(6, decoded.parts.first().exercises.first().sets.first().plannedRepAnchor())
         assertEquals(AttemptResult.GOOD, decoded.parts.first().exercises.first().sets.first().attemptResult)
         assertEquals(9, decoded.parts.first().exercises.first().sets.first().technicalQuality)
         assertEquals("lumbar", decoded.parts.first().exercises.first().sets.first().discomfortIds.first())
@@ -325,6 +328,10 @@ class SessionSerializationTest {
                     weightText = "102.5",
                     valueText = "5",
                     intensityText = "8.5",
+                    amrapOverride = true,
+                    amrapMinimumReps = 4,
+                    amrapReachFailure = false,
+                    amrapReserveReps = 1,
                     isDirty = true,
                 )
             ),
@@ -346,6 +353,10 @@ class SessionSerializationTest {
         val decoded = json.decodeFromString<OngoingWorkoutState>(encoded)
 
         assertEquals("102.5", decoded.setDrafts["bench_1"]?.weightText)
+        assertEquals(true, decoded.setDrafts["bench_1"]?.amrapOverride)
+        assertEquals(4, decoded.setDrafts["bench_1"]?.amrapMinimumReps)
+        assertEquals(false, decoded.setDrafts["bench_1"]?.amrapReachFailure)
+        assertEquals(1, decoded.setDrafts["bench_1"]?.amrapReserveReps)
         assertEquals(true, decoded.setDrafts["bench_1"]?.isDirty)
         assertEquals(102.5, decoded.manualLoadOverrides["bench_1"] ?: 0.0, 0.001)
         assertEquals("bench_1", decoded.editingSetKey)
