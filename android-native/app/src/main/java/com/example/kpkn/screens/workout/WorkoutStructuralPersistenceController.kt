@@ -82,6 +82,7 @@ class WorkoutStructuralPersistenceController(
                                 val newSet = ExerciseSet(
                                     id = UUID.randomUUID().toString(),
                                     targetReps = lastSet?.targetReps,
+                                    targetRepsRange = lastSet?.targetRepsRange,
                                     targetRPE = lastSet?.targetRPE,
                                     targetRIR = lastSet?.targetRIR,
                                     weight = lastSet?.weight,
@@ -281,6 +282,7 @@ class WorkoutStructuralPersistenceController(
                     val newSet = ExerciseSet(
                         id = UUID.randomUUID().toString(),
                         targetReps = lastSet?.targetReps,
+                        targetRepsRange = lastSet?.targetRepsRange,
                         targetRPE = lastSet?.targetRPE,
                         targetRIR = lastSet?.targetRIR,
                         weight = lastSet?.weight,

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -106,6 +107,8 @@ import java.util.UUID
 @Stable
 internal class WorkoutStructureSheetsState {
     var exerciseContextExerciseId by mutableStateOf<String?>(null)
+    /** True when a superset mini-card opened the member's own action menu. */
+    var exerciseContextForceMemberActions by mutableStateOf(false)
     var showReplaceExercisePicker by mutableStateOf(false)
     var replaceTargetExerciseId by mutableStateOf<String?>(null)
     var replaceSearchQuery by mutableStateOf("")
@@ -144,6 +147,33 @@ internal class WorkoutStructureSheetsState {
 @Composable
 internal fun rememberWorkoutStructureSheetsState(): WorkoutStructureSheetsState =
     remember { WorkoutStructureSheetsState() }
+
+@Composable
+private fun ContextActionButton(
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = 42.dp),
+        shape = RoundedCornerShape(8.dp),
+        color = Color(0xFF2B2B2B),
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+    ) {
+        Text(
+            label,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 11.dp),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.White.copy(alpha = 0.88f),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
 
 /**
  * Live-workout catalog host. Creation is integrated into the search flow, so
@@ -269,131 +299,112 @@ internal fun WorkoutStructureSheetsHost(
         val contextSupersetGroup = contextExercise?.let(modeSession::effectiveSupersetGroupFor)
         WorkoutDrawer(
             title = if (contextSupersetGroupId != null) "Superserie" else contextExercise?.name ?: "Acciones del ejercicio",
-            onDismiss = { state.exerciseContextExerciseId = null },
+            onDismiss = {
+                state.exerciseContextExerciseId = null
+                state.exerciseContextForceMemberActions = false
+            },
             hazeState = bottomHazeState,
         ) {
-            if (contextExercise != null && contextSupersetGroupId != null) {
-                val members = remember(contextSupersetGroupId, modeSession) {
-                    SupersetRules.orderedMembers(modeSession, contextSupersetGroupId)
-                }
-                Text(
-                    "Superserie ${contextSupersetGroup?.rounds ?: SupersetRules.roundCount(modeSession, contextSupersetGroupId)} rondas",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Black,
-                )
-                Text(
-                    members.joinToString(" · ") { it.name },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                FilledTonalButton(
-                    onClick = {
-                        viewModel.selectSupersetGroup(contextSupersetGroupId)
-                        state.exerciseContextExerciseId = null
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Icon(Icons.Default.SwapHoriz, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Ir a la superserie") }
-                OutlinedButton(
-                    onClick = {
-                        state.workoutSupersetSelectedExerciseId = contextExercise.id
-                        state.showWorkoutSupersetCreator = true
-                        state.exerciseContextExerciseId = null
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Icon(Icons.Default.Add, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Agregar ejercicio de la sesión") }
-                OutlinedButton(
-                    onClick = {
-                        state.addCatalogToSupersetGroupId = contextSupersetGroupId
-                        state.addCatalogSearchQuery = ""
-                        state.addCatalogSelectedIds = emptySet()
-                        state.exerciseContextExerciseId = null
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Icon(Icons.Default.LibraryAdd, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Incluir ejercicio del catálogo") }
-                OutlinedButton(
-                    onClick = {
-                        state.supersetSettingsGroupId = contextSupersetGroupId
-                        state.exerciseContextExerciseId = null
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Icon(Icons.Default.Timer, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Quitar o añadir rondas") }
-                Text("Reemplazar ejercicio", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                members.forEach { member ->
-                    OutlinedButton(
-                        onClick = {
-                            state.replaceTargetExerciseId = member.id
-                            state.replaceSearchQuery = if (member.catalogDefinitionId == null) member.name else ""
-                            state.showReplaceExercisePicker = true
-                            state.exerciseContextExerciseId = null
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Icon(Icons.Default.SwapHoriz, null, Modifier.size(16.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text(member.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            val actionRows: @Composable ColumnScope.() -> Unit = {
+                if (contextExercise != null && contextSupersetGroupId != null && !state.exerciseContextForceMemberActions) {
+                    val members = remember(contextSupersetGroupId, modeSession) {
+                        SupersetRules.orderedMembers(modeSession, contextSupersetGroupId)
                     }
-                }
-                Text("Editar parámetros", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                members.forEach { member ->
-                    OutlinedButton(
-                        onClick = {
-                            state.editSheetExerciseId = member.id
+                    Text(
+                        "${contextSupersetGroup?.rounds ?: SupersetRules.roundCount(modeSession, contextSupersetGroupId)} rondas · ${members.size} ejercicios",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        ContextActionButton("Ir a la superserie", {
+                            viewModel.selectSupersetGroup(contextSupersetGroupId)
                             state.exerciseContextExerciseId = null
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Icon(Icons.Default.Edit, null, Modifier.size(16.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text(member.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }, Modifier.weight(1f))
+                        ContextActionButton("Rondas", {
+                            state.supersetSettingsGroupId = contextSupersetGroupId
+                            state.exerciseContextExerciseId = null
+                        }, Modifier.weight(1f))
                     }
-                }
-                Button(
-                    onClick = {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        ContextActionButton("Agregar de sesión", {
+                            state.workoutSupersetSelectedExerciseId = contextExercise.id
+                            state.showWorkoutSupersetCreator = true
+                            state.exerciseContextExerciseId = null
+                        }, Modifier.weight(1f))
+                        ContextActionButton("Agregar del catálogo", {
+                            state.addCatalogToSupersetGroupId = contextSupersetGroupId
+                            state.addCatalogSearchQuery = ""
+                            state.addCatalogSelectedIds = emptySet()
+                            state.exerciseContextExerciseId = null
+                        }, Modifier.weight(1f))
+                    }
+                    Text("Miembros", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    members.chunked(2).forEach { rowMembers ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                            rowMembers.forEach { member ->
+                                ContextActionButton(member.name, {
+                                    state.exerciseContextExerciseId = member.id
+                                }, Modifier.weight(1f))
+                            }
+                            if (rowMembers.size == 1) Spacer(Modifier.weight(1f))
+                        }
+                    }
+                    ContextActionButton("Disolver superserie", {
                         viewModel.dissolveLiveSuperset(contextSupersetGroupId, preferredExerciseId = contextExercise.id)
                         state.exerciseContextExerciseId = null
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                ) { Icon(Icons.Default.LinkOff, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Disolver en ejercicios normales") }
-            } else {
-                FilledTonalButton(
-                    onClick = {
-                        state.addExerciseAfterId = contextExercise?.id
-                        state.addExerciseSearchQuery = ""
-                        state.addExerciseSelectedIds = emptySet()
-                        state.exerciseContextExerciseId = null
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Icon(Icons.Default.Add, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Agregar otro ejercicio") }
-                FilledTonalButton(
-                    onClick = {
-                        state.reorderSheetExerciseIds = visibleExercises.map { it.id }
-                        state.showReorderSheet = true
-                        state.exerciseContextExerciseId = null
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Icon(Icons.Default.Reorder, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Reordenar ejercicios") }
-                OutlinedButton(
-                    onClick = {
-                        val dbId = contextExercise?.exerciseDbId ?: contextExercise?.exerciseId
-                        if (dbId != null) onNavigateToWikiLab(dbId)
-                        state.exerciseContextExerciseId = null
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Icon(Icons.Default.Info, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Ver en WikiLab") }
-                OutlinedButton(
-                    onClick = { viewModel.skipExercise(exerciseId); state.exerciseContextExerciseId = null },
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Icon(Icons.Default.SkipNext, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Omitir ejercicio") }
-                OutlinedButton(
-                    onClick = {
-                        state.workoutSupersetSelectedExerciseId = contextExercise?.id
-                        state.showWorkoutSupersetCreator = true
-                        state.exerciseContextExerciseId = null
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Icon(Icons.Default.Link, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Crear superserie") }
+                    }, Modifier.fillMaxWidth())
+                } else {
+                    val exercise = contextExercise
+                    val dbId = exercise?.exerciseDbId ?: exercise?.exerciseId
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        ContextActionButton("Historial", {
+                            if (dbId != null) viewModel.showHistoryFor(dbId)
+                            state.exerciseContextExerciseId = null
+                        }, Modifier.weight(1f))
+                        ContextActionButton("Etiquetas", {
+                            state.tagSheetExerciseId = exercise?.id
+                            state.exerciseContextExerciseId = null
+                        }, Modifier.weight(1f))
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        ContextActionButton("Editar", {
+                            state.editSheetExerciseId = exercise?.id
+                            state.exerciseContextExerciseId = null
+                        }, Modifier.weight(1f))
+                        ContextActionButton("Reemplazar", {
+                            state.replaceTargetExerciseId = exercise?.id
+                            state.replaceSearchQuery = if (exercise?.catalogDefinitionId == null) exercise?.name.orEmpty() else ""
+                            state.showReplaceExercisePicker = true
+                            state.exerciseContextExerciseId = null
+                        }, Modifier.weight(1f))
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        ContextActionButton("Agregar otro", {
+                            state.addExerciseAfterId = exercise?.id
+                            state.addExerciseSearchQuery = ""
+                            state.addExerciseSelectedIds = emptySet()
+                            state.exerciseContextExerciseId = null
+                        }, Modifier.weight(1f))
+                        ContextActionButton("Reordenar", {
+                            state.reorderSheetExerciseIds = visibleExercises.map { it.id }
+                            state.showReorderSheet = true
+                            state.exerciseContextExerciseId = null
+                        }, Modifier.weight(1f))
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        ContextActionButton("Crear superserie", {
+                            state.workoutSupersetSelectedExerciseId = exercise?.id
+                            state.showWorkoutSupersetCreator = true
+                            state.exerciseContextExerciseId = null
+                        }, Modifier.weight(1f))
+                        ContextActionButton("Omitir", {
+                            viewModel.skipExercise(exerciseId)
+                            state.exerciseContextExerciseId = null
+                        }, Modifier.weight(1f))
+                    }
+                }
             }
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp), content = actionRows)
         }
     }
 
@@ -960,6 +971,7 @@ internal fun WorkoutStructureSheetsHost(
                             val baseTarget = UnilateralTarget(
                                 weight = lastSet?.weight,
                                 targetReps = lastSet?.targetReps,
+                                targetRepsRange = lastSet?.targetRepsRange,
                                 targetDuration = lastSet?.targetDuration,
                                 targetRPE = lastSet?.targetRPE,
                                 targetRIR = lastSet?.targetRIR,
@@ -968,6 +980,7 @@ internal fun WorkoutStructureSheetsHost(
                             val newSet = ExerciseSet(
                                 id = UUID.randomUUID().toString(),
                                 targetReps = lastSet?.targetReps,
+                                targetRepsRange = lastSet?.targetRepsRange,
                                 targetDuration = lastSet?.targetDuration,
                                 targetRPE = lastSet?.targetRPE,
                                 targetRIR = lastSet?.targetRIR,

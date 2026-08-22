@@ -50,6 +50,12 @@ private data class DropSetEntry(
     val reps: Int,
 )
 
+private fun activeRepRange(set: ExerciseSet, side: String?): RepRange? = when (side) {
+    "left" -> set.leftTarget?.targetRepsRange ?: set.targetRepsRange ?: set.effectiveRepRange()
+    "right" -> set.rightTarget?.targetRepsRange ?: set.targetRepsRange ?: set.effectiveRepRange()
+    else -> set.targetRepsRange ?: set.effectiveRepRange()
+}
+
 // ─── AMRAP Config Sheet ────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -565,6 +571,38 @@ internal fun WorkoutMiniTextField(
 @Suppress("UNUSED_PARAMETER")
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
+private fun FlatAdjustmentButton(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = WorkoutUiTokens.MinTouchTarget),
+        shape = RoundedCornerShape(8.dp),
+        color = if (selected) Color(0xFF454545) else Color(0xFF292929),
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+    ) {
+        Box(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                color = Color.White.copy(alpha = if (selected) 0.95f else 0.78f),
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+@Suppress("UNUSED_PARAMETER")
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@Composable
 internal fun SetInputCardV2(
     exercise: Exercise,
     setIndex: Int,
@@ -586,6 +624,7 @@ internal fun SetInputCardV2(
     initialDraft: WorkoutSetDraft? = null,
     onDraftChange: (WorkoutSetDraft, String?) -> Unit = { _, _ -> },
     onExecutionError: (() -> Unit)? = null,
+    onRevertExecutionError: (() -> Unit)? = null,
     persistedLoadModeBySet: Map<String, LoadModeV2> = emptyMap(),
     persistedLoadModeByExercise: Map<String, LoadModeV2> = emptyMap(),
     activeTag: String? = null,
@@ -643,27 +682,64 @@ internal fun SetInputCardV2(
         exercise.trainingMode == TrainingMode.CUSTOM -> UnitModeV2.CUSTOM
         else -> UnitModeV2.REPS
     }
+    val plannedRepRange = activeRepRange(currentSet, activeSide)
+    val plannedAmrap = exercise.trainingMode == TrainingMode.AMRAP ||
+        currentSet.isAmrap ||
+        currentSet.intensityMode == IntensityMode.AMRAP
     val defaultValue = when (resolvedPlannedUnitMode) {
         UnitModeV2.TIME -> (sessionCompletedSet?.timeSeconds ?: currentSet.targetDuration ?: currentSet.plannedTargetV2?.toInt() ?: ghostSet?.timeSeconds)?.toString()
         UnitModeV2.DISTANCE,
         UnitModeV2.CUSTOM,
-        -> sessionCompletedSet?.reps?.takeIf { it > 0 }?.toString() ?: currentSet.plannedTargetV2?.toTrimmedNumberString() ?: currentSet.targetReps?.toString() ?: ghostSet?.reps?.toString()
-        UnitModeV2.REPS -> (sessionCompletedSet?.reps?.takeIf { it > 0 } ?: currentSet.targetReps ?: currentSet.plannedTargetV2?.toInt() ?: ghostSet?.reps)?.toString()
+        -> sessionCompletedSet?.reps?.takeIf { it > 0 }?.toString() ?: currentSet.plannedTargetV2?.toTrimmedNumberString() ?: plannedRepRange?.max?.toString() ?: ghostSet?.reps?.toString()
+        UnitModeV2.REPS -> (
+            sessionCompletedSet?.reps?.takeIf { it > 0 }
+                ?: if (plannedAmrap) plannedRepRange?.min else plannedRepRange?.max
+                ?: currentSet.plannedTargetV2?.toInt()
+                ?: ghostSet?.reps
+        )?.toString()
     }.orEmpty()
     val isTimeMode = resolvedPlannedUnitMode == UnitModeV2.TIME
     val basePlannedTarget = when (resolvedPlannedUnitMode) {
         UnitModeV2.TIME -> currentSet.targetDuration ?: currentSet.plannedTargetV2?.toInt()
         UnitModeV2.DISTANCE,
         UnitModeV2.CUSTOM,
-        -> currentSet.plannedTargetV2?.toInt() ?: currentSet.targetReps
-        UnitModeV2.REPS -> currentSet.targetReps ?: currentSet.plannedTargetV2?.toInt()
+        -> currentSet.plannedTargetV2?.toInt() ?: plannedRepRange?.max
+        UnitModeV2.REPS -> plannedRepRange?.max ?: currentSet.plannedTargetV2?.toInt()
     }
-    val plannedIntensityMode = when {
+    // Null is meaningful here: the author explicitly left intensity unapplied.
+    // Keep the live card free of an RPE/RIR control in that case; perceived
+    // intensity is collected by the post-exercise feedback slider instead.
+    val plannedIntensityMode: IntensityMode? = when {
+        plannedAmrap -> IntensityMode.AMRAP
         currentSet.intensityMode != null -> currentSet.intensityMode
         currentSet.targetRIR != null -> IntensityMode.RIR
         currentSet.targetRPE != null -> IntensityMode.RPE
-        else -> IntensityMode.RPE
+        currentSet.targetPercentageRM != null -> IntensityMode.SOLO_RM
+        currentSet.isFailure -> IntensityMode.FAILURE
+        currentSet.leftTarget?.intensityMode != null -> currentSet.leftTarget?.intensityMode
+        currentSet.rightTarget?.intensityMode != null -> currentSet.rightTarget?.intensityMode
+        currentSet.leftTarget?.targetRIR != null || currentSet.rightTarget?.targetRIR != null -> IntensityMode.RIR
+        currentSet.leftTarget?.targetRPE != null || currentSet.rightTarget?.targetRPE != null -> IntensityMode.RPE
+        else -> null
     }
+    val hasPlannedIntensityInput = currentSet.targetRPE != null ||
+        currentSet.targetRIR != null ||
+        currentSet.targetPercentageRM != null ||
+        currentSet.isFailure ||
+        plannedAmrap ||
+        currentSet.intensityMode in setOf(
+            IntensityMode.RPE,
+            IntensityMode.RIR,
+            IntensityMode.FAILURE,
+            IntensityMode.AMRAP,
+            IntensityMode.SOLO_RM,
+        ) ||
+        currentSet.leftTarget?.targetRPE != null ||
+        currentSet.leftTarget?.targetRIR != null ||
+        currentSet.rightTarget?.targetRPE != null ||
+        currentSet.rightTarget?.targetRIR != null ||
+        currentSet.leftTarget?.intensityMode in setOf(IntensityMode.RPE, IntensityMode.RIR, IntensityMode.FAILURE, IntensityMode.SOLO_RM) ||
+        currentSet.rightTarget?.intensityMode in setOf(IntensityMode.RPE, IntensityMode.RIR, IntensityMode.FAILURE, IntensityMode.SOLO_RM)
 
     val supportsIndependentSides = exercise.isEffectivelyUnilateral()
     val lockedSide = activeSide?.takeIf { supportsIndependentSides && sideLocked }
@@ -690,7 +766,7 @@ internal fun SetInputCardV2(
         isTimeMode -> target.targetDuration?.toString() ?: defaultValue
         currentSet.unitModeV2 == UnitModeV2.DISTANCE || currentSet.unitModeV2 == UnitModeV2.CUSTOM ->
             target.targetValue?.toTrimmedNumberString() ?: target.targetReps?.toString() ?: defaultValue
-        else -> target.targetReps?.toString() ?: defaultValue
+        else -> target.targetRepsRange?.max?.toString() ?: target.targetReps?.toString() ?: defaultValue
     }
     val initialLeftValue = sideTargetValueText(currentSet.leftTarget)
     val initialRightValue = sideTargetValueText(currentSet.rightTarget)
@@ -795,11 +871,27 @@ internal fun SetInputCardV2(
     var reachedFailure by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
         mutableStateOf(initialDraft?.reachedFailure ?: (sessionCompletedSet?.isFailure == true || currentSet.isFailure || currentSet.intensityMode == IntensityMode.FAILURE))
     }
-    var isFailedSet by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
-    var isAmrap by remember(exercise.id, setIndex, sideKey) { mutableStateOf(currentSet.isAmrap) }
+    var isFailedSet by remember(exercise.id, setIndex, sideKey, sessionCompletedSet?.id) {
+        mutableStateOf(
+            sessionCompletedSet?.isFailedSet == true && (
+                sessionCompletedSet.failureReason == "execution_error" ||
+                    sessionCompletedSet.recordedPayloadV3?.executionError == true
+                )
+        )
+    }
+    var isAmrap by remember(exercise.id, setIndex, sideKey, initialDraft?.amrapOverride) {
+        mutableStateOf(initialDraft?.amrapOverride ?: plannedAmrap)
+    }
     var showAmrapSheet by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
-    var amrapReachFailure by remember(exercise.id, setIndex, sideKey) { mutableStateOf(true) }
-    var amrapReserveReps by remember(exercise.id, setIndex, sideKey) { mutableStateOf<Int?>(null) }
+    var amrapReachFailure by remember(exercise.id, setIndex, sideKey, initialDraft?.amrapReachFailure) {
+        mutableStateOf(initialDraft?.amrapReachFailure ?: true)
+    }
+    var amrapReserveReps by remember(exercise.id, setIndex, sideKey, initialDraft?.amrapReserveReps) {
+        mutableStateOf(initialDraft?.amrapReserveReps)
+    }
+    var amrapMinimumReps by remember(exercise.id, setIndex, sideKey, initialDraft?.amrapMinimumReps) {
+        mutableStateOf(initialDraft?.amrapMinimumReps ?: plannedRepRange?.min ?: currentSet.targetReps)
+    }
     var dropSetEnabled by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
     var restPauseEnabled by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
     var showPartialsMode by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
@@ -843,10 +935,11 @@ internal fun SetInputCardV2(
         dropSets = listOf(DropSetEntry(weight = 0.0, reps = 0))
         restPauseSets = listOf(RestPauseData(restTime = RestPausePlanDefaults.PauseSeconds, reps = RestPausePlanDefaults.Reps))
         partialSets = listOf(0)
-        isAmrap = currentSet.isAmrap
+        isAmrap = initialDraft?.amrapOverride ?: plannedAmrap
         showAmrapSheet = false
-        amrapReachFailure = true
-        amrapReserveReps = null
+        amrapReachFailure = initialDraft?.amrapReachFailure ?: true
+        amrapReserveReps = initialDraft?.amrapReserveReps
+        amrapMinimumReps = initialDraft?.amrapMinimumReps ?: plannedRepRange?.min ?: currentSet.targetReps
         showPartialsMode = false
         isFailedSet = false
         guidedPhase = null
@@ -922,7 +1015,7 @@ internal fun SetInputCardV2(
             when {
                 sessionCompletedSet?.actualIntensityMode == IntensityMode.RIR -> IntensityMode.RIR
                 currentSet.targetRIR != null || plannedIntensityMode == IntensityMode.RIR -> IntensityMode.RIR
-                else -> IntensityMode.RPE
+                else -> plannedIntensityMode
             }
         )
     }
@@ -930,7 +1023,7 @@ internal fun SetInputCardV2(
         if (reportedIntensityMode == IntensityMode.RIR) 1.0 else if (plannedIntensityMode == IntensityMode.FAILURE) 1.0 else 0.5
 
     fun decreaseIntensityInput() {
-        if (isFailedSet) return
+        if (isFailedSet || reportedIntensityMode == null) return
         if (reachedFailure) {
             reachedFailure = false
             reportedIntensityMode = IntensityMode.RPE
@@ -955,7 +1048,7 @@ internal fun SetInputCardV2(
     }
 
     fun increaseIntensityInput() {
-        if (isFailedSet) return
+        if (isFailedSet || reportedIntensityMode == null) return
         if (reachedFailure) {
             reachedFailure = false
             reportedIntensityMode = IntensityMode.RIR
@@ -1015,6 +1108,7 @@ internal fun SetInputCardV2(
     val activePlannedRir = activeSideTarget?.targetRIR ?: currentSet.targetRIR
     val registeredIntensity = intensityText.toDoubleOrNull()
     val expectedIntensity = when (reportedIntensityMode) {
+        null -> null
         IntensityMode.RIR -> when (plannedIntensityMode) {
             IntensityMode.FAILURE -> null
             IntensityMode.RIR -> activePlannedRir?.toDouble()
@@ -1023,7 +1117,8 @@ internal fun SetInputCardV2(
         else -> when (plannedIntensityMode) {
             IntensityMode.FAILURE -> null
             IntensityMode.RIR -> activePlannedRir?.let { (10.0 - it).coerceIn(0.0, 10.0) }
-            else -> activePlannedRpe
+            IntensityMode.RPE -> activePlannedRpe
+            else -> null
         }
     }
     val intensityDelta = if (expectedIntensity != null && registeredIntensity != null) {
@@ -1042,8 +1137,9 @@ internal fun SetInputCardV2(
         }
 
     fun ensureReportedIntensityText() {
+        val mode = reportedIntensityMode ?: return
         if (intensityText.isBlank()) {
-            intensityText = fallbackIntensityForMode(reportedIntensityMode)
+            intensityText = fallbackIntensityForMode(mode)
         }
     }
 
@@ -1063,14 +1159,14 @@ internal fun SetInputCardV2(
     val plannedValueLabel = if (isTimeMode) "Tiempo" else "Reps"
     val expectedIntensityLabel = when {
         currentSet.targetPercentageRM != null -> "%RM a trabajar"
-        currentSet.isAmrap -> "AMRAP"
+        plannedAmrap || isAmrap -> "AMRAP"
         plannedIntensityMode == IntensityMode.FAILURE -> "FALLO"
         plannedIntensityMode == IntensityMode.RIR -> "RIR"
         else -> "RPE"
     }
     val expectedIntensityValue = when {
         currentSet.targetPercentageRM != null -> "${currentSet.targetPercentageRM.toInt()}%"
-        currentSet.isAmrap -> "AMRAP"
+        plannedAmrap || isAmrap -> "AMRAP"
         plannedIntensityMode == IntensityMode.FAILURE -> "F"
         plannedIntensityMode == IntensityMode.RIR -> activePlannedRir?.toString() ?: "-"
         else -> activePlannedRpe?.toTrimmedNumberString() ?: "-"
@@ -1093,7 +1189,8 @@ internal fun SetInputCardV2(
         isExecutionError -> "ERROR"
         reachedFailure -> "F"
         reportedIntensityMode == IntensityMode.RIR -> "RIR"
-        else -> "RPE"
+        reportedIntensityMode == IntensityMode.RPE -> "RPE"
+        else -> ""
     }
     val loadFieldLabel = when (loadMode) {
         LoadModeV2.LOAD -> "Carga (kg)"
@@ -1141,10 +1238,10 @@ internal fun SetInputCardV2(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = WorkoutUiTokens.CardShape,
-        color = if (isFailedSet) WorkoutUiTokens.dangerContainerColor().copy(alpha = 0.15f) else WorkoutUiTokens.setCardColor(),
+        color = if (isFailedSet) Color(0xFF8B1E1E) else WorkoutUiTokens.setCardColor(),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
-        border = if (isFailedSet) BorderStroke(1.dp, MaterialTheme.colorScheme.error) else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)),
+        border = null,
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
@@ -1152,6 +1249,39 @@ internal fun SetInputCardV2(
         ) {
             val guidedSkipAction = remember(exercise.id, setIndex, sideKey) {
                 arrayOf<(() -> Unit)?>(null)
+            }
+            if (isFailedSet) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = WorkoutUiTokens.InnerCardShape,
+                    color = Color(0xFF8B1E1E),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            "Marcaste esta serie como fallida.",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                        )
+                        Text(
+                            "Quiere decir que tuviste una incomodidad, molestia o deformación de la técnica que te impidió completarla. Ten cuidado y siempre procura usar cargas que puedas manejar.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.92f),
+                        )
+                        FlatAdjustmentButton(
+                            text = "Revertir",
+                            selected = false,
+                            onClick = {
+                                isFailedSet = false
+                                onRevertExecutionError?.invoke()
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
             }
             val activeGuidedPhaseTop = guidedPhase
             if (activeGuidedPhaseTop != null) {
@@ -1268,7 +1398,7 @@ internal fun SetInputCardV2(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = WorkoutUiTokens.InnerCardShape,
-                color = if (isFailedSet) WorkoutUiTokens.dangerContainerColor().copy(alpha = 0.15f) else WorkoutUiTokens.setInnerColor(),
+                color = if (isFailedSet) Color(0xFF8B1E1E) else WorkoutUiTokens.setInnerColor(),
             ) {
                 Column(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
@@ -1383,9 +1513,10 @@ internal fun SetInputCardV2(
                         WorkoutMetricChip(
                             label = plannedValueLabel,
                             value = when {
+                                isAmrap && amrapMinimumReps != null -> "AMRAP · mín. $amrapMinimumReps"
                                 plannedTarget == null -> if (isAmrap) "Libre" else "-"
                                 isTimeMode -> "${plannedTarget}s"
-                                else -> plannedTarget.toString()
+                                else -> plannedRepRange?.format() ?: plannedTarget.toString()
                             },
                             badgeText = badgeText,
                             badgeColor = badgeColor,
@@ -1393,28 +1524,42 @@ internal fun SetInputCardV2(
                             modifier = Modifier.weight(1f)
                         )
 
-                        val intensityContainerColor = when {
-                            plannedIntensityMode == IntensityMode.FAILURE && reachedFailure -> Color(0xFF4A0000)
-                            isAmrap -> Color(0xFF3A003A)
-                            difficultyLabel == "Más difícil" || difficultyLabel == "Serie fallida" -> Color(0xFF4A0000)
-                            difficultyLabel == "Más fácil" -> Color(0xFF003A00)
-                            difficultyLabel == "Fallo alcanzado" -> Color(0xFF4A3A00)
-                            else -> WorkoutUiTokens.setInnerHighestColor()
-                        }
-                        val intensityBadgeText = if (plannedIntensityMode == IntensityMode.FAILURE && reachedFailure) {
-                            null
-                        } else {
-                            intensityDelta?.takeIf { it != 0.0 }?.let { formatSignedDelta(it) }
-                        }
-                        val intensityBadgeColor = if (intensityDelta != null && intensityDelta > 0.0) Color(0xFFFF5252) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        if (hasPlannedIntensityInput) {
+                            val intensityContainerColor = when {
+                                plannedIntensityMode == IntensityMode.FAILURE && reachedFailure -> Color(0xFF4A0000)
+                                // AMRAP keeps its accent identity without the
+                                // deprecated saturated-purple/neon treatment.
+                                isAmrap -> sessionAccentColor.copy(alpha = 0.12f)
+                                difficultyLabel == "Más difícil" || difficultyLabel == "Serie fallida" -> Color(0xFF4A0000)
+                                difficultyLabel == "Más fácil" -> Color(0xFF003A00)
+                                difficultyLabel == "Fallo alcanzado" -> Color(0xFF4A3A00)
+                                else -> WorkoutUiTokens.setInnerHighestColor()
+                            }
+                            val intensityBadgeText = if (plannedIntensityMode == IntensityMode.FAILURE && reachedFailure) {
+                                null
+                            } else {
+                                intensityDelta?.takeIf { it != 0.0 }?.let { formatSignedDelta(it) }
+                            }
+                            val intensityBadgeColor = if (intensityDelta != null && intensityDelta > 0.0) Color(0xFFFF5252) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
 
-                        WorkoutMetricChip(
-                            label = plannedIntensityDisplayLabel,
-                            value = if (plannedIntensityMode == IntensityMode.FAILURE && reachedFailure) (if (isNarrowScreen) "F" else "FALLO") else plannedIntensityDisplayValue,
-                            badgeText = intensityBadgeText,
-                            badgeColor = intensityBadgeColor,
-                            containerColor = intensityContainerColor,
-                            modifier = Modifier.weight(1f)
+                            WorkoutMetricChip(
+                                label = plannedIntensityDisplayLabel,
+                                value = if (plannedIntensityMode == IntensityMode.FAILURE && reachedFailure) (if (isNarrowScreen) "F" else "FALLO") else plannedIntensityDisplayValue,
+                                badgeText = intensityBadgeText,
+                                badgeColor = intensityBadgeColor,
+                                containerColor = intensityContainerColor,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+
+                    val enteredReps = valueText.toIntOrNull()
+                    val minimumAmrapReps = amrapMinimumReps
+                    if (isAmrap && minimumAmrapReps != null && enteredReps != null && enteredReps < minimumAmrapReps) {
+                        Text(
+                            "Bajo el mínimo AMRAP ($enteredReps/$minimumAmrapReps); se registrará el valor real.",
+                            color = Color(0xFFE7B98A),
+                            style = MaterialTheme.typography.labelSmall,
                         )
                     }
 
@@ -1682,48 +1827,100 @@ internal fun SetInputCardV2(
 
                             if (!isTimeMode) {
                                 Spacer(modifier = Modifier.height(if (roomyStepper) 6.dp else 4.dp))
-                                Row(
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    IconButton(
-                                        onClick = { assistedRepsValue = (assistedRepsValue - 1).coerceAtLeast(0) },
-                                        modifier = Modifier.size(24.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Remove,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(12.dp),
-                                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                                        )
-                                    }
-                                    
-                                    val maxReps = reportValueText.toIntOrNull() ?: 0
-                                    if (assistedRepsValue > maxReps) {
-                                        assistedRepsValue = maxReps
-                                    }
-                                    
+                                val maxReps = reportValueText.toIntOrNull() ?: 0
+                                if (assistedRepsValue > maxReps) assistedRepsValue = maxReps
+                                val partialRepsValue = partialSets.sum().coerceAtLeast(0)
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
-                                        text = if (assistedRepsValue > 0) "${assistedRepsValue} con ayuda" else "Sin ayuda",
+                                        text = "Sin/con Ayuda/Parciales",
                                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                                         fontWeight = FontWeight.SemiBold,
-                                        color = if (assistedRepsValue > 0) sessionAccentColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                        modifier = Modifier.padding(horizontal = 2.dp)
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
                                     )
-                                    
-                                    IconButton(
-                                        onClick = { 
-                                            val limit = reportValueText.toIntOrNull() ?: 0
-                                            assistedRepsValue = (assistedRepsValue + 1).coerceAtMost(limit) 
-                                        },
-                                        modifier = Modifier.size(24.dp)
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
                                     ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Add,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(12.dp),
-                                            tint = sessionAccentColor
-                                        )
+                                        Row(
+                                            modifier = Modifier.weight(1f),
+                                            horizontalArrangement = Arrangement.Center,
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .clip(CircleShape)
+                                                    .clickable { assistedRepsValue = (assistedRepsValue - 1).coerceAtLeast(0) },
+                                                contentAlignment = Alignment.Center,
+                                            ) {
+                                                Icon(Icons.Default.Remove, null, Modifier.size(12.dp), tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                                            }
+                                            Text(
+                                                text = if (assistedRepsValue > 0) "${assistedRepsValue} ayuda" else "Sin ayuda",
+                                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = if (assistedRepsValue > 0) sessionAccentColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .padding(horizontal = 2.dp),
+                                                maxLines = 1,
+                                                softWrap = false,
+                                                overflow = TextOverflow.Ellipsis,
+                                            )
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .clip(CircleShape)
+                                                    .clickable { assistedRepsValue = (assistedRepsValue + 1).coerceAtMost(maxReps) },
+                                                contentAlignment = Alignment.Center,
+                                            ) {
+                                                Icon(Icons.Default.Add, null, Modifier.size(12.dp), tint = sessionAccentColor)
+                                            }
+                                        }
+                                        Row(
+                                            modifier = Modifier.weight(1f),
+                                            horizontalArrangement = Arrangement.Center,
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .clip(CircleShape)
+                                                    .clickable {
+                                                        val next = (partialRepsValue - 1).coerceAtLeast(0)
+                                                        partialSets = listOf(next)
+                                                        if (next == 0) showPartialsMode = false
+                                                    },
+                                                contentAlignment = Alignment.Center,
+                                            ) {
+                                                Icon(Icons.Default.Remove, null, Modifier.size(12.dp), tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                                            }
+                                            Text(
+                                                text = if (partialRepsValue > 0) "$partialRepsValue parciales" else "Sin parciales",
+                                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = if (partialRepsValue > 0) sessionAccentColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .padding(horizontal = 2.dp),
+                                                maxLines = 1,
+                                                softWrap = false,
+                                                overflow = TextOverflow.Ellipsis,
+                                            )
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .clip(CircleShape)
+                                                    .clickable {
+                                                        showPartialsMode = true
+                                                        partialSets = listOf((partialRepsValue + 1).coerceAtMost(20))
+                                                    },
+                                                contentAlignment = Alignment.Center,
+                                            ) {
+                                                Icon(Icons.Default.Add, null, Modifier.size(12.dp), tint = sessionAccentColor)
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -1795,14 +1992,21 @@ internal fun SetInputCardV2(
                         }
                     }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(
-                            if (roomyStepper) 18.dp else 12.dp
-                        ),
-                    ) {
-                        ValueStepperBlock(Modifier.weight(1f))
-                        IntensityStepperBlock(Modifier.weight(1f))
+                    if (hasPlannedIntensityInput) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(
+                                if (roomyStepper) 18.dp else 12.dp
+                            ),
+                        ) {
+                            ValueStepperBlock(Modifier.weight(1f))
+                            IntensityStepperBlock(Modifier.weight(1f))
+                        }
+                    } else {
+                        // A set without a planned intensity only asks for its
+                        // objective value. The friendly perceived-intensity
+                        // slider appears after the exercise instead.
+                        ValueStepperBlock(Modifier.fillMaxWidth())
                     }
 
                     if (exercise.trackRom) {
@@ -1983,37 +2187,27 @@ internal fun SetInputCardV2(
                     ) {
                         when (adjustmentsTab) {
                             0 -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    FilterChip(
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                                    FlatAdjustmentButton(
+                                        text = "Error de ejecución",
                                         selected = isFailedSet,
+                                        modifier = Modifier.weight(1f),
                                         onClick = {
                                             isFailedSet = !isFailedSet
                                             if (isFailedSet) reachedFailure = false
                                         },
-                                        label = { Text("Error de ejecución", style = MaterialTheme.typography.labelSmall) },
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.2f),
-                                            selectedLabelColor = MaterialTheme.colorScheme.error,
-                                            containerColor = WorkoutUiTokens.setInnerHighestColor(),
-                                            labelColor = MaterialTheme.colorScheme.onSurface,
-                                        ),
                                     )
-                                    FilterChip(
+                                    FlatAdjustmentButton(
+                                        text = "AMRAP",
                                         selected = isAmrap,
+                                        modifier = Modifier.weight(1f),
                                         onClick = { if (isAmrap) isAmrap = false else showAmrapSheet = true },
-                                        label = { Text("AMRAP", style = MaterialTheme.typography.labelSmall) },
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = sessionAccentColor.copy(alpha = 0.2f),
-                                            selectedLabelColor = sessionAccentColor,
-                                            containerColor = WorkoutUiTokens.setInnerHighestColor(),
-                                            labelColor = MaterialTheme.colorScheme.onSurface,
-                                        ),
                                     )
                                 }
 
-                                if (isAmrap && plannedTarget != null) {
+                                if (isAmrap && amrapMinimumReps != null) {
                                     Text(
-                                        "AMRAP mínimo: $plannedTarget ${if (isTimeMode) "s" else "reps"}",
+                                        "AMRAP mínimo: $amrapMinimumReps ${if (isTimeMode) "s" else "reps"}",
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.SemiBold,
                                         color = sessionAccentColor,
@@ -2021,120 +2215,23 @@ internal fun SetInputCardV2(
                                 }
                             }
 
-                            1 -> Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            1 -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                                 ) {
-                                    FilterChip(
-                                        selected = showPartialsMode,
-                                        modifier = Modifier.weight(1f),
-                                        onClick = {
-                                            showPartialsMode = !showPartialsMode
-                                            if (showPartialsMode && partialSets.isEmpty()) partialSets = listOf(0)
-                                        },
-                                        label = { Text("Parciales", style = MaterialTheme.typography.labelSmall) },
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = sessionAccentColor.copy(alpha = 0.2f),
-                                            selectedLabelColor = sessionAccentColor,
-                                            containerColor = WorkoutUiTokens.setInnerHighestColor(),
-                                            labelColor = MaterialTheme.colorScheme.onSurface,
-                                        ),
-                                    )
-                                    FilterChip(
+                                    FlatAdjustmentButton(
+                                        text = if (dropSetEnabled) "Dropsets activos" else "Dropsets",
                                         selected = dropSetEnabled,
                                         modifier = Modifier.weight(1f),
                                         onClick = { dropSetEnabled = !dropSetEnabled },
-                                        label = {
-                                            Text(
-                                                if (dropSetEnabled) "Drop-set activo" else "Drop-set",
-                                                style = MaterialTheme.typography.labelSmall,
-                                            )
-                                        },
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = sessionAccentColor.copy(alpha = 0.2f),
-                                            selectedLabelColor = sessionAccentColor,
-                                            containerColor = WorkoutUiTokens.setInnerHighestColor(),
-                                            labelColor = MaterialTheme.colorScheme.onSurface,
-                                        ),
                                     )
-                                    FilterChip(
+                                    FlatAdjustmentButton(
+                                        text = if (restPauseEnabled) "Restpauses activos" else "Restpauses",
                                         selected = restPauseEnabled,
                                         modifier = Modifier.weight(1f),
                                         onClick = { restPauseEnabled = !restPauseEnabled },
-                                        label = { Text("Rest-Pause", style = MaterialTheme.typography.labelSmall) },
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = sessionAccentColor.copy(alpha = 0.2f),
-                                            selectedLabelColor = sessionAccentColor,
-                                            containerColor = WorkoutUiTokens.setInnerHighestColor(),
-                                            labelColor = MaterialTheme.colorScheme.onSurface,
-                                        ),
                                     )
-                                    FilterChip(
-                                        selected = reachedFailure,
-                                        modifier = Modifier.weight(1f),
-                                        onClick = { reachedFailure = !reachedFailure },
-                                        label = { Text("FALLO", style = MaterialTheme.typography.labelSmall) },
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = Color(0xFFFF5252).copy(alpha = 0.2f),
-                                            selectedLabelColor = Color(0xFFFF5252),
-                                            containerColor = WorkoutUiTokens.setInnerHighestColor(),
-                                            labelColor = MaterialTheme.colorScheme.onSurface,
-                                        ),
-                                    )
-                                    FilterChip(
-                                        selected = isAmrap,
-                                        modifier = Modifier.weight(1f),
-                                        onClick = { if (isAmrap) isAmrap = false else showAmrapSheet = true },
-                                        label = { Text("AMRAP", style = MaterialTheme.typography.labelSmall) },
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = sessionAccentColor.copy(alpha = 0.2f),
-                                            selectedLabelColor = sessionAccentColor,
-                                            containerColor = WorkoutUiTokens.setInnerHighestColor(),
-                                            labelColor = MaterialTheme.colorScheme.onSurface,
-                                        ),
-                                    )
-
-                                }
-
-
-
-                                if (showPartialsMode) {
-                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                        partialSets.forEachIndexed { idx, reps ->
-                                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                                Text(
-                                                    "Parcial ${idx + 1}",
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    fontWeight = FontWeight.SemiBold,
-                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                                    modifier = Modifier.widthIn(min = 56.dp),
-                                                )
-                                                IconButton(onClick = { partialSets = partialSets.toMutableList().also { it[idx] = (reps - 1).coerceAtLeast(0) } }, modifier = Modifier.size(36.dp)) {
-                                                    Icon(Icons.Default.Remove, null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
-                                                }
-                                                Text(
-                                                    "$reps reps",
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = MaterialTheme.colorScheme.onSurface,
-                                                    textAlign = TextAlign.Center,
-                                                    modifier = Modifier.widthIn(min = 48.dp),
-                                                )
-                                                IconButton(onClick = { partialSets = partialSets.toMutableList().also { it[idx] = (reps + 1).coerceAtMost(20) } }, modifier = Modifier.size(36.dp)) {
-                                                    Icon(Icons.Default.Add, null, Modifier.size(16.dp), tint = sessionAccentColor)
-                                                }
-                                                IconButton(onClick = { if (partialSets.size > 1) partialSets = partialSets.toMutableList().also { it.removeAt(idx) } }, modifier = Modifier.size(36.dp)) {
-                                                    Icon(Icons.Default.Delete, null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
-                                                }
-                                            }
-                                        }
-                                        TextButton(onClick = { partialSets = partialSets + 0 }) {
-                                            Icon(Icons.Default.Add, null, Modifier.size(16.dp))
-                                            Spacer(Modifier.width(4.dp))
-                                            Text("Agregar parcial", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                                        }
-                                    }
                                 }
 
                                 if (dropSetEnabled) {
@@ -2210,12 +2307,13 @@ internal fun SetInputCardV2(
 
             if (showAmrapSheet) {
                 AmrapConfigSheet(
-                    plannedMinReps = plannedTarget,
+                    plannedMinReps = amrapMinimumReps,
                     plannedTargetName = if (isTimeMode) "s" else "reps",
                     initialReachFailure = amrapReachFailure,
                     initialReserveReps = amrapReserveReps,
                     onApply = { minReps, reachFailure, reserveReps ->
                         isAmrap = true
+                        amrapMinimumReps = minReps
                         amrapReachFailure = reachFailure
                         amrapReserveReps = reserveReps
                         if (minReps != null) updateActiveValueText(minReps.toString())
@@ -2271,6 +2369,10 @@ internal fun SetInputCardV2(
                     intensityText != initialIntensityForDraft ||
                     loadMode != initialLoadMode ||
                     reachedFailure != initialFailure ||
+                    isAmrap != (initialDraft?.amrapOverride ?: plannedAmrap) ||
+                    amrapMinimumReps != initialDraft?.amrapMinimumReps ||
+                    amrapReachFailure != (initialDraft?.amrapReachFailure ?: true) ||
+                    amrapReserveReps != initialDraft?.amrapReserveReps ||
                     partialRepsTotal != (initialDraft?.partialReps ?: 0) ||
                     (supportsIndependentSides && selectedSide != initialSide) ||
                     romValue != (initialDraft?.rom ?: sessionCompletedSet?.rom) ||
@@ -2285,6 +2387,10 @@ internal fun SetInputCardV2(
                             selectedSide = if (supportsIndependentSides) selectedSide else null,
                             partialReps = partialRepsTotal.takeIf { it > 0 },
                             reachedFailure = reachedFailure,
+                            amrapOverride = isAmrap.takeIf { it != plannedAmrap },
+                            amrapMinimumReps = amrapMinimumReps,
+                            amrapReachFailure = amrapReachFailure,
+                            amrapReserveReps = amrapReserveReps,
                             isDirty = isDirty,
                             rom = romValue,
                             assistedReps = assistedRepsValue.takeIf { it > 0 },
@@ -2327,6 +2433,8 @@ internal fun SetInputCardV2(
                     reachedFailure -> 10.0
                     else -> intensityText.toDoubleOrNull()
                 },
+                amrapOverride = isAmrap.takeIf { it != plannedAmrap },
+                amrapMinimumReps = amrapMinimumReps,
                 timerElapsedSeconds = if (isTimeMode && timerElapsedSeconds > 0) timerElapsedSeconds else valueText.toIntOrNull(),
                 timerTargetSeconds = if (isTimeMode) plannedTarget else null,
                 rom = romValue,
@@ -2527,8 +2635,9 @@ internal fun SetInputCardV2(
                             else -> UnitModeV2.REPS
                         }
                         val resolvedBodyWeight = bodyWeightText.toDoubleOrNull()
-                        val minimumValue = if (isAmrap) plannedTarget?.toDouble() ?: 0.0 else 0.0
-                        val value = typedValue.coerceAtLeast(minimumValue)
+                        // AMRAP records the athlete's actual result.  The planned
+                        // minimum is surfaced as feedback, never as a silent clamp.
+                        val value = typedValue
 
                         val guide = currentSet.resolvePlannedTechniqueGuide()
                         val shouldGuide = guide != null &&

@@ -867,7 +867,14 @@ fun WorkoutScreen(
             onSelect = { viewModel.selectExercise(it) },
             onSelectStep = { stepKey -> viewModel.selectWorkoutStep(stepKey) },
             onSelectGroup = { viewModel.selectSupersetGroup(it) },
-            onOpenContext = { exId -> structureSheets.exerciseContextExerciseId = exId },
+            onOpenContext = { exId ->
+                structureSheets.exerciseContextForceMemberActions = false
+                structureSheets.exerciseContextExerciseId = exId
+            },
+            onOpenMemberContext = { exId ->
+                structureSheets.exerciseContextForceMemberActions = true
+                structureSheets.exerciseContextExerciseId = exId
+            },
             enableLongPress = true,
             sessionAccentColor = sessionAccentColor,
             hazeState = overlayHazeState,

@@ -102,10 +102,10 @@ fun CardioIntervalChart(
                             val weight = (block.durationSeconds.toFloat() / totalDuration.toFloat()).coerceAtLeast(0.04f)
 
                             val barColor = when (block.type) {
-                                CardioBlockType.WARMUP -> Color(0xFF10B981).copy(alpha = if (isPast) 0.22f else 0.65f)
+                                CardioBlockType.WARMUP -> Color(0xFF6F8E7D).copy(alpha = if (isPast) 0.24f else 0.68f)
                                 CardioBlockType.WORK -> if (isCurrent) accentColor else accentColor.copy(alpha = if (isPast) 0.28f else 0.92f)
-                                CardioBlockType.RECOVER -> Color(0xFF38BDF8).copy(alpha = if (isPast) 0.20f else 0.70f)
-                                CardioBlockType.COOLDOWN -> Color(0xFF10B981).copy(alpha = if (isPast) 0.20f else 0.45f)
+                                CardioBlockType.RECOVER -> Color(0xFF6C8792).copy(alpha = if (isPast) 0.22f else 0.72f)
+                                CardioBlockType.COOLDOWN -> Color(0xFF7C8C7B).copy(alpha = if (isPast) 0.22f else 0.52f)
                             }
                             val borderColor = if (isCurrent) Color.White.copy(alpha = 0.95f) else Color.Transparent
 
@@ -199,10 +199,10 @@ fun CardioIntervalChart(
                             val heightFraction = (rawVal / maxVal).coerceIn(0.18, 1.0)
                             val widthForDuration = (block.durationSeconds / 8).coerceIn(12, 44)
                             val barColor = when (block.type) {
-                                CardioBlockType.WARMUP -> Color(0xFF10B981).copy(alpha = if (isPast) 0.22f else 0.65f)
+                                CardioBlockType.WARMUP -> Color(0xFF6F8E7D).copy(alpha = if (isPast) 0.24f else 0.68f)
                                 CardioBlockType.WORK -> if (isCurrent) accentColor else accentColor.copy(alpha = if (isPast) 0.28f else 0.92f)
-                                CardioBlockType.RECOVER -> Color(0xFF38BDF8).copy(alpha = if (isPast) 0.20f else 0.70f)
-                                CardioBlockType.COOLDOWN -> Color(0xFF10B981).copy(alpha = if (isPast) 0.20f else 0.45f)
+                                CardioBlockType.RECOVER -> Color(0xFF6C8792).copy(alpha = if (isPast) 0.22f else 0.72f)
+                                CardioBlockType.COOLDOWN -> Color(0xFF7C8C7B).copy(alpha = if (isPast) 0.22f else 0.52f)
                             }
                             val borderColor = if (isCurrent) Color.White.copy(alpha = 0.95f) else Color.Transparent
 

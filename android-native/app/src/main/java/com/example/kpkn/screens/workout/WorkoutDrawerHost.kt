@@ -99,13 +99,10 @@ internal fun WorkoutDrawer(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .then(
-                        if (hazeState != null) {
-                            Modifier.kpknHazeEffect(hazeState)
-                        } else {
-                            Modifier.background(KpknGlass.FallbackScrim)
-                        }
-                    )
+                    // The scrim is intentionally flat. Applying haze here
+                    // blurred the entire live session; only the sheet panel
+                    // below should use the local glass effect.
+                    .background(KpknGlass.FallbackScrim)
                     .clickable(
                         onClick = { handleDismiss() }
                     )

@@ -14,6 +14,7 @@ import com.example.kpkn.data.models.VoiceTimedSetState
 import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.VoiceCaptureMode
+import com.example.kpkn.data.models.plannedRepAnchor
 import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.voice.VoiceState
@@ -1100,7 +1101,7 @@ class WorkoutVoiceCommandHandler(
 
         if (isLastWarmup) {
             val effectiveKg = calibration.firstEffectiveLoadKg ?: baseWorkingLoad
-            val plannedReps = currentExercise.sets.firstOrNull()?.targetReps ?: 8
+            val plannedReps = currentExercise.sets.firstOrNull()?.plannedRepAnchor() ?: 8
             voiceController.speakWarmupCompletedTransition(
                 exerciseName = spokenWorkoutExerciseName(currentExercise),
                 firstEffectiveKg = effectiveKg,

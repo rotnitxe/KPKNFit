@@ -101,16 +101,12 @@ internal fun CardioLiveCard(
         if (status == CardioExecutionStatus.RECORDED) showRecordConfirmation = false
     }
 
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = accentColor.copy(alpha = 0.09f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, accentColor.copy(alpha = 0.42f)),
+    // Cardio occupies its own stage rather than imitating a strength-set card:
+    // the timer, interval context and telemetry stay readable edge-to-edge.
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text("Cardio · ${details.type.name.replace('_', ' ')}", fontWeight = FontWeight.Black, color = accentColor)
                 Surface(shape = RoundedCornerShape(999.dp), color = accentColor.copy(alpha = 0.22f)) {
@@ -135,9 +131,14 @@ internal fun CardioLiveCard(
                 color = Color.White.copy(alpha = 0.68f),
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 184.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Color.White.copy(alpha = 0.025f))
+                    .padding(vertical = 14.dp),
+                contentAlignment = Alignment.Center,
             ) {
                 CardioMetricCircle(
                     label = "Tiempo",
@@ -198,7 +199,7 @@ internal fun CardioLiveCard(
 
             if (!details.hasIntervals()) {
                 Text(
-                    "Objetivo: RPE ${guide.rpeTarget}/10 · ${CardioGuideEngine.rpeAnchor(guide.rpeTarget)}" +
+                    "Objetivo: RPE ${formatCardioRpe(guide.rpeTargetExact)}/10 · ${CardioGuideEngine.rpeAnchor(guide.rpeTargetExact)}" +
                         (guide.hrPercentRef?.let { " · $it" } ?: ""),
                     color = accentColor,
                     style = MaterialTheme.typography.labelSmall,
@@ -323,7 +324,6 @@ internal fun CardioLiveCard(
                 )
             }
         }
-    }
 
     if (showRecordConfirmation) {
         KpknAlertDialog(
@@ -424,6 +424,9 @@ private fun formatCardioTime(totalSeconds: Int): String {
     val seconds = totalSeconds.coerceAtLeast(0) % 60
     return "%02d:%02d".format(minutes, seconds)
 }
+
+private fun formatCardioRpe(value: Double): String =
+    if (value % 1.0 == 0.0) value.toInt().toString() else "%.1f".format(value)
 
 private fun formatCardioDistance(distanceKm: Double?): String =
     distanceKm?.takeIf { it >= 0.0 }?.let { "%.2f km".format(it) } ?: "0.00 km"

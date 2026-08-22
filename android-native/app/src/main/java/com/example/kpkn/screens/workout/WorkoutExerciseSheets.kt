@@ -46,6 +46,7 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSetupDetails
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
+import com.example.kpkn.data.models.UnilateralTarget
 import com.example.kpkn.data.models.SubTagCategory
 import com.example.kpkn.data.models.WorkoutContextProfile
 import com.example.kpkn.data.models.WorkoutTag
@@ -128,6 +129,14 @@ internal fun WorkoutExerciseSetupContent(
 }
 
 internal fun exerciseHasPlannedIntensity(exercise: Exercise): Boolean = exercise.sets.any { set ->
+    fun UnilateralTarget.hasPlannedIntensity(): Boolean =
+        targetRPE != null ||
+            targetRIR != null ||
+            intensityMode == IntensityMode.RPE ||
+            intensityMode == IntensityMode.RIR ||
+            intensityMode == IntensityMode.FAILURE ||
+            intensityMode == IntensityMode.SOLO_RM
+
     set.targetRPE != null ||
         set.targetRIR != null ||
         set.targetPercentageRM != null ||
@@ -135,7 +144,9 @@ internal fun exerciseHasPlannedIntensity(exercise: Exercise): Boolean = exercise
         set.intensityMode == IntensityMode.RPE ||
         set.intensityMode == IntensityMode.RIR ||
         set.intensityMode == IntensityMode.FAILURE ||
-        set.intensityMode == IntensityMode.SOLO_RM
+        set.intensityMode == IntensityMode.SOLO_RM ||
+        set.leftTarget?.hasPlannedIntensity() == true ||
+        set.rightTarget?.hasPlannedIntensity() == true
 }
 
 @OptIn(ExperimentalLayoutApi::class)

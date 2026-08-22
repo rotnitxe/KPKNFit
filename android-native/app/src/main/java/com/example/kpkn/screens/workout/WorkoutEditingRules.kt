@@ -11,6 +11,7 @@ import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnitModeV2
+import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
@@ -190,6 +191,7 @@ object WorkoutEditingRules {
                 unitModeV2 = UnitModeV2.TIME,
                 targetDuration = set.targetDuration ?: set.plannedTargetV2?.roundToInt(),
                 targetReps = null,
+                targetRepsRange = null,
                 plannedTargetV2 = null,
                 targetPercentageRM = null,
                 isAmrap = false,
@@ -200,6 +202,7 @@ object WorkoutEditingRules {
                 unitModeV2 = unitMode,
                 plannedTargetV2 = set.plannedTargetV2 ?: set.targetReps?.toDouble() ?: set.targetDuration?.toDouble(),
                 targetReps = null,
+                targetRepsRange = null,
                 targetDuration = null,
                 targetPercentageRM = null,
                 isAmrap = false,
@@ -207,6 +210,7 @@ object WorkoutEditingRules {
             TrainingMode.RM -> set.copy(
                 unitModeV2 = UnitModeV2.REPS,
                 targetReps = set.targetReps ?: set.plannedTargetV2?.roundToInt(),
+                targetRepsRange = null,
                 targetDuration = null,
                 plannedTargetV2 = null,
                 targetPercentageRM = (set.targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0),
@@ -215,6 +219,7 @@ object WorkoutEditingRules {
             TrainingMode.SOLO_RPE -> set.copy(
                 unitModeV2 = UnitModeV2.REPS,
                 targetReps = null,
+                targetRepsRange = null,
                 targetDuration = null,
                 plannedTargetV2 = null,
                 targetPercentageRM = null,
@@ -222,23 +227,31 @@ object WorkoutEditingRules {
             )
             TrainingMode.AMRAP -> set.copy(
                 unitModeV2 = UnitModeV2.REPS,
-                targetReps = set.targetReps ?: set.plannedTargetV2?.roundToInt(),
+                targetReps = set.effectiveRepRange()?.max ?: set.targetReps ?: set.plannedTargetV2?.roundToInt(),
                 targetDuration = null,
                 plannedTargetV2 = null,
                 targetPercentageRM = null,
                 isAmrap = true,
+                intensityMode = IntensityMode.AMRAP,
             )
             TrainingMode.REPS -> set.copy(
                 unitModeV2 = UnitModeV2.REPS,
-                targetReps = set.targetReps ?: set.plannedTargetV2?.roundToInt(),
+                targetReps = set.effectiveRepRange()?.max ?: set.targetReps ?: set.plannedTargetV2?.roundToInt(),
                 targetDuration = null,
                 plannedTargetV2 = null,
                 targetPercentageRM = null,
-                isAmrap = false,
+                isAmrap = set.isAmrap || set.intensityMode == IntensityMode.AMRAP,
             )
         }
 
-        val intensityNormalized = if (metricNormalized.isFailure || metricNormalized.intensityMode == IntensityMode.FAILURE) {
+        val intensityNormalized = if (metricNormalized.isAmrap || metricNormalized.intensityMode == IntensityMode.AMRAP) {
+            metricNormalized.copy(
+                intensityMode = IntensityMode.AMRAP,
+                targetRPE = null,
+                targetRIR = null,
+                isFailure = false,
+            )
+        } else if (metricNormalized.isFailure || metricNormalized.intensityMode == IntensityMode.FAILURE) {
             metricNormalized.copy(
                 intensityMode = IntensityMode.FAILURE,
                 targetRPE = null,
@@ -260,9 +273,10 @@ object WorkoutEditingRules {
             )
             else -> metricNormalized.copy(
                 intensityMode = when (metricNormalized.intensityMode) {
-                    null,
-                    IntensityMode.SOLO_RM,
-                    -> IntensityMode.RPE
+                    // Preserve an omitted intensity. The live set must not
+                    // invent an RPE/RIR requirement during normalization.
+                    null -> null
+                    IntensityMode.SOLO_RM -> IntensityMode.SOLO_RM
                     else -> metricNormalized.intensityMode
                 },
             )

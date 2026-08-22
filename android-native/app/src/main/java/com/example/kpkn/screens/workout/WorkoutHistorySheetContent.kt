@@ -147,6 +147,8 @@ internal fun HistoryEntryCard(
                             if (set.reps > 0) append("${set.reps} reps")
                             if (set.rpe != null) append(" · RPE ${set.rpe}")
                             if (set.rir != null) append(" · RIR ${set.rir}")
+                            if ((set.partialReps ?: 0) > 0) append(" · +${set.partialReps} parciales")
+                            if ((set.assistedReps ?: 0) > 0) append(" · ${set.assistedReps} con ayuda")
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White.copy(alpha = 0.8f)

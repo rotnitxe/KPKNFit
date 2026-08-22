@@ -30,6 +30,7 @@ import com.example.kpkn.data.models.SessionEnergySummary
 import com.example.kpkn.data.models.SetDrain
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.effectiveSupersetGroupFor
+import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -134,6 +135,11 @@ class WorkoutSetRecorder(
         updateState { it.copy(recordingSetKey = recordingKey) }
         try {
             val plannedSet = exercise.sets.getOrNull(targetSetIdx)
+            val amrapActive = resolveAmrapActive(
+                plannedSet = plannedSet,
+                requestedOverride = amrapOverride,
+                explicitOverride = advanced.amrapOverride,
+            )
             val activeProfile = ports.activeContextProfile(exercise.id)
 
             val resolvedUnitMode = unitMode ?: plannedSet?.let { ports.inferUnitMode(exercise, it) } ?: UnitModeV2.REPS
@@ -198,8 +204,8 @@ class WorkoutSetRecorder(
             val actualIntensityMode = advanced.actualIntensityMode ?: when {
                 advanced.reachedFailure -> IntensityMode.FAILURE
                 advanced.rir != null -> IntensityMode.RIR
+                amrapActive -> IntensityMode.AMRAP
                 intensity != null -> IntensityMode.RPE
-                amrapOverride -> IntensityMode.AMRAP
                 plannedSet?.isFailure == true || plannedSet?.intensityMode == IntensityMode.FAILURE -> IntensityMode.FAILURE
                 else -> plannedSet?.intensityMode
             }
@@ -220,7 +226,7 @@ class WorkoutSetRecorder(
                 if (advanced.restPauses.isNotEmpty()) add(SetTechniqueV2.REST_PAUSE)
                 if (advanced.isPartial) add(SetTechniqueV2.PARTIALS)
                 if (advanced.reachedFailure) add(SetTechniqueV2.FAILURE)
-                if (amrapOverride) add(SetTechniqueV2.AMRAP)
+                if (amrapActive) add(SetTechniqueV2.AMRAP)
             }
             val recordedPayload = RecordedSetPayload(
                 contextProfileId = activeProfile?.id,
@@ -247,7 +253,7 @@ class WorkoutSetRecorder(
                 techniques = techniques,
                 failedSet = advanced.isFailedSet || advanced.executionError,
                 reachedFailure = advanced.reachedFailure,
-                amrapPerformed = amrapOverride,
+                amrapPerformed = amrapActive,
                 timerTargetSeconds = advanced.timerTargetSeconds ?: plannedSet?.targetDuration,
                 timerElapsedSeconds = advanced.timerElapsedSeconds,
                 failureReason = advanced.failureReason,
@@ -278,7 +284,7 @@ class WorkoutSetRecorder(
                 debt = debt,
                 failedSet = advanced.isFailedSet || advanced.executionError,
                 reachedFailure = advanced.reachedFailure,
-                amrapOverride = amrapOverride,
+                amrapOverride = amrapActive,
                 techniques = techniques,
                 tagId = resolvedTagId,
                 setupId = resolvedSetupId,
@@ -310,7 +316,7 @@ class WorkoutSetRecorder(
                 debt = debt,
                 failedSet = advanced.isFailedSet || advanced.executionError,
                 reachedFailure = advanced.reachedFailure,
-                amrapOverride = amrapOverride,
+                amrapOverride = amrapActive,
                 techniques = techniques,
                 metricType = if (resolvedUnitMode == UnitModeV2.TIME) "TRM" else "ERM",
                 metricValue = 0.0,
@@ -336,6 +342,10 @@ class WorkoutSetRecorder(
                     step.setIndex == targetSetIdx &&
                     (resolvedSide == null || step.side == resolvedSide)
             }
+            val amrapMinimumReps = advanced.amrapMinimumReps ?: plannedSet?.effectiveRepRange()?.min
+            val amrapBelowMinimum = amrapActive &&
+                amrapMinimumReps != null &&
+                actualReps < amrapMinimumReps
             val completedSet = applyAdvancedFeedback(
                 base = CompletedSet(
                     id = UUID.randomUUID().toString(),
@@ -358,6 +368,9 @@ class WorkoutSetRecorder(
                     recordedPayloadV3 = recordedPayload,
                     homologatedResultV3 = evaluation?.homologated,
                     setOutcomeV2 = outcome,
+                    amrapPerformed = amrapActive,
+                    amrapMinimumReps = amrapMinimumReps,
+                    amrapBelowMinimum = amrapBelowMinimum,
                 ),
                 advanced = advanced,
             )
@@ -377,12 +390,14 @@ class WorkoutSetRecorder(
                         logicalActualValue.roundToInt().coerceAtLeast(0)
                     },
                     advanced = advanced,
+                    amrapMinimumReps = amrapMinimumReps,
                     suggestedWeight = outcome.suggestedNextLoad,
                 )
             } ?: emptyList()
 
             updateState { current ->
                 val mergedCompleted = current.completedSets + (key to completedSet)
+                val recordedExerciseIdx = allExercises.indexOfFirst { it.id == exercise.id }
                 val newEnergy = ports.recomputeLiveEnergy(
                     completedSets = mergedCompleted,
                     allExercises = allExercises,
@@ -390,6 +405,14 @@ class WorkoutSetRecorder(
                 )
                 current.copy(
                     completedSets = mergedCompleted,
+                    // Make the recorded step the canonical cursor before
+                    // resolving the next incomplete step. This matters when
+                    // a pager/action closure carries an explicit set index:
+                    // nextSet() must never advance from a stale cursor.
+                    currentExerciseIdx = recordedExerciseIdx.takeIf { it >= 0 } ?: current.currentExerciseIdx,
+                    currentSetIdx = targetSetIdx,
+                    activeStepKey = currentWorkoutStep?.stepKey
+                        ?: WorkoutStepRules.workingStepKey(exercise.id, targetSetIdx, resolvedSide),
                     setAdvancedFeedback = current.setAdvancedFeedback + (key to advanced),
                     planDeviations = current.planDeviations + newDeviations,
                     setJustLoggedKey = key,
@@ -445,15 +468,18 @@ class WorkoutSetRecorder(
                 ),
             )
 
-            val wasLastSet = state.currentSetIdx == exercise.sets.size - 1
             val isExecutionError = advanced.isFailedSet || advanced.executionError
+            val wasLastSet = targetSetIdx == exercise.sets.lastIndex
 
             val postUpdateCompleted = getState().completedSets
             val unilateralPendingOtherSide = isUnilateralExercise && resolvedSide != null &&
                 postUpdateCompleted[buildCompletedSetKey(exercise.id, targetSetIdx, counterpartSide(resolvedSide))] == null
             val stateAfterLoggedSet = getState()
             val nextStepForRest = ports.nextIncompleteStepAfter(stateAfterLoggedSet)
-            if (!unilateralPendingOtherSide && !wasExistingSet) {
+            // An execution error is a recoverable state, not a completed route:
+            // keep the cursor on the red card so Revertir can remove the
+            // placeholder without racing the pager/rest timer.
+            if (!isExecutionError && !unilateralPendingOtherSide && !wasExistingSet) {
                 ports.nextSet(stopRest = false)
             }
 
@@ -592,7 +618,7 @@ class WorkoutSetRecorder(
                 effectiveRpe = effectiveRpe,
                 sessionProgress = sessionProgress,
             )
-            if (amrapOverride) {
+            if (amrapActive) {
                 val contextPerformance = state.contextualPerformanceCache[contextKey]
                 val ewma = contextPerformance?.ewma ?: 0.0
                 val amrapVolume = weight * actualValue

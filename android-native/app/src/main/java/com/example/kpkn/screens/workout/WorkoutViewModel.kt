@@ -889,6 +889,7 @@ class WorkoutViewModel(
         if (loaded && !sessionStartLogged) {
             sessionStartLogged = true
             val state = _uiState.value
+            KpknDiagnosticLogger.registerLiveSession(sessionId, voiceController.isEnabled())
             KpknDiagnosticLogger.event(
                 namespace = "workout",
                 name = "session_started",
@@ -1209,7 +1210,7 @@ class WorkoutViewModel(
     private fun inferPlannedTarget(set: ExerciseSet, unitMode: UnitModeV2): Double? = when (unitMode) {
         UnitModeV2.TIME -> set.plannedTargetV2 ?: set.targetDuration?.toDouble()
         UnitModeV2.DISTANCE -> set.plannedTargetV2 ?: set.targetReps?.toDouble()
-        UnitModeV2.REPS -> set.plannedTargetV2 ?: set.targetReps?.toDouble()
+        UnitModeV2.REPS -> set.plannedRepAnchor()?.toDouble() ?: set.plannedTargetV2
         UnitModeV2.CUSTOM -> set.plannedTargetV2 ?: set.targetReps?.toDouble() ?: set.targetDuration?.toDouble()
     }
 
@@ -1370,6 +1371,60 @@ class WorkoutViewModel(
                 sessionId = sessionId,
             )
         }
+    }
+
+    /**
+     * Removes an execution-error record and returns the cursor to that exact
+     * working step. This is intentionally an undo, not an edit: AUGE/history
+     * must not retain a failed placeholder once the athlete reverts it.
+     */
+    fun revertExecutionError(
+        exerciseId: String,
+        setIdx: Int,
+        side: String? = null,
+    ) {
+        stopRestTimer()
+        val key = buildCompletedSetKey(exerciseId, setIdx, side)
+        val state = _uiState.value
+        val recorded = state.completedSets[key] ?: return
+        val isExecutionError = recorded.failureReason == "execution_error" ||
+            recorded.recordedPayloadV3?.executionError == true
+        if (!recorded.isFailedSet || !isExecutionError) return
+        val exerciseIdx = visibleExercises(state).indexOfFirst { it.id == exerciseId }
+            .takeIf { it >= 0 } ?: return
+        val exercise = visibleExercises(state).getOrNull(exerciseIdx) ?: return
+        val restoredStepKey = WorkoutStepRules.workingStepKey(exerciseId, setIdx, side)
+        _uiState.update { current ->
+            current.copy(
+                completedSets = current.completedSets - key,
+                setAdvancedFeedback = current.setAdvancedFeedback - key,
+                planDeviations = current.planDeviations.filterNot {
+                    it.exerciseId == exerciseId && it.setIdx == setIdx
+                },
+                currentExerciseIdx = exerciseIdx,
+                currentSetIdx = setIdx,
+                activeStepKey = restoredStepKey,
+                editingState = buildEditingStateForPosition(
+                    completedSets = current.completedSets - key,
+                    exercise = exercise,
+                    setIdx = setIdx,
+                    preferredSide = side,
+                ),
+                pendingRestSuggestion = null,
+                restModalState = null,
+                isRestTimerRunning = false,
+                showExecutionErrorDiscomfortSheet = false,
+                showPostExerciseSheet = false,
+                showFinishSheet = false,
+                isComplete = false,
+                setJustLoggedKey = current.setJustLoggedKey.takeUnless { it == key },
+                lastSetOutcomeV2 = null,
+                lastHomologatedResultV3 = null,
+                imbalanceNotice = null,
+            )
+        }
+        clearDraftForSet(exerciseId, setIdx, side)
+        persistOngoingState()
     }
 
     fun checkPaceCoachAlert() = pacingController.checkPaceCoachAlert()
@@ -1615,7 +1670,9 @@ class WorkoutViewModel(
         )
         WorkoutVoiceDiagnosticLogger.event("voice_enable_requested")
         voiceCommandHandler.enableVoice(captureModeOverride)
-        WorkoutVoiceDiagnosticLogger.event("voice_enable_result", mapOf("enabled" to voiceController.isEnabled()))
+        val voiceEnabled = voiceController.isEnabled()
+        KpknDiagnosticLogger.updateLiveSessionVoiceMode(sessionId, voiceEnabled)
+        WorkoutVoiceDiagnosticLogger.event("voice_enable_result", mapOf("enabled" to voiceEnabled))
         if (voiceController.isEnabled()) {
             repository.updateSettings {
                 it.copy(voiceTutorialVersionSeen = HYBRID_VOICE_TUTORIAL_VERSION)
@@ -1642,6 +1699,7 @@ class WorkoutViewModel(
     fun disableVoice() {
         WorkoutVoiceDiagnosticLogger.event("voice_disable_requested")
         voiceCommandHandler.disableVoice()
+        KpknDiagnosticLogger.updateLiveSessionVoiceMode(sessionId, false)
     }
 
     private fun prepareVoiceDiagnosticExport() {
@@ -2450,6 +2508,7 @@ class WorkoutViewModel(
             val newSet = ExerciseSet(
                 id = UUID.randomUUID().toString(),
                 targetReps = lastSet?.targetReps,
+                targetRepsRange = lastSet?.targetRepsRange,
                 targetRPE = lastSet?.targetRPE,
                 targetRIR = lastSet?.targetRIR,
                 weight = lastSet?.weight,
@@ -2909,11 +2968,11 @@ class WorkoutViewModel(
 
     fun advanceAfterPreparation(exerciseId: String) {
         val state = _uiState.value
-        // Preparation closes must resume from the first incomplete canonical step,
-        // not from the first working set. This preserves remaining mobility and
-        // warm-up steps, and keeps supersets ordered as prep -> R1-A -> R1-B.
-        stepNavigator.firstIncompleteStep(state)?.let { firstIncomplete ->
-            selectWorkoutStep(firstIncomplete.stepKey)
+        val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId }
+        val nextStepInExercise = exercise?.let { stepNavigator.firstIncompleteStepForExercise(state, it) }
+        val targetStep = nextStepInExercise ?: stepNavigator.nextIncompleteStepAfter(state)
+        targetStep?.let { step ->
+            selectWorkoutStep(step.stepKey)
         } ?: openFinishSheet()
     }
 
@@ -3990,6 +4049,7 @@ class WorkoutViewModel(
             fields = mapOf("programId" to programId, "workoutSessionId" to sessionId, "reason" to "cancelled"),
             sessionId = sessionId,
         )
+        KpknDiagnosticLogger.endLiveSession(sessionId)
         pacingController.cancelSessionTimer()
         restTimer.abortHard()
         runCatching {
@@ -4008,9 +4068,11 @@ class WorkoutViewModel(
             fields = mapOf("programId" to programId, "workoutSessionId" to sessionId, "reason" to "navigated_away"),
             sessionId = sessionId,
         )
+        KpknDiagnosticLogger.endLiveSession(sessionId)
         abortRestTimerHard()
         viewModelScope.launch {
             repository.clearOngoingWorkoutAndFlush()
+            withContext(Dispatchers.IO) { KpknDiagnosticLogger.flushSync() }
             ActiveWorkoutHolder.clear()
             withContext(Dispatchers.Main) {
                 onClearedUi()
@@ -4304,7 +4366,10 @@ class WorkoutViewModel(
             notes = notes,
             fatigueLevel = fatigueLevel,
             closingFeedback = closingFeedback,
-            onComplete = onComplete,
+            onComplete = {
+                KpknDiagnosticLogger.endLiveSession(sessionId)
+                onComplete()
+            },
             onFailure = onFailure,
         )
     }
@@ -4658,7 +4723,7 @@ class WorkoutViewModel(
         val techniqueSignal = latestTechniqueSignal(exercise.id, dbId)
 
         if (lastSet != null) {
-            val targetReps = exercise.sets.getOrNull(setIdx)?.targetReps ?: lastSet.reps
+            val targetReps = exercise.sets.getOrNull(setIdx)?.plannedRepAnchor() ?: lastSet.reps
             val suggestion = LoadSuggestionEngine.suggestFromLastWorkingSet(
                 lastSet = lastSet,
                 targetReps = targetReps,

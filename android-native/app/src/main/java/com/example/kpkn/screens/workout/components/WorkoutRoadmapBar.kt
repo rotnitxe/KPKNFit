@@ -10,9 +10,11 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -63,6 +65,7 @@ fun WorkoutRoadmapBar(
     onSelectStep: (String) -> Unit = {},
     onSelectGroup: (String) -> Unit = {},
     onOpenContext: (String) -> Unit = {},
+    onOpenMemberContext: (String) -> Unit = onOpenContext,
     enableLongPress: Boolean = true,
     sessionAccentColor: Color = MaterialTheme.colorScheme.primary,
     hazeState: HazeState? = null,
@@ -287,6 +290,7 @@ fun WorkoutRoadmapBar(
                                 onSelectStep(WorkoutStepRules.workingStepKey(exerciseId, setIdx, side))
                             },
                             onLongClick = if (enableLongPress) ({ onOpenContext(exercise.id) }) else null,
+                            onMemberLongClick = if (enableLongPress) onOpenMemberContext else ({}) ,
                         )
                     }
                 }
@@ -366,7 +370,7 @@ private fun ExerciseRoadmapCard(
     Surface(
         modifier = Modifier
             .widthIn(min = minWidth, max = 220.dp)
-            .heightIn(min = if (groupName != null || isUnilateral) 64.dp else 48.dp)
+            .height(64.dp)
             .scale(scale)
             .combinedClickable(
                 onClick = onClick,
@@ -414,68 +418,6 @@ private fun ExerciseRoadmapCard(
                         color = contentColor.copy(alpha = 0.6f),
                     )
                 }
-                if (isUnilateral && exercise.sets.isNotEmpty()) {
-                    Spacer(Modifier.height(3.dp))
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        exercise.sets.indices.forEach { setIdx ->
-                            val expectedSides = exercise.expectedSidesForSet(setIdx)
-                            val isSetCurrent = isCurrent && currentSetIdx == setIdx
-                            Surface(
-                                shape = RoundedCornerShape(4.dp),
-                                color = Color.Black.copy(alpha = 0.25f),
-                                border = BorderStroke(
-                                    0.5.dp,
-                                    if (isSetCurrent) accent else Color.White.copy(alpha = 0.15f)
-                                ),
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 3.dp, vertical = 1.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    expectedSides.forEach { side ->
-                                        val sideKey = "${exercise.id}_${setIdx}_${side.take(1).uppercase()}"
-                                        val isDone = completedSets.containsKey(sideKey)
-                                        val isSideCurrent = isSetCurrent &&
-                                            (currentSide == null || currentSide.equals(side, ignoreCase = true))
-                                        val label = side.take(1).uppercase()
-                                        Box(
-                                            modifier = Modifier
-                                                .size(12.dp)
-                                                .clickable {
-                                                    onSelectStep(setIdx, side.lowercase())
-                                                }
-                                                .clip(CircleShape)
-                                                .background(
-                                                    when {
-                                                        isDone -> Color(0xFF66BB6A)
-                                                        isSideCurrent -> accent
-                                                        else -> Color.Transparent
-                                                    }
-                                                )
-                                                .border(
-                                                    0.8.dp,
-                                                    if (isDone) Color(0xFF66BB6A) else if (isSideCurrent) accent else Color.White.copy(alpha = 0.4f),
-                                                    CircleShape
-                                                ),
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Text(
-                                                text = label,
-                                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
-                                                fontWeight = FontWeight.Black,
-                                                        color = if (isDone || isSideCurrent) Color.Black else Color.White,
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             }
         }
     }
@@ -499,6 +441,138 @@ private fun SupersetRoadmapCard(
     onClick: () -> Unit,
     onSelectStep: (String, Int, String?) -> Unit = { _, _, _ -> },
     onLongClick: (() -> Unit)?,
+    onMemberLongClick: (String) -> Unit = {},
+) {
+    val safeRoundCount = roundCount.coerceAtLeast(1)
+    val currentRoundIndex = ((currentRound ?: 1) - 1).coerceIn(0, safeRoundCount - 1)
+    val cardColor = when {
+        isCurrent -> accent.copy(alpha = 0.22f)
+        isAllDone -> Color(0xFF66BB6A).copy(alpha = 0.18f)
+        else -> Color.White.copy(alpha = 0.08f)
+    }
+    val outline = when {
+        isCurrent -> accent.copy(alpha = 0.8f)
+        isAllDone -> Color(0xFF66BB6A).copy(alpha = 0.6f)
+        else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f)
+    }
+    Surface(
+        modifier = Modifier
+            .height(64.dp)
+            .widthIn(min = 240.dp, max = 360.dp)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
+        shape = WorkoutUiTokens.InnerCardShape,
+        color = cardColor,
+        border = BorderStroke(1.dp, outline),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 7.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Column(modifier = Modifier.widthIn(min = 72.dp, max = 92.dp)) {
+                Text(
+                    "Superserie",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isCurrent) Color.White else MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                )
+                Text(
+                    if (isAllDone) "Completada" else "Ronda ${currentRound ?: 1}/$safeRoundCount",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                    color = if (isCurrent) accent else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
+                    maxLines = 1,
+                )
+            }
+            Row(
+                modifier = Modifier.horizontalScroll(rememberScrollState()).weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                exercises.forEach { member ->
+                    val memberLabel = member.displayNameWithSelectedChips()
+                    val memberRoundDone = member.completionKeysForSet(currentRoundIndex).let { keys ->
+                        keys.isNotEmpty() && keys.all { completedSets.containsKey(it) }
+                    }
+                    val memberIsCurrent = member.id == currentExerciseId && isCurrent
+                    Surface(
+                        modifier = Modifier
+                            .widthIn(min = 78.dp, max = 126.dp)
+                            .height(48.dp)
+                            .combinedClickable(
+                                onClick = {
+                                    val side = if (member.isEffectivelyUnilateral()) {
+                                        member.expectedSidesForSet(currentRoundIndex).firstOrNull { candidate ->
+                                            !completedSets.containsKey("${member.id}_${currentRoundIndex}_${candidate.take(1).uppercase()}")
+                                        }?.lowercase()
+                                    } else null
+                                    onSelectStep(member.id, currentRoundIndex, side)
+                                },
+                                onLongClick = { onMemberLongClick(member.id) },
+                            ),
+                        shape = RoundedCornerShape(8.dp),
+                        color = if (memberIsCurrent) accent.copy(alpha = 0.8f) else Color.Black.copy(alpha = 0.18f),
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxSize().padding(horizontal = 7.dp, vertical = 5.dp),
+                            verticalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Text(
+                                memberLabel,
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (memberIsCurrent) Color.White else MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                                repeat(safeRoundCount) { roundIdx ->
+                                    val done = member.completionKeysForSet(roundIdx).let { keys ->
+                                        keys.isNotEmpty() && keys.all { completedSets.containsKey(it) }
+                                    }
+                                    Box(
+                                        modifier = Modifier
+                                            .size(if (roundIdx == currentRoundIndex) 8.dp else 6.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                when {
+                                                    done -> Color(0xFF66BB6A)
+                                                    roundIdx == currentRoundIndex -> accent
+                                                    else -> Color.White.copy(alpha = 0.28f)
+                                                }
+                                            ),
+                                    )
+                                }
+                                if (memberRoundDone) {
+                                    Text("✓", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = Color(0xFF66BB6A))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun SupersetRoadmapCardLegacy(
+    exercises: List<Exercise>,
+    supersetNumber: Int,
+    supersetCount: Int,
+    roundCount: Int,
+    completedSets: Map<String, CompletedSet>,
+    isCurrent: Boolean,
+    isAllDone: Boolean,
+    accent: Color,
+    groupName: String?,
+    currentExerciseId: String?,
+    currentRound: Int?,
+    currentSide: String? = null,
+    onClick: () -> Unit,
+    onSelectStep: (String, Int, String?) -> Unit = { _, _, _ -> },
+    onLongClick: (() -> Unit)?,
 ) {
     val safeRoundCount = roundCount.coerceAtLeast(1)
     val title = if (supersetCount > 1) "Superserie $supersetNumber" else "Superserie"
@@ -506,116 +580,161 @@ private fun SupersetRoadmapCard(
     var isPressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(if (isPressed) 0.95f else 1.0f)
 
+    // Manage expanded round in accordion style
+    var userToggledRound by remember(currentRound, isCurrent, isAllDone) { mutableStateOf<Int?>(null) }
+    val activeExpandedRound = when {
+        userToggledRound != null -> if (userToggledRound == -1) null else userToggledRound
+        isCurrent && currentRound != null && !isAllDone -> (currentRound - 1).coerceIn(0, safeRoundCount - 1)
+        else -> null
+    }
+
+    val containerColor = when {
+        isCurrent -> accent.copy(alpha = 0.20f)
+        isAllDone -> Color(0xFF66BB6A).copy(alpha = 0.18f)
+        else -> Color.White.copy(alpha = 0.08f)
+    }
+    val borderColor = when {
+        isCurrent -> accent
+        isAllDone -> Color(0xFF66BB6A).copy(alpha = 0.62f)
+        else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)
+    }
+
     Surface(
         modifier = Modifier
-            .widthIn(min = 180.dp, max = 340.dp)
-            .heightIn(min = 68.dp)
+            .heightIn(min = 52.dp)
             .scale(scale)
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
             ),
         shape = WorkoutUiTokens.InnerCardShape,
-        color = Color.White.copy(alpha = if (isCurrent) 0.18f else 0.14f),
-        border = BorderStroke(
-            width = if (isCurrent) 1.5.dp else 1.dp,
-            color = when {
-                isCurrent -> accent
-                isAllDone -> Color(0xFF66BB6A).copy(alpha = 0.62f)
-                else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.30f)
-            },
-        ),
+        color = containerColor,
+        border = BorderStroke(width = if (isCurrent) 1.5.dp else 1.dp, color = borderColor),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            modifier = Modifier
+                .padding(horizontal = 10.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Column(
-                modifier = Modifier.widthIn(min = 72.dp, max = 96.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
+            // Superset badge & Title Header (compact)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = if (isAllDone) "Completada" else currentRound?.let { "Ronda $it/$safeRoundCount" } ?: "$safeRoundCount rondas",
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                    fontWeight = FontWeight.Bold,
-                    color = if (isCurrent) accent else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (!groupName.isNullOrBlank()) {
+                Surface(
+                    shape = RoundedCornerShape(999.dp),
+                    color = if (isCurrent) accent else Color.White.copy(alpha = 0.18f),
+                ) {
                     Text(
-                        text = groupName,
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        text = if (isAllDone) "✓" else if (supersetCount > 1) "SS$supersetNumber" else "SS",
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Black,
+                        color = if (isCurrent) Color.Black else MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+
+                Column(
+                    modifier = Modifier.widthIn(min = 54.dp, max = 96.dp),
+                    verticalArrangement = Arrangement.spacedBy(1.dp),
+                ) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = if (isAllDone) "Completada" else currentRound?.let { "Ronda $it/$safeRoundCount" } ?: "$safeRoundCount rondas",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        color = if (isCurrent) accent else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
 
-            Surface(
-                shape = WorkoutUiTokens.InnerCardShape,
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = if (isCurrent) 0.30f else 0.18f),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.20f)),
-            ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    repeat(safeRoundCount) { roundIdx ->
-                        val roundKeys = exercises.flatMap { it.completionKeysForSet(roundIdx) }
-                        val roundDone = roundKeys.isNotEmpty() && roundKeys.all { completedSets.containsKey(it) }
-                        val isRoundCurrent = isCurrent && currentRound == roundIdx + 1
+            // Divider between title and horizontal rounds
+            Box(
+                modifier = Modifier
+                    .width(1.dp)
+                    .height(28.dp)
+                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)),
+            )
 
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            // R1 / R2 badge
-                            Surface(
-                                modifier = Modifier.size(if (isRoundCurrent) 20.dp else 16.dp),
-                                shape = RoundedCornerShape(999.dp),
+            // Horizontal rounds carousel
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                repeat(safeRoundCount) { roundIdx ->
+                    val roundKeys = exercises.flatMap { it.completionKeysForSet(roundIdx) }
+                    val roundDone = roundKeys.isNotEmpty() && roundKeys.all { completedSets.containsKey(it) }
+                    val isRoundCurrent = isCurrent && currentRound == roundIdx + 1
+                    val isExpanded = activeExpandedRound == roundIdx
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(
+                                when {
+                                    isExpanded -> Color.White.copy(alpha = 0.08f)
+                                    else -> Color.Transparent
+                                }
+                            )
+                            .padding(horizontal = if (isExpanded) 4.dp else 0.dp, vertical = 2.dp),
+                    ) {
+                        // R1 / R2 badge - Clickable to toggle expand / collapse!
+                        Surface(
+                            modifier = Modifier
+                                .size(if (isRoundCurrent) 22.dp else 20.dp)
+                                .clickable {
+                                    userToggledRound = if (isExpanded) -1 else roundIdx
+                                },
+                            shape = RoundedCornerShape(999.dp),
+                            color = when {
+                                roundDone -> Color(0xFF66BB6A)
+                                isRoundCurrent -> accent
+                                else -> Color.White.copy(alpha = 0.10f)
+                            },
+                            border = BorderStroke(
+                                width = if (isRoundCurrent || roundDone) 0.dp else 1.dp,
                                 color = when {
                                     roundDone -> Color(0xFF66BB6A)
                                     isRoundCurrent -> accent
-                                    else -> Color.Transparent
+                                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
                                 },
-                                border = BorderStroke(
-                                    width = if (isRoundCurrent) 0.dp else 1.2.dp,
-                                    color = when {
-                                        roundDone -> Color(0xFF66BB6A)
-                                        else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.42f)
-                                    },
-                                ),
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Text(
-                                        text = "R${roundIdx + 1}",
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = if (isRoundCurrent) 9.sp else 8.sp),
-                                        fontWeight = FontWeight.Black,
-                                        color = if (isRoundCurrent || roundDone) Color.Black else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.70f),
-                                    )
-                                }
+                            ),
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = if (roundDone && !isExpanded) "✓" else "R${roundIdx + 1}",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = if (isRoundCurrent) 9.sp else 8.sp),
+                                    fontWeight = FontWeight.Black,
+                                    color = if (isRoundCurrent || roundDone) Color.Black else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                                )
                             }
+                        }
 
-                            // Exercise nodes in this round. A unilateral member
-                            // exposes independent L/R subnodes and each node
-                            // navigates directly to its canonical step key.
+                        // Exercises in this round - Expanded horizontally when selected or active!
+                        AnimatedVisibility(
+                            visible = isExpanded,
+                            enter = expandHorizontally(animationSpec = tween(180)) + fadeIn(animationSpec = tween(120)),
+                            exit = shrinkHorizontally(animationSpec = tween(180)) + fadeOut(animationSpec = tween(100)),
+                        ) {
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                                 verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(start = 2.dp),
                             ) {
-                                exercises.filter { roundIdx in it.sets.indices }.forEachIndexed { visibleExIdx, ex ->
+                                val roundExercises = exercises.filter { roundIdx in it.sets.indices }
+                                roundExercises.forEachIndexed { visibleExIdx, ex ->
                                     val exKeys = ex.completionKeysForSet(roundIdx)
                                     val exDone = exKeys.isNotEmpty() && exKeys.all { completedSets.containsKey(it) }
                                     val isExCurrent = isRoundCurrent && currentExerciseId == ex.id
@@ -625,95 +744,64 @@ private fun SupersetRoadmapCard(
                                     } else {
                                         listOf(null)
                                     }
-                                    Column(
-                                        modifier = Modifier
-                                            .widthIn(min = 16.dp, max = 42.dp)
-                                            .height(30.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
+
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(2.dp),
                                     ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(12.dp),
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Text(
-                                                text = exLetter,
-                                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
-                                                fontWeight = FontWeight.Black,
-                                                color = if (isExCurrent) accent else Color.White.copy(alpha = 0.75f),
-                                            )
-                                        }
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(18.dp),
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                                                sides.forEach { side ->
-                                                    val sideKey = side?.let { "${ex.id}_${roundIdx}_${it.take(1).uppercase()}" }
-                                                    val sideDone = sideKey?.let(completedSets::containsKey) ?: exDone
-                                                    val isSideCurrent = isExCurrent &&
-                                                        (currentSide == null || currentSide.equals(side, ignoreCase = true))
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .size(16.dp)
-                                                            .clickable { onSelectStep(ex.id, roundIdx, side) }
-                                                            .clip(CircleShape)
-                                                            .background(
-                                                                when {
-                                                                    sideDone -> Color(0xFF66BB6A)
-                                                                    isSideCurrent -> accent
-                                                                    else -> Color.Transparent
-                                                                }
-                                                            )
-                                                            .border(
-                                                                width = 1.dp,
-                                                                color = when {
-                                                                    sideDone -> Color(0xFF66BB6A)
-                                                                    isSideCurrent -> accent
-                                                                    else -> Color.White.copy(alpha = 0.35f)
-                                                                },
-                                                                shape = CircleShape,
-                                                            ),
-                                                        contentAlignment = Alignment.Center,
-                                                    ) {
-                                                        Text(
-                                                            text = side?.take(1)?.uppercase() ?: exLetter,
-                                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 7.sp),
-                                                            fontWeight = FontWeight.Black,
-                                                            color = if (sideDone || isSideCurrent) Color.Black else Color.White.copy(alpha = 0.75f),
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if (visibleExIdx < exercises.count { roundIdx in it.sets.indices } - 1) {
-                                        Column(
-                                            modifier = Modifier
-                                                .width(8.dp)
-                                                .height(30.dp),
-                                        ) {
-                                            Spacer(Modifier.height(12.dp))
+                                        sides.forEach { side ->
+                                            val sideKey = side?.let { "${ex.id}_${roundIdx}_${it.take(1).uppercase()}" }
+                                            val sideDone = sideKey?.let(completedSets::containsKey) ?: exDone
+                                            val isSideCurrent = isExCurrent &&
+                                                (currentSide == null || currentSide.equals(side, ignoreCase = true))
+                                            val nodeLabel = side?.take(1)?.uppercase()?.let { "$exLetter$it" } ?: exLetter
+
                                             Box(
                                                 modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(18.dp),
+                                                    .height(22.dp)
+                                                    .widthIn(min = 22.dp)
+                                                    .padding(horizontal = 2.dp)
+                                                    .clickable { onSelectStep(ex.id, roundIdx, side) }
+                                                    .clip(RoundedCornerShape(999.dp))
+                                                    .background(
+                                                        when {
+                                                            sideDone -> Color(0xFF66BB6A)
+                                                            isSideCurrent -> accent
+                                                            else -> Color.White.copy(alpha = 0.12f)
+                                                        }
+                                                    )
+                                                    .border(
+                                                        width = 1.dp,
+                                                        color = when {
+                                                            sideDone -> Color(0xFF66BB6A)
+                                                            isSideCurrent -> accent
+                                                            else -> Color.White.copy(alpha = 0.35f)
+                                                        },
+                                                        shape = RoundedCornerShape(999.dp),
+                                                    ),
                                                 contentAlignment = Alignment.Center,
                                             ) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .height(1.dp)
-                                                        .background(
-                                                            if (roundDone) Color(0xFF66BB6A).copy(alpha = 0.7f)
-                                                            else Color.White.copy(alpha = 0.3f)
-                                                        )
+                                                Text(
+                                                    text = nodeLabel,
+                                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                                    fontWeight = FontWeight.Black,
+                                                    color = if (sideDone || isSideCurrent) Color.Black else Color.White,
+                                                    modifier = Modifier.padding(horizontal = 4.dp),
                                                 )
                                             }
                                         }
+                                    }
+
+                                    if (visibleExIdx < roundExercises.size - 1) {
+                                        Box(
+                                            modifier = Modifier
+                                                .width(6.dp)
+                                                .height(1.dp)
+                                                .background(
+                                                    if (roundDone) Color(0xFF66BB6A).copy(alpha = 0.7f)
+                                                    else Color.White.copy(alpha = 0.3f)
+                                                ),
+                                        )
                                     }
                                 }
                             }

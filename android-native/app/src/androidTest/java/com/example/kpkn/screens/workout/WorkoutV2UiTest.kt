@@ -52,9 +52,11 @@ class WorkoutV2UiTest {
         }
 
         composeRule.onNodeWithText("Técnica").performClick()
-        composeRule.onNodeWithText("Drop-set").performClick()
-        composeRule.onNodeWithText("Drop-set activo")
-        composeRule.onNodeWithText("FALLO").performClick()
+        composeRule.onNodeWithText("Dropsets").performClick()
+        composeRule.onNodeWithText("Dropsets activos")
+        composeRule.onNodeWithText("Restpauses")
+        composeRule.onNodeWithText("Cambio de planes").performClick()
+        composeRule.onNodeWithText("Error de ejecución")
         composeRule.onNodeWithText("AMRAP").performClick()
     }
 
@@ -138,8 +140,8 @@ class WorkoutV2UiTest {
         }
 
         composeRule.onNodeWithText("Técnica").performClick()
-        composeRule.onNodeWithText("Drop-set").performClick()
-        composeRule.onNodeWithText("Drop-set activo")
+        composeRule.onNodeWithText("Dropsets").performClick()
+        composeRule.onNodeWithText("Dropsets activos")
     }
 
     @Test

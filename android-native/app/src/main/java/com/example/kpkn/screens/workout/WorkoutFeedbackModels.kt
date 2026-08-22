@@ -16,6 +16,7 @@ import com.example.kpkn.data.models.HistoryColorV2
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.training.VolumeCalculator
@@ -36,11 +37,23 @@ data class SetAdvancedFeedback(
     val isWarmup: Boolean = false,
     val actualIntensityMode: IntensityMode? = null,
     val actualIntensityValue: Double? = null,
+    /** Nullable live override: null follows the planned set, false disables planned AMRAP. */
+    val amrapOverride: Boolean? = null,
+    val amrapMinimumReps: Int? = null,
     val timerElapsedSeconds: Int? = null,
     val timerTargetSeconds: Int? = null,
     val rom: Int? = null,
     val assistedReps: Int? = null,
 )
+
+internal fun resolveAmrapActive(
+    plannedSet: ExerciseSet?,
+    requestedOverride: Boolean,
+    explicitOverride: Boolean? = null,
+): Boolean {
+    val override = explicitOverride ?: requestedOverride.takeIf { it }
+    return override ?: (plannedSet?.isAmrap == true || plannedSet?.intensityMode == IntensityMode.AMRAP)
+}
 
 sealed interface PostExerciseFeedbackTarget {
     data class Single(val exerciseId: String) : PostExerciseFeedbackTarget
@@ -150,6 +163,7 @@ object WorkoutPlanDeviationSupport {
         actualReps: Int,
         advanced: SetAdvancedFeedback,
         suggestedWeight: Double?,
+        amrapMinimumReps: Int? = advanced.amrapMinimumReps,
     ): List<PlanDeviation> {
         val deviations = mutableListOf<PlanDeviation>()
 
@@ -160,10 +174,31 @@ object WorkoutPlanDeviationSupport {
             else if (ratio < 0.85) deviations.add(PlanDeviation(exerciseId, exerciseName, setIdx, PlanDeviationType.WEIGHT_LOW, "-${"%.0f".format((1 - ratio) * 100)}% del sugerido"))
         }
 
-        val targetReps = plannedSet.targetReps
-        if (targetReps != null && targetReps > 0 && actualReps > 0) {
-            if (actualReps > targetReps + 3) deviations.add(PlanDeviation(exerciseId, exerciseName, setIdx, PlanDeviationType.REPS_HIGH, "$actualReps vs $targetReps objetivo"))
-            else if (actualReps < targetReps - 3) deviations.add(PlanDeviation(exerciseId, exerciseName, setIdx, PlanDeviationType.REPS_LOW, "$actualReps vs $targetReps objetivo"))
+        val targetRange = plannedSet.effectiveRepRange()
+        val amrapActive = resolveAmrapActive(
+            plannedSet = plannedSet,
+            requestedOverride = false,
+            explicitOverride = advanced.amrapOverride,
+        )
+        if (targetRange != null && actualReps > 0) {
+            if (amrapActive) {
+                val minimum = amrapMinimumReps ?: targetRange.min
+                if (actualReps < minimum) {
+                    deviations.add(
+                        PlanDeviation(
+                            exerciseId,
+                            exerciseName,
+                            setIdx,
+                            PlanDeviationType.AMRAP_BELOW_MINIMUM,
+                            "$actualReps vs mínimo AMRAP $minimum",
+                        ),
+                    )
+                }
+            } else if (actualReps > targetRange.max + 3) {
+                deviations.add(PlanDeviation(exerciseId, exerciseName, setIdx, PlanDeviationType.REPS_HIGH, "$actualReps vs ${targetRange.format()} objetivo"))
+            } else if (actualReps < targetRange.min - 3) {
+                deviations.add(PlanDeviation(exerciseId, exerciseName, setIdx, PlanDeviationType.REPS_LOW, "$actualReps vs ${targetRange.format()} objetivo"))
+            }
         }
 
         if (advanced.reachedFailure && !plannedSet.isFailure) deviations.add(PlanDeviation(exerciseId, exerciseName, setIdx, PlanDeviationType.UNPLANNED_FAILURE, "Fallo no programado"))
@@ -190,8 +225,10 @@ fun applyAdvancedFeedback(
         skipped = advanced.skipped,
         superSetWithExerciseId = advanced.superSetWithExerciseId,
         isWarmup = advanced.isWarmup,
-        actualIntensityMode = advanced.actualIntensityMode,
-        actualIntensityValue = advanced.actualIntensityValue,
+        // A set without planned intensity must remain unlabelled in the live
+        // record. Only explicit feedback may add an actual mode/value later.
+        actualIntensityMode = advanced.actualIntensityMode ?: base.actualIntensityMode,
+        actualIntensityValue = advanced.actualIntensityValue ?: base.actualIntensityValue,
         rom = advanced.rom,
         assistedReps = advanced.assistedReps,
     )

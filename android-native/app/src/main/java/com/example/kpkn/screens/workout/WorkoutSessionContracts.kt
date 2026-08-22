@@ -42,6 +42,11 @@ data class WorkoutSetDraft(
     val updatedAtMs: Long = System.currentTimeMillis(),
     val rom: Int? = null,
     val assistedReps: Int? = null,
+    /** Explicit live override; null means follow the planned set. */
+    val amrapOverride: Boolean? = null,
+    val amrapMinimumReps: Int? = null,
+    val amrapReachFailure: Boolean? = null,
+    val amrapReserveReps: Int? = null,
 )
 
 @Serializable

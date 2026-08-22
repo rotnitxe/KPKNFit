@@ -43,8 +43,9 @@ internal fun SetAdjustmentOverlay(
         else -> currentSet.weight
             ?: weightSuggestion?.suggestedWeight
             ?: (averageErm?.let { erm ->
-                if (currentSet.targetReps != null && currentSet.targetReps > 0) {
-                    erm * (1.0278 - 0.0278 * currentSet.targetReps)
+                val plannedReps = currentSet.plannedRepAnchor()
+                if (plannedReps != null && plannedReps > 0) {
+                    erm * (1.0278 - 0.0278 * plannedReps)
                 } else null
             })
             ?: 0.0

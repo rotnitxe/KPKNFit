@@ -408,6 +408,8 @@ internal fun WorkoutExerciseHistoryContent(
                                                     if (s.weight > 0 && s.reps > 0) append(" x ")
                                                     if (s.reps > 0) append("${s.reps} reps")
                                                     if (s.rpe != null) append(" · RPE ${s.rpe}")
+                                                    if ((s.partialReps ?: 0) > 0) append(" · +${s.partialReps} parciales")
+                                                    if ((s.assistedReps ?: 0) > 0) append(" · ${s.assistedReps} con ayuda")
                                                 },
                                                 style = MaterialTheme.typography.bodySmall,
                                             )
@@ -1141,8 +1143,14 @@ internal fun WorkoutExerciseEditContent(
             ) {
                 Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text("Modo", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f))
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        TrainingMode.entries.take(4).forEach { mode ->
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        listOf(
+                            TrainingMode.REPS,
+                            TrainingMode.TIME,
+                            TrainingMode.DISTANCE,
+                            TrainingMode.RM,
+                            TrainingMode.AMRAP,
+                        ).forEach { mode ->
                             FilterChip(
                                 selected = trainingMode == mode,
                                 onClick = {
@@ -1156,6 +1164,7 @@ internal fun WorkoutExerciseEditContent(
                                             TrainingMode.TIME -> "Tiempo"
                                             TrainingMode.DISTANCE -> "Dist"
                                             TrainingMode.RM -> "RM"
+                                            TrainingMode.AMRAP -> "AMRAP"
                                             else -> mode.name
                                         },
                                         fontSize = 10.sp,
@@ -1316,9 +1325,48 @@ private fun WorkoutSetEditCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("SERIE ${index + 1}", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = sessionAccentColor, letterSpacing = 2.sp)
                 Spacer(Modifier.weight(1f))
-                FilterChip(selected = set.isAmrap, onClick = { onUpdateSet(set.id) { it.copy(isAmrap = !it.isAmrap) } }, label = { Text("AMRAP", style = MaterialTheme.typography.labelSmall, maxLines = 1) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = sessionAccentColor.copy(alpha = 0.2f), selectedLabelColor = sessionAccentColor))
+                FilterChip(
+                    selected = set.isAmrap || set.intensityMode == IntensityMode.AMRAP,
+                    onClick = {
+                        onUpdateSet(set.id) { current ->
+                            val next = !(current.isAmrap || current.intensityMode == IntensityMode.AMRAP)
+                            if (next) {
+                                current.copy(
+                                    isAmrap = true,
+                                    intensityMode = IntensityMode.AMRAP,
+                                    targetRPE = null,
+                                    targetRIR = null,
+                                    isFailure = false,
+                                )
+                            } else {
+                                current.copy(isAmrap = false, intensityMode = null)
+                            }
+                        }
+                    },
+                    label = { Text("AMRAP", style = MaterialTheme.typography.labelSmall, maxLines = 1) },
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = sessionAccentColor.copy(alpha = 0.2f), selectedLabelColor = sessionAccentColor),
+                )
                 Spacer(Modifier.width(4.dp))
-                FilterChip(selected = set.isFailure || set.intensityMode == IntensityMode.FAILURE, onClick = { onUpdateSet(set.id) { if (it.intensityMode == IntensityMode.FAILURE) it.copy(intensityMode = IntensityMode.RPE, isFailure = false) else it.copy(intensityMode = IntensityMode.FAILURE, isFailure = true) } }, label = { Text("Fallo", style = MaterialTheme.typography.labelSmall, maxLines = 1) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFFFF5252).copy(alpha = 0.2f), selectedLabelColor = Color(0xFFFF5252)))
+                FilterChip(
+                    selected = set.isFailure || set.intensityMode == IntensityMode.FAILURE,
+                    onClick = {
+                        onUpdateSet(set.id) {
+                            if (it.intensityMode == IntensityMode.FAILURE) {
+                                it.copy(intensityMode = null, isFailure = false)
+                            } else {
+                                it.copy(
+                                    intensityMode = IntensityMode.FAILURE,
+                                    isFailure = true,
+                                    isAmrap = false,
+                                    targetRPE = null,
+                                    targetRIR = null,
+                                )
+                            }
+                        }
+                    },
+                    label = { Text("Fallo", style = MaterialTheme.typography.labelSmall, maxLines = 1) },
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFFFF5252).copy(alpha = 0.2f), selectedLabelColor = Color(0xFFFF5252)),
+                )
                 Spacer(Modifier.width(4.dp))
                 IconButton(onClick = { expanded = !expanded }, modifier = Modifier.size(22.dp)) { Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null, Modifier.size(14.dp), tint = Color.White.copy(alpha = 0.4f)) }
             }
@@ -1329,9 +1377,51 @@ private fun WorkoutSetEditCard(
                     Spacer(Modifier.height(4.dp))
                     Surface(shape = RoundedCornerShape(10.dp), color = Color(0xFF252525), modifier = Modifier.fillMaxWidth()) {
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(40.dp)) {
-                            Box(Modifier.width(30.dp).fillMaxHeight().clickable { val c = (set.targetDuration ?: set.targetReps) ?: 0; onUpdateSet(set.id) { if (set.targetDuration != null) it.copy(targetDuration = (c - 1).coerceAtLeast(0)) else it.copy(targetReps = (c - 1).coerceAtLeast(0)) } }, contentAlignment = Alignment.Center) { Icon(Icons.Default.Remove, null, Modifier.size(14.dp), tint = Color.White.copy(alpha = 0.6f)) }
-                            Text(text = (set.targetDuration ?: set.targetReps)?.toString() ?: "-", modifier = Modifier.weight(1f), textAlign = TextAlign.Center, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Box(Modifier.width(30.dp).fillMaxHeight().clickable { val c = (set.targetDuration ?: set.targetReps) ?: 0; onUpdateSet(set.id) { if (set.targetDuration != null) it.copy(targetDuration = c + 1) else it.copy(targetReps = c + 1) } }, contentAlignment = Alignment.Center) { Icon(Icons.Default.Add, null, Modifier.size(14.dp), tint = sessionAccentColor) }
+                            Box(Modifier.width(30.dp).fillMaxHeight().clickable {
+                                val c = (set.targetDuration ?: set.effectiveRepRange()?.max ?: set.targetReps) ?: 0
+                                onUpdateSet(set.id) {
+                                    if (set.targetDuration != null) {
+                                        it.copy(targetDuration = (c - 1).coerceAtLeast(0))
+                                    } else {
+                                        val next = (c - 1).coerceAtLeast(1)
+                                        val range = it.effectiveRepRange()
+                                        it.copy(
+                                            targetReps = next,
+                                            targetRepsRange = range?.takeIf { r -> r.min != r.max }?.let { r -> RepRange(r.min.coerceAtMost(next), next) },
+                                        )
+                                    }
+                                }
+                            }, contentAlignment = Alignment.Center) { Icon(Icons.Default.Remove, null, Modifier.size(14.dp), tint = Color.White.copy(alpha = 0.6f)) }
+                            Text(
+                                text = when {
+                                    set.targetDuration != null -> set.targetDuration.toString()
+                                    set.isAmrap || set.intensityMode == IntensityMode.AMRAP ->
+                                        set.effectiveRepRange()?.min?.toString() ?: set.targetReps?.toString() ?: "-"
+                                    else -> set.effectiveRepRange()?.format() ?: set.targetReps?.toString() ?: "-"
+                                },
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Black,
+                                color = Color.White,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Box(Modifier.width(30.dp).fillMaxHeight().clickable {
+                                val c = (set.targetDuration ?: set.effectiveRepRange()?.max ?: set.targetReps) ?: 0
+                                onUpdateSet(set.id) {
+                                    if (set.targetDuration != null) {
+                                        it.copy(targetDuration = c + 1)
+                                    } else {
+                                        val next = c + 1
+                                        val range = it.effectiveRepRange()
+                                        it.copy(
+                                            targetReps = next,
+                                            targetRepsRange = range?.takeIf { r -> r.min != r.max }?.copy(max = next),
+                                        )
+                                    }
+                                }
+                            }, contentAlignment = Alignment.Center) { Icon(Icons.Default.Add, null, Modifier.size(14.dp), tint = sessionAccentColor) }
                         }
                     }
                 }
@@ -1354,7 +1444,7 @@ private fun WorkoutSetEditCard(
                     Spacer(Modifier.width(6.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         listOf(IntensityMode.RPE to "RPE", IntensityMode.RIR to "RIR", IntensityMode.FAILURE to "Fallo").forEach { (mode, label) ->
-                            FilterChip(selected = set.intensityMode == mode || (mode == IntensityMode.FAILURE && set.isFailure), onClick = { onUpdateSet(set.id) { when (mode) { IntensityMode.FAILURE -> it.copy(intensityMode = mode, isFailure = true, targetRPE = null, targetRIR = null); IntensityMode.RIR -> it.copy(intensityMode = mode, isFailure = false, targetRPE = null); IntensityMode.RPE -> it.copy(intensityMode = mode, isFailure = false, targetRIR = null); else -> it } } }, label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = if (mode == IntensityMode.FAILURE) Color(0xFFFF5252).copy(alpha = 0.2f) else sessionAccentColor.copy(alpha = 0.2f), selectedLabelColor = if (mode == IntensityMode.FAILURE) Color(0xFFFF5252) else sessionAccentColor))
+                            FilterChip(selected = set.intensityMode == mode || (mode == IntensityMode.FAILURE && set.isFailure), onClick = { onUpdateSet(set.id) { when (mode) { IntensityMode.FAILURE -> it.copy(intensityMode = mode, isFailure = true, isAmrap = false, targetRPE = null, targetRIR = null); IntensityMode.RIR -> it.copy(intensityMode = mode, isFailure = false, isAmrap = false, targetRPE = null); IntensityMode.RPE -> it.copy(intensityMode = mode, isFailure = false, isAmrap = false, targetRIR = null); else -> it } } }, label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = if (mode == IntensityMode.FAILURE) Color(0xFFFF5252).copy(alpha = 0.2f) else sessionAccentColor.copy(alpha = 0.2f), selectedLabelColor = if (mode == IntensityMode.FAILURE) Color(0xFFFF5252) else sessionAccentColor))
                         }
                     }
                     if (set.intensityMode != IntensityMode.FAILURE) {
