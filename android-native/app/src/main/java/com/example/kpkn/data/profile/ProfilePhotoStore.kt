@@ -18,6 +18,7 @@ object ProfilePhotoStore {
     private const val FILE_NAME = "avatar.jpg"
     private const val MAX_DIMENSION = 512
     private const val MAX_ENCODED_BYTES = 512 * 1024
+    private val BASE64_PATTERN = Regex("^[A-Za-z0-9+/]*={0,2}$")
 
     fun saveFromUri(context: Context, uri: Uri): String {
         val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
@@ -26,7 +27,11 @@ object ProfilePhotoStore {
     }
 
     fun saveBase64(context: Context, encoded: String): String {
-        val bytes = runCatching { Base64.decode(encoded, Base64.DEFAULT) }
+        val normalized = encoded.filterNot(Char::isWhitespace)
+        require(normalized.isNotEmpty() && BASE64_PATTERN.matches(normalized)) {
+            "La imagen del respaldo no es válida"
+        }
+        val bytes = runCatching { Base64.decode(normalized, Base64.DEFAULT) }
             .getOrElse { error("La imagen del respaldo no es válida") }
         return saveNormalizedBytes(context, bytes)
     }
