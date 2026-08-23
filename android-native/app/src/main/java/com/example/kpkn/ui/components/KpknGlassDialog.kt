@@ -33,10 +33,10 @@ fun KpknGlassDialog(
     dismissOnScrimClick: Boolean = true,
     dismissOnBackPress: Boolean = true,
     maxWidth: Dp = 520.dp,
-    @Suppress("UNUSED_PARAMETER") hazeState: HazeState? = null,
+    hazeState: HazeState? = null,
     content: @Composable () -> Unit,
 ) {
-    val rootHaze = LocalHazeState.current
+    val resolvedHaze = hazeState ?: LocalHazeState.current
     KpknPortal {
         val panelInteraction = remember { MutableInteractionSource() }
         BackHandler(enabled = dismissOnBackPress, onBack = onDismissRequest)
@@ -69,7 +69,7 @@ fun KpknGlassDialog(
                     .padding(horizontal = 24.dp)
                     .widthIn(max = maxWidth)
                     .fillMaxWidth()
-                    .kpknGlassOrFallback(rootHaze, shape)
+                    .kpknGlassOrFallback(resolvedHaze, shape)
                     .clickable(
                         interactionSource = panelInteraction,
                         indication = null,

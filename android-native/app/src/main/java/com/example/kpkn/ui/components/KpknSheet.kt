@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
@@ -81,12 +82,15 @@ fun KpknSheet(
      * so swapping tab content does not change the sheet size.
      */
     stableHeightFraction: Float? = null,
-    @Suppress("UNUSED_PARAMETER") hazeState: HazeState? = null,
+    hazeState: HazeState? = null,
     /** Optional black veil drawn over the blur for a scoped contrast adjustment. */
     additionalGlassScrim: Color = Color.Transparent,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val rootHaze = LocalHazeState.current
+    // A caller may own a local source (for example the workout overlay).  The
+    // previous implementation silently discarded it and always sampled the
+    // activity-wide haze source, which made every sheet blur unrelated content.
+    val resolvedHaze = hazeState ?: LocalHazeState.current
     val cap = (heightFraction ?: maxHeightFraction).coerceIn(0.35f, 1f)
     KpknPortal {
         KpknSheetBody(
@@ -97,7 +101,7 @@ fun KpknSheet(
             safeTopInset = safeTopInset,
             maxHeightFraction = cap,
             stableHeightFraction = stableHeightFraction?.coerceIn(0.35f, cap),
-            hazeState = rootHaze,
+            hazeState = resolvedHaze,
             additionalGlassScrim = additionalGlassScrim,
             content = content,
         )
@@ -155,6 +159,7 @@ private fun KpknSheetBody(
             .fillMaxSize()
             .zIndex(350f),
     ) {
+        var sheetHeightPx by remember { mutableFloatStateOf(0f) }
         val maxHeightPx = constraints.maxHeight.toFloat().coerceAtLeast(1f)
         val sheetCapPx = maxHeightPx * maxHeightFraction
         val sheetCapDp = with(density) { sheetCapPx.toDp() }
@@ -254,11 +259,15 @@ private fun KpknSheetBody(
             Modifier
         }
 
+        val measuredSheetHeightDp = with(density) { sheetHeightPx.toDp() }
+
+        // Keep the interaction layer full-screen so a tap above the sheet can
+        // dismiss it, but scope the visual veil to the sheet's actual footprint.
+        // A full-screen scrim made the hero/header look broken and was the
+        // source of the "everything is blurred" visual regression.
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = (1f - enterOffset.value).coerceIn(0f, 1f) }
-                .background(Color.Black.copy(alpha = 0.72f * (1f - dragProgress)))
                 .then(
                     if (dismissible) {
                         Modifier.clickable(
@@ -272,6 +281,17 @@ private fun KpknSheetBody(
                 ),
         )
 
+        if (sheetHeightPx > 0f) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(measuredSheetHeightDp)
+                    .graphicsLayer { alpha = (1f - enterOffset.value).coerceIn(0f, 1f) }
+                    .background(Color.Black.copy(alpha = 0.72f * (1f - dragProgress))),
+            )
+        }
+
         Box(
             modifier = modifier
                 .align(Alignment.BottomCenter)
@@ -280,6 +300,7 @@ private fun KpknSheetBody(
                     if (stableHeightDp != null) Modifier.height(stableHeightDp)
                     else Modifier.wrapContentHeight().heightIn(max = sheetCapDp),
                 )
+                .onSizeChanged { sheetHeightPx = it.height.toFloat() }
                 .offset { IntOffset(0, totalOffsetPx.roundToInt()) }
                 .kpknGlassOrFallback(
                     hazeState = hazeState,

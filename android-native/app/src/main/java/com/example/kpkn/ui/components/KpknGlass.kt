@@ -115,6 +115,28 @@ fun Modifier.kpknGlass(
         },
     )
 
+/**
+ * Cover-specific glass: preserves the selected session artwork instead of
+ * applying the near-opaque DarkMica base used by sheets and dialogs.
+ */
+fun Modifier.kpknCoverGlass(
+    hazeState: HazeState,
+    shape: Shape,
+    withBorder: Boolean = true,
+): Modifier = this
+    .clip(shape)
+    .background(Color(0xFF0E0E0E).copy(alpha = 0.20f))
+    .hazeEffect(state = hazeState, style = kpknGlassStyle()) {
+        alpha = 0.18f
+    }
+    .then(
+        if (withBorder) {
+            Modifier.border(width = KpknGlass.BorderWidth, color = KpknGlass.BorderColor, shape = shape)
+        } else {
+            Modifier
+        },
+    )
+
 fun Modifier.kpknGlassOrFallback(
     hazeState: HazeState?,
     shape: Shape,

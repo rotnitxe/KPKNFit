@@ -1,11 +1,7 @@
 package com.example.kpkn.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -72,7 +68,7 @@ fun SwipeToDeleteCard(
 ) {
     val density = LocalDensity.current
     val deleteThreshold = with(density) { 80.dp.toPx() }
-    val maxReveal = with(density) { 128.dp.toPx() }
+    val maxReveal = with(density) { 112.dp.toPx() }
     val haptics = LocalHapticFeedback.current
     val revealTrigger = with(density) { 24.dp.toPx() }
 
@@ -80,9 +76,8 @@ fun SwipeToDeleteCard(
     val scope = rememberCoroutineScope()
     var state by remember { mutableStateOf(SwipeDeleteState.Idle) }
     var thresholdReached by remember { mutableStateOf(false) }
-    val revealed = state == SwipeDeleteState.Revealed
     val deleteRevealProgress = (-offsetX.value / maxReveal).coerceIn(0f, 1f)
-    val deleteSurface = Color.Black.copy(alpha = 0.94f)
+    val deleteSurface = Color.Black
     val deleteAccent = MaterialTheme.colorScheme.error
 
     fun resetReveal() {
@@ -101,10 +96,12 @@ fun SwipeToDeleteCard(
         state = SwipeDeleteState.Confirmed
         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
         scope.launch {
-            offsetX.animateTo(
-                targetValue = -maxReveal * 1.18f,
-                animationSpec = spring(dampingRatio = 0.72f, stiffness = 520f),
-            )
+            if (animateDeletion) {
+                offsetX.animateTo(
+                    targetValue = -maxReveal * 1.14f,
+                    animationSpec = spring(dampingRatio = 0.82f, stiffness = 620f),
+                )
+            }
             onDelete()
         }
     }
@@ -136,37 +133,50 @@ fun SwipeToDeleteCard(
                 }
             },
     ) {
-        // The action is deliberately sober: a black reveal with a single
-        // red-accented trash button, instead of a red neon underlay.
+        // The card and action share the same progress.  Nothing pops in or
+        // out independently: the trash is physically discovered as the card
+        // moves away and the black scrim grows underneath it.
         Box(
             modifier = Modifier
                 .matchParentSize()
                 .background(deleteSurface),
             contentAlignment = Alignment.CenterEnd,
         ) {
-            AnimatedVisibility(
-                visible = revealed,
-                enter = fadeIn() + slideInHorizontally { it / 2 },
-                exit = fadeOut(),
+            Column(
+                modifier = Modifier
+                    .width(96.dp)
+                    .fillMaxHeight()
+                    .padding(end = 6.dp)
+                    .graphicsLayer {
+                        alpha = deleteRevealProgress
+                        translationX = with(density) { (1f - deleteRevealProgress) * 20.dp.toPx() }
+                        val scale = 0.92f + deleteRevealProgress * 0.08f
+                        scaleX = scale
+                        scaleY = scale
+                    },
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
             ) {
-                Column(
+                IconButton(
+                    onClick = ::commitDelete,
                     modifier = Modifier
-                        .width(112.dp)
-                        .fillMaxHeight()
-                        .padding(end = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
+                        .size(48.dp)
+                        .background(deleteAccent.copy(alpha = 0.16f), RoundedCornerShape(14.dp)),
                 ) {
-                    IconButton(
-                        onClick = ::commitDelete,
-                        modifier = Modifier
-                            .size(52.dp)
-                            .background(deleteAccent.copy(alpha = 0.18f), RoundedCornerShape(16.dp)),
-                    ) {
-                        Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = deleteAccent, modifier = Modifier.size(22.dp))
-                    }
-                    Text("Eliminar", color = Color.White.copy(alpha = 0.82f), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall)
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Eliminar",
+                        tint = deleteAccent,
+                        modifier = Modifier.size(19.dp),
+                    )
                 }
+                Text(
+                    "Eliminar",
+                    color = Color.White.copy(alpha = 0.78f),
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = 10.sp,
+                )
             }
         }
 
@@ -175,7 +185,7 @@ fun SwipeToDeleteCard(
             modifier = Modifier
                 .offset { IntOffset(offsetX.value.roundToInt(), 0) }
                 .graphicsLayer {
-                    alpha = 1f - (deleteRevealProgress * 0.18f)
+                    alpha = 1f - (deleteRevealProgress * 0.08f)
                 }
                 .draggable(
                     orientation = Orientation.Horizontal,
@@ -217,7 +227,7 @@ fun SwipeToDeleteCard(
                 Box(
                     Modifier
                         .matchParentSize()
-                        .background(Color.Black.copy(alpha = deleteRevealProgress * 0.76f)),
+                        .background(Color.Black.copy(alpha = deleteRevealProgress * 0.82f)),
                 )
             }
         }

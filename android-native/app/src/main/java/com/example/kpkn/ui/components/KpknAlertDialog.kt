@@ -55,9 +55,9 @@ fun KpknAlertDialog(
     text: @Composable (() -> Unit)? = null,
     shape: Shape = RoundedCornerShape(KpknGlass.DialogCornerRadius),
     @Suppress("UNUSED_PARAMETER") properties: DialogProperties = DialogProperties(),
-    @Suppress("UNUSED_PARAMETER") hazeState: HazeState? = null,
+    hazeState: HazeState? = null,
 ) {
-    val rootHaze = LocalHazeState.current
+    val resolvedHaze = hazeState ?: LocalHazeState.current
     KpknPortal {
         KpknAlertDialogBody(
             onDismissRequest = onDismissRequest,
@@ -68,7 +68,7 @@ fun KpknAlertDialog(
             title = title,
             text = text,
             shape = shape,
-            hazeState = rootHaze,
+            hazeState = resolvedHaze,
         )
     }
 }
