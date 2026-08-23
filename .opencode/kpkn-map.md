@@ -36,8 +36,8 @@
 - Verify the real code and Room schema when older docs disagree.
 
 <!-- KAUPOLIKAN_DYNAMIC_MAP_START -->
-Generated at: 2026-08-21T19:15:34.707Z
-Kotlin files: 529
+Generated at: 2026-08-23T08:33:18.764Z
+Kotlin files: 500
 Room version detected in KpknDatabase.kt: 23
 
 ### Entities
@@ -84,13 +84,9 @@ Room version detected in KpknDatabase.kt: 23
 - BodyProgress: nutrition/body-progress
 - CompetitionDetail: competition/{competitionId}
 - Competitions: competitions
+- Concepts: concepts?expand={expandConceptId}
 - HealthConnect: settings/health-connect
 - Home: home
-- Learn: learn
-- LearnBadge: learn/badge/{courseId}
-- LearnCourse: learn/course/{courseId}
-- LearnQuiz: learn/quiz/{courseId}/{submoduleIndex}
-- LearnReader: learn/reader/{courseId}/{submoduleIndex}
 - MealHistory: nutrition/meal-history
 - Nutrition: nutrition
 - NutritionAction: nutrition/action/{action}
@@ -109,20 +105,6 @@ Room version detected in KpknDatabase.kt: 23
 - SettingsProfile: settings/profile
 - SettingsTraining: settings/training
 - Training: training
-- WikiLab: wikilab
-- WikiLabBiomechanics: wikilab/biomechanics
-- WikiLabChainDetail: wikilab/chain/{chainId}
-- WikiLabConceptDetail: wikilab/concept/{conceptId}
-- WikiLabConcepts: wikilab/concepts
-- WikiLabExerciseDetail: wikilab/exercise/{exerciseId}
-- WikiLabExercises: wikilab/exercises
-- WikiLabJointDetail: wikilab/joint/{jointId}
-- WikiLabJoints: wikilab/joints
-- WikiLabMovementPatterns: wikilab/patterns
-- WikiLabMuscleAnatomy: wikilab/muscles
-- WikiLabMuscleDetail: wikilab/muscle/{muscleId}
-- WikiLabPatternDetail: wikilab/pattern/{patternId}
-- WikiLabTendonDetail: wikilab/tendon/{tendonId}
 - Workout: workout/{programId}/{sessionId}
 
 ### ViewModels
@@ -143,7 +125,6 @@ Room version detected in KpknDatabase.kt: 23
 - android-native/app/src/main/java/com/example/kpkn/data/repository/BodyProgressRepository.kt
 - android-native/app/src/main/java/com/example/kpkn/data/repository/CompetitionRepository.kt
 - android-native/app/src/main/java/com/example/kpkn/data/repository/CustomExerciseRepository.kt
-- android-native/app/src/main/java/com/example/kpkn/data/repository/LearnRepository.kt
 - android-native/app/src/main/java/com/example/kpkn/data/repository/NutritionCalibrationRepository.kt
 - android-native/app/src/main/java/com/example/kpkn/data/repository/NutritionRepository.kt
 - android-native/app/src/main/java/com/example/kpkn/data/repository/ProgramRepository.kt
@@ -154,6 +135,7 @@ Room version detected in KpknDatabase.kt: 23
 - android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeAdaptiveEngine.kt
 - android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeClassifiers.kt
 - android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeFatigueEngine.kt
+- android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeMuscleCapacityEngine.kt
 - android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeMuscleNormalization.kt
 - android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeRecoveryEngine.kt
 - android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeTtcEngine.kt
@@ -164,6 +146,7 @@ Room version detected in KpknDatabase.kt: 23
 - android-native/app/src/main/java/com/example/kpkn/domain/auge/ExerciseFatigueIndex.kt
 - android-native/app/src/main/java/com/example/kpkn/domain/auge/ExerciseReadinessEngine.kt
 - android-native/app/src/main/java/com/example/kpkn/domain/auge/InterferenceEngine.kt
+- android-native/app/src/main/java/com/example/kpkn/domain/auge/MuscularSessionImpactEngine.kt
 - android-native/app/src/main/java/com/example/kpkn/domain/auge/NutritionRecoveryEngine.kt
 - android-native/app/src/main/java/com/example/kpkn/domain/auge/OvertrainingDetector.kt
 - android-native/app/src/main/java/com/example/kpkn/domain/auge/SessionIntensityEngine.kt
