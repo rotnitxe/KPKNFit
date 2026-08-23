@@ -16,11 +16,14 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.auge.AugeAdaptiveEngine
 import com.example.kpkn.domain.auge.AugeFatigueEngine
+import com.example.kpkn.domain.auge.AugeMuscleCapacityEngine
 import com.example.kpkn.domain.auge.AugeRecoveryEngine
 import com.example.kpkn.domain.auge.AugeTtcEngine
+import com.example.kpkn.domain.auge.MuscularSessionImpactEngine
 import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
 import com.example.kpkn.domain.auge.remapMuscleMultiplierMapToPillars
 import com.example.kpkn.domain.auge.toAugeAdaptiveMuscleKey
+import com.example.kpkn.domain.training.VolumeCalculator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -31,6 +34,7 @@ import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * AugeViewModel — Central state for the AUGE battery/recovery system.
@@ -45,6 +49,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         get() = catalogExerciseIndex()
 
     private var recoveryTimerJob: Job? = null
+    private val recomputeGeneration = AtomicLong(0L)
     private val augeWriteMutex = kotlinx.coroutines.sync.Mutex()
 
     // ─── Public state ─────────────────────────────────────────────────────────
@@ -164,15 +169,17 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     // ─── Core recompute ───────────────────────────────────────────────────────
 
     private suspend fun recompute(history: List<WorkoutLog>, settings: Settings) {
+        val generation = recomputeGeneration.incrementAndGet()
         val computeStartedElapsed = SystemClock.elapsedRealtime()
         _snapshot.update { it.copy(isLoading = true) }
         val todayWellbeing = augeRepo.getTodayWellbeing()
         val overrideWellbeing = augeRepo.getActiveWellbeingWithManualOverrides()
         val todayHasManualOverrides = todayWellbeing != null && (
-            todayWellbeing.manualNeuralBattery != null ||
+                todayWellbeing.manualNeuralBattery != null ||
                 todayWellbeing.manualSpinalBattery != null ||
                 todayWellbeing.manualMuscularBattery != null ||
-                todayWellbeing.manualMuscleBatteries.isNotEmpty()
+                todayWellbeing.manualMuscleBatteries.isNotEmpty() ||
+                todayWellbeing.manualMuscleOverridesV2.isNotEmpty()
             )
         val wellbeing = if (overrideWellbeing != null && !todayHasManualOverrides) {
             overrideWellbeing
@@ -250,6 +257,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         } else {
             null
         }
+        if (generation != recomputeGeneration.get()) return
         _snapshot.value = _snapshot.value.copy(
             batteries = batteries,
             perMuscle = perMuscle,
@@ -260,6 +268,18 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             cumulativeFatigue = cumulativeFatigue,
             autoDeloadMessage = autoDeloadMessage,
             isLoading = false,
+        )
+        KpknDiagnosticLogger.event(
+            namespace = "auge",
+            name = "snapshot_published",
+            fields = mapOf(
+                "historyCount" to history.size,
+                "perMuscleCount" to perMuscle.size,
+                "muscularBattery" to batteries.muscular,
+                "neuralBattery" to batteries.cnc,
+                "spinalBattery" to batteries.spinal,
+                "overallScore" to dashboard.overallScore,
+            ),
         )
         KpknDiagnosticLogger.event(
             namespace = "auge",
@@ -277,6 +297,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 "articularCount" to articular.size,
                 "cumulativeFatigue" to cumulativeFatigue,
                 "shouldSuggestAutoDeload" to shouldSuggestAutoDeload,
+                "generation" to generation,
             ),
         )
     }
@@ -292,7 +313,8 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             val hasManualOverrides = log.manualNeuralBattery != null ||
                 log.manualSpinalBattery != null ||
                 log.manualMuscularBattery != null ||
-                log.manualMuscleBatteries.isNotEmpty()
+                log.manualMuscleBatteries.isNotEmpty() ||
+                log.manualMuscleOverridesV2.isNotEmpty()
             val pillarMuscles = remapMuscleIntMapToPillars(log.manualMuscleBatteries)
             val remappedLog = log.copy(manualMuscleBatteries = pillarMuscles)
             val anchoredLog = if (hasManualOverrides) {
@@ -349,13 +371,19 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         completedExercises: List<CompletedExercise>,
         durationMinutes: Int,
         settings: Settings,
+        completionInstantIso: String? = null,
+        finishOperationId: String? = null,
+        inputHash: String? = null,
     ): PostSessionPreview {
+        val frozenCompletionIso = completionInstantIso ?: Instant.now().toString()
+        val frozenCompletionMs = com.example.kpkn.domain.auge.AugeUtils.parseIsoMs(frozenCompletionIso)
+        val baseHistory = programRepo.history.value
         val previewLog = WorkoutLog(
             id = "preview",
             programId = "",
             sessionId = "",
             sessionName = "preview",
-            date = LocalDate.now().toString(),
+            date = frozenCompletionIso,
             completedExercises = completedExercises,
             durationMinutes = durationMinutes,
         )
@@ -366,7 +394,8 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             todayWellbeing.manualNeuralBattery != null ||
                 todayWellbeing.manualSpinalBattery != null ||
                 todayWellbeing.manualMuscularBattery != null ||
-                todayWellbeing.manualMuscleBatteries.isNotEmpty()
+            todayWellbeing.manualMuscleBatteries.isNotEmpty() ||
+                todayWellbeing.manualMuscleOverridesV2.isNotEmpty()
             )
         val wellbeing = if (overrideWellbeing != null && !todayHasManualOverrides) {
             overrideWellbeing
@@ -383,12 +412,40 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             manualMuscleBatteries = remapMuscleIntMapToPillars(wellbeing.manualMuscleBatteries),
         )
 
-        return withContext(Dispatchers.Default) {
+        val preview = withContext(Dispatchers.Default) {
+            val canonicalInput = MuscularSessionImpactEngine.fromCompletedExercises(
+                completedExercises = completedExercises,
+                completionInstantIso = frozenCompletionIso,
+                exerciseDb = exerciseDb,
+                settings = settings,
+                adaptiveCache = adaptiveCache,
+            )
+            val initialImpact = MuscularSessionImpactEngine.evaluate(
+                input = canonicalInput,
+                exerciseDb = exerciseDb,
+                settings = settings,
+                adaptiveCache = adaptiveCache,
+            )
+            val capacities = AugeMuscleCapacityEngine.capacitiesFor(
+                muscles = initialImpact.involvedVolumeMuscles,
+                history = baseHistory,
+                settings = settings,
+                exerciseDb = exerciseDb,
+                completionInstantIso = frozenCompletionIso,
+                adaptiveCache = adaptiveCache,
+            )
+            val automaticImpact = MuscularSessionImpactEngine.evaluate(
+                input = canonicalInput,
+                exerciseDb = exerciseDb,
+                settings = settings,
+                adaptiveCache = adaptiveCache,
+                capacitiesAtCompletion = capacities,
+            )
             val articular = AugeTtcEngine.calculateArticularBatteries(
-                programRepo.history.value, exerciseDb, feedbacks, wellbeingNormalized
+                baseHistory, exerciseDb, feedbacks, wellbeingNormalized
             )
             AugeRecoveryEngine.previewPostSessionBatteries(
-                baseHistory = programRepo.history.value,
+                baseHistory = baseHistory,
                 previewLog = previewLog,
                 wellbeing = wellbeingNormalized,
                 settings = settings,
@@ -398,8 +455,26 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 feedbacks = feedbacks,
                 adaptiveCache = adaptiveCache,
                 articularBatteries = articular,
+                nowOverrideMs = frozenCompletionMs,
+                finishOperationId = finishOperationId,
+                completionInstantIso = frozenCompletionIso,
+                inputHash = inputHash ?: automaticImpact.setInputHash,
+                automaticImpact = automaticImpact,
             )
         }
+        KpknDiagnosticLogger.event(
+            namespace = "auge",
+            name = "finish_auto_preview",
+            fields = mapOf(
+                "finishOperationId" to finishOperationId,
+                "completionInstantIso" to frozenCompletionIso,
+                "inputHash" to (inputHash ?: preview.inputHash),
+                "globalMuscularDrain" to (preview.automaticImpact?.globalMuscularDrain ?: preview.globalMuscularDrain),
+                "involvedMuscleCount" to (preview.automaticImpact?.involvedVolumeMuscles?.size ?: preview.involvedVolumeMuscles.size),
+                "muscularBattery" to preview.muscular,
+            ),
+        )
+        return preview
     }
 
     /**
@@ -412,6 +487,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         muscular: Int? = null,
         spinal: Int? = null,
         perMuscle: Map<String, Int>? = null,
+        perMuscleDelta: Map<String, Int>? = null,
         manualBatteryAnchorMs: Long? = null,
         sessionCnsDrain: Double = 0.0,
         sessionSpinalDrain: Double = 0.0,
@@ -424,15 +500,28 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             augeWriteMutex.lock()
             try {
             val base = augeRepo.getTodayWellbeing()
-            val pillarPerMuscle = perMuscle?.let { remapMuscleIntMapToPillars(it) }
+            val requestedDelta = perMuscleDelta ?: perMuscle
+            val canonicalDelta = requestedDelta.orEmpty()
+                .mapKeys { VolumeCalculator.normalizeCanonicalMuscleGroup(it.key) }
+                .filterKeys { it.isNotBlank() }
             val existingPillarMuscles = remapMuscleIntMapToPillars(base?.manualMuscleBatteries.orEmpty())
-            val mergedMuscles = when {
-                pillarPerMuscle == null -> existingPillarMuscles
-                pillarPerMuscle.isEmpty() -> existingPillarMuscles
-                else -> existingPillarMuscles + pillarPerMuscle
-            }
+            val touchedMuscles = canonicalDelta.isNotEmpty()
             val touched =
-                neural != null || spinal != null || muscular != null || !pillarPerMuscle.isNullOrEmpty()
+                neural != null || spinal != null || muscular != null || touchedMuscles
+            val anchor = manualBatteryAnchorMs ?: System.currentTimeMillis()
+            val existingV2 = base?.manualMuscleOverridesV2.orEmpty()
+            val updatedV2 = if (touchedMuscles) {
+                existingV2 + canonicalDelta.mapValues { (muscle, battery) ->
+                    ManualMuscleBatteryOverride(
+                        battery = battery.coerceIn(0, 100),
+                        anchorEpochMs = anchor,
+                        sourceSessionId = null,
+                        automaticBatteryAtAnchor = predictedMuscleBatteries[muscle] ?: 100,
+                    )
+                }
+            } else {
+                existingV2
+            }
             // Do not invent a global muscular override from a simple average of per-muscle
             // values — that freezes the muscular ring and diverges from the engine formula.
             val updated = DailyWellbeingLog(
@@ -449,26 +538,47 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 manualMuscularBattery = muscular?.coerceIn(0, 100) ?: base?.manualMuscularBattery,
                 manualNeuralBattery = neural?.coerceIn(0, 100) ?: base?.manualNeuralBattery,
                 manualSpinalBattery = spinal?.coerceIn(0, 100) ?: base?.manualSpinalBattery,
-                manualMuscleBatteries = mergedMuscles,
+                // New writes use V2 per-muscle anchors. Keep legacy V1 only when
+                // this call did not touch a muscle, for backwards compatibility.
+                manualMuscleBatteries = if (touchedMuscles) emptyMap() else existingPillarMuscles,
                 manualBatteryAnchorMs = when {
                     touched -> manualBatteryAnchorMs ?: System.currentTimeMillis()
                     else -> base?.manualBatteryAnchorMs
                 },
+                manualMuscleOverridesV2 = updatedV2,
                 notes = base?.notes,
                 preWorkoutDiscomforts = base?.preWorkoutDiscomforts.orEmpty(),
             )
             augeRepo.saveWellbeingLog(updated)
 
+            if (touched) {
+                KpknDiagnosticLogger.event(
+                    namespace = "auge",
+                    name = "manual_override_applied",
+                    fields = mapOf(
+                        "channels" to listOfNotNull(
+                            if (neural != null) "neural" else null,
+                            if (muscular != null) "muscular" else null,
+                            if (spinal != null) "spinal" else null,
+                            if (touchedMuscles) "muscle" else null,
+                        ),
+                        "muscleCount" to canonicalDelta.size,
+                        "anchorEpochMs" to anchor,
+                        "hasAutomaticBaseline" to predictedMuscleBatteries.isNotEmpty(),
+                    ),
+                )
+            }
+
             learnFromManualAdjustment(
                 manualNeural = neural,
                 manualSpinal = spinal,
-                manualMuscleBatteries = pillarPerMuscle.orEmpty(),
+                manualMuscleBatteries = canonicalDelta,
                 sessionCnsDrain = sessionCnsDrain,
                 sessionSpinalDrain = sessionSpinalDrain,
                 sessionMuscleDrain = sessionMuscleDrain,
                 predictedNeuralBattery = predictedNeuralBattery,
                 predictedSpinalBattery = predictedSpinalBattery,
-                predictedMuscleBatteries = remapMuscleIntMapToPillars(predictedMuscleBatteries),
+                predictedMuscleBatteries = predictedMuscleBatteries,
                 wellbeing = updated,
             )
 

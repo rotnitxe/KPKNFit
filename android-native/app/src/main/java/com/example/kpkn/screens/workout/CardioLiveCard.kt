@@ -3,8 +3,10 @@ package com.example.kpkn.screens.workout
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -45,6 +47,7 @@ internal fun CardioLiveCard(
     details: CardioDetails,
     completedSet: CompletedSet?,
     accentColor: Color,
+    modifier: Modifier = Modifier,
     executionState: CardioTimerState? = null,
     liveHeartRateBpm: Int? = null,
     onStartTimer: () -> Unit = {},
@@ -104,11 +107,18 @@ internal fun CardioLiveCard(
     // Cardio occupies its own stage rather than imitating a strength-set card:
     // the timer, interval context and telemetry stay readable edge-to-edge.
     Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 12.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color(0xFF111214))
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp, vertical = 18.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("Cardio · ${details.type.name.replace('_', ' ')}", fontWeight = FontWeight.Black, color = accentColor)
+                Column {
+                    Text("ESPACIO CARDIO", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = accentColor)
+                    Text(details.type.name.replace('_', ' '), fontWeight = FontWeight.Black, color = Color.White, style = MaterialTheme.typography.titleLarge)
+                }
                 Surface(shape = RoundedCornerShape(999.dp), color = accentColor.copy(alpha = 0.22f)) {
                     Text(modeLabel, modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp), color = Color.White, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                 }

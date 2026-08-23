@@ -24,6 +24,7 @@ import androidx.compose.ui.zIndex
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import com.example.kpkn.data.exercises.displayNameWithSelectedChips
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.MobilityExercise
 import com.example.kpkn.data.models.MobilityExerciseCatalog
@@ -33,14 +34,19 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.exercises.catalogv2.JointInvolvementV2
 import com.example.kpkn.domain.exercises.catalogv2.JointRoleV2
 import com.example.kpkn.data.exercises.catalogv2.canonicalJointKnowledge
+import com.example.kpkn.data.exercises.catalogv2.canonicalMuscleKnowledgeForVolumeLabel
 import com.example.kpkn.data.exercises.catalogv2.canonicalPatternKnowledge
 import com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledge
-import com.example.kpkn.ui.components.CanonicalKnowledgeTooltip
+import com.example.kpkn.ui.components.CanonicalKnowledgeOverlay
 import com.example.kpkn.ui.components.KpknGlassDialog
 import com.example.kpkn.ui.components.kpknGlass
 import com.example.kpkn.ui.components.kpknHazeEffect
 import com.example.kpkn.ui.components.kpknSheetDialogTextButtonColors
 import dev.chrisbanes.haze.HazeState
+import com.example.kpkn.screens.sessioneditor.components.formatSeriesEquivalent
+import com.example.kpkn.screens.sessioneditor.components.formatVolumePercent
+import com.example.kpkn.screens.sessioneditor.components.oneSeriesVolumeContributions
+import com.example.kpkn.screens.sessioneditor.components.roleVolumeLabel
 
 /**
  * Full-screen DarkMica overlay for mobility preparation in live sessions.
@@ -94,6 +100,24 @@ fun WorkoutMobilityOverlay(
 
     var showComplementarySection by remember { mutableStateOf(false) }
     var selectedKnowledge by remember(exercise.id) { mutableStateOf<CanonicalKnowledge?>(null) }
+    val patternKnowledge = remember(exercise.id, exercise.selectedMovementPattern) {
+        canonicalPatternKnowledge(exercise.selectedMovementPattern.orEmpty())
+    }
+    val resolvedMuscleInfo = remember(exercise.id, exercise.catalogConfigurationId) {
+        exercise.catalogConfigurationId
+            ?.takeIf { it.isNotBlank() }
+            ?.let { configurationId ->
+                resolveCatalogExerciseInfo(
+                    catalogConfigurationId = configurationId,
+                    exerciseDbId = null,
+                    exerciseId = null,
+                    exerciseName = null,
+                )
+            }
+    }
+    val muscleContributions = remember(resolvedMuscleInfo) {
+        resolvedMuscleInfo?.let(::oneSeriesVolumeContributions).orEmpty()
+    }
 
     Box(
         modifier = Modifier
@@ -150,6 +174,25 @@ fun WorkoutMobilityOverlay(
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Black,
                         color = if (allDone) Color(0xFF66BB6A) else Color.White.copy(alpha = 0.80f),
+                    )
+                }
+            }
+
+            patternKnowledge?.let { pattern ->
+                Surface(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(999.dp))
+                        .clickable { selectedKnowledge = pattern },
+                    shape = RoundedCornerShape(999.dp),
+                    color = Color.White.copy(alpha = 0.07f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
+                ) {
+                    Text(
+                        "Patrón · ${pattern.name}",
+                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White.copy(alpha = 0.80f),
                     )
                 }
             }
@@ -426,18 +469,6 @@ fun WorkoutMobilityOverlay(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(10.dp)
-                                            .clip(CircleShape)
-                                            .background(
-                                                when (joint.role) {
-                                                    JointRoleV2.PRIMARY -> sessionAccentColor
-                                                    JointRoleV2.SECONDARY -> Color.White.copy(alpha = 0.75f)
-                                                    JointRoleV2.STABILIZER -> Color.White.copy(alpha = 0.45f)
-                                                }
-                                            ),
-                                    )
                                     Column(
                                         verticalArrangement = Arrangement.spacedBy(2.dp),
                                         modifier = Modifier.weight(1f),
@@ -450,12 +481,16 @@ fun WorkoutMobilityOverlay(
                                             maxLines = 2,
                                             overflow = TextOverflow.Visible,
                                         )
+                                    }
+                                    Surface(
+                                        shape = RoundedCornerShape(999.dp),
+                                        color = Color.White.copy(alpha = 0.08f),
+                                    ) {
                                         Text(
                                             roleLabel,
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
                                             style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = Color.White.copy(alpha = 0.55f),
-                                            letterSpacing = 0.3.sp,
+                                            color = Color.White.copy(alpha = 0.62f),
                                         )
                                     }
                                     Icon(
@@ -476,65 +511,84 @@ fun WorkoutMobilityOverlay(
                     }
                 }
                 selectedJoint?.let { joint ->
-                    KpknGlassDialog(
-                        onDismissRequest = { selectedJoint = null },
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                            canonicalJointKnowledge(joint.jointId)?.let { knowledge ->
-                                CanonicalKnowledgeTooltip(knowledge)
-                            }
-                            TextButton(
-                                onClick = { selectedJoint = null },
-                                modifier = Modifier.align(Alignment.End),
-                                colors = kpknSheetDialogTextButtonColors(),
-                            ) {
-                                Text("Cerrar", fontWeight = FontWeight.Bold, color = sessionAccentColor)
-                            }
-                        }
+                    canonicalJointKnowledge(joint.jointId)?.let { knowledge ->
+                        CanonicalKnowledgeOverlay(
+                            knowledge = knowledge,
+                            onDismiss = { selectedJoint = null },
+                        )
                     }
                 }
             }
 
-            canonicalPatternKnowledge(exercise.selectedMovementPattern.orEmpty())?.let { pattern ->
+            if (muscleContributions.isNotEmpty()) {
                 Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { selectedKnowledge = pattern },
-                    shape = RoundedCornerShape(999.dp),
-                    color = Color.White.copy(alpha = 0.05f),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color.White.copy(alpha = 0.035f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.07f)),
                 ) {
-                    Text(
-                        "Patrón · ${pattern.name}",
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White.copy(alpha = 0.82f),
-                    )
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(
+                            "Involucramiento muscular",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White.copy(alpha = 0.86f),
+                        )
+                        Text(
+                            "Aporte equivalente por una serie planificada.",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.48f),
+                        )
+                        muscleContributions.take(6).forEach { contribution ->
+                            val knowledge = canonicalMuscleKnowledgeForVolumeLabel(contribution.muscle)
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(9.dp))
+                                    .then(if (knowledge != null) Modifier.clickable { selectedKnowledge = knowledge } else Modifier),
+                                shape = RoundedCornerShape(9.dp),
+                                color = Color.White.copy(alpha = 0.045f),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 7.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
+                                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                                        Text(
+                                            contribution.muscle,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = Color.White.copy(alpha = 0.90f),
+                                        )
+                                        Text(
+                                            roleVolumeLabel(contribution.role).substringBefore(" · "),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color.White.copy(alpha = 0.52f),
+                                        )
+                                    }
+                                    Text(
+                                        "${formatSeriesEquivalent(contribution.seriesEquivalent)} · ${formatVolumePercent(contribution.seriesEquivalent)}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color.White.copy(alpha = 0.78f),
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
             selectedKnowledge?.let { knowledge ->
-                KpknGlassDialog(
-                    onDismissRequest = { selectedKnowledge = null },
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        CanonicalKnowledgeTooltip(knowledge)
-                        TextButton(
-                            onClick = { selectedKnowledge = null },
-                            modifier = Modifier.align(Alignment.End),
-                            colors = kpknSheetDialogTextButtonColors(),
-                        ) {
-                            Text("Cerrar", fontWeight = FontWeight.Bold, color = sessionAccentColor)
-                        }
-                    }
-                }
+                CanonicalKnowledgeOverlay(
+                    knowledge = knowledge,
+                    onDismiss = { selectedKnowledge = null },
+                )
             }
 
             // ─── 5. Movilidad Recomendada Adicional (Opcional) ───

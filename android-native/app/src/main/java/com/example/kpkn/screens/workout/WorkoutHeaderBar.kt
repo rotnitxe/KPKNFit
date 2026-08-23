@@ -39,6 +39,8 @@ import kotlinx.coroutines.flow.StateFlow
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.kpknSheetWhiteFilterChipColors
 import com.example.kpkn.ui.components.kpknSheetWhiteTonalButtonColors
+import com.example.kpkn.screens.sessioneditor.sessionCoverAccentColor
+import com.example.kpkn.screens.sessioneditor.sessionCoverColors
 
 private val PaceChipGreen = Color(0xFF66BB6A)
 private val PaceChipRed = Color(0xFFFF5252)
@@ -60,23 +62,7 @@ internal fun sessionTimeChipAccent(
 }
 
 internal fun resolveSessionAccentColor(background: SessionBackground?): Color {
-    return when {
-        background == null || background.type == SessionBackgroundType.COLOR -> {
-            when (background?.value) {
-                "gradient://ember" -> Color(0xFFE08E45)
-                "gradient://lagoon" -> Color(0xFF5FA8D3)
-                "gradient://velvet" -> Color(0xFFE26D5A)
-                "gradient://forest" -> Color(0xFF95D5B2)
-                "solid://obsidian" -> Color(0xFF3B82F6)
-                "solid://steel" -> Color(0xFF94A3B8)
-                "solid://ember-red" -> Color(0xFFEF4444)
-                "solid://ocean" -> Color(0xFF38BDF8)
-                "solid://moss" -> Color(0xFF4ADE80)
-                else -> Color(0xFFE08E45)
-            }
-        }
-        else -> Color(0xFF3B82F6)
-    }
+    return sessionCoverAccentColor(background)
 }
 
 @Composable
@@ -404,25 +390,7 @@ internal fun WorkoutHeaderBar(
     voiceCaptureMode: com.example.kpkn.data.models.VoiceCaptureMode? = null,
     onVoiceCaptureModeChange: ((com.example.kpkn.data.models.VoiceCaptureMode) -> Unit)? = null,
 ) {
-    val colors = remember(background) {
-        when {
-            background == null || background.type == SessionBackgroundType.COLOR -> {
-                when (background?.value) {
-                    "gradient://ember" -> listOf(Color(0xFF20110F), Color(0xFF8D3D2E), Color(0xFFE08E45))
-                    "gradient://lagoon" -> listOf(Color(0xFF0D1B2A), Color(0xFF1B4965), Color(0xFF5FA8D3))
-                    "gradient://velvet" -> listOf(Color(0xFF1C1024), Color(0xFF5B2A86), Color(0xFFE26D5A))
-                    "gradient://forest" -> listOf(Color(0xFF102A1F), Color(0xFF2D6A4F), Color(0xFF95D5B2))
-                    "solid://obsidian" -> listOf(Color(0xFF111318), Color(0xFF111318))
-                    "solid://steel" -> listOf(Color(0xFF334155), Color(0xFF334155))
-                    "solid://ember-red" -> listOf(Color(0xFF7F1D1D), Color(0xFF7F1D1D))
-                    "solid://ocean" -> listOf(Color(0xFF0F3D5E), Color(0xFF0F3D5E))
-                    "solid://moss" -> listOf(Color(0xFF244B3C), Color(0xFF244B3C))
-                    else -> listOf(Color(0xFF20110F), Color(0xFF8D3D2E), Color(0xFFE08E45))
-                }
-            }
-            else -> listOf(Color(0xFF111318), Color(0xFF111318))
-        }
-    }
+    val colors = remember(background) { sessionCoverColors(background) }
 
     val surfaceColor = MaterialTheme.colorScheme.surface
 

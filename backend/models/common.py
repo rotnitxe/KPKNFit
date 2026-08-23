@@ -80,6 +80,8 @@ class ExerciseSet(BaseModel):
     targetRPE: Optional[float] = None
     targetRIR: Optional[float] = None
     intensityMode: Optional[str] = None
+    actualIntensityMode: Optional[str] = None
+    actualIntensityValue: Optional[float] = None
     targetPercentageRM: Optional[float] = None
     weight: Optional[float] = None
     completedReps: Optional[int] = None
@@ -136,6 +138,35 @@ class CompletedExercise(BaseModel):
     totalSpinalScore: Optional[float] = None
 
 
+class MuscleSessionImpactV2(BaseModel):
+    """Canonical local muscular impact for one muscle at session finish."""
+
+    stressUnits: float
+    capacityAtCompletion: float
+    immediateDrainPct: float
+    directStressUnits: float
+    indirectStressUnits: float
+
+
+class ManualMuscleBatteryOverride(BaseModel):
+    battery: int
+    anchorEpochMs: int
+    sourceSessionId: Optional[str] = None
+    automaticBatteryAtAnchor: int = 100
+
+
+class MuscularSessionImpactV2(BaseModel):
+    """Versioned finish snapshot shared with the Android/iOS JSONL contract."""
+
+    modelVersion: int = 2
+    completionInstantIso: str
+    globalMuscularDrain: float
+    perMuscle: dict[str, MuscleSessionImpactV2] = {}
+    involvedVolumeMuscles: list[str] = []
+    setInputHash: str
+    contextHash: str
+
+
 class WorkoutLog(BaseModel):
     id: str
     programId: str = ""
@@ -150,6 +181,7 @@ class WorkoutLog(BaseModel):
     fatigueLevel: float = 5
     mentalClarity: float = 5
     sessionStressScore: Optional[float] = None
+    muscularImpactV2: Optional[MuscularSessionImpactV2] = None
     sessionVariant: Optional[str] = None
 
 
@@ -190,6 +222,7 @@ class DailyWellbeingLog(BaseModel):
     motivation: float = 5
     workIntensity: Optional[str] = None
     studyIntensity: Optional[str] = None
+    manualMuscleOverridesV2: Optional[dict[str, ManualMuscleBatteryOverride]] = None
 
 
 class PostSessionMuscle(BaseModel):

@@ -139,7 +139,8 @@ enum AugeRecoveryEngine {
         guard let w = wellbeing else { return 0 }
         if let anchor = w.manualBatteryAnchorMs { return anchor }
         if w.manualNeuralBattery != nil || w.manualMuscularBattery != nil
-            || w.manualSpinalBattery != nil || !w.manualMuscleBatteries.isEmpty {
+            || w.manualSpinalBattery != nil || !w.manualMuscleBatteries.isEmpty
+            || !(w.manualMuscleOverridesV2 ?? [:]).isEmpty {
             return nowMs()
         }
         return parseWellbeingDate(w.date)
@@ -289,6 +290,14 @@ enum AugeRecoveryEngine {
             else if daysSince >= 35.0 { decay = 0.0 }
             else { decay = (35.0 - daysSince) / 7.0 }
 
+            if let storedImpact = log.muscularImpactV2?.perMuscle.first(where: {
+                muscleMatchesCategory($0.key, muscleName) || muscleMatchesCategory(muscleName, $0.key)
+            })?.value {
+                let storedCapacity = max(storedImpact.capacityAtCompletion, 120.0)
+                totalStress += (storedImpact.stressUnits / storedCapacity * 100.0) * decay
+                continue
+            }
+
             for ex in log.completedExercises {
                 guard let dbInfo = resolveDbInfo(ex, exerciseDb) else { continue }
                 guard let involvement = dbInfo.involvedMuscles.first(where: { muscleMatchesCategory($0.muscle, muscleName) }) else { continue }
@@ -363,8 +372,11 @@ enum AugeRecoveryEngine {
         let k = 2.9957 / max(1.0, realRecoveryTime)
         let tenDaysAgo = now - 10 * 24 * 3_600_000
 
-        let manualScore = wellbeing?.manualMuscleBatteries[muscleName]
-        let anchorMs = manualBatteryAnchorMs(wellbeing)
+        let manualOverrideV2 = wellbeing?.manualMuscleOverridesV2?.first(where: {
+            muscleMatchesCategory($0.key, muscleName) || muscleMatchesCategory(muscleName, $0.key)
+        })?.value
+        let manualScore = manualOverrideV2?.battery ?? wellbeing?.manualMuscleBatteries[muscleName]
+        let anchorMs = manualOverrideV2?.anchorEpochMs ?? manualBatteryAnchorMs(wellbeing)
         let hoursSinceAnchor = max(0.0, Double(now - anchorMs) / 3_600_000.0)
         var accumulatedFatigue = 0.0
 
@@ -391,6 +403,21 @@ enum AugeRecoveryEngine {
             var accumulatedDrain = 0.0
             var overallMuscleVolumeMap: [String: Int] = [:]
             var sessionMuscleStress = 0.0
+
+            if let storedImpact = log.muscularImpactV2?.perMuscle.first(where: {
+                muscleMatchesCategory($0.key, muscleName) || muscleMatchesCategory(muscleName, $0.key)
+            })?.value {
+                let decayedStress = storedImpact.stressUnits * AugeUtils.safeExp(
+                    -k * AugeUtils.getSigmoidalHours(hoursSince)
+                )
+                sessionMuscleStress += decayedStress
+                if hoursSince <= 168.0 && decayedStress > 0.0 {
+                    effectiveSetsCount += log.completedExercises.reduce(0) { $0 + $1.sets.filter(AugeFatigueEngine.isSetEffective).count }
+                    lastSessionDate = max(lastSessionDate, logTime)
+                }
+                accumulatedFatigue += sessionMuscleStress
+                continue
+            }
 
             for ex in log.completedExercises {
                 let dbInfo = resolveDbInfo(ex, exerciseDb)

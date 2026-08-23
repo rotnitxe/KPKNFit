@@ -2,9 +2,14 @@ package com.example.kpkn.data.repository
 
 import android.content.Context
 import com.example.kpkn.data.db.*
+import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.models.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.time.LocalDate
 
 /**
@@ -16,6 +21,7 @@ import java.time.LocalDate
 class AugeRepository private constructor(context: Context) {
 
     private val dao = KpknDatabase.getInstance(context).augeDao()
+    @Volatile private var muscularResetDiagnosticEmitted = false
 
     // ─── DailyWellbeingLog ────────────────────────────────────────────────────
 
@@ -53,7 +59,8 @@ class AugeRepository private constructor(context: Context) {
                 val hasManual = w.manualNeuralBattery != null ||
                     w.manualMuscularBattery != null ||
                     w.manualSpinalBattery != null ||
-                    w.manualMuscleBatteries.isNotEmpty()
+                    w.manualMuscleBatteries.isNotEmpty() ||
+                    w.manualMuscleOverridesV2.isNotEmpty()
                 if (!hasManual) return@firstOrNull false
                 if (w.date == todayStr) true
                 else (w.manualBatteryAnchorMs ?: 0L) >= eighteenHoursAgo
@@ -70,6 +77,7 @@ class AugeRepository private constructor(context: Context) {
                 manualMuscularBattery = null,
                 manualMuscleBatteries = emptyMap(),
                 manualBatteryAnchorMs = null,
+                manualMuscleOverridesV2 = emptyMap(),
             ),
         )
     }
@@ -120,7 +128,22 @@ class AugeRepository private constructor(context: Context) {
     // ─── Adaptive Cache ─────────────────────────────────────────────────────
 
     suspend fun getAdaptiveCache(): AugeAdaptiveCache = withContext(Dispatchers.IO) {
-        dao.getAdaptiveCache()?.toAdaptiveCache() ?: AugeAdaptiveCache()
+        val entity = dao.getAdaptiveCache()
+        val rawVersion = entity?.data?.let { raw ->
+            runCatching {
+                Json.parseToJsonElement(raw).jsonObject["schemaVersion"]?.jsonPrimitive?.intOrNull ?: 1
+            }.getOrDefault(1)
+        } ?: 2
+        if (rawVersion < 2 && !muscularResetDiagnosticEmitted) {
+            muscularResetDiagnosticEmitted = true
+            KpknDiagnosticLogger.event(
+                namespace = "auge",
+                name = "muscular_calibration_reset_v2",
+                fields = mapOf("previousSchemaVersion" to rawVersion, "preservedChannels" to listOf("cns", "spinal", "recovery")),
+                priority = com.example.kpkn.data.diagnostics.TelemetryPriority.CRITICAL,
+            )
+        }
+        entity?.toAdaptiveCache() ?: AugeAdaptiveCache()
     }
 
     suspend fun saveAdaptiveCache(cache: AugeAdaptiveCache) = withContext(Dispatchers.IO) {

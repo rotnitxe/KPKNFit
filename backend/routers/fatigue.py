@@ -8,6 +8,7 @@ from engines.fatigue_engine import (
     calculate_set_battery_drain,
     calculate_predicted_session_drain,
     calculate_completed_session_stress,
+    calculate_completed_muscular_impact_v2,
 )
 
 router = APIRouter(prefix="/fatigue", tags=["fatigue"])
@@ -41,6 +42,15 @@ class CompletedStressRequest(BaseModel):
     exerciseList: list[ExerciseMuscleInfo]
 
 
+class CompletedMuscularImpactRequest(BaseModel):
+    completedExercises: list[CompletedExercise]
+    exerciseList: list[ExerciseMuscleInfo]
+    completionInstantIso: str
+    settings: Settings | None = None
+    setInputHash: str | None = None
+    contextHash: str | None = None
+
+
 @router.post("/auge-metrics")
 def auge_metrics(req: AugeMetricsRequest):
     return get_dynamic_auge_metrics(req.exercise, req.customName)
@@ -64,3 +74,15 @@ def session_drain(req: SessionDrainRequest):
 @router.post("/completed-stress")
 def completed_stress(req: CompletedStressRequest):
     return {"totalStress": calculate_completed_session_stress(req.completedExercises, req.exerciseList)}
+
+
+@router.post("/completed-muscular-impact-v2")
+def completed_muscular_impact_v2(req: CompletedMuscularImpactRequest):
+    return calculate_completed_muscular_impact_v2(
+        req.completedExercises,
+        req.exerciseList,
+        req.completionInstantIso,
+        req.settings,
+        req.setInputHash,
+        req.contextHash,
+    )

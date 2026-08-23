@@ -62,7 +62,16 @@ data class FinishResumeSnapshot(
     /** Kept only as a fallback for snapshots created by older process state. */
     val currentExerciseIdx: Int = 0,
     val currentSetIdx: Int = 0,
+    val finishOperationId: String? = null,
+    val completionInstantIso: String? = null,
+    val completedSetInputHash: String? = null,
 )
+
+sealed interface FinishAugePreviewState {
+    data object Loading : FinishAugePreviewState
+    data class Ready(val preview: PostSessionPreview) : FinishAugePreviewState
+    data class Error(val reason: String) : FinishAugePreviewState
+}
 
 data class PendingRestSuggestion(
     val plannedSeconds: Int,

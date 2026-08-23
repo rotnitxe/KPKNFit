@@ -96,6 +96,7 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InvolvedMuscle
+import com.example.kpkn.domain.auge.AugeUtils
 import com.example.kpkn.data.models.HistoryColorV2
 import com.example.kpkn.data.models.DiscomfortCatalogEntry
 import com.example.kpkn.data.models.DiscomfortSection
@@ -106,6 +107,7 @@ import com.example.kpkn.data.models.DISCOMFORT_CATALOG_BY_ID
 import com.example.kpkn.data.models.MobilityExercise
 import com.example.kpkn.data.models.MobilityExerciseCatalog
 import com.example.kpkn.data.models.SetOutcomeV2
+import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
@@ -559,6 +561,7 @@ fun WorkoutScreen(
     val showingPostExerciseCardDock = currentExercise != null &&
         uiState.showPostExerciseSheet &&
         uiState.postExerciseTargetIdx == uiState.currentExerciseIdx
+    val isCardioLiveStage = currentExercise?.isCardio == true && !showingPostExerciseCardDock
     val cardsHazeStateDock = remember { HazeState() }
 
     var lastAnnouncedSetKey by rememberSaveable { mutableStateOf<String?>(null) }
@@ -848,15 +851,16 @@ fun WorkoutScreen(
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .align(Alignment.BottomCenter)
-            .navigationBarsPadding()
-            .padding(horizontal = 12.dp, vertical = 8.dp)
-            .zIndex(5f),
-    ) {
-        WorkoutRoadmapBar(
+    if (!isCardioLiveStage) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .zIndex(5f),
+        ) {
+            WorkoutRoadmapBar(
             exercises = visibleExercises,
             parts = renderedParts,
             supersetGroups = modeSession.allSupersetGroups(),
@@ -892,10 +896,11 @@ fun WorkoutScreen(
             onRemoveExercisePhoto = { path ->
                 currentExercise?.id?.let { viewModel.removeExercisePhoto(it, path) }
             },
-        )
+            )
+        }
     }
 
-    if (currentExercise != null && currentSet != null && (!showingPostExerciseCardDock || uiState.currentSetIdx < currentExercise.sets.size)) {
+    if (!isCardioLiveStage && currentExercise != null && currentSet != null && (!showingPostExerciseCardDock || uiState.currentSetIdx < currentExercise.sets.size)) {
         val dockKey = if (isUnilateralDock && activeDockSide != null) {
             "${currentExercise.id}_${uiState.currentSetIdx}_${activeDockSide.take(1).uppercase()}"
         } else {
@@ -1231,7 +1236,14 @@ fun WorkoutScreen(
         }
     }
     if (uiState.showFinishSheet) {
-        val duration = ((System.currentTimeMillis() - uiState.startTimeMs) / 60000).toInt().coerceAtLeast(1)
+        val finishSnapshot = uiState.finishResumeSnapshot
+        val completionIso = finishSnapshot?.completionInstantIso
+        val frozenCompletionMs = completionIso?.let(AugeUtils::parseIsoMs)
+        val duration = if (frozenCompletionMs != null && frozenCompletionMs > 0L) {
+            ((frozenCompletionMs - uiState.startTimeMs) / 60000).toInt().coerceAtLeast(1)
+        } else {
+            ((System.currentTimeMillis() - uiState.startTimeMs) / 60000).toInt().coerceAtLeast(1)
+        }
         val sessionIntensityResult = remember(completedExercisesForSummary, visibleExercises) {
             val totalPlanned = visibleExercises.size
             SessionIntensityEngine.calculateAverageSessionIntensity(
@@ -1246,28 +1258,41 @@ fun WorkoutScreen(
                 exerciseDb = catalogExerciseIndex(),
             )
         }
-        val postSessionPreview by produceState<PostSessionPreview>(
-            initialValue = PostSessionPreview(
-                neural = 100,
-                spinal = 100,
-                muscular = 100,
-                perMuscle = emptyMap(),
-                globalCnsDrain = 0,
-                globalMuscularDrain = 0,
-                globalSpinalDrain = 0,
-            ),
-            key1 = completedExercisesForSummary,
-            key2 = duration,
-            key3 = settings,
+        val previewState by produceState<FinishAugePreviewState>(
+            initialValue = FinishAugePreviewState.Loading,
+            completedExercisesForSummary,
+            duration,
+            settings,
+            completionIso,
+            finishSnapshot?.completedSetInputHash,
         ) {
-            value = augeViewModel.computePostSessionPreview(
-                completedExercises = completedExercisesForSummary,
-                durationMinutes = duration,
-                settings = settings,
+            value = runCatching {
+                augeViewModel.computePostSessionPreview(
+                    completedExercises = completedExercisesForSummary,
+                    durationMinutes = duration,
+                    settings = settings,
+                    completionInstantIso = completionIso,
+                    finishOperationId = finishSnapshot?.finishOperationId,
+                    inputHash = finishSnapshot?.completedSetInputHash,
+                )
+            }.fold(
+                onSuccess = { preview ->
+                    val expectedHash = finishSnapshot?.completedSetInputHash
+                    if (expectedHash != null && preview.inputHash != expectedHash) {
+                        FinishAugePreviewState.Error("Las series cambiaron mientras se calculaba el preview.")
+                    } else {
+                        FinishAugePreviewState.Ready(preview)
+                    }
+                },
+                onFailure = { error ->
+                    FinishAugePreviewState.Error(error.message ?: "No se pudo calcular el estado muscular.")
+                },
             )
         }
 
-        FinishWorkoutSheet(
+        if (previewState is FinishAugePreviewState.Ready) {
+            val postSessionPreview = (previewState as FinishAugePreviewState.Ready).preview
+            FinishWorkoutSheet(
             session = session,
             completedSets = uiState.completedSets,
             completedExercises = completedExercisesForSummary,
@@ -1304,7 +1329,7 @@ fun WorkoutScreen(
                     onComplete = {
                         val anyRingEdit = closingFeedback.neuralEdited ||
                             closingFeedback.spinalEdited ||
-                            closingFeedback.musclesEdited
+                            closingFeedback.editedMuscleKeys.isNotEmpty()
                         if (anyRingEdit) {
                             val predictedMuscles = postSessionPreview.perMuscle.mapValues { it.value.recoveryScore }
                             augeViewModel.applyManualBatteries(
@@ -1319,8 +1344,10 @@ fun WorkoutScreen(
                                 } else {
                                     null
                                 },
-                                perMuscle = if (closingFeedback.musclesEdited) {
-                                    closingFeedback.finalMuscleBatteries
+                                perMuscleDelta = if (closingFeedback.editedMuscleKeys.isNotEmpty()) {
+                                    closingFeedback.finalMuscleBatteries.filterKeys {
+                                        it in closingFeedback.editedMuscleKeys
+                                    }
                                 } else {
                                     null
                                 },
@@ -1377,7 +1404,31 @@ fun WorkoutScreen(
                     currentBestEstimated1RM = currentBestEstimated1RM,
                 )
             }
-        )
+            )
+        } else {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(32.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                when (previewState) {
+                    FinishAugePreviewState.Loading -> {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator()
+                            Spacer(Modifier.height(12.dp))
+                            Text("Calculando recuperación muscular…")
+                        }
+                    }
+                    is FinishAugePreviewState.Error -> {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text((previewState as FinishAugePreviewState.Error).reason)
+                            Spacer(Modifier.height(12.dp))
+                            OutlinedButton(onClick = { viewModel.hideFinish() }) { Text("Cerrar") }
+                        }
+                    }
+                    is FinishAugePreviewState.Ready -> Unit
+                }
+            }
+        }
     }
 
     if (uiState.showVoiceCaptureModeDialog) {

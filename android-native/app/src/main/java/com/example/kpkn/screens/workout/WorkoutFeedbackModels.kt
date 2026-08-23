@@ -15,6 +15,7 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.HistoryColorV2
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.IntensityMode
+import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.domain.auge.AugeFatigueEngine
@@ -53,6 +54,43 @@ internal fun resolveAmrapActive(
 ): Boolean {
     val override = explicitOverride ?: requestedOverride.takeIf { it }
     return override ?: (plannedSet?.isAmrap == true || plannedSet?.intensityMode == IntensityMode.AMRAP)
+}
+
+internal data class RepRangeEvaluation(
+    val delta: Double,
+    val debt: Double,
+    val isInRange: Boolean,
+)
+
+/**
+ * Evaluates the performed value against the semantic edges of a rep range.
+ * The upper anchor remains useful for load suggestions, but it is not a
+ * deficit target when the performed value is between min and max.
+ */
+internal fun evaluateRepRange(
+    actual: Double,
+    range: RepRange?,
+    amrapActive: Boolean = false,
+    amrapMinimum: Int? = null,
+): RepRangeEvaluation? {
+    val target = range ?: return null
+    val minimum = if (amrapActive) (amrapMinimum ?: target.min) else target.min
+    if (amrapActive) {
+        return if (actual < minimum) {
+            RepRangeEvaluation(
+                delta = actual - minimum,
+                debt = minimum - actual,
+                isInRange = false,
+            )
+        } else {
+            RepRangeEvaluation(delta = 0.0, debt = 0.0, isInRange = true)
+        }
+    }
+    return when {
+        actual < target.min -> RepRangeEvaluation(actual - target.min, target.min - actual, false)
+        actual > target.max -> RepRangeEvaluation(actual - target.max, 0.0, false)
+        else -> RepRangeEvaluation(0.0, 0.0, true)
+    }
 }
 
 sealed interface PostExerciseFeedbackTarget {
@@ -116,6 +154,12 @@ data class SessionClosingFeedback(
     val spinalEdited: Boolean = false,
     /** True when the user edited any per-muscle slider vs engine seed. */
     val musclesEdited: Boolean = false,
+    /** Exact per-muscle keys whose final value differs from the automatic seed. */
+    val editedMuscleKeys: Set<String> = emptySet(),
+    /** Frozen finish metadata shared by preview and persisted log. */
+    val finishOperationId: String? = null,
+    val completionInstantIso: String? = null,
+    val completedSetInputHash: String? = null,
     val additionalDiscomfortNote: String? = null,
     val stillPresentDiscomfortIds: List<String> = emptyList(),
 )
@@ -194,9 +238,9 @@ object WorkoutPlanDeviationSupport {
                         ),
                     )
                 }
-            } else if (actualReps > targetRange.max + 3) {
+            } else if (actualReps > targetRange.max) {
                 deviations.add(PlanDeviation(exerciseId, exerciseName, setIdx, PlanDeviationType.REPS_HIGH, "$actualReps vs ${targetRange.format()} objetivo"))
-            } else if (actualReps < targetRange.min - 3) {
+            } else if (actualReps < targetRange.min) {
                 deviations.add(PlanDeviation(exerciseId, exerciseName, setIdx, PlanDeviationType.REPS_LOW, "$actualReps vs ${targetRange.format()} objetivo"))
             }
         }

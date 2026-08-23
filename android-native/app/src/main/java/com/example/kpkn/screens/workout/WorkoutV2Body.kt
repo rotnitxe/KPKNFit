@@ -164,6 +164,42 @@ internal fun WorkoutV2Body(
         }
     }
 
+    // Cardio is a separate execution space.  Keeping it out of the strength
+    // pager prevents the pager/timeline/roadmap composition from being rebuilt
+    // on every timer tick and gives the user the full-screen stage used by
+    // mobility and warm-up flows.
+    if (currentExercise?.isCardio == true && !showingPostExerciseCard) {
+        val cardioExercise = currentExercise
+        val cardioDetails = cardioExercise.cardioDetails
+        if (cardioDetails != null) {
+            CardioLiveCard(
+                modifier = modifier,
+                details = cardioDetails,
+                completedSet = uiState.completedSets["${cardioExercise.id}_0"],
+                accentColor = sessionAccentColor,
+                executionState = uiState.cardioTimerState?.takeIf { it.exerciseId == cardioExercise.id },
+                liveHeartRateBpm = cardioHealthState.heartRateBpm.takeIf { cardioHealthState.exerciseId == cardioExercise.id },
+                onStartTimer = {
+                    viewModel.startCardioTimer(cardioExercise.id, cardioDetails.effectiveDurationSeconds().coerceAtLeast(1))
+                },
+                onPauseTimer = viewModel::pauseCardioTimer,
+                onSkipBlock = viewModel::skipCardioBlock,
+                onRequestRecord = { duration, distance, heartRate ->
+                    viewModel.requestCardioRecord(cardioExercise.id, duration, distance, heartRate)
+                },
+                onCancelRecord = viewModel::cancelCardioRecord,
+                gpsState = currentCardioGpsState,
+                onRequestGps = onRequestCardioGps,
+                onPauseGps = viewModel::pauseCardioGps,
+                onResumeGps = viewModel::resumeCardioGps,
+                onRecord = { duration, distance, heartRate ->
+                    viewModel.recordCardioSetUsingGps(duration, distance, heartRate)
+                },
+            )
+        }
+        return
+    }
+
     Box(modifier = modifier) {
         Column(
             modifier = Modifier

@@ -174,9 +174,18 @@ object AugeRecoveryEngine {
                 || wellbeing.manualMuscularBattery != null
                 || wellbeing.manualSpinalBattery != null
                 || wellbeing.manualMuscleBatteries.isNotEmpty()
+                || wellbeing.manualMuscleOverridesV2.isNotEmpty()
             ) nowMs()
             else wellbeing.date.let { parseWellbeingDate(it) }
     }
+
+    private fun manualMuscleOverride(
+        wellbeing: DailyWellbeingLog?,
+        muscleName: String,
+    ): ManualMuscleBatteryOverride? = wellbeing?.manualMuscleOverridesV2
+        ?.entries
+        ?.firstOrNull { (key, _) -> normKey(key) == normKey(muscleName) }
+        ?.value
 
     private fun muscleMatchesCategory(specificMuscle: String, category: String): Boolean {
         return matchesAugeMuscleTarget(specificMuscle, category)
@@ -364,6 +373,18 @@ object AugeRecoveryEngine {
                 else if (daysSince >= 35.0) 0.0
                 else (35.0 - daysSince) / 7.0
 
+            // V2 history already contains canonical local stress. Reusing it
+            // here avoids re-running the legacy role/activation path when a
+            // caller requests a battery directly instead of through the
+            // precomputed finish/home map.
+            val storedV2Stress = log.muscularImpactV2?.perMuscle?.entries
+                ?.filter { (key, _) -> muscleMatchesCategory(key, muscleName) }
+                ?.sumOf { (_, impact) -> impact.immediateDrainPct }
+            if (storedV2Stress != null && storedV2Stress > 0.0) {
+                totalStress += storedV2Stress * decay
+                return@forEach
+            }
+
             log.completedExercises.forEach { ex ->
                 ex.cardioDetails?.let { cardio ->
                     val duration = ex.sets.sumOf { it.timeSeconds ?: 0 }
@@ -470,8 +491,10 @@ object AugeRecoveryEngine {
         val tenDaysAgo = now - 10L * 24 * 3600 * 1000
         val muscularCap = (100 - physiologicalFloor(settings).muscular).coerceAtLeast(5).toDouble()
 
-        val manualScore = wellbeing?.manualMuscleBatteries?.let { lookupMuscleScore(it, muscleName) }
-        val anchorMs = manualBatteryAnchorMs(wellbeing)
+        val manualOverrideV2 = manualMuscleOverride(wellbeing, muscleName)
+        val manualScore = manualOverrideV2?.battery
+            ?: wellbeing?.manualMuscleBatteries?.let { lookupMuscleScore(it, muscleName) }
+        val anchorMs = manualOverrideV2?.anchorEpochMs ?: manualBatteryAnchorMs(wellbeing)
         val hoursSinceAnchor = max(0.0, (now - anchorMs) / 3_600_000.0)
         var accumulatedFatigue = 0.0
 
@@ -498,6 +521,27 @@ object AugeRecoveryEngine {
             val overallMuscleVolumeMap = mutableMapOf<String, Int>()
             var sessionMuscleStress = 0.0
             var sessionSoftAccum = 0.0
+
+            // V2 logs already contain canonical local stress and the capacity
+            // captured at finish. Reuse that snapshot directly; applying the
+            // historical role/activation path here would double-count it.
+            val storedImpact = log.muscularImpactV2?.perMuscle?.entries
+                ?.firstOrNull { (key, _) -> muscleMatchesCategory(key, muscleName) }
+                ?.value
+            if (storedImpact != null) {
+                val decayedStress = storedImpact.stressUnits * safeExp(
+                    -k * AugeUtils.getSigmoidalHours(hoursSince),
+                )
+                val capped = AugeUtils.applySessionSoftCap(decayedStress, sessionSoftAccum, muscularCap)
+                sessionSoftAccum += capped
+                sessionMuscleStress += capped
+                if (hoursSince <= 168.0 && capped > 0.0) {
+                    effectiveSetsCount += log.completedExercises.sumOf { it.sets.count(::isSetEffective) }
+                    lastSessionDate = max(lastSessionDate, logTime)
+                }
+                accumulatedFatigue += sessionMuscleStress
+                return@forEach
+            }
 
             log.completedExercises.forEach { ex ->
                 ex.cardioDetails?.let { cardio ->
@@ -1105,17 +1149,28 @@ object AugeRecoveryEngine {
         nutritionLogs: List<NutritionLog> = emptyList(),
         feedbacks: List<PostSessionFeedback> = emptyList(),
         adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
+        nowOverrideMs: Long? = null,
     ): Map<String, MuscleRecoveryStatus> {
         val stressLevel = wellbeing?.stressLevel ?: 3
         val nutritionMultiplier = getNutritionMultiplier(settings, nutritionLogs, stressLevel)
 
         // Optimización O(N): Truncar historia a los últimos 30 días (fatiga anterior a 30 días es < 0.001%)
-        val thirtyDaysAgo = nowMs() - 30L * 24 * 3600_000L
-        val recentHistory = history.filter { logDateMs(it) >= thirtyDaysAgo }
+        val evaluationNow = nowOverrideMs ?: nowMs()
+        val thirtyDaysAgo = evaluationNow - 30L * 24 * 3600_000L
+        // A finish preview is evaluated at its frozen instant. A log at that
+        // instant is not allowed to increase the capacity used to measure itself.
+        val recentHistory = history.filter { logDateMs(it) in thirtyDaysAgo until evaluationNow }
 
         // Optimización O(N^2): Precalcular capacidades de los músculos antes de iterar
         val precomputedCapacities = BATTERY_MUSCLES.associateWith { muscle ->
-            calculateUserWorkCapacity(muscle, recentHistory, settings, exerciseDb)
+            AugeMuscleCapacityEngine.calculateUserWorkCapacity(
+                muscleName = muscle,
+                history = recentHistory,
+                settings = settings,
+                exerciseDb = exerciseDb,
+                completionInstantIso = Instant.ofEpochMilli(evaluationNow).toString(),
+                adaptiveCache = adaptiveCache,
+            )
         }
 
         return BATTERY_MUSCLES.associateWith { muscle ->
@@ -1130,6 +1185,7 @@ object AugeRecoveryEngine {
                 feedbacks = feedbacks,
                 adaptiveCache = adaptiveCache,
                 precomputedCapacity = precomputedCapacities[muscle],
+                nowOverride = evaluationNow,
             )
         }
     }
@@ -1565,6 +1621,11 @@ object AugeRecoveryEngine {
         feedbacks: List<PostSessionFeedback> = emptyList(),
         adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
         articularBatteries: Map<ArticularBattery, ArticularBatteryState> = emptyMap(),
+        nowOverrideMs: Long? = null,
+        finishOperationId: String? = null,
+        completionInstantIso: String? = null,
+        inputHash: String? = null,
+        automaticImpact: MuscularSessionImpactV2? = null,
     ): PostSessionPreview {
         val historyWithPreview = baseHistory + previewLog
         val muscles = getPerMuscleBatteries(
@@ -1576,6 +1637,7 @@ object AugeRecoveryEngine {
             nutritionLogs = nutritionLogs,
             feedbacks = feedbacks,
             adaptiveCache = adaptiveCache,
+            nowOverrideMs = nowOverrideMs,
         )
         val batteries = calculateGlobalBatteries(
             history = historyWithPreview,
@@ -1599,6 +1661,7 @@ object AugeRecoveryEngine {
             nutritionLogs = nutritionLogs,
             feedbacks = feedbacks,
             adaptiveCache = adaptiveCache,
+            nowOverrideMs = nowOverrideMs,
         )
         val baseBatteries = calculateGlobalBatteries(
             history = baseHistory,
@@ -1612,14 +1675,55 @@ object AugeRecoveryEngine {
             precomputedMuscles = baseMuscles,
             articularBatteries = articularBatteries,
         )
+        val resolvedMuscles = if (automaticImpact == null) {
+            muscles
+        } else {
+            muscles.toMutableMap().apply {
+                automaticImpact.perMuscle.forEach { (muscle, impact) ->
+                    val base = baseMuscles[muscle]
+                    val score = ((base?.recoveryScore ?: 100) - impact.immediateDrainPct.roundToInt())
+                        .coerceIn(physiologicalFloor(settings).muscular, 100)
+                    put(
+                        muscle,
+                        MuscleRecoveryStatus(
+                            muscleName = muscle,
+                            recoveryScore = score,
+                            hoursToRecovery = base?.hoursToRecovery ?: 0,
+                            hoursSinceLastSession = 0,
+                            effectiveSets = base?.effectiveSets ?: 0,
+                            status = when {
+                                score >= 95 -> RecoveryStatus.FRESH
+                                score >= 85 -> RecoveryStatus.OPTIMAL
+                                score >= 40 -> RecoveryStatus.RECOVERING
+                                else -> RecoveryStatus.EXHAUSTED
+                            },
+                        ),
+                    )
+                }
+            }
+        }
+        val resolvedMuscularBattery = if (automaticImpact == null) {
+            batteries.muscular
+        } else {
+            (baseBatteries.muscular - automaticImpact.globalMuscularDrain).coerceIn(
+                physiologicalFloor(settings).muscular,
+                100,
+            )
+        }
         return PostSessionPreview(
             neural = batteries.cnc,
             spinal = batteries.spinal,
-            muscular = batteries.muscular,
-            perMuscle = muscles,
+            muscular = resolvedMuscularBattery,
+            perMuscle = resolvedMuscles,
             globalCnsDrain = (baseBatteries.cnc - batteries.cnc).coerceIn(0, 100),
-            globalMuscularDrain = (baseBatteries.muscular - batteries.muscular).coerceIn(0, 100),
+            globalMuscularDrain = automaticImpact?.globalMuscularDrain
+                ?: (baseBatteries.muscular - batteries.muscular).coerceIn(0, 100),
             globalSpinalDrain = (baseBatteries.spinal - batteries.spinal).coerceIn(0, 100),
+            finishOperationId = finishOperationId,
+            completionInstantIso = completionInstantIso,
+            inputHash = inputHash,
+            automaticImpact = automaticImpact,
+            involvedVolumeMuscles = automaticImpact?.involvedVolumeMuscles.orEmpty(),
         )
     }
 }

@@ -10,6 +10,7 @@ import com.example.kpkn.data.models.HistoryColorV2
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.RecordedSetPayload
+import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SetEntryV2
 import com.example.kpkn.data.models.SetOutcomeV2
@@ -176,7 +177,23 @@ class WorkoutSetRecorder(
                 else -> actualValue
             }
             val plannedTarget = plannedSet?.let { ports.inferPlannedTarget(it, resolvedUnitMode) }
-            val debt = if (plannedTarget != null && logicalActualValue >= 0) {
+            val sideRepRange = when (resolvedSide) {
+                "left" -> plannedSet?.leftTarget?.targetRepsRange
+                    ?: plannedSet?.leftTarget?.targetReps?.takeIf { it > 0 }?.let { RepRange(it, it) }
+                "right" -> plannedSet?.rightTarget?.targetRepsRange
+                    ?: plannedSet?.rightTarget?.targetReps?.takeIf { it > 0 }?.let { RepRange(it, it) }
+                else -> null
+            }
+            val plannedRepRange = sideRepRange ?: plannedSet?.effectiveRepRange()
+                ?: plannedTarget?.toInt()?.takeIf { resolvedUnitMode == UnitModeV2.REPS }?.let { RepRange(it, it) }
+            val debt = if (resolvedUnitMode == UnitModeV2.REPS && logicalActualValue >= 0) {
+                evaluateRepRange(
+                    actual = logicalActualValue,
+                    range = plannedRepRange,
+                    amrapActive = amrapActive,
+                    amrapMinimum = advanced.amrapMinimumReps ?: plannedRepRange?.min,
+                )?.debt ?: 0.0
+            } else if (plannedTarget != null && logicalActualValue >= 0) {
                 (plannedTarget - logicalActualValue).coerceAtLeast(0.0)
             } else {
                 0.0
@@ -465,6 +482,12 @@ class WorkoutSetRecorder(
                     "metricType" to outcome.metricType,
                     "metricValue" to outcome.metricValue,
                     "wasExistingSet" to wasExistingSet,
+                    "setKey" to key,
+                    "operation" to if (wasExistingSet) "replace" else "insert",
+                    "actualIntensityMode" to completedSet.actualIntensityMode?.name,
+                    "actualIntensityValue" to completedSet.actualIntensityValue,
+                    "effectiveRpe" to AugeFatigueEngine.getEffectiveRPE(completedSet),
+                    "isFailedSet" to completedSet.isFailedSet,
                 ),
             )
 
@@ -498,13 +521,13 @@ class WorkoutSetRecorder(
             }
             val plannedRestForKind = when (restKind) {
                 RestTimerKind.BETWEEN_SIDES -> exercise.restBetweenSidesSeconds ?: 0
-                RestTimerKind.SUPERSET_INTRA -> supersetGroup?.roundRestBetweenExercises?.get(targetSetIdx)
+                RestTimerKind.SUPERSET_INTRA -> exercise.supersetRestBetween
+                    ?: supersetGroup?.roundRestBetweenExercises?.get(targetSetIdx)
                     ?: supersetGroup?.restBetweenExercises
-                    ?: exercise.supersetRestBetween
                     ?: baseRest
-                RestTimerKind.SUPERSET_ROUND -> supersetGroup?.roundRestAfterSuperset?.get(targetSetIdx)
+                RestTimerKind.SUPERSET_ROUND -> exercise.supersetRestAfter
+                    ?: supersetGroup?.roundRestAfterSuperset?.get(targetSetIdx)
                     ?: supersetGroup?.restAfterSuperset
-                    ?: exercise.supersetRestAfter
                     ?: baseRest
                 RestTimerKind.WARMUP -> exercise.warmupSets.getOrNull(targetSetIdx)?.restBetween ?: baseRest
                 RestTimerKind.STANDARD -> baseRest

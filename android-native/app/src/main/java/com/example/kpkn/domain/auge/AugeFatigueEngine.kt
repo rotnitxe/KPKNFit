@@ -54,7 +54,8 @@ object AugeFatigueEngine {
         val confidence = (profile.sampleCount.coerceIn(0, 30) / 30.0)
         return Triple(
             (profile.cnsBias * confidence).coerceIn(-15.0, 15.0),
-            (profile.muscularBias * confidence).coerceIn(-15.0, 15.0),
+            ((if (profile.muscularBiasVersion >= 2) profile.muscularBias else 0.0) * confidence)
+                .coerceIn(-15.0, 15.0),
             (profile.spinalBias * confidence).coerceIn(-15.0, 15.0),
         )
     }
@@ -209,8 +210,8 @@ object AugeFatigueEngine {
         baseRpe = when {
             set.actualIntensityMode == IntensityMode.FAILURE -> 10.8
             set.actualIntensityMode == IntensityMode.RPE && set.actualIntensityValue != null -> set.actualIntensityValue
-            set.rir != null         -> (10 - set.rir).toDouble()
             set.actualIntensityMode == IntensityMode.RIR && set.actualIntensityValue != null -> 10.0 - set.actualIntensityValue
+            set.rir != null         -> (10 - set.rir).toDouble()
             set.rpe != null         -> set.rpe
             else                    -> 7.0
         }

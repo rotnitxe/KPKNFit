@@ -93,28 +93,64 @@ fun WorkoutRoadmapBar(
         initialFirstVisibleItemIndex = (currentIdx - 1).coerceAtLeast(0)
     )
 
-    val roadmapGroups = remember(exercises) {
+    // The group table is authoritative for sessions loaded from older JSON:
+    // some of those records have a valid SupersetGroup.exerciseOrder but one
+    // or more member Exercise objects still lack supersetGroupRef.  Deriving
+    // the roadmap only from the member flag silently rendered two normal
+    // cards and made the outer long-press menu impossible to reach.
+    val groupIdByExerciseId = remember(exercises, supersetGroups) {
+        buildMap {
+            supersetGroups.forEach { group ->
+                group.exerciseOrder.forEach { exerciseId -> put(exerciseId, group.id) }
+            }
+            exercises.forEach { exercise ->
+                exercise.supersetGroupRefOrLegacyId()?.let { groupId -> put(exercise.id, groupId) }
+            }
+        }
+    }
+    val roadmapGroups = remember(exercises, supersetGroups, groupIdByExerciseId) {
         val emitted = mutableSetOf<String>()
         exercises.mapNotNull { exercise ->
-            val groupId = exercise.supersetGroupRefOrLegacyId()
+            val groupId = groupIdByExerciseId[exercise.id]
             when {
                 groupId == null -> ExerciseRoadmapGroup(null, listOf(exercise))
                 emitted.add(groupId) -> ExerciseRoadmapGroup(
                     groupId = groupId,
-                    exercises = exercises.filter { it.supersetGroupRefOrLegacyId() == groupId },
+                    exercises = supersetGroups
+                        .firstOrNull { it.id == groupId }
+                        ?.exerciseOrder
+                        ?.mapNotNull { memberId -> exercises.firstOrNull { it.id == memberId } }
+                        ?.plus(exercises.filter { groupIdByExerciseId[it.id] == groupId })
+                        ?.distinctBy { it.id }
+                        ?.takeIf { it.size >= 2 }
+                        ?: exercises.filter { groupIdByExerciseId[it.id] == groupId },
                 )
                 else -> null
             }
         }
     }
 
-    LaunchedEffect(currentIdx, roadmapGroups.size) {
-        val currentExerciseId = exercises.getOrNull(currentIdx)?.id
-        val currentGroupIdx = roadmapGroups.indexOfFirst { group ->
-            group.exercises.any { it.id == currentExerciseId }
+    val firstCardioGroupIndex = remember(roadmapGroups) {
+        roadmapGroups.indexOfFirst { group ->
+            group.exercises.firstOrNull()?.isCardio == true
         }
-        if (currentGroupIdx >= 0) {
-            listState.scrollToItem((currentGroupIdx - 1).coerceAtLeast(0))
+    }
+    val roadmapEntries = remember(roadmapGroups, firstCardioGroupIndex) {
+        buildList<RoadmapEntry> {
+            roadmapGroups.forEachIndexed { groupIdx, group ->
+                if (groupIdx == firstCardioGroupIndex) add(RoadmapEntry.CardioDivider)
+                add(RoadmapEntry.Group(group))
+            }
+        }
+    }
+
+    LaunchedEffect(currentIdx, roadmapEntries.size) {
+        val currentExerciseId = exercises.getOrNull(currentIdx)?.id
+        val currentEntryIdx = roadmapEntries.indexOfFirst { entry ->
+            entry is RoadmapEntry.Group && entry.group.exercises.any { it.id == currentExerciseId }
+        }
+        if (currentEntryIdx >= 0) {
+            listState.scrollToItem((currentEntryIdx - 1).coerceAtLeast(0))
         }
     }
 
@@ -224,74 +260,94 @@ fun WorkoutRoadmapBar(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 items(
-                    count = roadmapGroups.size,
-                    key = { groupIdx ->
-                        val group = roadmapGroups[groupIdx]
-                        group.groupId ?: group.exercises.firstOrNull()?.id ?: "group-$groupIdx"
-                    },
-                ) { groupIdx ->
-                    val group = roadmapGroups[groupIdx]
-                    val exercise = group.exercises.firstOrNull() ?: return@items
-
-                    val idx = exercises.indexOfFirst { it.id == exercise.id }.coerceAtLeast(0)
-                    val part = parts.firstOrNull { it.exercises.any { e -> e.id == exercise.id } }
-                    val accent = accentByPartId[part?.id] ?: sessionAccentColor
-                    val partName = normalizeWorkoutHeaderLabel(part?.name)
-
-                    val completedCount = group.exercises.sumOf { member ->
-                        member.sets.indices.sumOf { setIdx ->
-                            member.completionKeysForSet(setIdx).count { key -> completedSets.containsKey(key) }
+                    count = roadmapEntries.size,
+                    key = { entryIdx ->
+                        when (val entry = roadmapEntries[entryIdx]) {
+                            RoadmapEntry.CardioDivider -> "roadmap-cardio-divider"
+                            is RoadmapEntry.Group -> {
+                                val group = entry.group
+                                group.groupId ?: group.exercises.firstOrNull()?.id ?: "group-$entryIdx"
+                            }
                         }
-                    }
-                    val totalSets = group.exercises.sumOf { member ->
-                        member.sets.indices.sumOf { setIdx -> member.completionKeysForSet(setIdx).size }
-                    }
-                    val isAllDone = completedCount >= totalSets && totalSets > 0
-                    val isCurrent = group.exercises.any { it.id == exercises.getOrNull(currentIdx)?.id }
+                    },
+                ) { entryIdx ->
+                    when (val entry = roadmapEntries[entryIdx]) {
+                        RoadmapEntry.CardioDivider -> CardioRoadmapDivider()
+                        is RoadmapEntry.Group -> {
+                            val group = entry.group
+                            val exercise = group.exercises.firstOrNull() ?: return@items
 
-                    if (group.groupId == null || group.exercises.size == 1) {
-                        ExerciseRoadmapCard(
-                            exercise = exercise,
-                            completedCount = completedCount,
-                            totalCount = totalSets,
-                            isCurrent = isCurrent,
-                            isAllDone = isAllDone,
-                            accent = accent,
-                            groupName = partName,
-                            completedSets = completedSets,
-                            currentSetIdx = if (isCurrent) currentSetIdx else null,
-                            currentSide = if (isCurrent) currentSide else null,
-                            onClick = { onSelect(idx) },
-                            onSelectStep = { setIdx, side ->
-                                onSelectStep(WorkoutStepRules.workingStepKey(exercise.id, setIdx, side))
-                            },
-                            onLongClick = if (enableLongPress) ({ onOpenContext(exercise.id) }) else null,
-                        )
-                    } else {
-                        SupersetRoadmapCard(
-                            exercises = group.exercises,
-                            supersetNumber = group.groupId?.let(supersetOrdinalById::get) ?: 1,
-                            supersetCount = supersetOrdinalById.size,
-                            roundCount = group.groupId
-                                ?.let(supersetGroupById::get)
-                                ?.rounds
-                                ?.takeIf { it > 0 }
-                                ?: (group.exercises.maxOfOrNull { it.sets.size } ?: 0),
-                            completedSets = completedSets,
-                            isCurrent = isCurrent,
-                            isAllDone = isAllDone,
-                            accent = accent,
-                            groupName = partName,
-                            currentExerciseId = exercises.getOrNull(currentIdx)?.id,
-                            currentRound = if (isCurrent) currentSetIdx + 1 else null,
-                            currentSide = if (isCurrent) currentSide else null,
-                            onClick = { onSelectGroup(group.groupId) },
-                            onSelectStep = { exerciseId, setIdx, side ->
-                                onSelectStep(WorkoutStepRules.workingStepKey(exerciseId, setIdx, side))
-                            },
-                            onLongClick = if (enableLongPress) ({ onOpenContext(exercise.id) }) else null,
-                            onMemberLongClick = if (enableLongPress) onOpenMemberContext else ({}) ,
-                        )
+                            val idx = exercises.indexOfFirst { it.id == exercise.id }.coerceAtLeast(0)
+                            val part = parts.firstOrNull { it.exercises.any { e -> e.id == exercise.id } }
+                            val accent = accentByPartId[part?.id] ?: sessionAccentColor
+                            val partName = normalizeWorkoutHeaderLabel(part?.name)
+
+                            val completedCount = group.exercises.sumOf { member ->
+                                member.sets.indices.sumOf { setIdx ->
+                                    member.completionKeysForSet(setIdx).count { key -> completedSets.containsKey(key) }
+                                }
+                            }
+                            val totalSets = group.exercises.sumOf { member ->
+                                member.sets.indices.sumOf { setIdx -> member.completionKeysForSet(setIdx).size }
+                            }
+                            val isAllDone = completedCount >= totalSets && totalSets > 0
+                            val isCurrent = group.exercises.any { it.id == exercises.getOrNull(currentIdx)?.id }
+
+                            if (exercise.isCardio) {
+                                // Cardio gets its own roadmap language. It has no strength
+                                // set/side steppers or strength action semantics.
+                                CardioRoadmapCard(
+                                    exercise = exercise,
+                                    isCurrent = isCurrent,
+                                    isAllDone = isAllDone,
+                                    onClick = { onSelect(idx) },
+                                    onLongClick = if (enableLongPress) ({ onOpenContext(exercise.id) }) else null,
+                                )
+                            } else if (group.groupId == null || group.exercises.size == 1) {
+                                ExerciseRoadmapCard(
+                                    exercise = exercise,
+                                    completedCount = completedCount,
+                                    totalCount = totalSets,
+                                    isCurrent = isCurrent,
+                                    isAllDone = isAllDone,
+                                    accent = accent,
+                                    groupName = partName,
+                                    completedSets = completedSets,
+                                    currentSetIdx = if (isCurrent) currentSetIdx else null,
+                                    currentSide = if (isCurrent) currentSide else null,
+                                    onClick = { onSelect(idx) },
+                                    onSelectStep = { setIdx, side ->
+                                        onSelectStep(WorkoutStepRules.workingStepKey(exercise.id, setIdx, side))
+                                    },
+                                    onLongClick = if (enableLongPress) ({ onOpenContext(exercise.id) }) else null,
+                                )
+                            } else {
+                                SupersetRoadmapCard(
+                                    exercises = group.exercises,
+                                    supersetNumber = group.groupId?.let(supersetOrdinalById::get) ?: 1,
+                                    supersetCount = supersetOrdinalById.size,
+                                    roundCount = group.groupId
+                                        ?.let(supersetGroupById::get)
+                                        ?.rounds
+                                        ?.takeIf { it > 0 }
+                                        ?: (group.exercises.maxOfOrNull { it.sets.size } ?: 0),
+                                    completedSets = completedSets,
+                                    isCurrent = isCurrent,
+                                    isAllDone = isAllDone,
+                                    accent = accent,
+                                    groupName = partName,
+                                    currentExerciseId = exercises.getOrNull(currentIdx)?.id,
+                                    currentRound = if (isCurrent) currentSetIdx + 1 else null,
+                                    currentSide = if (isCurrent) currentSide else null,
+                                    onClick = { onSelectGroup(group.groupId) },
+                                    onSelectStep = { exerciseId, setIdx, side ->
+                                        onSelectStep(WorkoutStepRules.workingStepKey(exerciseId, setIdx, side))
+                                    },
+                                    onLongClick = if (enableLongPress) ({ onOpenContext(exercise.id) }) else null,
+                                    onMemberLongClick = if (enableLongPress) onOpenMemberContext else ({}) ,
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -304,6 +360,11 @@ private data class ExerciseRoadmapGroup(
     val groupId: String?,
     val exercises: List<Exercise>,
 )
+
+private sealed interface RoadmapEntry {
+    data class Group(val group: ExerciseRoadmapGroup) : RoadmapEntry
+    object CardioDivider : RoadmapEntry
+}
 
 private fun Exercise.supersetGroupRefOrLegacyId(): String? =
     supersetGroupRef?.takeIf { it.isNotBlank() } ?: supersetId?.takeIf { it.isNotBlank() }
@@ -327,6 +388,138 @@ private fun Exercise.completionKeysForSet(setIndex: Int): List<String> {
         hasLeftOnly -> listOf("${id}_${setIndex}_L")
         hasRightOnly -> listOf("${id}_${setIndex}_R")
         else -> listOf("${id}_${setIndex}_L", "${id}_${setIndex}_R")
+    }
+}
+
+private val CardioRoadmapAccent = Color(0xFFE0A13A)
+
+@Composable
+private fun CardioRoadmapDivider() {
+    Row(
+        modifier = Modifier
+            .width(82.dp)
+            .height(64.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(1.dp)
+                .background(CardioRoadmapAccent.copy(alpha = 0.76f)),
+        )
+        Text(
+            text = "CARDIO",
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontSize = 9.sp,
+                letterSpacing = 0.8.sp,
+            ),
+            fontWeight = FontWeight.Bold,
+            color = CardioRoadmapAccent,
+        )
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(1.dp)
+                .background(CardioRoadmapAccent.copy(alpha = 0.76f)),
+        )
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun CardioRoadmapCard(
+    exercise: Exercise,
+    isCurrent: Boolean,
+    isAllDone: Boolean,
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)?,
+) {
+    val details = exercise.cardioDetails
+    val modeLabel = when (details?.programMode()) {
+        CardioProgramMode.HIIT_SIT -> "HIIT / SIT"
+        CardioProgramMode.INTERVALS -> "Intervalos"
+        CardioProgramMode.STEADY -> "Estático"
+        null -> "Cardio"
+    }
+    val durationSeconds = details?.effectiveDurationSeconds()?.takeIf { it > 0 }
+    val summary = buildString {
+        append(modeLabel)
+        durationSeconds?.let {
+            append(" · ")
+            append(formatRoadmapDuration(it))
+        }
+    }
+    val displayName = exercise.displayNameWithSelectedChips()
+    val cardColor = when {
+        isCurrent -> CardioRoadmapAccent.copy(alpha = 0.72f)
+        isAllDone -> Color(0xFF344238).copy(alpha = 0.90f)
+        else -> Color(0xFF282725).copy(alpha = 0.96f)
+    }
+    val contentColor = if (isCurrent) Color.White else MaterialTheme.colorScheme.onSurface
+    val borderColor = when {
+        isCurrent -> CardioRoadmapAccent.copy(alpha = 0.82f)
+        isAllDone -> Color(0xFF7FBF8A).copy(alpha = 0.44f)
+        else -> CardioRoadmapAccent.copy(alpha = 0.30f)
+    }
+
+    Surface(
+        modifier = Modifier
+            .widthIn(min = 190.dp, max = 280.dp)
+            .height(64.dp)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
+        shape = WorkoutUiTokens.InnerCardShape,
+        color = cardColor,
+        border = BorderStroke(1.dp, borderColor),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 9.dp, vertical = 7.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Surface(
+                shape = CircleShape,
+                color = if (isCurrent) Color.White.copy(alpha = 0.18f) else CardioRoadmapAccent.copy(alpha = 0.18f),
+            ) {
+                Text(
+                    text = if (isAllDone) "✓" else "C",
+                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isCurrent) Color.White else CardioRoadmapAccent,
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = displayName,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = contentColor,
+                )
+                Text(
+                    text = summary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                    fontWeight = FontWeight.Medium,
+                    color = contentColor.copy(alpha = 0.68f),
+                )
+            }
+        }
+    }
+}
+
+private fun formatRoadmapDuration(totalSeconds: Int): String {
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return when {
+        minutes > 0 && seconds > 0 -> "${minutes}m ${seconds}s"
+        minutes > 0 -> "${minutes} min"
+        else -> "${seconds}s"
     }
 }
 
@@ -445,15 +638,18 @@ private fun SupersetRoadmapCard(
 ) {
     val safeRoundCount = roundCount.coerceAtLeast(1)
     val currentRoundIndex = ((currentRound ?: 1) - 1).coerceIn(0, safeRoundCount - 1)
+    // Superseries share the same quiet roadmap language as normal exercises.
+    // Accent is reserved for the tiny progress markers; using it as the whole
+    // container made this card read as a neon, unrelated component.
     val cardColor = when {
-        isCurrent -> accent.copy(alpha = 0.22f)
-        isAllDone -> Color(0xFF66BB6A).copy(alpha = 0.18f)
-        else -> Color.White.copy(alpha = 0.08f)
+        isAllDone -> Color(0xFF304236).copy(alpha = 0.86f)
+        isCurrent -> Color(0xFF303236).copy(alpha = 0.98f)
+        else -> Color(0xFF252629).copy(alpha = 0.94f)
     }
     val outline = when {
-        isCurrent -> accent.copy(alpha = 0.8f)
-        isAllDone -> Color(0xFF66BB6A).copy(alpha = 0.6f)
-        else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f)
+        isAllDone -> Color(0xFF7FBF8A).copy(alpha = 0.42f)
+        isCurrent -> Color.White.copy(alpha = 0.20f)
+        else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
     }
     Surface(
         modifier = Modifier
@@ -495,10 +691,10 @@ private fun SupersetRoadmapCard(
                         keys.isNotEmpty() && keys.all { completedSets.containsKey(it) }
                     }
                     val memberIsCurrent = member.id == currentExerciseId && isCurrent
-                    Surface(
-                        modifier = Modifier
-                            .widthIn(min = 78.dp, max = 126.dp)
-                            .height(48.dp)
+                     Surface(
+                         modifier = Modifier
+                            .widthIn(min = 84.dp, max = 138.dp)
+                            .height(46.dp)
                             .combinedClickable(
                                 onClick = {
                                     val side = if (member.isEffectivelyUnilateral()) {
@@ -511,7 +707,12 @@ private fun SupersetRoadmapCard(
                                 onLongClick = { onMemberLongClick(member.id) },
                             ),
                         shape = RoundedCornerShape(8.dp),
-                        color = if (memberIsCurrent) accent.copy(alpha = 0.8f) else Color.Black.copy(alpha = 0.18f),
+                         color = if (memberIsCurrent) Color(0xFF45474B) else Color(0xFF1D1E20),
+                         border = BorderStroke(
+                             1.dp,
+                             if (memberIsCurrent) Color.White.copy(alpha = 0.20f)
+                             else Color.White.copy(alpha = 0.08f),
+                         ),
                     ) {
                         Column(
                             modifier = Modifier.fillMaxSize().padding(horizontal = 7.dp, vertical = 5.dp),

@@ -193,6 +193,8 @@ data class PredictionBiasProfile(
     val spinalBias: Double = 0.0,
     val sampleCount: Int = 0,
     val lastUpdatedMs: Long = 0L,
+    /** Legacy profiles are treated as muscular-bias v1 and reset selectively. */
+    val muscularBiasVersion: Int = 1,
 )
 
 @Serializable

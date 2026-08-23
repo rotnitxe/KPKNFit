@@ -1,5 +1,6 @@
 package com.example.kpkn.data.models
 
+import com.example.kpkn.domain.auge.MuscularSessionImpactV2
 import kotlinx.serialization.Serializable
 
 // ─── Wellbeing & Logging ──────────────────────────────────────────────────────
@@ -23,6 +24,8 @@ data class DailyWellbeingLog(
     val manualSpinalBattery: Int? = null,
     val manualMuscleBatteries: Map<String, Int> = emptyMap(),
     val manualBatteryAnchorMs: Long? = null,
+    /** Per-muscle overrides introduced by the V2 finish calibration flow. */
+    val manualMuscleOverridesV2: Map<String, ManualMuscleBatteryOverride> = emptyMap(),
     val notes: String? = null,
     val preWorkoutDiscomforts: List<String> = emptyList(),
 )
@@ -78,6 +81,22 @@ data class PostSessionPreview(
     val globalCnsDrain: Int,
     val globalMuscularDrain: Int,
     val globalSpinalDrain: Int,
+    val finishOperationId: String? = null,
+    val completionInstantIso: String? = null,
+    val inputHash: String? = null,
+    val source: PostSessionPreviewSource = PostSessionPreviewSource.FINISH_AUTO_PREVIEW,
+    val automaticImpact: MuscularSessionImpactV2? = null,
+    val involvedVolumeMuscles: Set<String> = emptySet(),
+)
+
+enum class PostSessionPreviewSource { FINISH_AUTO_PREVIEW, HOME_RECOVERY, LEGACY }
+
+@Serializable
+data class ManualMuscleBatteryOverride(
+    val battery: Int,
+    val anchorEpochMs: Long,
+    val sourceSessionId: String? = null,
+    val automaticBatteryAtAnchor: Int,
 )
 
 data class MuscleRecoveryStatus(

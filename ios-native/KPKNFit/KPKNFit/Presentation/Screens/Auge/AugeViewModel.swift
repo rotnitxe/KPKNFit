@@ -114,7 +114,8 @@ final class AugeViewModel: ObservableObject {
             if let ow = ow,
                tw?.manualNeuralBattery == nil,
                tw?.manualSpinalBattery == nil,
-               tw?.manualMuscularBattery == nil {
+               tw?.manualMuscularBattery == nil,
+               (tw?.manualMuscleOverridesV2 ?? [:]).isEmpty {
                 return ow
             }
             return tw
@@ -216,7 +217,8 @@ final class AugeViewModel: ObservableObject {
     func saveWellbeing(log: DailyWellbeingLog) {
         Task {
             let anchored: DailyWellbeingLog
-            if log.manualNeuralBattery != nil || log.manualSpinalBattery != nil || !log.manualMuscleBatteries.isEmpty {
+            if log.manualNeuralBattery != nil || log.manualSpinalBattery != nil || log.manualMuscularBattery != nil
+                || !log.manualMuscleBatteries.isEmpty || !(log.manualMuscleOverridesV2 ?? [:]).isEmpty {
                 anchored = DailyWellbeingLog(
                     id: log.id, date: log.date,
                     sleepQuality: log.sleepQuality, stressLevel: log.stressLevel,
@@ -227,6 +229,7 @@ final class AugeViewModel: ObservableObject {
                     manualNeuralBattery: log.manualNeuralBattery,
                     manualSpinalBattery: log.manualSpinalBattery,
                     manualMuscleBatteries: log.manualMuscleBatteries,
+                    manualMuscleOverridesV2: log.manualMuscleOverridesV2,
                     manualBatteryAnchorMs: Int64(Date().timeIntervalSince1970 * 1000),
                     notes: log.notes,
                     preWorkoutDiscomforts: log.preWorkoutDiscomforts
@@ -236,7 +239,8 @@ final class AugeViewModel: ObservableObject {
             }
             await augeRepo.saveWellbeingLog(log: anchored)
 
-            if anchored.manualNeuralBattery != nil || anchored.manualSpinalBattery != nil || !anchored.manualMuscleBatteries.isEmpty {
+            if anchored.manualNeuralBattery != nil || anchored.manualSpinalBattery != nil || anchored.manualMuscularBattery != nil
+                || !anchored.manualMuscleBatteries.isEmpty || !(anchored.manualMuscleOverridesV2 ?? [:]).isEmpty {
                 let perMuscleInt = snapshot.perMuscle.mapValues { $0.recoveryScore }
                 await learnFromManualAdjustment(
                     manualNeural: anchored.manualNeuralBattery,
@@ -280,9 +284,28 @@ final class AugeViewModel: ObservableObject {
         Task { await recompute() }
     }
 
+    /// Freeze and expose the same canonical muscular snapshot used by finish
+    /// persistence.  The caller keeps this ISO instant while the sheet is open
+    /// so Home and the eventual WorkoutLog cannot drift to a later wall-clock.
+    func computePostSessionMuscularPreview(
+        completedExercises: [CompletedExercise],
+        completionInstantIso: String? = nil
+    ) -> MuscularSessionImpactV2 {
+        let completion = completionInstantIso ?? ISO8601DateFormatter().string(from: Date())
+        let settings = programRepo.settings.toSettings()
+        return MuscularSessionImpactEngine.evaluate(
+            completedExercises: completedExercises,
+            completionInstantIso: completion,
+            exerciseDb: exerciseDb,
+            settings: settings,
+            adaptiveCache: AugeAdaptiveCache()
+        )
+    }
+
     func applyManualBatteries(
         neural: Int, muscular: Int? = nil, spinal: Int,
         perMuscle: [String: Int],
+        perMuscleDelta: [String: Int]? = nil,
         manualBatteryAnchorMs: Int64? = nil,
         sessionCnsDrain: Double = 0, sessionSpinalDrain: Double = 0, sessionMuscleDrain: Double = 0,
         predictedNeuralBattery: Int? = nil, predictedSpinalBattery: Int? = nil,
@@ -290,11 +313,7 @@ final class AugeViewModel: ObservableObject {
     ) {
         Task {
             let base = await augeRepo.getTodayWellbeing()
-            let derivedMuscular: Int? = {
-                if let m = muscular { return m }
-                let vals = perMuscle.values
-                return vals.isEmpty ? nil : max(0, min(100, Int(vals.reduce(0, +)) / vals.count))
-            }()
+            let touchedMuscles = perMuscleDelta ?? perMuscle
             let dateStr: String = {
                 let f = ISO8601DateFormatter()
                 f.formatOptions = [.withFullDate]
@@ -311,10 +330,25 @@ final class AugeViewModel: ObservableObject {
                 moodState: base?.moodState,
                 workIntensity: base?.workIntensity,
                 studyIntensity: base?.studyIntensity,
-                manualMuscularBattery: derivedMuscular,
+                // A local muscle edit must not be collapsed into a global
+                // average. The global muscular ring remains engine-derived.
+                manualMuscularBattery: muscular ?? base?.manualMuscularBattery,
                 manualNeuralBattery: max(0, min(100, neural)),
                 manualSpinalBattery: max(0, min(100, spinal)),
-                manualMuscleBatteries: perMuscle.mapValues { max(0, min(100, $0)) },
+                manualMuscleBatteries: touchedMuscles.isEmpty ? (base?.manualMuscleBatteries ?? [:]) : [:],
+                manualMuscleOverridesV2: touchedMuscles.isEmpty
+                    ? base?.manualMuscleOverridesV2
+                    : Dictionary(uniqueKeysWithValues: touchedMuscles.map { key, value in
+                        (
+                            key,
+                            ManualMuscleBatteryOverride(
+                                battery: max(0, min(100, value)),
+                                anchorEpochMs: manualBatteryAnchorMs ?? Int64(Date().timeIntervalSince1970 * 1000),
+                                sourceSessionId: nil,
+                                automaticBatteryAtAnchor: predictedMuscleBatteries[key] ?? 100
+                            )
+                        )
+                    }),
                 manualBatteryAnchorMs: manualBatteryAnchorMs ?? Int64(Date().timeIntervalSince1970 * 1000),
                 notes: base?.notes
             )
@@ -322,7 +356,7 @@ final class AugeViewModel: ObservableObject {
 
             await learnFromManualAdjustment(
                 manualNeural: neural, manualSpinal: spinal,
-                manualMuscleBatteries: perMuscle,
+                manualMuscleBatteries: touchedMuscles,
                 sessionCnsDrain: sessionCnsDrain, sessionSpinalDrain: sessionSpinalDrain,
                 sessionMuscleDrain: sessionMuscleDrain,
                 predictedNeuralBattery: predictedNeuralBattery,

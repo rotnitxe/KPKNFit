@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
+import com.example.kpkn.data.models.CardioProgramMode
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.ExerciseSet
@@ -87,6 +88,7 @@ import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.effectiveSupersetGroupFor
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.isInSuperset
+import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.screens.sessioneditor.CompactModeSelector
@@ -295,10 +297,24 @@ internal fun WorkoutStructureSheetsHost(
     if (state.exerciseContextExerciseId != null) {
         val exerciseId = state.exerciseContextExerciseId!!
         val contextExercise = visibleExercises.firstOrNull { it.id == exerciseId }
-        val contextSupersetGroupId = contextExercise?.supersetGroupRefOrLegacyId()
+        // Prefer the member flag, but fall back to SupersetGroup.exerciseOrder
+        // for legacy sessions whose JSON contains the group table before the
+        // member refs were backfilled.  This keeps the outer group menu
+        // reachable without changing the individual mini-card long-press path.
         val contextSupersetGroup = contextExercise?.let(modeSession::effectiveSupersetGroupFor)
+            ?: contextExercise?.let { exercise ->
+                modeSession.allSupersetGroups().firstOrNull { group ->
+                    exercise.id in group.exerciseOrder
+                }
+            }
+        val contextSupersetGroupId = contextExercise?.supersetGroupRefOrLegacyId()
+            ?: contextSupersetGroup?.id
         WorkoutDrawer(
-            title = if (contextSupersetGroupId != null) "Superserie" else contextExercise?.name ?: "Acciones del ejercicio",
+            title = when {
+                contextExercise?.isCardio == true -> "Cardio"
+                contextSupersetGroupId != null && !state.exerciseContextForceMemberActions -> "Superserie"
+                else -> contextExercise?.name ?: "Acciones del ejercicio"
+            },
             onDismiss = {
                 state.exerciseContextExerciseId = null
                 state.exerciseContextForceMemberActions = false
@@ -306,9 +322,36 @@ internal fun WorkoutStructureSheetsHost(
             hazeState = bottomHazeState,
         ) {
             val actionRows: @Composable ColumnScope.() -> Unit = {
-                if (contextExercise != null && contextSupersetGroupId != null && !state.exerciseContextForceMemberActions) {
-                    val members = remember(contextSupersetGroupId, modeSession) {
-                        SupersetRules.orderedMembers(modeSession, contextSupersetGroupId)
+                if (contextExercise?.isCardio == true) {
+                    val cardioExercise = contextExercise
+                    Text(
+                        cardioContextSummary(cardioExercise),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        ContextActionButton("Editar cardio", {
+                            state.editSheetExerciseId = cardioExercise.id
+                            state.exerciseContextExerciseId = null
+                        }, Modifier.weight(1f))
+                        ContextActionButton("Reemplazar", {
+                            state.replaceTargetExerciseId = cardioExercise.id
+                            state.replaceSearchQuery = if (cardioExercise.catalogDefinitionId == null) cardioExercise.name else ""
+                            state.showReplaceExercisePicker = true
+                            state.exerciseContextExerciseId = null
+                        }, Modifier.weight(1f))
+                    }
+                    ContextActionButton("Omitir", {
+                        viewModel.skipExercise(cardioExercise.id)
+                        state.exerciseContextExerciseId = null
+                    }, Modifier.fillMaxWidth())
+                } else if (contextExercise != null && contextSupersetGroupId != null && !state.exerciseContextForceMemberActions) {
+                    val members = remember(contextSupersetGroupId, modeSession, contextSupersetGroup, visibleExercises) {
+                        val ordered = SupersetRules.orderedMembers(modeSession, contextSupersetGroupId)
+                        if (ordered.isNotEmpty()) ordered
+                        else contextSupersetGroup?.exerciseOrder
+                            ?.mapNotNull { id -> visibleExercises.firstOrNull { it.id == id } }
+                            .orEmpty()
                     }
                     Text(
                         "${contextSupersetGroup?.rounds ?: SupersetRules.roundCount(modeSession, contextSupersetGroupId)} rondas · ${members.size} ejercicios",
@@ -343,6 +386,7 @@ internal fun WorkoutStructureSheetsHost(
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                             rowMembers.forEach { member ->
                                 ContextActionButton(member.name, {
+                                    state.exerciseContextForceMemberActions = true
                                     state.exerciseContextExerciseId = member.id
                                 }, Modifier.weight(1f))
                             }
@@ -697,6 +741,35 @@ internal fun WorkoutStructureSheetsHost(
         var supersetSelectedIds by remember(supersetAnchorId, supersetAnchorMemberIds) {
             mutableStateOf(supersetAnchorMemberIds.ifEmpty { listOfNotNull(supersetAnchorId) })
         }
+        val supersetDefaults = remember(supersetAnchorId, supersetAnchorGroupId, supersetCandidateExercises, supersetSelectedIds, modeSession) {
+            val members = if (supersetAnchorGroupId != null) {
+                SupersetRules.orderedMembers(modeSession, supersetAnchorGroupId)
+            } else {
+                supersetCandidateExercises.filter { it.id in supersetSelectedIds }
+            }
+            val rounds = modeSession.allSupersetGroups()
+                .firstOrNull { it.id == supersetAnchorGroupId }
+                ?.rounds
+                ?.takeIf { it > 0 }
+                ?: members.maxOfOrNull { it.sets.size }?.coerceAtLeast(1)
+                ?: 1
+            val between = members.firstNotNullOfOrNull { it.supersetRestBetween ?: it.restTime }
+                ?.coerceAtLeast(0)
+                ?: 60
+            val after = members.firstNotNullOfOrNull { it.supersetRestAfter }
+                ?.coerceAtLeast(0)
+                ?: (members.firstOrNull()?.restTime ?: 120).coerceAtLeast(0)
+            Triple(rounds, between, after)
+        }
+        var roundsText by remember(supersetAnchorId, supersetAnchorGroupId, supersetDefaults.first) {
+            mutableStateOf(supersetDefaults.first.toString())
+        }
+        var restBetweenText by remember(supersetAnchorId, supersetAnchorGroupId, supersetDefaults.second) {
+            mutableStateOf(supersetDefaults.second.toString())
+        }
+        var restAfterText by remember(supersetAnchorId, supersetAnchorGroupId, supersetDefaults.third) {
+            mutableStateOf(supersetDefaults.third.toString())
+        }
         fun closeWorkoutSupersetCreator() {
             state.showWorkoutSupersetCreator = false
             state.workoutSupersetSelectedExerciseId = null
@@ -709,6 +782,38 @@ internal fun WorkoutStructureSheetsHost(
                     Text(
                         "Selecciona ejercicios pendientes de la sesión. La superserie se aplicará solo a este entrenamiento.",
                         style = MaterialTheme.typography.bodySmall,
+                    )
+                    Text(
+                        "Configuración inicial (puedes ajustarla antes de guardar)",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        OutlinedTextField(
+                            value = roundsText,
+                            onValueChange = { roundsText = it.filter(Char::isDigit).take(2) },
+                            label = { Text("Rondas") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f),
+                        )
+                        OutlinedTextField(
+                            value = restBetweenText,
+                            onValueChange = { restBetweenText = it.filter(Char::isDigit).take(4) },
+                            label = { Text("Entre ejercicios (s)") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    OutlinedTextField(
+                        value = restAfterText,
+                        onValueChange = { restAfterText = it.filter(Char::isDigit).take(4) },
+                        label = { Text("Después de la ronda (s)") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth(),
                     )
                     if (supersetCandidateExercises.size < 2) {
                         Text(
@@ -754,13 +859,32 @@ internal fun WorkoutStructureSheetsHost(
                 }
             },
             confirmButton = {
-                TextButton(
-                    enabled = supersetSelectedIds.size >= 2,
-                    onClick = {
-                        viewModel.createLiveSuperset(supersetSelectedIds, partId = supersetAnchorPartId)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (onOpenCatalog != null) {
+                        TextButton(
+                            onClick = {
+                                val anchor = supersetAnchorId
+                                closeWorkoutSupersetCreator()
+                                state.addExerciseAfterId = anchor
+                                state.addExerciseSearchQuery = ""
+                                state.addExerciseSelectedIds = emptySet()
+                            },
+                        ) { Text("Desde catálogo") }
+                    }
+                    TextButton(
+                        enabled = supersetSelectedIds.size >= 2,
+                        onClick = {
+                        viewModel.createLiveSuperset(
+                            exerciseIds = supersetSelectedIds,
+                            partId = supersetAnchorPartId,
+                            restBetween = restBetweenText.toIntOrNull()?.coerceAtLeast(0) ?: supersetDefaults.second,
+                            restAfter = restAfterText.toIntOrNull()?.coerceAtLeast(0) ?: supersetDefaults.third,
+                            rounds = roundsText.toIntOrNull()?.coerceAtLeast(1) ?: supersetDefaults.first,
+                        )
                         closeWorkoutSupersetCreator()
-                    },
-                ) { Text(if (supersetAnchorGroupId == null) "Crear superserie" else "Actualizar superserie", fontWeight = FontWeight.Bold) }
+                        },
+                    ) { Text(if (supersetAnchorGroupId == null) "Crear superserie" else "Actualizar superserie", fontWeight = FontWeight.Bold) }
+                }
             },
             dismissButton = {
                 TextButton(onClick = { closeWorkoutSupersetCreator() }) { Text("Cancelar") }
@@ -1375,4 +1499,24 @@ internal fun WorkoutStructureSheetsHost(
         )
     }
 
+}
+
+private fun cardioContextSummary(exercise: Exercise): String {
+    val details = exercise.cardioDetails
+    val mode = when (details?.programMode()) {
+        CardioProgramMode.HIIT_SIT -> "HIIT / SIT"
+        CardioProgramMode.INTERVALS -> "Intervalos"
+        CardioProgramMode.STEADY -> "Estático"
+        null -> "Cardio"
+    }
+    val duration = details?.effectiveDurationSeconds()?.takeIf { it > 0 }?.let { seconds ->
+        val minutes = seconds / 60
+        val remainder = seconds % 60
+        when {
+            minutes > 0 && remainder > 0 -> "${minutes}m ${remainder}s"
+            minutes > 0 -> "${minutes} min"
+            else -> "${remainder}s"
+        }
+    }
+    return listOfNotNull("Espacio cardio", mode, duration).joinToString(" · ")
 }

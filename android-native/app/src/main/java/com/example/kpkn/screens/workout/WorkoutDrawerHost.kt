@@ -58,6 +58,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG
@@ -81,6 +83,8 @@ internal fun WorkoutDrawer(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     var showContent by remember { mutableStateOf(false) }
+    var panelHeightPx by remember { mutableStateOf(0) }
+    val density = LocalDensity.current
     LaunchedEffect(Unit) { showContent = true }
 
     fun handleDismiss() {
@@ -99,13 +103,22 @@ internal fun WorkoutDrawer(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    // The scrim is intentionally flat. Applying haze here
-                    // blurred the entire live session; only the sheet panel
-                    // below should use the local glass effect.
-                    .background(KpknGlass.FallbackScrim)
                     .clickable(
                         onClick = { handleDismiss() }
                     )
+            )
+        }
+
+        // Keep dismissal available above the panel, but limit the visible veil
+        // to the panel's measured footprint. The old full-screen scrim made the
+        // hero/header look blurred even though it was not underneath the sheet.
+        if (panelHeightPx > 0) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(with(density) { panelHeightPx.toDp() })
+                    .background(KpknGlass.FallbackScrim),
             )
         }
 
@@ -132,6 +145,7 @@ internal fun WorkoutDrawer(
                     .fillMaxWidth()
                     .wrapContentHeight()
                     .navigationBarsPadding()
+                    .onSizeChanged { panelHeightPx = it.height }
                     .kpknGlassOrFallback(hazeState = hazeState, shape = panelShape)
                     .clickable(
                         interactionSource = panelInteraction,

@@ -66,6 +66,16 @@ def _is_muscle_in_group(specific: str, target: str) -> bool:
     return s in t or t in s
 
 
+def _stored_impact_for_muscle(log: WorkoutLog, muscle: str):
+    impact = log.muscularImpactV2
+    if impact is None:
+        return None
+    return next(
+        (entry for key, entry in impact.perMuscle.items() if _is_muscle_in_group(key, muscle)),
+        None,
+    )
+
+
 def _now_ms() -> float:
     return datetime.now(timezone.utc).timestamp() * 1000
 
@@ -89,7 +99,7 @@ def _calculate_user_work_capacity(
 ) -> float:
     now = _now_ms()
     four_weeks = 28 * 24 * 3600 * 1000
-    recent = [l for l in history if _parse_date_ms(l.date) > now - four_weeks]
+    recent = [l for l in history if now - four_weeks < _parse_date_ms(l.date) < now]
     base_floor = ATHLETE_CAPACITY_FLOORS.get(settings.athleteType.value, 500)
 
     if not recent:
@@ -99,6 +109,11 @@ def _calculate_user_work_capacity(
     total_stress = 0.0
 
     for log in recent:
+        stored = _stored_impact_for_muscle(log, muscle)
+        if stored is not None:
+            stored_capacity = max(stored.capacityAtCompletion, 120.0)
+            total_stress += (stored.stressUnits / stored_capacity * 100.0)
+            continue
         for ex in log.completedExercises:
             info = index.find(ex.exerciseDbId, ex.exerciseName)
             if not info:
@@ -212,6 +227,21 @@ def calculate_muscle_battery(
         log_time = _parse_date_ms(log.date)
         hours_since = max(0, (now - log_time) / 3600000)
         session_stress = 0.0
+
+        stored = _stored_impact_for_muscle(log, muscle_name)
+        if stored is not None:
+            session_stress = stored.stressUnits * _safe_exp(
+                -(2.9957 / max(1, real_recovery)) * hours_since / 1.0
+            )
+            acc_fatigue += session_stress
+            if hours_since <= 168 and session_stress > 0:
+                effective_sets += sum(
+                    1 for ex in log.completedExercises for s in ex.sets
+                    if (s.completedReps or s.reps or 0) > 0 and s.isFailure is not True
+                )
+            if session_stress > 0 and log_time > last_session_date:
+                last_session_date = log_time
+            continue
 
         for ex in log.completedExercises:
             info = idx.find(ex.exerciseDbId, ex.exerciseName)

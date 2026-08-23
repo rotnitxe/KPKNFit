@@ -21,6 +21,8 @@ import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.domain.auge.AugeFatigueEngine
+import com.example.kpkn.domain.auge.AugeMuscleCapacityEngine
+import com.example.kpkn.domain.auge.MuscularSessionImpactEngine
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.training.ProgramCalendarEngine
@@ -35,6 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import java.time.Instant
 import java.util.concurrent.TimeoutException
 
 /**
@@ -210,12 +213,87 @@ class WorkoutFinishController(
             sessionId,
             state.weekId.ifBlank { "noweek" },
             state.startTimeMs.toString(),
-        ).joinToString("|")
+                ).joinToString("|")
+
+                val finishSnapshot = state.finishResumeSnapshot
+                val completionInstantIso = closingFeedback.completionInstantIso
+                    ?: finishSnapshot?.completionInstantIso
+                    ?: Instant.now().toString()
+                val finishOperationId = closingFeedback.finishOperationId
+                    ?: finishSnapshot?.finishOperationId
+                    ?: "finish-$logId"
+                val adaptiveCache = com.example.kpkn.data.repository.AugeRepository
+                    .getInstance(appContext)
+                    .getAdaptiveCache()
+                val automaticImpact = withContext(Dispatchers.Default) {
+                    val canonicalInput = MuscularSessionImpactEngine.fromCompletedExercises(
+                        completedExercises = completedExercises,
+                        completionInstantIso = completionInstantIso,
+                        exerciseDb = currentExerciseIndex,
+                        settings = repository.settings.value,
+                        adaptiveCache = adaptiveCache,
+                    )
+                    val initial = MuscularSessionImpactEngine.evaluate(
+                        input = canonicalInput,
+                        exerciseDb = currentExerciseIndex,
+                        settings = repository.settings.value,
+                        adaptiveCache = adaptiveCache,
+                    )
+                    val capacities = AugeMuscleCapacityEngine.capacitiesFor(
+                        muscles = initial.involvedVolumeMuscles,
+                        history = repository.history.value,
+                        settings = repository.settings.value,
+                        exerciseDb = currentExerciseIndex,
+                        completionInstantIso = completionInstantIso,
+                        adaptiveCache = adaptiveCache,
+                    )
+                    MuscularSessionImpactEngine.evaluate(
+                        input = canonicalInput,
+                        exerciseDb = currentExerciseIndex,
+                        settings = repository.settings.value,
+                        adaptiveCache = adaptiveCache,
+                        capacitiesAtCompletion = capacities,
+                    )
+                }.let { impact ->
+                    val frozenHash = closingFeedback.completedSetInputHash
+                        ?: finishSnapshot?.completedSetInputHash
+                    if (frozenHash.isNullOrBlank()) impact else impact.copy(setInputHash = frozenHash)
+                }
+                KpknDiagnosticLogger.event(
+                    namespace = "auge",
+                    name = "session_input",
+                    fields = mapOf(
+                        "finishOperationId" to finishOperationId,
+                        "completionInstantIso" to completionInstantIso,
+                        "inputHash" to automaticImpact.setInputHash,
+                        "exerciseCount" to completedExercises.size,
+                        "setCount" to completedExercises.sumOf { it.sets.size },
+                        "canonicalExerciseIds" to completedExercises.mapNotNull { it.canonicalExerciseId },
+                        "involvedVolumeMuscles" to automaticImpact.involvedVolumeMuscles,
+                    ),
+                    sessionId = sessionId,
+                )
+                KpknDiagnosticLogger.event(
+                    namespace = "auge",
+                    name = "session_impact",
+                    fields = mapOf(
+                        "finishOperationId" to finishOperationId,
+                        "inputHash" to automaticImpact.setInputHash,
+                        "globalMuscularDrain" to automaticImpact.globalMuscularDrain,
+                        "perMuscle" to automaticImpact.perMuscle.mapValues { (_, value) ->
+                            mapOf(
+                                "immediateDrainPct" to value.immediateDrainPct,
+                                "stressUnits" to value.stressUnits,
+                                "capacityAtCompletion" to value.capacityAtCompletion,
+                                "directStressUnits" to value.directStressUnits,
+                                "indirectStressUnits" to value.indirectStressUnits,
+                            )
+                        },
+                    ),
+                    sessionId = sessionId,
+                )
 
                 val stressScore = withContext(Dispatchers.Default) {
-                    val adaptiveCache = com.example.kpkn.data.repository.AugeRepository
-                        .getInstance(appContext)
-                        .getAdaptiveCache()
                     val drainSummary = AugeFatigueEngine.calculateCompletedSessionDrain(
                         completedExercises = completedExercises,
                         exerciseDb = catalogExerciseIndex(),
@@ -263,7 +341,8 @@ class WorkoutFinishController(
                     settings = repository.settings.value,
                     postExerciseFeedback = state.postExerciseFeedbackByExerciseId,
                 )
-                val actualDate = LocalDate.now().toString()
+                val actualDate = completionInstantIso.take(10).takeIf { it.length == 10 }
+                    ?: LocalDate.now().toString()
                 val scheduledDate = scheduledDateForSession(state.weekId, session)
                 val scheduleDeltaDays = scheduledDate
                     ?.let { runCatching { ChronoUnit.DAYS.between(LocalDate.parse(it), LocalDate.parse(actualDate)).toInt() }.getOrNull() }
@@ -273,7 +352,7 @@ class WorkoutFinishController(
                     programId = programId,
                     sessionId = sessionId,
                     sessionName = session.name,
-                    date = java.time.Instant.now().toString(),
+                    date = completionInstantIso,
                     scheduledDate = scheduledDate,
                     actualDate = actualDate,
                     scheduleDeltaDays = scheduleDeltaDays,
@@ -290,6 +369,7 @@ class WorkoutFinishController(
                     notes = notes.ifBlank { null },
                     totalVolume = totalVolume,
                     sessionStressScore = stressScore,
+                    muscularImpactV2 = automaticImpact,
                     weekId = state.weekId,
                     macroIndex = state.macroIndex,
                     mesoIndex = state.mesoIndex,
@@ -329,6 +409,18 @@ class WorkoutFinishController(
 
                 repository.finalizeWorkout(log)
                 KpknDiagnosticLogger.event(
+                    namespace = "auge",
+                    name = "post_persisted_auto",
+                    fields = mapOf(
+                        "finishOperationId" to finishOperationId,
+                        "logId" to log.id,
+                        "inputHash" to automaticImpact.setInputHash,
+                        "completionInstantIso" to completionInstantIso,
+                        "automaticMuscularDrain" to automaticImpact.globalMuscularDrain,
+                    ),
+                    sessionId = sessionId,
+                )
+                KpknDiagnosticLogger.event(
                     namespace = "workout",
                     name = "session_finished",
                     fields = mapOf(
@@ -345,6 +437,11 @@ class WorkoutFinishController(
                         "volumeKg" to totalVolume,
                         "savedLogId" to log.id,
                         "stressScore" to stressScore,
+                        "finishOperationId" to finishOperationId,
+                        "completionInstantIso" to completionInstantIso,
+                        "inputHash" to automaticImpact.setInputHash,
+                        "automaticMuscularDrain" to automaticImpact.globalMuscularDrain,
+                        "involvedVolumeMuscles" to automaticImpact.involvedVolumeMuscles,
                     ),
                     sessionId = sessionId,
                 )

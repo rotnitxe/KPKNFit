@@ -11,6 +11,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.auge.AugeFatigueEngine
+import com.example.kpkn.domain.auge.MuscularSessionImpactEngine
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
@@ -72,6 +73,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 import java.util.UUID
@@ -700,17 +702,28 @@ class WorkoutViewModel(
     }
 
     private fun updatePredictionBiasFromClosingFeedback(closingFeedback: SessionClosingFeedback) {
+        val musclesEdited = closingFeedback.editedMuscleKeys.isNotEmpty()
+        val neuralEdited = closingFeedback.neuralEdited
+        val spinalEdited = closingFeedback.spinalEdited
+        if (!musclesEdited && !neuralEdited && !spinalEdited) return
         repository.updateSettings { settings ->
             val prev = settings.augePredictionBias
             val alpha = 0.30
             val newSamples = (prev.sampleCount + 1).coerceAtMost(500)
             settings.copy(
                 augePredictionBias = prev.copy(
-                    cnsBias = (prev.cnsBias * (1.0 - alpha) + closingFeedback.systemAdjustment * alpha).coerceIn(-20.0, 20.0),
-                    muscularBias = (prev.muscularBias * (1.0 - alpha) + closingFeedback.muscularAdjustment * alpha).coerceIn(-20.0, 20.0),
-                    spinalBias = (prev.spinalBias * (1.0 - alpha) + closingFeedback.structureAdjustment * alpha).coerceIn(-20.0, 20.0),
+                    cnsBias = if (neuralEdited) {
+                        (prev.cnsBias * (1.0 - alpha) + closingFeedback.systemAdjustment * alpha).coerceIn(-20.0, 20.0)
+                    } else prev.cnsBias,
+                    muscularBias = if (musclesEdited) {
+                        (prev.muscularBias * (1.0 - alpha) + closingFeedback.muscularAdjustment * alpha).coerceIn(-20.0, 20.0)
+                    } else prev.muscularBias,
+                    spinalBias = if (spinalEdited) {
+                        (prev.spinalBias * (1.0 - alpha) + closingFeedback.structureAdjustment * alpha).coerceIn(-20.0, 20.0)
+                    } else prev.spinalBias,
                     sampleCount = newSamples,
                     lastUpdatedMs = System.currentTimeMillis(),
+                    muscularBiasVersion = if (musclesEdited) 2 else prev.muscularBiasVersion,
                 )
             )
         }
@@ -2079,6 +2092,12 @@ class WorkoutViewModel(
         abortRestTimerHard()
         voiceController.resetFeedbackPromptFlags()
         _uiState.update { state ->
+            // Rotation/process recovery must reuse the original finish clock
+            // and input hash instead of creating a second operation.
+            val existingSnapshot = state.finishResumeSnapshot
+            if (existingSnapshot != null) {
+                return@update state.copy(showFinishSheet = true)
+            }
             val visible = visibleExercises(state)
             val currentExercise = visible.getOrNull(state.currentExerciseIdx)
             val canonicalSteps = workoutStepPositions(state)
@@ -2101,6 +2120,9 @@ class WorkoutViewModel(
                 lastRenderableStepKey = lastRenderableStep?.stepKey,
                 currentExerciseIdx = snapshotExerciseIdx ?: state.currentExerciseIdx,
                 currentSetIdx = snapshotSetIdx,
+                finishOperationId = UUID.randomUUID().toString(),
+                completionInstantIso = Instant.now().toString(),
+                completedSetInputHash = MuscularSessionImpactEngine.completedSetInputHash(state.completedSets),
             )
             state.copy(
                 showFinishSheet = true,
@@ -2185,7 +2207,13 @@ class WorkoutViewModel(
         persistOngoingState()
     }
 
-    fun createLiveSuperset(exerciseIds: List<String>, partId: String? = null, restBetween: Int = 60, restAfter: Int = 120) {
+    fun createLiveSuperset(
+        exerciseIds: List<String>,
+        partId: String? = null,
+        restBetween: Int = 60,
+        restAfter: Int = 120,
+        rounds: Int? = null,
+    ) {
         val state = _uiState.value
         val base = state.session ?: return
         val targetIds = exerciseIds.distinct()
@@ -2198,7 +2226,7 @@ class WorkoutViewModel(
                 exerciseIds = targetIds,
                 restBetweenExercises = restBetween,
                 restAfterSuperset = restAfter,
-                rounds = null,
+                rounds = rounds?.coerceAtLeast(1),
                 anchorPartId = partId,
                 anchorExerciseId = targetIds.firstOrNull(),
             )

@@ -146,6 +146,36 @@ internal fun computeSessionMuscleRoleWeightedSets(
     return result
 }
 
+/**
+ * Applies only the edited canonical muscles to the automatic global battery.
+ * This is a weighted canonical aggregator, never an average of the internal
+ * recovery battery universe.
+ */
+internal fun recalibratedCanonicalMuscularBattery(
+    preview: PostSessionPreview,
+    automaticSeed: Map<String, Int>,
+    currentValues: Map<String, Int>,
+    editedMuscleKeys: Set<String>,
+    roleWeightedSets: Map<String, Double> = emptyMap(),
+): Int {
+    if (editedMuscleKeys.isEmpty()) return preview.muscular.coerceIn(0, 100)
+    val impactWeights = preview.automaticImpact?.perMuscle.orEmpty()
+    val weightedDelta = editedMuscleKeys.sumOf { muscle ->
+        val seed = automaticSeed[muscle] ?: return@sumOf 0.0
+        val current = currentValues[muscle] ?: seed
+        val weight = impactWeights[muscle]?.stressUnits?.takeIf { it > 0.0 }
+            ?: roleWeightedSets[muscle]?.takeIf { it > 0.0 }
+            ?: 1.0
+        (current - seed) * weight
+    }
+    val totalWeight = editedMuscleKeys.sumOf { muscle ->
+        impactWeights[muscle]?.stressUnits?.takeIf { it > 0.0 }
+            ?: roleWeightedSets[muscle]?.takeIf { it > 0.0 }
+            ?: 1.0
+    }.coerceAtLeast(1.0)
+    return (preview.muscular + weightedDelta / totalWeight).toInt().coerceIn(0, 100)
+}
+
 // ─── Finish Sheet ─────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -175,8 +205,11 @@ internal fun FinishWorkoutSheet(
 ) {
     val neuralSeed = postSessionPreview.neural.coerceIn(0, 100)
     val spinalSeed = postSessionPreview.spinal.coerceIn(0, 100)
-    val muscleSeed = remember(postSessionPreview.perMuscle) {
-        postSessionPreview.perMuscle.mapValues { it.value.recoveryScore }
+    val muscleSeed = remember(postSessionPreview.perMuscle, postSessionPreview.involvedVolumeMuscles) {
+        val involved = postSessionPreview.involvedVolumeMuscles
+        postSessionPreview.perMuscle
+            .filterKeys { involved.isEmpty() || it in involved }
+            .mapValues { it.value.recoveryScore }
     }
     var neuralFinal by remember(neuralSeed) { mutableIntStateOf(neuralSeed) }
     var spinalFinal by remember(spinalSeed) { mutableIntStateOf(spinalSeed) }
@@ -187,13 +220,18 @@ internal fun FinishWorkoutSheet(
         mutableStateMapOf<String, Int>().also { map -> map.putAll(muscleSeed) }
     }
 
-    val derivedMuscularFinal by remember(muscleFinal) {
+    val editedMuscleKeys by remember(muscleFinal, muscleSeed) {
+        derivedStateOf { muscleFinal.keys.filterTo(mutableSetOf()) { muscleFinal[it] != muscleSeed[it] } }
+    }
+    val derivedMuscularFinal by remember(muscleFinal, editedMuscleKeys, postSessionPreview) {
         derivedStateOf {
-            if (muscleFinal.isEmpty()) {
-                postSessionPreview.muscular
-            } else {
-                muscleFinal.values.average().toInt().coerceIn(0, 100)
-            }
+            recalibratedCanonicalMuscularBattery(
+                preview = postSessionPreview,
+                automaticSeed = muscleSeed,
+                currentValues = muscleFinal,
+                editedMuscleKeys = editedMuscleKeys,
+                roleWeightedSets = sessionMuscleVolumeByRoleSets,
+            )
         }
     }
     val lowestMuscle = muscleFinal.minByOrNull { it.value }?.key
@@ -307,19 +345,11 @@ internal fun FinishWorkoutSheet(
     BackHandler(enabled = true) { onDismiss() }
 
     val executeConfirm = {
-        val perceivedMuscularDrop = if (muscleFinal.isEmpty()) {
-            postSessionPreview.globalMuscularDrain.toDouble()
+        val muscularAdjustment = if (editedMuscleKeys.isEmpty()) {
+            0
         } else {
-            muscleFinal.entries
-                .map { (muscle, finalValue) ->
-                    val start = postSessionPreview.perMuscle[muscle]?.recoveryScore ?: 100
-                    (start - finalValue).toDouble()
-                }
-                .average()
+            (postSessionPreview.muscular - derivedMuscularFinal).coerceIn(-35, 35)
         }
-        val muscularAdjustment = (
-            perceivedMuscularDrop.toInt() - postSessionPreview.globalMuscularDrain
-            ).coerceIn(-35, 35)
         val stillPresentIds = selectedDiscomforts
             .filter { id -> discomfortStillPresent[id] ?: true }
             .toList()
@@ -355,10 +385,16 @@ internal fun FinishWorkoutSheet(
                 environmentTags = emptyList(),
                 finalNeuralBattery = neuralFinal,
                 finalSpinalBattery = spinalFinal,
-                finalMuscleBatteries = if (musclesEdited) muscleFinal.toMap() else emptyMap(),
+                finalMuscleBatteries = editedMuscleKeys.associateWith { muscle ->
+                    muscleFinal[muscle] ?: muscleSeed[muscle] ?: 100
+                },
                 neuralEdited = neuralEdited,
                 spinalEdited = spinalEdited,
-                musclesEdited = musclesEdited,
+                musclesEdited = editedMuscleKeys.isNotEmpty(),
+                editedMuscleKeys = editedMuscleKeys,
+                finishOperationId = postSessionPreview.finishOperationId,
+                completionInstantIso = postSessionPreview.completionInstantIso,
+                completedSetInputHash = postSessionPreview.inputHash,
                 additionalDiscomfortNote = additionalDiscomfortNote.trim().takeIf { it.isNotBlank() },
                 stillPresentDiscomfortIds = stillPresentIds,
             ),
@@ -568,7 +604,8 @@ internal fun FinishWorkoutSheet(
                                         value = current,
                                         onValueChange = { updated ->
                                             muscleFinal[muscleId] = updated
-                                            musclesEdited = true
+                                            musclesEdited = muscleFinal[muscleId] != muscleSeed[muscleId]
+                                                || muscleFinal.any { (key, value) -> value != muscleSeed[key] }
                                         },
                                     )
                                 }

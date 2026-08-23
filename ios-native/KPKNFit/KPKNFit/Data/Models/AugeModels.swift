@@ -36,6 +36,79 @@ public enum ArticularStatus: String, Codable {
     case OPTIMAL, RECOVERING, EXHAUSTED
 }
 
+// ─── Canonical muscular finish contract (Android/backend parity) ─────────────
+
+/// Persisted once, at the exact finish instant.  Optional fields keep legacy
+/// JSONL records decodable while the v2 engine rolls out across platforms.
+public struct MuscleSessionImpactV2: Codable {
+    public let stressUnits: Double
+    public let capacityAtCompletion: Double
+    public let immediateDrainPct: Double
+    public let directStressUnits: Double
+    public let indirectStressUnits: Double
+
+    public init(
+        stressUnits: Double,
+        capacityAtCompletion: Double,
+        immediateDrainPct: Double,
+        directStressUnits: Double,
+        indirectStressUnits: Double
+    ) {
+        self.stressUnits = stressUnits
+        self.capacityAtCompletion = capacityAtCompletion
+        self.immediateDrainPct = immediateDrainPct
+        self.directStressUnits = directStressUnits
+        self.indirectStressUnits = indirectStressUnits
+    }
+}
+
+public struct MuscularSessionImpactV2: Codable {
+    public let modelVersion: Int
+    public let completionInstantIso: String
+    public let globalMuscularDrain: Double
+    public let perMuscle: [String: MuscleSessionImpactV2]
+    public let involvedVolumeMuscles: [String]
+    public let setInputHash: String
+    public let contextHash: String
+
+    public init(
+        modelVersion: Int = 2,
+        completionInstantIso: String,
+        globalMuscularDrain: Double,
+        perMuscle: [String: MuscleSessionImpactV2],
+        involvedVolumeMuscles: [String],
+        setInputHash: String,
+        contextHash: String
+    ) {
+        self.modelVersion = modelVersion
+        self.completionInstantIso = completionInstantIso
+        self.globalMuscularDrain = globalMuscularDrain
+        self.perMuscle = perMuscle
+        self.involvedVolumeMuscles = involvedVolumeMuscles
+        self.setInputHash = setInputHash
+        self.contextHash = contextHash
+    }
+}
+
+public struct ManualMuscleBatteryOverride: Codable {
+    public let battery: Int
+    public let anchorEpochMs: Int64
+    public let sourceSessionId: String?
+    public let automaticBatteryAtAnchor: Int
+
+    public init(
+        battery: Int,
+        anchorEpochMs: Int64,
+        sourceSessionId: String? = nil,
+        automaticBatteryAtAnchor: Int
+    ) {
+        self.battery = battery
+        self.anchorEpochMs = anchorEpochMs
+        self.sourceSessionId = sourceSessionId
+        self.automaticBatteryAtAnchor = automaticBatteryAtAnchor
+    }
+}
+
 // ─── User Vitals ──────────────────────────────────────────────────────────────
 
 public struct UserVitals: Codable {
@@ -87,6 +160,7 @@ public struct DailyWellbeingLog: Codable {
     public let manualNeuralBattery: Int?
     public let manualSpinalBattery: Int?
     public let manualMuscleBatteries: [String: Int]
+    public let manualMuscleOverridesV2: [String: ManualMuscleBatteryOverride]?
     public let manualBatteryAnchorMs: Int64?
     public let notes: String?
     public let preWorkoutDiscomforts: [String]
@@ -106,6 +180,7 @@ public struct DailyWellbeingLog: Codable {
         manualNeuralBattery: Int? = nil,
         manualSpinalBattery: Int? = nil,
         manualMuscleBatteries: [String: Int] = [:],
+        manualMuscleOverridesV2: [String: ManualMuscleBatteryOverride]? = nil,
         manualBatteryAnchorMs: Int64? = nil,
         notes: String? = nil,
         preWorkoutDiscomforts: [String] = []
@@ -124,6 +199,7 @@ public struct DailyWellbeingLog: Codable {
         self.manualNeuralBattery = manualNeuralBattery
         self.manualSpinalBattery = manualSpinalBattery
         self.manualMuscleBatteries = manualMuscleBatteries
+        self.manualMuscleOverridesV2 = manualMuscleOverridesV2
         self.manualBatteryAnchorMs = manualBatteryAnchorMs
         self.notes = notes
         self.preWorkoutDiscomforts = preWorkoutDiscomforts
@@ -446,6 +522,8 @@ public struct AugeAdaptiveCache: Codable {
     public let cnsDrainMultiplier: Double
     public let spinalDrainMultiplier: Double
     public let muscleDrainMultipliers: [String: Double]
+    /// Optional for legacy JSONL; nil/old values are invalidated on load.
+    public let muscularBiasVersion: Int?
     public let totalObservations: Int
     public let lastUpdatedMs: Int64
 
@@ -459,6 +537,7 @@ public struct AugeAdaptiveCache: Codable {
         cnsDrainMultiplier: Double = 1.0,
         spinalDrainMultiplier: Double = 1.0,
         muscleDrainMultipliers: [String: Double] = [:],
+        muscularBiasVersion: Int? = 2,
         totalObservations: Int = 0,
         lastUpdatedMs: Int64 = 0
     ) {
@@ -471,6 +550,7 @@ public struct AugeAdaptiveCache: Codable {
         self.cnsDrainMultiplier = cnsDrainMultiplier
         self.spinalDrainMultiplier = spinalDrainMultiplier
         self.muscleDrainMultipliers = muscleDrainMultipliers
+        self.muscularBiasVersion = muscularBiasVersion
         self.totalObservations = totalObservations
         self.lastUpdatedMs = lastUpdatedMs
     }

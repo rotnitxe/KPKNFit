@@ -1,8 +1,11 @@
 """Fatigue service – faithful port of services/fatigueService.ts (AUGE v2.0)"""
 from __future__ import annotations
+import hashlib
+import json
 import math
 from models.common import (
     ExerciseMuscleInfo, ExerciseSet, Session, CompletedExercise, Settings,
+    MuscularSessionImpactV2, MuscleSessionImpactV2,
 )
 from engines.exercise_index import ExerciseIndex
 
@@ -88,18 +91,36 @@ def _get_effective_rpe(s: dict | ExerciseSet) -> float:
     if isinstance(s, ExerciseSet):
         s = s.model_dump()
 
-    base = 7.0
-    if s.get("completedRPE") is not None:
-        base = s["completedRPE"]
-    elif s.get("targetRPE") is not None:
-        base = s["targetRPE"]
-    elif s.get("completedRIR") is not None:
-        base = 10 - s["completedRIR"]
-    elif s.get("targetRIR") is not None:
-        base = 10 - s["targetRIR"]
+    failure = bool(
+        s.get("isFailure")
+        or s.get("performanceMode") in {"failure", "failed"}
+        or s.get("intensityMode") == "failure"
+        or s.get("actualIntensityMode") == "failure"
+        or s.get("isAmrap")
+    )
+    if failure:
+        return 11.0
 
-    if s.get("isFailure") or s.get("performanceMode") == "failure" or s.get("intensityMode") == "failure" or s.get("isAmrap"):
-        base = max(base, 11)
+    mode = str(s.get("actualIntensityMode") or "").lower()
+    actual_value = s.get("actualIntensityValue")
+    if actual_value is not None and mode in {"rpe", "actual_rpe"}:
+        base = float(actual_value)
+    elif actual_value is not None and mode in {"rir", "actual_rir"}:
+        base = 10.0 - float(actual_value)
+    elif s.get("completedRIR") is not None:
+        base = 10.0 - float(s["completedRIR"])
+    elif s.get("rir") is not None:
+        base = 10.0 - float(s["rir"])
+    elif s.get("targetRIR") is not None:
+        base = 10.0 - float(s["targetRIR"])
+    elif s.get("completedRPE") is not None:
+        base = float(s["completedRPE"])
+    elif s.get("rpe") is not None:
+        base = float(s["rpe"])
+    elif s.get("targetRPE") is not None:
+        base = float(s["targetRPE"])
+    else:
+        base = 7.0
 
     technique_bonus = 0.0
     ds = s.get("dropSets")
@@ -319,3 +340,92 @@ def calculate_completed_session_stress(
         muscle_vol[primary] = acc
 
     return total
+
+
+# ── Canonical muscular finish impact (v2) ─────────────────
+
+def _impact_hash(value: object) -> str:
+    payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def calculate_completed_muscular_impact_v2(
+    completed_exercises: list[CompletedExercise],
+    exercise_list: list[ExerciseMuscleInfo],
+    completion_instant_iso: str,
+    settings: Settings | None = None,
+    set_input_hash: str | None = None,
+    context_hash: str | None = None,
+) -> MuscularSessionImpactV2:
+    """Compute local muscle stress once at finish, without a global 23-battery average.
+
+    The global ring remains the existing session aggregate.  Local stress is
+    attributed from the persisted catalog roles and activation values, with a
+    diminishing return by muscle so direct and indirect work remain auditable.
+    """
+    tanks = calculate_personalized_battery_tanks(settings)
+    muscular_capacity = max(float(tanks.get("muscularTank", 300.0)), 1.0)
+    idx = ExerciseIndex(exercise_list)
+    per_stress: dict[str, float] = {}
+    per_direct: dict[str, float] = {}
+    per_indirect: dict[str, float] = {}
+    volume_sets: dict[str, int] = {}
+    total_muscular = 0.0
+
+    for exercise in completed_exercises:
+        info = idx.find(exercise.exerciseDbId, exercise.exerciseName)
+        involved = list(info.involvedMuscles) if info and info.involvedMuscles else []
+        if not involved:
+            fallback = exercise.exerciseName or "Core"
+            involved = []
+            # Keep custom/legacy exercises visible without inventing catalog
+            # combinations; they receive one conservative direct bucket.
+            from models.common import InvolvedMuscle, MuscleRole
+            involved.append(InvolvedMuscle(muscle=fallback, role=MuscleRole.primary, activation=1.0))
+
+        for set_data in exercise.sets:
+            muscle_keys = [m.muscle for m in involved]
+            prior = sum(volume_sets.get(k, 0) for k in muscle_keys)
+            drain = calculate_set_battery_drain(set_data, info, tanks, prior, 90)
+            global_musc = max(float(drain["muscularDrainPct"]), 0.0)
+            total_muscular += global_musc * 0.85 / (1.0 + 0.65 * prior / 100.0)
+            for muscle in involved:
+                role = muscle.role.value
+                role_weight = {"primary": 1.0, "secondary": 0.55, "stabilizer": 0.30, "neutralizer": 0.20}.get(role, 0.35)
+                activation = muscle.activation if muscle.activation is not None else {
+                    "primary": 1.0, "secondary": 0.65, "stabilizer": 0.35, "neutralizer": 0.25,
+                }.get(role, 0.35)
+                local_pct = global_musc * 0.85 * role_weight * max(0.0, min(float(activation), 1.0)) / (1.0 + 0.65 * prior / 100.0)
+                stress_units = local_pct / 100.0 * muscular_capacity
+                per_stress[muscle.muscle] = per_stress.get(muscle.muscle, 0.0) + stress_units
+                if role == "primary":
+                    per_direct[muscle.muscle] = per_direct.get(muscle.muscle, 0.0) + stress_units
+                else:
+                    per_indirect[muscle.muscle] = per_indirect.get(muscle.muscle, 0.0) + stress_units
+                volume_sets[muscle.muscle] = volume_sets.get(muscle.muscle, 0) + 1
+
+    global_drain = max(0.0, min(100.0, total_muscular))
+    per_muscle = {
+        muscle: MuscleSessionImpactV2(
+            stressUnits=round(stress, 6),
+            capacityAtCompletion=round(muscular_capacity, 6),
+            immediateDrainPct=round(max(0.0, min(100.0, stress / muscular_capacity * 100.0)), 6),
+            directStressUnits=round(per_direct.get(muscle, 0.0), 6),
+            indirectStressUnits=round(per_indirect.get(muscle, 0.0), 6),
+        )
+        for muscle, stress in sorted(per_stress.items())
+    }
+    canonical_sets = [exercise.model_dump(mode="json") for exercise in completed_exercises]
+    canonical_context = {
+        "completionInstantIso": completion_instant_iso,
+        "exerciseList": [exercise.model_dump(mode="json") for exercise in exercise_list],
+        "settings": settings.model_dump(mode="json") if settings else None,
+    }
+    return MuscularSessionImpactV2(
+        completionInstantIso=completion_instant_iso,
+        globalMuscularDrain=round(global_drain, 6),
+        perMuscle=per_muscle,
+        involvedVolumeMuscles=sorted(per_muscle),
+        setInputHash=set_input_hash or _impact_hash(canonical_sets),
+        contextHash=context_hash or _impact_hash(canonical_context),
+    )

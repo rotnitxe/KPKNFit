@@ -21,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
@@ -36,6 +37,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import kotlin.math.roundToInt
 
 import com.example.kpkn.data.models.*
@@ -240,6 +244,62 @@ private fun WorkoutStepperField(
                         modifier = Modifier.size(if (roomier) 18.dp else 16.dp),
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FeedbackExtraStepperRow(
+    label: String,
+    value: Int,
+    maxValue: Int,
+    accentColor: Color,
+    onDecrement: () -> Unit,
+    onIncrement: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.White.copy(alpha = 0.9f),
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(
+                onClick = onDecrement,
+                enabled = value > 0,
+                modifier = Modifier.size(30.dp),
+            ) {
+                Icon(
+                    Icons.Default.Remove,
+                    contentDescription = "Reducir $label",
+                    modifier = Modifier.size(15.dp),
+                    tint = if (value > 0) Color.White.copy(alpha = 0.8f) else Color.White.copy(alpha = 0.3f),
+                )
+            }
+            Text(
+                value.toString(),
+                modifier = Modifier.widthIn(min = 24.dp),
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Black,
+                color = if (value > 0) accentColor else Color.White.copy(alpha = 0.55f),
+            )
+            IconButton(
+                onClick = onIncrement,
+                enabled = value < maxValue,
+                modifier = Modifier.size(30.dp),
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Aumentar $label",
+                    modifier = Modifier.size(15.dp),
+                    tint = if (value < maxValue) accentColor else Color.White.copy(alpha = 0.3f),
+                )
             }
         }
     }
@@ -895,6 +955,7 @@ internal fun SetInputCardV2(
     var dropSetEnabled by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
     var restPauseEnabled by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
     var showPartialsMode by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
+    var showFeedbackExtrasPopup by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
     var assistedRepsValue by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
         mutableIntStateOf(initialDraft?.assistedReps ?: sessionCompletedSet?.assistedReps ?: 0)
     }
@@ -941,6 +1002,7 @@ internal fun SetInputCardV2(
         amrapReserveReps = initialDraft?.amrapReserveReps
         amrapMinimumReps = initialDraft?.amrapMinimumReps ?: plannedRepRange?.min ?: currentSet.targetReps
         showPartialsMode = false
+        showFeedbackExtrasPopup = false
         isFailedSet = false
         guidedPhase = null
         guidedMainCapture = null
@@ -1101,8 +1163,26 @@ internal fun SetInputCardV2(
     }
 
     val achievedValue = valueText.toDoubleOrNull() ?: 0.0
-    val targetDelta = plannedTarget?.toDouble()?.let { achievedValue - it }
-    val debt = ((plannedTarget?.toDouble() ?: 0.0) - achievedValue).coerceAtLeast(0.0)
+    val repEvaluation = if (!isTimeMode) {
+        evaluateRepRange(
+            actual = achievedValue,
+            range = plannedRepRange ?: plannedTarget?.toInt()?.let { RepRange(it, it) },
+            amrapActive = isAmrap,
+            amrapMinimum = amrapMinimumReps,
+        )
+    } else {
+        null
+    }
+    val targetDelta = if (isTimeMode) {
+        plannedTarget?.toDouble()?.let { achievedValue - it }
+    } else {
+        repEvaluation?.delta
+    }
+    val debt = if (isTimeMode) {
+        ((plannedTarget?.toDouble() ?: 0.0) - achievedValue).coerceAtLeast(0.0)
+    } else {
+        repEvaluation?.debt ?: 0.0
+    }
 
     val activePlannedRpe = activeSideTarget?.targetRPE ?: currentSet.targetRPE
     val activePlannedRir = activeSideTarget?.targetRIR ?: currentSet.targetRIR
@@ -1238,51 +1318,22 @@ internal fun SetInputCardV2(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = WorkoutUiTokens.CardShape,
-        color = if (isFailedSet) Color(0xFF8B1E1E) else WorkoutUiTokens.setCardColor(),
+        color = WorkoutUiTokens.setCardColor(),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
         border = null,
     ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            val guidedSkipAction = remember(exercise.id, setIndex, sideKey) {
-                arrayOf<(() -> Unit)?>(null)
-            }
-            if (isFailedSet) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = WorkoutUiTokens.InnerCardShape,
-                    color = Color(0xFF8B1E1E),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Text(
-                            "Marcaste esta serie como fallida.",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                        )
-                        Text(
-                            "Quiere decir que tuviste una incomodidad, molestia o deformación de la técnica que te impidió completarla. Ten cuidado y siempre procura usar cargas que puedas manejar.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(alpha = 0.92f),
-                        )
-                        FlatAdjustmentButton(
-                            text = "Revertir",
-                            selected = false,
-                            onClick = {
-                                isFailedSet = false
-                                onRevertExecutionError?.invoke()
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .blur(if (isFailedSet) 7.dp else 0.dp)
+                    .padding(horizontal = 12.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                val guidedSkipAction = remember(exercise.id, setIndex, sideKey) {
+                    arrayOf<(() -> Unit)?>(null)
                 }
-            }
             val activeGuidedPhaseTop = guidedPhase
             if (activeGuidedPhaseTop != null) {
                 GuidedTechniquePanel(
@@ -1398,7 +1449,9 @@ internal fun SetInputCardV2(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = WorkoutUiTokens.InnerCardShape,
-                color = if (isFailedSet) Color(0xFF8B1E1E) else WorkoutUiTokens.setInnerColor(),
+                // The failed state is rendered by one red overlay over the
+                // complete card; keep the captured controls neutral underneath.
+                color = WorkoutUiTokens.setInnerColor(),
             ) {
                 Column(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
@@ -1797,12 +1850,92 @@ internal fun SetInputCardV2(
                             modifier = modifier,
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            Text(
-                                (if (isTimeMode) "Tiempo" else "Reps").uppercase(),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            )
+                            val maxRepsForPopup = reportValueText.toIntOrNull() ?: 0
+                            val partialRepsValueForPopup = partialSets.sum().coerceAtLeast(0)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                                ) {
+                                    Text(
+                                        (if (isTimeMode) "Tiempo" else "Reps").uppercase(),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                    )
+                                    if (!isTimeMode) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(16.dp)
+                                                .clip(CircleShape)
+                                                .clickable { showFeedbackExtrasPopup = !showFeedbackExtrasPopup },
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Add,
+                                                contentDescription = "Añadir reps con ayuda o parciales",
+                                                modifier = Modifier.size(12.dp),
+                                                tint = sessionAccentColor,
+                                            )
+                                            if (showFeedbackExtrasPopup) {
+                                                Popup(
+                                                    alignment = Alignment.TopStart,
+                                                    offset = IntOffset(0, 28),
+                                                    onDismissRequest = { showFeedbackExtrasPopup = false },
+                                                    properties = PopupProperties(focusable = true),
+                                                ) {
+                                                    Surface(
+                                                        modifier = Modifier.width(264.dp),
+                                                        shape = RoundedCornerShape(16.dp),
+                                                        color = Color(0xFF1F1F1F),
+                                                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+                                                        shadowElevation = 14.dp,
+                                                    ) {
+                                                        Column(
+                                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                                                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                                                        ) {
+                                                            Text(
+                                                                "Detalles de reps",
+                                                                style = MaterialTheme.typography.labelMedium,
+                                                                fontWeight = FontWeight.Bold,
+                                                                color = Color.White.copy(alpha = 0.72f),
+                                                            )
+                                                            FeedbackExtraStepperRow(
+                                                                label = "Con ayuda",
+                                                                value = assistedRepsValue,
+                                                                maxValue = maxRepsForPopup,
+                                                                accentColor = sessionAccentColor,
+                                                                onDecrement = { assistedRepsValue = (assistedRepsValue - 1).coerceAtLeast(0) },
+                                                                onIncrement = { assistedRepsValue = (assistedRepsValue + 1).coerceAtMost(maxRepsForPopup) },
+                                                            )
+                                                            FeedbackExtraStepperRow(
+                                                                label = "Parciales",
+                                                                value = partialRepsValueForPopup,
+                                                                maxValue = 20,
+                                                                accentColor = sessionAccentColor,
+                                                                onDecrement = {
+                                                                    val next = (partialRepsValueForPopup - 1).coerceAtLeast(0)
+                                                                    partialSets = listOf(next)
+                                                                    if (next == 0) showPartialsMode = false
+                                                                },
+                                                                onIncrement = {
+                                                                    showPartialsMode = true
+                                                                    partialSets = listOf((partialRepsValueForPopup + 1).coerceAtMost(20))
+                                                                },
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                             Spacer(Modifier.height(if (roomyStepper) 8.dp else 6.dp))
                             
                             WorkoutStepperField(
@@ -1827,100 +1960,31 @@ internal fun SetInputCardV2(
 
                             if (!isTimeMode) {
                                 Spacer(modifier = Modifier.height(if (roomyStepper) 6.dp else 4.dp))
-                                val maxReps = reportValueText.toIntOrNull() ?: 0
+                                val maxReps = maxRepsForPopup
                                 if (assistedRepsValue > maxReps) assistedRepsValue = maxReps
                                 val partialRepsValue = partialSets.sum().coerceAtLeast(0)
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(
-                                        text = "Sin/con Ayuda/Parciales",
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
-                                    )
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.weight(1f),
-                                            horizontalArrangement = Arrangement.Center,
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(32.dp)
-                                                    .clip(CircleShape)
-                                                    .clickable { assistedRepsValue = (assistedRepsValue - 1).coerceAtLeast(0) },
-                                                contentAlignment = Alignment.Center,
-                                            ) {
-                                                Icon(Icons.Default.Remove, null, Modifier.size(12.dp), tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
-                                            }
-                                            Text(
-                                                text = if (assistedRepsValue > 0) "${assistedRepsValue} ayuda" else "Sin ayuda",
-                                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                                fontWeight = FontWeight.SemiBold,
-                                                color = if (assistedRepsValue > 0) sessionAccentColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                                modifier = Modifier
-                                                    .weight(1f)
-                                                    .padding(horizontal = 2.dp),
-                                                maxLines = 1,
-                                                softWrap = false,
-                                                overflow = TextOverflow.Ellipsis,
-                                            )
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(32.dp)
-                                                    .clip(CircleShape)
-                                                    .clickable { assistedRepsValue = (assistedRepsValue + 1).coerceAtMost(maxReps) },
-                                                contentAlignment = Alignment.Center,
-                                            ) {
-                                                Icon(Icons.Default.Add, null, Modifier.size(12.dp), tint = sessionAccentColor)
-                                            }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Start,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    val extraSummary = buildString {
+                                        if (assistedRepsValue > 0) append("${assistedRepsValue} ayuda")
+                                        if (partialRepsValue > 0) {
+                                            if (isNotEmpty()) append(" · ")
+                                            append("$partialRepsValue parciales")
                                         }
-                                        Row(
-                                            modifier = Modifier.weight(1f),
-                                            horizontalArrangement = Arrangement.Center,
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(32.dp)
-                                                    .clip(CircleShape)
-                                                    .clickable {
-                                                        val next = (partialRepsValue - 1).coerceAtLeast(0)
-                                                        partialSets = listOf(next)
-                                                        if (next == 0) showPartialsMode = false
-                                                    },
-                                                contentAlignment = Alignment.Center,
-                                            ) {
-                                                Icon(Icons.Default.Remove, null, Modifier.size(12.dp), tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
-                                            }
-                                            Text(
-                                                text = if (partialRepsValue > 0) "$partialRepsValue parciales" else "Sin parciales",
-                                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                                fontWeight = FontWeight.SemiBold,
-                                                color = if (partialRepsValue > 0) sessionAccentColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                                modifier = Modifier
-                                                    .weight(1f)
-                                                    .padding(horizontal = 2.dp),
-                                                maxLines = 1,
-                                                softWrap = false,
-                                                overflow = TextOverflow.Ellipsis,
-                                            )
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(32.dp)
-                                                    .clip(CircleShape)
-                                                    .clickable {
-                                                        showPartialsMode = true
-                                                        partialSets = listOf((partialRepsValue + 1).coerceAtMost(20))
-                                                    },
-                                                contentAlignment = Alignment.Center,
-                                            ) {
-                                                Icon(Icons.Default.Add, null, Modifier.size(12.dp), tint = sessionAccentColor)
-                                            }
-                                        }
+                                    }
+                                    if (extraSummary.isNotBlank()) {
+                                        Text(
+                                            extraSummary,
+                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                            color = sessionAccentColor,
+                                            fontWeight = FontWeight.SemiBold,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            textAlign = TextAlign.Start,
+                                        )
                                     }
                                 }
                             }
@@ -2006,7 +2070,12 @@ internal fun SetInputCardV2(
                         // A set without a planned intensity only asks for its
                         // objective value. The friendly perceived-intensity
                         // slider appears after the exercise instead.
-                        ValueStepperBlock(Modifier.fillMaxWidth())
+                        ValueStepperBlock(
+                            Modifier
+                                .fillMaxWidth(fraction = 0.72f)
+                                .widthIn(max = 280.dp)
+                                .align(Alignment.CenterHorizontally),
+                        )
                     }
 
                     if (exercise.trackRom) {
@@ -2711,6 +2780,53 @@ internal fun SetInputCardV2(
                 onDispose {
                     if (isActivePage) {
                         recordActionHolder.action = null
+                    }
+                }
+            }
+        }
+            if (isFailedSet) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(WorkoutUiTokens.CardShape)
+                        .background(Color(0xFFB3261E).copy(alpha = 0.86f))
+                        .clickable { /* consume taps while the error state is visible */ }
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Column(
+                        // The live roadmap overlays the lower edge of the
+                        // scroll content. Lift the explanation and action
+                        // together so the complete error state remains
+                        // readable and Revertir stays tappable above it.
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .offset(y = (-320).dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            "Marcaste esta serie como fallida.",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White,
+                            textAlign = TextAlign.Center,
+                        )
+                        Text(
+                            "Quiere decir que tuviste una incomodidad, molestia o deformación de la técnica que te impidió completarla. Ten cuidado y siempre procura usar cargas que puedas manejar.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.94f),
+                            textAlign = TextAlign.Center,
+                        )
+                        FlatAdjustmentButton(
+                            text = "Revertir",
+                            selected = true,
+                            onClick = {
+                                isFailedSet = false
+                                onRevertExecutionError?.invoke()
+                            },
+                            modifier = Modifier.widthIn(min = 140.dp, max = 220.dp),
+                        )
                     }
                 }
             }

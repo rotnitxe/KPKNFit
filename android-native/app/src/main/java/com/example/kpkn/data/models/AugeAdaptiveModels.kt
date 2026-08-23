@@ -16,7 +16,7 @@ data class AugeAdaptiveCache(
     val totalObservations: Int = 0,
     val lastUpdatedMs: Long = 0L,
     /** Bump when semantics of deltas/multipliers change to invalidate learned cache. */
-    val schemaVersion: Int = 1,
+    val schemaVersion: Int = 2,
 )
 
 @Serializable

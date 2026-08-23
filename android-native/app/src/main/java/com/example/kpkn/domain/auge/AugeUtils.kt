@@ -54,10 +54,14 @@ internal object AugeUtils {
             Instant.parse(log.date).toEpochMilli()
         } catch (e2: Exception) {
             try {
-                java.time.LocalDate.parse(log.date.take(10))
-                    .atStartOfDay(java.time.ZoneId.systemDefault())
-                    .toInstant().toEpochMilli()
-            } catch (e3: Exception) { 0L }
+                java.time.ZonedDateTime.parse(log.date).toInstant().toEpochMilli()
+            } catch (e3: Exception) {
+                try {
+                    java.time.LocalDate.parse(log.date.take(10))
+                        .atStartOfDay(java.time.ZoneId.systemDefault())
+                        .toInstant().toEpochMilli()
+                } catch (e4: Exception) { 0L }
+            }
         }
     }
 
@@ -68,10 +72,14 @@ internal object AugeUtils {
             Instant.parse(dateString).toEpochMilli()
         } catch (e2: Exception) {
             try {
-                java.time.LocalDate.parse(dateString.take(10))
-                    .atStartOfDay(java.time.ZoneId.systemDefault())
-                    .toInstant().toEpochMilli()
-            } catch (e3: Exception) { 0L }
+                java.time.ZonedDateTime.parse(dateString).toInstant().toEpochMilli()
+            } catch (e3: Exception) {
+                try {
+                    java.time.LocalDate.parse(dateString.take(10))
+                        .atStartOfDay(java.time.ZoneId.systemDefault())
+                        .toInstant().toEpochMilli()
+                } catch (e4: Exception) { 0L }
+            }
         }
     }
 

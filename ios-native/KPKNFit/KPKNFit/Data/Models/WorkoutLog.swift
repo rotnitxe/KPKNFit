@@ -15,6 +15,7 @@ public struct WorkoutLog: Codable {
     public let notes: String?
     public let totalVolume: Double
     public let sessionStressScore: Double?
+    public let muscularImpactV2: MuscularSessionImpactV2?
     public let energySummary: SessionEnergySummary?
     public let weekId: String?
     public let macroIndex: Int?
@@ -47,6 +48,7 @@ public struct WorkoutLog: Codable {
         notes: String? = nil,
         totalVolume: Double = 0.0,
         sessionStressScore: Double? = nil,
+        muscularImpactV2: MuscularSessionImpactV2? = nil,
         energySummary: SessionEnergySummary? = nil,
         weekId: String? = nil,
         macroIndex: Int? = nil,
@@ -78,6 +80,7 @@ public struct WorkoutLog: Codable {
         self.notes = notes
         self.totalVolume = totalVolume
         self.sessionStressScore = sessionStressScore
+        self.muscularImpactV2 = muscularImpactV2
         self.energySummary = energySummary
         self.weekId = weekId
         self.macroIndex = macroIndex

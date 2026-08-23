@@ -271,8 +271,18 @@ struct ReadinessSheetFullView: View {
                 Button(action: {
                     let muscleMap = muscleAdjustments
                     let hasManualSystem = userEditedNeural || userEditedSpinal
-                    let values = Array(muscleMap.values)
-                    let derivedMuscular: Int? = values.isEmpty ? nil : (values.reduce(0, +) / values.count).clamped(to: 0...100)
+                    let anchor = Int64(Date().timeIntervalSince1970 * 1000)
+                    let v2Overrides = Dictionary(uniqueKeysWithValues: muscleMap.map { key, value in
+                        (
+                            key,
+                            ManualMuscleBatteryOverride(
+                                battery: value.clamped(to: 0...100),
+                                anchorEpochMs: anchor,
+                                sourceSessionId: nil,
+                                automaticBatteryAtAnchor: muscleBatteries[key] ?? 100
+                            )
+                        )
+                    })
                     let log = DailyWellbeingLog(
                         id: todayWellbeing?.id ?? UUID().uuidString,
                         date: Self.todayString(),
@@ -281,10 +291,13 @@ struct ReadinessSheetFullView: View {
                         doms: doms,
                         motivation: motivation,
                         sleepHours: todayWellbeing?.sleepHours ?? 7.5,
-                        manualMuscularBattery: (hasManualSystem || !muscleMap.isEmpty) ? derivedMuscular : nil,
+                        // Per-muscle calibration is intentionally not averaged
+                        // into the global muscular ring.
+                        manualMuscularBattery: nil,
                         manualNeuralBattery: hasManualSystem ? neural.clamped(to: 0...100) : nil,
                         manualSpinalBattery: hasManualSystem ? spinal.clamped(to: 0...100) : nil,
-                        manualMuscleBatteries: muscleMap.mapValues { $0.clamped(to: 0...100) }
+                        manualMuscleBatteries: [:],
+                        manualMuscleOverridesV2: v2Overrides.isEmpty ? todayWellbeing?.manualMuscleOverridesV2 : v2Overrides
                     )
                     onSave(log, neural, nil, spinal, muscleAdjustments)
                     onDismiss()

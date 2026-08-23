@@ -129,6 +129,25 @@ public final class AugeRepository {
         guard let data = entity?.data, let cache = try? JSONDecoder().decode(AugeAdaptiveCache.self, from: Data(data.utf8)) else {
             return AugeAdaptiveCache()
         }
+        guard (cache.muscularBiasVersion ?? 0) >= 2 else {
+            // The previous model mixed global and local muscular learning.
+            // Preserve neural/spinal history but fail closed for old muscle
+            // deltas/multipliers until fresh v2 finish snapshots exist.
+            return AugeAdaptiveCache(
+                personalizedRecoveryHours: cache.personalizedRecoveryHours,
+                muscleDeltas: [:],
+                cnsLearningDelta: cache.cnsLearningDelta,
+                spinalLearningDelta: cache.spinalLearningDelta,
+                cnsRecoveryHours: cache.cnsRecoveryHours,
+                spinalRecoveryHours: cache.spinalRecoveryHours,
+                cnsDrainMultiplier: cache.cnsDrainMultiplier,
+                spinalDrainMultiplier: cache.spinalDrainMultiplier,
+                muscleDrainMultipliers: [:],
+                muscularBiasVersion: 2,
+                totalObservations: cache.totalObservations,
+                lastUpdatedMs: cache.lastUpdatedMs
+            )
+        }
         return cache
     }
 
