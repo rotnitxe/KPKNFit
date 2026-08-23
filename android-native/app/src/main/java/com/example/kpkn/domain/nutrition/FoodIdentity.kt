@@ -84,10 +84,15 @@ object FoodIdentity {
             .trim()
     }
 
+    // FIX NUT-01: hallulla/marraqueta are regional names for same Chilean bread.
+    // Grouping them collapses duplicate OFF rows before SAFE_GAP check and allows AUTO.
+    private val BREAD_CHILENO_WORDS = setOf("hallulla", "hallullas", "marraqueta", "marraquetas", "pan batido", "pan frances")
+
     fun familyFor(value: String): String? {
         val normalized = normalize(value)
         return when {
             normalized.contains("salsa de tomate") || normalized == "salsa tomate" -> "salsa_de_tomate"
+            BREAD_CHILENO_WORDS.any { normalized.contains(it) } -> "pan_chileno"
             normalized.split(" ").any { it in PASTA_WORDS } -> "pasta"
             else -> null
         }
@@ -138,18 +143,21 @@ object FoodIdentity {
                 FoodState.UNKNOWN -> listOf("pasta", "tallarines")
             }
             "salsa_de_tomate" -> listOf("salsa de tomate")
+            "pan_chileno" -> listOf("hallulla", "marraqueta", "pan batido")
             else -> emptyList()
         }
     }
 
     /** Extra phrases indexed for the curated rows, without assigning plain fideos a state. */
     fun aliasesForFood(food: FoodItem): List<String> {
-        if (familyFor(food) != "pasta") return emptyList()
-        return when (stateFor(food)) {
+        val family = familyFor(food)
+        if (family == "pasta") return when (stateFor(food)) {
             FoodState.RAW -> listOf("fideos secos", "tallarines secos")
             FoodState.COOKED, FoodState.HYDRATED -> listOf("tallarines cocidos")
             FoodState.UNKNOWN -> emptyList()
         }
+        if (family == "pan_chileno") return listOf("hallulla", "marraqueta", "pan batido", "pan frances")
+        return emptyList()
     }
 
     /**

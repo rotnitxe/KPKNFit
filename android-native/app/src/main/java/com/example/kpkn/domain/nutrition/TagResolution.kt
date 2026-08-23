@@ -2,9 +2,11 @@ package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.food.isApproximationAlias
 import com.example.kpkn.data.models.*
+import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.UUID
+import android.os.SystemClock
 
 /**
  * TagResolution — resolución de ítems parseados a tags registrables.
@@ -94,7 +96,10 @@ class TagResolver(
         val contextResult = detectedContext ?: ContextDetector.detect(parsed.rawDescription)
         val portionAdj = contextResult.portionAdjustment
 
+        // FIX NUT-02: trace común por análisis + subtiempos por tag
+        val analysisTraceId = UUID.randomUUID().toString().substring(0, 8)
         for (item in parsed.items) {
+            val tagStart = SystemClock.elapsedRealtime()
             val lockedPortionAdj = scalingForIntent(item.amountIntent, portionAdj)
 
             // Phase B: SmartFoodResolver para matching fuzzy sobre toda la DB
@@ -189,11 +194,24 @@ class TagResolver(
             } else null
 
             val source = item.analysisSource
+            // FIX NUT-01 systemic: allow verified OFF/USDA exact on-device matches to AUTO.
+            // Previously only LOCAL AUTO counted → hallulla/marraqueta/fideos/gauda (OFF) always NEEDS_CONFIRMATION → red.
+            // Now: if effectiveFood has plausible macros and is exact normalized match (unique, authoritative), treat as AUTO even if source is OFF/USDA.
+            val isVerifiedGlobalExact = effectiveFood != null &&
+                smartCandidate != null &&
+                smartResult.decision == SmartFoodResolver.Decision.AUTO_SELECT &&
+                smartCandidate.foodId == effectiveFood.id &&
+                FoodIdentity.hasPlausibleMacros(effectiveFood) &&
+                (FoodIndex.normalizeSearch(item.tag) == FoodIndex.normalizeSearch(effectiveFood.name) ||
+                    effectiveFood.searchAliases.any { FoodIndex.normalizeSearch(it) == FoodIndex.normalizeSearch(item.tag) } ||
+                    FoodIdentity.normalize(item.tag) == FoodIdentity.normalize(effectiveFood.name)) &&
+                smartCandidate.score >= 0.86 // HIGH_THRESHOLD
             val localAuthority = effectiveFood != null && (
                 staticIsExact ||
                     preparedVariant != null ||
                     (smartResult.decision == SmartFoodResolver.Decision.AUTO_SELECT &&
-                        smartCandidate?.source == "LOCAL")
+                        smartCandidate?.source == "LOCAL") ||
+                    isVerifiedGlobalExact
                 )
             // Los rangos semánticos describen ejemplos del dataset, no la fila local
             // ya seleccionada. La evidencia todavía puede aportar una porción por defecto,
@@ -230,6 +248,29 @@ class TagResolver(
                 effectiveFood != null -> NutritionSourceKind.VERIFIED_GLOBAL
                 else -> NutritionSourceKind.HEURISTIC_ESTIMATE
             }
+            // FIX NUT-02: per-tag instrumentation (anonimizado, sin texto crudo) — after status known
+            val tagElapsed = SystemClock.elapsedRealtime() - tagStart
+            val tagHash = FoodIdentity.normalize(item.tag).hashCode().toString(16)
+            NutritionTelemetry.event(
+                "tag_resolved",
+                mapOf(
+                    "traceId" to analysisTraceId,
+                    "tagHash" to tagHash,
+                    "tagLen" to item.tag.length,
+                    "source" to (smartCandidate?.source ?: "none"),
+                    "score" to (smartCandidate?.score ?: 0.0),
+                    "confidence" to (resolutionConfidence ?: 0.0),
+                    "margin" to (resolutionMargin ?: 0.0),
+                    "decision" to smartResult.decision.name,
+                    "resolutionStatus" to resolutionStatus.name,
+                    "isResolved" to (resolutionStatus == FoodResolutionStatus.AUTO),
+                    "isVerifiedGlobalExact" to isVerifiedGlobalExact,
+                    "candidateCount" to smartResult.candidates.size,
+                    "durationMs" to tagElapsed,
+                    "hasFood" to (effectiveFood != null),
+                ),
+                traceId = analysisTraceId
+            )
             // D2: las instrucciones del dataset son evidencia de recuperación, no una
             // interpretación fiable de la identidad. Un vecino como "Completo con
             // champiñones salteados" puede ser una comida distinta aunque comparta un

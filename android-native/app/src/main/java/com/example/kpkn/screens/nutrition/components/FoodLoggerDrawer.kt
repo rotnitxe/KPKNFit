@@ -279,7 +279,19 @@ fun FoodLoggerDrawer(
 
         detectedContext = result.second
         val newTags = result.first
-        val mergedTags = mergeTagsPreservingManualEdits(tags, newTags)
+        // FIX NUT-04: key drawer state per request — don't keep stale tags from previous description
+        // If description changed, old manual edits for hallulla shouldn't block marraqueta analysis.
+        val isSameRequest = lastAnalyzedDescription.isNotBlank() &&
+            FoodIdentity.normalize(parsed.rawDescription) == FoodIdentity.normalize(lastAnalyzedDescription)
+        val mergedTags = if (isSameRequest || tags.isEmpty()) {
+            mergeTagsPreservingManualEdits(tags, newTags)
+        } else {
+            // New description → fresh state, don't carry stale tags. Preserve only if tag still present.
+            val oldByTag = tags.filter { it.hasManualEdits }.associateBy { FoodIdentity.normalize(it.tag) }
+            newTags.map { newTag ->
+                oldByTag[FoodIdentity.normalize(newTag.tag)] ?: newTag
+            }
+        }
         tags = mergedTags
         // El rango del dataset es una referencia de ejemplos, no una objeción
         // contra macros ya autoritativos. Si todos los alimentos quedaron
@@ -645,20 +657,33 @@ fun FoodLoggerDrawer(
         }
     }
 
+    // FIX NUT-04: deduplicate rapid double taps and fix rank 0 hardcode
+    var lastLearnedKey by remember { mutableStateOf<String?>(null) }
+    var lastLearnedAt by remember { mutableLongStateOf(0L) }
+
     fun resolveFood(tagId: String, food: FoodItem) {
-        NutritionTelemetry.event("candidate_selected", mapOf("source" to "manual", "rank" to 0))
+        val targetTag = tags.firstOrNull { it.id == tagId }
+        // FIX NUT-04: real rank from candidate position (was always 0)
+        val realRank = targetTag?.reviewCandidates?.indexOfFirst { it.id == food.id }?.let { if (it >= 0) it + 1 else 0 } ?: 0
+        NutritionTelemetry.event("candidate_selected", mapOf("source" to "manual", "rank" to realRank))
         val portionAdj = detectedContext?.portionAdjustment ?: 1.0
         // IT2: conectar el aprendizaje del resolver — una corrección manual del
         // usuario debe persistir para futuras resoluciones (antes era código muerto).
-        val targetTag = tags.firstOrNull { it.id == tagId }
         if (targetTag != null) {
-            nutritionRepo.recordLearnedResolution(
-                query = targetTag.tag,
-                brandHint = null,
-                foodId = food.id,
-                portionGrams = targetTag.amountGrams,
-                cookingMethod = targetTag.cookingMethod?.name,
-            )
+            val learnKey = "${targetTag.tag.lowercase()}|${food.id}"
+            val now = System.currentTimeMillis()
+            val isDuplicate = learnKey == lastLearnedKey && (now - lastLearnedAt) < 2000
+            if (!isDuplicate) {
+                lastLearnedKey = learnKey
+                lastLearnedAt = now
+                nutritionRepo.recordLearnedResolution(
+                    query = targetTag.tag,
+                    brandHint = null,
+                    foodId = food.id,
+                    portionGrams = targetTag.amountGrams,
+                    cookingMethod = targetTag.cookingMethod?.name,
+                )
+            }
             updateCalibrationProfile { profile ->
                 NutritionCalibrationWizardEngine.recordConfirmedIdentity(profile, targetTag.tag, food.id)
             }
@@ -1604,7 +1629,7 @@ fun FoodLoggerDrawer(
                             onRemove = { removeTag(tag.id) },
                             foodDatabase = foodDatabase,
                             onResolve = { food ->
-                                nutritionRepo.recordFoodSelection(tag.tag, food)
+                                // FIX NUT-04: removed duplicate recordFoodSelection — resolveFood is single source (dedup + rank)
                                 resolveFood(tag.id, food)
                             },
                             onOilLevelChange = { level -> updateTagOilLevel(tag.id, level) },

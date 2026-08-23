@@ -87,11 +87,14 @@ object TextNormalizer {
     private val REPEATED_PUNCT = Regex("""[!?]{2,}|\.{3,}""")
 
     // ─── Common typos ─────────────────────────────────────────────────────
+    // FIX NUT-01: systemic authority — Gauda/Gouda must normalize to single form,
+    // otherwise OFF rows "gouda" never match query "gauda" as exact → NEEDS_REVIEW.
     private val TYPO_MAP = mapOf(
         "poyo" to "pollo", "polllo" to "pollo", "pyo" to "pollo",
         "arros" to "arroz", "arro" to "arroz", "aros" to "arroz",
         "uebo" to "huevo", "wevo" to "huevo", "guevo" to "huevo", "güevo" to "huevo",
         "gueso" to "queso", "keso" to "queso",
+        "gauda" to "gouda", "gouda" to "gouda",
         "panna" to "pana",
         "papa" to "papa", "papas" to "papa",
         "tomate" to "tomate", "tomate" to "tomate",

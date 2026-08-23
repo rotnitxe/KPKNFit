@@ -34,6 +34,9 @@ class FoodIndex {
     // Main food storage
     private val foods = ConcurrentHashMap<String, IndexedFood>()
 
+    // FIX NUT-03: exact lookup map to avoid O(N) scan in exactMatches (5766 rows × tags).
+    private val exactNameIndex = ConcurrentHashMap<String, MutableSet<String>>() // normalizedName/alias → foodIds
+
     // Inverted indices
     private val tokenIndex = ConcurrentHashMap<String, MutableSet<String>>() // token → foodIds
     private val trigramIndex = ConcurrentHashMap<String, MutableSet<String>>() // trigram → foodIds
@@ -128,8 +131,9 @@ class FoodIndex {
     fun exactMatches(query: String): List<IndexedFood> {
         val normalized = normalizeSearch(query)
         if (normalized.isBlank()) return emptyList()
-        return foods.values
-            .filter { normalized == it.normalizedName || normalized in it.normalizedAliases }
+        // FIX NUT-03: use exact index O(1) instead of O(N) scan
+        val ids = exactNameIndex[normalized] ?: return emptyList()
+        return ids.mapNotNull { foods[it] }
             .sortedWith(
                 // C12: desempate determinista — el orden de iteración de un
                 // ConcurrentHashMap no es estable entre procesos/dispositivos.
@@ -143,6 +147,12 @@ class FoodIndex {
 
     private fun addFood(food: IndexedFood) {
         foods[food.foodId] = food
+
+        // FIX NUT-03: populate exact index
+        exactNameIndex.getOrPut(food.normalizedName) { mutableSetOf() }.add(food.foodId)
+        for (alias in food.normalizedAliases) {
+            exactNameIndex.getOrPut(alias) { mutableSetOf() }.add(food.foodId)
+        }
 
         // Token index
         for (token in food.tokens) {
