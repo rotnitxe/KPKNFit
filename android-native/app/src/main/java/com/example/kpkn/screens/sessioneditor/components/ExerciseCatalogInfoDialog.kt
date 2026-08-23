@@ -47,7 +47,12 @@ import com.example.kpkn.domain.exercises.ExerciseCatalogRegion
 import com.example.kpkn.domain.exercises.resolvePrimaryMuscleLabel
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknGlassDialog
-import com.example.kpkn.domain.exercises.adaptedExerciseDescription
+import com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledge
+import com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledgeKind
+import com.example.kpkn.data.exercises.catalogv2.canonicalMuscleKnowledge
+import com.example.kpkn.data.exercises.catalogv2.canonicalPatternKnowledge
+import com.example.kpkn.data.exercises.catalogv2.decodeCatalogRichMetadata
+import com.example.kpkn.ui.components.CanonicalKnowledgeTooltip
 
 @Composable
 internal fun ExerciseCatalogInfoDialog(
@@ -61,6 +66,8 @@ internal fun ExerciseCatalogInfoDialog(
     val fatigue = remember(exercise.id) { calculateFriendlyFatigue(exercise) }
     val kinship = remember(exercise.id, catalog) { buildExerciseKinships(exercise, catalog) }
     var chipExplain by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var canonicalExplain by remember { mutableStateOf<CanonicalKnowledge?>(null) }
+    val richMetadata = remember(exercise.id, exercise.catalogRichMetadataJson) { exercise.decodeCatalogRichMetadata() }
 
     KpknGlassDialog(
         onDismissRequest = onDismiss,
@@ -125,6 +132,10 @@ internal fun ExerciseCatalogInfoDialog(
                 exercise = exercise,
                 onChipTap = { title, description -> chipExplain = title to description },
             )
+            CanonicalKnowledgeChips(
+                richMetadata = richMetadata,
+                onChipTap = { canonicalExplain = it },
+            )
 
             CatalogDescriptorChips(
                 exercise = exercise,
@@ -148,6 +159,9 @@ internal fun ExerciseCatalogInfoDialog(
                     }
                 }
             }
+            canonicalExplain?.let { knowledge ->
+                CanonicalKnowledgeTooltip(knowledge)
+            }
 
             val muscleContributions = remember(exercise.id, exercise.involvedMuscles) {
                 oneSeriesVolumeContributions(exercise)
@@ -160,7 +174,7 @@ internal fun ExerciseCatalogInfoDialog(
                     color = Color.White.copy(alpha = 0.92f),
                 )
                 muscleContributions.take(6).forEach { item ->
-                    val color = com.example.kpkn.screens.wikilab.wikilabMuscleColor(item.muscle)
+                    val color = com.example.kpkn.ui.components.canonicalMuscleColor(item.muscle)
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -308,7 +322,7 @@ private fun TechnicalAspectDescriptionChips(
                     modifier = Modifier.clickable {
                         onChipTap(
                             option.name,
-                            adaptedExerciseDescription(exercise, mapOf(aspect.id to option.id)),
+                            "Configuración exacta: ${option.name}.",
                         )
                     },
                     shape = RoundedCornerShape(999.dp),
@@ -321,6 +335,44 @@ private fun TechnicalAspectDescriptionChips(
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.White.copy(alpha = 0.82f),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CanonicalKnowledgeChips(
+    richMetadata: com.example.kpkn.domain.exercises.catalogv2.ResolvedExerciseMetadataV2?,
+    onChipTap: (CanonicalKnowledge) -> Unit,
+) {
+    val anatomy = richMetadata?.anatomy ?: return
+    val muscleChips = (anatomy.primaryMuscles.map { it to CanonicalKnowledgeKind.MUSCLE } +
+        anatomy.secondaryMuscles.map { it to CanonicalKnowledgeKind.MUSCLE } +
+        anatomy.stabilizerMuscles.map { it to CanonicalKnowledgeKind.STABILIZER })
+        .mapNotNull { (id, kind) -> canonicalMuscleKnowledge(id)?.copy(kind = kind) }
+        .distinctBy { it.id to it.kind }
+    val jointChips = anatomy.jointInvolvement.mapNotNull { joint ->
+        com.example.kpkn.data.exercises.catalogv2.canonicalJointKnowledge(joint.jointId, CanonicalKnowledgeKind.JOINT)
+    }.distinctBy { it.id }
+    val patternChip = canonicalPatternKnowledge(richMetadata.biomechanics.movementPatternId)
+    if (muscleChips.isEmpty() && jointChips.isEmpty() && patternChip == null) return
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text("Conocimiento canónico", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black)
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            items(muscleChips + jointChips + listOfNotNull(patternChip)) { knowledge ->
+                Surface(
+                    modifier = Modifier.clickable { onChipTap(knowledge) },
+                    shape = RoundedCornerShape(999.dp),
+                    color = Color.White.copy(alpha = 0.10f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+                ) {
+                    Text(
+                        knowledge.name,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
                     )
                 }
             }

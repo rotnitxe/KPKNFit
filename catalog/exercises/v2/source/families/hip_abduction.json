@@ -45,7 +45,6 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. El apoyo sentado reduce la demanda de equilibrio y cambia el papel de esta articulación hacia la transmisión.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +52,6 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. El apoyo sentado reduce la demanda de equilibrio y cambia el papel de esta articulación hacia la transmisión.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +59,6 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,16 +66,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_abduction",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_medius",
-                  "note": "Principal: El glúteo medio separa el muslo y evita que la pelvis caiga durante el apoyo. En la configuración Máquina · Trabajo Bilateral · Posición Sentada, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "tensor_fasciae_latae",
-                  "note": "Secundaria: El tensor de la fascia lata asiste la abducción y ayuda a estabilizar la cadera en el plano frontal. En la configuración Máquina · Trabajo Bilateral · Posición Sentada, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_abduction__machine__abduccion_de_cadera",
               "primaryMuscles": [
                 "gluteus_medius"
@@ -99,7 +86,6 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. El apoyo sentado reduce la demanda de equilibrio y cambia el papel de esta articulación hacia la transmisión.",
                       "role": "PRIMARY"
                     },
                     {
@@ -107,7 +93,6 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. El apoyo sentado reduce la demanda de equilibrio y cambia el papel de esta articulación hacia la transmisión.",
                       "role": "SECONDARY"
                     },
                     {
@@ -115,7 +100,6 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -145,12 +129,6 @@
                     "cadera",
                     "sacroiliaca",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -326,7 +304,6 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "PRIMARY"
                 },
                 {
@@ -334,7 +311,6 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -342,7 +318,6 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "STABILIZER"
                 }
               ],
@@ -350,16 +325,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_abduction",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_medius",
-                  "note": "Principal: El glúteo medio separa el muslo y evita que la pelvis caiga durante el apoyo. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "tensor_fasciae_latae",
-                  "note": "Secundaria: El tensor de la fascia lata asiste la abducción y ayuda a estabilizar la cadera en el plano frontal. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_abduction__machine__abduccion_de_cadera_unilateral",
               "primaryMuscles": [
                 "gluteus_medius"
@@ -380,7 +345,6 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "PRIMARY"
                     },
                     {
@@ -388,7 +352,6 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -396,7 +359,6 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -426,12 +388,6 @@
                     "cadera",
                     "sacroiliaca",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -607,7 +563,6 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna se abre.",
                   "role": "PRIMARY"
                 },
                 {
@@ -615,7 +570,6 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna se abre.",
                   "role": "SECONDARY"
                 },
                 {
@@ -623,7 +577,6 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna se abre.",
                   "role": "STABILIZER"
                 }
               ],
@@ -631,16 +584,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_abduction",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_medius",
-                  "note": "Principal: El glúteo medio separa el muslo y evita que la pelvis caiga durante el apoyo. En la configuración Máquina · Trabajo Bilateral · Posición De Pie, la cadera de apoyo estabiliza mientras la otra pierna abre. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "tensor_fasciae_latae",
-                  "note": "Secundaria: El tensor de la fascia lata asiste la abducción y ayuda a estabilizar la cadera en el plano frontal. En la configuración Máquina · Trabajo Bilateral · Posición De Pie, la cadera de apoyo estabiliza mientras la otra pierna abre. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_abduction__machine__abduccion_de_cadera",
               "primaryMuscles": [
                 "gluteus_medius"
@@ -661,7 +604,6 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna se abre.",
                       "role": "PRIMARY"
                     },
                     {
@@ -669,7 +611,6 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna se abre.",
                       "role": "SECONDARY"
                     },
                     {
@@ -677,7 +618,6 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna se abre.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -707,12 +647,6 @@
                     "cadera",
                     "sacroiliaca",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -888,7 +822,6 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -896,7 +829,6 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
                   "role": "SECONDARY"
                 },
                 {
@@ -904,7 +836,6 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -912,16 +843,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_abduction",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_medius",
-                  "note": "Principal: El glúteo medio separa el muslo y evita que la pelvis caiga durante el apoyo. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido, y el apoyo de pie suma sostener el tronco. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "tensor_fasciae_latae",
-                  "note": "Secundaria: El tensor de la fascia lata asiste la abducción y ayuda a estabilizar la cadera en el plano frontal. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido, y el apoyo de pie suma sostener el tronco. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_abduction__machine__abduccion_de_cadera_unilateral",
               "primaryMuscles": [
                 "gluteus_medius"
@@ -942,7 +863,6 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -950,7 +870,6 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
                       "role": "SECONDARY"
                     },
                     {
@@ -958,7 +877,6 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -988,12 +906,6 @@
                     "cadera",
                     "sacroiliaca",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -1169,7 +1081,6 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1177,7 +1088,6 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1185,7 +1095,6 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1193,16 +1102,6 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "hip_abduction",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_medius",
-                  "note": "Principal: El glúteo medio separa el muslo y evita que la pelvis caiga durante el apoyo. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "tensor_fasciae_latae",
-                  "note": "Secundaria: El tensor de la fascia lata asiste la abducción y ayuda a estabilizar la cadera en el plano frontal. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_abduction__cable__abduccion_de_cadera",
               "primaryMuscles": [
                 "gluteus_medius"
@@ -1223,7 +1122,6 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1231,7 +1129,6 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1239,7 +1136,6 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1269,12 +1165,6 @@
                     "cadera",
                     "sacroiliaca",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
@@ -1450,7 +1340,6 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1458,7 +1347,6 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1466,7 +1354,6 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1474,16 +1361,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "hip_abduction",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_medius",
-                  "note": "Principal: El glúteo medio separa el muslo y evita que la pelvis caiga durante el apoyo. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "tensor_fasciae_latae",
-                  "note": "Secundaria: El tensor de la fascia lata asiste la abducción y ayuda a estabilizar la cadera en el plano frontal. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_abduction__cable__abduccion_de_cadera_unilateral",
               "primaryMuscles": [
                 "gluteus_medius"
@@ -1504,7 +1381,6 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1512,7 +1388,6 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1520,7 +1395,6 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1550,12 +1424,6 @@
                     "cadera",
                     "sacroiliaca",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
@@ -1731,7 +1599,6 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1739,7 +1606,6 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1747,7 +1613,6 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1755,16 +1620,6 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "hip_abduction",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_medius",
-                  "note": "Principal: El glúteo medio separa el muslo y evita que la pelvis caiga durante el apoyo. La banda se vuelve más exigente al final y hace más visible su participación en ese tramo. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "tensor_fasciae_latae",
-                  "note": "Secundaria: El tensor de la fascia lata asiste la abducción y ayuda a estabilizar la cadera en el plano frontal. La banda se vuelve más exigente al final y hace más visible su participación en ese tramo. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_abduction__band__abduccion_de_cadera",
               "primaryMuscles": [
                 "gluteus_medius"
@@ -1785,7 +1640,6 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1793,7 +1647,6 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1801,7 +1654,6 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1831,12 +1683,6 @@
                     "cadera",
                     "sacroiliaca",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "variable_band",
                   "stability": "self_stabilized"
@@ -2012,7 +1858,6 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2020,7 +1865,6 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2028,7 +1872,6 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2036,16 +1879,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "hip_abduction",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_medius",
-                  "note": "Principal: El glúteo medio separa el muslo y evita que la pelvis caiga durante el apoyo. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "tensor_fasciae_latae",
-                  "note": "Secundaria: El tensor de la fascia lata asiste la abducción y ayuda a estabilizar la cadera en el plano frontal. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_abduction__band__abduccion_de_cadera_unilateral",
               "primaryMuscles": [
                 "gluteus_medius"
@@ -2066,7 +1899,6 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2074,7 +1906,6 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2082,7 +1913,6 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2112,12 +1942,6 @@
                     "cadera",
                     "sacroiliaca",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "variable_band",
                   "stability": "self_stabilized"

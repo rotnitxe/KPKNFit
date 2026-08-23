@@ -18,8 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.wikilab.TRAINING_CONCEPTS_DATABASE
 import com.example.kpkn.navigation.KpknRoute
-import com.example.kpkn.screens.wikilab.APRENDE_DIVIDER
-import com.example.kpkn.screens.wikilab.APRENDE_LINK_COLOR
+import com.example.kpkn.ui.components.CONCEPTS_DIVIDER
+import com.example.kpkn.ui.components.CONCEPTS_LINK_COLOR
 import kotlinx.coroutines.delay
 import java.time.LocalDate
 
@@ -39,31 +39,31 @@ fun HomeWikiLabSection(onNavigate: (String) -> Unit) {
     }
     // Category remains useful as editorial metadata, but it must not dictate
     // the visual palette of the home surface.
-    val accent = APRENDE_LINK_COLOR
+    val accent = CONCEPTS_LINK_COLOR
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp)
-            .clickable { onNavigate(KpknRoute.WikiLabConceptDetail.create(concept.id)) }
+            .clickable { onNavigate(KpknRoute.ConceptDetail.create(concept.id)) }
             .padding(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "APRENDE",
+                "CONCEPTOS CLAVE",
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Black,
                 letterSpacing = 1.4.sp,
                 color = Color.White.copy(alpha = 0.76f),
             )
-            IconButton(onClick = { onNavigate(KpknRoute.WikiLab.route) }, modifier = Modifier.size(34.dp)) {
-                Icon(Icons.Default.Search, contentDescription = "Buscar en Aprende", tint = accent, modifier = Modifier.size(18.dp))
+            IconButton(onClick = { onNavigate(KpknRoute.Concepts.route) }, modifier = Modifier.size(34.dp)) {
+                Icon(Icons.Default.Search, contentDescription = "Buscar conceptos", tint = accent, modifier = Modifier.size(18.dp))
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Box(Modifier.width(3.dp).heightIn(min = 94.dp).background(APRENDE_DIVIDER))
+            Box(Modifier.width(3.dp).heightIn(min = 94.dp).background(CONCEPTS_DIVIDER))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     "CONCEPTO DEL DÍA · ${concept.category.label.uppercase()}",

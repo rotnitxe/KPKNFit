@@ -182,7 +182,10 @@ object SmartExerciseCreator {
                 volumeContribution = source?.let { resolveMuscleVolumeContribution(it) }
                     ?: resolveMuscleVolumeContribution(muscle),
                 emphasis = source?.emphasis ?: muscle.emphasis,
-                biomechanicalReason = source?.biomechanicalReason ?: muscle.biomechanicalReason,
+                // Retired adapted explanations are not carried into the new
+                // catalog/editor projections. Legacy JSON still deserializes
+                // the nullable field for compatibility.
+                biomechanicalReason = null,
             )
         }
     }

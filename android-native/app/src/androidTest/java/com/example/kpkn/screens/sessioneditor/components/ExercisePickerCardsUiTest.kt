@@ -95,7 +95,8 @@ class ExercisePickerCardsUiTest {
         assertEquals(0, selectionCount)
 
         composeRule.onNodeWithText("Deltoides · anterior").performClick()
-        composeRule.onNodeWithText("hombro", substring = true).assertExists()
+        composeRule.onNodeWithText("hombro", substring = true).assertDoesNotExist()
+        composeRule.onNodeWithText("biomechanicalReason", substring = true).assertDoesNotExist()
         assertEquals(0, selectionCount)
 
         composeRule.onNodeWithText("Press de banca").performClick()

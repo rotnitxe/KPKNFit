@@ -13,8 +13,10 @@ import kotlinx.serialization.json.Json
 /**
  * WikiLab Repository — StateFlow + Room cache pattern.
  *
- * All static WikiLab data (muscles, joints, tendons, patterns, chains)
- * is loaded from Room on initialization and exposed as StateFlows.
+ * Compact canonical anatomy rows (muscles, joints, patterns) are loaded from
+ * Room on initialization and exposed as StateFlows. Legacy tendon and chain
+ * tables remain in Room v23 only for schema compatibility; they are purged
+ * and never loaded into the runtime surface.
  *
  * On first app launch, data is prepopulated from JSON assets.
  */
@@ -54,14 +56,12 @@ object WikiLabRepository {
 
             val muscles = dao.getAllMuscles().first()
             val joints = dao.getAllJoints().first()
-            val tendons = dao.getAllTendons().first()
             val patterns = dao.getAllPatterns().first()
-            val chains = dao.getAllChains().first()
             _muscles.value = muscles
             _joints.value = joints
-            _tendons.value = tendons
             _patterns.value = patterns
-            _chains.value = chains
+            _tendons.value = emptyList()
+            _chains.value = emptyList()
         }
     }
 

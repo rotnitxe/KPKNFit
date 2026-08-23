@@ -60,7 +60,7 @@ import com.example.kpkn.domain.exercises.TechnicalAspectEngine
 import com.example.kpkn.domain.exercises.VariantGroup
 import com.example.kpkn.domain.exercises.VariantGroupIndex
 import com.example.kpkn.domain.exercises.VariantPreferenceStore
-import com.example.kpkn.screens.wikilab.wikilabMuscleColor
+import com.example.kpkn.ui.components.canonicalMuscleColor
 
 @Composable
 fun CatalogSelectionWizard(
@@ -454,7 +454,7 @@ internal fun MuscleActivationPreview(
                 val baseVC = baseEntry?.volumeContribution ?: muscle.volumeContribution ?: 0.0
                 val effVC = muscle.volumeContribution ?: 0.0
                 val roleChanged = baseEntry?.role != muscle.role
-                val muscleColor = wikilabMuscleColor(muscle.muscle)
+                val muscleColor = canonicalMuscleColor(muscle.muscle)
 
                 Column(
                     modifier = Modifier.fillMaxWidth(),

@@ -45,7 +45,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +52,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +59,6 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
-                  "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 },
                 {
@@ -69,7 +66,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,12 +73,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant_lengthened",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: Los cuádriceps extiende la rodilla y absorbe la carga al descender. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "sissy_squat__barbell",
               "primaryMuscles": [
                 "quadriceps"
@@ -103,7 +93,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -111,7 +100,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -119,7 +107,6 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
-                      "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     },
                     {
@@ -127,7 +114,6 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -156,13 +142,6 @@
                     "cadera",
                     "tobillo",
                     "columna-lumbar"
-                  ],
-                  "relevantTendons": [
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales",
-                    "tendon-iliopsoas",
-                    "tendon-aquiles"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -335,7 +314,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                   "role": "PRIMARY"
                 },
                 {
@@ -343,7 +321,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                   "role": "SECONDARY"
                 },
                 {
@@ -351,7 +328,6 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
-                  "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 },
                 {
@@ -359,7 +335,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                   "role": "STABILIZER"
                 }
               ],
@@ -367,12 +342,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_dominant_lengthened",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: Los cuádriceps extiende la rodilla y absorbe la carga al descender. En la configuración Máquina, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "sissy_squat__machine",
               "primaryMuscles": [
                 "quadriceps"
@@ -393,7 +362,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                       "role": "PRIMARY"
                     },
                     {
@@ -401,7 +369,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                       "role": "SECONDARY"
                     },
                     {
@@ -409,7 +376,6 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
-                      "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     },
                     {
@@ -417,7 +383,6 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -446,13 +411,6 @@
                     "cadera",
                     "tobillo",
                     "columna-lumbar"
-                  ],
-                  "relevantTendons": [
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales",
-                    "tendon-iliopsoas",
-                    "tendon-aquiles"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
@@ -625,7 +583,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                   "role": "PRIMARY"
                 },
                 {
@@ -633,7 +590,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                   "role": "SECONDARY"
                 },
                 {
@@ -641,7 +597,6 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
-                  "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 },
                 {
@@ -649,7 +604,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                   "role": "STABILIZER"
                 }
               ],
@@ -657,12 +611,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_dominant_lengthened",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: Los cuádriceps extiende la rodilla y absorbe la carga al descender. En la configuración Máquina Smith, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "sissy_squat__smith_machine",
               "primaryMuscles": [
                 "quadriceps"
@@ -683,7 +631,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                       "role": "PRIMARY"
                     },
                     {
@@ -691,7 +638,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                       "role": "SECONDARY"
                     },
                     {
@@ -699,7 +645,6 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
-                      "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     },
                     {
@@ -707,7 +652,6 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -736,13 +680,6 @@
                     "cadera",
                     "tobillo",
                     "columna-lumbar"
-                  ],
-                  "relevantTendons": [
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales",
-                    "tendon-iliopsoas",
-                    "tendon-aquiles"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
@@ -915,7 +852,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -923,7 +859,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -931,7 +866,6 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
-                  "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 },
                 {
@@ -939,7 +873,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -947,12 +880,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant_lengthened",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: Los cuádriceps extiende la rodilla y absorbe la carga al descender. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "sissy_squat__dumbbells",
               "primaryMuscles": [
                 "quadriceps"
@@ -973,7 +900,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -981,7 +907,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -989,7 +914,6 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
-                      "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     },
                     {
@@ -997,7 +921,6 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1026,13 +949,6 @@
                     "cadera",
                     "tobillo",
                     "columna-lumbar"
-                  ],
-                  "relevantTendons": [
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales",
-                    "tendon-iliopsoas",
-                    "tendon-aquiles"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -1205,7 +1121,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1213,7 +1128,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1221,7 +1135,6 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
-                  "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1229,7 +1142,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1237,12 +1149,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant_lengthened",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: Los cuádriceps extiende la rodilla y absorbe la carga al descender. En la configuración Disco, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "sissy_squat__plate",
               "primaryMuscles": [
                 "quadriceps"
@@ -1263,7 +1169,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla produce la mayor parte de la subida y recibe el carga dominante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1271,7 +1176,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Secundaria: La cadera acompaña la profundidad y ayuda a salir sin que la rodilla pierda su línea. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1279,7 +1183,6 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
-                      "note": "Estabilizadora: El tobillo permite que la tibia avance y mantiene el pie conectado al suelo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1287,7 +1190,6 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar resiste la flexión para que la carga no colapse el torso. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1316,13 +1218,6 @@
                     "cadera",
                     "tobillo",
                     "columna-lumbar"
-                  ],
-                  "relevantTendons": [
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales",
-                    "tendon-iliopsoas",
-                    "tendon-aquiles"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"

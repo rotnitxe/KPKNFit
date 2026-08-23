@@ -104,6 +104,12 @@ import com.example.kpkn.screens.sessioneditor.CatalogLaunchOrigin
 import com.example.kpkn.screens.sessioneditor.CatalogSelectionMode
 import com.example.kpkn.screens.sessioneditor.CatalogSupersetConfig
 import com.example.kpkn.data.exercises.catalogv2.toLegacySelection
+import com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledge
+import com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledgeKind
+import com.example.kpkn.data.exercises.catalogv2.canonicalJointKnowledge
+import com.example.kpkn.data.exercises.catalogv2.canonicalMuscleKnowledge
+import com.example.kpkn.data.exercises.catalogv2.canonicalPatternKnowledge
+import com.example.kpkn.data.exercises.catalogv2.decodeCatalogRichMetadata
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.MuscleRole
@@ -114,7 +120,6 @@ import com.example.kpkn.domain.exercises.SmartCreateRequest
 import com.example.kpkn.domain.exercises.ExercisePatternDetector
 import com.example.kpkn.domain.exercises.ExerciseMatchLexicon
 import com.example.kpkn.domain.exercises.SmartExerciseCreator
-import com.example.kpkn.domain.exercises.explainMuscleContribution
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseBodyRegionV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRepositoryV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
@@ -127,7 +132,7 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseSearchFiltersV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseSearchHitV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseSelectionV2
 import com.example.kpkn.screens.sessioneditor.CatalogSearchField
-import com.example.kpkn.screens.wikilab.wikilabMuscleColor
+import com.example.kpkn.ui.components.canonicalMuscleColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collectLatest
@@ -138,6 +143,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknGlassDialog
 import com.example.kpkn.ui.components.KpknGlass
+import com.example.kpkn.ui.components.CanonicalKnowledgeTooltip
 import com.example.kpkn.ui.components.LocalHazeState
 import com.example.kpkn.ui.components.kpknGlassOrFallback
 import dev.chrisbanes.haze.HazeState
@@ -1444,6 +1450,7 @@ private fun ColumnScope.CatalogReadyContent(
                                 ?.takeIf { it.isNotEmpty() }
                                 .orEmpty(),
                             info = effectiveExerciseInfo?.takeIf { it.involvedMuscles.isNotEmpty() },
+                            patternId = effectiveConfiguration?.profile?.movementPatternId,
                         )
 
                         Text(
@@ -1690,9 +1697,11 @@ internal fun CatalogDescription(
 internal fun CatalogInvolvementAccordions(
     info: ExerciseMuscleInfo?,
     joints: List<JointInvolvementV2>,
+    patternId: String? = null,
 ) {
     var muscleExpanded by remember { mutableStateOf(false) }
     var jointExpanded by remember { mutableStateOf(false) }
+    var canonicalExplain by remember { mutableStateOf<CanonicalKnowledge?>(null) }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -1705,7 +1714,11 @@ internal fun CatalogInvolvementAccordions(
                 expanded = muscleExpanded,
                 onToggle = { muscleExpanded = !muscleExpanded },
             ) {
-                MuscleInvolvementSection(muscleInfo, showHeader = false)
+                MuscleInvolvementSection(
+                    muscleInfo,
+                    showHeader = false,
+                    onKnowledge = { canonicalExplain = it },
+                )
             }
         }
         if (joints.isNotEmpty()) {
@@ -1714,9 +1727,34 @@ internal fun CatalogInvolvementAccordions(
                 expanded = jointExpanded,
                 onToggle = { jointExpanded = !jointExpanded },
             ) {
-                JointInvolvementSection(joints, showHeader = false)
+                JointInvolvementSection(
+                    joints,
+                    showHeader = false,
+                    onKnowledge = { canonicalExplain = it },
+                )
             }
         }
+        patternId?.let { id ->
+            canonicalPatternKnowledge(id)?.let { pattern ->
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { canonicalExplain = pattern },
+                    shape = RoundedCornerShape(999.dp),
+                    color = Color.White.copy(alpha = 0.08f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+                ) {
+                    Text(
+                        "Patrón · ${pattern.name}",
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+                        color = Color.White.copy(alpha = 0.86f),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            }
+        }
+        canonicalExplain?.let { CanonicalKnowledgeTooltip(it) }
     }
 }
 
@@ -1825,6 +1863,7 @@ private fun jointRoleLabel(role: JointRoleV2): String = when (role) {
 private fun JointInvolvementSection(
     joints: List<JointInvolvementV2>,
     showHeader: Boolean = true,
+    onKnowledge: (CanonicalKnowledge) -> Unit = {},
 ) {
     val expandedJoint = remember { mutableStateOf<String?>(null) }
     Column(
@@ -1882,6 +1921,20 @@ private fun JointInvolvementSection(
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
                         )
+                        canonicalJointKnowledge(joint.jointId)?.let { knowledge ->
+                            Surface(
+                                modifier = Modifier.clickable { onKnowledge(knowledge) },
+                                shape = RoundedCornerShape(999.dp),
+                                color = Color.White.copy(alpha = 0.10f),
+                            ) {
+                                Text(
+                                    "Info",
+                                    color = Color.White.copy(alpha = 0.78f),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                )
+                            }
+                        }
                         Surface(
                             shape = RoundedCornerShape(999.dp),
                             color = accentColor.copy(alpha = 0.18f),
@@ -1929,14 +1982,6 @@ private fun JointInvolvementSection(
                         }
                     }
 
-                    if (isExpanded && joint.note.isNotBlank()) {
-                        Text(
-                            joint.note,
-                            color = Color.White.copy(alpha = 0.80f),
-                            style = MaterialTheme.typography.bodySmall,
-                            lineHeight = 18.sp,
-                        )
-                    }
                 }
             }
         }
@@ -1947,12 +1992,14 @@ private fun JointInvolvementSection(
 private fun MuscleInvolvementSection(
     exercise: ExerciseMuscleInfo,
     showHeader: Boolean = true,
+    onKnowledge: (CanonicalKnowledge) -> Unit = {},
 ) {
     val expandedMuscle = remember { mutableStateOf<String?>(null) }
     val contributions = remember(exercise) { oneSeriesVolumeContributions(exercise) }
     val primaries = remember(contributions) { contributions.filter { it.role == MuscleRole.PRIMARY } }
     val secondaries = remember(contributions) { contributions.filter { it.role == MuscleRole.SECONDARY } }
     val stabilizers = remember(contributions) { contributions.filter { it.role != MuscleRole.PRIMARY && it.role != MuscleRole.SECONDARY } }
+    val richMetadata = remember(exercise.id, exercise.catalogRichMetadataJson) { exercise.decodeCatalogRichMetadata() }
 
     Column(
         modifier = Modifier
@@ -1962,6 +2009,33 @@ private fun MuscleInvolvementSection(
     ) {
         if (showHeader) {
             Text("Involucramiento Muscular", color = Color.White, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleSmall)
+        }
+        val canonicalMuscles = (richMetadata?.anatomy?.primaryMuscles.orEmpty().map { it to CanonicalKnowledgeKind.MUSCLE } +
+            richMetadata?.anatomy?.secondaryMuscles.orEmpty().map { it to CanonicalKnowledgeKind.MUSCLE } +
+            richMetadata?.anatomy?.stabilizerMuscles.orEmpty().map { it to CanonicalKnowledgeKind.STABILIZER })
+            .mapNotNull { (id, kind) -> canonicalMuscleKnowledge(id)?.copy(kind = kind) }
+            .distinctBy { it.id to it.kind }
+        if (canonicalMuscles.isNotEmpty()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                canonicalMuscles.forEach { knowledge ->
+                    Surface(
+                        modifier = Modifier.clickable { onKnowledge(knowledge) },
+                        shape = RoundedCornerShape(999.dp),
+                        color = Color.White.copy(alpha = 0.08f),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+                    ) {
+                        Text(
+                            knowledge.name,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.84f),
+                        )
+                    }
+                }
+            }
         }
 
         // 1. Músculos Principales / Motores Primarios (Tarjetas destacadas con jerarquía primaria)
@@ -1993,8 +2067,7 @@ private fun MuscleInvolvementSection(
 
                 primaries.forEach { contribution ->
                     val muscleName = contribution.muscle
-                    val muscleColor = wikilabMuscleColor(muscleName)
-                    val involvement = contribution.sourceInvolvement
+                    val muscleColor = canonicalMuscleColor(muscleName)
                     val isExpanded = expandedMuscle.value == muscleName
 
                     Surface(
@@ -2052,19 +2125,6 @@ private fun MuscleInvolvementSection(
                                     modifier = Modifier.size(16.dp),
                                 )
                             }
-                            if (isExpanded) {
-                                val explanation = involvement?.biomechanicalReason
-                                    ?.takeIf { it.isNotBlank() }
-                                    ?: involvement?.let { explainMuscleContribution(exercise, it) }
-                                if (explanation != null) {
-                                    Text(
-                                        explanation,
-                                        color = Color.White.copy(alpha = 0.80f),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        lineHeight = 18.sp,
-                                    )
-                                }
-                            }
                         }
                     }
                 }
@@ -2082,8 +2142,7 @@ private fun MuscleInvolvementSection(
                 )
                 secondaries.forEach { contribution ->
                     val muscleName = contribution.muscle
-                    val muscleColor = wikilabMuscleColor(muscleName)
-                    val involvement = contribution.sourceInvolvement
+                    val muscleColor = canonicalMuscleColor(muscleName)
                     val isExpanded = expandedMuscle.value == muscleName
 
                     Surface(
@@ -2123,18 +2182,6 @@ private fun MuscleInvolvementSection(
                                     style = MaterialTheme.typography.labelSmall,
                                 )
                             }
-                            if (isExpanded) {
-                                val explanation = involvement?.biomechanicalReason
-                                    ?.takeIf { it.isNotBlank() }
-                                    ?: involvement?.let { explainMuscleContribution(exercise, it) }
-                                if (explanation != null) {
-                                    Text(
-                                        explanation,
-                                        color = Color.White.copy(alpha = 0.75f),
-                                        style = MaterialTheme.typography.bodySmall,
-                                    )
-                                }
-                            }
                         }
                     }
                 }
@@ -2159,7 +2206,7 @@ private fun MuscleInvolvementSection(
                 ) {
                     stabilizers.forEach { contribution ->
                         val muscleName = contribution.muscle
-                        val muscleColor = wikilabMuscleColor(muscleName)
+                        val muscleColor = canonicalMuscleColor(muscleName)
                         Surface(
                             shape = RoundedCornerShape(8.dp),
                             color = Color.White.copy(alpha = 0.05f),

@@ -45,7 +45,6 @@
                     "Flexión Controlada"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Principal: La columna lumbar participa en el cierre del tronco dentro del rango elegido. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +52,6 @@
                     "Flexión Torácica"
                   ],
                   "jointId": "columna-toracica",
-                  "note": "Secundaria: La columna torácica acompaña la aproximación de costillas y pelvis. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +59,6 @@
                     "Posición Pélvica"
                   ],
                   "jointId": "cadera",
-                  "note": "Estabilizadora: La cadera fija la pelvis para que el abdomen no compense con las piernas. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,12 +66,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "trunk_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "abdominals",
-                  "note": "Principal: El recto abdominal acerca costillas y pelvis o resiste la extensión del tronco. En la configuración Disco, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "core_crunch_banco_declinado_lastrado_disco__plate__crunch_abdominal_en_banco_declinado_lastrado_con_disco",
               "primaryMuscles": [
                 "abdominals"
@@ -95,7 +86,6 @@
                         "Flexión Controlada"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Principal: La columna lumbar participa en el cierre del tronco dentro del rango elegido. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -103,7 +93,6 @@
                         "Flexión Torácica"
                       ],
                       "jointId": "columna-toracica",
-                      "note": "Secundaria: La columna torácica acompaña la aproximación de costillas y pelvis. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -111,7 +100,6 @@
                         "Posición Pélvica"
                       ],
                       "jointId": "cadera",
-                      "note": "Estabilizadora: La cadera fija la pelvis para que el abdomen no compense con las piernas. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -139,9 +127,6 @@
                     "columna-lumbar",
                     "columna-toracica",
                     "cadera"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -328,7 +313,6 @@
                     "Flexión Controlada"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Principal: La columna lumbar participa en el cierre del tronco dentro del rango elegido. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -336,7 +320,6 @@
                     "Flexión Torácica"
                   ],
                   "jointId": "columna-toracica",
-                  "note": "Secundaria: La columna torácica acompaña la aproximación de costillas y pelvis. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -344,7 +327,6 @@
                     "Posición Pélvica"
                   ],
                   "jointId": "cadera",
-                  "note": "Estabilizadora: La cadera fija la pelvis para que el abdomen no compense con las piernas. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -352,12 +334,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "trunk_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "abdominals",
-                  "note": "Principal: El recto abdominal acerca costillas y pelvis o resiste la extensión del tronco. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "core_crunch_en_polea_alta__cable__crunch_abdominal_de_rodillas_en_polea_alta",
               "primaryMuscles": [
                 "abdominals"
@@ -378,7 +354,6 @@
                         "Flexión Controlada"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Principal: La columna lumbar participa en el cierre del tronco dentro del rango elegido. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -386,7 +361,6 @@
                         "Flexión Torácica"
                       ],
                       "jointId": "columna-toracica",
-                      "note": "Secundaria: La columna torácica acompaña la aproximación de costillas y pelvis. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -394,7 +368,6 @@
                         "Posición Pélvica"
                       ],
                       "jointId": "cadera",
-                      "note": "Estabilizadora: La cadera fija la pelvis para que el abdomen no compense con las piernas. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -422,9 +395,6 @@
                     "columna-lumbar",
                     "columna-toracica",
                     "cadera"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
@@ -607,7 +577,6 @@
                     "Flexión Controlada"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Principal: La columna lumbar participa en el cierre del tronco dentro del rango elegido. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                   "role": "PRIMARY"
                 },
                 {
@@ -615,7 +584,6 @@
                     "Flexión Torácica"
                   ],
                   "jointId": "columna-toracica",
-                  "note": "Secundaria: La columna torácica acompaña la aproximación de costillas y pelvis. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -623,7 +591,6 @@
                     "Posición Pélvica"
                   ],
                   "jointId": "cadera",
-                  "note": "Estabilizadora: La cadera fija la pelvis para que el abdomen no compense con las piernas. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                   "role": "STABILIZER"
                 }
               ],
@@ -631,12 +598,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "trunk_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "abdominals",
-                  "note": "Principal: El recto abdominal acerca costillas y pelvis o resiste la extensión del tronco. En la configuración Máquina, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "core_crunch_maquina__machine__crunch_abdominal_en_maquina",
               "primaryMuscles": [
                 "abdominals"
@@ -657,7 +618,6 @@
                         "Flexión Controlada"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Principal: La columna lumbar participa en el cierre del tronco dentro del rango elegido. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                       "role": "PRIMARY"
                     },
                     {
@@ -665,7 +625,6 @@
                         "Flexión Torácica"
                       ],
                       "jointId": "columna-toracica",
-                      "note": "Secundaria: La columna torácica acompaña la aproximación de costillas y pelvis. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -673,7 +632,6 @@
                         "Posición Pélvica"
                       ],
                       "jointId": "cadera",
-                      "note": "Estabilizadora: La cadera fija la pelvis para que el abdomen no compense con las piernas. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -701,9 +659,6 @@
                     "columna-lumbar",
                     "columna-toracica",
                     "cadera"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -886,7 +841,6 @@
                     "Flexión Controlada"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Principal: La columna lumbar participa en el cierre del tronco dentro del rango elegido. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -894,7 +848,6 @@
                     "Flexión Torácica"
                   ],
                   "jointId": "columna-toracica",
-                  "note": "Secundaria: La columna torácica acompaña la aproximación de costillas y pelvis. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -902,7 +855,6 @@
                     "Posición Pélvica"
                   ],
                   "jointId": "cadera",
-                  "note": "Estabilizadora: La cadera fija la pelvis para que el abdomen no compense con las piernas. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -910,12 +862,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "trunk_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "abdominals",
-                  "note": "Principal: El recto abdominal acerca costillas y pelvis o resiste la extensión del tronco. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "core_crunch_suelo_peso_corporal__bodyweight__crunch_abdominal_en_suelo",
               "primaryMuscles": [
                 "abdominals"
@@ -936,7 +882,6 @@
                         "Flexión Controlada"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Principal: La columna lumbar participa en el cierre del tronco dentro del rango elegido. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -944,7 +889,6 @@
                         "Flexión Torácica"
                       ],
                       "jointId": "columna-toracica",
-                      "note": "Secundaria: La columna torácica acompaña la aproximación de costillas y pelvis. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -952,7 +896,6 @@
                         "Posición Pélvica"
                       ],
                       "jointId": "cadera",
-                      "note": "Estabilizadora: La cadera fija la pelvis para que el abdomen no compense con las piernas. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -980,9 +923,6 @@
                     "columna-lumbar",
                     "columna-toracica",
                     "cadera"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"

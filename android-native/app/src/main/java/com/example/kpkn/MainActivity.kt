@@ -81,6 +81,8 @@ import com.example.kpkn.screens.sessioneditor.components.ExerciseCatalogScreen
 import com.example.kpkn.screens.home.HomeScreen
 import com.example.kpkn.screens.home.HomeGlassOverlay
 import com.example.kpkn.screens.home.HomeGlassOverlayChange
+import com.example.kpkn.screens.home.ConceptosClaveScreen
+import com.example.kpkn.screens.home.ConceptoClaveDetailScreen
 import com.example.kpkn.screens.competitions.CompetitionScreen
 import com.example.kpkn.screens.nutrition.BodyProgressScreen
 import com.example.kpkn.screens.nutrition.MealHistoryScreen
@@ -94,7 +96,6 @@ import com.example.kpkn.screens.programs.ProgramsScreen
 import com.example.kpkn.screens.programs.ProgramsViewModel
 import com.example.kpkn.screens.sessioneditor.SessionEditorScreen
 import com.example.kpkn.screens.settings.SettingsScreen
-import com.example.kpkn.screens.wikilab.*
 import com.example.kpkn.screens.workout.WorkoutScreen
 
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
@@ -103,7 +104,6 @@ import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
 import com.example.kpkn.ui.components.icons.BodyIcon
 import com.example.kpkn.ui.components.icons.DumbbellIcon
 import com.example.kpkn.ui.components.icons.NutritionIcon
-import com.example.kpkn.ui.components.icons.WikiIcon
 import com.example.kpkn.ui.components.LocalHazeState
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.components.KpknOverlayHostContent
@@ -160,7 +160,7 @@ class MainActivity : ComponentActivity() {
             com.example.kpkn.data.repository.AugeRepository.getInstance(this@MainActivity)
             com.example.kpkn.data.repository.NutritionRepository.init(this@MainActivity)
             com.example.kpkn.data.repository.CustomExerciseRepository.initialize(this@MainActivity)
-            com.example.kpkn.data.repository.LearnRepository.initialize(this@MainActivity)
+            com.example.kpkn.data.migrations.clearLegacyLearnPreferencesOnce(this@MainActivity)
         }.onFailure { logKpknError("MainActivity", "Error initializing repositories", it) }
 
         lifecycleScope.launch(Dispatchers.IO) {
@@ -497,17 +497,12 @@ fun KPKNApp(
         currentRoute == "log-workout" -> KpknRoute.Training.route
         currentRoute?.startsWith(KpknRoute.BodyProgress.route) == true -> KpknRoute.BodyProgress.route
         currentRoute?.startsWith(KpknRoute.Nutrition.route) == true -> KpknRoute.Nutrition.route
-        currentRoute?.startsWith(KpknRoute.Learn.route) == true -> KpknRoute.WikiLab.route
-        currentRoute?.startsWith(KpknRoute.WikiLab.route) == true   -> KpknRoute.WikiLab.route
+        currentRoute?.startsWith(KpknRoute.Concepts.route) == true -> KpknRoute.Home.route
+        currentRoute?.startsWith(KpknRoute.ConceptDetail.route.substringBefore("{")) == true -> KpknRoute.Home.route
         else -> KpknRoute.Home.route
     }
 
     val ongoingWorkout by ProgramRepository.getInstance().ongoingWorkout.collectAsState()
-    var wikiSearchQuery by rememberSaveable { mutableStateOf("") }
-
-    LaunchedEffect(currentTab) {
-        if (currentTab != KpknRoute.WikiLab.route) wikiSearchQuery = ""
-    }
 
     LaunchedEffect(pendingDeepLinkRoute) {
         val route = pendingDeepLinkRoute ?: return@LaunchedEffect
@@ -563,9 +558,7 @@ fun KPKNApp(
         }
     }
 
-    val showWikiSearchSubtabbar = currentTab == KpknRoute.WikiLab.route &&
-            currentRoute == KpknRoute.WikiLab.route
-    val showContextualSubtabbar = showWikiSearchSubtabbar
+    val showContextualSubtabbar = false
 
     val hazeState = remember { HazeState() }
     val overlayHost = rememberKpknOverlayHostController()
@@ -632,8 +625,6 @@ fun KPKNApp(
                     onThemeChange = onThemeChange,
                     primaryProgramId = primaryProgramId,
                     nutritionViewModel = nutritionViewModel,
-                    wikiSearchQuery = wikiSearchQuery,
-                    onWikiSearchQueryChange = { wikiSearchQuery = it },
                     onHomeGlassOverlayChange = onHomeGlassOverlayChange,
                     onHomeModalOverlayChange = onHomeModalOverlayChange,
                     onHomeOnboardingOverlayChange = onHomeOnboardingOverlayChange,
@@ -655,8 +646,6 @@ fun KPKNApp(
                     onThemeChange = onThemeChange,
                     primaryProgramId = primaryProgramId,
                     nutritionViewModel = nutritionViewModel,
-                    wikiSearchQuery = wikiSearchQuery,
-                    onWikiSearchQueryChange = { wikiSearchQuery = it },
                     onHomeGlassOverlayChange = onHomeGlassOverlayChange,
                     onHomeModalOverlayChange = onHomeModalOverlayChange,
                     onHomeOnboardingOverlayChange = onHomeOnboardingOverlayChange,
@@ -796,34 +785,6 @@ fun KPKNApp(
                     ),
             ) {
                 Column(Modifier.fillMaxWidth()) {
-                // ─── Subtabbar contextual extension (animated) ─────────────
-                AnimatedVisibility(
-                    visible = showContextualSubtabbar,
-                    enter = expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),
-                    exit = shrinkVertically(shrinkTowards = Alignment.Bottom) + fadeOut(),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 2.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(44.dp)
-                                .clip(RoundedCornerShape(22.dp)),
-                        ) {
-                            if (showWikiSearchSubtabbar) {
-                                WikiSearchSubtabbar(
-                                    query = wikiSearchQuery,
-                                    onQueryChange = { wikiSearchQuery = it },
-                                    onClear = { wikiSearchQuery = "" },
-                                )
-                            }
-                        }
-                    }
-                }
-
                 // ─── Main navigation bar ───────────────────────────────────
                 val navItemColors = NavigationBarItemDefaults.colors(
                     indicatorColor = Color.Transparent,
@@ -905,23 +866,6 @@ fun KPKNApp(
                             Text(
                                 stringResource(R.string.nav_body),
                                 color = if (bodySel) MaterialTheme.colorScheme.primary else Color.White,
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 1,
-                            )
-                        },
-                        colors = navItemColors,
-                    )
-                    val wikiSel = currentTab == KpknRoute.WikiLab.route
-                    NavigationBarItem(
-                        selected = wikiSel,
-                        onClick = {
-                            navController.navigate(KpknRoute.WikiLab.route) { launchSingleTop = true }
-                        },
-                        icon = { WikiIcon(tint = if (wikiSel) Color(0xFF9DB6C9) else Color.White) },
-                        label = {
-                            Text(
-                                stringResource(R.string.nav_wikilab),
-                                color = if (wikiSel) Color(0xFF9DB6C9) else Color.White,
                                 style = MaterialTheme.typography.labelSmall,
                                 maxLines = 1,
                             )
@@ -1077,77 +1021,6 @@ fun KPKNApp(
     } // CompositionLocalProvider(LocalHazeState)
 }
 
-// ─── WikiLab Search Subtabs ────────────────────────────────────────────
-@Composable
-private fun WikiSearchSubtabbar(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    onClear: () -> Unit,
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 4.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(40.dp)
-                .background(Color(0xFF1E1E1E), RoundedCornerShape(20.dp))
-                .padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                Icons.Default.Search,
-                null,
-                modifier = Modifier.size(16.dp),
-                tint = Color.White.copy(alpha = 0.4f),
-            )
-            Spacer(Modifier.width(8.dp))
-            val textValue = query
-            BasicTextField(
-                value = textValue,
-                onValueChange = onQueryChange,
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                textStyle = MaterialTheme.typography.bodySmall.copy(
-                    color = Color.White,
-                    fontSize = 13.sp,
-                ),
-                decorationBox = { innerTextField: @Composable () -> Unit ->
-                    Box {
-                        if (query.isEmpty()) {
-                            Text(
-                                "Buscar ejercicio, músculo, concepto...",
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    color = Color.White.copy(alpha = 0.3f),
-                                    fontSize = 12.sp,
-                                ),
-                            )
-                        }
-                        innerTextField()
-                    }
-                },
-            )
-            if (query.isNotEmpty()) {
-                Spacer(Modifier.width(4.dp))
-                IconButton(
-                    onClick = onClear,
-                    modifier = Modifier.size(24.dp),
-                ) {
-                    Icon(
-                        Icons.Default.Close,
-                        "Limpiar",
-                        modifier = Modifier.size(14.dp),
-                        tint = Color.White.copy(alpha = 0.5f),
-                    )
-                }
-            }
-        }
-    }
-}
-
 @Composable
 private fun KPKNNavGraph(
     navController: androidx.navigation.NavHostController,
@@ -1155,8 +1028,6 @@ private fun KPKNNavGraph(
     onThemeChange: (AppThemeMode) -> Unit,
     primaryProgramId: String?,
     nutritionViewModel: NutritionViewModel,
-    wikiSearchQuery: String = "",
-    onWikiSearchQueryChange: (String) -> Unit = {},
     onHomeGlassOverlayChange: HomeGlassOverlayChange = { _, _ -> },
     onHomeModalOverlayChange: HomeGlassOverlayChange = { _, _ -> },
     onHomeOnboardingOverlayChange: HomeGlassOverlayChange = { _, _ -> },
@@ -1209,34 +1080,31 @@ private fun KPKNNavGraph(
                 },
                 onNavigate = { destination ->
                     when (destination) {
-                        "wiki-home" -> navController.navigate(KpknRoute.WikiLab.route)
-                        "wikilab/" -> navController.navigate(KpknRoute.WikiLab.route)
-                        "wikilab" -> navController.navigate(KpknRoute.WikiLab.route)
-                        "wikilab/concepts" -> navController.navigate(KpknRoute.WikiLabConcepts.route)
-                        "wiki-concepts" -> navController.navigate(KpknRoute.WikiLabConcepts.route)
-                        "wiki-concept" -> navController.navigate(KpknRoute.WikiLabConcepts.route)
-                        "wiki-concept-detail" -> navController.navigate(KpknRoute.WikiLabConcepts.route)
+                        "concepts", "wiki-concepts", "wiki-concept", "wiki-concept-detail", "wikilab/concepts" ->
+                            navController.navigate(KpknRoute.Concepts.route)
                         "nutrition" -> navController.navigate(KpknRoute.Nutrition.route)
                         "settings/notifications", "settings/auge", "settings/general", "settings/nutrition", "settings/training", "settings/data", "settings/diagnostics" -> navController.navigate(KpknRoute.Settings.route)
-                        "learn", "cursos" -> navController.navigate(KpknRoute.Learn.route)
+                        "learn", "cursos", "wiki-home", "wikilab", "wikilab/" -> navController.navigate(KpknRoute.Home.route)
                         "powerlifter-corner" -> {
                             navController.navigate(KpknRoute.Competitions.route)
                         }
                         else -> {
-                            if (destination.startsWith("wikilab/concept/")) {
+                            if (destination.startsWith("concept/")) {
+                                val conceptId = destination.removePrefix("concept/")
+                                if (com.example.kpkn.domain.concepts.findConceptoClave(conceptId) != null) {
+                                    navController.navigate(KpknRoute.ConceptDetail.create(conceptId))
+                                } else {
+                                    navController.navigate(KpknRoute.Concepts.route)
+                                }
+                            } else if (destination.startsWith("wikilab/concept/")) {
                                 val conceptId = destination.removePrefix("wikilab/concept/")
-                                if (conceptId.isNotBlank()) {
-                                    navController.navigate(KpknRoute.WikiLabConceptDetail.create(conceptId))
+                                if (com.example.kpkn.domain.concepts.findConceptoClave(conceptId) != null) {
+                                    navController.navigate(KpknRoute.ConceptDetail.create(conceptId))
                                 } else {
-                                    navController.navigate(KpknRoute.WikiLab.route)
+                                    navController.navigate(KpknRoute.Concepts.route)
                                 }
-                            } else if (destination.startsWith("learn/course/")) {
-                                val courseId = destination.removePrefix("learn/course/")
-                                if (courseId.isNotBlank()) {
-                                    navController.navigate(KpknRoute.LearnCourse.create(courseId))
-                                } else {
-                                    navController.navigate(KpknRoute.Learn.route)
-                                }
+                            } else if (destination.startsWith("learn/")) {
+                                navController.navigate(KpknRoute.Home.route)
                             }
                         }
                     }
@@ -1335,202 +1203,22 @@ private fun KPKNNavGraph(
             MealHistoryScreen(onBack = { navController.popBackStack() })
         }
 
-        // ─── WikiLab Routes ───────────────────────────────────────────
-        composable(KpknRoute.WikiLab.route) {
-            WikiLabHomeScreen(
-                searchQuery = wikiSearchQuery,
-                onSearchQueryChange = onWikiSearchQueryChange,
-                onNavigateToExercises = { navController.navigate(KpknRoute.WikiLabExercises.route) },
-                onNavigateToMuscleAnatomy = { navController.navigate(KpknRoute.WikiLabMuscleAnatomy.route) },
-                onNavigateToJoints = { navController.navigate(KpknRoute.WikiLabJoints.route) },
-                onNavigateToMovementPatterns = { navController.navigate(KpknRoute.WikiLabMovementPatterns.route) },
-                onNavigateToBiomechanics = { navController.navigate(KpknRoute.WikiLabBiomechanics.route) },
-                onNavigateToConcepts = { navController.navigate(KpknRoute.WikiLabConcepts.route) },
-                onNavigateToExercise = { navController.navigate(KpknRoute.WikiLabExerciseDetail.create(it)) },
-                onNavigateToMuscle = { navController.navigate(KpknRoute.WikiLabMuscleDetail.create(it)) },
-                onNavigateToChain = { navController.navigate(KpknRoute.WikiLabChainDetail.create(it)) },
-                onNavigateToConcept = { navController.navigate(KpknRoute.WikiLabConceptDetail.create(it)) },
-                onNavigateToJoint = { navController.navigate(KpknRoute.WikiLabJointDetail.create(it)) },
-                onNavigateToPattern = { navController.navigate(KpknRoute.WikiLabPatternDetail.create(it)) },
-            )
-        }
-        composable(KpknRoute.WikiLabExercises.route) {
-            WikiLabScreen(
-                onOpenExercise = { navController.navigate(KpknRoute.WikiLabExerciseDetail.create(it)) },
+        // Conceptos Clave lives in Home; the former conceptual deep links land here.
+        composable(KpknRoute.Concepts.route) {
+            ConceptosClaveScreen(
+                onOpenConcept = { navController.navigate(KpknRoute.ConceptDetail.create(it)) },
                 onBack = { navController.popBackStack() },
             )
         }
-        composable(KpknRoute.WikiLabMuscleAnatomy.route) {
-            MuscleCategoryScreen(
-                onNavigateToMuscle = { navController.navigate(KpknRoute.WikiLabMuscleDetail.create(it)) },
-                onBack = { navController.popBackStack() },
-            )
-        }
-        composable(KpknRoute.WikiLabMuscleDetail.route) { backStack ->
-            val muscleId = backStack.arguments?.getString(KpknRoute.WikiLabMuscleDetail.ARG_MUSCLE_ID) ?: ""
-            MuscleGroupDetailScreen(
-                muscleId = muscleId,
-                onNavigateToJoint = { navController.navigate(KpknRoute.WikiLabJointDetail.create(it)) },
-                onNavigateToTendon = { navController.navigate(KpknRoute.WikiLabTendonDetail.create(it)) },
-                onNavigateToExercise = { navController.navigate(KpknRoute.WikiLabExerciseDetail.create(it)) },
-                onBack = { navController.popBackStack() },
-            )
-        }
-        composable(KpknRoute.WikiLabJoints.route) {
-            JointsListScreen(
-                onNavigateToJoint = { navController.navigate(KpknRoute.WikiLabJointDetail.create(it)) },
-                onBack = { navController.popBackStack() },
-            )
-        }
-        composable(KpknRoute.WikiLabJointDetail.route) { backStack ->
-            val jointId = backStack.arguments?.getString(KpknRoute.WikiLabJointDetail.ARG_JOINT_ID) ?: ""
-            JointDetailScreen(
-                jointId = jointId,
-                onNavigateToMuscle = { navController.navigate(KpknRoute.WikiLabMuscleDetail.create(it)) },
-                onNavigateToTendon = { navController.navigate(KpknRoute.WikiLabTendonDetail.create(it)) },
-                onNavigateToPattern = { navController.navigate(KpknRoute.WikiLabPatternDetail.create(it)) },
-                onNavigateToExercise = { navController.navigate(KpknRoute.WikiLabExerciseDetail.create(it)) },
-                onBack = { navController.popBackStack() },
-            )
-        }
-        composable(KpknRoute.WikiLabTendonDetail.route) { backStack ->
-            val tendonId = backStack.arguments?.getString(KpknRoute.WikiLabTendonDetail.ARG_TENDON_ID) ?: ""
-            TendonDetailScreen(
-                tendonId = tendonId,
-                onNavigateToMuscle = { navController.navigate(KpknRoute.WikiLabMuscleDetail.create(it)) },
-                onNavigateToJoint = { navController.navigate(KpknRoute.WikiLabJointDetail.create(it)) },
-                onNavigateToExercise = { navController.navigate(KpknRoute.WikiLabExerciseDetail.create(it)) },
-                onBack = { navController.popBackStack() },
-            )
-        }
-        composable(KpknRoute.WikiLabMovementPatterns.route) {
-            PatternsListScreen(
-                onNavigateToPattern = { navController.navigate(KpknRoute.WikiLabPatternDetail.create(it)) },
-                onBack = { navController.popBackStack() },
-            )
-        }
-        composable(KpknRoute.WikiLabPatternDetail.route) { backStack ->
-            val patternId = backStack.arguments?.getString(KpknRoute.WikiLabPatternDetail.ARG_PATTERN_ID) ?: ""
-            MovementPatternDetailScreen(
-                patternId = patternId,
-                onNavigateToMuscle = { navController.navigate(KpknRoute.WikiLabMuscleDetail.create(it)) },
-                onNavigateToJoint = { navController.navigate(KpknRoute.WikiLabJointDetail.create(it)) },
-                onNavigateToExercise = { navController.navigate(KpknRoute.WikiLabExerciseDetail.create(it)) },
-                onBack = { navController.popBackStack() },
-            )
-        }
-        composable(KpknRoute.WikiLabChainDetail.route) { backStack ->
-            val chainId = backStack.arguments?.getString(KpknRoute.WikiLabChainDetail.ARG_CHAIN_ID) ?: ""
-            KineticChainDetailScreen(
-                chainId = chainId,
-                onNavigateToMuscle = { navController.navigate(KpknRoute.WikiLabMuscleDetail.create(it)) },
-                onBack = { navController.popBackStack() },
-            )
-        }
-        composable(KpknRoute.WikiLabExerciseDetail.route) { backStack ->
-            val exerciseId = backStack.arguments?.getString(KpknRoute.WikiLabExerciseDetail.ARG_EXERCISE_ID) ?: ""
-            val customExercises by com.example.kpkn.data.repository.CustomExerciseRepository.customExercises.collectAsState()
-            val exercise = com.example.kpkn.data.exercises.resolveExercise(exerciseId)
-                ?: customExercises.firstOrNull { it.id.equals(exerciseId, ignoreCase = true) }
-            if (exercise != null) {
-                ExerciseDetailScreen(
-                    exercise = exercise,
-                    onNavigateToMuscle = { navController.navigate(KpknRoute.WikiLabMuscleDetail.create(it)) },
-                    onNavigateToJoint = { navController.navigate(KpknRoute.WikiLabJointDetail.create(it)) },
-                    onNavigateToPattern = { navController.navigate(KpknRoute.WikiLabPatternDetail.create(it)) },
-                    onNavigateToExercise = { navController.navigate(KpknRoute.WikiLabExerciseDetail.create(it)) },
-                onBack = { navController.popBackStack() },
-                )
-            } else {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Ejercicio no encontrado")
+        composable(KpknRoute.ConceptDetail.route) { backStack ->
+            val conceptId = backStack.arguments?.getString(KpknRoute.ConceptDetail.ARG_CONCEPT_ID).orEmpty()
+            if (com.example.kpkn.domain.concepts.findConceptoClave(conceptId) == null) {
+                navController.navigate(KpknRoute.Concepts.route) {
+                    popUpTo(KpknRoute.ConceptDetail.route) { inclusive = true }
                 }
+            } else {
+                ConceptoClaveDetailScreen(conceptId = conceptId, onBack = { navController.popBackStack() })
             }
-        }
-        composable(KpknRoute.WikiLabBiomechanics.route) {
-            BiomechanicsScreen(onBack = { navController.popBackStack() })
-        }
-        composable(KpknRoute.WikiLabConcepts.route) {
-            TrainingConceptsScreen(
-                onNavigateToConcept = { navController.navigate(KpknRoute.WikiLabConceptDetail.create(it)) },
-                onBack = { navController.popBackStack() },
-            )
-        }
-        composable(KpknRoute.WikiLabConceptDetail.route) { backStack ->
-            val conceptId = backStack.arguments?.getString(KpknRoute.WikiLabConceptDetail.ARG_CONCEPT_ID) ?: ""
-            ConceptDetailScreen(
-                conceptId = conceptId,
-                onNavigateToConcept = { navController.navigate(KpknRoute.WikiLabConceptDetail.create(it)) },
-                onBack = { navController.popBackStack() },
-            )
-        }
-
-        // ─── Learn (Cursos) Routes ────────────────────────────────────────
-        composable(KpknRoute.Learn.route) {
-            com.example.kpkn.screens.learn.LearnHomeScreen(
-                onOpenCourse = { navController.navigate(KpknRoute.LearnCourse.create(it)) },
-                onBack = { navController.popBackStack() },
-            )
-        }
-        composable(KpknRoute.LearnCourse.route) { backStack ->
-            val courseId = backStack.arguments?.getString(KpknRoute.LearnCourse.ARG_COURSE_ID) ?: ""
-            com.example.kpkn.screens.learn.LearnCourseScreen(
-                courseId = courseId,
-                onStartModule = { submoduleIndex ->
-                    navController.navigate(KpknRoute.LearnReader.create(courseId, submoduleIndex))
-                },
-                onStartFinalQuiz = {
-                    navController.navigate(KpknRoute.LearnQuiz.create(courseId))
-                },
-                onBack = { navController.popBackStack() },
-            )
-        }
-        composable(KpknRoute.LearnReader.route) { backStack ->
-            val courseId = backStack.arguments?.getString(KpknRoute.LearnReader.ARG_COURSE_ID) ?: ""
-            val submoduleIndex = backStack.arguments?.getString(KpknRoute.LearnReader.ARG_SUBMODULE_INDEX)?.toIntOrNull() ?: 0
-            com.example.kpkn.screens.learn.LearnReaderScreen(
-                courseId = courseId,
-                submoduleIndex = submoduleIndex,
-                onBack = { navController.popBackStack() },
-                onStartQuiz = {
-                    navController.navigate(KpknRoute.LearnQuiz.create(courseId, submoduleIndex)) {
-                        popUpTo(KpknRoute.LearnReader.create(courseId, submoduleIndex)) { inclusive = true }
-                    }
-                },
-            )
-        }
-        composable(KpknRoute.LearnQuiz.route) { backStack ->
-            val courseId = backStack.arguments?.getString(KpknRoute.LearnQuiz.ARG_COURSE_ID) ?: ""
-            val submoduleIndex = backStack.arguments?.getString(KpknRoute.LearnQuiz.ARG_SUBMODULE_INDEX)?.toIntOrNull() ?: -1
-            com.example.kpkn.screens.learn.LearnQuizScreen(
-                courseId = courseId,
-                submoduleIndex = submoduleIndex,
-                onComplete = { _, _ ->
-                    if (submoduleIndex < 0) {
-                        // Quiz final -> mostrar badge
-                        navController.navigate(KpknRoute.LearnBadge.create(courseId)) {
-                            popUpTo(KpknRoute.LearnQuiz.create(courseId)) { inclusive = true }
-                        }
-                    } else {
-                        // Submodule quiz -> volver al curso
-                        navController.navigate(KpknRoute.LearnCourse.create(courseId)) {
-                            popUpTo(KpknRoute.LearnQuiz.create(courseId, submoduleIndex)) { inclusive = true }
-                        }
-                    }
-                },
-                onBack = { navController.popBackStack() },
-            )
-        }
-        composable(KpknRoute.LearnBadge.route) { backStack ->
-            val courseId = backStack.arguments?.getString(KpknRoute.LearnBadge.ARG_COURSE_ID) ?: ""
-            com.example.kpkn.screens.learn.LearnBadgeScreen(
-                courseId = courseId,
-                onContinue = {
-                    navController.navigate(KpknRoute.Learn.route) {
-                        popUpTo(KpknRoute.LearnBadge.create(courseId)) { inclusive = true }
-                    }
-                },
-            )
         }
 
         composable(KpknRoute.Settings.route) {
@@ -1635,9 +1323,8 @@ private fun KPKNNavGraph(
                     )
                     navController.popBackStack()
                 },
-                onOpenExerciseDetail = { exerciseId ->
-                    navController.navigate(KpknRoute.WikiLabExerciseDetail.create(exerciseId))
-                },
+                // Atlas exercise pages were retired; the catalog keeps its compact knowledge overlay.
+                onOpenExerciseDetail = {},
             )
         }
         composable(KpknRoute.SessionEditor.route) { backStack ->
@@ -1660,7 +1347,7 @@ private fun KPKNNavGraph(
                 programId = programId,
                 sessionId = sessionId,
                 onBack = { navController.popBackStack() },
-                onOpenExerciseDetail = { navController.navigate(KpknRoute.WikiLabExerciseDetail.create(it)) },
+                onOpenExerciseDetail = {},
                 onOpenCatalog = { request ->
                     backStack.savedStateHandle[CatalogSavedStateKeys.request(request.requestId)] =
                         Json.encodeToString(request)
@@ -1701,9 +1388,7 @@ private fun KPKNNavGraph(
                         launchSingleTop = true
                     }
                 },
-                onNavigateToWikiLab = { exerciseDbId ->
-                    navController.navigate(KpknRoute.WikiLabExerciseDetail.create(exerciseDbId))
-                },
+                onNavigateToWikiLab = {},
                 onOpenCatalog = { request ->
                     backStack.savedStateHandle[CatalogSavedStateKeys.request(request.requestId)] =
                         Json.encodeToString(request)

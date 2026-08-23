@@ -18,32 +18,9 @@ object ExerciseCatalogV2Loader {
     }
     fun decodeApproved(payload: String): ExerciseCatalogV2 {
         val decoded = json.decodeFromString(ExerciseCatalogV2.serializer(), payload)
-        // Older approved assets stored the canonical muscle explanations on
-        // the flat profile but omitted the newly typed mirror. Hydrate only
-        // that missing mirror from the same configuration record; conflicting
-        // non-empty data is left untouched and rejected by validation below.
-        val catalog = decoded.copy(
-            families = decoded.families.map { family ->
-                family.copy(
-                    definitions = family.definitions.map { definition ->
-                        definition.copy(
-                            configurations = definition.configurations.map { configuration ->
-                                val profile = configuration.profile
-                                val rich = profile.richMetadata
-                                val normalizedRich = rich?.takeIf {
-                                    it.anatomy.muscleNotes.isNotEmpty() || profile.muscleNotes.isEmpty()
-                                } ?: rich?.copy(
-                                    anatomy = rich.anatomy.copy(muscleNotes = profile.muscleNotes),
-                                )
-                                configuration.copy(
-                                    profile = profile.copy(richMetadata = normalizedRich),
-                                )
-                            },
-                        )
-                    },
-                )
-            },
-        )
+        // Retired explanatory fields are optional compatibility keys. The
+        // canonical runtime asset omits them and no hydration recreates them.
+        val catalog = decoded
         require(catalog.schemaVersion == 2) { "Unsupported catalog schema: ${catalog.schemaVersion}" }
         requireNonBlank(catalog.catalogRevision, "catalogRevision")
         requireNonBlank(catalog.ontologyRevision, "ontologyRevision")
@@ -179,19 +156,6 @@ object ExerciseCatalogV2Loader {
                     require(listedMuscles.size == listedMuscles.toSet().size) {
                         "Muscle listed in more than one role: ${configuration.id}"
                     }
-                    require(profile.muscleNotes.isNotEmpty()) {
-                        "muscleNotes cannot be empty: ${configuration.id}"
-                    }
-                    require(profile.muscleNotes.size == profile.muscleNotes.map { it.muscleId }.toSet().size) {
-                        "Duplicate muscle note: ${configuration.id}"
-                    }
-                    val notedMuscles = profile.muscleNotes.map { it.muscleId }.toSet()
-                    require(notedMuscles == listedMuscles.toSet()) {
-                        "muscleNotes must cover listed muscles exactly: ${configuration.id}"
-                    }
-                    require(profile.muscleNotes.all { it.note.trim().length >= 40 }) {
-                        "muscle note is too short: ${configuration.id}"
-                    }
                     require(profile.jointInvolvement.isNotEmpty()) {
                         "jointInvolvement cannot be empty: ${configuration.id}"
                     }
@@ -203,9 +167,7 @@ object ExerciseCatalogV2Loader {
                         "jointInvolvement contains blank joint id: ${configuration.id}"
                     }
                     require(profile.jointInvolvement.all { joint ->
-                        joint.actions.isNotEmpty() &&
-                            joint.actions.all(String::isNotBlank) &&
-                            joint.note.trim().length >= 40
+                        joint.actions.isNotEmpty() && joint.actions.all(String::isNotBlank)
                     }) {
                         "jointInvolvement entry is incomplete: ${configuration.id}"
                     }
@@ -231,7 +193,6 @@ object ExerciseCatalogV2Loader {
                     require(rich.anatomy.primaryMuscles == profile.primaryMuscles)
                     require(rich.anatomy.secondaryMuscles == profile.secondaryMuscles)
                     require(rich.anatomy.stabilizerMuscles == profile.stabilizerMuscles)
-                    require(rich.anatomy.muscleNotes == profile.muscleNotes)
                     require(rich.anatomy.jointInvolvement == profile.jointInvolvement)
                     require(rich.biomechanics.movementPatternId == profile.movementPatternId)
                     require(rich.biomechanics.bodyRegion == profile.bodyRegion)
@@ -266,7 +227,6 @@ object ExerciseCatalogV2Loader {
                     require(rich.biomechanics.relevantJoints.toSet() == jointIds.toSet()) {
                         "relevantJoints must cover jointInvolvement exactly: ${configuration.id}"
                     }
-                    requireNonBlankList(rich.biomechanics.relevantTendons, "rich.biomechanics.relevantTendons", allowEmpty = true)
                     requireNonBlank(rich.programming.role ?: "", "rich.programming.role")
                     requireNonBlankList(rich.programming.objectives, "rich.programming.objectives")
                     requireNonBlankList(rich.programming.suitableRepRanges, "rich.programming.suitableRepRanges")

@@ -45,7 +45,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera lleva la pelvis hacia delante y concentra la salida del movimiento. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +52,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla ofrece una base firme para que el gesto ocurra sobre todo en la cadera. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +59,6 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar transmite la extensión sin convertirse en el origen del recorrido. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 },
                 {
@@ -69,7 +66,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroilíaca coordina pelvis y tronco al final de la extensión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,24 +73,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. En la configuración Barra · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundaria: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. En la configuración Barra · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundaria: Los cuádriceps extiende la rodilla y absorbe la carga al descender. En la configuración Barra · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Barra · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_thrust__barbell__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -116,7 +94,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera lleva la pelvis hacia delante y concentra la salida del movimiento. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -124,7 +101,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla ofrece una base firme para que el gesto ocurra sobre todo en la cadera. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -132,7 +108,6 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar transmite la extensión sin convertirse en el origen del recorrido. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     },
                     {
@@ -140,7 +115,6 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroilíaca coordina pelvis y tronco al final de la extensión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -174,12 +148,6 @@
                     "rodilla",
                     "columna-lumbar",
                     "sacroiliaca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -352,7 +320,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera lleva la pelvis hacia delante y concentra la salida del movimiento. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "PRIMARY"
                 },
                 {
@@ -360,7 +327,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla ofrece una base firme para que el gesto ocurra sobre todo en la cadera. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -368,7 +334,6 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar transmite la extensión sin convertirse en el origen del recorrido. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "STABILIZER"
                 },
                 {
@@ -376,7 +341,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroilíaca coordina pelvis y tronco al final de la extensión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "STABILIZER"
                 }
               ],
@@ -384,24 +348,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundaria: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundaria: Los cuádriceps extiende la rodilla y absorbe la carga al descender. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_thrust__barbell__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -423,7 +369,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera lleva la pelvis hacia delante y concentra la salida del movimiento. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "PRIMARY"
                     },
                     {
@@ -431,7 +376,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla ofrece una base firme para que el gesto ocurra sobre todo en la cadera. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -439,7 +383,6 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar transmite la extensión sin convertirse en el origen del recorrido. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "STABILIZER"
                     },
                     {
@@ -447,7 +390,6 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroilíaca coordina pelvis y tronco al final de la extensión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -481,12 +423,6 @@
                     "rodilla",
                     "columna-lumbar",
                     "sacroiliaca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -659,7 +595,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera lleva la pelvis hacia delante y concentra la salida del movimiento. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                   "role": "PRIMARY"
                 },
                 {
@@ -667,7 +602,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla ofrece una base firme para que el gesto ocurra sobre todo en la cadera. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                   "role": "SECONDARY"
                 },
                 {
@@ -675,7 +609,6 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar transmite la extensión sin convertirse en el origen del recorrido. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                   "role": "STABILIZER"
                 },
                 {
@@ -683,7 +616,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroilíaca coordina pelvis y tronco al final de la extensión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -691,24 +623,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. En la configuración Máquina Smith · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundaria: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. En la configuración Máquina Smith · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundaria: Los cuádriceps extiende la rodilla y absorbe la carga al descender. En la configuración Máquina Smith · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. El guiado externo reduce la demanda de estabilización y concentra su papel en mantener la posición. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_thrust__smith_machine__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -730,7 +644,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera lleva la pelvis hacia delante y concentra la salida del movimiento. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                       "role": "PRIMARY"
                     },
                     {
@@ -738,7 +651,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla ofrece una base firme para que el gesto ocurra sobre todo en la cadera. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                       "role": "SECONDARY"
                     },
                     {
@@ -746,7 +658,6 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar transmite la extensión sin convertirse en el origen del recorrido. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                       "role": "STABILIZER"
                     },
                     {
@@ -754,7 +665,6 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroilíaca coordina pelvis y tronco al final de la extensión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -788,12 +698,6 @@
                     "rodilla",
                     "columna-lumbar",
                     "sacroiliaca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
@@ -966,7 +870,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera lleva la pelvis hacia delante y concentra la salida del movimiento. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "PRIMARY"
                 },
                 {
@@ -974,7 +877,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla ofrece una base firme para que el gesto ocurra sobre todo en la cadera. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -982,7 +884,6 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar transmite la extensión sin convertirse en el origen del recorrido. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "STABILIZER"
                 },
                 {
@@ -990,7 +891,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroilíaca coordina pelvis y tronco al final de la extensión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "STABILIZER"
                 }
               ],
@@ -998,24 +898,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundaria: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundaria: Los cuádriceps extiende la rodilla y absorbe la carga al descender. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_thrust__smith_machine__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -1037,7 +919,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera lleva la pelvis hacia delante y concentra la salida del movimiento. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1045,7 +926,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla ofrece una base firme para que el gesto ocurra sobre todo en la cadera. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1053,7 +933,6 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar transmite la extensión sin convertirse en el origen del recorrido. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1061,7 +940,6 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroilíaca coordina pelvis y tronco al final de la extensión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1095,12 +973,6 @@
                     "rodilla",
                     "columna-lumbar",
                     "sacroiliaca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
@@ -1274,7 +1146,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera lleva la pelvis hacia delante y concentra la salida del movimiento. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1282,7 +1153,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla ofrece una base firme para que el gesto ocurra sobre todo en la cadera. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1290,7 +1160,6 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar transmite la extensión sin convertirse en el origen del recorrido. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1298,7 +1167,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroilíaca coordina pelvis y tronco al final de la extensión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1306,24 +1174,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. En la configuración Máquina · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundaria: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. En la configuración Máquina · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundaria: Los cuádriceps extiende la rodilla y absorbe la carga al descender. En la configuración Máquina · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. El guiado externo reduce la demanda de estabilización y concentra su papel en mantener la posición. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_thrust__machine__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -1345,7 +1195,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera lleva la pelvis hacia delante y concentra la salida del movimiento. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1353,7 +1202,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla ofrece una base firme para que el gesto ocurra sobre todo en la cadera. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1361,7 +1209,6 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar transmite la extensión sin convertirse en el origen del recorrido. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1369,7 +1216,6 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroilíaca coordina pelvis y tronco al final de la extensión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1403,12 +1249,6 @@
                     "rodilla",
                     "columna-lumbar",
                     "sacroiliaca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -1582,7 +1422,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera lleva la pelvis hacia delante y concentra la salida del movimiento. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1590,7 +1429,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla ofrece una base firme para que el gesto ocurra sobre todo en la cadera. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1598,7 +1436,6 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar transmite la extensión sin convertirse en el origen del recorrido. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1606,7 +1443,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroilíaca coordina pelvis y tronco al final de la extensión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1614,24 +1450,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundaria: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundaria: Los cuádriceps extiende la rodilla y absorbe la carga al descender. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_thrust__machine__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -1653,7 +1471,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera lleva la pelvis hacia delante y concentra la salida del movimiento. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1661,7 +1478,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla ofrece una base firme para que el gesto ocurra sobre todo en la cadera. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1669,7 +1485,6 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar transmite la extensión sin convertirse en el origen del recorrido. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1677,7 +1492,6 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroilíaca coordina pelvis y tronco al final de la extensión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1711,12 +1525,6 @@
                     "rodilla",
                     "columna-lumbar",
                     "sacroiliaca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -1889,7 +1697,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera lleva la pelvis hacia delante y concentra la salida del movimiento. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1897,7 +1704,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla ofrece una base firme para que el gesto ocurra sobre todo en la cadera. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1905,7 +1711,6 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar transmite la extensión sin convertirse en el origen del recorrido. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1913,7 +1718,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroilíaca coordina pelvis y tronco al final de la extensión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1921,24 +1725,6 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "hip_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. La banda se vuelve más exigente al final y hace más visible su participación en ese tramo. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundaria: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. La banda se vuelve más exigente al final y hace más visible su participación en ese tramo. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundaria: Los cuádriceps extiende la rodilla y absorbe la carga al descender. La banda se vuelve más exigente al final y hace más visible su participación en ese tramo. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. La banda se vuelve más exigente al final y hace más visible su participación en ese tramo. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_thrust__band__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -1960,7 +1746,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera lleva la pelvis hacia delante y concentra la salida del movimiento. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1968,7 +1753,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla ofrece una base firme para que el gesto ocurra sobre todo en la cadera. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1976,7 +1760,6 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar transmite la extensión sin convertirse en el origen del recorrido. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1984,7 +1767,6 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroilíaca coordina pelvis y tronco al final de la extensión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2018,12 +1800,6 @@
                     "rodilla",
                     "columna-lumbar",
                     "sacroiliaca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "variable_band",
                   "stability": "self_stabilized"
@@ -2196,7 +1972,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera lleva la pelvis hacia delante y concentra la salida del movimiento. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2204,7 +1979,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla ofrece una base firme para que el gesto ocurra sobre todo en la cadera. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2212,7 +1986,6 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar transmite la extensión sin convertirse en el origen del recorrido. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2220,7 +1993,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroilíaca coordina pelvis y tronco al final de la extensión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2228,24 +2000,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "hip_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundaria: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundaria: Los cuádriceps extiende la rodilla y absorbe la carga al descender. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_thrust__band__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -2267,7 +2021,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera lleva la pelvis hacia delante y concentra la salida del movimiento. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2275,7 +2028,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla ofrece una base firme para que el gesto ocurra sobre todo en la cadera. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2283,7 +2035,6 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar transmite la extensión sin convertirse en el origen del recorrido. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2291,7 +2042,6 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroilíaca coordina pelvis y tronco al final de la extensión. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2325,12 +2075,6 @@
                     "rodilla",
                     "columna-lumbar",
                     "sacroiliaca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "variable_band",
                   "stability": "self_stabilized"

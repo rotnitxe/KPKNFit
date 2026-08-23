@@ -45,7 +45,6 @@
                     "Aducción"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +52,6 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +59,6 @@
                     "Alineación"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,16 +66,6 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "hip_adduction_dynamic",
-              "muscleNotes": [
-                {
-                  "muscleId": "adductors",
-                  "note": "Principal: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Secundaria: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "copenhagen_plank__bodyweight__plancha_copenhagen",
               "primaryMuscles": [
                 "adductors"
@@ -99,7 +86,6 @@
                         "Aducción"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -107,7 +93,6 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -115,7 +100,6 @@
                         "Alineación"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -145,12 +129,6 @@
                     "cadera",
                     "sacroiliaca",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -339,7 +317,6 @@
                     "Aducción"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. El apoyo sentado reduce la demanda de equilibrio y cambia el papel de esta articulación hacia la transmisión.",
                   "role": "PRIMARY"
                 },
                 {
@@ -347,7 +324,6 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. El apoyo sentado reduce la demanda de equilibrio y cambia el papel de esta articulación hacia la transmisión.",
                   "role": "SECONDARY"
                 },
                 {
@@ -355,7 +331,6 @@
                     "Alineación"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                   "role": "STABILIZER"
                 }
               ],
@@ -363,12 +338,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_adduction",
-              "muscleNotes": [
-                {
-                  "muscleId": "adductors",
-                  "note": "Principal: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. En la configuración Máquina · Trabajo Bilateral · Posición Sentada, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_adduction__machine__adduccion_de_cadera",
               "primaryMuscles": [
                 "adductors"
@@ -389,7 +358,6 @@
                         "Aducción"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. El apoyo sentado reduce la demanda de equilibrio y cambia el papel de esta articulación hacia la transmisión.",
                       "role": "PRIMARY"
                     },
                     {
@@ -397,7 +365,6 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. El apoyo sentado reduce la demanda de equilibrio y cambia el papel de esta articulación hacia la transmisión.",
                       "role": "SECONDARY"
                     },
                     {
@@ -405,7 +372,6 @@
                         "Alineación"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -433,12 +399,6 @@
                     "cadera",
                     "sacroiliaca",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -611,7 +571,6 @@
                     "Aducción"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "PRIMARY"
                 },
                 {
@@ -619,7 +578,6 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -627,7 +585,6 @@
                     "Alineación"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "STABILIZER"
                 }
               ],
@@ -635,12 +592,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_adduction",
-              "muscleNotes": [
-                {
-                  "muscleId": "adductors",
-                  "note": "Principal: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_adduction__machine__adduccion_de_cadera_unilateral",
               "primaryMuscles": [
                 "adductors"
@@ -661,7 +612,6 @@
                         "Aducción"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "PRIMARY"
                     },
                     {
@@ -669,7 +619,6 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -677,7 +626,6 @@
                         "Alineación"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -705,12 +653,6 @@
                     "cadera",
                     "sacroiliaca",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -883,7 +825,6 @@
                     "Aducción"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna cruza.",
                   "role": "PRIMARY"
                 },
                 {
@@ -891,7 +832,6 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna cruza.",
                   "role": "SECONDARY"
                 },
                 {
@@ -899,7 +839,6 @@
                     "Alineación"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna cruza.",
                   "role": "STABILIZER"
                 }
               ],
@@ -907,12 +846,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_adduction",
-              "muscleNotes": [
-                {
-                  "muscleId": "adductors",
-                  "note": "Principal: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. En la configuración Máquina · Trabajo Bilateral · Posición De Pie, la cadera de apoyo estabiliza mientras la otra pierna cruza. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_adduction__machine__adduccion_de_cadera",
               "primaryMuscles": [
                 "adductors"
@@ -933,7 +866,6 @@
                         "Aducción"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna cruza.",
                       "role": "PRIMARY"
                     },
                     {
@@ -941,7 +873,6 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna cruza.",
                       "role": "SECONDARY"
                     },
                     {
@@ -949,7 +880,6 @@
                         "Alineación"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. El apoyo de pie suma la demanda de sostener el tronco mientras la otra pierna cruza.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -977,12 +907,6 @@
                     "cadera",
                     "sacroiliaca",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -1155,7 +1079,6 @@
                     "Aducción"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1163,7 +1086,6 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1171,7 +1093,6 @@
                     "Alineación"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1179,12 +1100,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_adduction",
-              "muscleNotes": [
-                {
-                  "muscleId": "adductors",
-                  "note": "Principal: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido, y el apoyo de pie suma sostener el tronco. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_adduction__machine__adduccion_de_cadera_unilateral",
               "primaryMuscles": [
                 "adductors"
@@ -1205,7 +1120,6 @@
                         "Aducción"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1213,7 +1127,6 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1221,7 +1134,6 @@
                         "Alineación"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados, y el apoyo de pie suma sostener el tronco.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1249,12 +1161,6 @@
                     "cadera",
                     "sacroiliaca",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -1427,7 +1333,6 @@
                     "Aducción"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1435,7 +1340,6 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1443,7 +1347,6 @@
                     "Alineación"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1451,12 +1354,6 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "hip_adduction",
-              "muscleNotes": [
-                {
-                  "muscleId": "adductors",
-                  "note": "Principal: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_adduction__cable__adduccion_de_cadera",
               "primaryMuscles": [
                 "adductors"
@@ -1477,7 +1374,6 @@
                         "Aducción"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1485,7 +1381,6 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1493,7 +1388,6 @@
                         "Alineación"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1521,12 +1415,6 @@
                     "cadera",
                     "sacroiliaca",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
@@ -1699,7 +1587,6 @@
                     "Aducción"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1707,7 +1594,6 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1715,7 +1601,6 @@
                     "Alineación"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1723,12 +1608,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "hip_adduction",
-              "muscleNotes": [
-                {
-                  "muscleId": "adductors",
-                  "note": "Principal: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_adduction__cable__adduccion_de_cadera_unilateral",
               "primaryMuscles": [
                 "adductors"
@@ -1749,7 +1628,6 @@
                         "Aducción"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1757,7 +1635,6 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1765,7 +1642,6 @@
                         "Alineación"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1793,12 +1669,6 @@
                     "cadera",
                     "sacroiliaca",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
@@ -1971,7 +1841,6 @@
                     "Aducción"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1979,7 +1848,6 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1987,7 +1855,6 @@
                     "Alineación"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1995,12 +1862,6 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "hip_adduction",
-              "muscleNotes": [
-                {
-                  "muscleId": "adductors",
-                  "note": "Principal: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. La banda se vuelve más exigente al final y hace más visible su participación en ese tramo. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_adduction__band__adduccion_de_cadera",
               "primaryMuscles": [
                 "adductors"
@@ -2021,7 +1882,6 @@
                         "Aducción"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2029,7 +1889,6 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2037,7 +1896,6 @@
                         "Alineación"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2065,12 +1923,6 @@
                     "cadera",
                     "sacroiliaca",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "variable_band",
                   "stability": "guided"
@@ -2243,7 +2095,6 @@
                     "Aducción"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2251,7 +2102,6 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2259,7 +2109,6 @@
                     "Alineación"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2267,12 +2116,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "hip_adduction",
-              "muscleNotes": [
-                {
-                  "muscleId": "adductors",
-                  "note": "Principal: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hip_adduction__band__adduccion_de_cadera_unilateral",
               "primaryMuscles": [
                 "adductors"
@@ -2293,7 +2136,6 @@
                         "Aducción"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2301,7 +2143,6 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2309,7 +2150,6 @@
                         "Alineación"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2337,12 +2177,6 @@
                     "cadera",
                     "sacroiliaca",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "variable_band",
                   "stability": "guided"
@@ -2543,7 +2377,6 @@
                     "Aducción"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2551,7 +2384,6 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2559,7 +2391,6 @@
                     "Alineación"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2567,16 +2398,6 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "hip_adduction_dynamic",
-              "muscleNotes": [
-                {
-                  "muscleId": "adductors",
-                  "note": "Principal: Los aductores aproxima el muslo y estabiliza la cadera frente a fuerzas laterales. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Secundaria: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "copenhagen_plank__bodyweight__plancha_copenhagen",
               "primaryMuscles": [
                 "adductors"
@@ -2597,7 +2418,6 @@
                         "Aducción"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera acerca el muslo a la línea media y concentra la acción de los aductores. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2605,7 +2425,6 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis ofrece una base estable mientras la pierna cruza hacia dentro. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2613,7 +2432,6 @@
                         "Alineación"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla acompaña el trayecto del fémur sin convertirse en el eje del gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2643,12 +2461,6 @@
                     "cadera",
                     "sacroiliaca",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"

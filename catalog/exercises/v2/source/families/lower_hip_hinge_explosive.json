@@ -45,7 +45,6 @@
                     "Extensión Explosiva"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera genera la velocidad que proyecta la carga sin depender de los brazos. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +52,6 @@
                     "Rigidez Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar mantiene una base firme para que la potencia nazca de la cadera. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 },
                 {
@@ -61,7 +59,6 @@
                     "Extensión Coordinada"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla acompaña la salida y conecta el empuje del suelo con la extensión de cadera. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -69,7 +66,6 @@
                     "Transferencia Al Suelo"
                   ],
                   "jointId": "tobillo",
-                  "note": "Estabilizadora: El tobillo transmite la fuerza al suelo y conserva la base durante el cambio de dirección. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,20 +73,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_explosive",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundaria: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Secundaria: Los erectores espinales sostiene la columna frente a la flexión y transmite fuerza entre pelvis y tronco. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hams_swing_kettlebell_dos_manos__kettlebell__swing_con_kettlebell_a_dos_manos",
               "primaryMuscles": [
                 "hamstrings"
@@ -112,7 +94,6 @@
                         "Extensión Explosiva"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera genera la velocidad que proyecta la carga sin depender de los brazos. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -120,7 +101,6 @@
                         "Rigidez Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar mantiene una base firme para que la potencia nazca de la cadera. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     },
                     {
@@ -128,7 +108,6 @@
                         "Extensión Coordinada"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla acompaña la salida y conecta el empuje del suelo con la extensión de cadera. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -136,7 +115,6 @@
                         "Transferencia Al Suelo"
                       ],
                       "jointId": "tobillo",
-                      "note": "Estabilizadora: El tobillo transmite la fuerza al suelo y conserva la base durante el cambio de dirección. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -168,13 +146,6 @@
                     "columna-lumbar",
                     "rodilla",
                     "tobillo"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales",
-                    "tendon-aquiles"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -360,7 +331,6 @@
                     "Extensión Explosiva"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera genera la velocidad que proyecta la carga sin depender de los brazos. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -368,7 +338,6 @@
                     "Rigidez Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar mantiene una base firme para que la potencia nazca de la cadera. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 },
                 {
@@ -376,7 +345,6 @@
                     "Extensión Coordinada"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla acompaña la salida y conecta el empuje del suelo con la extensión de cadera. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -384,7 +352,6 @@
                     "Transferencia Al Suelo"
                   ],
                   "jointId": "tobillo",
-                  "note": "Estabilizadora: El tobillo transmite la fuerza al suelo y conserva la base durante el cambio de dirección. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -392,20 +359,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_explosive",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundaria: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Secundaria: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Kettlebell, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "hams_swing_kettlebell_unilateral__kettlebell__swing_con_kettlebell_a_una_mano",
               "primaryMuscles": [
                 "hamstrings"
@@ -427,7 +380,6 @@
                         "Extensión Explosiva"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera genera la velocidad que proyecta la carga sin depender de los brazos. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -435,7 +387,6 @@
                         "Rigidez Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar mantiene una base firme para que la potencia nazca de la cadera. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     },
                     {
@@ -443,7 +394,6 @@
                         "Extensión Coordinada"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla acompaña la salida y conecta el empuje del suelo con la extensión de cadera. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -451,7 +401,6 @@
                         "Transferencia Al Suelo"
                       ],
                       "jointId": "tobillo",
-                      "note": "Estabilizadora: El tobillo transmite la fuerza al suelo y conserva la base durante el cambio de dirección. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -483,13 +432,6 @@
                     "columna-lumbar",
                     "rodilla",
                     "tobillo"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales",
-                    "tendon-aquiles"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"

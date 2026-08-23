@@ -46,7 +46,6 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -54,7 +53,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -62,7 +60,6 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 },
                 {
@@ -70,7 +67,6 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -78,24 +74,6 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "horizontal_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "pectoralis",
-                  "note": "Principal: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. En la configuración Peso Corporal · Apoyo Plano, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Peso Corporal · Apoyo Plano, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Peso Corporal · Apoyo Plano, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Peso Corporal · Apoyo Plano, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "push_up__bodyweight__flexiones_de_brazos",
               "primaryMuscles": [
                 "pectoralis"
@@ -119,7 +97,6 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -127,7 +104,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -135,7 +111,6 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     },
                     {
@@ -143,7 +118,6 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -177,15 +151,6 @@
                     "codo",
                     "escapulotoracica",
                     "muñeca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-supraespinoso",
-                    "tendon-infraespinoso",
-                    "tendon-bíceps-largo",
-                    "tendon-bíceps",
-                    "tendon-tríceps",
-                    "tendon-flexores-muñeca",
-                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -361,7 +326,6 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -369,7 +333,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -377,7 +340,6 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 },
                 {
@@ -385,7 +347,6 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -393,24 +354,6 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "horizontal_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "pectoralis",
-                  "note": "Principal: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. En la configuración Peso Corporal · Pies Elevados, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Peso Corporal · Pies Elevados, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Peso Corporal · Pies Elevados, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Peso Corporal · Pies Elevados, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "push_up__bodyweight__flexiones_de_brazos",
               "primaryMuscles": [
                 "pectoralis"
@@ -434,7 +377,6 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -442,7 +384,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -450,7 +391,6 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     },
                     {
@@ -458,7 +398,6 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -492,15 +431,6 @@
                     "codo",
                     "escapulotoracica",
                     "muñeca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-supraespinoso",
-                    "tendon-infraespinoso",
-                    "tendon-bíceps-largo",
-                    "tendon-bíceps",
-                    "tendon-tríceps",
-                    "tendon-flexores-muñeca",
-                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -701,7 +631,6 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La polea alta dirige la fuerza hacia abajo y modifica el tramo inicial del arco del hombro.",
                   "role": "PRIMARY"
                 },
                 {
@@ -709,7 +638,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -717,7 +645,6 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La polea alta dirige la fuerza hacia abajo y modifica el tramo inicial del arco del hombro.",
                   "role": "STABILIZER"
                 },
                 {
@@ -725,7 +652,6 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -733,16 +659,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "pectoralis",
-                  "note": "Principal: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. La polea alta cambia dónde se siente más la carga durante el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. La polea alta cambia dónde se siente más la carga durante el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "tren_superior_cruce_poleas__high",
               "primaryMuscles": [
                 "pectoralis"
@@ -766,7 +682,6 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La polea alta dirige la fuerza hacia abajo y modifica el tramo inicial del arco del hombro.",
                       "role": "PRIMARY"
                     },
                     {
@@ -774,7 +689,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -782,7 +696,6 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La polea alta dirige la fuerza hacia abajo y modifica el tramo inicial del arco del hombro.",
                       "role": "STABILIZER"
                     },
                     {
@@ -790,7 +703,6 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -821,15 +733,6 @@
                     "codo",
                     "escapulotoracica",
                     "muñeca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-supraespinoso",
-                    "tendon-infraespinoso",
-                    "tendon-bíceps-largo",
-                    "tendon-bíceps",
-                    "tendon-tríceps",
-                    "tendon-flexores-muñeca",
-                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
@@ -1003,7 +906,6 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1011,7 +913,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1019,7 +920,6 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1027,7 +927,6 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1035,16 +934,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "pectoralis",
-                  "note": "Principal: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. La polea media cambia dónde se siente más la carga durante el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. La polea media cambia dónde se siente más la carga durante el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "tren_superior_cruce_poleas__mid",
               "primaryMuscles": [
                 "pectoralis"
@@ -1068,7 +957,6 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1076,7 +964,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1084,7 +971,6 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1092,7 +978,6 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1123,15 +1008,6 @@
                     "codo",
                     "escapulotoracica",
                     "muñeca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-supraespinoso",
-                    "tendon-infraespinoso",
-                    "tendon-bíceps-largo",
-                    "tendon-bíceps",
-                    "tendon-tríceps",
-                    "tendon-flexores-muñeca",
-                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
@@ -1305,7 +1181,6 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La polea baja aumenta la tensión cuando la articulación se aleja del anclaje.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1313,7 +1188,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1321,7 +1195,6 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1329,7 +1202,6 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1337,16 +1209,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "pectoralis",
-                  "note": "Principal: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. La polea baja cambia dónde se siente más la carga durante el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. La polea baja cambia dónde se siente más la carga durante el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "tren_superior_cruce_poleas__low",
               "primaryMuscles": [
                 "pectoralis"
@@ -1370,7 +1232,6 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La polea baja aumenta la tensión cuando la articulación se aleja del anclaje.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1378,7 +1239,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1386,7 +1246,6 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1394,7 +1253,6 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1425,15 +1283,6 @@
                     "codo",
                     "escapulotoracica",
                     "muñeca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-supraespinoso",
-                    "tendon-infraespinoso",
-                    "tendon-bíceps-largo",
-                    "tendon-bíceps",
-                    "tendon-tríceps",
-                    "tendon-flexores-muñeca",
-                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
@@ -1636,7 +1485,6 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1644,7 +1492,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1652,7 +1499,6 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1660,7 +1506,6 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1668,24 +1513,6 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "horizontal_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "pectoralis",
-                  "note": "Principal: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "tren_superior_fondos__bodyweight__fondos",
               "primaryMuscles": [
                 "pectoralis"
@@ -1709,7 +1536,6 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1717,7 +1543,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1725,7 +1550,6 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1733,7 +1557,6 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1767,15 +1590,6 @@
                     "codo",
                     "escapulotoracica",
                     "muñeca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-supraespinoso",
-                    "tendon-infraespinoso",
-                    "tendon-bíceps-largo",
-                    "tendon-bíceps",
-                    "tendon-tríceps",
-                    "tendon-flexores-muñeca",
-                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -1972,7 +1786,6 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1980,7 +1793,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1988,7 +1800,6 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1996,7 +1807,6 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2004,20 +1814,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "pectoralis",
-                  "note": "Principal: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "tren_superior_press_banca_cadenas__barbell__press_de_banca_con_cadenas",
               "primaryMuscles": [
                 "pectoralis"
@@ -2041,7 +1837,6 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2049,7 +1844,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2057,7 +1851,6 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2065,7 +1858,6 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2097,15 +1889,6 @@
                     "codo",
                     "escapulotoracica",
                     "muñeca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-supraespinoso",
-                    "tendon-infraespinoso",
-                    "tendon-bíceps-largo",
-                    "tendon-bíceps",
-                    "tendon-tríceps",
-                    "tendon-flexores-muñeca",
-                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -2294,7 +2077,6 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2302,7 +2084,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2310,7 +2091,6 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2318,7 +2098,6 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2326,20 +2105,6 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "horizontal_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "pectoralis",
-                  "note": "Principal: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. La banda se vuelve más exigente al final y hace más visible su participación en ese tramo. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. La banda se vuelve más exigente al final y hace más visible su participación en ese tramo. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. La banda se vuelve más exigente al final y hace más visible su participación en ese tramo. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "tren_superior_press_banda_resistencia__band__press_con_banda_de_resistencia",
               "primaryMuscles": [
                 "pectoralis"
@@ -2363,7 +2128,6 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2371,7 +2135,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2379,7 +2142,6 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2387,7 +2149,6 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2419,15 +2180,6 @@
                     "codo",
                     "escapulotoracica",
                     "muñeca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-supraespinoso",
-                    "tendon-infraespinoso",
-                    "tendon-bíceps-largo",
-                    "tendon-bíceps",
-                    "tendon-tríceps",
-                    "tendon-flexores-muñeca",
-                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "variable_band",
                   "stability": "self_stabilized"
@@ -2616,7 +2368,6 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2624,7 +2375,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2632,7 +2382,6 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2640,7 +2389,6 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2648,20 +2396,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "pectoralis",
-                  "note": "Principal: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. En la configuración Máquina, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Máquina, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Máquina, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "tren_superior_press_pecho_maquina_convergente__machine__press_de_pecho_en_maquina_convergente",
               "primaryMuscles": [
                 "pectoralis"
@@ -2685,7 +2419,6 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2693,7 +2426,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2701,7 +2433,6 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2709,7 +2440,6 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2741,15 +2471,6 @@
                     "codo",
                     "escapulotoracica",
                     "muñeca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-supraespinoso",
-                    "tendon-infraespinoso",
-                    "tendon-bíceps-largo",
-                    "tendon-bíceps",
-                    "tendon-tríceps",
-                    "tendon-flexores-muñeca",
-                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -2942,7 +2663,6 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2950,7 +2670,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2958,7 +2677,6 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2966,7 +2684,6 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2974,20 +2691,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "pectoralis",
-                  "note": "Principal: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "tren_superior_press_spoto_barra__barbell__press_spoto_con_barra",
               "primaryMuscles": [
                 "pectoralis"
@@ -3011,7 +2714,6 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3019,7 +2721,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3027,7 +2728,6 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     },
                     {
@@ -3035,7 +2735,6 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3067,15 +2766,6 @@
                     "codo",
                     "escapulotoracica",
                     "muñeca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-supraespinoso",
-                    "tendon-infraespinoso",
-                    "tendon-bíceps-largo",
-                    "tendon-bíceps",
-                    "tendon-tríceps",
-                    "tendon-flexores-muñeca",
-                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -3264,7 +2954,6 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3272,7 +2961,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3280,7 +2968,6 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "STABILIZER"
                 },
                 {
@@ -3288,7 +2975,6 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3296,20 +2982,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "pectoralis",
-                  "note": "Principal: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "tren_superior_press_unilateral_polea__cable__press_unilateral_en_polea",
               "primaryMuscles": [
                 "pectoralis"
@@ -3333,7 +3005,6 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3341,7 +3012,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3349,7 +3019,6 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "STABILIZER"
                     },
                     {
@@ -3357,7 +3026,6 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3389,15 +3057,6 @@
                     "codo",
                     "escapulotoracica",
                     "muñeca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-supraespinoso",
-                    "tendon-infraespinoso",
-                    "tendon-bíceps-largo",
-                    "tendon-bíceps",
-                    "tendon-tríceps",
-                    "tendon-flexores-muñeca",
-                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
@@ -3584,7 +3243,6 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3592,7 +3250,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3600,7 +3257,6 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 },
                 {
@@ -3608,7 +3264,6 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3616,20 +3271,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "pectoralis",
-                  "note": "Principal: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "tren_superior_squeeze_press_mancuernas__dumbbells__squeeze_press_con_mancuernas",
               "primaryMuscles": [
                 "pectoralis"
@@ -3653,7 +3294,6 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3661,7 +3301,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3669,7 +3308,6 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     },
                     {
@@ -3677,7 +3315,6 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3709,15 +3346,6 @@
                     "codo",
                     "escapulotoracica",
                     "muñeca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-supraespinoso",
-                    "tendon-infraespinoso",
-                    "tendon-bíceps-largo",
-                    "tendon-bíceps",
-                    "tendon-tríceps",
-                    "tendon-flexores-muñeca",
-                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -3904,7 +3532,6 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3912,7 +3539,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3920,7 +3546,6 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 },
                 {
@@ -3928,7 +3553,6 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3936,20 +3560,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "pectoralis",
-                  "note": "Principal: El pectoral aproxima el brazo al centro y comparte la flexión del hombro. En la configuración Máquina, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Máquina, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundaria: El tríceps extiende el codo y completa la fase de empuje. En la configuración Máquina, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "tren_superior_press_pecho_maquina_convergente__machine__press_de_pecho_en_maquina_convergente",
               "primaryMuscles": [
                 "pectoralis"
@@ -3973,7 +3583,6 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aproxima el brazo y recibe la mayor parte del carga del empuje. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3981,7 +3590,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo extiende el brazo y completa el desplazamiento de la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3989,7 +3597,6 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Estabilizadora: La escápula ofrece una base estable para que el brazo empuje sin perder centrado. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     },
                     {
@@ -3997,7 +3604,6 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca transmite la fuerza de la mano al antebrazo y evita que la barra se desplace. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -4029,15 +3635,6 @@
                     "codo",
                     "escapulotoracica",
                     "muñeca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-supraespinoso",
-                    "tendon-infraespinoso",
-                    "tendon-bíceps-largo",
-                    "tendon-bíceps",
-                    "tendon-tríceps",
-                    "tendon-flexores-muñeca",
-                    "tendon-extensores-muñeca"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"

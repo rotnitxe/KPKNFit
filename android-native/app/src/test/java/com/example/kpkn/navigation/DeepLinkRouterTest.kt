@@ -18,20 +18,36 @@ class DeepLinkRouterTest {
         val deepLinkAction = DeepLinkRouter.resolve(Uri.parse("kpkn://nutrition/action/openFoodLog"))
         val nutrition = DeepLinkRouter.resolve(Uri.parse("https://kpkn.fit/nutricion"))
         val wiki = DeepLinkRouter.resolve(Uri.parse("https://www.kpkn.fit/wikilab"))
+        val concepts = DeepLinkRouter.resolve(Uri.parse("https://www.kpkn.fit/wikilab/concepts"))
 
         assertEquals(KpknRoute.Nutrition.route, deepLinkScheme?.route)
         assertEquals(KpknRoute.NutritionAction.create("openFoodLog"), deepLinkAction?.route)
         assertEquals(KpknRoute.Nutrition.route, nutrition?.route)
-        assertEquals(KpknRoute.WikiLab.route, wiki?.route)
+        assertEquals(KpknRoute.Home.route, wiki?.route)
+        assertEquals(KpknRoute.Concepts.route, concepts?.route)
     }
 
     @Test
     fun resolvesParameterizedRoutes() {
         val program = DeepLinkRouter.resolve(Uri.parse("https://kpkn.fit/program/power-12"))
         val exercise = DeepLinkRouter.resolve(Uri.parse("https://kpkn.fit/exercise/squat-low-bar"))
+        val unknownConcept = DeepLinkRouter.resolve(Uri.parse("https://kpkn.fit/wikilab/concept/not-known"))
 
         assertEquals(KpknRoute.ProgramDetail.create("power-12"), program?.route)
-        assertEquals(KpknRoute.WikiLabExerciseDetail.create("squat-low-bar"), exercise?.route)
+        assertEquals(KpknRoute.Home.route, exercise?.route)
+        assertEquals(KpknRoute.Concepts.route, unknownConcept?.route)
+    }
+
+    @Test
+    fun routesKnownConceptsAndRetiredLearnLinks() {
+        val known = DeepLinkRouter.resolve(Uri.parse("https://kpkn.fit/wikilab/concept/${com.example.kpkn.data.wikilab.TRAINING_CONCEPTS_DATABASE.first().id}"))
+        val learn = DeepLinkRouter.resolve(Uri.parse("kpkn://learn/course/intro"))
+
+        assertEquals(
+            KpknRoute.ConceptDetail.create(com.example.kpkn.data.wikilab.TRAINING_CONCEPTS_DATABASE.first().id),
+            known?.route,
+        )
+        assertEquals(KpknRoute.Home.route, learn?.route)
     }
 
     @Test

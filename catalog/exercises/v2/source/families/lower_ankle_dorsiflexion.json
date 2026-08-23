@@ -45,7 +45,6 @@
                     "Flexión Plantar O Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +52,6 @@
                     "Ajuste Del Apoyo"
                   ],
                   "jointId": "subtalar",
-                  "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +59,6 @@
                     "Transmisión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,12 +66,6 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "ankle_dorsiflexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "tibialis_anterior",
-                  "note": "Principal: El tibial anterior eleva el antepié y regula el avance de la tibia sobre el pie. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "calves_tibial_anterior__bodyweight__tibial_anterior",
               "primaryMuscles": [
                 "tibialis_anterior"
@@ -95,7 +86,6 @@
                         "Flexión Plantar O Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -103,7 +93,6 @@
                         "Ajuste Del Apoyo"
                       ],
                       "jointId": "subtalar",
-                      "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -111,7 +100,6 @@
                         "Transmisión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -139,12 +127,6 @@
                     "tobillo",
                     "subtalar",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-aquiles",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"

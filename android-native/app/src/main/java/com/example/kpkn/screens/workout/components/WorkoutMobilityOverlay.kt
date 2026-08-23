@@ -32,6 +32,10 @@ import com.example.kpkn.data.models.MobilityUnit
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.exercises.catalogv2.JointInvolvementV2
 import com.example.kpkn.domain.exercises.catalogv2.JointRoleV2
+import com.example.kpkn.data.exercises.catalogv2.canonicalJointKnowledge
+import com.example.kpkn.data.exercises.catalogv2.canonicalPatternKnowledge
+import com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledge
+import com.example.kpkn.ui.components.CanonicalKnowledgeTooltip
 import com.example.kpkn.ui.components.KpknGlassDialog
 import com.example.kpkn.ui.components.kpknGlass
 import com.example.kpkn.ui.components.kpknHazeEffect
@@ -89,6 +93,7 @@ fun WorkoutMobilityOverlay(
     }
 
     var showComplementarySection by remember { mutableStateOf(false) }
+    var selectedKnowledge by remember(exercise.id) { mutableStateOf<CanonicalKnowledge?>(null) }
 
     Box(
         modifier = Modifier
@@ -332,14 +337,6 @@ fun WorkoutMobilityOverlay(
                                     fontWeight = FontWeight.Bold,
                                     color = if (isCompleted) Color.White.copy(alpha = 0.65f) else Color.White,
                                 )
-                                if (!mob.notes.isNullOrBlank()) {
-                                    Text(
-                                        text = mob.notes,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = Color.White.copy(alpha = 0.55f),
-                                        lineHeight = 15.sp,
-                                    )
-                                }
                             }
                         }
                     }
@@ -412,7 +409,9 @@ fun WorkoutMobilityOverlay(
                                 JointRoleV2.STABILIZER -> "Estabilizador"
                             }
                             Surface(
-                                onClick = { selectedJoint = joint },
+                                onClick = {
+                                    if (canonicalJointKnowledge(joint.jointId) != null) selectedJoint = joint
+                                },
                                 shape = RoundedCornerShape(12.dp),
                                 color = Color.White.copy(alpha = 0.06f),
                                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
@@ -470,7 +469,7 @@ fun WorkoutMobilityOverlay(
                         }
 
                         Text(
-                            "Desliza y toca cada articulación para ver su función biomecánica.",
+                            "Desliza y toca cada articulación para ver su descripción canónica.",
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White.copy(alpha = 0.45f),
                         )
@@ -484,60 +483,8 @@ fun WorkoutMobilityOverlay(
                             modifier = Modifier.padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                Surface(
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = sessionAccentColor.copy(alpha = 0.14f),
-                                ) {
-                                    Text(
-                                        formatJointName(joint.jointId),
-                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = FontWeight.Black,
-                                        color = sessionAccentColor,
-                                    )
-                                }
-                                Text(
-                                    when (joint.role) {
-                                        JointRoleV2.PRIMARY -> "Rol principal"
-                                        JointRoleV2.SECONDARY -> "Rol secundario"
-                                        JointRoleV2.STABILIZER -> "Rol estabilizador"
-                                    },
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White.copy(alpha = 0.60f),
-                                )
-                            }
-                            Text(
-                                text = buildJointKinesiologyDescription(joint, exercise),
-                                style = MaterialTheme.typography.bodySmall,
-                                lineHeight = 18.sp,
-                                color = Color.White.copy(alpha = 0.88f),
-                            )
-                            if (joint.actions.isNotEmpty()) {
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    joint.actions.forEach { action ->
-                                        Surface(
-                                            shape = RoundedCornerShape(999.dp),
-                                            color = Color.White.copy(alpha = 0.06f),
-                                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
-                                        ) {
-                                            Text(
-                                                action,
-                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                                style = MaterialTheme.typography.labelSmall,
-                                                fontWeight = FontWeight.Medium,
-                                                color = Color.White.copy(alpha = 0.75f),
-                                            )
-                                        }
-                                    }
-                                }
+                            canonicalJointKnowledge(joint.jointId)?.let { knowledge ->
+                                CanonicalKnowledgeTooltip(knowledge)
                             }
                             TextButton(
                                 onClick = { selectedJoint = null },
@@ -546,6 +493,45 @@ fun WorkoutMobilityOverlay(
                             ) {
                                 Text("Cerrar", fontWeight = FontWeight.Bold, color = sessionAccentColor)
                             }
+                        }
+                    }
+                }
+            }
+
+            canonicalPatternKnowledge(exercise.selectedMovementPattern.orEmpty())?.let { pattern ->
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { selectedKnowledge = pattern },
+                    shape = RoundedCornerShape(999.dp),
+                    color = Color.White.copy(alpha = 0.05f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+                ) {
+                    Text(
+                        "Patrón · ${pattern.name}",
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White.copy(alpha = 0.82f),
+                    )
+                }
+            }
+
+            selectedKnowledge?.let { knowledge ->
+                KpknGlassDialog(
+                    onDismissRequest = { selectedKnowledge = null },
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        CanonicalKnowledgeTooltip(knowledge)
+                        TextButton(
+                            onClick = { selectedKnowledge = null },
+                            modifier = Modifier.align(Alignment.End),
+                            colors = kpknSheetDialogTextButtonColors(),
+                        ) {
+                            Text("Cerrar", fontWeight = FontWeight.Bold, color = sessionAccentColor)
                         }
                     }
                 }
@@ -763,39 +749,4 @@ private fun resolveJointInvolvementForExercise(
         ?: return emptyList()
 
     return config.profile.jointInvolvement
-}
-
-private fun buildJointKinesiologyDescription(joint: JointInvolvementV2, exercise: Exercise): String {
-    if (!joint.note.isNullOrBlank()) return joint.note.trim()
-    val actionText = joint.actions.joinToString(" + ").ifBlank { "movimiento controlado" }
-    val roleText = when (joint.role) {
-        JointRoleV2.PRIMARY -> "motor principal del gesto"
-        JointRoleV2.SECONDARY -> "articulación que asiste y reparte carga"
-        JointRoleV2.STABILIZER -> "articulación que estabiliza y sostiene la cadena"
-    }
-    return when (joint.jointId.trim().lowercase()) {
-        "shoulder", "glenohumeral" -> when (joint.role) {
-            JointRoleV2.PRIMARY -> "Glenohumeral como $roleText: dirige $actionText del húmero. En ${exercise.name} la cabeza humeral debe deslizar sin pinzamiento; la preparación busca rotación externa + elevación escapular para que el manguito rotador centre el húmero en la glena durante toda la fase excéntrica y concéntrica."
-            JointRoleV2.SECONDARY -> "Hombro como $roleText ($actionText): acompaña la trayectoria y evita que el trapecio superior robe el recorrido. La movilidad previa debe liberar cápsula posterior y pectoral menor para que el húmero no se anteriorice bajo carga."
-            else -> "Hombro estabilizador: fija la glenohumeral mientras el gesto produce $actionText. El objetivo es congruencia articular — coaptación del manguito y depresión humeral — para no trasladar cizalla a la articulación acromioclavicular."
-        }
-        "scapulothoracic", "scapula" -> "Escápula como $roleText ($actionText): el ritmo escapulohumeral sostiene la base del hombro. En ${exercise.name} la escápula debe rotar superiormente y bascular posterior sin alar; sin esa cinemática el húmero choca contra el acromion y el trapecio superior se fatiga."
-        "elbow" -> when (joint.role) {
-            JointRoleV2.PRIMARY -> "Codo como $roleText: la articulación húmero-cubital produce $actionText. La clave es mantener el eje troclear alineado — sin valgo/varismo — y preparar flexores/extensores del antebrazo para que el tendón no absorba la carga del bíceps/tríceps."
-            else -> "Codo como $roleText ($actionText): estabiliza el brazo de palanca. La preparación busca que el olécranon no choque precozmente en extensión y que la pronosupinación acompañe sin perder congruencia radio-cubital."
-        }
-        "wrist", "wrist_hand" -> "Muñeca como $roleText ($actionText): transmite fuerza sin colapsar. En ${exercise.name} la muñeca debe mantenerse neutra — ni flexión ni extensión excesiva — para que la carga viaje por el eje radio-carpiano y no por ligamentos; la movilidad aquí es rigidez activa, no laxitud."
-        "hip", "coxofemoral" -> when (joint.role) {
-            JointRoleV2.PRIMARY -> "Cadera como $roleText: genera $actionText. En ${exercise.name} la cabeza femoral debe centrarse en el acetábulo con anteversión pélvica controlada; la dorsiflexión y la rotación externa de cadera liberan profundidad sin que el raquis compense en flexión lumbar."
-            JointRoleV2.SECONDARY -> "Cadera como $roleText ($actionText): reparte la carga entre cadena anterior y posterior. La capsula anterior y aductores deben ceder para que la pelvis no bascule precozmente y el fémur no se anteriorice."
-            else -> "Cadera estabilizadora: sostiene $actionText sin colapso en valgo. Glúteo medio y rotadores externos fijan el fémur para que la rodilla trackee sobre el segundo dedo y el acetábulo no reciba cizalla."
-        }
-        "knee" -> when (joint.role) {
-            JointRoleV2.PRIMARY -> "Rodilla como $roleText: ejecuta $actionText con control del eje. En ${exercise.name} la rótula debe deslizar centrada en la tróclea femoral; la preparación apunta a que cuádriceps y cadena posterior compartan el momento sin que el ligamento cruzado anterior absorba la traslación tibial."
-            else -> "Rodilla como $roleText ($actionText): estabiliza la bisagra. El menisco y el LCA agradecen que la tibia no rote bajo carga; el trabajo de movilidad busca que la dorsiflexión del tobillo y la cadera eviten que la rodilla colapse en valgo."
-        }
-        "ankle" -> "Tobillo como $roleText ($actionText): la dorsiflexión disponible dicta la cinemática superior. En ${exercise.name} un tobillo rígido obliga a la rodilla a avanzar o al talón a levantarse; la preparación persigue que el astrágalo deslice posterior en la mortaja para ganar 8-12° sin pronación excesiva."
-        "spine", "lumbar", "thoracic", "cervical" -> "Columna como $roleText ($actionText): no es bisagra pasiva. En ${exercise.name} debe mantener lordosis neutra y disociar pelvis de tórax; la rigidez torácica o la hiperlordosis lumbar roban recorrido a cadera/hombro y trasladan compresión a discos. La movilidad aquí es control segmentario, no hipermovilidad."
-        else -> "${formatJointName(joint.jointId)} como $roleText: participa con $actionText en ${exercise.name}. Su preparación específica evita que la compensación viaje a la articulación vecina."
-    }
 }

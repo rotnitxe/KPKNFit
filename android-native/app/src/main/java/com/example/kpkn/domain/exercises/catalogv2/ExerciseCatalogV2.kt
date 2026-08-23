@@ -64,9 +64,6 @@ data class ResolvedExerciseProfileV2(
     val primaryMuscles: List<String>,
     val secondaryMuscles: List<String> = emptyList(),
     val stabilizerMuscles: List<String> = emptyList(),
-    /** One editorial note per listed muscle; the single source for
-     * biomechanical explanations shown in the picker. */
-    val muscleNotes: List<MuscleNoteV2> = emptyList(),
     /** One resolved entry per relevant joint for this exact configuration. */
     val jointInvolvement: List<JointInvolvementV2> = emptyList(),
     val efc: Double,
@@ -116,12 +113,6 @@ enum class ExerciseFatigueTierV2 {
 }
 
 @Serializable
-data class MuscleNoteV2(
-    val muscleId: String,
-    val note: String,
-)
-
-@Serializable
 enum class JointRoleV2 {
     PRIMARY,
     SECONDARY,
@@ -133,7 +124,6 @@ data class JointInvolvementV2(
     val jointId: String,
     val role: JointRoleV2,
     val actions: List<String>,
-    val note: String,
 )
 
 @Serializable

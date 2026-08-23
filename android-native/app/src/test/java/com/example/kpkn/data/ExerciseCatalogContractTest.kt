@@ -115,8 +115,6 @@ class ExerciseCatalogContractTest {
 
         assertNotEquals(wideDumbbells.profile.description, closeDumbbells.profile.description)
         assertNotEquals(wideDumbbells.profile.techniqueSummary, wideCable.profile.techniqueSummary)
-        assertTrue(wideDumbbells.profile.muscleNotes.any { it.muscleId == "trapezius" })
-        assertTrue(closeDumbbells.profile.muscleNotes.any { it.muscleId == "biceps" })
         assertTrue(wideDumbbells.profile.jointInvolvement.any { it.jointId == "glenohumeral" })
         assertEquals(
             wideCable.profile.jointInvolvement.map { it.jointId }.toSet(),

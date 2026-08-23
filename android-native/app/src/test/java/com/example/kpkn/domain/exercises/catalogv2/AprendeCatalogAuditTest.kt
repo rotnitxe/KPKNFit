@@ -61,7 +61,6 @@ class AprendeCatalogAuditTest {
         assertEquals(521, report.configurationCount)
         assertEquals(521, report.richMetadataCount)
         assertEquals(521, report.editorialCoverageCount)
-        assertEquals(521, report.muscleNoteCoverageCount)
         assertEquals(521, report.jointCoverageCount)
         assertEquals(0, report.shortDescriptionCount)
         assertEquals(0, report.shortBenefitCount)
@@ -72,7 +71,7 @@ class AprendeCatalogAuditTest {
         assertEquals(0, report.duplicateVariantRationaleCount)
         assertEquals(0, report.desynchronizedMetadataCount)
         assertEquals(0, report.reverseLinkConsistencyIssueCount)
-        assertEquals("bbdd6406425415a2f43cc2a382bb163acf5b278fea71420360c0ee2a7e7d789c", report.sourceSha256)
+        assertEquals("d4ea20ed8fcce76c6b621f0b6f1ec3713270328ce44914a1a57931bb51ee453f", report.sourceSha256)
         assertTrue(report.unmappedMuscleIds.isEmpty())
         assertTrue(report.unmappedPatternIds.isEmpty())
         assertTrue(report.unknownJointIds.isEmpty())
@@ -91,21 +90,14 @@ class AprendeCatalogAuditTest {
         assertEquals(19, AprendeOntology.legacyExerciseNameDecisions.size)
         assertEquals(85, AprendeOntology.allLegacyExerciseDecisions.size)
         assertEquals(10, report.explicitlyRemovedLegacyIds.size)
-        assertEquals(85, staticExerciseRefs.size)
-        assertTrue(staticExerciseRefs.all { it in AprendeOntology.allLegacyExerciseDecisions })
+        assertTrue(staticExerciseRefs.isEmpty())
         assertTrue(report.passes)
     }
 
     @Test
     fun exercise_detail_does_not_reintroduce_drain_or_rpe_surfaces() {
-        val files = listOf(
-            File("src/main/java/com/example/kpkn/screens/wikilab/ExerciseDetailScreen.kt"),
-            File("src/main/java/com/example/kpkn/screens/wikilab/ExerciseDetailComposables.kt"),
-            File("app/src/main/java/com/example/kpkn/screens/wikilab/ExerciseDetailScreen.kt"),
-            File("app/src/main/java/com/example/kpkn/screens/wikilab/ExerciseDetailComposables.kt"),
-        ).filter { it.exists() }
-        val source = files.joinToString("\n") { it.readText() }
-        listOf("ExerciseFatigueScenarios", "calculateFriendlyFatigue", "Drenaje", "Fatiga General", "RPE", "intensidad").forEach { forbidden ->
+        val source = File("src/main/java/com/example/kpkn/screens/home/ConceptosClaveScreen.kt").readText()
+        listOf("Drenaje", "Fatiga General", "RPE", "Wikipedia").forEach { forbidden ->
             assertTrue("surface contains $forbidden", !source.contains(forbidden, ignoreCase = true))
         }
     }
@@ -186,12 +178,12 @@ class AprendeCatalogAuditTest {
     }
 
     @Test
-    fun aprende_surface_keeps_deterministic_editorial_lens_and_branding() {
+    fun concepts_surface_keeps_deterministic_editorial_lens_and_branding() {
         val home = listOf(
-            File("src/main/java/com/example/kpkn/screens/wikilab/WikiLabHomeScreen.kt"),
-            File("app/src/main/java/com/example/kpkn/screens/wikilab/WikiLabHomeScreen.kt"),
+            File("src/main/java/com/example/kpkn/screens/home/HomeWikiLabSection.kt"),
+            File("app/src/main/java/com/example/kpkn/screens/home/HomeWikiLabSection.kt"),
         ).first { it.exists() }.readText()
-        assertTrue(home.contains("\"Aprende\""))
+        assertTrue(home.contains("\"CONCEPTOS CLAVE\""))
         assertTrue(!home.contains(".shuffled()"))
     }
 
@@ -206,7 +198,7 @@ class AprendeCatalogAuditTest {
             File("app/src/main/java/com/example/kpkn/data/db/KpknDatabase.kt"),
         ).first { it.exists() }.readText()
 
-        assertTrue(prepopulate.contains("APRENDE_CONTENT_REVISION = \"aprende-v2-2026-08-22\""))
+        assertTrue(prepopulate.contains("APRENDE_CONTENT_REVISION = \"conceptos-clave-v1-2026-08-22\""))
         assertTrue(prepopulate.contains("currentRevision != APRENDE_CONTENT_REVISION"))
         assertTrue(prepopulate.contains("putString(APRENDE_CONTENT_PREF_KEY, APRENDE_CONTENT_REVISION)"))
         assertTrue(database.contains("version = 23"))

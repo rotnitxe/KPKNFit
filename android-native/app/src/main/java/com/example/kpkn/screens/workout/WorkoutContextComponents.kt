@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
-import com.example.kpkn.screens.wikilab.wikilabMuscleColor
+import com.example.kpkn.ui.components.canonicalMuscleColor
 import java.util.Locale
 import kotlin.math.roundToInt
 import com.example.kpkn.ui.components.KpknAlertDialog
@@ -2094,7 +2094,7 @@ internal fun displayWorkoutMuscleGroup(group: String?): String? = when (group) {
     else -> group
 }
 
-internal fun canonicalWorkoutMuscleColor(group: String): Color = wikilabMuscleColor(group)
+internal fun canonicalWorkoutMuscleColor(group: String): Color = canonicalMuscleColor(group)
 
 internal fun workoutOverlayContentColor(color: Color): Color =
     if (color.luminance() > 0.55f) Color.Black else Color.White

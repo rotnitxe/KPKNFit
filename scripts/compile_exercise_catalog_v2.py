@@ -62,7 +62,7 @@ def validate_profile(value: Any, path: str, allow_draft: bool) -> None:
         "movementPatternId", "bodyRegion", "kineticChain", "laterality", "equipmentId",
         "loadMode", "primaryMuscles", "secondaryMuscles", "stabilizerMuscles", "efc",
         "cnc", "ssc", "ttc", "axialLoadFactor", "technicalDifficulty", "resistanceProfile",
-        "description", "benefits", "techniqueSummary", "variantRationale", "muscleNotes", "jointInvolvement",
+        "description", "benefits", "techniqueSummary", "variantRationale", "jointInvolvement",
         "setupCues", "executionCues", "commonMistakes",
         "performanceProfileId",
     }
@@ -75,18 +75,6 @@ def validate_profile(value: Any, path: str, allow_draft: bool) -> None:
     require(len(all_listed) == len(set(all_listed)), f"{path}.profile lists a muscle in more than one role")
     require(isinstance(value["description"], str) and len(value["description"].strip()) >= 40, f"{path}.profile.description is too short")
     require(not re.search(r"(?i)\b(?:ejecuta|mantén|mantener|configura|adopta|controla|asegura|evita|sigue|selecciona)\b", value["description"]), f"{path}.profile.description must be descriptive, not instructional")
-    notes = value.get("muscleNotes")
-    require(isinstance(notes, list) and notes, f"{path}.profile.muscleNotes cannot be empty")
-    listed = set(value["primaryMuscles"]) | set(value["secondaryMuscles"]) | set(value["stabilizerMuscles"])
-    noted = {}
-    for note in notes:
-        require(isinstance(note, dict) and isinstance(note.get("muscleId"), str) and isinstance(note.get("note"), str), f"{path}.profile.muscleNotes entry invalid")
-        require(note["muscleId"] in listed, f"{path}.profile.muscleNotes orphan: {note['muscleId']}")
-        require(note["muscleId"] not in noted, f"{path}.profile.muscleNotes duplicate: {note['muscleId']}")
-        require(len(note["note"].strip()) >= 40, f"{path}.profile.muscleNotes note too short: {note['muscleId']}")
-        noted[note["muscleId"]] = True
-    missing_notes = sorted(listed - set(noted))
-    require(not missing_notes, f"{path}.profile.muscleNotes missing muscles: {', '.join(missing_notes)}")
     require(isinstance(value["benefits"], list) and len(value["benefits"]) >= 2, f"{path}.profile.benefits requires at least two entries")
     require(all(isinstance(item, str) and len(item.strip()) >= 40 for item in value["benefits"]), f"{path}.profile.benefits contains short text")
     require(isinstance(value["techniqueSummary"], str) and len(value["techniqueSummary"].strip()) >= 40, f"{path}.profile.techniqueSummary is too short")
@@ -101,7 +89,6 @@ def validate_profile(value: Any, path: str, allow_draft: bool) -> None:
         joint_ids.append(joint["jointId"])
         require(joint.get("role") in {"PRIMARY", "SECONDARY", "STABILIZER"}, f"{path}.profile.jointInvolvement role invalid")
         require(isinstance(joint.get("actions"), list) and joint["actions"] and all(isinstance(action, str) and action.strip() for action in joint["actions"]), f"{path}.profile.jointInvolvement actions invalid")
-        require(isinstance(joint.get("note"), str) and len(joint["note"].strip()) >= 40, f"{path}.profile.jointInvolvement note too short")
     for key in ("efc", "cnc", "ssc", "ttc", "axialLoadFactor"):
         require(isinstance(value[key], (int, float)) and value[key] >= 0, f"{path}.profile.{key} must be a non-negative number")
     require(1 <= value["technicalDifficulty"] <= 10, f"{path}.profile.technicalDifficulty must be 1..10")
@@ -177,7 +164,6 @@ def validate_rich_metadata(
     require_text(biomechanics.get("stability"), "biomechanics.stability")
     require_text_list(biomechanics.get("relevantJoints"), "biomechanics.relevantJoints")
     require(set(biomechanics["relevantJoints"]) == {joint["jointId"] for joint in profile["jointInvolvement"]}, f"{path}.richMetadata.biomechanics.relevantJoints mismatch")
-    require_text_list(biomechanics.get("relevantTendons"), "biomechanics.relevantTendons", allow_empty=True)
     fatigue = rich.get("fatigue")
     require(isinstance(fatigue, dict), f"{path}.profile.richMetadata.fatigue must be an object")
     for key in ("efc", "cnc", "ssc", "ttc", "axialLoadFactor", "technicalDifficulty"):
@@ -354,6 +340,33 @@ def canonical_bytes(source: dict[str, Any]) -> bytes:
     return (json.dumps(source, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
 
 
+def strip_retired_knowledge(value: Any) -> Any:
+    """Remove retired explanatory payloads while preserving catalog identity."""
+    if isinstance(value, list):
+        return [strip_retired_knowledge(item) for item in value]
+    if not isinstance(value, dict):
+        return value
+    retired = {"muscleNotes", "relevantTendons"}
+    result = {
+        key: strip_retired_knowledge(item)
+        for key, item in value.items()
+        if key not in retired
+    }
+    if isinstance(result.get("jointInvolvement"), list):
+        result["jointInvolvement"] = [
+            {key: item for key, item in joint.items() if key != "note"}
+            if isinstance(joint, dict) else joint
+            for joint in result["jointInvolvement"]
+        ]
+    if isinstance(result.get("anatomy"), dict) and isinstance(result["anatomy"].get("jointInvolvement"), list):
+        result["anatomy"]["jointInvolvement"] = [
+            {key: item for key, item in joint.items() if key != "note"}
+            if isinstance(joint, dict) else joint
+            for joint in result["anatomy"]["jointInvolvement"]
+        ]
+    return result
+
+
 def write_atomic(path: Path, content: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
@@ -381,7 +394,7 @@ def main() -> int:
     source = load_source()
     validate_family_manifest(source)
     definitions, configurations = validate(source, allow_draft=args.allow_draft)
-    payload = canonical_bytes(source)
+    payload = canonical_bytes(strip_retired_knowledge(source))
     digest = hashlib.sha256(payload).hexdigest()
     print(f"catalogRevision={source['catalogRevision']}")
     print(f"definitions={definitions} configurations={configurations}")

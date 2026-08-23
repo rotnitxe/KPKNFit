@@ -45,7 +45,6 @@
                     "Flexión Plantar O Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +52,6 @@
                     "Ajuste Del Apoyo"
                   ],
                   "jointId": "subtalar",
-                  "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +59,6 @@
                     "Transmisión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,12 +66,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "plantar_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "calves",
-                  "note": "Principal: La pantorrilla produce o controla la flexión plantar para transferir fuerza al suelo. En la configuración Máquina · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "calf_raise__bilateral__machine",
               "primaryMuscles": [
                 "calves"
@@ -95,7 +86,6 @@
                         "Flexión Plantar O Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -103,7 +93,6 @@
                         "Ajuste Del Apoyo"
                       ],
                       "jointId": "subtalar",
-                      "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -111,7 +100,6 @@
                         "Transmisión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -139,12 +127,6 @@
                     "tobillo",
                     "subtalar",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-aquiles",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -317,7 +299,6 @@
                     "Flexión Plantar O Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "PRIMARY"
                 },
                 {
@@ -325,7 +306,6 @@
                     "Ajuste Del Apoyo"
                   ],
                   "jointId": "subtalar",
-                  "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -333,7 +313,6 @@
                     "Transmisión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "STABILIZER"
                 }
               ],
@@ -341,12 +320,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "plantar_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "calves",
-                  "note": "Principal: La pantorrilla produce o controla la flexión plantar para transferir fuerza al suelo. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "calf_raise__unilateral__machine",
               "primaryMuscles": [
                 "calves"
@@ -367,7 +340,6 @@
                         "Flexión Plantar O Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "PRIMARY"
                     },
                     {
@@ -375,7 +347,6 @@
                         "Ajuste Del Apoyo"
                       ],
                       "jointId": "subtalar",
-                      "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -383,7 +354,6 @@
                         "Transmisión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -411,12 +381,6 @@
                     "tobillo",
                     "subtalar",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-aquiles",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -589,7 +553,6 @@
                     "Flexión Plantar O Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -597,7 +560,6 @@
                     "Ajuste Del Apoyo"
                   ],
                   "jointId": "subtalar",
-                  "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -605,7 +567,6 @@
                     "Transmisión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -613,12 +574,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "plantar_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "calves",
-                  "note": "Principal: La pantorrilla produce o controla la flexión plantar para transferir fuerza al suelo. En la configuración Barra · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "calf_raise__bilateral__barbell",
               "primaryMuscles": [
                 "calves"
@@ -639,7 +594,6 @@
                         "Flexión Plantar O Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -647,7 +601,6 @@
                         "Ajuste Del Apoyo"
                       ],
                       "jointId": "subtalar",
-                      "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -655,7 +608,6 @@
                         "Transmisión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -683,12 +635,6 @@
                     "tobillo",
                     "subtalar",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-aquiles",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "guided"
@@ -861,7 +807,6 @@
                     "Flexión Plantar O Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "PRIMARY"
                 },
                 {
@@ -869,7 +814,6 @@
                     "Ajuste Del Apoyo"
                   ],
                   "jointId": "subtalar",
-                  "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -877,7 +821,6 @@
                     "Transmisión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "STABILIZER"
                 }
               ],
@@ -885,12 +828,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "plantar_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "calves",
-                  "note": "Principal: La pantorrilla produce o controla la flexión plantar para transferir fuerza al suelo. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "calf_raise__unilateral__barbell",
               "primaryMuscles": [
                 "calves"
@@ -911,7 +848,6 @@
                         "Flexión Plantar O Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "PRIMARY"
                     },
                     {
@@ -919,7 +855,6 @@
                         "Ajuste Del Apoyo"
                       ],
                       "jointId": "subtalar",
-                      "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -927,7 +862,6 @@
                         "Transmisión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -955,12 +889,6 @@
                     "tobillo",
                     "subtalar",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-aquiles",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "guided"
@@ -1133,7 +1061,6 @@
                     "Flexión Plantar O Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1141,7 +1068,6 @@
                     "Ajuste Del Apoyo"
                   ],
                   "jointId": "subtalar",
-                  "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1149,7 +1075,6 @@
                     "Transmisión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1157,12 +1082,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "plantar_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "calves",
-                  "note": "Principal: La pantorrilla produce o controla la flexión plantar para transferir fuerza al suelo. En la configuración Máquina Smith · Trabajo Bilateral, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "calf_raise__bilateral__smith_machine",
               "primaryMuscles": [
                 "calves"
@@ -1183,7 +1102,6 @@
                         "Flexión Plantar O Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1191,7 +1109,6 @@
                         "Ajuste Del Apoyo"
                       ],
                       "jointId": "subtalar",
-                      "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1199,7 +1116,6 @@
                         "Transmisión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1227,12 +1143,6 @@
                     "tobillo",
                     "subtalar",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-aquiles",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -1405,7 +1315,6 @@
                     "Flexión Plantar O Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1413,7 +1322,6 @@
                     "Ajuste Del Apoyo"
                   ],
                   "jointId": "subtalar",
-                  "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1421,7 +1329,6 @@
                     "Transmisión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1429,12 +1336,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "plantar_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "calves",
-                  "note": "Principal: La pantorrilla produce o controla la flexión plantar para transferir fuerza al suelo. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "calf_raise__unilateral__smith_machine",
               "primaryMuscles": [
                 "calves"
@@ -1455,7 +1356,6 @@
                         "Flexión Plantar O Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1463,7 +1363,6 @@
                         "Ajuste Del Apoyo"
                       ],
                       "jointId": "subtalar",
-                      "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1471,7 +1370,6 @@
                         "Transmisión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1499,12 +1397,6 @@
                     "tobillo",
                     "subtalar",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-aquiles",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -1677,7 +1569,6 @@
                     "Flexión Plantar O Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1685,7 +1576,6 @@
                     "Ajuste Del Apoyo"
                   ],
                   "jointId": "subtalar",
-                  "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1693,7 +1583,6 @@
                     "Transmisión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1701,12 +1590,6 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "plantar_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "calves",
-                  "note": "Principal: La pantorrilla produce o controla la flexión plantar para transferir fuerza al suelo. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "calf_raise__bilateral__cable",
               "primaryMuscles": [
                 "calves"
@@ -1727,7 +1610,6 @@
                         "Flexión Plantar O Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1735,7 +1617,6 @@
                         "Ajuste Del Apoyo"
                       ],
                       "jointId": "subtalar",
-                      "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1743,7 +1624,6 @@
                         "Transmisión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1771,12 +1651,6 @@
                     "tobillo",
                     "subtalar",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-aquiles",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
@@ -1949,7 +1823,6 @@
                     "Flexión Plantar O Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1957,7 +1830,6 @@
                     "Ajuste Del Apoyo"
                   ],
                   "jointId": "subtalar",
-                  "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1965,7 +1837,6 @@
                     "Transmisión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1973,12 +1844,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "plantar_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "calves",
-                  "note": "Principal: La pantorrilla produce o controla la flexión plantar para transferir fuerza al suelo. La versión unilateral exige que ese lado produzca y estabilice sin que el otro robe el recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "calf_raise__unilateral__cable",
               "primaryMuscles": [
                 "calves"
@@ -1999,7 +1864,6 @@
                         "Flexión Plantar O Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Principal: El tobillo mueve el pie y recibe la carga principal del ejercicio. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2007,7 +1871,6 @@
                         "Ajuste Del Apoyo"
                       ],
                       "jointId": "subtalar",
-                      "note": "Secundaria: La articulación subastragalina adapta el pie al suelo y conserva el contacto estable. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2015,7 +1878,6 @@
                         "Transmisión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla mantiene la pierna organizada para que el movimiento no suba de nivel. La versión unilateral exige que esta articulación estabilice diferencias de carga entre ambos lados.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2043,12 +1905,6 @@
                     "tobillo",
                     "subtalar",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-aquiles",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"

@@ -45,7 +45,6 @@
                     "Rotación"
                   ],
                   "jointId": "columna-toracica",
-                  "note": "Principal: La columna torácica aporta la mayor parte del giro útil del tronco. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +52,6 @@
                     "Limitación De Rotación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar limita el giro accesorio y protege la transferencia de fuerza. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "STABILIZER"
                 },
                 {
@@ -61,7 +59,6 @@
                     "Acompañamiento"
                   ],
                   "jointId": "cadera",
-                  "note": "Secundaria: La cadera acompaña la rotación para que el tronco no gire aislado sobre la pelvis. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "SECONDARY"
                 }
               ],
@@ -69,12 +66,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "trunk_rotation",
-              "muscleNotes": [
-                {
-                  "muscleId": "abdominals",
-                  "note": "Principal: El recto abdominal acerca costillas y pelvis o resiste la extensión del tronco. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "core_lenador_polea__cable__lenador_en_polea",
               "primaryMuscles": [
                 "abdominals"
@@ -95,7 +86,6 @@
                         "Rotación"
                       ],
                       "jointId": "columna-toracica",
-                      "note": "Principal: La columna torácica aporta la mayor parte del giro útil del tronco. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -103,7 +93,6 @@
                         "Limitación De Rotación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar limita el giro accesorio y protege la transferencia de fuerza. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "STABILIZER"
                     },
                     {
@@ -111,7 +100,6 @@
                         "Acompañamiento"
                       ],
                       "jointId": "cadera",
-                      "note": "Secundaria: La cadera acompaña la rotación para que el tronco no gire aislado sobre la pelvis. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "SECONDARY"
                     }
                   ],
@@ -139,9 +127,6 @@
                     "columna-toracica",
                     "columna-lumbar",
                     "cadera"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"

@@ -45,7 +45,6 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +52,6 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +59,6 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,12 +66,6 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "hip_abduction_external_rotation",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. La banda se vuelve más exigente al final y hace más visible su participación en ese tramo. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "glutes_clamshells_banda__band__clamshells_almejas_con_banda_elastica",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -95,7 +86,6 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera separa el muslo y dirige la fuerza del movimiento lateral. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -103,7 +93,6 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis conserva su orientación para que la pierna se mueva sin inclinar el tronco. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -111,7 +100,6 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla mantiene el fémur orientado y evita que la abducción termine en torsión. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -139,12 +127,6 @@
                     "cadera",
                     "sacroiliaca",
                     "rodilla"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas",
-                    "tendon-rotuliano",
-                    "tendon-cuádriceps",
-                    "tendon-isquiotibiales"
                   ],
                   "resistanceProfile": "variable_band",
                   "stability": "self_stabilized"

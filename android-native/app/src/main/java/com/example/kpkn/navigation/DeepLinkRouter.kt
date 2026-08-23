@@ -1,162 +1,86 @@
 package com.example.kpkn.navigation
 
 import android.net.Uri
+import com.example.kpkn.domain.concepts.findConceptoClave
 
+/**
+ * Deep-link compatibility boundary. Only former conceptual WikiLab links
+ * survive; every other WikiLab/Learn link redirects to Home.
+ */
 object DeepLinkRouter {
 
-    data class ResolvedRoute(
-        val route: String,
-    )
+    data class ResolvedRoute(val route: String)
+
+    private fun conceptRoute(id: String?): ResolvedRoute {
+        val cleanId = id?.trim().orEmpty()
+        return if (cleanId.isNotEmpty() && findConceptoClave(cleanId) != null) {
+            ResolvedRoute(KpknRoute.ConceptDetail.create(cleanId))
+        } else {
+            ResolvedRoute(KpknRoute.Concepts.route)
+        }
+    }
 
     fun resolve(uri: Uri?): ResolvedRoute? {
         if (uri == null) return null
-
         val scheme = uri.scheme?.lowercase().orEmpty()
         if (scheme != "kpkn" && scheme != "https") return null
 
-        val segments = mutableListOf<String>()
+        val segments = buildList {
+            if (scheme == "https") {
+                val host = uri.host?.lowercase().orEmpty()
+                if (host != "kpkn.fit" && host != "www.kpkn.fit") return null
+            } else {
+                uri.host?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            }
+            addAll(uri.pathSegments)
+        }.map(String::trim).filter(String::isNotEmpty)
 
-        if (scheme == "https") {
-            val host = uri.host?.lowercase().orEmpty()
-            if (host != "kpkn.fit" && host != "www.kpkn.fit") return null
-            segments += uri.pathSegments
-        } else {
-            val host = uri.host?.trim().orEmpty()
-            if (host.isNotEmpty()) segments += host
-            segments += uri.pathSegments
-        }
+        val first = segments.getOrNull(0)?.lowercase().orEmpty()
+        val second = segments.getOrNull(1)?.lowercase().orEmpty()
+        val third = segments.getOrNull(2)
 
-        val cleanSegments = segments
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
-
-        val first = cleanSegments.getOrNull(0)?.lowercase().orEmpty()
-        val second = cleanSegments.getOrNull(1)?.lowercase().orEmpty()
-        val third = cleanSegments.getOrNull(2).orEmpty()
-
-        if (first.isEmpty()) {
-            return ResolvedRoute(KpknRoute.Home.route)
-        }
+        if (first.isEmpty()) return ResolvedRoute(KpknRoute.Home.route)
 
         return when (first) {
-            "home", "inicio" -> ResolvedRoute(KpknRoute.Home.route)
+            "home", "inicio", "rings", "mis-rings", "my-rings" -> ResolvedRoute(KpknRoute.Home.route)
             "training", "entreno" -> ResolvedRoute(KpknRoute.Training.route)
             "competitions", "competencias", "competicion", "competición" -> ResolvedRoute(KpknRoute.Competitions.route)
-            "rings", "mis-rings", "my-rings" -> ResolvedRoute(KpknRoute.Home.route)
-            "nutrition", "nutricion", "nutrición" -> {
-                when (second) {
-                    "wizard" -> ResolvedRoute(KpknRoute.NutritionWizard.create())
-                    "calibration" -> ResolvedRoute(KpknRoute.NutritionCalibration.route)
-                    "body-progress", "bodyprogress", "progress" -> ResolvedRoute(KpknRoute.BodyProgress.route)
-                    "meal-history", "history", "historial" -> ResolvedRoute(KpknRoute.MealHistory.route)
-                    "action" -> {
-                        val action = third.trim()
-                        if (action.isNotEmpty()) {
-                            ResolvedRoute(KpknRoute.NutritionAction.create(action))
-                        } else {
-                            ResolvedRoute(KpknRoute.Nutrition.route)
-                        }
-                    }
-                    else -> ResolvedRoute(KpknRoute.Nutrition.route)
-                }
-            }
-            "wikilab" -> {
-                when (second) {
-                    "", "home", "inicio" -> ResolvedRoute(KpknRoute.WikiLab.route)
-                    "exercises" -> ResolvedRoute(KpknRoute.WikiLabExercises.route)
-                    "muscles", "muscle-anatomy" -> ResolvedRoute(KpknRoute.WikiLabMuscleAnatomy.route)
-                    "joints" -> ResolvedRoute(KpknRoute.WikiLabJoints.route)
-                    "patterns" -> ResolvedRoute(KpknRoute.WikiLabMovementPatterns.route)
-                    "biomechanics" -> ResolvedRoute(KpknRoute.WikiLabBiomechanics.route)
-                    "concepts" -> ResolvedRoute(KpknRoute.WikiLabConcepts.route)
-                    "exercise" -> {
-                        val id = third.trim()
-                        if (id.isNotEmpty()) ResolvedRoute(KpknRoute.WikiLabExerciseDetail.create(id)) else null
-                    }
-                    "muscle" -> {
-                        val id = third.trim()
-                        if (id.isNotEmpty()) ResolvedRoute(KpknRoute.WikiLabMuscleDetail.create(id)) else null
-                    }
-                    "joint" -> {
-                        val id = third.trim()
-                        if (id.isNotEmpty()) ResolvedRoute(KpknRoute.WikiLabJointDetail.create(id)) else null
-                    }
-                    "pattern" -> {
-                        val id = third.trim()
-                        if (id.isNotEmpty()) ResolvedRoute(KpknRoute.WikiLabPatternDetail.create(id)) else null
-                    }
-                    "chain" -> {
-                        val id = third.trim()
-                        if (id.isNotEmpty()) ResolvedRoute(KpknRoute.WikiLabChainDetail.create(id)) else null
-                    }
-                    "concept" -> {
-                        val id = third.trim()
-                        if (id.isNotEmpty()) ResolvedRoute(KpknRoute.WikiLabConceptDetail.create(id)) else null
-                    }
-                    else -> ResolvedRoute(KpknRoute.WikiLab.route)
-                }
-            }
-            "learn", "cursos" -> {
-                when (second) {
-                    "course", "curso" -> {
-                        val id = third.trim()
-                        if (id.isNotEmpty()) ResolvedRoute(KpknRoute.LearnCourse.create(id)) else ResolvedRoute(KpknRoute.Learn.route)
-                    }
-                    else -> ResolvedRoute(KpknRoute.Learn.route)
-                }
-            }
-            "settings", "ajustes" -> {
-                when (second) {
-                    "general" -> ResolvedRoute(KpknRoute.Settings.route)
-                    "profile", "perfil" -> ResolvedRoute(KpknRoute.Profile.route)
-                    "nutrition", "nutricion", "nutrición" -> ResolvedRoute(KpknRoute.Settings.route)
-                    "health-connect", "healthconnect", "salud" -> ResolvedRoute(KpknRoute.HealthConnect.route)
-                    "training", "entreno" -> ResolvedRoute(KpknRoute.Settings.route)
-                    "auge" -> ResolvedRoute(KpknRoute.Settings.route)
-                    "notifications", "notificaciones" -> ResolvedRoute(KpknRoute.Settings.route)
-                    "data", "datos" -> ResolvedRoute(KpknRoute.Settings.route)
-                    "diagnostics", "diagnosticos", "diagnósticos" -> ResolvedRoute(KpknRoute.Settings.route)
-                    else -> ResolvedRoute(KpknRoute.Settings.route)
-                }
-            }
+            "nutrition", "nutricion", "nutrición" -> resolveNutrition(second, third)
+            "settings", "ajustes" -> resolveSettings(second)
             "profile", "perfil" -> ResolvedRoute(KpknRoute.Profile.route)
-            "program" -> {
-                val id = cleanSegments.getOrNull(1).orEmpty().trim()
-                if (id.isNotEmpty()) ResolvedRoute(KpknRoute.ProgramDetail.create(id)) else null
+            "program" -> segments.getOrNull(1)?.takeIf { it.isNotBlank() }
+                ?.let { ResolvedRoute(KpknRoute.ProgramDetail.create(it)) }
+            "concepts", "conceptos" -> ResolvedRoute(KpknRoute.Concepts.route)
+            "concept", "concepto" -> conceptRoute(segments.getOrNull(1))
+            "wikilab" -> when (second) {
+                "concepts" -> ResolvedRoute(KpknRoute.Concepts.route)
+                "concept" -> conceptRoute(third)
+                else -> ResolvedRoute(KpknRoute.Home.route)
             }
-            "exercise", "ejercicio" -> {
-                val id = cleanSegments.getOrNull(1).orEmpty().trim()
-                if (id.isNotEmpty()) ResolvedRoute(KpknRoute.WikiLabExerciseDetail.create(id)) else null
-            }
-            "muscle", "musculo", "músculo" -> {
-                val id = cleanSegments.getOrNull(1).orEmpty().trim()
-                if (id.isNotEmpty()) ResolvedRoute(KpknRoute.WikiLabMuscleDetail.create(id)) else null
-            }
-            "joint", "articulacion", "articulación" -> {
-                val id = cleanSegments.getOrNull(1).orEmpty().trim()
-                if (id.isNotEmpty()) ResolvedRoute(KpknRoute.WikiLabJointDetail.create(id)) else null
-            }
-            "pattern", "patron", "patrón" -> {
-                val id = cleanSegments.getOrNull(1).orEmpty().trim()
-                if (id.isNotEmpty()) ResolvedRoute(KpknRoute.WikiLabPatternDetail.create(id)) else null
-            }
-            "chain", "cadena" -> {
-                val id = cleanSegments.getOrNull(1).orEmpty().trim()
-                if (id.isNotEmpty()) ResolvedRoute(KpknRoute.WikiLabChainDetail.create(id)) else null
-            }
-            "concept", "concepto" -> {
-                val id = cleanSegments.getOrNull(1).orEmpty().trim()
-                if (id.isNotEmpty()) ResolvedRoute(KpknRoute.WikiLabConceptDetail.create(id)) else null
-            }
-            "course", "curso" -> {
-                val id = cleanSegments.getOrNull(1).orEmpty().trim()
-                if (id.isNotEmpty()) ResolvedRoute(KpknRoute.LearnCourse.create(id)) else null
-            }
-            "action" -> {
-                val action = cleanSegments.getOrNull(1).orEmpty().trim()
-                if (action.isNotEmpty()) ResolvedRoute(KpknRoute.NutritionAction.create(action)) else null
-            }
+            // Courses and quizzes are retired. Keep old links harmless.
+            "learn", "cursos", "course", "curso" -> ResolvedRoute(KpknRoute.Home.route)
+            // Former atlas aliases are also retired.
+            "exercise", "ejercicio", "muscle", "musculo", "músculo",
+            "joint", "articulacion", "articulación", "pattern", "patron", "patrón",
+            "chain", "cadena", "action" -> ResolvedRoute(KpknRoute.Home.route)
             else -> null
         }
+    }
+
+    private fun resolveNutrition(second: String, third: String?): ResolvedRoute = when (second) {
+        "wizard" -> ResolvedRoute(KpknRoute.NutritionWizard.create())
+        "calibration" -> ResolvedRoute(KpknRoute.NutritionCalibration.route)
+        "body-progress", "bodyprogress", "progress" -> ResolvedRoute(KpknRoute.BodyProgress.route)
+        "meal-history", "history", "historial" -> ResolvedRoute(KpknRoute.MealHistory.route)
+        "action" -> third?.trim()?.takeIf { it.isNotEmpty() }
+            ?.let { ResolvedRoute(KpknRoute.NutritionAction.create(it)) }
+            ?: ResolvedRoute(KpknRoute.Nutrition.route)
+        else -> ResolvedRoute(KpknRoute.Nutrition.route)
+    }
+
+    private fun resolveSettings(second: String): ResolvedRoute = when (second) {
+        "profile", "perfil" -> ResolvedRoute(KpknRoute.Profile.route)
+        "health-connect", "healthconnect", "salud" -> ResolvedRoute(KpknRoute.HealthConnect.route)
+        else -> ResolvedRoute(KpknRoute.Settings.route)
     }
 }

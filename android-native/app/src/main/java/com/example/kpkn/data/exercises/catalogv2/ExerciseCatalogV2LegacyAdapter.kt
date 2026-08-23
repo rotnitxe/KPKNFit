@@ -42,7 +42,6 @@ internal fun ExerciseDefinitionV2.toLegacyInfo(
     legacyId: String = id,
 ): ExerciseMuscleInfo {
     val profile = configuration.profile
-    val noteByMuscle = profile.muscleNotes.associate { it.muscleId to it.note }
     fun involved(muscleId: String, role: MuscleRole): InvolvedMuscle =
         InvolvedMuscle(
             muscle = muscleLabel(muscleId) ?: muscleId,
@@ -54,7 +53,7 @@ internal fun ExerciseDefinitionV2.toLegacyInfo(
                 movementPatternId = profile.movementPatternId,
                 selectedOptions = configuration.selectedOptions,
             ),
-            biomechanicalReason = noteByMuscle[muscleId],
+            biomechanicalReason = null,
         )
     val involved = buildList {
         profile.primaryMuscles.forEach { add(involved(it, MuscleRole.PRIMARY)) }

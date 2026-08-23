@@ -2,1470 +2,367 @@
   {
     "id": "pectoral",
     "name": "Pectoral",
-    "description": "Grupo muscular del pecho compuesto principalmente por pectoral mayor (porciones clavicular, esternal y abdominal) y pectoral menor como sinergista escapular. Su rol principal es producir aducción horizontal, flexión y rotación interna del hombro según el ángulo de trabajo.",
-    "bodyPart": "upper",
-    "importanceMovement": "Patrón padre de los empujes horizontales y gran parte de los verticales. Participa en press banca, press inclinado, flexiones y fondos, con distintos sesgos por porción.",
-    "importanceHealth": "Un pectoral fuerte y con movilidad torácica reduce compensaciones del hombro anterior y mejora la mecánica escapulohumeral cuando se entrena en equilibrio con espalda y manguito.",
-    "mev": "10",
-    "mav": "12-20",
-    "mrv": "22",
-    "coverImage": "https://images.pexels.com/photos/4162489/pexels-photo-4162489.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-    "aestheticImportance": "El pectoral define la parte frontal del torso. Un pecho desarrollado aporta anchura y profundidad al upper body, creando la silueta en \"V\".",
-    "origin": "Clavícula, esternón, cartílagos costales",
-    "insertion": "Cresta del tubérculo mayor del húmero",
-    "mechanicalFunctions": [
-      "Aducción horizontal",
-      "Flexión del hombro",
-      "Extensión del hombro desde flexión alta",
-      "Rotación interna"
-    ],
-    "relatedJoints": [
-      "glenohumeral",
-      "escapulotoracica",
-      "acromioclavicular"
-    ],
-    "relatedTendons": []
+    "description": "Grupo muscular del pecho compuesto principalmente por pectoral mayor (porciones clavicular, esternal y abdominal) y pectoral menor como sinergista escapular.",
+    "bodyPart": "upper"
   },
   {
     "id": "espalda",
     "name": "Espalda",
-    "description": "Grupo muscular padre que integra dorsales, trapecios, romboides, erectores espinales y estabilizadores escapulares. Coordina tracción vertical/horizontal, extensión torácica y control postural bajo carga.",
-    "bodyPart": "upper",
-    "importanceMovement": "Base de todos los patrones de tirón y de la transferencia de fuerza en bisagras/sentadillas. Sin una espalda estable, el rendimiento en press y piernas también cae.",
-    "importanceHealth": "Mejora la tolerancia a cargas axiales, protege la columna y disminuye el riesgo de dolor cervical/lumbar asociado a déficit de control escapular y torácico.",
-    "mev": "10",
-    "mav": "14-22",
-    "mrv": "25",
-    "coverImage": "https://images.pexels.com/photos/14878278/pexels-photo-14878278.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-    "mechanicalFunctions": [
-      "Tracción horizontal",
-      "Tracción vertical",
-      "Retracción escapular",
-      "Depresión escapular",
-      "Extensión torácica"
-    ],
-    "relatedJoints": [
-      "glenohumeral",
-      "escapulotoracica",
-      "columna-toracica",
-      "columna-lumbar"
-    ],
-    "relatedTendons": [],
-    "origin": "Apofisis espinosas toracicas/lumbares, fascia toracolumbar, cresta iliaca y costillas segun subgrupo",
-    "insertion": "Humero, escapula y estructuras fasciales toracicas segun subgrupo"
+    "description": "Grupo muscular padre que integra dorsales, trapecios, romboides, erectores espinales y estabilizadores escapulares.",
+    "bodyPart": "upper"
   },
   {
     "id": "hombros",
     "name": "Hombros",
-    "description": "Grupo padre del complejo del hombro: deltoides (anterior, lateral, posterior), manguito rotador y estabilizadores escapulares. No es solo movilidad: combina amplitud articular con estabilidad activa.",
-    "bodyPart": "upper",
-    "importanceMovement": "Permite elevación, empuje, tracción y control del brazo en todos los planos. Articula la transición entre fuerza de torso y fuerza de brazos.",
-    "importanceHealth": "La salud del hombro depende del balance entre movilidad glenohumeral, rotación escapular y fuerza del manguito. Priorizar solo deltoides anterior eleva riesgo de impingement.",
-    "mev": "8",
-    "mav": "12-20",
-    "mrv": "25",
-    "mechanicalFunctions": [
-      "Flexión del hombro",
-      "Abducción del hombro",
-      "Extensión del hombro",
-      "Rotación interna/externa",
-      "Estabilización glenohumeral"
-    ],
-    "relatedJoints": [
-      "glenohumeral",
-      "acromioclavicular",
-      "esternoclavicular",
-      "escapulotoracica"
-    ],
-    "relatedTendons": [
-      "tendon-supraespinoso",
-      "tendon-infraespinoso",
-      "tendon-bíceps-largo"
-    ],
-    "origin": "Clavicula, acromion y espina escapular (deltoides) + fosas escapulares (manguito)",
-    "insertion": "Tuberculo deltoideo y tuberculos del humero segun porcion"
+    "description": "Grupo padre del complejo del hombro: deltoides (anterior, lateral, posterior), manguito rotador y estabilizadores escapulares.",
+    "bodyPart": "upper"
   },
   {
     "id": "deltoides",
     "name": "Deltoides",
-    "description": "El músculo deltoides es el que da la forma redondeada al hombro. Está compuesto por tres cabezas: anterior, lateral y posterior, cada una con una función distinta.",
-    "bodyPart": "upper",
-    "importanceMovement": "Responsable de levantar el brazo en todas las direcciones (flexión, abducción, extensión). Esencial para cualquier movimiento por encima de la cabeza.",
-    "importanceHealth": "Un desarrollo equilibrado de las tres cabezas es crucial para la salud y estabilidad de la articulación del hombro, previniendo lesiones por desbalances.",
-    "mev": "8",
-    "mav": "12-20",
-    "mrv": "25",
-    "aestheticImportance": "Los deltoides dan la forma redondeada al hombro y son clave para la anchura visual del cuerpo.",
-    "origin": "Clavícula, acromión, espina de la escápula",
-    "insertion": "Tubérculo deltoideo del húmero",
-    "mechanicalFunctions": [
-      "Flexión del hombro",
-      "Abducción del hombro",
-      "Extensión del hombro"
-    ],
-    "relatedJoints": [
-      "glenohumeral"
-    ],
-    "relatedTendons": []
+    "description": "El músculo deltoides es el que da la forma redondeada al hombro.",
+    "bodyPart": "upper"
   },
   {
     "id": "brazos",
     "name": "Brazos",
-    "description": "Grupo padre formado por flexores del codo (bíceps, braquial, braquiorradial) y extensores del codo (tríceps). Funciona en sinergia con antebrazo para agarre, control de carga y transferencia de fuerza.",
-    "bodyPart": "upper",
-    "importanceMovement": "Participa en todo empuje y tirón del tren superior, determina la capacidad de bloqueo y de tracción final.",
-    "importanceHealth": "Un desarrollo equilibrado de bíceps-tríceps y pronosupinadores reduce sobrecarga de codo y mejora la resiliencia tendinosa.",
-    "mev": "8",
-    "mav": "14-20",
-    "mrv": "25",
-    "mechanicalFunctions": [
-      "Flexión del codo",
-      "Extensión del codo",
-      "Supinación del antebrazo",
-      "Estabilización de hombro distal"
-    ],
-    "relatedJoints": [
-      "codo",
-      "radiocubital-proximal",
-      "glenohumeral"
-    ],
-    "relatedTendons": [
-      "tendon-bíceps",
-      "tendon-tríceps",
-      "tendon-bíceps-largo"
-    ],
-    "origin": "Escapula y humero segun flexores/extensores del codo",
-    "insertion": "Radio y olecranon/cubito segun musculo"
+    "description": "Grupo padre formado por flexores del codo (bíceps, braquial, braquiorradial) y extensores del codo (tríceps).",
+    "bodyPart": "upper"
   },
   {
     "id": "piernas",
     "name": "Piernas",
-    "description": "Grupo padre del tren inferior que integra cuádriceps, isquiosurales, glúteos, aductores y pantorrillas. Es el principal generador de fuerza en patrones de sentadilla, bisagra, zancada, carrera y salto.",
-    "bodyPart": "lower",
-    "importanceMovement": "Motor principal de locomoción y rendimiento atlético. Define producción de fuerza, potencia y desaceleración.",
-    "importanceHealth": "Mejora sensibilidad a la insulina, densidad mineral ósea y estabilidad de cadera/rodilla/tobillo con transferencia directa a funcionalidad diaria.",
-    "mev": "8",
-    "mav": "12-18",
-    "mrv": "20",
-    "mechanicalFunctions": [
-      "Extensión de cadera",
-      "Extensión de rodilla",
-      "Flexión de rodilla",
-      "Flexión plantar",
-      "Estabilidad monopodal"
-    ],
-    "relatedJoints": [
-      "cadera",
-      "rodilla",
-      "tobillo",
-      "sacroiliaca"
-    ],
-    "relatedTendons": [
-      "tendon-rotuliano",
-      "tendon-cuádriceps",
-      "tendon-aquiles"
-    ],
-    "origin": "Pelvis, femur y tibia/perone segun subgrupo del tren inferior",
-    "insertion": "Femur, tibia, perone y calcaneo segun funcion"
+    "description": "Grupo padre del tren inferior que integra cuádriceps, isquiosurales, glúteos, aductores y pantorrillas.",
+    "bodyPart": "lower"
   },
   {
     "id": "abdomen",
     "name": "Abdomen",
-    "description": "Subgrupo del core centrado en recto abdominal y oblicuos. Participa en flexión, rotación y anti-rotación del tronco, además de controlar la presión intraabdominal en cargas altas.",
-    "bodyPart": "core",
-    "importanceMovement": "Estabiliza el torso en patrones globales y mejora la eficiencia de transferencia de fuerza entre cadera y hombro.",
-    "importanceHealth": "Reduce extensión/rotación lumbar no deseada y ayuda a tolerar mejor carga axial y movimientos repetitivos.",
-    "mev": "0-4",
-    "mav": "10-16",
-    "mrv": "20",
-    "mechanicalFunctions": [
-      "Flexión de tronco",
-      "Rotación de tronco",
-      "Anti-extensión",
-      "Anti-rotación"
-    ],
-    "relatedJoints": [
-      "columna-lumbar",
-      "columna-toracica"
-    ],
-    "relatedTendons": [],
-    "origin": "Cartilagos costales, pubis y fascia toracolumbar segun porcion",
-    "insertion": "Linea alba, costillas y pelvis segun subgrupo"
+    "description": "Subgrupo del core centrado en recto abdominal y oblicuos.",
+    "bodyPart": "core"
   },
   {
     "id": "core",
     "name": "Core",
-    "description": "Sistema funcional padre formado por abdomen, transverso, multífidos, diafragma, suelo pélvico y estabilizadores lumbopélvicos. Su función principal es transferir fuerza y proteger la columna bajo carga.",
-    "bodyPart": "core",
-    "importanceMovement": "Base de todo levantamiento: cuanto mejor transmite fuerza el core, mayor rendimiento y menor fuga mecánica en extremidades.",
-    "importanceHealth": "El control de presión intraabdominal y la estabilidad segmentaria reducen recurrencia de dolor lumbar y mejoran tolerancia postural.",
-    "mev": "4-6",
-    "mav": "10-16",
-    "mrv": "20",
-    "mechanicalFunctions": [
-      "Anti-extensión",
-      "Anti-flexión",
-      "Anti-rotación",
-      "Estabilización lumbopélvica",
-      "Gestión de presión intraabdominal"
-    ],
-    "relatedJoints": [
-      "columna-lumbar",
-      "columna-toracica",
-      "sacroiliaca"
-    ],
-    "relatedTendons": [],
-    "origin": "Caja toracica, pelvis y columna lumbar/toracica",
-    "insertion": "Linea alba, costillas, pelvis y estructuras vertebrales"
+    "description": "Sistema funcional padre formado por abdomen, transverso, multífidos, diafragma, suelo pélvico y estabilizadores lumbopélvicos.",
+    "bodyPart": "core"
   },
   {
     "id": "pectoral-superior",
     "name": "Pectoral Superior",
     "description": "La porción clavicular del pectoral, responsable de la flexión y aducción del hombro en ángulos elevados.",
-    "bodyPart": "upper",
-    "importanceMovement": "Crucial para empujes inclinados y levantar objetos por encima de la cabeza.",
-    "importanceHealth": "Un desarrollo equilibrado con el resto del pectoral es clave para la estética y la salud del hombro.",
-    "mev": "4-6",
-    "mav": "10-12",
-    "mrv": "15",
-    "origin": "Mitad medial de la clavícula",
-    "insertion": "Cresta del tubérculo mayor del húmero",
-    "mechanicalFunctions": [
-      "Flexión del hombro",
-      "Aducción horizontal",
-      "Rotación interna"
-    ],
-    "relatedJoints": [
-      "glenohumeral"
-    ],
-    "relatedTendons": []
+    "bodyPart": "upper"
   },
   {
     "id": "pectoral-medio",
     "name": "Pectoral Medio",
-    "description": "La porción esternal del pectoral, la más grande y fuerte. Es la principal responsable de la aducción horizontal del brazo.",
-    "bodyPart": "upper",
-    "importanceMovement": "Motor principal en el press de banca plano y otros empujes horizontales.",
-    "importanceHealth": "Una porcion esternal fuerte mejora la transferencia de fuerza en empujes horizontales y ayuda a repartir tensiones en el hombro anterior cuando se combina con trabajo de traccion.",
-    "mev": "6",
-    "mav": "10-16",
-    "mrv": "20",
-    "origin": "Esternón y cartílagos costales",
-    "insertion": "Cresta del tubérculo mayor del húmero",
-    "mechanicalFunctions": [
-      "Aducción horizontal",
-      "Flexión del hombro",
-      "Rotación interna"
-    ],
-    "relatedJoints": [
-      "glenohumeral"
-    ],
-    "relatedTendons": []
+    "description": "La porción esternal del pectoral, la más grande y fuerte.",
+    "bodyPart": "upper"
   },
   {
     "id": "pectoral-inferior",
     "name": "Pectoral Inferior",
-    "description": "Porcion abdominal del pectoral mayor. Predomina en aduccion horizontal y extension del hombro desde posiciones elevadas, con alto aporte en fondos y presses declinados.",
-    "bodyPart": "upper",
-    "importanceMovement": "Clave en empujes con vector descendente y en fases de cierre del brazo hacia el tronco.",
-    "importanceHealth": "Su desarrollo equilibra la mecanica anterior del hombro cuando se combina con trabajo de espalda y manguito.",
-    "mev": "2-4",
-    "mav": "6-10",
-    "mrv": "12",
-    "origin": "Esternon inferior y aponeurosis del oblicuo externo",
-    "insertion": "Cresta del tuberculo mayor del humero",
-    "mechanicalFunctions": [
-      "Aduccion horizontal",
-      "Extension del hombro desde flexion",
-      "Rotacion interna"
-    ],
-    "relatedJoints": [
-      "glenohumeral",
-      "escapulotoracica"
-    ],
-    "relatedTendons": []
+    "description": "Porcion abdominal del pectoral mayor.",
+    "bodyPart": "upper"
   },
   {
     "id": "dorsal-ancho",
     "name": "Dorsal Ancho",
-    "description": "El músculo más grande de la espalda, responsable de la aducción, extensión y rotación interna del brazo. Da la \"amplitud\" a la espalda.",
-    "bodyPart": "upper",
-    "importanceMovement": "Es el motor principal en movimientos de tracción vertical como las dominadas y la escalada.",
-    "importanceHealth": "Contribuye a la estabilidad de la columna y la articulación del hombro.",
-    "mev": "8",
-    "mav": "12-18",
-    "mrv": "22",
-    "aestheticImportance": "El dorsal ancho es el motor principal de la anchura de espalda. Da la forma en \"V\" al torso.",
-    "origin": "Apófisis espinosas T7-L5, cresta ilíaca, costillas inferiores",
-    "insertion": "Surco intertubercular del húmero",
-    "mechanicalFunctions": [
-      "Aducción del hombro",
-      "Extensión del hombro",
-      "Rotación interna",
-      "Depresión escapular"
-    ],
-    "relatedJoints": [
-      "glenohumeral",
-      "escapulotoracica"
-    ],
-    "relatedTendons": []
+    "description": "El músculo más grande de la espalda, responsable de la aducción, extensión y rotación interna del brazo.",
+    "bodyPart": "upper"
   },
   {
     "id": "redondo-mayor",
     "name": "Redondo Mayor",
-    "description": "Sinergista potente del dorsal ancho en extension y aduccion del hombro. Aporta control posterior de hombro en patrones de tiron.",
-    "bodyPart": "upper",
-    "importanceMovement": "Mejora eficiencia de dominadas, jalones y remos al asistir la aduccion del humero.",
-    "importanceHealth": "Contribuye a estabilidad glenohumeral posterior y a repartir carga en tirones pesados.",
-    "mev": "0",
-    "mav": "4-8",
-    "mrv": "12",
-    "origin": "Angulo inferior y borde lateral de la escapula",
-    "insertion": "Labio medial del surco intertubercular del humero",
-    "mechanicalFunctions": [
-      "Aduccion del hombro",
-      "Extension del hombro",
-      "Rotacion interna"
-    ],
-    "relatedJoints": [
-      "glenohumeral",
-      "escapulotoracica"
-    ],
-    "relatedTendons": []
+    "description": "Sinergista potente del dorsal ancho en extension y aduccion del hombro.",
+    "bodyPart": "upper"
   },
   {
     "id": "trapecio",
     "name": "Trapecio",
-    "description": "Músculo grande y superficial que se extiende desde el cráneo hasta la mitad de la espalda. Se divide en porciones superior, media e inferior.",
-    "bodyPart": "upper",
-    "importanceMovement": "Responsable de elevar, retraer y deprimir la escápula. Esencial para la estabilidad del hombro.",
-    "importanceHealth": "Unos trapecios fuertes y equilibrados son clave para una buena postura y la prevención de dolores de cuello.",
-    "mev": "4",
-    "mav": "12-20",
-    "mrv": "25",
-    "mechanicalFunctions": [
-      "Elevacion escapular",
-      "Retraccion escapular",
-      "Depresion escapular",
-      "Rotacion superior de escapula"
-    ],
-    "relatedJoints": [
-      "escapulotoracica",
-      "acromioclavicular",
-      "esternoclavicular",
-      "columna-cervical"
-    ],
-    "relatedTendons": [],
-    "origin": "Occipital, ligamento nucal y apofisis espinosas cervicales/toracicas",
-    "insertion": "Clavicula, acromion y espina escapular"
+    "description": "Músculo grande y superficial que se extiende desde el cráneo hasta la mitad de la espalda.",
+    "bodyPart": "upper"
   },
   {
     "id": "trapecio-superior",
     "name": "Trapecio Superior",
     "description": "Porcion superior del trapecio, responsable de elevar y asistir la rotacion superior de la escapula durante gestos por encima de la cabeza.",
-    "bodyPart": "upper",
-    "importanceMovement": "Clave para sostener cargas pesadas y en movimientos por encima de la cabeza.",
-    "importanceHealth": "A menudo está sobreactivo y tenso; es importante equilibrarlo con el trapecio inferior.",
-    "mev": "0",
-    "mav": "8-12",
-    "mrv": "20",
-    "origin": "Linea nucal superior, ligamento nucal",
-    "insertion": "Tercio lateral de la clavicula y acromion",
-    "mechanicalFunctions": [
-      "Elevacion escapular",
-      "Rotacion superior escapular",
-      "Extension cervical asistida"
-    ],
-    "relatedJoints": [
-      "escapulotoracica",
-      "acromioclavicular",
-      "columna-cervical"
-    ],
-    "relatedTendons": []
+    "bodyPart": "upper"
   },
   {
     "id": "trapecio-medio",
     "name": "Trapecio Medio",
     "description": "Porcion media del trapecio especializada en retraccion escapular y estabilidad dorsal durante tirones horizontales.",
-    "bodyPart": "upper",
-    "importanceMovement": "Fundamental para la estabilidad en todos los movimientos de remo y press de banca.",
-    "importanceHealth": "Un trapecio medio funcional reduce proyeccion anterior de hombros y mejora la salud escapular en usuarios con alto volumen de empuje.",
-    "mev": "6",
-    "mav": "12-16",
-    "mrv": "20",
-    "origin": "Apofisis espinosas C7-T5",
-    "insertion": "Acromion y espina de la escapula",
-    "mechanicalFunctions": [
-      "Retraccion escapular",
-      "Estabilidad escapular en tirones"
-    ],
-    "relatedJoints": [
-      "escapulotoracica",
-      "acromioclavicular"
-    ],
-    "relatedTendons": []
+    "bodyPart": "upper"
   },
   {
     "id": "trapecio-inferior",
     "name": "Trapecio Inferior",
     "description": "Porcion inferior del trapecio implicada en depresion y rotacion superior escapular con fuerte rol de control en movimientos overhead.",
-    "bodyPart": "upper",
-    "importanceMovement": "Mejora la mecanica de presses verticales y tracciones al optimizar orientacion escapular en amplitudes altas.",
-    "importanceHealth": "Su fortalecimiento disminuye compensaciones cervicales y ayuda a preservar espacio subacromial en tareas por encima de la cabeza.",
-    "mev": "4",
-    "mav": "8-12",
-    "mrv": "15",
-    "origin": "Apofisis espinosas T6-T12",
-    "insertion": "Porcion medial de la espina escapular",
-    "mechanicalFunctions": [
-      "Depresion escapular",
-      "Rotacion superior escapular",
-      "Control overhead"
-    ],
-    "relatedJoints": [
-      "escapulotoracica",
-      "acromioclavicular"
-    ],
-    "relatedTendons": []
+    "bodyPart": "upper"
   },
   {
     "id": "romboides",
     "name": "Romboides",
-    "description": "Músculos ubicados entre la columna y la escápula. Su función principal es la retracción escapular.",
-    "bodyPart": "upper",
-    "importanceMovement": "Contribuye a fijar la escapula contra la parrilla costal para permitir tirones mas eficientes y controlados.",
-    "importanceHealth": "Su activacion adecuada reduce la tendencia a hombros protraidos y mejora la higiene postural toracica.",
-    "mev": "6",
-    "mav": "12-16",
-    "mrv": "20",
-    "origin": "Apofisis espinosas C7-T5",
-    "insertion": "Borde medial de la escapula",
-    "mechanicalFunctions": [
-      "Retraccion escapular",
-      "Rotacion inferior escapular",
-      "Estabilidad postural toracica"
-    ],
-    "relatedJoints": [
-      "escapulotoracica",
-      "columna-toracica"
-    ],
-    "relatedTendons": []
+    "description": "Músculos ubicados entre la columna y la escápula.",
+    "bodyPart": "upper"
   },
   {
     "id": "erectores-espinales",
     "name": "Erectores Espinales",
-    "description": "Grupo de músculos que recorren la columna vertebral. Su función es extender la columna y mantener una postura erguida.",
-    "bodyPart": "spine",
-    "importanceMovement": "Fundamentales para la estabilización en sentadillas, pesos muertos y cualquier levantamiento pesado.",
-    "importanceHealth": "Una musculatura espinal fuerte es la mejor defensa contra el dolor de espalda baja.",
-    "mev": "0",
-    "mav": "4-8",
-    "mrv": "12",
-    "origin": "Sacro, cresta iliaca, apofisis espinosas lumbares",
-    "insertion": "Costillas y apofisis transversas/espinosas toracicas y cervicales",
-    "mechanicalFunctions": [
-      "Extension de columna",
-      "Anti-flexion del tronco",
-      "Estabilidad segmentaria bajo carga"
-    ],
-    "relatedJoints": [
-      "columna-lumbar",
-      "columna-toracica",
-      "sacroiliaca"
-    ],
-    "relatedTendons": []
+    "description": "Grupo de músculos que recorren la columna vertebral.",
+    "bodyPart": "spine"
   },
   {
     "id": "deltoides-anterior",
     "name": "Deltoides Anterior",
     "description": "Cabeza frontal del deltoides, dominante en flexion de hombro y muy activa en presses verticales y horizontales.",
-    "bodyPart": "upper",
-    "importanceMovement": "Principal motor en los presses verticales y actor secundario en los presses horizontales.",
-    "importanceHealth": "Suele estar sobre-desarrollado en comparación con las otras cabezas.",
-    "mev": "0-4",
-    "mav": "6-10",
-    "mrv": "12",
-    "origin": "Tercio lateral de la clavícula",
-    "insertion": "Tubérculo deltoideo del húmero",
-    "mechanicalFunctions": [
-      "Flexión del hombro",
-      "Rotación interna",
-      "Aducción horizontal"
-    ],
-    "relatedJoints": [
-      "glenohumeral"
-    ],
-    "relatedTendons": []
+    "bodyPart": "upper"
   },
   {
     "id": "deltoides-lateral",
     "name": "Deltoides Lateral",
     "description": "Cabeza media del deltoides, principal responsable de la abduccion del hombro en plano escapular.",
-    "bodyPart": "upper",
-    "importanceMovement": "Permite levantar objetos hacia los lados y es el principal contribuyente a la \"anchura\" de los hombros.",
-    "importanceHealth": "Un desarrollo equilibrado es clave para la estética y la salud del hombro.",
-    "mev": "6-8",
-    "mav": "12-20",
-    "mrv": "25",
-    "origin": "Acromion de la escapula",
-    "insertion": "Tuberculo deltoideo del humero",
-    "mechanicalFunctions": [
-      "Abduccion del hombro",
-      "Estabilizacion glenohumeral durante elevacion"
-    ],
-    "relatedJoints": [
-      "glenohumeral",
-      "escapulotoracica"
-    ],
-    "relatedTendons": []
+    "bodyPart": "upper"
   },
   {
     "id": "deltoides-posterior",
     "name": "Deltoides Posterior",
     "description": "Cabeza posterior del deltoides, protagonista en extension horizontal y rotacion externa del hombro.",
-    "bodyPart": "upper",
-    "importanceMovement": "Fundamental en movimientos de tracción horizontal (remos, face pulls).",
-    "importanceHealth": "Crucial para una buena postura y la estabilidad de la articulación del hombro.",
-    "mev": "6-8",
-    "mav": "12-20",
-    "mrv": "25",
-    "origin": "Espina de la escapula",
-    "insertion": "Tuberculo deltoideo del humero",
-    "mechanicalFunctions": [
-      "Extension del hombro",
-      "Abduccion horizontal",
-      "Rotacion externa"
-    ],
-    "relatedJoints": [
-      "glenohumeral",
-      "escapulotoracica"
-    ],
-    "relatedTendons": []
+    "bodyPart": "upper"
   },
   {
     "id": "supraespinoso",
     "name": "Supraespinoso",
     "description": "Musculo del manguito rotador que inicia la abduccion del hombro y contribuye al centrado humeral durante elevaciones.",
-    "bodyPart": "upper",
-    "importanceMovement": "Clave en la elevación del brazo y la estabilidad del hombro. Muy susceptible a tendinopatía.",
-    "importanceHealth": "Su correcta dosificacion de carga y control escapular reduce riesgo de impingement y dolor subacromial recurrente.",
-    "mev": "0",
-    "mav": "4-8",
-    "mrv": "12",
-    "origin": "Fosa supraespinosa de la escápula",
-    "insertion": "Tubérculo mayor del húmero",
-    "mechanicalFunctions": [
-      "Abducción del hombro",
-      "Estabilización glenohumeral"
-    ],
-    "relatedJoints": [
-      "glenohumeral"
-    ],
-    "relatedTendons": [
-      "tendon-supraespinoso"
-    ]
+    "bodyPart": "upper"
   },
   {
     "id": "infraespinoso",
     "name": "Infraespinoso",
     "description": "Musculo posterior del manguito rotador, principal rotador externo y estabilizador del hombro en tareas de empuje/tiron.",
-    "bodyPart": "upper",
-    "importanceMovement": "Fundamental para la rotación externa y la estabilidad posterior del hombro.",
-    "importanceHealth": "Fortalecerlo mejora el equilibrio con rotadores internos y ayuda a prevenir inestabilidad anterior del hombro.",
-    "mev": "0",
-    "mav": "4-8",
-    "mrv": "12",
-    "origin": "Fosa infraespinosa de la escápula",
-    "insertion": "Tubérculo mayor del húmero",
-    "mechanicalFunctions": [
-      "Rotación externa del hombro",
-      "Estabilización glenohumeral"
-    ],
-    "relatedJoints": [
-      "glenohumeral"
-    ],
-    "relatedTendons": [
-      "tendon-infraespinoso"
-    ]
+    "bodyPart": "upper"
   },
   {
     "id": "bíceps",
     "name": "Bíceps",
-    "description": "El bíceps braquial, ubicado en la parte frontal del brazo. Su función principal es la flexión del codo y la supinación del antebrazo.",
-    "bodyPart": "upper",
-    "importanceMovement": "Esencial para todos los movimientos de tracción y para levantar objetos.",
-    "importanceHealth": "Su desarrollo equilibrado con braquial y triceps mejora la salud del codo y la tolerancia del tendon de la cabeza larga en tirones.",
-    "mev": "8",
-    "mav": "14-20",
-    "mrv": "22",
-    "aestheticImportance": "El bíceps es el músculo más visible del brazo en flexión. El \"pico\" y el grosor definen la estética del brazo.",
-    "origin": "Cabeza larga: tubérculo supraglenoideo. Cabeza corta: apófisis coracoidea",
-    "insertion": "Tuberosidad radial",
-    "mechanicalFunctions": [
-      "Flexión del codo",
-      "Supinación del antebrazo",
-      "Flexión del hombro"
-    ],
-    "relatedJoints": [
-      "codo",
-      "glenohumeral"
-    ],
-    "relatedTendons": [
-      "tendon-bíceps",
-      "tendon-bíceps-largo"
-    ]
+    "description": "El bíceps braquial, ubicado en la parte frontal del brazo.",
+    "bodyPart": "upper"
   },
   {
     "id": "cabeza-larga-bíceps",
     "name": "Cabeza Larga (Bíceps)",
     "description": "Porcion lateral del biceps que cruza hombro y codo; gana protagonismo en posiciones de hombro extendido como curls inclinados.",
-    "bodyPart": "upper",
-    "importanceMovement": "Aporta supinacion potente y contribuye al pico visual del biceps cuando se trabaja en longitudes largas.",
-    "importanceHealth": "Su control de carga protege la corredera bicipital y reduce irritacion anterior de hombro en volumen alto de tiron.",
-    "mev": "4",
-    "mav": "8-12",
-    "mrv": "15",
-    "mechanicalFunctions": [
-      "Flexion de codo",
-      "Supinacion",
-      "Flexion de hombro",
-      "Estabilizacion anterior glenohumeral"
-    ],
-    "relatedJoints": [
-      "codo",
-      "glenohumeral"
-    ],
-    "relatedTendons": [
-      "tendon-bíceps-largo"
-    ],
-    "origin": "Tuberculo supraglenoideo de la escapula",
-    "insertion": "Tuberosidad radial y aponeurosis bicipital"
+    "bodyPart": "upper"
   },
   {
     "id": "cabeza-corta-bíceps",
     "name": "Cabeza Corta (Bíceps)",
     "description": "Porcion medial del biceps, activa en flexion de codo y supinacion con el brazo mas anterior respecto al torso.",
-    "bodyPart": "upper",
-    "importanceMovement": "Contribuye al grosor del brazo y a la fuerza de flexion en rangos medios con buena estabilidad escapular.",
-    "importanceHealth": "Un desarrollo equilibrado con la cabeza larga ayuda a distribuir tension en codo y hombro durante tirones.",
-    "mev": "4",
-    "mav": "8-12",
-    "mrv": "15",
-    "mechanicalFunctions": [
-      "Flexion de codo",
-      "Supinacion",
-      "Aduccion del hombro asistida"
-    ],
-    "relatedJoints": [
-      "codo",
-      "glenohumeral"
-    ],
-    "relatedTendons": [
-      "tendon-bíceps"
-    ],
-    "origin": "Apofisis coracoides de la escapula",
-    "insertion": "Tuberosidad radial y aponeurosis bicipital"
+    "bodyPart": "upper"
   },
   {
     "id": "braquial",
     "name": "Braquial",
-    "description": "Músculo ubicado debajo del bíceps. Es un flexor puro del codo, independientemente de la posición del antebrazo.",
-    "bodyPart": "upper",
-    "importanceMovement": "Aporta torque consistente de flexion de codo sin depender de la posicion de pronosupinacion del antebrazo.",
-    "importanceHealth": "Su fortalecimiento reduce sobrecarga relativa del biceps y mejora tolerancia del codo en altas repeticiones.",
-    "mev": "4-6",
-    "mav": "8-12",
-    "mrv": "15",
-    "origin": "Cara anterior distal del humero",
-    "insertion": "Tuberosidad del cubito",
-    "mechanicalFunctions": [
-      "Flexion de codo pura"
-    ],
-    "relatedJoints": [
-      "codo"
-    ],
-    "relatedTendons": []
+    "description": "Músculo ubicado debajo del bíceps.",
+    "bodyPart": "upper"
   },
   {
     "id": "braquiorradial",
     "name": "Braquiorradial",
-    "description": "Músculo prominente en la parte superior y externa del antebrazo. Flexiona el codo con agarre neutro.",
-    "bodyPart": "upper",
-    "importanceMovement": "Clave para fuerza de tiron con agarres neutros o semipronados, especialmente en remos y curls martillo.",
-    "importanceHealth": "Mejora estabilidad de muñeca/codo y ayuda a tolerar mejor volumen de agarre en tracciones pesadas.",
-    "mev": "2-4",
-    "mav": "6-10",
-    "mrv": "12",
-    "origin": "Cresta supracondilea lateral del humero",
-    "insertion": "Apofisis estiloides del radio",
-    "mechanicalFunctions": [
-      "Flexion de codo en agarre neutro",
-      "Asistencia en pronosupinacion"
-    ],
-    "relatedJoints": [
-      "codo",
-      "radiocubital-proximal"
-    ],
-    "relatedTendons": []
+    "description": "Músculo prominente en la parte superior y externa del antebrazo.",
+    "bodyPart": "upper"
   },
   {
     "id": "tríceps",
     "name": "Tríceps",
-    "description": "El tríceps braquial ocupa toda la parte posterior del brazo y tiene tres cabezas (larga, lateral, medial). Es el principal extensor del codo.",
-    "bodyPart": "upper",
-    "importanceMovement": "Es el músculo principal en todos los movimientos de empuje. Constituye aproximadamente 2/3 de la masa del brazo.",
-    "importanceHealth": "Un triceps fuerte y progresado de forma controlada mejora la estabilidad del codo y reduce dolor en bloqueos repetitivos.",
-    "mev": "6",
-    "mav": "10-14",
-    "mrv": "18",
-    "aestheticImportance": "El tríceps representa ~2/3 de la masa del brazo. Da grosor y anchura. La forma de \"herradura\" es muy visible.",
-    "origin": "Tuberculo infraglenoideo y cara posterior del humero",
-    "insertion": "Olecranon del cubito",
-    "mechanicalFunctions": [
-      "Extension de codo",
-      "Extension de hombro (cabeza larga)"
-    ],
-    "relatedJoints": [
-      "codo",
-      "glenohumeral"
-    ],
-    "relatedTendons": [
-      "tendon-tríceps"
-    ]
+    "description": "El tríceps braquial ocupa toda la parte posterior del brazo y tiene tres cabezas (larga, lateral, medial).",
+    "bodyPart": "upper"
   },
   {
     "id": "cabeza-larga-tríceps",
     "name": "Cabeza Larga (Tríceps)",
-    "description": "La única cabeza del tríceps que cruza la articulación del hombro. Se trabaja mejor cuando el brazo está por encima de la cabeza.",
-    "bodyPart": "upper",
-    "importanceMovement": "Aumenta su participacion en extensiones por encima de la cabeza y aporta extension de hombro como sinergista.",
-    "importanceHealth": "Su entrenamiento en longitudes largas ayuda a repartir carga del codo y mejorar estabilidad posterior de hombro.",
-    "mev": "3-4",
-    "mav": "6-10",
-    "mrv": "12",
-    "origin": "Tuberculo infraglenoideo de la escapula",
-    "insertion": "Olecranon del cubito",
-    "mechanicalFunctions": [
-      "Extension de codo",
-      "Extension de hombro",
-      "Aduccion de hombro asistida"
-    ],
-    "relatedJoints": [
-      "codo",
-      "glenohumeral"
-    ],
-    "relatedTendons": [
-      "tendon-tríceps"
-    ]
+    "description": "La única cabeza del tríceps que cruza la articulación del hombro.",
+    "bodyPart": "upper"
   },
   {
     "id": "cabeza-lateral-tríceps",
     "name": "Cabeza Lateral (Tríceps)",
     "description": "Porcion externa del triceps, visible en la forma de herradura y muy implicada en esfuerzos de extension de codo con alta intensidad.",
-    "bodyPart": "upper",
-    "importanceMovement": "Aporta potencia de bloqueo en presses y fondos, especialmente en los ultimos grados de extension.",
-    "importanceHealth": "Un desarrollo progresivo reduce sensibilidad del tendon del triceps ante cargas repetidas de empuje.",
-    "mev": "2-3",
-    "mav": "4-6",
-    "mrv": "9",
-    "origin": "Cara posterior del humero por encima del surco radial",
-    "insertion": "Olecranon del cubito",
-    "mechanicalFunctions": [
-      "Extension de codo de alta fuerza"
-    ],
-    "relatedJoints": [
-      "codo"
-    ],
-    "relatedTendons": [
-      "tendon-tríceps"
-    ]
+    "bodyPart": "upper"
   },
   {
     "id": "cabeza-medial-tríceps",
     "name": "Cabeza Medial (Tríceps)",
     "description": "Ubicada debajo de las otras dos cabezas, es activa en casi todos los movimientos de extensión del codo.",
-    "bodyPart": "upper",
-    "importanceMovement": "Contribuye de forma constante a la extension de codo en todo el recorrido, incluyendo cargas moderadas.",
-    "importanceHealth": "Proporciona soporte articular al codo y ayuda a distribuir la carga entre las tres cabezas del triceps.",
-    "mev": "1-2",
-    "mav": "3-5",
-    "mrv": "7",
-    "origin": "Cara posterior del humero por debajo del surco radial",
-    "insertion": "Olecranon del cubito",
-    "mechanicalFunctions": [
-      "Extension de codo en todo el rango"
-    ],
-    "relatedJoints": [
-      "codo"
-    ],
-    "relatedTendons": [
-      "tendon-tríceps"
-    ]
+    "bodyPart": "upper"
   },
   {
     "id": "antebrazo",
     "name": "Antebrazo",
-    "description": "Grupo padre de flexores y extensores del antebrazo, pronadores y supinadores. Determina la calidad del agarre y la estabilidad de muñeca/codo en tareas de tracción y carga sostenida.",
-    "bodyPart": "upper",
-    "importanceMovement": "Limitante frecuente en pesos muertos, remos y dominadas cuando el agarre falla antes que espalda o piernas.",
-    "importanceHealth": "El equilibrio flexores/extensores disminuye riesgo de epicondilalgia y mejora tolerancia tendinosa del codo.",
-    "mev": "2",
-    "mav": "6-12",
-    "mrv": "16",
-    "mechanicalFunctions": [
-      "Flexión de muñeca",
-      "Extensión de muñeca",
-      "Pronosupinación",
-      "Agarre isométrico"
-    ],
-    "relatedJoints": [
-      "muñeca",
-      "codo",
-      "radiocubital-proximal"
-    ],
-    "relatedTendons": [],
-    "origin": "Epicondilos humerales y superficies proximales de radio/cubito",
-    "insertion": "Metacarpos, falanges y radio distal segun musculo"
+    "description": "Grupo padre de flexores y extensores del antebrazo, pronadores y supinadores.",
+    "bodyPart": "upper"
   },
   {
     "id": "flexores-de-antebrazo",
     "name": "Flexores de Antebrazo",
     "description": "Grupo de músculos en la cara interna del antebrazo, responsables de la flexión de la muñeca y los dedos.",
-    "bodyPart": "upper",
-    "importanceMovement": "Generan agarre y control de barra/mancuerna en tirones, carries y levantamientos prolongados.",
-    "importanceHealth": "Un agarre fuerte es crucial para progresar en ejercicios de espalda y peso muerto.",
-    "mev": "2-4",
-    "mav": "8-12",
-    "mrv": "16",
-    "mechanicalFunctions": [
-      "Flexion de muñeca",
-      "Flexion de dedos",
-      "Agarre de fuerza"
-    ],
-    "relatedJoints": [
-      "muñeca",
-      "codo"
-    ],
-    "relatedTendons": [
-      "tendon-flexores-muñeca"
-    ],
-    "origin": "Epicondilo medial del humero y ulna proximal",
-    "insertion": "Falanges y bases metacarpianas palmares"
+    "bodyPart": "upper"
   },
   {
     "id": "extensores-de-antebrazo",
     "name": "Extensores de Antebrazo",
     "description": "Grupo de músculos en la cara externa del antebrazo, responsables de la extensión de la muñeca y los dedos.",
-    "bodyPart": "upper",
-    "importanceMovement": "Contrabalancean flexores durante agarre fuerte y estabilizan muñeca en empujes y levantamientos.",
-    "importanceHealth": "Equilibrar la fuerza con los flexores es clave para prevenir lesiones como el codo de tenista.",
-    "mev": "2-4",
-    "mav": "8-12",
-    "mrv": "16",
-    "mechanicalFunctions": [
-      "Extension de muñeca",
-      "Extension de dedos",
-      "Estabilidad de agarre"
-    ],
-    "relatedJoints": [
-      "muñeca",
-      "codo"
-    ],
-    "relatedTendons": [
-      "tendon-extensores-muñeca"
-    ],
-    "origin": "Epicondilo lateral del humero",
-    "insertion": "Bases metacarpianas dorsales y expansiones digitales"
+    "bodyPart": "upper"
   },
   {
     "id": "cuádriceps",
     "name": "Cuádriceps",
-    "description": "Grupo de cuatro músculos en la parte frontal del muslo. Su función principal es la extensión de la rodilla.",
-    "bodyPart": "lower",
-    "importanceMovement": "Esencial para levantarse de una silla, subir escaleras, correr y saltar.",
-    "importanceHealth": "Unos cuádriceps fuertes son vitales para la estabilidad y salud de la rodilla.",
-    "mev": "6",
-    "mav": "10-15",
-    "mrv": "18",
-    "origin": "Ilion (recto femoral), fémur (vastos)",
-    "insertion": "Tuberosidad tibial vía tendón rotuliano",
-    "mechanicalFunctions": [
-      "Extensión de rodilla",
-      "Flexión de cadera (recto femoral)"
-    ],
-    "relatedJoints": [
-      "rodilla",
-      "cadera"
-    ],
-    "relatedTendons": [
-      "tendon-rotuliano",
-      "tendon-cuádriceps"
-    ]
+    "description": "Grupo de cuatro músculos en la parte frontal del muslo.",
+    "bodyPart": "lower"
   },
   {
     "id": "vasto-lateral",
     "name": "Vasto Lateral",
-    "description": "La porción externa del cuádriceps. Contribuye significativamente al \"barrido\" o anchura de la pierna.",
-    "bodyPart": "lower",
-    "importanceMovement": "Aporta extension potente de rodilla en patrones dominantes de rodilla y contribuye al control lateral de la rotula.",
-    "importanceHealth": "Su fuerza adecuada mejora tolerancia femoropatelar cuando se combina con gluteo medio y vasto medial.",
-    "mev": "4",
-    "mav": "8-12",
-    "mrv": "15",
-    "origin": "Trocanter mayor y linea aspera lateral del femur",
-    "insertion": "Tendon cuadricipital hacia rotula y tuberosidad tibial",
-    "mechanicalFunctions": [
-      "Extension de rodilla",
-      "Estabilidad lateral patelofemoral"
-    ],
-    "relatedJoints": [
-      "rodilla"
-    ],
-    "relatedTendons": [
-      "tendon-cuádriceps",
-      "tendon-rotuliano"
-    ]
+    "description": "La porción externa del cuádriceps.",
+    "bodyPart": "lower"
   },
   {
     "id": "vasto-medial",
     "name": "Vasto Medial",
     "description": "Porcion medial del cuadriceps con papel relevante en extension final de rodilla y control de seguimiento rotuliano.",
-    "bodyPart": "lower",
-    "importanceMovement": "Extensor de rodilla, especialmente crucial en los últimos grados de extensión.",
-    "importanceHealth": "Fundamental para la estabilidad y el seguimiento correcto de la rótula.",
-    "mev": "4",
-    "mav": "8-12",
-    "mrv": "15",
-    "origin": "Linea intertrocanterica y linea aspera medial del femur",
-    "insertion": "Tendon cuadricipital hacia rotula y tuberosidad tibial",
-    "mechanicalFunctions": [
-      "Extension de rodilla",
-      "Control medial de rotula"
-    ],
-    "relatedJoints": [
-      "rodilla"
-    ],
-    "relatedTendons": [
-      "tendon-cuádriceps",
-      "tendon-rotuliano"
-    ]
+    "bodyPart": "lower"
   },
   {
     "id": "recto-femoral",
     "name": "Recto Femoral",
     "description": "Porcion biarticular del cuadriceps que participa en extension de rodilla y flexion de cadera, sensible a volumen alto de sprint/sentadilla.",
-    "bodyPart": "lower",
-    "importanceMovement": "Aporta fuerza en transiciones cadera-rodilla y mejora aceleracion cuando se entrena en longitudes amplias.",
-    "importanceHealth": "Su flexibilidad es importante para una correcta mecánica de la pelvis.",
-    "mev": "3",
-    "mav": "6-10",
-    "mrv": "12",
-    "origin": "Espina iliaca anteroinferior",
-    "insertion": "Tendon cuadricipital hacia rotula y tuberosidad tibial",
-    "mechanicalFunctions": [
-      "Extension de rodilla",
-      "Flexion de cadera"
-    ],
-    "relatedJoints": [
-      "rodilla",
-      "cadera"
-    ],
-    "relatedTendons": [
-      "tendon-cuádriceps",
-      "tendon-rotuliano"
-    ]
+    "bodyPart": "lower"
   },
   {
     "id": "isquiosurales",
     "name": "Isquiosurales",
-    "description": "Grupo de músculos en la parte posterior del muslo. Son responsables de la flexión de la rodilla y la extensión de la cadera.",
-    "bodyPart": "lower",
-    "importanceMovement": "Cruciales para correr, esprintar y en la fase de ascenso de las sentadillas y pesos muertos.",
-    "importanceHealth": "La flexibilidad y fuerza de los isquiotibiales son vitales para la salud de la rodilla y la espalda baja.",
-    "mev": "4-6",
-    "mav": "8-12",
-    "mrv": "16",
-    "origin": "Tuberosidad isquiatica (excepto cabeza corta del biceps femoral)",
-    "insertion": "Tibia proximal y cabeza del perone segun porcion",
-    "mechanicalFunctions": [
-      "Extension de cadera",
-      "Flexion de rodilla",
-      "Control excéntrico en sprint"
-    ],
-    "relatedJoints": [
-      "cadera",
-      "rodilla"
-    ],
-    "relatedTendons": [
-      "tendon-isquiotibiales"
-    ]
+    "description": "Grupo de músculos en la parte posterior del muslo.",
+    "bodyPart": "lower"
   },
   {
     "id": "bíceps-femoral",
     "name": "Bíceps Femoral",
-    "description": "Parte externa de los isquiosurales, con una cabeza larga y una corta. Extiende la cadera y flexiona la rodilla.",
-    "bodyPart": "lower",
-    "importanceMovement": "Potente motor en la extensión de cadera y crucial para la desaceleración al correr.",
-    "importanceHealth": "Suele ser propenso a lesiones por desgarro en deportes explosivos.",
-    "mev": "2-3",
-    "mav": "4-6",
-    "mrv": "8",
-    "mechanicalFunctions": [
-      "Extension de cadera (cabeza larga)",
-      "Flexion de rodilla",
-      "Rotacion externa de tibia"
-    ],
-    "relatedJoints": [
-      "cadera",
-      "rodilla"
-    ],
-    "relatedTendons": [
-      "tendon-isquiotibiales"
-    ],
-    "origin": "Tuberosidad isquiatica (cabeza larga) y linea aspera femoral (cabeza corta)"
+    "description": "Parte externa de los isquiosurales, con una cabeza larga y una corta.",
+    "bodyPart": "lower"
   },
   {
     "id": "semitendinoso",
     "name": "Semitendinoso",
-    "description": "Parte interna de los isquiosurales. Extiende la cadera, flexiona la rodilla y ayuda en la rotación interna de la tibia.",
-    "bodyPart": "lower",
-    "importanceMovement": "Trabaja en sinergia con los otros isquiosurales y aporta control fino de la rotacion tibial en carrera y bisagra.",
-    "importanceHealth": "Contribuye a la estabilidad medial de la rodilla y ayuda a distribuir tensiones en desaceleraciones repetidas.",
-    "mev": "1-2",
-    "mav": "3-5",
-    "mrv": "7",
-    "mechanicalFunctions": [
-      "Extension de cadera",
-      "Flexion de rodilla",
-      "Rotacion interna de tibia"
-    ],
-    "relatedJoints": [
-      "cadera",
-      "rodilla"
-    ],
-    "relatedTendons": [
-      "tendon-isquiotibiales"
-    ],
-    "origin": "Tuberosidad isquiatica"
+    "description": "Parte interna de los isquiosurales.",
+    "bodyPart": "lower"
   },
   {
     "id": "semimembranoso",
     "name": "Semimembranoso",
-    "description": "El más profundo de los isquiosurales internos. Extiende la cadera, flexiona la rodilla y rota internamente la tibia.",
-    "bodyPart": "lower",
-    "importanceMovement": "Potente extensor de cadera y flexor de rodilla con papel relevante en control posterior de rodilla bajo carga.",
-    "importanceHealth": "Proporciona estabilidad a la parte posterior e interna de la rodilla.",
-    "mev": "1-2",
-    "mav": "3-5",
-    "mrv": "7",
-    "mechanicalFunctions": [
-      "Extension de cadera",
-      "Flexion de rodilla",
-      "Rotacion interna de tibia"
-    ],
-    "relatedJoints": [
-      "cadera",
-      "rodilla"
-    ],
-    "relatedTendons": [
-      "tendon-isquiotibiales"
-    ],
-    "origin": "Tuberosidad isquiatica"
+    "description": "El más profundo de los isquiosurales internos.",
+    "bodyPart": "lower"
   },
   {
     "id": "aductores",
     "name": "Aductores",
-    "description": "Grupo de músculos en la parte interna del muslo. Su función principal es la aducción (acercar la pierna al centro del cuerpo).",
-    "bodyPart": "lower",
-    "importanceMovement": "Aportan estabilidad frontal y potencia en cambios de direccion, sentadilla profunda y fases de apoyo unilateral.",
-    "importanceHealth": "Su fuerza y movilidad reducen sobrecarga de pubis y ayudan a estabilizar pelvis y rodilla en deportes de campo.",
-    "mev": "2-4",
-    "mav": "6-10",
-    "mrv": "14",
-    "origin": "Rama pubica e isquiatica",
-    "insertion": "Linea aspera y tuberculo del aductor en femur",
-    "mechanicalFunctions": [
-      "Aduccion de cadera",
-      "Estabilidad frontal de pelvis",
-      "Asistencia en extension de cadera"
-    ],
-    "relatedJoints": [
-      "cadera",
-      "rodilla"
-    ],
-    "relatedTendons": []
+    "description": "Grupo de músculos en la parte interna del muslo.",
+    "bodyPart": "lower"
   },
   {
     "id": "glúteos",
     "name": "Glúteos",
-    "description": "Grupo padre compuesto por glúteo mayor, medio y menor. Lidera extensión de cadera, abducción y control frontal/transversal de pelvis en tareas bilaterales y unilaterales.",
-    "bodyPart": "lower",
-    "importanceMovement": "Clave en bisagra, sprint y salto; también evita colapso en valgo de rodilla durante zancadas y aterrizajes.",
-    "importanceHealth": "El déficit de glúteo medio/mayor se asocia a dolor lumbar, síndrome patelofemoral y baja estabilidad pélvica.",
-    "mev": "4-6",
-    "mav": "10-16",
-    "mrv": "20",
-    "mechanicalFunctions": [
-      "Extensión de cadera",
-      "Abducción de cadera",
-      "Rotación externa",
-      "Estabilidad pélvica"
-    ],
-    "relatedJoints": [
-      "cadera",
-      "sacroiliaca",
-      "rodilla"
-    ],
-    "relatedTendons": [],
-    "origin": "Ilion, sacro y fascia toracolumbar",
-    "insertion": "Femur proximal y tracto iliotibial"
+    "description": "Grupo padre compuesto por glúteo mayor, medio y menor.",
+    "bodyPart": "lower"
   },
   {
     "id": "glúteo-mayor",
     "name": "Glúteo Mayor",
     "description": "Musculo mas voluminoso del cuerpo y gran extensor de cadera, decisivo en potencia de bisagra, sprint y salto.",
-    "bodyPart": "lower",
-    "importanceMovement": "Potencia movimientos como sentadillas, peso muerto, hip thrusts y sprints.",
-    "importanceHealth": "Su activacion adecuada reduce sobrecarga lumbar y mejora control pélvico en patrones de alta demanda.",
-    "mev": "4",
-    "mav": "8-12",
-    "mrv": "16",
-    "aestheticImportance": "Los glúteos son uno de los grupos más visibles y deseados estéticamente. Un glúteo mayor desarrollado aporta forma, redondez y proyección trasera.",
-    "origin": "Ilion, sacro, cóccix",
-    "insertion": "Tuberosidad glútea del fémur y tracto iliotibial",
-    "mechanicalFunctions": [
-      "Extensión de cadera",
-      "Rotación externa de cadera",
-      "Abducción"
-    ],
-    "relatedJoints": [
-      "cadera",
-      "sacroiliaca"
-    ],
-    "relatedTendons": []
+    "bodyPart": "lower"
   },
   {
     "id": "glúteo-medio",
     "name": "Glúteo Medio",
     "description": "Abductor principal de cadera con fuerte rol de estabilidad frontal durante apoyo unilateral y desplazamientos laterales.",
-    "bodyPart": "lower",
-    "importanceMovement": "Mantiene pelvis estable en marcha, carrera y zancadas, evitando colapso de cadera en apoyo monopodal.",
-    "importanceHealth": "Un glúteo medio débil está asociado con dolor de rodilla y espalda baja.",
-    "mev": "2",
-    "mav": "6-10",
-    "mrv": "12",
-    "origin": "Cara externa del ilion",
-    "insertion": "Trocanter mayor del femur",
-    "mechanicalFunctions": [
-      "Abduccion de cadera",
-      "Estabilidad pélvica monopodal",
-      "Rotacion interna/externa segun fibras"
-    ],
-    "relatedJoints": [
-      "cadera",
-      "rodilla"
-    ],
-    "relatedTendons": []
+    "bodyPart": "lower"
   },
   {
     "id": "glúteo-menor",
     "name": "Glúteo Menor",
     "description": "Abductor profundo de cadera que colabora con gluteo medio en estabilidad pélvica y control de rotacion femoral.",
-    "bodyPart": "lower",
-    "importanceMovement": "Apoya el control de cadera en tareas unilaterales y cambios de direccion con carga.",
-    "importanceHealth": "Su funcion reduce valgo dinamico y ayuda a proteger rodilla y region lumbar en gestos repetitivos.",
-    "mev": "0",
-    "mav": "4-8",
-    "mrv": "10",
-    "origin": "Ilion entre lineas gluteas anterior e inferior",
-    "insertion": "Cara anterior del trocanter mayor",
-    "mechanicalFunctions": [
-      "Abduccion de cadera",
-      "Rotacion interna",
-      "Estabilidad pélvica"
-    ],
-    "relatedJoints": [
-      "cadera"
-    ],
-    "relatedTendons": []
+    "bodyPart": "lower"
   },
   {
     "id": "pantorrillas",
     "name": "Pantorrillas",
     "description": "Grupo padre formado por gastrocnemio y sóleo, responsables de la flexión plantar y del retorno elástico en marcha, carrera y salto.",
-    "bodyPart": "lower",
-    "importanceMovement": "Contribuye a aceleración/desaceleración y eficiencia del ciclo estiramiento-acortamiento en locomoción.",
-    "importanceHealth": "Un complejo tríceps sural fuerte mejora control de tobillo, reduce sobrecarga aquílea y favorece dorsiflexión funcional.",
-    "mev": "6-8",
-    "mav": "12-16",
-    "mrv": "20",
-    "mechanicalFunctions": [
-      "Flexión plantar",
-      "Soporte del arco",
-      "Retorno elástico",
-      "Control excéntrico de dorsiflexión"
-    ],
-    "relatedJoints": [
-      "tobillo",
-      "subtalar",
-      "rodilla"
-    ],
-    "relatedTendons": [
-      "tendon-aquiles"
-    ],
-    "origin": "Condilos femorales (gastrocnemio) y tibia/perone (soleo)",
-    "insertion": "Calcaneo via tendon de Aquiles"
+    "bodyPart": "lower"
   },
   {
     "id": "gastrocnemio",
     "name": "Gastrocnemio",
-    "description": "La parte más visible y superficial de la pantorrilla. Es un músculo biarticular que cruza la rodilla y el tobillo.",
-    "bodyPart": "lower",
-    "importanceMovement": "Potente flexor plantar, especialmente con la pierna extendida. Contribuye a la potencia en saltos.",
-    "importanceHealth": "Mantener su longitud y fuerza mejora dorsiflexion funcional y disminuye carga excesiva sobre tendon de Aquiles.",
-    "mev": "4-6",
-    "mav": "8-12",
-    "mrv": "16",
-    "origin": "Cóndilos femorales",
-    "insertion": "Calcáneo vía tendón de Aquiles",
-    "mechanicalFunctions": [
-      "Flexión plantar",
-      "Flexión de rodilla"
-    ],
-    "relatedJoints": [
-      "tobillo",
-      "rodilla"
-    ],
-    "relatedTendons": [
-      "tendon-aquiles"
-    ]
+    "description": "La parte más visible y superficial de la pantorrilla.",
+    "bodyPart": "lower"
   },
   {
     "id": "sóleo",
     "name": "Sóleo",
     "description": "Musculo profundo de la pantorrilla, altamente resistente, esencial para control postural y flexion plantar sostenida.",
-    "bodyPart": "lower",
-    "importanceMovement": "Aporta propulsion y control en apoyo con rodilla flexionada, clave en carrera y cambios de ritmo.",
-    "importanceHealth": "Su flexibilidad es fundamental para una dorsiflexión de tobillo adecuada.",
-    "mev": "4-6",
-    "mav": "8-12",
-    "mrv": "16",
-    "origin": "Linea del soleo en tibia y cabeza del perone",
-    "insertion": "Calcaneo via tendon de Aquiles",
-    "mechanicalFunctions": [
-      "Flexion plantar",
-      "Control postural en apoyo",
-      "Bomba venosa de pantorrilla"
-    ],
-    "relatedJoints": [
-      "tobillo",
-      "subtalar"
-    ],
-    "relatedTendons": [
-      "tendon-aquiles"
-    ]
+    "bodyPart": "lower"
   },
   {
     "id": "recto-abdominal",
     "name": "Recto Abdominal",
     "description": "Musculo superficial del abdomen con papel en flexion de tronco y control anti-extension en tareas de carga.",
-    "bodyPart": "core",
-    "importanceMovement": "Contribuye a mantener rigidez anterior del tronco durante sentadillas, carries y ejercicios por encima de la cabeza.",
-    "importanceHealth": "Su fuerza adecuada mejora control pélvico y reduce extension lumbar excesiva en actividades diarias y deportivas.",
-    "mev": "0",
-    "mav": "10-16",
-    "mrv": "20",
-    "mechanicalFunctions": [
-      "Flexion de tronco",
-      "Retroversion pélvica",
-      "Control anti-extension"
-    ],
-    "relatedJoints": [
-      "columna-lumbar",
-      "columna-toracica"
-    ],
-    "relatedTendons": []
+    "bodyPart": "core"
   },
   {
     "id": "oblicuos",
     "name": "Oblicuos",
-    "description": "Músculos a los lados del abdomen (interno y externo). Responsables de la inclinación lateral y rotación del tronco.",
-    "bodyPart": "core",
-    "importanceMovement": "Mejoran transferencia de fuerza rotacional y anti-rotacional en gestos atleticos y patrones unilaterales.",
-    "importanceHealth": "Actúan como un corsé natural, protegiendo la columna de fuerzas de rotación.",
-    "mev": "0",
-    "mav": "8-12",
-    "mrv": "16",
-    "mechanicalFunctions": [
-      "Rotacion de tronco",
-      "Inclinacion lateral",
-      "Anti-rotacion",
-      "Control respiratorio asistido"
-    ],
-    "relatedJoints": [
-      "columna-lumbar",
-      "columna-toracica"
-    ],
-    "relatedTendons": [],
-    "origin": "Costillas 5-12, cresta iliaca y fascia toracolumbar",
-    "insertion": "Linea alba, pubis y costillas inferiores"
+    "description": "Músculos a los lados del abdomen (interno y externo).",
+    "bodyPart": "core"
   },
   {
     "id": "transverso-abdominal",
     "name": "Transverso Abdominal",
     "description": "Musculo abdominal profundo con orientacion horizontal, principal responsable de compresion del cilindro abdominal.",
-    "bodyPart": "core",
-    "importanceMovement": "No produce movimiento, pero es el estabilizador más importante del core.",
-    "importanceHealth": "Su activacion coordinada con diafragma y suelo pélvico es clave para estabilidad lumbar y control de carga.",
-    "mev": "0",
-    "mav": "6-10",
-    "mrv": "12",
-    "mechanicalFunctions": [
-      "Compresion abdominal",
-      "Estabilidad lumbopélvica",
-      "Control de presion intraabdominal"
-    ],
-    "relatedJoints": [
-      "columna-lumbar",
-      "sacroiliaca"
-    ],
-    "relatedTendons": []
+    "bodyPart": "core"
   },
   {
     "id": "serrato-anterior",
     "name": "Serrato Anterior",
-    "description": "Músculo ubicado en la parte lateral del tórax, sobre las costillas. Es responsable de la protracción de la escápula.",
-    "bodyPart": "upper",
-    "importanceMovement": "Facilita protraccion y rotacion superior escapular, esenciales para presses y movimientos overhead eficientes.",
-    "importanceHealth": "Su fortalecimiento reduce escapula alada y mejora estabilidad subacromial en elevaciones repetidas.",
-    "mev": "0",
-    "mav": "6-10",
-    "mrv": "14",
-    "mechanicalFunctions": [
-      "Protraccion escapular",
-      "Rotacion superior escapular",
-      "Adherencia escapular a parrilla costal"
-    ],
-    "relatedJoints": [
-      "escapulotoracica",
-      "glenohumeral"
-    ],
-    "relatedTendons": [],
-    "origin": "Costillas 1-8/9 en su cara lateral",
-    "insertion": "Borde medial anterior de la escapula"
+    "description": "Músculo ubicado en la parte lateral del tórax, sobre las costillas.",
+    "bodyPart": "upper"
   },
   {
     "id": "tibial-anterior",
     "name": "Tibial Anterior",
     "description": "Dorsiflexor principal del tobillo y colaborador en inversion, esencial para despeje del pie durante la fase de oscilacion.",
-    "bodyPart": "lower",
-    "importanceMovement": "Permite contacto de talon controlado y mejora mecanica de carrera, marcha y frenado anterior del pie.",
-    "importanceHealth": "Su fuerza adecuada reduce riesgo de tropiezos y ayuda a equilibrar cargas con el complejo aquileo-sural.",
-    "mev": "0",
-    "mav": "6-10",
-    "mrv": "12",
-    "mechanicalFunctions": [
-      "Dorsiflexion de tobillo",
-      "Inversion del pie",
-      "Control de apoyo del talon"
-    ],
-    "relatedJoints": [
-      "tobillo",
-      "subtalar"
-    ],
-    "relatedTendons": []
+    "bodyPart": "lower"
   },
   {
     "id": "multífidos",
     "name": "Multífidos",
-    "description": "Músculos pequeños y profundos que se extienden a lo largo de la columna vertebral. Estabilizadores segmentarios.",
-    "bodyPart": "spine",
-    "importanceMovement": "No son motores primarios, sino estabilizadores finos que se activan antes de cualquier movimiento.",
-    "importanceHealth": "Una atrofia de los multífidos está fuertemente asociada con el dolor de espalda baja crónico.",
-    "mev": null,
-    "mav": null,
-    "mrv": null,
-    "mechanicalFunctions": [
-      "Estabilidad segmentaria vertebral",
-      "Control anti-rotacion local",
-      "Extension lumbar asistida"
-    ],
-    "relatedJoints": [
-      "columna-lumbar",
-      "columna-toracica"
-    ],
-    "relatedTendons": [],
-    "origin": "Sacro y apofisis mamilares/transversas lumbares y toracicas",
-    "insertion": "Apofisis espinosas de vertebras superiores"
+    "description": "Músculos pequeños y profundos que se extienden a lo largo de la columna vertebral.",
+    "bodyPart": "spine"
   },
   {
     "id": "suelo-pélvico",
     "name": "Suelo Pélvico",
-    "description": "Conjunto de músculos en forma de hamaca que cierran la base de la pelvis. Sostiene los órganos pélvicos.",
-    "bodyPart": "core",
-    "importanceMovement": "Trabaja en sinergia con el diafragma y el transverso abdominal para crear una \"caja\" estable.",
-    "importanceHealth": "Fundamental para la continencia urinaria y fecal, la función sexual y el soporte de los órganos.",
-    "mev": null,
-    "mav": null,
-    "mrv": null,
-    "mechanicalFunctions": [
-      "Soporte visceral",
-      "Control de presion intraabdominal",
-      "Sinergia respiratoria con diafragma"
-    ],
-    "relatedJoints": [
-      "sacroiliaca",
-      "columna-lumbar"
-    ],
-    "relatedTendons": [],
-    "origin": "Pubis, arco tendinoso y espinas isquiaticas",
-    "insertion": "Cocix, rafe anococcigeo y fascia perineal"
+    "description": "Conjunto de músculos en forma de hamaca que cierran la base de la pelvis.",
+    "bodyPart": "core"
   },
   {
     "id": "diafragma",
     "name": "Diafragma",
     "description": "Es el principal músculo de la respiración, un gran domo muscular situado debajo de los pulmones.",
-    "bodyPart": "core",
-    "importanceMovement": "Juega un rol crucial en la creación de presión intraabdominal (Maniobra de Valsalva).",
-    "importanceHealth": "Una respiración diafragmática correcta mejora la oxigenación, reduce el estrés.",
-    "mev": null,
-    "mav": null,
-    "mrv": null,
-    "mechanicalFunctions": [
-      "Inspiracion",
-      "Control de presion intraabdominal",
-      "Estabilidad del core profunda"
-    ],
-    "relatedJoints": [
-      "columna-toracica",
-      "columna-lumbar"
-    ],
-    "relatedTendons": [],
-    "origin": "Apofisis xifoides, costillas inferiores y vertebras lumbares",
-    "insertion": "Tendon central diafragmatico"
+    "bodyPart": "core"
   },
   {
     "id": "cuello",
     "name": "Cuello",
     "description": "Musculatura cervical encargada de la flexión, extensión, rotación e inclinación lateral de la cabeza.",
-    "bodyPart": "upper",
-    "importanceMovement": "Aporta control cefalico en aceleraciones, contacto y levantamientos, mejorando estabilidad global del eje cervical.",
-    "importanceHealth": "Un cuello fuerte mejora la tolerancia cervical y protege la articulación cervical.",
-    "mev": "2-4",
-    "mav": "6-10",
-    "mrv": "14",
-    "relatedJoints": [
-      "columna-cervical",
-      "columna-toracica"
-    ],
-    "relatedTendons": [],
-    "mechanicalFunctions": [
-      "Flexion cervical",
-      "Extension cervical",
-      "Rotacion cervical",
-      "Inclinacion lateral"
-    ],
-    "origin": "Esternon, clavicula y procesos vertebrales cervicales/toracicos altos",
-    "insertion": "Occipital, mastoides, mandibula y vertebras cervicales"
+    "bodyPart": "upper"
   }
 ]

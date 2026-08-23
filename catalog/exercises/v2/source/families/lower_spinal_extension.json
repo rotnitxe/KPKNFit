@@ -45,7 +45,6 @@
                     "Extensión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Principal: La columna lumbar vuelve a extenderse con una carga progresiva sobre la cadena posterior. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +52,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Secundaria: La cadera ayuda a enderezar el tronco y reparte la salida con los glúteos. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +59,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La pelvis regula la transición entre flexión y extensión sin perder la base. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,16 +66,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "spinal_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Principal: Los erectores espinales sostiene la columna frente a la flexión y transmite fuerza entre pelvis y tronco. El guiado externo reduce la demanda de estabilización y concentra su papel en mantener la posición. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundaria: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. En la configuración Máquina, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "back_extension_lumbar__machine__extension_lumbar",
               "primaryMuscles": [
                 "erector_spinae"
@@ -98,7 +85,6 @@
                         "Extensión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Principal: La columna lumbar vuelve a extenderse con una carga progresiva sobre la cadena posterior. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                       "role": "PRIMARY"
                     },
                     {
@@ -106,7 +92,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Secundaria: La cadera ayuda a enderezar el tronco y reparte la salida con los glúteos. El guiado externo limita las desviaciones y vuelve más repetible la línea de carga.",
                       "role": "SECONDARY"
                     },
                     {
@@ -114,7 +99,6 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La pelvis regula la transición entre flexión y extensión sin perder la base. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -144,9 +128,6 @@
                     "columna-lumbar",
                     "cadera",
                     "sacroiliaca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -335,7 +316,6 @@
                     "Extensión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Principal: La columna lumbar vuelve a extenderse con una carga progresiva sobre la cadena posterior. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -343,7 +323,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Secundaria: La cadera ayuda a enderezar el tronco y reparte la salida con los glúteos. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -351,7 +330,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La pelvis regula la transición entre flexión y extensión sin perder la base. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -359,20 +337,6 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "spinal_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Principal: Los erectores espinales sostiene la columna frente a la flexión y transmite fuerza entre pelvis y tronco. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundaria: El glúteo mayor extiende la cadera y estabiliza la pelvis en la subida. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundaria: Los isquiosurales extiende la cadera y frena el descenso cuando la cadera se flexiona. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "back_superman_suelo__bodyweight__superman_en_suelo",
               "primaryMuscles": [
                 "erector_spinae"
@@ -392,7 +356,6 @@
                         "Extensión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Principal: La columna lumbar vuelve a extenderse con una carga progresiva sobre la cadena posterior. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -400,7 +363,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Secundaria: La cadera ayuda a enderezar el tronco y reparte la salida con los glúteos. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -408,7 +370,6 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La pelvis regula la transición entre flexión y extensión sin perder la base. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -439,9 +400,6 @@
                     "columna-lumbar",
                     "cadera",
                     "sacroiliaca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -627,7 +585,6 @@
                     "Extensión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Principal: La columna lumbar vuelve a extenderse con una carga progresiva sobre la cadena posterior. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -635,7 +592,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Secundaria: La cadera ayuda a enderezar el tronco y reparte la salida con los glúteos. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -643,7 +599,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La pelvis regula la transición entre flexión y extensión sin perder la base. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -651,16 +606,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "spinal_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Principal: Los erectores espinales sostiene la columna frente a la flexión y transmite fuerza entre pelvis y tronco. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizadora: El core mantiene costillas, pelvis y columna como una unidad frente a fuerzas externas. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "back_hiperextension_45_zercher_espalda_baja",
               "primaryMuscles": [
                 "erector_spinae"
@@ -680,7 +625,6 @@
                         "Extensión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Principal: La columna lumbar vuelve a extenderse con una carga progresiva sobre la cadena posterior. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -688,7 +632,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Secundaria: La cadera ayuda a enderezar el tronco y reparte la salida con los glúteos. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -696,7 +639,6 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La pelvis regula la transición entre flexión y extensión sin perder la base. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -726,9 +668,6 @@
                     "columna-lumbar",
                     "cadera",
                     "sacroiliaca"
-                  ],
-                  "relevantTendons": [
-                    "tendon-iliopsoas"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "guided"

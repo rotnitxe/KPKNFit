@@ -45,7 +45,6 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro eleva el brazo y determina el plano de la variante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +52,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La escápula acompaña la elevación para repartir el movimiento y la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +59,6 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
-                  "note": "Secundaria: La articulación acromioclavicular permite que la escápula cambie de orientación durante la elevación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -69,7 +66,6 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
-                  "note": "Estabilizadora: El codo mantiene una posición consistente para que el hombro sea quien defina el gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,16 +73,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "shoulder_abduction_diagonal",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundaria: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "deltoides_y_raises_sentado_banco_inclinado__dumbbells__y_raises_sentado_en_banco_inclinado",
               "primaryMuscles": [
                 "deltoid"
@@ -108,7 +94,6 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro eleva el brazo y determina el plano de la variante. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -116,7 +101,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La escápula acompaña la elevación para repartir el movimiento y la carga. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -124,7 +108,6 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
-                      "note": "Secundaria: La articulación acromioclavicular permite que la escápula cambie de orientación durante la elevación. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -132,7 +115,6 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
-                      "note": "Estabilizadora: El codo mantiene una posición consistente para que el hombro sea quien defina el gesto. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -163,13 +145,6 @@
                     "escapulotoracica",
                     "acromioclavicular",
                     "codo"
-                  ],
-                  "relevantTendons": [
-                    "tendon-supraespinoso",
-                    "tendon-infraespinoso",
-                    "tendon-bíceps-largo",
-                    "tendon-bíceps",
-                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"

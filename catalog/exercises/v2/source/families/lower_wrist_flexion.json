@@ -45,7 +45,6 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +52,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +59,6 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
-                  "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,16 +66,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "wrist_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "forearm",
-                  "note": "Principal: El antebrazo transmite el agarre y mantiene la muñeca alineada con la resistencia. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundaria: El bíceps flexiona el codo y, con agarre supino, ayuda a supinar el antebrazo. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "forearms_curl_muneca_de_pie_tras_espalda_barra__barbell__curl_de_muneca_de_pie_tras_espalda_con_barra",
               "primaryMuscles": [
                 "forearm"
@@ -99,7 +86,6 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -107,7 +93,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -115,7 +100,6 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
-                      "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -145,12 +129,6 @@
                     "muñeca",
                     "codo",
                     "radiocubital-proximal"
-                  ],
-                  "relevantTendons": [
-                    "tendon-flexores-muñeca",
-                    "tendon-extensores-muñeca",
-                    "tendon-bíceps",
-                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -335,7 +313,6 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -343,7 +320,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -351,7 +327,6 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
-                  "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -359,12 +334,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "wrist_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "forearm",
-                  "note": "Principal: El antebrazo transmite el agarre y mantiene la muñeca alineada con la resistencia. En la configuración Mancuernas, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "forearms_curl_muneca__dumbbells",
               "primaryMuscles": [
                 "forearm"
@@ -385,7 +354,6 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -393,7 +361,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -401,7 +368,6 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
-                      "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -429,12 +395,6 @@
                     "muñeca",
                     "codo",
                     "radiocubital-proximal"
-                  ],
-                  "relevantTendons": [
-                    "tendon-flexores-muñeca",
-                    "tendon-extensores-muñeca",
-                    "tendon-bíceps",
-                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -604,7 +564,6 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -612,7 +571,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -620,7 +578,6 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
-                  "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -628,12 +585,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "wrist_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "forearm",
-                  "note": "Principal: El antebrazo transmite el agarre y mantiene la muñeca alineada con la resistencia. En la configuración Barra, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "forearms_curl_muneca__barbell",
               "primaryMuscles": [
                 "forearm"
@@ -654,7 +605,6 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -662,7 +612,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -670,7 +619,6 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
-                      "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -698,12 +646,6 @@
                     "muñeca",
                     "codo",
                     "radiocubital-proximal"
-                  ],
-                  "relevantTendons": [
-                    "tendon-flexores-muñeca",
-                    "tendon-extensores-muñeca",
-                    "tendon-bíceps",
-                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -873,7 +815,6 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -881,7 +822,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -889,7 +829,6 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
-                  "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -897,12 +836,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "wrist_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "forearm",
-                  "note": "Principal: El antebrazo transmite el agarre y mantiene la muñeca alineada con la resistencia. En la configuración Barra EZ, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "forearms_curl_muneca__ez_bar",
               "primaryMuscles": [
                 "forearm"
@@ -923,7 +856,6 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -931,7 +863,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -939,7 +870,6 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
-                      "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -967,12 +897,6 @@
                     "muñeca",
                     "codo",
                     "radiocubital-proximal"
-                  ],
-                  "relevantTendons": [
-                    "tendon-flexores-muñeca",
-                    "tendon-extensores-muñeca",
-                    "tendon-bíceps",
-                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -1142,7 +1066,6 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1150,7 +1073,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1158,7 +1080,6 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
-                  "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1166,12 +1087,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "wrist_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "forearm",
-                  "note": "Principal: El antebrazo transmite el agarre y mantiene la muñeca alineada con la resistencia. La tensión de la polea mantiene su participación durante una parte amplia del recorrido. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "forearms_curl_muneca__cable",
               "primaryMuscles": [
                 "forearm"
@@ -1192,7 +1107,6 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Principal: La muñeca genera el movimiento y concentra la resistencia en el antebrazo. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1200,7 +1114,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo fija la longitud de la posición para que la mano no arrastre el brazo entero. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1208,7 +1121,6 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
-                      "note": "Estabilizadora: La del antebrazo proximal orienta el antebrazo y permite que la muñeca trabaje en su plano. La tensión continua mantiene la articulación expuesta durante una porción amplia del recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1236,12 +1148,6 @@
                     "muñeca",
                     "codo",
                     "radiocubital-proximal"
-                  ],
-                  "relevantTendons": [
-                    "tendon-flexores-muñeca",
-                    "tendon-extensores-muñeca",
-                    "tendon-bíceps",
-                    "tendon-tríceps"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"

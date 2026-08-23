@@ -11,7 +11,6 @@ data class AprendeCatalogAuditReport(
     val configurationCount: Int,
     val richMetadataCount: Int,
     val editorialCoverageCount: Int,
-    val muscleNoteCoverageCount: Int,
     val jointCoverageCount: Int,
     val shortDescriptionCount: Int,
     val shortBenefitCount: Int,
@@ -34,7 +33,6 @@ data class AprendeCatalogAuditReport(
             configurationCount > 0 &&
             richMetadataCount == configurationCount &&
             editorialCoverageCount == configurationCount &&
-            muscleNoteCoverageCount == configurationCount &&
             jointCoverageCount == configurationCount &&
             shortDescriptionCount == 0 &&
             shortBenefitCount == 0 &&
@@ -134,11 +132,6 @@ fun auditAprendeCatalog(
         editorialCoverageCount = profiles.count {
             it.description.isNotBlank() && it.benefits.isNotEmpty() && it.techniqueSummary.isNotBlank()
         },
-        muscleNoteCoverageCount = profiles.count {
-            it.muscleNotes.isNotEmpty() &&
-                it.muscleNotes.map { note -> note.muscleId }.toSet() ==
-                    (it.primaryMuscles + it.secondaryMuscles + it.stabilizerMuscles).toSet()
-        },
         jointCoverageCount = profiles.count {
             it.jointInvolvement.isNotEmpty() &&
                 it.jointInvolvement.map { joint -> joint.jointId }.toSet() ==
@@ -211,7 +204,6 @@ private data class ConfigurationAuditContext(
             anatomy.primaryMuscles != profile.primaryMuscles ||
             anatomy.secondaryMuscles != profile.secondaryMuscles ||
             anatomy.stabilizerMuscles != profile.stabilizerMuscles ||
-            anatomy.muscleNotes != profile.muscleNotes ||
             anatomy.jointInvolvement != profile.jointInvolvement ||
             biomechanics.movementPatternId != profile.movementPatternId ||
             biomechanics.bodyRegion != profile.bodyRegion ||

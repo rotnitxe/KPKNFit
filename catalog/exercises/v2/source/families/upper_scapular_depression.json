@@ -45,7 +45,6 @@
                     "Elevación O Depresión"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +52,6 @@
                     "Centrado Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 },
                 {
@@ -61,7 +59,6 @@
                     "Posición Cervical"
                   ],
                   "jointId": "columna-cervical",
-                  "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,24 +66,6 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "scapular_depression",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal extiende o aproxima el brazo al tronco desde la espalda. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundaria: El trapecio coordina la posición de la escápula y reparte la fuerza en la cintura escapular. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundaria: El deltoides mueve el brazo en el plano que marca el ejercicio y centra el hombro. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundaria: El bíceps flexiona el codo y, con agarre supino, ayuda a supinar el antebrazo. En la configuración Peso Corporal, la posición y la dirección de la carga cambian cuánto aporta dentro del movimiento. Su función define cuánto contribuye la serie al estímulo muscular total."
-                }
-              ],
               "performanceProfileId": "back_dominadas_escapulares__bodyweight__dominadas_escapulares",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -107,7 +86,6 @@
                         "Elevación O Depresión"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La escápula se desplaza sobre el tórax y concentra la acción del ejercicio. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -115,7 +93,6 @@
                         "Centrado Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Estabilizadora: El hombro mantiene la cabeza del brazo organizada mientras la escápula se mueve. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     },
                     {
@@ -123,7 +100,6 @@
                         "Posición Cervical"
                       ],
                       "jointId": "columna-cervical",
-                      "note": "Estabilizadora: La columna cervical conserva un cuello largo y evita que el trapecio tire de la cabeza. La posición exacta y la línea de resistencia determinan cuánto se mueve y cuánto estabiliza esta articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -155,11 +131,6 @@
                     "escapulotoracica",
                     "glenohumeral",
                     "columna-cervical"
-                  ],
-                  "relevantTendons": [
-                    "tendon-supraespinoso",
-                    "tendon-infraespinoso",
-                    "tendon-bíceps-largo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
