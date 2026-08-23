@@ -24,7 +24,7 @@ class DeepLinkRouterTest {
         assertEquals(KpknRoute.NutritionAction.create("openFoodLog"), deepLinkAction?.route)
         assertEquals(KpknRoute.Nutrition.route, nutrition?.route)
         assertEquals(KpknRoute.Home.route, wiki?.route)
-        assertEquals(KpknRoute.Concepts.route, concepts?.route)
+        assertEquals(KpknRoute.Concepts.create(), concepts?.route)
     }
 
     @Test
@@ -35,7 +35,7 @@ class DeepLinkRouterTest {
 
         assertEquals(KpknRoute.ProgramDetail.create("power-12"), program?.route)
         assertEquals(KpknRoute.Home.route, exercise?.route)
-        assertEquals(KpknRoute.Concepts.route, unknownConcept?.route)
+        assertEquals(KpknRoute.Concepts.create(), unknownConcept?.route)
     }
 
     @Test
@@ -44,10 +44,22 @@ class DeepLinkRouterTest {
         val learn = DeepLinkRouter.resolve(Uri.parse("kpkn://learn/course/intro"))
 
         assertEquals(
-            KpknRoute.ConceptDetail.create(com.example.kpkn.data.wikilab.TRAINING_CONCEPTS_DATABASE.first().id),
+            KpknRoute.Concepts.create(com.example.kpkn.data.wikilab.TRAINING_CONCEPTS_DATABASE.first().id),
             known?.route,
         )
         assertEquals(KpknRoute.Home.route, learn?.route)
+    }
+
+    @Test
+    fun emptyAndUnknownConceptIdsStayOnCollapsedConceptList() {
+        assertEquals(
+            KpknRoute.Concepts.create(),
+            DeepLinkRouter.resolve(Uri.parse("https://kpkn.fit/concept/"))?.route,
+        )
+        assertEquals(
+            KpknRoute.Concepts.create(),
+            DeepLinkRouter.resolve(Uri.parse("https://kpkn.fit/wikilab/concept/unknown"))?.route,
+        )
     }
 
     @Test

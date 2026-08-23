@@ -2,66 +2,206 @@
   {
     "id": "horizontal-push",
     "name": "Empuje Horizontal",
-    "description": "Patrón padre de empuje en plano horizontal: alejar una carga del torso manteniendo control escapular."
+    "description": "Patrón de empuje en el plano horizontal que aleja la carga del torso mediante extensión de codo y acción del hombro. La escápula acompaña el gesto; se diferencia del empuje vertical porque la carga viaja delante del cuerpo, no por encima de la cabeza."
   },
   {
     "id": "horizontal-pull",
     "name": "Tirón Horizontal",
-    "description": "Patrón padre de tracción horizontal: acercar carga al torso priorizando retracción/depresión escapular."
+    "description": "Patrón de tracción en el plano horizontal que acerca la carga al torso con extensión o abducción horizontal del hombro y flexión de codo. La escápula se organiza durante el tirón; se diferencia del tirón vertical por la dirección predominante de la resistencia."
   },
   {
     "id": "vertical-push",
     "name": "Empuje Vertical",
-    "description": "Patrón de empuje por encima de la cabeza."
+    "description": "Patrón de empuje que lleva la carga por encima de la cabeza mediante acción coordinada de hombro, codo y escápula. Requiere controlar el tronco mientras la resistencia asciende; se diferencia del empuje horizontal porque el desplazamiento principal es vertical."
   },
   {
     "id": "vertical-pull",
     "name": "Tirón Vertical",
-    "description": "Patrón de tracción vertical: llevar una carga desde arriba hacia el torso o elevar el cuerpo."
+    "description": "Patrón de tracción vertical que lleva una carga desde arriba hacia el torso o eleva el cuerpo hacia una barra. Combina aducción o extensión del hombro con flexión de codo; se distingue del tirón horizontal por la trayectoria superior de la resistencia."
   },
   {
     "id": "squat",
     "name": "Patrón de Sentadilla",
-    "description": "Patrón dominante de rodilla con co-dominancia de cadera."
+    "description": "Patrón dominante de rodilla donde la flexión y extensión de rodilla organizan el descenso y el ascenso, con participación coordinada de cadera y tobillo. Se diferencia de la bisagra porque el centro de masa baja con mayor avance relativo de la rodilla."
   },
   {
     "id": "hinge",
     "name": "Patrón de Bisagra de Cadera",
-    "description": "Patrón dominante de cadera con rodilla semiflexionada."
+    "description": "Patrón dominante de cadera en el que la pelvis viaja atrás y adelante con la rodilla ligeramente flexionada y la columna controlada. La producción principal nace en la cadera; se diferencia de la sentadilla porque la rodilla avanza menos relativamente."
   },
   {
     "id": "lunge",
     "name": "Patrón de Estocada",
-    "description": "Patrón unilateral de tren inferior con alta demanda de estabilidad frontal y transversal."
+    "description": "Patrón unilateral del tren inferior en el que una pierna recibe la mayor parte de la carga mientras la otra asiste o se desplaza. Exige estabilidad de cadera, rodilla y tobillo; se diferencia de una sentadilla bilateral por la asimetría de apoyo."
   },
   {
     "id": "extension",
     "name": "Patrón de Extensión",
-    "description": "Patrón complementario que reúne extensiones dominantes de una articulación (rodilla, cadera o tobillo)."
+    "description": "Categoría descriptiva para una extensión dominante de una articulación, como rodilla, cadera o tobillo. El nombre solo indica que el ángulo aumenta; la articulación concreta debe leerse en su mapping explícito, porque no todas las extensiones comparten músculos ni plano."
   },
   {
     "id": "anti-extension",
     "name": "Anti-Extensión",
-    "description": "Patrón de estabilidad donde el tronco resiste extensión lumbar no deseada."
+    "description": "Patrón de estabilidad en el que el tronco resiste una extensión lumbar que intentaría separar costillas y pelvis. El abdomen y la cadera mantienen la posición frente a la carga; se diferencia de una extensión dinámica porque el objetivo es impedir el movimiento."
   },
   {
     "id": "anti-rotation",
     "name": "Anti-Rotación",
-    "description": "Patrón de control rotacional donde el objetivo no es girar, sino impedir la rotación ante una perturbación externa o asimétrica."
+    "description": "Patrón de control donde el tronco resiste una rotación provocada por una carga asimétrica o una fuerza externa. La tarea consiste en conservar la orientación, no en girar; se diferencia de la rotación dinámica porque la estabilidad es el resultado buscado."
   },
   {
     "id": "rotation",
     "name": "Rotación",
-    "description": "Patrón dinámico de rotación de tronco/cintura escapular orientado a potencia y transferencia deportiva."
+    "description": "Patrón dinámico que gira el tronco o la cintura escapular alrededor de su eje longitudinal mientras coordina pelvis y hombros. Puede entrenar control o potencia; se diferencia de la anti-rotación porque aquí el giro es la acción buscada, no el error a resistir."
   },
   {
     "id": "carry",
     "name": "Patrón de Carga",
-    "description": "Patrón integral de locomoción bajo carga."
+    "description": "Patrón integral en el que la persona camina o permanece erguida mientras sostiene una carga. El agarre, el tronco y la pelvis transmiten fuerzas durante la locomoción; se diferencia de una postura isométrica porque incluye desplazamiento o control continuo de pasos."
   },
   {
     "id": "jump",
     "name": "Patrón de Salto",
-    "description": "Patrón explosivo basado en ciclo estiramiento-acortamiento."
+    "description": "Patrón explosivo que utiliza un descenso o aterrizaje breve seguido de una acción concéntrica rápida. El ciclo de estiramiento-acortamiento ayuda a producir potencia; se diferencia de un levantamiento lento porque la velocidad y la coordinación del contacto son centrales."
+  },
+  {
+    "id": "ankle-dorsiflexion",
+    "name": "Dorsiflexión de Tobillo",
+    "description": "Movimiento que acerca el empeine a la tibia al cerrar el ángulo del tobillo. Ocurre cuando la rodilla avanza sobre el pie y se diferencia de la flexión plantar, que apunta el pie hacia abajo."
+  },
+  {
+    "id": "diagonal-push",
+    "name": "Empuje Diagonal",
+    "description": "Empuje que desplaza la carga hacia delante y arriba siguiendo una trayectoria diagonal. Combina acción del hombro, codo y tronco; no equivale exactamente a un empuje horizontal ni a uno vertical puro."
+  },
+  {
+    "id": "elbow-flexion",
+    "name": "Flexión de Codo",
+    "description": "Acerca el antebrazo al brazo al reducir el ángulo del codo. El bíceps y músculos sinergistas producen o controlan la acción, distinta de la extensión, que vuelve a abrir la articulación."
+  },
+  {
+    "id": "elbow-extension",
+    "name": "Extensión de Codo",
+    "description": "Aumenta el ángulo del codo y aleja el antebrazo del brazo. Es la acción principal de empujes y bloqueos, y se distingue de la flexión porque el tríceps termina de abrir la articulación."
+  },
+  {
+    "id": "hip-abduction",
+    "name": "Abducción de Cadera",
+    "description": "Aleja el muslo de la línea media del cuerpo en el plano frontal. El glúteo medio y otros abductores estabilizan la pelvis; no debe confundirse con extensión, que lleva el muslo hacia atrás."
+  },
+  {
+    "id": "hip-adduction",
+    "name": "Aducción de Cadera",
+    "description": "Acerca el muslo a la línea media del cuerpo en el plano frontal. Los aductores generan o frenan ese desplazamiento; no es extensión de cadera, aunque ambas acciones puedan coexistir en una variante compleja."
+  },
+  {
+    "id": "hip-extension",
+    "name": "Extensión de Cadera",
+    "description": "Lleva el muslo hacia atrás respecto a la pelvis y aumenta el ángulo de la cadera. Glúteo mayor e isquiosurales participan en bisagras, puentes y levantamientos; no significa extender la rodilla."
+  },
+  {
+    "id": "hip-flexion",
+    "name": "Flexión de Cadera",
+    "description": "Acerca el muslo al tronco y reduce el ángulo entre pelvis y fémur. Aparece al levantar la rodilla o iniciar una sentadilla; se diferencia de la extensión, que devuelve la cadera hacia atrás."
+  },
+  {
+    "id": "horizontal-abduction",
+    "name": "Abducción Horizontal de Hombro",
+    "description": "Desplaza el brazo hacia atrás en el plano horizontal con el hombro aproximadamente a la altura del torso. Es distinta de la abducción lateral, que eleva el brazo en el plano frontal."
+  },
+  {
+    "id": "isometric-grip",
+    "name": "Agarre Isométrico",
+    "description": "Mantiene una fuerza de prensión sin que los dedos o la muñeca recorran un rango visible. El objetivo es sostener la carga y resistir su apertura, no producir una flexión o extensión dinámica."
+  },
+  {
+    "id": "knee-flexion",
+    "name": "Flexión de Rodilla",
+    "description": "Reduce el ángulo entre fémur y tibia al acercar el talón hacia el muslo. Los isquiosurales controlan o producen la acción; es el movimiento opuesto a la extensión de rodilla."
+  },
+  {
+    "id": "knee-extension",
+    "name": "Extensión de Rodilla",
+    "description": "Aumenta el ángulo entre fémur y tibia y aleja la pierna de la flexión. El cuádriceps es el motor principal en la extensión activa, distinta de la extensión de cadera."
+  },
+  {
+    "id": "lateral-knee-dominant",
+    "name": "Dominante de Rodilla Lateral",
+    "description": "Patrón unilateral que carga una pierna mientras el centro de masa se desplaza lateralmente. La rodilla flexiona y extiende con control frontal; no es una zancada sagital convencional."
+  },
+  {
+    "id": "lateral-trunk-flexion",
+    "name": "Flexión Lateral de Tronco",
+    "description": "Inclina el tronco hacia un lado en el plano frontal, acercando costillas y pelvis de forma controlada. Se diferencia de la rotación, que gira el tronco alrededor de su eje longitudinal."
+  },
+  {
+    "id": "neck-extension",
+    "name": "Extensión Cervical",
+    "description": "Lleva la cabeza hacia atrás y aumenta el ángulo de la columna cervical. La musculatura posterior controla la acción; no debe confundirse con extender el tronco o elevar los hombros."
+  },
+  {
+    "id": "neck-flexion",
+    "name": "Flexión Cervical",
+    "description": "Acerca el mentón al pecho al reducir el ángulo de la columna cervical. La acción ocurre en el cuello y no equivale a flexionar toda la columna torácica o lumbar."
+  },
+  {
+    "id": "neck-lateral-flexion",
+    "name": "Flexión Lateral Cervical",
+    "description": "Inclina la cabeza hacia un hombro en el plano frontal sin girarla. Los músculos laterales del cuello producen o frenan la inclinación, que no es una rotación cervical."
+  },
+  {
+    "id": "pinch-grip",
+    "name": "Agarre de Pinza",
+    "description": "Sujeta un objeto entre pulgar y dedos con una pinza precisa. Entrena la capacidad de oponer el pulgar y mantener presión; es diferente del agarre cilíndrico que envuelve toda la mano."
+  },
+  {
+    "id": "plantar-flexion",
+    "name": "Flexión Plantar de Tobillo",
+    "description": "Apunta el pie alejándolo de la tibia, como al despegar en un salto o elevar el talón. Gastrocnemio y sóleo producen la acción, opuesta a la dorsiflexión."
+  },
+  {
+    "id": "scapular-depression",
+    "name": "Depresión Escapular",
+    "description": "Desplaza las escápulas hacia abajo sobre la caja torácica manteniendo el hombro organizado. Es distinta de la retracción, que las acerca a la columna, aunque ambas puedan aparecer juntas."
+  },
+  {
+    "id": "scapular-elevation",
+    "name": "Elevación Escapular",
+    "description": "Desplaza las escápulas hacia arriba, acercándolas a las orejas sin necesidad de mover el codo. El trapecio superior participa; no es una abducción del brazo."
+  },
+  {
+    "id": "shoulder-abduction",
+    "name": "Abducción de Hombro",
+    "description": "Eleva el brazo alejándolo del costado en el plano frontal. El deltoides y la escápula coordinan el rango; no debe confundirse con flexión, que lleva el brazo hacia delante."
+  },
+  {
+    "id": "shoulder-flexion",
+    "name": "Flexión de Hombro",
+    "description": "Eleva el brazo hacia delante en el plano sagital. El hombro combina movimiento glenohumeral y escapular; la acción se distingue de la abducción, que eleva el brazo hacia el lateral."
+  },
+  {
+    "id": "spinal-extension",
+    "name": "Extensión de Columna",
+    "description": "Aumenta la extensión de uno o varios segmentos vertebrales al llevar el tronco hacia atrás o recuperar la posición neutra. No equivale a extensión de cadera, aunque pueden ocurrir juntas."
+  },
+  {
+    "id": "spinal-flexion",
+    "name": "Flexión de Columna",
+    "description": "Redondea o inclina la columna al disminuir el ángulo entre sus segmentos. La carga debe controlarse; es diferente de flexionar solo la cadera manteniendo la espalda neutra."
+  },
+  {
+    "id": "trunk-flexion",
+    "name": "Flexión de Tronco",
+    "description": "Acerca el tórax a la pelvis mediante flexión de la columna y del tronco. Se diferencia de la bisagra de cadera, donde la columna permanece relativamente neutra mientras el movimiento nace en la cadera."
+  },
+  {
+    "id": "wrist-extension",
+    "name": "Extensión de Muñeca",
+    "description": "Lleva el dorso de la mano hacia el antebrazo y aumenta el ángulo posterior de la muñeca. Los extensores controlan la posición; es opuesta a la flexión de muñeca."
+  },
+  {
+    "id": "wrist-flexion",
+    "name": "Flexión de Muñeca",
+    "description": "Acerca la palma al antebrazo al cerrar el ángulo anterior de la muñeca. Los flexores de la mano producen o frenan el gesto, distinto de extender la muñeca bajo carga."
   }
 ]

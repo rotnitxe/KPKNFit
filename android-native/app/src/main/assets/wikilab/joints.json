@@ -9,14 +9,14 @@
   {
     "id": "acromioclavicular",
     "name": "Articulación Acromioclavicular",
-    "description": "Articulación plana que une la clavícula con el acromion de la escápula.",
+    "description": "La articulación acromioclavicular une el extremo lateral de la clavícula con el acromion. Sus pequeños deslizamientos y rotaciones permiten que la escápula acompañe la elevación del brazo y absorba parte de la carga transmitida por el hombro.",
     "bodyPart": "upper",
     "type": "gliding"
   },
   {
     "id": "esternoclavicular",
     "name": "Articulación Esternoclavicular",
-    "description": "Articulación que conecta la clavícula con el esternón.",
+    "description": "La articulación esternoclavicular conecta la clavícula con el esternón y es el único enlace óseo directo del miembro superior con el tórax. Permite elevación, descenso y rotación clavicular para acompañar el movimiento coordinado de hombro y escápula.",
     "bodyPart": "upper",
     "type": "saddle"
   },
@@ -37,21 +37,21 @@
   {
     "id": "muñeca",
     "name": "Articulación de la Muñeca (Radiocarpiana)",
-    "description": "Articulación condílea que conecta el radio con los huesos del carpo.",
+    "description": "La muñeca conecta el radio con los huesos del carpo y permite flexión, extensión y desviaciones de la mano. Su posición reparte la fuerza entre antebrazo y agarre; no debe confundirse con la articulación del codo, que orienta el antebrazo.",
     "bodyPart": "upper",
     "type": "condyloid"
   },
   {
     "id": "columna-cervical",
     "name": "Columna Cervical",
-    "description": "Conjunto de vértebras C1-C7 que forman el cuello.",
+    "description": "La columna cervical reúne las vértebras C1 a C7 y sostiene la cabeza mientras permite flexión, extensión, inclinación y rotación. La musculatura cervical regula esos movimientos y aporta estabilidad; el nombre no describe por sí solo dolor ni una lesión.",
     "bodyPart": "spine",
     "type": "condyloid"
   },
   {
     "id": "columna-toracica",
     "name": "Columna Torácica",
-    "description": "Segmento T1-T12 de la columna.",
+    "description": "La columna torácica comprende las vértebras T1 a T12 y se relaciona con las costillas y la escápula. Participa en flexión, extensión y rotación del tronco, proporcionando una base móvil para respirar, girar y transferir fuerza entre hombros y pelvis.",
     "bodyPart": "spine",
     "type": "gliding"
   },
@@ -93,7 +93,7 @@
   {
     "id": "subtalar",
     "name": "Articulación Subastragalina",
-    "description": "Articulación entre astrágalo y calcáneo que permite inversión/eversión y ajuste del retropié para adaptar el apoyo al terreno y mejorar la mecánica global de tobillo y rodilla.",
+    "description": "La articulación subastragalina une astrágalo y calcáneo y ajusta la orientación del retropié mediante inversión y eversión. Sus movimientos adaptan el apoyo al terreno y colaboran con tobillo, rodilla y cadera durante marcha, carrera y cambios de dirección.",
     "bodyPart": "lower",
     "type": "gliding"
   },

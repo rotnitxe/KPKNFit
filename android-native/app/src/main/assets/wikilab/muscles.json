@@ -20,7 +20,7 @@
   {
     "id": "deltoides",
     "name": "Deltoides",
-    "description": "El músculo deltoides es el que da la forma redondeada al hombro.",
+    "description": "El deltoides cubre la articulación del hombro y tiene porciones anterior, lateral y posterior. Sus fibras elevan o desplazan el brazo en distintos planos; la porción que más participa depende del ángulo, la carga y la trayectoria del ejercicio.",
     "bodyPart": "upper"
   },
   {
@@ -80,7 +80,7 @@
   {
     "id": "trapecio",
     "name": "Trapecio",
-    "description": "Músculo grande y superficial que se extiende desde el cráneo hasta la mitad de la espalda.",
+    "description": "El trapecio es un músculo superficial con fibras superiores, medias e inferiores que conectan cuello, columna y escápula. Eleva, retrae, deprime y rota la escápula según la porción, ayudando a transmitir fuerza en tirones y gestos por encima de la cabeza.",
     "bodyPart": "upper"
   },
   {
@@ -104,13 +104,13 @@
   {
     "id": "romboides",
     "name": "Romboides",
-    "description": "Músculos ubicados entre la columna y la escápula.",
+    "description": "Los romboides se encuentran entre la columna y el borde medial de la escápula. Contribuyen a la retracción y a la orientación estable de la escápula, especialmente cuando el brazo tira de una carga o vuelve de una posición elevada.",
     "bodyPart": "upper"
   },
   {
     "id": "erectores-espinales",
     "name": "Erectores Espinales",
-    "description": "Grupo de músculos que recorren la columna vertebral.",
+    "description": "Los erectores espinales forman una columna muscular a cada lado de las vértebras. Extienden y estabilizan la espalda frente a la gravedad, sosteniendo el tronco en bisagras, levantamientos y posiciones mantenidas sin que su papel implique mover siempre la columna de forma visible.",
     "bodyPart": "spine"
   },
   {
@@ -146,7 +146,7 @@
   {
     "id": "bíceps",
     "name": "Bíceps",
-    "description": "El bíceps braquial, ubicado en la parte frontal del brazo.",
+    "description": "El bíceps braquial ocupa la parte anterior del brazo y cruza hombro y codo. Flexiona el codo y ayuda a supinar el antebrazo; su demanda cambia cuando el hombro está adelantado, extendido o cuando el agarre modifica la posición de la mano.",
     "bodyPart": "upper"
   },
   {
@@ -218,7 +218,7 @@
   {
     "id": "cuádriceps",
     "name": "Cuádriceps",
-    "description": "Grupo de cuatro músculos en la parte frontal del muslo.",
+    "description": "El cuádriceps reúne cuatro músculos en la parte anterior del muslo y su acción común es extender la rodilla. El recto femoral también cruza la cadera, por lo que la posición de esta articulación cambia cuánto puede contribuir en una variante.",
     "bodyPart": "lower"
   },
   {
@@ -242,7 +242,7 @@
   {
     "id": "isquiosurales",
     "name": "Isquiosurales",
-    "description": "Grupo de músculos en la parte posterior del muslo.",
+    "description": "Los isquiosurales ocupan la parte posterior del muslo e incluyen músculos que cruzan la rodilla y, en su mayoría, la cadera. Pueden extender la cadera, flexionar la rodilla y frenar ambos movimientos cuando el gesto exige control excéntrico.",
     "bodyPart": "lower"
   },
   {
@@ -266,7 +266,7 @@
   {
     "id": "aductores",
     "name": "Aductores",
-    "description": "Grupo de músculos en la parte interna del muslo.",
+    "description": "Los aductores se sitúan en la cara interna del muslo y acercan el miembro inferior a la línea media. También colaboran en la estabilidad de pelvis y cadera, por lo que pueden recibir carga en zancadas, sentadillas y movimientos laterales, no solo en máquinas de aducción.",
     "bodyPart": "lower"
   },
   {

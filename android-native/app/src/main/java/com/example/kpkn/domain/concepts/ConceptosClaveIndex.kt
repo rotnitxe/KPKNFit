@@ -7,7 +7,7 @@ import java.text.Collator
 import java.text.Normalizer
 import java.util.Locale
 
-/** The small projection that is allowed on the Conceptos Clave surface. */
+/** The compact identity/body projection used by the Conceptos Clave surface. */
 data class ConceptoClave(
     val id: String,
     val name: String,
@@ -36,7 +36,7 @@ fun orderConceptosClave(concepts: Iterable<TrainingConcept> = TRAINING_CONCEPTS_
             },
     )
 
-/** Search only the concise fields exposed by the new surface. */
+/** Search the identity and complete educational body exposed by the new surface. */
 fun searchConceptosClave(
     query: String,
     concepts: Iterable<TrainingConcept> = TRAINING_CONCEPTS_DATABASE,
@@ -44,7 +44,7 @@ fun searchConceptosClave(
     val q = normalized(query.trim())
     if (q.isBlank()) return orderConceptosClave(concepts)
     return orderConceptosClave(concepts).filter { concept ->
-        listOf(concept.name, concept.shortDescription, concept.category.label)
+        listOf(concept.name, concept.description, concept.shortDescription, concept.category.label)
             .any { normalized(it).contains(q) }
     }
 }
@@ -53,7 +53,7 @@ fun projectConceptoClave(concept: TrainingConcept): ConceptoClave = ConceptoClav
     id = concept.id,
     name = concept.name,
     category = concept.category.label,
-    description = concept.shortDescription,
+    description = concept.description,
 )
 
 fun findConceptoClave(id: String, concepts: Iterable<TrainingConcept> = TRAINING_CONCEPTS_DATABASE): ConceptoClave? =

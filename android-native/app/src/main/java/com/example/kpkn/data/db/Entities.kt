@@ -7,6 +7,9 @@ import androidx.room.PrimaryKey
 import com.example.kpkn.data.models.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.time.Instant
 import java.text.Normalizer
 
@@ -167,7 +170,23 @@ data class AugeAdaptiveCacheEntity(@PrimaryKey val rowId: Int = 1, val data: Str
 fun com.example.kpkn.data.models.AugeAdaptiveCache.toEntity() = AugeAdaptiveCacheEntity(data = dbJson.encodeToString(this))
 fun AugeAdaptiveCacheEntity.toAdaptiveCache(): com.example.kpkn.data.models.AugeAdaptiveCache =
     runCatching {
-        dbJson.decodeFromString<com.example.kpkn.data.models.AugeAdaptiveCache>(data.ifBlank { "{}" })
+        val decoded = dbJson.decodeFromString<com.example.kpkn.data.models.AugeAdaptiveCache>(data.ifBlank { "{}" })
+        val storedVersion = runCatching {
+            dbJson.parseToJsonElement(data.ifBlank { "{}" })
+                .jsonObject["schemaVersion"]?.jsonPrimitive?.intOrNull ?: 1
+        }.getOrDefault(1)
+        if (storedVersion < 2) {
+            // Selective invalidation: CNS/spinal learning and recovery curves
+            // remain valid, while the old muscular path was contaminated by
+            // full-map calibration and must not bias V2.
+            decoded.copy(
+                muscleDeltas = emptyMap(),
+                muscleDrainMultipliers = emptyMap(),
+                schemaVersion = 2,
+            )
+        } else {
+            decoded.copy(schemaVersion = maxOf(decoded.schemaVersion, 2))
+        }
     }.getOrDefault(com.example.kpkn.data.models.AugeAdaptiveCache())
 
 @Entity(tableName = "nutrition_logs", indices = [Index("date")])

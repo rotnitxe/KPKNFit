@@ -16,11 +16,17 @@ sealed class KpknRoute(val route: String) {
     object Training : KpknRoute("training")
     object Nutrition : KpknRoute("nutrition")
     object BodyProgress : KpknRoute("nutrition/body-progress")
-    /** Home-hosted knowledge list.  The old wikilab paths are compatibility aliases only. */
-    object Concepts : KpknRoute("concepts")
-    object ConceptDetail : KpknRoute("concept/{conceptId}") {
-        fun create(conceptId: String) = "concept/$conceptId"
-        const val ARG_CONCEPT_ID = "conceptId"
+    /** Home-hosted knowledge list. Old concept links expand an item in place. */
+    object Concepts : KpknRoute("concepts?expand={expandConceptId}") {
+        const val ARG_EXPAND_CONCEPT_ID = "expandConceptId"
+        const val BASE_ROUTE = "concepts"
+
+        fun create(expandedConceptId: String? = null): String =
+            expandedConceptId
+                ?.trim()
+                ?.takeIf { it.isNotEmpty() }
+                ?.let { "$BASE_ROUTE?expand=${Uri.encode(it)}" }
+                ?: BASE_ROUTE
     }
 
     // ─── Detail screens ─────────────────────────────────────────────────

@@ -82,7 +82,6 @@ import com.example.kpkn.screens.home.HomeScreen
 import com.example.kpkn.screens.home.HomeGlassOverlay
 import com.example.kpkn.screens.home.HomeGlassOverlayChange
 import com.example.kpkn.screens.home.ConceptosClaveScreen
-import com.example.kpkn.screens.home.ConceptoClaveDetailScreen
 import com.example.kpkn.screens.competitions.CompetitionScreen
 import com.example.kpkn.screens.nutrition.BodyProgressScreen
 import com.example.kpkn.screens.nutrition.MealHistoryScreen
@@ -497,8 +496,7 @@ fun KPKNApp(
         currentRoute == "log-workout" -> KpknRoute.Training.route
         currentRoute?.startsWith(KpknRoute.BodyProgress.route) == true -> KpknRoute.BodyProgress.route
         currentRoute?.startsWith(KpknRoute.Nutrition.route) == true -> KpknRoute.Nutrition.route
-        currentRoute?.startsWith(KpknRoute.Concepts.route) == true -> KpknRoute.Home.route
-        currentRoute?.startsWith(KpknRoute.ConceptDetail.route.substringBefore("{")) == true -> KpknRoute.Home.route
+        currentRoute?.startsWith(KpknRoute.Concepts.BASE_ROUTE) == true -> KpknRoute.Home.route
         else -> KpknRoute.Home.route
     }
 
@@ -1080,8 +1078,22 @@ private fun KPKNNavGraph(
                 },
                 onNavigate = { destination ->
                     when (destination) {
+                        destination.takeIf { it.startsWith("concepts?") } -> {
+                            val conceptId = destination
+                                .substringAfter("expand=", "")
+                                .substringBefore('&')
+                                .takeIf { it.isNotBlank() }
+                                ?.let(android.net.Uri::decode)
+                            navController.navigate(
+                                if (conceptId != null && com.example.kpkn.domain.concepts.findConceptoClave(conceptId) != null) {
+                                    KpknRoute.Concepts.create(conceptId)
+                                } else {
+                                    KpknRoute.Concepts.create()
+                                },
+                            )
+                        }
                         "concepts", "wiki-concepts", "wiki-concept", "wiki-concept-detail", "wikilab/concepts" ->
-                            navController.navigate(KpknRoute.Concepts.route)
+                            navController.navigate(KpknRoute.Concepts.create())
                         "nutrition" -> navController.navigate(KpknRoute.Nutrition.route)
                         "settings/notifications", "settings/auge", "settings/general", "settings/nutrition", "settings/training", "settings/data", "settings/diagnostics" -> navController.navigate(KpknRoute.Settings.route)
                         "learn", "cursos", "wiki-home", "wikilab", "wikilab/" -> navController.navigate(KpknRoute.Home.route)
@@ -1092,16 +1104,16 @@ private fun KPKNNavGraph(
                             if (destination.startsWith("concept/")) {
                                 val conceptId = destination.removePrefix("concept/")
                                 if (com.example.kpkn.domain.concepts.findConceptoClave(conceptId) != null) {
-                                    navController.navigate(KpknRoute.ConceptDetail.create(conceptId))
+                                    navController.navigate(KpknRoute.Concepts.create(conceptId))
                                 } else {
-                                    navController.navigate(KpknRoute.Concepts.route)
+                                    navController.navigate(KpknRoute.Concepts.create())
                                 }
                             } else if (destination.startsWith("wikilab/concept/")) {
                                 val conceptId = destination.removePrefix("wikilab/concept/")
                                 if (com.example.kpkn.domain.concepts.findConceptoClave(conceptId) != null) {
-                                    navController.navigate(KpknRoute.ConceptDetail.create(conceptId))
+                                    navController.navigate(KpknRoute.Concepts.create(conceptId))
                                 } else {
-                                    navController.navigate(KpknRoute.Concepts.route)
+                                    navController.navigate(KpknRoute.Concepts.create())
                                 }
                             } else if (destination.startsWith("learn/")) {
                                 navController.navigate(KpknRoute.Home.route)
@@ -1204,21 +1216,21 @@ private fun KPKNNavGraph(
         }
 
         // Conceptos Clave lives in Home; the former conceptual deep links land here.
-        composable(KpknRoute.Concepts.route) {
+        composable(
+            route = KpknRoute.Concepts.route,
+            arguments = listOf(
+                navArgument(KpknRoute.Concepts.ARG_EXPAND_CONCEPT_ID) {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+            ),
+        ) { backStackEntry ->
             ConceptosClaveScreen(
-                onOpenConcept = { navController.navigate(KpknRoute.ConceptDetail.create(it)) },
+                expandedConceptId = backStackEntry.arguments
+                    ?.getString(KpknRoute.Concepts.ARG_EXPAND_CONCEPT_ID),
                 onBack = { navController.popBackStack() },
             )
-        }
-        composable(KpknRoute.ConceptDetail.route) { backStack ->
-            val conceptId = backStack.arguments?.getString(KpknRoute.ConceptDetail.ARG_CONCEPT_ID).orEmpty()
-            if (com.example.kpkn.domain.concepts.findConceptoClave(conceptId) == null) {
-                navController.navigate(KpknRoute.Concepts.route) {
-                    popUpTo(KpknRoute.ConceptDetail.route) { inclusive = true }
-                }
-            } else {
-                ConceptoClaveDetailScreen(conceptId = conceptId, onBack = { navController.popBackStack() })
-            }
         }
 
         composable(KpknRoute.Settings.route) {

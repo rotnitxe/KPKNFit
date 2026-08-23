@@ -14,9 +14,9 @@ object DeepLinkRouter {
     private fun conceptRoute(id: String?): ResolvedRoute {
         val cleanId = id?.trim().orEmpty()
         return if (cleanId.isNotEmpty() && findConceptoClave(cleanId) != null) {
-            ResolvedRoute(KpknRoute.ConceptDetail.create(cleanId))
+            ResolvedRoute(KpknRoute.Concepts.create(cleanId))
         } else {
-            ResolvedRoute(KpknRoute.Concepts.route)
+            ResolvedRoute(KpknRoute.Concepts.create())
         }
     }
 
@@ -50,10 +50,10 @@ object DeepLinkRouter {
             "profile", "perfil" -> ResolvedRoute(KpknRoute.Profile.route)
             "program" -> segments.getOrNull(1)?.takeIf { it.isNotBlank() }
                 ?.let { ResolvedRoute(KpknRoute.ProgramDetail.create(it)) }
-            "concepts", "conceptos" -> ResolvedRoute(KpknRoute.Concepts.route)
+            "concepts", "conceptos" -> ResolvedRoute(KpknRoute.Concepts.create())
             "concept", "concepto" -> conceptRoute(segments.getOrNull(1))
             "wikilab" -> when (second) {
-                "concepts" -> ResolvedRoute(KpknRoute.Concepts.route)
+                "concepts" -> ResolvedRoute(KpknRoute.Concepts.create())
                 "concept" -> conceptRoute(third)
                 else -> ResolvedRoute(KpknRoute.Home.route)
             }

@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 private val prepopulateJson = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
 /** Static Concepts content revision; bump when the compact canonical rows change. */
-const val APRENDE_CONTENT_REVISION = "conceptos-clave-v1-2026-08-22"
+const val APRENDE_CONTENT_REVISION = "conceptos-clave-v2-2026-08-23"
 private const val APRENDE_CONTENT_PREFS = "aprende_content"
 private const val APRENDE_CONTENT_PREF_KEY = "revision"
 

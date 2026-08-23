@@ -100,6 +100,12 @@ class AprendeCatalogAuditTest {
         listOf("Drenaje", "Fatiga General", "RPE", "Wikipedia").forEach { forbidden ->
             assertTrue("surface contains $forbidden", !source.contains(forbidden, ignoreCase = true))
         }
+        assertTrue(source.contains("BasicTextField"))
+        assertTrue(!source.contains("OutlinedTextField"))
+        assertTrue(!source.contains("ConceptoClaveDetailScreen"))
+        val accordion = File("src/main/java/com/example/kpkn/screens/home/ConceptoClaveAccordion.kt").readText()
+        assertTrue(accordion.contains("Leer más"))
+        assertTrue(accordion.contains("Leer menos"))
     }
 
     @Test
