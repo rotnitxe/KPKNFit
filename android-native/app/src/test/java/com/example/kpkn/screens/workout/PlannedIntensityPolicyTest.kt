@@ -16,6 +16,72 @@ import org.junit.Test
 
 class PlannedIntensityPolicyTest {
     @Test
+    fun repRangeEvaluation_acceptsValueInsideInclusiveRange() {
+        val evaluation = evaluateRepRange(actual = 5.0, range = RepRange(4, 6))
+
+        assertTrue(evaluation?.isInRange == true)
+        assertEquals(0.0, evaluation?.delta ?: -1.0, 0.001)
+        assertEquals(0.0, evaluation?.debt ?: -1.0, 0.001)
+    }
+
+    @Test
+    fun repRangeEvaluation_usesMinimumForDeficitAndMaximumForExcess() {
+        val below = evaluateRepRange(actual = 3.0, range = RepRange(4, 6))
+        val above = evaluateRepRange(actual = 7.0, range = RepRange(4, 6))
+
+        assertEquals(-1.0, below?.delta ?: 0.0, 0.001)
+        assertEquals(1.0, below?.debt ?: 0.0, 0.001)
+        assertEquals(1.0, above?.delta ?: 0.0, 0.001)
+        assertEquals(0.0, above?.debt ?: -1.0, 0.001)
+    }
+
+    @Test
+    fun repRangeEvaluation_amrap_hasNoUpperPenalty() {
+        val evaluation = evaluateRepRange(
+            actual = 12.0,
+            range = RepRange(4, 6),
+            amrapActive = true,
+            amrapMinimum = 4,
+        )
+
+        assertTrue(evaluation?.isInRange == true)
+        assertEquals(0.0, evaluation?.debt ?: -1.0, 0.001)
+    }
+
+    @Test
+    fun repRangeDeviation_usesRangeEdges_withoutThreeRepTolerance() {
+        val planned = ExerciseSet(
+            id = "range",
+            targetReps = 6,
+            targetRepsRange = RepRange(4, 6),
+        )
+
+        val below = WorkoutPlanDeviationSupport.detect(
+            exerciseId = "exercise",
+            exerciseName = "Press",
+            setIdx = 0,
+            plannedSet = planned,
+            actualWeight = 0.0,
+            actualReps = 3,
+            advanced = SetAdvancedFeedback(),
+            suggestedWeight = null,
+        )
+        val above = WorkoutPlanDeviationSupport.detect(
+            exerciseId = "exercise",
+            exerciseName = "Press",
+            setIdx = 0,
+            plannedSet = planned,
+            actualWeight = 0.0,
+            actualReps = 7,
+            advanced = SetAdvancedFeedback(),
+            suggestedWeight = null,
+        )
+
+        assertEquals(PlanDeviationType.REPS_LOW, below.single().type)
+        assertEquals(PlanDeviationType.REPS_HIGH, above.single().type)
+    }
+
+    @Test
     fun repRange_survives_live_normalization_and_usesUpperAnchor() {
         val normalized = WorkoutEditingRules.normalizeLiveEditedSet(
             mode = com.example.kpkn.data.models.TrainingMode.REPS,
