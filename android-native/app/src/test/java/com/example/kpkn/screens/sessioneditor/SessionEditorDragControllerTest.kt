@@ -1010,4 +1010,79 @@ class SessionEditorDragControllerTest {
         assertEquals(2, controller.exerciseDropTargetIndex)
         assertFalse(controller.exerciseDropOutOfRange)
     }
+
+    @Test
+    fun projection_usesActualHeights_andMovesEveryIntermediateCard() {
+        val controller = SessionEditorDragController()
+        val session = Session(
+            id = "s1",
+            name = "Variable",
+            exercises = (1..4).map { Exercise(id = "e$it", name = "Exercise $it") },
+        )
+        controller.looseContentBounds = Rect(0f, 0f, 320f, 900f)
+        controller.exerciseBounds["__loose__|e1"] = Rect(0f, 0f, 320f, 80f)
+        controller.exerciseBounds["__loose__|e2"] = Rect(0f, 110f, 320f, 170f)
+        controller.exerciseBounds["__loose__|e3"] = Rect(0f, 200f, 320f, 440f)
+        controller.exerciseBounds["__loose__|e4"] = Rect(0f, 470f, 320f, 550f)
+
+        controller.beginExerciseDrag(
+            "__loose__",
+            "e1",
+            pointerStartWindow = Offset(12f, 40f),
+            session = session,
+        )
+        controller.updateExerciseDrag(Offset(0f, 285f), session)
+
+        assertEquals(3, controller.exerciseDropTargetIndex)
+        // e2 and the much taller e3 both move, with the same displacement
+        // derived from the measured slot gaps; e4 remains below the insertion.
+        val e2Shift = controller.calculateProjectedShift(session, "__loose__", 1, "e2", 60f)
+        val e3Shift = controller.calculateProjectedShift(session, "__loose__", 2, "e3", 240f)
+        val e4Shift = controller.calculateProjectedShift(session, "__loose__", 3, "e4", 80f)
+        assertTrue(e2Shift < 0f)
+        assertEquals(e2Shift, e3Shift, 0.001f)
+        assertEquals(0f, e4Shift, 0.001f)
+    }
+
+    @Test
+    fun projection_crossGroup_movesSourceUp_andTargetDown() {
+        val controller = SessionEditorDragController()
+        val part = SessionPart(
+            id = "p1",
+            name = "Grupo",
+            exercises = listOf(
+                Exercise(id = "e3", name = "Target A"),
+                Exercise(id = "e4", name = "Target B"),
+            ),
+        )
+        val session = Session(
+            id = "s1",
+            name = "Cross",
+            exercises = listOf(
+                Exercise(id = "e1", name = "Source"),
+                Exercise(id = "e2", name = "Source sibling"),
+            ),
+            parts = listOf(part),
+        )
+        controller.looseContentBounds = Rect(0f, 0f, 320f, 90f)
+        controller.exerciseBounds["__loose__|e1"] = Rect(0f, 0f, 320f, 80f)
+        controller.exerciseBounds["__loose__|e2"] = Rect(0f, 90f, 320f, 170f)
+        controller.partBounds["p1"] = Rect(0f, 190f, 320f, 230f)
+        controller.exerciseBounds["p1|e3"] = Rect(0f, 240f, 320f, 310f)
+        controller.exerciseBounds["p1|e4"] = Rect(0f, 330f, 320f, 410f)
+        controller.registerPartFooterBounds("p1", Rect(0f, 410f, 320f, 450f))
+
+        controller.beginExerciseDrag(
+            "__loose__",
+            "e1",
+            pointerStartWindow = Offset(12f, 40f),
+            session = session,
+        )
+        controller.updateExerciseDrag(Offset(0f, 265f), session)
+
+        assertEquals("p1", controller.exerciseDropTargetPartId)
+        assertEquals(1, controller.exerciseDropTargetIndex)
+        assertTrue(controller.calculateProjectedShift(session, "__loose__", 1, "e2", 80f) < 0f)
+        assertTrue(controller.calculateProjectedShift(session, "p1", 1, "e4", 80f) > 0f)
+    }
 }

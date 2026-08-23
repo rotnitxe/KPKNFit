@@ -105,11 +105,8 @@ import com.example.kpkn.screens.sessioneditor.CatalogSelectionMode
 import com.example.kpkn.screens.sessioneditor.CatalogSupersetConfig
 import com.example.kpkn.data.exercises.catalogv2.toLegacySelection
 import com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledge
-import com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledgeKind
 import com.example.kpkn.data.exercises.catalogv2.canonicalJointKnowledge
-import com.example.kpkn.data.exercises.catalogv2.canonicalMuscleKnowledge
 import com.example.kpkn.data.exercises.catalogv2.canonicalPatternKnowledge
-import com.example.kpkn.data.exercises.catalogv2.decodeCatalogRichMetadata
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.MuscleRole
@@ -132,7 +129,7 @@ import com.example.kpkn.domain.exercises.catalogv2.ExerciseSearchFiltersV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseSearchHitV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseSelectionV2
 import com.example.kpkn.screens.sessioneditor.CatalogSearchField
-import com.example.kpkn.ui.components.canonicalMuscleColor
+import com.example.kpkn.data.exercises.catalogv2.canonicalMuscleKnowledgeForVolumeLabel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collectLatest
@@ -143,7 +140,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknGlassDialog
 import com.example.kpkn.ui.components.KpknGlass
-import com.example.kpkn.ui.components.CanonicalKnowledgeTooltip
+import com.example.kpkn.ui.components.CanonicalKnowledgeOverlay
 import com.example.kpkn.ui.components.LocalHazeState
 import com.example.kpkn.ui.components.kpknGlassOrFallback
 import dev.chrisbanes.haze.HazeState
@@ -1738,7 +1735,6 @@ internal fun CatalogInvolvementAccordions(
             canonicalPatternKnowledge(id)?.let { pattern ->
                 Surface(
                     modifier = Modifier
-                        .fillMaxWidth()
                         .clickable { canonicalExplain = pattern },
                     shape = RoundedCornerShape(999.dp),
                     color = Color.White.copy(alpha = 0.08f),
@@ -1754,7 +1750,12 @@ internal fun CatalogInvolvementAccordions(
                 }
             }
         }
-        canonicalExplain?.let { CanonicalKnowledgeTooltip(it) }
+        canonicalExplain?.let { knowledge ->
+            CanonicalKnowledgeOverlay(
+                knowledge = knowledge,
+                onDismiss = { canonicalExplain = null },
+            )
+        }
     }
 }
 
@@ -1865,7 +1866,6 @@ private fun JointInvolvementSection(
     showHeader: Boolean = true,
     onKnowledge: (CanonicalKnowledge) -> Unit = {},
 ) {
-    val expandedJoint = remember { mutableStateOf<String?>(null) }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -1881,27 +1881,18 @@ private fun JointInvolvementSection(
             )
         }
         joints.forEach { joint ->
-            val isExpanded = expandedJoint.value == joint.jointId
-            val isPrimary = joint.role == JointRoleV2.PRIMARY
-            val accentColor = when (joint.role) {
-                JointRoleV2.PRIMARY -> Color(0xFFF59E0B)
-                JointRoleV2.SECONDARY -> Color(0xFF38BDF8)
-                JointRoleV2.STABILIZER -> Color(0xFFA78BFA)
-            }
+            val knowledge = canonicalJointKnowledge(joint.jointId)
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable { expandedJoint.value = if (isExpanded) null else joint.jointId },
-                shape = RoundedCornerShape(12.dp),
-                color = if (isPrimary) accentColor.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.04f),
-                border = BorderStroke(
-                    1.dp,
-                    if (isPrimary) accentColor.copy(alpha = 0.35f) else Color.White.copy(alpha = 0.08f),
-                ),
+                    .clip(RoundedCornerShape(9.dp))
+                    .then(if (knowledge != null) Modifier.clickable { onKnowledge(knowledge) } else Modifier),
+                shape = RoundedCornerShape(9.dp),
+                color = Color.White.copy(alpha = 0.045f),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     Row(
@@ -1909,51 +1900,25 @@ private fun JointInvolvementSection(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(accentColor),
-                        )
                         Text(
                             jointLabel(joint.jointId),
                             color = Color.White,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.weight(1f),
                         )
-                        canonicalJointKnowledge(joint.jointId)?.let { knowledge ->
-                            Surface(
-                                modifier = Modifier.clickable { onKnowledge(knowledge) },
-                                shape = RoundedCornerShape(999.dp),
-                                color = Color.White.copy(alpha = 0.10f),
-                            ) {
-                                Text(
-                                    "Info",
-                                    color = Color.White.copy(alpha = 0.78f),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                )
-                            }
-                        }
                         Surface(
                             shape = RoundedCornerShape(999.dp),
-                            color = accentColor.copy(alpha = 0.18f),
+                            color = Color.White.copy(alpha = 0.08f),
                         ) {
                             Text(
                                 jointRoleLabel(joint.role),
-                                color = accentColor,
+                                color = Color.White.copy(alpha = 0.66f),
                                 style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                             )
                         }
-                        Spacer(Modifier.weight(1f))
-                        Icon(
-                            imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                            contentDescription = null,
-                            tint = Color.White.copy(alpha = 0.5f),
-                            modifier = Modifier.size(16.dp),
-                        )
                     }
 
                     if (joint.actions.isNotEmpty()) {
@@ -1985,6 +1950,11 @@ private fun JointInvolvementSection(
                 }
             }
         }
+        Text(
+            "Toca una articulación para abrir su introducción canónica cuando esté disponible.",
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White.copy(alpha = 0.45f),
+        )
     }
 }
 
@@ -1994,242 +1964,74 @@ private fun MuscleInvolvementSection(
     showHeader: Boolean = true,
     onKnowledge: (CanonicalKnowledge) -> Unit = {},
 ) {
-    val expandedMuscle = remember { mutableStateOf<String?>(null) }
     val contributions = remember(exercise) { oneSeriesVolumeContributions(exercise) }
-    val primaries = remember(contributions) { contributions.filter { it.role == MuscleRole.PRIMARY } }
-    val secondaries = remember(contributions) { contributions.filter { it.role == MuscleRole.SECONDARY } }
-    val stabilizers = remember(contributions) { contributions.filter { it.role != MuscleRole.PRIMARY && it.role != MuscleRole.SECONDARY } }
-    val richMetadata = remember(exercise.id, exercise.catalogRichMetadataJson) { exercise.decodeCatalogRichMetadata() }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = if (showHeader) 4.dp else 0.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(7.dp),
     ) {
         if (showHeader) {
-            Text("Involucramiento Muscular", color = Color.White, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleSmall)
+            Text(
+                "Involucramiento muscular",
+                color = Color.White,
+                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleSmall,
+            )
         }
-        val canonicalMuscles = (richMetadata?.anatomy?.primaryMuscles.orEmpty().map { it to CanonicalKnowledgeKind.MUSCLE } +
-            richMetadata?.anatomy?.secondaryMuscles.orEmpty().map { it to CanonicalKnowledgeKind.MUSCLE } +
-            richMetadata?.anatomy?.stabilizerMuscles.orEmpty().map { it to CanonicalKnowledgeKind.STABILIZER })
-            .mapNotNull { (id, kind) -> canonicalMuscleKnowledge(id)?.copy(kind = kind) }
-            .distinctBy { it.id to it.kind }
-        if (canonicalMuscles.isNotEmpty()) {
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                canonicalMuscles.forEach { knowledge ->
-                    Surface(
-                        modifier = Modifier.clickable { onKnowledge(knowledge) },
-                        shape = RoundedCornerShape(999.dp),
-                        color = Color.White.copy(alpha = 0.08f),
-                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
-                    ) {
-                        Text(
-                            knowledge.name,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.84f),
-                        )
-                    }
+        Text(
+            "Aporte equivalente por una serie planificada",
+            color = Color.White.copy(alpha = 0.55f),
+            style = MaterialTheme.typography.labelSmall,
+        )
+        if (contributions.isEmpty()) {
+            Text(
+                "No hay un desglose canónico disponible para esta configuración.",
+                color = Color.White.copy(alpha = 0.55f),
+                style = MaterialTheme.typography.bodySmall,
+            )
+        } else {
+            contributions.forEach { contribution ->
+                val knowledge = canonicalMuscleKnowledgeForVolumeLabel(contribution.muscle)
+                val clickableModifier = if (knowledge != null) {
+                    Modifier.clickable { onKnowledge(knowledge) }
+                } else {
+                    Modifier
                 }
-            }
-        }
-
-        // 1. Músculos Principales / Motores Primarios (Tarjetas destacadas con jerarquía primaria)
-        if (primaries.isNotEmpty()) {
-            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Text(
-                        "Motores Principales",
-                        color = Color(0xFF67E8F9),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Surface(
-                        shape = RoundedCornerShape(999.dp),
-                        color = Color(0xFF67E8F9).copy(alpha = 0.15f),
-                    ) {
-                        Text(
-                            "${primaries.size}",
-                            color = Color(0xFF67E8F9),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Black,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp),
-                        )
-                    }
-                }
-
-                primaries.forEach { contribution ->
-                    val muscleName = contribution.muscle
-                    val muscleColor = canonicalMuscleColor(muscleName)
-                    val isExpanded = expandedMuscle.value == muscleName
-
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable { expandedMuscle.value = if (isExpanded) null else muscleName },
-                        shape = RoundedCornerShape(12.dp),
-                        color = muscleColor.copy(alpha = 0.08f),
-                        border = BorderStroke(1.dp, muscleColor.copy(alpha = 0.35f)),
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(10.dp)
-                                        .clip(CircleShape)
-                                        .background(muscleColor),
-                                )
-                                Text(
-                                    catalogTitleLabel(muscleName),
-                                    color = Color.White,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                                val emphasisCode = contribution.emphasis?.trim()?.lowercase()?.takeIf { it.isNotBlank() }
-                                val emphasisLabel = emphasisCode?.let(::catalogTitleLabel)
-                                if (emphasisLabel != null && !muscleName.lowercase().contains(emphasisCode)) {
-                                    EmphasisChip(emphasisLabel)
-                                }
-                                Spacer(Modifier.weight(1f))
-                                Surface(
-                                    shape = RoundedCornerShape(6.dp),
-                                    color = Color.White.copy(alpha = 0.12f),
-                                ) {
-                                    Text(
-                                        formatSeriesEquivalent(contribution.seriesEquivalent),
-                                        color = Color.White.copy(alpha = 0.90f),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                    )
-                                }
-                                Icon(
-                                    imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                    contentDescription = null,
-                                    tint = Color.White.copy(alpha = 0.5f),
-                                    modifier = Modifier.size(16.dp),
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // 2. Músculos Secundarios & Sinergistas
-        if (secondaries.isNotEmpty()) {
-            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Text(
-                    "Sinergistas y Secundarios",
-                    color = Color.White.copy(alpha = 0.70f),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                )
-                secondaries.forEach { contribution ->
-                    val muscleName = contribution.muscle
-                    val muscleColor = canonicalMuscleColor(muscleName)
-                    val isExpanded = expandedMuscle.value == muscleName
-
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
-                            .clickable { expandedMuscle.value = if (isExpanded) null else muscleName },
-                        shape = RoundedCornerShape(10.dp),
-                        color = Color.White.copy(alpha = 0.04f),
-                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
-                            verticalArrangement = Arrangement.spacedBy(3.dp),
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(8.dp)
-                                        .clip(CircleShape)
-                                        .background(muscleColor.copy(alpha = 0.8f)),
-                                )
-                                Text(
-                                    catalogTitleLabel(muscleName),
-                                    color = Color.White.copy(alpha = 0.90f),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                                Spacer(Modifier.weight(1f))
-                                Text(
-                                    formatSeriesEquivalent(contribution.seriesEquivalent),
-                                    color = Color.White.copy(alpha = 0.70f),
-                                    style = MaterialTheme.typography.labelSmall,
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // 3. Estabilizadores / Neutralizadores
-        if (stabilizers.isNotEmpty()) {
-            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Text(
-                    "Estabilizadores",
-                    color = Color.White.copy(alpha = 0.60f),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                )
-                Row(
+                Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                        .clip(RoundedCornerShape(9.dp))
+                        .then(clickableModifier),
+                    shape = RoundedCornerShape(9.dp),
+                    color = Color.White.copy(alpha = 0.045f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
                 ) {
-                    stabilizers.forEach { contribution ->
-                        val muscleName = contribution.muscle
-                        val muscleColor = canonicalMuscleColor(muscleName)
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = Color.White.copy(alpha = 0.05f),
-                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(6.dp)
-                                        .clip(CircleShape)
-                                        .background(muscleColor),
-                                )
-                                Text(
-                                    catalogTitleLabel(muscleName),
-                                    color = Color.White.copy(alpha = 0.80f),
-                                    style = MaterialTheme.typography.labelSmall,
-                                )
-                            }
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                catalogTitleLabel(contribution.muscle),
+                                color = Color.White,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Text(
+                                roleVolumeLabel(contribution.role).substringBefore(" · "),
+                                color = Color.White.copy(alpha = 0.55f),
+                                style = MaterialTheme.typography.labelSmall,
+                            )
                         }
+                        Text(
+                            "${formatSeriesEquivalent(contribution.seriesEquivalent)} · ${formatVolumePercent(contribution.seriesEquivalent)}",
+                            color = Color.White.copy(alpha = 0.80f),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Medium,
+                        )
                     }
                 }
             }

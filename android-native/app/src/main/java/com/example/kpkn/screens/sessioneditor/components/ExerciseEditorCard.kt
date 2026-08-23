@@ -9,7 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -104,6 +104,7 @@ internal fun ExerciseEditorCard(
     exercise: Exercise,
     exerciseInfo: ExerciseMuscleInfo?,
     accentHex: String?,
+    coverAccentHex: String? = null,
     partId: String,
     isCompetitionMovement: Boolean,
     modifier: Modifier = Modifier,
@@ -175,7 +176,11 @@ internal fun ExerciseEditorCard(
         } else null
     }
     val accent = remember(accentHex) { resolvePartAccent(accentHex) }
+    val coverAccent = remember(coverAccentHex, accentHex) {
+        resolvePartAccent(coverAccentHex ?: accentHex)
+    }
     val accentColor = accent.primary
+    val coverColor = coverAccent.primary
     val displayParts = remember(exercise, exerciseInfo) {
         exerciseDisplayParts(exercise, exerciseInfo)
     }
@@ -216,7 +221,14 @@ internal fun ExerciseEditorCard(
     }
     val containerModifier = Modifier
         .clip(cardShape)
-        .background(accent.exerciseCardBrush())
+        .background(coverAccent.exerciseCardBrush(alpha = 0.10f))
+        .then(
+            if (coverAccentHex != null && coverAccentHex != accentHex) {
+                Modifier.background(accent.exerciseCardBrush(alpha = 0.045f))
+            } else {
+                Modifier
+            },
+        )
         .then(
             when {
                 isSupersetExercise -> Modifier.border(1.dp, accentColor.copy(alpha = 0.20f), cardShape)
@@ -276,7 +288,7 @@ internal fun ExerciseEditorCard(
                             handleWindowOrigin = Offset(b.left, b.top)
                         }
                         .pointerInput(exercise.id) {
-                            detectDragGestures(
+                            detectDragGesturesAfterLongPress(
                                 onDragStart = { offset ->
                                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                     // Window-space pointer (F1/N4) — not handle-local.
@@ -876,6 +888,7 @@ internal fun ExerciseEditorCard(
                         customUnit = exercise.customUnit,
                         predictedMetrics = predictedMetrics,
                         accentColor = accentColor,
+                        backgroundAccentColor = coverColor,
                         modifier = Modifier.fillMaxWidth(),
                         onAddSet = onAddSet,
                         onUpdateSet = onUpdateSet,

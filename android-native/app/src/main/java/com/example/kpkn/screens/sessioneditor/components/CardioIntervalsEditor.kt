@@ -11,11 +11,10 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -26,6 +25,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -69,6 +70,7 @@ import com.example.kpkn.data.models.CardioCatalog
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioIntervalBlock
 import com.example.kpkn.data.models.CardioIntervalPattern
+import com.example.kpkn.data.models.CardioIntervalPatternSpec
 import com.example.kpkn.data.models.CardioIntervalPrograms
 import com.example.kpkn.domain.cardio.CardioIntervalEngine
 import com.example.kpkn.domain.cardio.CardioIntervalProgramBuilder
@@ -77,7 +79,6 @@ import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
 import java.util.UUID
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun CardioIntervalsEditor(
     details: CardioDetails,
@@ -93,10 +94,6 @@ internal fun CardioIntervalsEditor(
     val validSelectedIdx = if (details.intervalBlocks.isNotEmpty()) {
         selectedBlockIdx.coerceIn(0, details.intervalBlocks.lastIndex)
     } else 0
-
-    var totalMinutesText by remember(details.totalIntervalSeconds(), details.targetDurationSeconds) {
-        mutableStateOf(((details.targetDurationSeconds ?: details.totalIntervalSeconds()).coerceAtLeast(60) / 60).toString())
-    }
 
     val catalogInfo = remember(details.type) { CardioCatalog.findByType(details.type) }
     val catalogSupportsSpeed = catalogInfo?.supportsSpeed ?: true
@@ -136,56 +133,32 @@ internal fun CardioIntervalsEditor(
             )
         }
 
-        // Duración total escalable
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            IntervalAccentField(
-                value = totalMinutesText,
-                onValueChange = { raw ->
-                    totalMinutesText = raw.filter(Char::isDigit).take(4)
-                    val minutes = totalMinutesText.toIntOrNull()?.coerceIn(1, 240)
-                    if (minutes != null) {
-                        val current = details.totalIntervalSeconds().coerceAtLeast(60)
-                        if (minutes * 60 != current) {
-                            onChange(rescaleIntervalDetails(details, minutes * 60))
-                        }
-                    }
-                },
-                label = "Duración total (min)",
-                accentColor = accentColor,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.weight(1f),
-            )
-            Text(
-                "El patrón escala automáticamente todos los bloques en proporción.",
-                modifier = Modifier
-                    .weight(1.2f)
-                    .align(Alignment.CenterVertically),
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.White.copy(alpha = 0.62f),
-            )
-        }
+        Text(
+            "Duración derivada: ${formatMinutes(details.totalIntervalSeconds())}. Ajusta los bloques y las rondas para cambiarla.",
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White.copy(alpha = 0.62f),
+        )
 
-        // Selector de Patrones con FlowRow limpio y moderno
+        // Selector de patrones en carrusel: la forma de cada plantilla permite
+        // reconocer una pirámide o una escalera antes de abrir el editor.
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Patrón de intervalo", color = Color.White.copy(alpha = 0.75f), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-            FlowRow(
+            LazyRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(end = 12.dp),
             ) {
-                CardioIntervalPrograms.specs.forEach { spec ->
-                    val selected = details.intervalBlocks.isNotEmpty() &&
-                        spec.pattern != CardioIntervalPattern.CUSTOM &&
-                        details.intervalBlocks.any { it.type == CardioBlockType.WARMUP } &&
-                        details.intervalBlocks.count { it.type == CardioBlockType.WORK } >= spec.units.count { it.type == CardioBlockType.WORK }
-
-                    Surface(
-                        modifier = Modifier.clickable {
+                items(CardioIntervalPrograms.specs, key = { it.pattern.name }) { spec ->
+                    val selected = intervalPatternLooksSelected(details, spec.pattern)
+                    IntervalPatternTemplateCard(
+                        spec = spec,
+                        selected = selected,
+                        accentColor = accentColor,
+                        onClick = {
                             if (spec.pattern == CardioIntervalPattern.CUSTOM) {
                                 onChange(details.copy(hiit = null))
                             } else {
-                                val total = totalMinutesText.toIntOrNull()?.coerceIn(1, 240)?.times(60)
-                                    ?: details.totalIntervalSeconds().coerceAtLeast(20 * 60)
+                                val total = details.totalIntervalSeconds().coerceAtLeast(20 * 60)
                                 onChange(
                                     CardioIntervalProgramBuilder.buildDetails(
                                         pattern = spec.pattern,
@@ -198,24 +171,11 @@ internal fun CardioIntervalsEditor(
                                 selectedBlockIdx = 0
                             }
                         },
-                        shape = RoundedCornerShape(999.dp),
-                        color = if (selected) accentColor.copy(alpha = 0.28f) else Color.White.copy(alpha = 0.08f),
-                        border = BorderStroke(1.dp, if (selected) accentColor.copy(alpha = 0.85f) else Color.White.copy(alpha = 0.14f)),
-                    ) {
-                        Text(
-                            spec.label,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                            color = if (selected) Color.White else Color.White.copy(alpha = 0.75f),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = if (selected) FontWeight.Black else FontWeight.Medium,
-                        )
-                    }
+                    )
                 }
             }
             val selectedPattern = CardioIntervalPrograms.specs.firstOrNull { spec ->
-                spec.pattern != CardioIntervalPattern.CUSTOM &&
-                    details.intervalBlocks.isNotEmpty() &&
-                    details.intervalBlocks.count { it.type == CardioBlockType.WORK } >= spec.units.count { it.type == CardioBlockType.WORK }
+                spec.pattern != CardioIntervalPattern.CUSTOM && intervalPatternLooksSelected(details, spec.pattern)
             }
             Text(
                 selectedPattern?.description
@@ -589,7 +549,6 @@ private fun CardioIntervalStepBar(
 }
 
 /** Inspector único para editar el bloque actualmente seleccionado */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CardioActiveBlockInspector(
     block: CardioIntervalBlock,
@@ -934,6 +893,125 @@ private fun CardioCompactBlocksOverview(
             }
         }
     }
+}
+
+@Composable
+private fun IntervalPatternTemplateCard(
+    spec: CardioIntervalPatternSpec,
+    selected: Boolean,
+    accentColor: Color,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .width(178.dp)
+            .height(142.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        color = if (selected) accentColor.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.055f),
+        border = BorderStroke(
+            1.dp,
+            if (selected) accentColor.copy(alpha = 0.75f) else Color.White.copy(alpha = 0.12f),
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(7.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    spec.label,
+                    color = if (selected) Color.White else Color.White.copy(alpha = 0.84f),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Black,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (selected) {
+                    Box(
+                        modifier = Modifier
+                            .size(7.dp)
+                            .clip(CircleShape)
+                            .background(accentColor),
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(46.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                val previewUnits = spec.units.take(10)
+                val maxLevel = previewUnits.maxOfOrNull { it.intensityLevel }?.coerceAtLeast(1) ?: 1
+                previewUnits.forEach { unit ->
+                    val heightFraction = (unit.intensityLevel.toFloat() / maxLevel).coerceIn(0.22f, 1f)
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(heightFraction)
+                            .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                            .background(
+                                if (unit.type == CardioBlockType.RECOVER) {
+                                    Color.White.copy(alpha = 0.28f)
+                                } else {
+                                    accentColor.copy(alpha = if (selected) 0.9f else 0.64f)
+                                },
+                            ),
+                    )
+                }
+            }
+
+            Text(
+                spec.description,
+                color = Color.White.copy(alpha = 0.58f),
+                style = MaterialTheme.typography.labelSmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+private fun intervalPatternLooksSelected(
+    details: CardioDetails,
+    pattern: CardioIntervalPattern,
+): Boolean {
+    if (details.intervalBlocks.isEmpty()) return false
+    if (pattern == CardioIntervalPattern.CUSTOM) {
+        return CardioIntervalPrograms.specs
+            .asSequence()
+            .filter { it.pattern != CardioIntervalPattern.CUSTOM }
+            .none { intervalPatternDistance(details, it) < 0.28f }
+    }
+    return intervalPatternDistance(details, CardioIntervalPrograms.spec(pattern)) < 0.28f
+}
+
+private fun intervalPatternDistance(
+    details: CardioDetails,
+    spec: CardioIntervalPatternSpec,
+): Float {
+    val actual = details.intervalBlocks.filter {
+        it.type == CardioBlockType.WORK || it.type == CardioBlockType.RECOVER
+    }
+    if (actual.size != spec.units.size) return 1f
+    val expectedWeights = spec.units.map { it.durationWeight.coerceAtLeast(1).toFloat() }
+    val actualDurations = actual.map { it.durationSeconds.coerceAtLeast(1).toFloat() }
+    val expectedTotal = expectedWeights.sum().coerceAtLeast(1f)
+    val actualTotal = actualDurations.sum().coerceAtLeast(1f)
+    val weightDistance = expectedWeights.zip(actualDurations).sumOf { (expected, actualDuration) ->
+        kotlin.math.abs(expected / expectedTotal - actualDuration / actualTotal).toDouble()
+    }.toFloat()
+    val typeDistance = spec.units.zip(actual).count { (expected, block) ->
+        expected.type != block.type
+    } / spec.units.size.toFloat()
+    return (weightDistance + typeDistance).coerceAtMost(1f)
 }
 
 @Composable

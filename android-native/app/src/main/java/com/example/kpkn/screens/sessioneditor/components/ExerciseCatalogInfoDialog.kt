@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -48,11 +49,11 @@ import com.example.kpkn.domain.exercises.resolvePrimaryMuscleLabel
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknGlassDialog
 import com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledge
-import com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledgeKind
-import com.example.kpkn.data.exercises.catalogv2.canonicalMuscleKnowledge
+import com.example.kpkn.data.exercises.catalogv2.canonicalMuscleKnowledgeForVolumeLabel
+import com.example.kpkn.data.exercises.catalogv2.canonicalJointKnowledge
 import com.example.kpkn.data.exercises.catalogv2.canonicalPatternKnowledge
 import com.example.kpkn.data.exercises.catalogv2.decodeCatalogRichMetadata
-import com.example.kpkn.ui.components.CanonicalKnowledgeTooltip
+import com.example.kpkn.ui.components.CanonicalKnowledgeOverlay
 
 @Composable
 internal fun ExerciseCatalogInfoDialog(
@@ -160,7 +161,10 @@ internal fun ExerciseCatalogInfoDialog(
                 }
             }
             canonicalExplain?.let { knowledge ->
-                CanonicalKnowledgeTooltip(knowledge)
+                CanonicalKnowledgeOverlay(
+                    knowledge = knowledge,
+                    onDismiss = { canonicalExplain = null },
+                )
             }
 
             val muscleContributions = remember(exercise.id, exercise.involvedMuscles) {
@@ -174,49 +178,43 @@ internal fun ExerciseCatalogInfoDialog(
                     color = Color.White.copy(alpha = 0.92f),
                 )
                 muscleContributions.take(6).forEach { item ->
-                    val color = com.example.kpkn.ui.components.canonicalMuscleColor(item.muscle)
-                    Column(
+                    val knowledge = canonicalMuscleKnowledgeForVolumeLabel(item.muscle)
+                    Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 2.dp),
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                            .clip(RoundedCornerShape(9.dp))
+                            .then(if (knowledge != null) Modifier.clickable { canonicalExplain = knowledge } else Modifier),
+                        shape = RoundedCornerShape(9.dp),
+                        color = Color.White.copy(alpha = 0.045f),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.weight(1f),
-                            ) {
-                                Surface(
-                                    modifier = Modifier.size(7.dp),
-                                    shape = RoundedCornerShape(50),
-                                    color = color,
-                                ) {}
+                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text(
                                     item.muscle,
                                     style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.SemiBold,
                                     color = Color.White.copy(alpha = 0.9f),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
+                                Text(
+                                    roleVolumeLabel(item.role).substringBefore(" · "),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White.copy(alpha = 0.55f),
+                                )
                             }
                             Text(
-                                formatSeriesEquivalent(item.seriesEquivalent),
+                                "${formatSeriesEquivalent(item.seriesEquivalent)} · ${formatVolumePercent(item.seriesEquivalent)}",
                                 style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = color.copy(alpha = 0.95f),
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White.copy(alpha = 0.80f),
                             )
                         }
-                        Text(
-                            "${roleVolumeLabel(item.role).substringBefore(" · ")} — ${roleVolumeWhy(item.role)}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.55f),
-                        )
                     }
                 }
             }
@@ -348,20 +346,20 @@ private fun CanonicalKnowledgeChips(
     onChipTap: (CanonicalKnowledge) -> Unit,
 ) {
     val anatomy = richMetadata?.anatomy ?: return
-    val muscleChips = (anatomy.primaryMuscles.map { it to CanonicalKnowledgeKind.MUSCLE } +
-        anatomy.secondaryMuscles.map { it to CanonicalKnowledgeKind.MUSCLE } +
-        anatomy.stabilizerMuscles.map { it to CanonicalKnowledgeKind.STABILIZER })
-        .mapNotNull { (id, kind) -> canonicalMuscleKnowledge(id)?.copy(kind = kind) }
-        .distinctBy { it.id to it.kind }
     val jointChips = anatomy.jointInvolvement.mapNotNull { joint ->
-        com.example.kpkn.data.exercises.catalogv2.canonicalJointKnowledge(joint.jointId, CanonicalKnowledgeKind.JOINT)
+        canonicalJointKnowledge(joint.jointId)
     }.distinctBy { it.id }
     val patternChip = canonicalPatternKnowledge(richMetadata.biomechanics.movementPatternId)
-    if (muscleChips.isEmpty() && jointChips.isEmpty() && patternChip == null) return
+    if (jointChips.isEmpty() && patternChip == null) return
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text("Conocimiento canónico", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black)
+        Text(
+            "Información canónica",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.White.copy(alpha = 0.90f),
+        )
         LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            items(muscleChips + jointChips + listOfNotNull(patternChip)) { knowledge ->
+            items(jointChips + listOfNotNull(patternChip)) { knowledge ->
                 Surface(
                     modifier = Modifier.clickable { onChipTap(knowledge) },
                     shape = RoundedCornerShape(999.dp),

@@ -440,7 +440,7 @@ internal fun GroupEditorCard(
                                     handleWindowOrigin = Offset(b.left, b.top)
                                 }
                                 .pointerInput(part.id) {
-                                    detectDragGestures(
+                                    detectDragGesturesAfterLongPress(
                                         onDragStart = { offset ->
                                             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                             onDragStart(cardBoundsInWindow, handleWindowOrigin + offset)

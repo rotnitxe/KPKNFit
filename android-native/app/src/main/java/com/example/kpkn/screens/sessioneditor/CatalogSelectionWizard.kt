@@ -60,7 +60,8 @@ import com.example.kpkn.domain.exercises.TechnicalAspectEngine
 import com.example.kpkn.domain.exercises.VariantGroup
 import com.example.kpkn.domain.exercises.VariantGroupIndex
 import com.example.kpkn.domain.exercises.VariantPreferenceStore
-import com.example.kpkn.ui.components.canonicalMuscleColor
+import com.example.kpkn.data.exercises.catalogv2.canonicalMuscleKnowledgeForVolumeLabel
+import com.example.kpkn.ui.components.CanonicalKnowledgeOverlay
 
 @Composable
 fun CatalogSelectionWizard(
@@ -414,6 +415,8 @@ internal fun MuscleActivationPreview(
     baseMuscles: List<InvolvedMuscle>,
     effectiveMuscles: List<InvolvedMuscle>,
 ) {
+    var selectedKnowledge by remember { mutableStateOf<com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledge?>(null) }
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
@@ -451,13 +454,17 @@ internal fun MuscleActivationPreview(
             // Lista dinámica ordenada por dominancia muscular resultante
             effectiveMuscles.forEach { muscle ->
                 val baseEntry = baseMuscles.firstOrNull { it.muscle == muscle.muscle }
-                val baseVC = baseEntry?.volumeContribution ?: muscle.volumeContribution ?: 0.0
                 val effVC = muscle.volumeContribution ?: 0.0
                 val roleChanged = baseEntry?.role != muscle.role
-                val muscleColor = canonicalMuscleColor(muscle.muscle)
+                val knowledge = canonicalMuscleKnowledgeForVolumeLabel(muscle.muscle)
 
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(9.dp))
+                        .clickable(enabled = knowledge != null) {
+                            selectedKnowledge = knowledge
+                        },
                     verticalArrangement = Arrangement.spacedBy(3.dp)
                 ) {
                     Row(
@@ -469,11 +476,6 @@ internal fun MuscleActivationPreview(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Surface(
-                                modifier = Modifier.size(8.dp),
-                                shape = CircleShape,
-                                color = muscleColor,
-                            ) {}
                             Text(
                                 text = muscle.muscle,
                                 style = MaterialTheme.typography.bodySmall,
@@ -489,13 +491,13 @@ internal fun MuscleActivationPreview(
                             if (roleChanged) {
                                 Surface(
                                     shape = RoundedCornerShape(4.dp),
-                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
                                 ) {
                                     Text(
                                         text = "Cambio de Rol",
                                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.primary,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -505,6 +507,12 @@ internal fun MuscleActivationPreview(
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = "${"%.1f".format(effVC)} serie · ${"%.0f".format(effVC.coerceIn(0.0, 1.0) * 100)}%",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = FontWeight.SemiBold,
                             )
                         }
                     }
@@ -522,11 +530,18 @@ internal fun MuscleActivationPreview(
                                 .fillMaxHeight()
                                 .fillMaxWidth(effVC.toFloat().coerceIn(0.1f, 1.0f))
                                 .clip(RoundedCornerShape(3.dp))
-                                .background(muscleColor)
+                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.42f))
                         )
                     }
                 }
             }
+        }
+    }
+        selectedKnowledge?.let { knowledge ->
+            CanonicalKnowledgeOverlay(
+                knowledge = knowledge,
+                onDismiss = { selectedKnowledge = null },
+            )
         }
     }
 }

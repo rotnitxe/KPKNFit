@@ -202,6 +202,9 @@ internal fun formatSeriesEquivalent(value: Double): String {
     return "$text serie"
 }
 
+internal fun formatVolumePercent(value: Double): String =
+    "%.0f%%".format((value.coerceIn(0.0, 1.0)) * 100.0)
+
 internal fun fatigueColor(score: Int): Color = when {
     score <= 3 -> Color(0xFF22C55E)
     score <= 6 -> Color(0xFFF59E0B)

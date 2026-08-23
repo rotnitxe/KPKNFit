@@ -9,8 +9,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -49,13 +47,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.MuscleRole
-import com.example.kpkn.data.exercises.catalogv2.canonicalMuscleKnowledge
-import com.example.kpkn.data.exercises.catalogv2.canonicalJointKnowledge
+import com.example.kpkn.data.exercises.catalogv2.canonicalMuscleKnowledgeForVolumeLabel
 import com.example.kpkn.data.exercises.catalogv2.canonicalPatternKnowledge
 import com.example.kpkn.data.exercises.catalogv2.decodeCatalogRichMetadata
-import com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledgeKind
 import com.example.kpkn.domain.exercises.resolvePrimaryMuscleLabel
-import com.example.kpkn.ui.components.CanonicalKnowledgeTooltip
+import com.example.kpkn.ui.components.CanonicalKnowledgeOverlay
 import com.example.kpkn.ui.components.KpknSheetTokens
 import com.example.kpkn.ui.components.kpknSheetWhiteTonalButtonColors
 
@@ -232,7 +228,7 @@ internal fun ExercisePickerDetailedCard(
                 }
             }
 
-            CanonicalKnowledgeSummary(info)
+            ExercisePickerCanonicalSummary(info)
 
             AnimatedVisibility(
                 visible = isInfoExpanded,
@@ -282,15 +278,12 @@ internal fun ExercisePickerDetailedCard(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ExercisePickerInlineInfo(
     info: ExerciseMuscleInfo,
     selectedAspects: Map<String, String>,
     onOpenExerciseDetail: (() -> Unit)?,
 ) {
-    val contributions = remember(info) { oneSeriesVolumeContributions(info) }
-
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -307,56 +300,11 @@ private fun ExercisePickerInlineInfo(
                 fontWeight = FontWeight.Bold,
                 color = KpknSheetTokens.Body,
             )
-            CanonicalKnowledgeSummary(info)
             Text(
-                "Volumen equivalente por serie",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = KpknSheetTokens.Body,
+                "El aporte muscular se expresa por cada serie planificada; pulsa un músculo arriba para ver su definición canónica cuando exista.",
+                style = MaterialTheme.typography.labelSmall,
+                color = KpknSheetTokens.MutedStrong,
             )
-            if (contributions.isEmpty()) {
-                Text(
-                    "Desglose muscular no disponible para este ejercicio.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = KpknSheetTokens.MutedStrong,
-                )
-            } else {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    contributions.forEach { contribution ->
-                        val key = contributionKey(contribution)
-                        Surface(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(999.dp))
-                                .clickable(enabled = false) {},
-                            shape = RoundedCornerShape(999.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.52f),
-                            contentColor = KpknSheetTokens.Body,
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                verticalArrangement = Arrangement.spacedBy(1.dp),
-                            ) {
-                                Text(
-                                    contributionDisplayName(contribution),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                                Text(
-                                    compactRoleLabel(contribution.role) + " · " +
-                                        formatSeriesEquivalent(contribution.seriesEquivalent),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = KpknSheetTokens.MutedStrong,
-                                )
-                            }
-                        }
-                    }
-                }
-            }
 
             if (onOpenExerciseDetail != null) {
                 TextButton(
@@ -371,58 +319,86 @@ private fun ExercisePickerInlineInfo(
 }
 
 @Composable
-private fun CanonicalKnowledgeSummary(info: ExerciseMuscleInfo) {
+private fun ExercisePickerCanonicalSummary(info: ExerciseMuscleInfo) {
     val rich = remember(info.id, info.catalogRichMetadataJson) { info.decodeCatalogRichMetadata() }
-    val anatomy = rich?.anatomy ?: return
-    val entries = (
-        (
-            anatomy.primaryMuscles.map { it to CanonicalKnowledgeKind.MUSCLE } +
-            anatomy.secondaryMuscles.map { it to CanonicalKnowledgeKind.MUSCLE } +
-            anatomy.stabilizerMuscles.map { it to CanonicalKnowledgeKind.STABILIZER }
-        ).mapNotNull { (id, kind) -> canonicalMuscleKnowledge(id)?.copy(kind = kind) } +
-        anatomy.jointInvolvement.mapNotNull { canonicalJointKnowledge(it.jointId) } +
-        listOfNotNull(canonicalPatternKnowledge(rich.biomechanics.movementPatternId))
-    ).distinctBy { it.id to it.kind }
-    if (entries.isEmpty()) return
+    val contributions = remember(info) { oneSeriesVolumeContributions(info) }
+    val pattern = rich?.biomechanics?.movementPatternId?.let(::canonicalPatternKnowledge)
+    if (contributions.isEmpty() && pattern == null) return
     var selected by remember(info.id) { mutableStateOf<com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledge?>(null) }
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(
-            "Conocimiento canónico",
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold,
-            color = KpknSheetTokens.Body,
-        )
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            entries.forEach { knowledge ->
+        pattern?.let { knowledge ->
+            Surface(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .clickable { selected = knowledge },
+                shape = RoundedCornerShape(999.dp),
+                color = Color.White.copy(alpha = 0.08f),
+                contentColor = KpknSheetTokens.Body,
+            ) {
+                Text(
+                    "Patrón · ${knowledge.name}",
+                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+        }
+        if (contributions.isNotEmpty()) {
+            Text(
+                "Músculos · aporte por 1 serie",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = KpknSheetTokens.Body,
+            )
+            contributions.take(6).forEach { contribution ->
+                val knowledge = canonicalMuscleKnowledgeForVolumeLabel(contribution.muscle)
                 Surface(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(999.dp))
-                        .clickable { selected = knowledge },
-                    shape = RoundedCornerShape(999.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.52f),
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .then(if (knowledge != null) Modifier.clickable { selected = knowledge } else Modifier),
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color.White.copy(alpha = 0.045f),
                     contentColor = KpknSheetTokens.Body,
                 ) {
-                    Text(
-                        knowledge.name,
-                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                    )
+                    Row(
+                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 7.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                            Text(
+                                contribution.muscle,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                compactRoleLabel(contribution.role),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = KpknSheetTokens.MutedStrong,
+                            )
+                        }
+                        Text(
+                            formatSeriesEquivalent(contribution.seriesEquivalent) + " · " +
+                                formatVolumePercent(contribution.seriesEquivalent),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = KpknSheetTokens.MutedStrong,
+                        )
+                    }
                 }
             }
         }
-        selected?.let { CanonicalKnowledgeTooltip(it) }
+        selected?.let { knowledge ->
+            CanonicalKnowledgeOverlay(
+                knowledge = knowledge,
+                onDismiss = { selected = null },
+            )
+        }
     }
 }
-
-private fun contributionKey(contribution: MuscleVolumeContribution): String =
-    contribution.muscle + "|" + contribution.emphasis + "|" + contribution.role.name
-
-private fun contributionDisplayName(contribution: MuscleVolumeContribution): String =
-    listOfNotNull(
-        contribution.muscle,
-        contribution.emphasis?.takeIf { it.isNotBlank() },
-    ).joinToString(" · ")
 
 private fun compactRoleLabel(role: MuscleRole): String = when (role) {
     MuscleRole.PRIMARY -> "Principal"

@@ -107,6 +107,7 @@ internal fun InlineSetRow(
     trainingMode: TrainingMode,
     customUnit: String?,
     accentColor: Color,
+    backgroundAccentColor: Color = accentColor,
     canMoveUp: Boolean,
     canMoveDown: Boolean,
     isUnilateral: Boolean = false,
@@ -393,6 +394,7 @@ internal fun InlineSetRow(
 
         SetEditorCard(
             accentColor = accentColor,
+            backgroundAccentColor = backgroundAccentColor,
             density = setCardDensity,
             modifier = if (fillHeight) Modifier.fillMaxWidth().fillMaxHeight() else Modifier.fillMaxWidth(),
         ) {

@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -25,6 +27,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +51,7 @@ import com.example.kpkn.data.models.CardioIntervalPattern
 import com.example.kpkn.domain.cardio.CardioHiitProgramBuilder
 import com.example.kpkn.domain.cardio.CardioIntervalProgramBuilder
 import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
+import com.example.kpkn.ui.components.KpknSheet
 import kotlin.math.roundToInt
 
 private enum class CardioTargetMode(val label: String) {
@@ -62,7 +66,119 @@ internal fun CardioEditorCard(
     accentColor: Color,
     exerciseName: String? = null,
     onChange: (CardioDetails) -> Unit,
+    editorContent: Boolean = false,
 ) {
+    var showConfigurator by remember(details) { mutableStateOf(false) }
+    var draftDetails by remember(details) { mutableStateOf(details) }
+
+    if (!editorContent) {
+        val mode = details.programMode()
+        val title = exerciseName?.takeIf { it.isNotBlank() } ?: cardioTypeLabel(details.type)
+        val modeLabel = when (mode) {
+            CardioProgramMode.STEADY -> "Estático"
+            CardioProgramMode.HIIT_SIT -> "HIIT / SIT"
+            CardioProgramMode.INTERVALS -> "Intervalos"
+        }
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            color = Color(0xFF242528),
+            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
+        ) {
+            Column(
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(9.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(title, color = Color.White, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            "$modeLabel · ${cardioSummaryText(details)}",
+                            color = accentColor,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    TextButton(onClick = {
+                        draftDetails = details
+                        showConfigurator = true
+                    }) { Text("Configurar", color = Color.White) }
+                }
+                Text(
+                    cardioModeDescription(mode),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.62f),
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    listOf(
+                        CardioProgramMode.STEADY to "Estático",
+                        CardioProgramMode.HIIT_SIT to "HIIT / SIT",
+                        CardioProgramMode.INTERVALS to "Intervalos",
+                    ).forEach { (candidate, label) ->
+                        CardioModeChip(
+                            selected = mode == candidate,
+                            modifier = Modifier.weight(1f),
+                            label = label,
+                            accentColor = accentColor,
+                            onClick = {
+                                draftDetails = cardioDetailsForMode(details, candidate)
+                                showConfigurator = true
+                            },
+                        )
+                    }
+                }
+            }
+        }
+        if (showConfigurator) {
+            KpknSheet(
+                onDismissRequest = { showConfigurator = false },
+                maxHeightFraction = 0.96f,
+                hazeState = null,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Text("Configurar cardio", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = Color.White)
+                    CardioEditorCard(
+                        details = draftDetails,
+                        accentColor = accentColor,
+                        exerciseName = exerciseName,
+                        onChange = { draftDetails = it },
+                        editorContent = true,
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        TextButton(onClick = { showConfigurator = false }, modifier = Modifier.weight(1f)) {
+                            Text("Cancelar", color = Color.White.copy(alpha = 0.8f))
+                        }
+                        TextButton(
+                            onClick = {
+                                onChange(draftDetails)
+                                showConfigurator = false
+                            },
+                            modifier = Modifier.weight(1f),
+                        ) { Text("Guardar", color = accentColor, fontWeight = FontWeight.Bold) }
+                    }
+                    androidx.compose.foundation.layout.Spacer(Modifier.size(12.dp))
+                }
+            }
+        }
+        return
+    }
+
     val currentTargetMode = remember(details.targetDurationSeconds, details.targetDistanceKm, details.supportsDistance) {
         if (!details.supportsDistance) {
             CardioTargetMode.DURATION
@@ -397,6 +513,51 @@ internal fun CardioEditorCard(
                 }
             }
         }
+    }
+}
+
+private fun cardioModeDescription(mode: CardioProgramMode): String = when (mode) {
+    CardioProgramMode.STEADY -> "Una intensidad continua con tiempo, distancia o ambos como objetivo."
+    CardioProgramMode.HIIT_SIT -> "Alterna esfuerzo y recuperación; la duración se deriva de la estructura."
+    CardioProgramMode.INTERVALS -> "Construye una secuencia por bloques; el total se calcula automáticamente."
+}
+
+private fun cardioSummaryText(details: CardioDetails): String {
+    val duration = details.effectiveDurationSeconds().takeIf { it > 0 }
+        ?.let { "${it / 60} min" }
+    val distance = details.targetDistanceKm?.let { "${it.toTrimmedCardioNumber()} km" }
+    val blocks = details.intervalBlocks.size.takeIf { details.hasIntervals() }?.let { "$it bloques" }
+    return listOfNotNull(blocks, duration, distance).joinToString(" · ").ifBlank { "Sin objetivo" }
+}
+
+private fun Double.toTrimmedCardioNumber(): String =
+    if (this % 1.0 == 0.0) toInt().toString() else "%.1f".format(this)
+
+private fun cardioDetailsForMode(base: CardioDetails, mode: CardioProgramMode): CardioDetails = when (mode) {
+    CardioProgramMode.STEADY -> base.copy(
+        intervalBlocks = emptyList(),
+        intervalRounds = 1,
+        hiit = null,
+        targetDurationSeconds = base.targetDurationSeconds ?: 20 * 60,
+    )
+    CardioProgramMode.HIIT_SIT -> {
+        val config = base.hiit ?: CardioHiitConfig(
+            targetRpe = 9.0,
+            protocol = com.example.kpkn.data.models.HiitProtocol.HIIT,
+        )
+        CardioHiitProgramBuilder.buildDetails(config, base.type, base)
+    }
+    CardioProgramMode.INTERVALS -> {
+        val total = base.targetDurationSeconds
+            ?: base.effectiveDurationSeconds().takeIf { it > 0 }
+            ?: 20 * 60
+        CardioIntervalProgramBuilder.buildDetails(
+            pattern = CardioIntervalPattern.PYRAMID,
+            totalSeconds = total,
+            type = base.type,
+            baseLevel = base.resolvedIntensityLevel(),
+            base = base.copy(hiit = null),
+        )
     }
 }
 

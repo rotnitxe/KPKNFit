@@ -14,7 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -26,6 +27,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,16 +41,18 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.data.models.CardioBlockType
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioHiitConfig
 import com.example.kpkn.data.models.CardioHiitTemplates
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.HiitProtocol
+import com.example.kpkn.data.models.HiitTemplate
 import com.example.kpkn.data.models.HiitWorkTarget
 import com.example.kpkn.domain.cardio.CardioHiitProgramBuilder
 import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
-import androidx.compose.foundation.rememberScrollState
 
 /** Authoring panel for the explicit HIIT/SIT mode. */
 @Composable
@@ -62,7 +66,22 @@ internal fun CardioHiitEditor(
 
     val effective = CardioHiitProgramBuilder.effectiveStructure(config)
     val gpsAvailable = details.type.isOutdoor()
-    val workTimeTarget = effective.workTimeTargetSeconds
+
+    // TIME was historically exposed as a second total-work target.  It is no
+    // longer an authoring control: HIIT/SIT duration comes from the visible
+    // structure below.  Clear the legacy value when an old session is opened so
+    // editing it cannot silently reintroduce the duplicate duration semantics.
+    LaunchedEffect(config.workTargetType, config.workTargetValue) {
+        if (config.workTargetType == HiitWorkTarget.TIME && config.workTargetValue != null) {
+            onChange(
+                CardioHiitProgramBuilder.buildDetails(
+                    config.copy(workTargetValue = null),
+                    details.type,
+                    details,
+                ),
+            )
+        }
+    }
 
     fun update(next: CardioHiitConfig) {
         onChange(CardioHiitProgramBuilder.buildDetails(next, details.type, details))
@@ -109,20 +128,22 @@ internal fun CardioHiitEditor(
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
             )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(end = 12.dp),
             ) {
-                CardioHiitTemplates.all.filter { it.protocol == config.protocol }.take(4).forEach { template ->
-                    HiitChip(
-                        selected = config.protocol == template.protocol &&
-                            effective.rounds == template.rounds &&
-                            config.workSeconds == template.toConfig().workSeconds,
-                        label = template.name,
+                items(
+                    items = CardioHiitTemplates.all.filter { it.protocol == config.protocol }.take(6),
+                    key = { it.id },
+                ) { template ->
+                    val selected = config.protocol == template.protocol &&
+                        effective.rounds == template.rounds &&
+                        config.workSeconds == template.toConfig().workSeconds
+                    HiitTemplateCarouselCard(
+                        template = template,
+                        selected = selected,
                         accentColor = accentColor,
-                        modifier = Modifier.width(138.dp),
                         onClick = { update(template.toConfig()) },
                     )
                 }
@@ -199,31 +220,17 @@ internal fun CardioHiitEditor(
                             .padding(8.dp),
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            if (workTimeTarget != null) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Text(
-                                        "${effective.rounds} rondas",
-                                        color = accentColor,
-                                        fontWeight = FontWeight.Black,
-                                        style = MaterialTheme.typography.bodySmall,
-                                    )
-                                }
-                            } else {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                ) {
-                                    Text("Rondas de esfuerzo", color = Color.White.copy(alpha = 0.85f), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall)
-                                    CompactRoundStepper(
-                                        rounds = config.rounds,
-                                        accentColor = accentColor,
-                                        onRoundsChange = { update(config.copy(rounds = it.coerceIn(1, 99))) },
-                                    )
-                                }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text("Rondas de esfuerzo", color = Color.White.copy(alpha = 0.85f), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall)
+                                CompactRoundStepper(
+                                    rounds = config.rounds,
+                                    accentColor = accentColor,
+                                    onRoundsChange = { update(config.copy(rounds = it.coerceIn(1, 99))) },
+                                )
                             }
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -240,7 +247,7 @@ internal fun CardioHiitEditor(
                             }
                         }
                     }
-                    if (config.sets > 1 && workTimeTarget == null) {
+                    if (config.sets > 1) {
                         FlowConnector(accentColor)
                         Box(
                             modifier = Modifier
@@ -277,24 +284,17 @@ internal fun CardioHiitEditor(
                 }
             }
 
-            Text("Objetivo del bloque de trabajo", color = Color.White.copy(alpha = 0.75f), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+            Text("Objetivo opcional por bloque", color = Color.White.copy(alpha = 0.75f), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
             if (gpsAvailable) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-                    HiitChip(
-                        selected = config.workTargetType == HiitWorkTarget.TIME,
-                        label = "Tiempo de trabajo",
-                        accentColor = accentColor,
-                        modifier = Modifier.weight(1f),
-                        onClick = { update(config.copy(workTargetType = HiitWorkTarget.TIME)) },
-                    )
-                    HiitChip(
-                        selected = config.workTargetType == HiitWorkTarget.DISTANCE,
-                        label = "Distancia",
-                        accentColor = accentColor,
-                        modifier = Modifier.weight(1f),
-                        onClick = { update(config.copy(workTargetType = HiitWorkTarget.DISTANCE)) },
-                    )
-                }
+                HiitChip(
+                    selected = config.workTargetType == HiitWorkTarget.DISTANCE,
+                    label = "Distancia",
+                    accentColor = accentColor,
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        update(config.copy(workTargetType = HiitWorkTarget.DISTANCE, workTargetValue = config.workTargetValue ?: 400.0))
+                    },
+                )
             }
             if (config.workTargetType == HiitWorkTarget.DISTANCE) {
                 HiitDecimalField(
@@ -303,15 +303,6 @@ internal fun CardioHiitEditor(
                     accentColor = accentColor,
                     modifier = Modifier.fillMaxWidth(),
                 ) { value -> update(config.copy(workTargetValue = value.toDoubleOrNull()?.takeIf { it > 0.0 })) }
-            } else {
-                HiitTimeField("Tiempo de trabajo", "", workTimeTarget ?: 0, accentColor, Modifier.fillMaxWidth()) { seconds ->
-                    update(
-                        config.copy(
-                            workTargetType = HiitWorkTarget.TIME,
-                            workTargetValue = if (seconds > 0) seconds.toDouble() else null,
-                        ),
-                    )
-                }
             }
 
             Text("RPE ${formatRpe(config.targetRpe)} · ${rpeAnchor(config.targetRpe)}", color = accentColor, fontWeight = FontWeight.Bold)
@@ -328,6 +319,83 @@ internal fun CardioHiitEditor(
                     inactiveTrackColor = accentColor.copy(alpha = 0.2f),
                 ),
                 modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun HiitTemplateCarouselCard(
+    template: HiitTemplate,
+    selected: Boolean,
+    accentColor: Color,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .width(188.dp)
+            .height(150.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        color = if (selected) accentColor.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.055f),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            if (selected) accentColor.copy(alpha = 0.75f) else Color.White.copy(alpha = 0.12f),
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(7.dp),
+        ) {
+            Text(
+                template.name,
+                color = Color.White,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Black,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                val previewBlocks = template.blocks
+                    .filter { it.type == CardioBlockType.WORK || it.type == CardioBlockType.RECOVER }
+                    .take(10)
+                val maxDuration = previewBlocks.maxOfOrNull { it.durationSeconds }?.coerceAtLeast(1) ?: 1
+                previewBlocks.forEach { block ->
+                    val heightFraction = (block.durationSeconds.toFloat() / maxDuration).coerceIn(0.22f, 1f)
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(heightFraction)
+                            .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                            .background(
+                                if (block.type == CardioBlockType.RECOVER) {
+                                    Color.White.copy(alpha = 0.28f)
+                                } else {
+                                    accentColor.copy(alpha = if (selected) 0.9f else 0.64f)
+                                },
+                            ),
+                    )
+                }
+            }
+            Text(
+                "${template.rounds} rondas · ${template.level}",
+                color = accentColor.copy(alpha = 0.86f),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+            )
+            Text(
+                template.description,
+                color = Color.White.copy(alpha = 0.58f),
+                style = MaterialTheme.typography.labelSmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }

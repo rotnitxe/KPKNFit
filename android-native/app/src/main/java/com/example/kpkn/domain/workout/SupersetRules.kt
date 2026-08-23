@@ -65,8 +65,11 @@ object SupersetRules {
                 exercise.copy(
                     supersetGroupRef = group.id,
                     supersetId = group.id,
-                    supersetRestBetween = group.restBetweenExercises,
-                    supersetRestAfter = group.restAfterSuperset,
+                    // Keep a member's own rest when it was explicitly
+                    // configured.  The group values remain the fallback for
+                    // legacy sessions and newly-created members.
+                    supersetRestBetween = exercise.supersetRestBetween ?: group.restBetweenExercises,
+                    supersetRestAfter = exercise.supersetRestAfter ?: group.restAfterSuperset,
                 )
             }
         }
@@ -121,12 +124,14 @@ object SupersetRules {
         // First, extract all exercises to find where they currently are and update them
         val allCurrentExercises = session.allExercises()
         val updatedMembers = targetIds.mapNotNull { id ->
-            allCurrentExercises.find { it.id == id }?.copy(
+            allCurrentExercises.find { it.id == id }?.let { member -> member.copy(
                 supersetGroupRef = groupId,
                 supersetId = groupId,
-                supersetRestBetween = group.restBetweenExercises,
-                supersetRestAfter = group.restAfterSuperset,
-            )
+                // Translate each exercise's existing rest into the member
+                // override instead of erasing it with one global value.
+                supersetRestBetween = member.supersetRestBetween ?: member.restTime ?: group.restBetweenExercises,
+                supersetRestAfter = member.supersetRestAfter ?: group.restAfterSuperset,
+            ) }
         }
 
         // Strip them from everywhere

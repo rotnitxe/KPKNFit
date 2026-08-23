@@ -83,6 +83,7 @@ import com.example.kpkn.screens.sessioneditor.sessionBackgroundPresets
 import com.example.kpkn.screens.sessioneditor.sessionGradients
 import com.example.kpkn.ui.components.KpknDropdownMenu
 import com.example.kpkn.ui.components.kpknGlass
+import com.example.kpkn.ui.components.kpknCoverGlass
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.delay
@@ -229,7 +230,7 @@ internal fun SessionHero(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .kpknGlass(heroHazeState, HeroPillShape)
+                        .kpknCoverGlass(heroHazeState, HeroPillShape)
                         .padding(horizontal = 22.dp, vertical = 16.dp),
                     contentAlignment = Alignment.CenterStart,
                 ) {

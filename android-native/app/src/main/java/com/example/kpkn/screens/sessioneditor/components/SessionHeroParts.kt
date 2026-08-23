@@ -45,6 +45,7 @@ import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.screens.sessioneditor.DarkEditorChip
 import com.example.kpkn.screens.sessioneditor.sessionBackgroundPresets
 import com.example.kpkn.screens.sessioneditor.sessionGradients
+import com.example.kpkn.screens.sessioneditor.sessionCoverColors
 import com.example.kpkn.screens.sessioneditor.SessionEditorAugeSummary
 import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
@@ -53,11 +54,10 @@ import dev.chrisbanes.haze.HazeState
 internal fun SessionBackgroundLayer(background: SessionBackground?, blurDp: androidx.compose.ui.unit.Dp) {
     when {
         background == null || background.type == SessionBackgroundType.COLOR -> {
-            val gradient = sessionBackgroundPresets.firstOrNull { it.id == background?.value } ?: sessionGradients.first()
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Brush.linearGradient(gradient.colors))
+                    .background(Brush.linearGradient(sessionCoverColors(background)))
                     .blur(blurDp),
             )
         }

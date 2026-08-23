@@ -1,7 +1,7 @@
 package com.example.kpkn.screens.sessioneditor
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -169,7 +169,7 @@ internal fun SessionEditorListItem(
                 } else {
                     0f
                 },
-                animationSpec = tween(90),
+                animationSpec = spring(dampingRatio = 0.82f, stiffness = 700f),
                 label = "looseDnDShift",
             )
             val isLooseInsertBefore = exerciseDropTargetPartId == "__loose__" &&
@@ -235,7 +235,7 @@ internal fun SessionEditorListItem(
                 } else {
                     0f
                 },
-                animationSpec = tween(90),
+                animationSpec = spring(dampingRatio = 0.82f, stiffness = 700f),
                 label = "partDnDShift",
             )
             val containerBackground = if (isCardioSpace) {
@@ -324,7 +324,7 @@ internal fun SessionEditorListItem(
                 } else {
                     0f
                 },
-                animationSpec = tween(90),
+                animationSpec = spring(dampingRatio = 0.82f, stiffness = 700f),
                 label = "looseSupersetDnDShift",
             )
             val isLooseSupersetInsertBefore = exerciseDropTargetPartId == "__loose__" &&
@@ -395,7 +395,7 @@ internal fun SessionEditorListItem(
                 } else {
                     0f
                 },
-                animationSpec = tween(90),
+                animationSpec = spring(dampingRatio = 0.82f, stiffness = 700f),
                 label = "partSupersetDnDShift",
             )
             val isPartSupersetInsertBefore = exerciseDropTargetPartId == part.id &&
@@ -474,7 +474,7 @@ internal fun SessionEditorListItem(
                 } else {
                     0f
                 },
-                animationSpec = tween(90),
+                animationSpec = spring(dampingRatio = 0.82f, stiffness = 700f),
                 label = "partAddFooterDnDShift",
             )
             val isDropTargetAtEnd = exerciseDropTargetPartId == part.id &&
@@ -804,12 +804,14 @@ private fun LooseExerciseItem(
 ) {
     val partId = "__loose__"
     val accentHex = resolveExerciseAccentHex(session, partColor = null)
+    val coverAccentHex = resolveCoverAccentId(session.background)
 
     key("loose|${exercise.id}") {
         ExerciseEditorCard(
             exercise = exercise,
             exerciseInfo = resolveCatalogInfoForDisplay(exercise, exerciseInfoById),
             accentHex = accentHex,
+            coverAccentHex = coverAccentHex,
             partId = partId,
             isCompetitionMovement = exercise.matchesCompetitionMovement(competitionMovementIds),
             modifier = Modifier.fillMaxWidth(),
@@ -890,10 +892,12 @@ private fun PartExerciseItem(
 ) {
     key("${part.id}|${exercise.id}") {
         val accentHex = resolveExerciseAccentHex(session, part.color)
+        val coverAccentHex = resolveCoverAccentId(session.background)
         ExerciseEditorCard(
             exercise = exercise,
             exerciseInfo = resolveCatalogInfoForDisplay(exercise, exerciseInfoById),
             accentHex = accentHex,
+            coverAccentHex = coverAccentHex,
             partId = part.id,
             isCompetitionMovement = exercise.matchesCompetitionMovement(competitionMovementIds),
             modifier = Modifier.fillMaxWidth(),
@@ -975,6 +979,7 @@ private fun LooseSupersetItem(
 ) {
     val partId = "__loose__"
     val accentHex = resolveExerciseAccentHex(session, partColor = null)
+    val coverAccentHex = resolveCoverAccentId(session.background)
     val firstMember = supersetMembers.first()
 
     SupersetGroupEditorCard(
@@ -1029,6 +1034,7 @@ private fun LooseSupersetItem(
                     exercise = member,
                     exerciseInfo = resolveCatalogInfoForDisplay(member, exerciseInfoById),
                     accentHex = accentHex,
+                    coverAccentHex = coverAccentHex,
                     partId = partId,
                     isCompetitionMovement = member.matchesCompetitionMovement(competitionMovementIds),
                     modifier = Modifier.fillMaxWidth(),
@@ -1121,6 +1127,7 @@ private fun PartSupersetItem(
     shiftYForBounds: Float = 0f,
 ) {
     val accentHex = resolveExerciseAccentHex(session, part.color)
+    val coverAccentHex = resolveCoverAccentId(session.background)
     val firstMember = supersetMembers.first()
 
     SupersetGroupEditorCard(
@@ -1175,6 +1182,7 @@ private fun PartSupersetItem(
                     exercise = member,
                     exerciseInfo = resolveCatalogInfoForDisplay(member, exerciseInfoById),
                     accentHex = accentHex,
+                    coverAccentHex = coverAccentHex,
                     partId = part.id,
                     isCompetitionMovement = member.matchesCompetitionMovement(competitionMovementIds),
                     modifier = Modifier.fillMaxWidth(),

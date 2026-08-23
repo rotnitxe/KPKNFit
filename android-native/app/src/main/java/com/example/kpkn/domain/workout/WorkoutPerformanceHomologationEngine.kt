@@ -276,7 +276,7 @@ object WorkoutPerformanceHomologationEngine {
         difficultySignal: DifficultySignalV2,
     ): Double {
         var adjusted = localScore
-        if (entry.reachedFailure && entry.plannedTarget != null && entry.actualValue < entry.plannedTarget) {
+        if (isPrematureFailure(entry)) {
             adjusted -= 12.0
         }
         if (entry.plannedTarget != null && entry.actualValue >= entry.plannedTarget) adjusted += 4.0
@@ -319,7 +319,7 @@ object WorkoutPerformanceHomologationEngine {
             )
         }
 
-        if (entry.reachedFailure && entry.plannedTarget != null && entry.actualValue < entry.plannedTarget) {
+        if (isPrematureFailure(entry)) {
             if (entry.loadMode == LoadModeV2.LASTRE && (currentLoad ?: 0.0) <= 2.5) {
                 return Suggestion(
                     suggestedLoad = 0.0,
@@ -416,8 +416,7 @@ object WorkoutPerformanceHomologationEngine {
                 val nearZero = external <= 2.5
                 val cannotSustain = historyColor == HistoryColorV2.RED ||
                     score < 55.0 ||
-                    isPrematureFailure(entry) ||
-                    (entry.plannedTarget != null && entry.actualValue < entry.plannedTarget)
+                    isPrematureFailure(entry)
                 if (external <= 0.0 || (nearZero && cannotSustain)) {
                     return Suggestion(
                         suggestedLoad = 0.0,
@@ -495,7 +494,10 @@ object WorkoutPerformanceHomologationEngine {
     }
 
     fun isPrematureFailure(entry: SetEntryV2): Boolean {
-        return entry.reachedFailure && entry.plannedTarget != null && entry.actualValue < entry.plannedTarget
+        // Debt is evaluated against the semantic minimum for a range. The
+        // planned target remains the upper/load anchor, so it must not turn a
+        // valid 5/4-6 set into a premature-failure signal.
+        return entry.reachedFailure && entry.debt > 0.0
     }
 
     fun computeNormalizedLoad(entry: SetEntryV2): Double = when (entry.loadMode) {
@@ -568,7 +570,7 @@ object WorkoutPerformanceHomologationEngine {
 
     private fun computeDifficultySignal(entry: SetEntryV2): DifficultySignalV2 {
         if (entry.reachedFailure) {
-            if (entry.plannedTarget != null && entry.actualValue < entry.plannedTarget) {
+            if (isPrematureFailure(entry)) {
                 return DifficultySignalV2.HARDER
             }
             return DifficultySignalV2.MATCHED

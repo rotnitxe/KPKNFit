@@ -118,6 +118,8 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -168,6 +170,16 @@ fun SessionEditorScreen(
     var catalogRequestInFlight by rememberSaveable { mutableStateOf(false) }
     var catalogRequestId by rememberSaveable { mutableStateOf<String?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    fun openAssistantSheet() {
+        // Dismiss the group-name BasicTextField before the overlay is composed;
+        // otherwise Android can keep its yellow insertion handle visible above
+        // the sheet even though the field is visually covered.
+        clearSessionEditorAssistantFocus(focusManager, keyboardController)
+        viewModel.openSheet(SessionEditorSheet.AUGE)
+    }
 
     DisposableEffect(lifecycleOwner, viewModel) {
         val observer = LifecycleEventObserver { _, event ->
@@ -839,7 +851,7 @@ fun SessionEditorScreen(
         DraggableHeroFabGroup(
             navBarBottomPx = with(density) { navBarBottomPx.toPx() }.roundToInt(),
             fabBottomPadding = fabBottomPadding,
-            onAssistantClick = { viewModel.openSheet(SessionEditorSheet.AUGE) },
+            onAssistantClick = ::openAssistantSheet,
             onTimeClick = { viewModel.openRulesSheet(initialTab = 1) },
             modifier = Modifier.zIndex(260f),
             assistantFab = { fabModifier ->

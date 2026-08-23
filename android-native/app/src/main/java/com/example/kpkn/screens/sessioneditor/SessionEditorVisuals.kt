@@ -128,10 +128,10 @@ internal fun resolvePartAccent(id: String?): PartAccentPreset {
     return if (parsed != null) PartAccentPreset(id, listOf(parsed)) else partAccentSolids.first()
 }
 
-/** Soft tinted panel for set cards — subtle accent, always dark enough for white text. */
+/** Soft tinted panel for set cards — visible enough to retain the selected cover. */
 internal fun Color.toSetCardBackground(): Color {
     val base = Color(0xFF1A1A20)
-    val mix = 0.09f
+    val mix = 0.14f
     return Color(
         red = (base.red + (red - base.red) * mix).coerceIn(0f, 1f),
         green = (base.green + (green - base.green) * mix).coerceIn(0f, 1f),
@@ -141,7 +141,7 @@ internal fun Color.toSetCardBackground(): Color {
 }
 
 /** Gentle cover/group wash for the exercise card container. */
-internal fun PartAccentPreset.exerciseCardBrush(): Brush = brush(alpha = 0.035f)
+internal fun PartAccentPreset.exerciseCardBrush(alpha: Float = 0.10f): Brush = brush(alpha = alpha)
 
 internal fun resolveCoverAccentId(background: SessionBackground?): String =
     background?.value?.takeIf { it.isNotBlank() }
@@ -156,6 +156,9 @@ internal fun resolveExerciseAccentHex(
     session: Session,
     partColor: String?,
 ): String = partColor?.takeIf { it.isNotBlank() } ?: resolveCoverAccentId(session.background)
+
+internal fun resolveCoverAccentColor(session: Session): Color =
+    resolvePartAccent(resolveCoverAccentId(session.background)).primary
 
 @Composable
 internal fun DragLiftPreview(

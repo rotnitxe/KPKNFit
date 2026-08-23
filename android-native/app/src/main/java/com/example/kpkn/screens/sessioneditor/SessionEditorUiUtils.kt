@@ -2,6 +2,7 @@ package com.example.kpkn.screens.sessioneditor
 
 import android.graphics.Color as AndroidColor
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.*
 import java.text.SimpleDateFormat
@@ -135,6 +136,23 @@ internal val sessionSolidPresets = listOf(
 )
 
 internal val sessionBackgroundPresets = sessionGradients + sessionSolidPresets
+
+/** Canonical cover palette shared by the editor hero and the live header. */
+internal fun sessionCoverColors(background: SessionBackground?): List<Color> = when {
+    background == null || background.type == SessionBackgroundType.COLOR ->
+        sessionBackgroundPresets.firstOrNull { it.id == background?.value }?.colors
+            ?: sessionGradients.first().colors
+    else -> listOf(Color(0xFF111318), Color(0xFF111318))
+}
+
+internal fun sessionCoverAccentColor(background: SessionBackground?): Color =
+    if (background?.type == SessionBackgroundType.IMAGE) {
+        // Images have no persisted palette; retain the established neutral
+        // blue fallback instead of deriving an unreadable near-black accent.
+        Color(0xFF3B82F6)
+    } else {
+        sessionCoverColors(background).maxByOrNull { it.luminance() } ?: Color(0xFFE08E45)
+    }
 
 internal fun SessionPart.isEditorUncategorized(): Boolean =
     name.trim().lowercase() in setOf("sin categoría", "sin categoria", "sin grupo")
