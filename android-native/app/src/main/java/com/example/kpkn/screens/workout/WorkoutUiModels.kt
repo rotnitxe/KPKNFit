@@ -229,6 +229,20 @@ data class WorkoutUiState(
     val voiceExerciseQueue: List<String> = emptyList(),
     val voicePendingFeedbackExerciseIds: Set<String> = emptySet(),
     val finishResumeSnapshot: FinishResumeSnapshot? = null,
+    // ── Modo Ultrarrápido + edición por serie ──────────────────────────────
+    val ultraFastPreview: com.example.kpkn.domain.sessionassistant.UltraFastPreview? = null,
+    val ultraFastApplied: Boolean = false,
+    val ultraFastSnapshot: Session? = null,
+    val ultraFastSavedSeconds: Int = 0,
+    val showUltraFastSheet: Boolean = false,
+    val ultraFastManualOverrides: Map<String, Boolean> = emptyMap(),
+    val seriesTypeTarget: SeriesTypeTarget? = null,
+)
+
+data class SeriesTypeTarget(
+    val exerciseId: String,
+    val fromSetIdx: Int,
+    val toSetIdx: Int,
 )
 
 data class WorkoutSessionSummary(

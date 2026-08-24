@@ -46,33 +46,105 @@ import kotlin.math.roundToInt
  * clean direct load input, effort rating, sticky bottom DarkMica actions,
  * and real-time auto-regulation via WarmupCalibrationEngine.
  */
+data class WarmupExerciseGroup(
+    val exercise: Exercise,
+    val warmupSets: List<WorkoutWarmupDisplaySet>,
+    val baseWorkingWeightKg: Double?,
+)
+
+data class FlattenedWarmupItem(
+    val groupIndex: Int,
+    val totalGroups: Int,
+    val exercise: Exercise,
+    val warmupIndex: Int,
+    val totalWarmupsInGroup: Int,
+    val warmup: WarmupSetDefinition,
+    val warmupDisplaySet: WorkoutWarmupDisplaySet?,
+    val baseWorkingWeightKg: Double?,
+)
+
+/**
+ * Full-screen DarkMica overlay for approximation (warm-up) sets in live sessions.
+ * Features a circular progression ramp, prominent percentages, inline rest timers,
+ * clean direct load input, effort rating, sticky bottom DarkMica actions,
+ * and real-time auto-regulation via WarmupCalibrationEngine.
+ */
 @Composable
 fun WorkoutWarmupOverlay(
-    exercise: Exercise,
-    warmupSets: List<WorkoutWarmupDisplaySet>,
-    baseWorkingWeightKg: Double?,
+    exercise: Exercise? = null,
+    warmupSets: List<WorkoutWarmupDisplaySet> = emptyList(),
+    baseWorkingWeightKg: Double? = null,
+    warmupGroups: List<WarmupExerciseGroup> = if (exercise != null) listOf(WarmupExerciseGroup(exercise, warmupSets, baseWorkingWeightKg)) else emptyList(),
     completedKeys: Set<String>,
     completedSets: Map<String, CompletedSet>,
     onToggleSet: (warmupSetId: String, completed: Boolean) -> Unit,
     onRecordWarmupWeight: (warmupSetId: String, weightKg: Double) -> Unit,
     onRecordWarmupHeaviness: (warmupSetId: String, effort: WarmupEffort) -> Unit,
+    onToggleSetForExercise: ((exerciseId: String, warmupSetId: String, completed: Boolean) -> Unit)? = null,
+    onRecordWarmupWeightForExercise: ((exerciseId: String, warmupSetId: String, weightKg: Double) -> Unit)? = null,
+    onRecordWarmupHeavinessForExercise: ((exerciseId: String, warmupSetId: String, effort: WarmupEffort) -> Unit)? = null,
     onAddWarmupSet: () -> Unit = {},
     onSetTargetWorkingWeight: (Double) -> Unit = {},
+    onSetTargetWorkingWeightForExercise: ((exerciseId: String, weight: Double) -> Unit)? = null,
     onClose: () -> Unit,
     onSkip: () -> Unit = onClose,
     onContinue: () -> Unit = onClose,
     hazeState: HazeState,
     sessionAccentColor: Color = Color(0xFFFFB300),
+    embedded: Boolean = false,
 ) {
+    val activeGroups = remember(warmupGroups, exercise, warmupSets, baseWorkingWeightKg) {
+        if (warmupGroups.isNotEmpty()) warmupGroups else if (exercise != null) listOf(WarmupExerciseGroup(exercise, warmupSets, baseWorkingWeightKg)) else emptyList()
+    }
+    if (activeGroups.isEmpty()) return
+
     val scrollState = rememberScrollState()
 
-    var manualTargetWeight by remember(baseWorkingWeightKg) {
-        mutableStateOf(baseWorkingWeightKg?.takeIf { it > 0.0 })
+    // Flatten all warmup sets across all groups in strict sequence:
+    // First all warmups of Exercise 1, then all warmups of Exercise 2
+    val allFlattenedItems = remember(activeGroups) {
+        activeGroups.flatMapIndexed { gIdx, group ->
+            group.exercise.warmupSets.mapIndexed { wIdx, warmup ->
+                val displaySet = group.warmupSets.getOrNull(wIdx)
+                FlattenedWarmupItem(
+                    groupIndex = gIdx,
+                    totalGroups = activeGroups.size,
+                    exercise = group.exercise,
+                    warmupIndex = wIdx,
+                    totalWarmupsInGroup = group.exercise.warmupSets.size,
+                    warmup = warmup,
+                    warmupDisplaySet = displaySet,
+                    baseWorkingWeightKg = group.baseWorkingWeightKg,
+                )
+            }
+        }
     }
 
-    val activeBaseLoad = manualTargetWeight ?: baseWorkingWeightKg
+    val totalWarmups = allFlattenedItems.size
 
-    // Active inline rest timer state: warmupSetId to remaining seconds
+    val allDone = allFlattenedItems.isNotEmpty() && allFlattenedItems.all { item ->
+        val key = "${item.exercise.id}_warmup_${item.warmup.id}"
+        item.exercise.id in completedKeys || key in completedKeys
+    }
+
+    var activeItemIndex by remember(activeGroups.map { it.exercise.id }) {
+        val firstUncompleted = allFlattenedItems.indexOfFirst { item ->
+            val key = "${item.exercise.id}_warmup_${item.warmup.id}"
+            key !in completedKeys && item.exercise.id !in completedKeys
+        }
+        mutableIntStateOf(if (firstUncompleted >= 0) firstUncompleted else 0)
+    }
+
+    val safeActiveIndex = activeItemIndex.coerceIn(0, (totalWarmups - 1).coerceAtLeast(0))
+    val currentItem = allFlattenedItems.getOrNull(safeActiveIndex)
+
+    var manualTargetWeight by remember(currentItem?.exercise?.id, currentItem?.baseWorkingWeightKg) {
+        mutableStateOf(currentItem?.baseWorkingWeightKg?.takeIf { it > 0.0 })
+    }
+
+    val activeBaseLoad = manualTargetWeight ?: currentItem?.baseWorkingWeightKg
+
+    // Active inline rest timer state
     var inlineRestActiveSetId by remember { mutableStateOf<String?>(null) }
     var inlineRestRemainingSeconds by remember { mutableStateOf(0) }
     var inlineRestTotalSeconds by remember { mutableStateOf(60) }
@@ -90,433 +162,348 @@ fun WorkoutWarmupOverlay(
         }
     }
 
-    // Build effort reports from completed sets for real-time calibration
-    val effortReports = remember(exercise.id, exercise.warmupSets, completedSets) {
-        exercise.warmupSets.mapIndexedNotNull { index, warmup ->
-            val key = "${exercise.id}_warmup_${warmup.id}"
-            val completed = completedSets[key] ?: completedSets[exercise.id]
-            val rpe = completed?.rpe
-            if (rpe != null) {
-                val effort = when {
-                    rpe <= 5.0 -> WarmupEffort.LIGHT
-                    rpe >= 8.5 -> WarmupEffort.HEAVY
-                    else -> WarmupEffort.NORMAL
-                }
-                WarmupEffortReport(warmupIndex = index, effort = effort)
-            } else null
-        }
-    }
-
-    // Run WarmupCalibrationEngine to evaluate live auto-regulation adjustments
-    val calibrationResult = remember(exercise.warmupSets, activeBaseLoad, effortReports) {
-        val programmedPercentages = exercise.warmupSets.map { it.percentageOfWorkingWeight }
-        WarmupCalibrationEngine.calibrateWorkingLoad(
-            programmedPercentages = programmedPercentages,
-            workingLoadKg = activeBaseLoad,
-            reports = effortReports,
-        )
-    }
-
-    val effectiveTargetKg = calibrationResult.firstEffectiveLoadKg ?: activeBaseLoad
-    val allDone = exercise.warmupSets.isNotEmpty() && exercise.warmupSets.all { set ->
-        exercise.id in completedKeys || "${exercise.id}_warmup_${set.id}" in completedKeys
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .zIndex(6f),
-    ) {
-        // Fullscreen DarkMica backdrop — sibling of content + sticky footer.
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .kpknHazeEffect(hazeState),
-        )
-        // Scrolleable content with bottom padding for the sticky bottom bar
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .verticalScroll(scrollState)
-                .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding)
-                .padding(top = 20.dp, bottom = 110.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+    @Composable
+    fun WarmupBodyContent(contentModifier: Modifier) {
+        Surface(
+            modifier = contentModifier,
+            shape = WorkoutUiTokens.CardShape,
+            color = WorkoutUiTokens.setCardColor(),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
         ) {
-            // ─── 1. Cabecera Limpia (Sin icono de fuego) ───
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                // ─── 1. Cabecera y Contador ───
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
                     Text(
                         text = "SERIES DE APROXIMACIÓN",
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Black,
                         color = sessionAccentColor,
-                        letterSpacing = 1.2.sp,
+                        letterSpacing = 1.1.sp,
                     )
-                    Text(
-                        text = exercise.displayNameWithSelectedChips(),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Black,
-                        color = Color.White,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
 
-                Surface(
-                    shape = RoundedCornerShape(999.dp),
-                    color = if (allDone) Color(0xFF66BB6A).copy(alpha = 0.18f) else Color.White.copy(alpha = 0.08f),
-                ) {
-                    Text(
-                        text = "${completedKeys.count { it.startsWith("${exercise.id}_warmup_") || it == exercise.id }.coerceAtMost(exercise.warmupSets.size)}/${exercise.warmupSets.size}",
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        color = if (allDone) Color(0xFF66BB6A) else Color.White.copy(alpha = 0.80f),
-                    )
-                }
-            }
-
-            // ─── 2. Selector Guiado de Carga Efectiva Objetivo si no existe ───
-            if (activeBaseLoad == null || activeBaseLoad <= 0.0) {
-                TargetWeightGuidanceCard(
-                    sessionAccentColor = sessionAccentColor,
-                    onSetWeight = { weight ->
-                        manualTargetWeight = weight
-                        onSetTargetWorkingWeight(weight)
-                    },
-                )
-            }
-
-            // ─── 3. Progresión Neural Circular ───
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                color = Color.White.copy(alpha = 0.04f),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
+                    Surface(
+                        shape = RoundedCornerShape(999.dp),
+                        color = if (allDone) Color(0xFF38BDF8).copy(alpha = 0.18f) else Color.White.copy(alpha = 0.08f),
                     ) {
-                        Text(
-                            "Progresión Neural",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White.copy(alpha = 0.70f),
-                        )
-                        if (effectiveTargetKg != null && effectiveTargetKg > 0) {
-                            Surface(
-                                shape = RoundedCornerShape(6.dp),
-                                color = sessionAccentColor.copy(alpha = 0.15f),
-                            ) {
-                                Text(
-                                    "Objetivo: ${effectiveTargetKg.toTrimmedNumberString()} kg",
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Black,
-                                    color = sessionAccentColor,
-                                )
-                            }
+                        val completedCount = allFlattenedItems.count { item ->
+                            val key = "${item.exercise.id}_warmup_${item.warmup.id}"
+                            item.exercise.id in completedKeys || key in completedKeys
                         }
+                        Text(
+                            text = "$completedCount/$totalWarmups",
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+                            fontWeight = FontWeight.Black,
+                            color = if (allDone) Color(0xFF38BDF8) else Color.White.copy(alpha = 0.80f),
+                        )
                     }
+                }
 
-                    // Nodos Circulares Conectados
+                // ─── 2. Selector Guiado de Carga Efectiva si no existe ───
+                val completedCount = allFlattenedItems.count { item ->
+                    val key = "${item.exercise.id}_warmup_${item.warmup.id}"
+                    item.exercise.id in completedKeys || key in completedKeys
+                }
+                if ((activeBaseLoad == null || activeBaseLoad <= 0.0) && completedCount == 0 && currentItem != null) {
+                    TargetWeightGuidanceCard(
+                        sessionAccentColor = sessionAccentColor,
+                        onSetWeight = { weight ->
+                            manualTargetWeight = weight
+                            onSetTargetWorkingWeightForExercise?.invoke(currentItem.exercise.id, weight)
+                                ?: onSetTargetWorkingWeight(weight)
+                        },
+                    )
+                }
+
+                // ─── 3. Stepper de Aproximaciones (Píldoras Compactas de Selección con División por Ejercicio) ───
+                if (totalWarmups > 1) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState())
-                            .padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        exercise.warmupSets.forEachIndexed { index, warmup ->
-                            val isCompleted = exercise.id in completedKeys || "${exercise.id}_warmup_${warmup.id}" in completedKeys
-                            val displaySet = warmupSets.getOrNull(index)
-                            val pctFraction = if (warmup.percentageOfWorkingWeight > 1.0) warmup.percentageOfWorkingWeight / 100.0 else warmup.percentageOfWorkingWeight
-                            val calculatedLoad = displaySet?.targetWeight ?: (effectiveTargetKg?.let { it * pctFraction })
-
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(4.dp),
-                            ) {
-                                Surface(
-                                    shape = CircleShape,
-                                    color = when {
-                                        isCompleted -> Color(0xFF66BB6A).copy(alpha = 0.20f)
-                                        else -> Color.White.copy(alpha = 0.06f)
-                                    },
-                                    border = BorderStroke(
-                                        1.5.dp,
-                                        when {
-                                            isCompleted -> Color(0xFF66BB6A)
-                                            else -> Color.White.copy(alpha = 0.15f)
-                                        },
-                                    ),
-                                    modifier = Modifier.size(44.dp),
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        if (isCompleted) {
-                                            Icon(
-                                                Icons.Default.Check,
-                                                contentDescription = null,
-                                                tint = Color(0xFF66BB6A),
-                                                modifier = Modifier.size(20.dp),
-                                            )
-                                        } else {
-                                            Text(
-                                                "A${index + 1}",
-                                                style = MaterialTheme.typography.labelMedium,
-                                                fontWeight = FontWeight.Black,
-                                                color = Color.White,
-                                            )
-                                        }
-                                    }
-                                }
-
-                                Text(
-                                    formatWarmupPercent(warmup.percentageOfWorkingWeight),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = sessionAccentColor,
-                                    fontSize = 11.sp,
-                                )
-                                Text(
-                                    "${calculatedLoad?.toTrimmedNumberString() ?: "-"}k",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White.copy(alpha = 0.70f),
-                                    fontSize = 10.sp,
-                                )
-                            }
-
-                            if (index < exercise.warmupSets.size - 1) {
+                        activeGroups.forEachIndexed { gIdx, group ->
+                            if (gIdx > 0) {
                                 Box(
                                     modifier = Modifier
-                                        .width(16.dp)
-                                        .height(1.5.dp)
-                                        .background(Color.White.copy(alpha = 0.18f)),
+                                        .height(18.dp)
+                                        .width(1.5.dp)
+                                        .background(Color.White.copy(alpha = 0.20f))
                                 )
                             }
-                        }
-
-                        // Nodo circular final: Serie Efectiva
-                        Box(
-                            modifier = Modifier
-                                .width(16.dp)
-                                .height(1.5.dp)
-                                .background(sessionAccentColor.copy(alpha = 0.40f)),
-                        )
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = sessionAccentColor.copy(alpha = 0.18f),
-                                border = BorderStroke(2.dp, sessionAccentColor),
-                                modifier = Modifier.size(44.dp),
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        Icons.Default.FitnessCenter,
-                                        contentDescription = null,
-                                        tint = sessionAccentColor,
-                                        modifier = Modifier.size(18.dp),
+                            if (activeGroups.size > 1) {
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = Color.White.copy(alpha = 0.06f),
+                                ) {
+                                    Text(
+                                        text = "Ej ${gIdx + 1}: ${group.exercise.name.take(12)}",
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White.copy(alpha = 0.70f),
                                     )
                                 }
                             }
-                            Text(
-                                "100%",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Black,
-                                color = sessionAccentColor,
-                                fontSize = 11.sp,
-                            )
-                            Text(
-                                "${effectiveTargetKg?.toTrimmedNumberString() ?: "-"}k",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Black,
-                                color = Color.White,
-                                fontSize = 10.sp,
-                            )
-                        }
-                    }
+                            group.exercise.warmupSets.forEachIndexed { wIdx, warmup ->
+                                val flatIdx = allFlattenedItems.indexOfFirst {
+                                    it.exercise.id == group.exercise.id && it.warmup.id == warmup.id
+                                }
+                                val key = "${group.exercise.id}_warmup_${warmup.id}"
+                                val isCompleted = group.exercise.id in completedKeys || key in completedKeys
+                                val isCurrent = flatIdx == safeActiveIndex
+                                val pctText = formatWarmupPercent(warmup.percentageOfWorkingWeight)
 
-                    // Nota de auto-regulación viva
-                    if (!calibrationResult.note.isNullOrBlank() && effortReports.isNotEmpty()) {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = sessionAccentColor.copy(alpha = 0.08f),
-                            border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.20f)),
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            ) {
-                                Icon(
-                                    Icons.Default.AutoAwesome,
-                                    contentDescription = null,
-                                    tint = sessionAccentColor,
-                                    modifier = Modifier.size(14.dp),
-                                )
-                                Text(
-                                    calibrationResult.note,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White.copy(alpha = 0.90f),
-                                )
+                                Surface(
+                                    onClick = { if (flatIdx >= 0) activeItemIndex = flatIdx },
+                                    shape = RoundedCornerShape(999.dp),
+                                    color = when {
+                                        isCurrent -> sessionAccentColor.copy(alpha = 0.18f)
+                                        isCompleted -> Color(0xFF0C4A6E).copy(alpha = 0.85f)
+                                        else -> Color.White.copy(alpha = 0.04f)
+                                    },
+                                    border = BorderStroke(
+                                        width = if (isCurrent) 1.5.dp else 1.dp,
+                                        color = when {
+                                            isCurrent -> sessionAccentColor
+                                            isCompleted -> Color(0xFF38BDF8)
+                                            else -> Color.White.copy(alpha = 0.10f)
+                                        },
+                                    ),
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                    ) {
+                                        Text(
+                                            text = "A${wIdx + 1}",
+                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.5.sp),
+                                            fontWeight = if (isCurrent || isCompleted) FontWeight.Black else FontWeight.Bold,
+                                            color = when {
+                                                isCompleted -> Color(0xFF38BDF8)
+                                                isCurrent -> Color.White
+                                                else -> Color.White.copy(alpha = 0.65f)
+                                            },
+                                        )
+                                        Text(
+                                            text = "· $pctText",
+                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.5.sp),
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = if (isCurrent) sessionAccentColor else Color.White.copy(alpha = 0.45f),
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            // ─── 4. Tarjetas Detalladas por Serie de Aproximación ───
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    "Registro de Carga y Esfuerzo",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Black,
-                    color = Color.White,
-                )
-
-                exercise.warmupSets.forEachIndexed { index, warmup ->
-                    val isCompleted = exercise.id in completedKeys || "${exercise.id}_warmup_${warmup.id}" in completedKeys
-                    val displaySet = warmupSets.getOrNull(index)
-                    val key = "${exercise.id}_warmup_${warmup.id}"
-                    val loggedSet = completedSets[key] ?: completedSets[exercise.id]
-
-                    val pctFraction = if (warmup.percentageOfWorkingWeight > 1.0) warmup.percentageOfWorkingWeight / 100.0 else warmup.percentageOfWorkingWeight
-                    val suggestedWeight = displaySet?.targetWeight ?: (effectiveTargetKg?.let { it * pctFraction })
-                    val currentWeightKg = loggedSet?.weight ?: suggestedWeight
-
-                    val currentEffort = loggedSet?.rpe?.let { rpe ->
+                // ─── 4. Tarjeta Enfocada del Set Activo (Continuidad 1:1 con SetExecutionCard) ───
+                if (currentItem != null) {
+                    val key = "${currentItem.exercise.id}_warmup_${currentItem.warmup.id}"
+                    val isSetDone = currentItem.exercise.id in completedKeys || key in completedKeys
+                    val currentCompleted = completedSets[key] ?: completedSets[currentItem.exercise.id]
+                    val loggedWeight = currentCompleted?.weight
+                    val loggedRpe = currentCompleted?.rpe
+                    val loggedEffort = loggedRpe?.let { r ->
                         when {
-                            rpe <= 5.0 -> WarmupEffort.LIGHT
-                            rpe >= 8.5 -> WarmupEffort.HEAVY
+                            r <= 5.0 -> WarmupEffort.LIGHT
+                            r >= 8.5 -> WarmupEffort.HEAVY
                             else -> WarmupEffort.NORMAL
                         }
                     }
+                    val suggestedKg = currentItem.baseWorkingWeightKg?.let { base: Double ->
+                        (base * currentItem.warmup.percentageOfWorkingWeight / 100.0).roundToStep(2.5)
+                    }
 
-                    val isInlineRestActive = inlineRestActiveSetId == warmup.id && inlineRestRemainingSeconds > 0
+                    val exerciseBadgeText = if (activeGroups.size > 1) {
+                        "EJERCICIO ${currentItem.groupIndex + 1} DE ${activeGroups.size} · ${currentItem.exercise.name.uppercase()}"
+                    } else null
 
                     WarmupSetDetailedCard(
-                        index = index,
-                        warmup = warmup,
-                        suggestedWeightKg = suggestedWeight,
-                        actualWeightKg = currentWeightKg,
-                        isCompleted = isCompleted,
-                        currentEffort = currentEffort,
+                        index = currentItem.warmupIndex,
+                        warmup = currentItem.warmup,
+                        exerciseBadge = exerciseBadgeText,
+                        suggestedWeightKg = suggestedKg,
+                        actualWeightKg = loggedWeight,
+                        isCompleted = isSetDone,
+                        currentEffort = loggedEffort,
                         sessionAccentColor = sessionAccentColor,
-                        onWeightChanged = { newWeight -> onRecordWarmupWeight(warmup.id, newWeight) },
-                        onEffortSelected = { effort -> onRecordWarmupHeaviness(warmup.id, effort) },
-                        onRegisterSet = { weight, effort ->
-                            onRecordWarmupWeight(warmup.id, weight)
-                            onRecordWarmupHeaviness(warmup.id, effort)
-                            if (!isCompleted) onToggleSet(warmup.id, true)
-                            // Iniciar descanso inline local (no overlay completo)
-                            val restTime = (warmup.restBetween?.takeIf { it > 0 }) ?: 60
-                            inlineRestTotalSeconds = restTime
-                            inlineRestRemainingSeconds = restTime
-                            inlineRestActiveSetId = warmup.id
-                            inlineRestIsPaused = false
-                        },
-                        isInlineRestActive = isInlineRestActive,
+                        isInlineRestActive = inlineRestActiveSetId == currentItem.warmup.id,
                         inlineRestRemainingSeconds = inlineRestRemainingSeconds,
                         inlineRestTotalSeconds = inlineRestTotalSeconds,
                         inlineRestIsPaused = inlineRestIsPaused,
                         onTogglePauseInlineRest = { inlineRestIsPaused = !inlineRestIsPaused },
-                        onSkipInlineRest = { inlineRestActiveSetId = null; inlineRestRemainingSeconds = 0 },
+                        onSkipInlineRest = { inlineRestActiveSetId = null },
+                        onWeightChanged = { weight ->
+                            onRecordWarmupWeightForExercise?.invoke(currentItem.exercise.id, currentItem.warmup.id, weight)
+                                ?: onRecordWarmupWeight(currentItem.warmup.id, weight)
+                        },
+                        onEffortSelected = { effort ->
+                            onRecordWarmupHeavinessForExercise?.invoke(currentItem.exercise.id, currentItem.warmup.id, effort)
+                                ?: onRecordWarmupHeaviness(currentItem.warmup.id, effort)
+                        },
+                        onRegisterSet = { weight, effort ->
+                            onRecordWarmupWeightForExercise?.invoke(currentItem.exercise.id, currentItem.warmup.id, weight)
+                                ?: onRecordWarmupWeight(currentItem.warmup.id, weight)
+                            onRecordWarmupHeavinessForExercise?.invoke(currentItem.exercise.id, currentItem.warmup.id, effort)
+                                ?: onRecordWarmupHeaviness(currentItem.warmup.id, effort)
+                            onToggleSetForExercise?.invoke(currentItem.exercise.id, currentItem.warmup.id, true)
+                                ?: onToggleSet(currentItem.warmup.id, true)
+
+                            inlineRestActiveSetId = currentItem.warmup.id
+                            inlineRestTotalSeconds = (currentItem.warmup.restBetween ?: 60).coerceAtLeast(30)
+                            inlineRestRemainingSeconds = inlineRestTotalSeconds
+                            inlineRestIsPaused = false
+
+                            if (safeActiveIndex < allFlattenedItems.lastIndex) {
+                                activeItemIndex = safeActiveIndex + 1
+                            } else {
+                                onContinue()
+                            }
+                        },
                     )
                 }
 
-                // ─── 5. Botón para Añadir más aproximaciones (KPKN Glass) ───
-                Button(
-                    onClick = onAddWarmupSet,
-                    modifier = Modifier.fillMaxWidth().height(44.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = sessionAccentColor.copy(alpha = 0.14f),
-                        contentColor = sessionAccentColor,
-                    ),
-                    border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.40f)),
+                // ─── 5. Botones de Acción (Integrados en la tarjeta) ───
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        "Agregar serie de aproximación",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                    )
+                    Button(
+                        onClick = onSkip,
+                        modifier = Modifier.weight(1f).height(44.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF1B232E).copy(alpha = 0.90f),
+                            contentColor = Color.White,
+                        ),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.18f)),
+                    ) {
+                        Text(
+                            "Saltar",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                        )
+                    }
+
+                    Button(
+                        onClick = onContinue,
+                        enabled = allDone || totalWarmups == 0,
+                        modifier = Modifier.weight(1.4f).height(44.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = sessionAccentColor,
+                            contentColor = Color.Black,
+                            disabledContainerColor = Color(0xFF151B24).copy(alpha = 0.85f),
+                            disabledContentColor = Color.White.copy(alpha = 0.38f),
+                        ),
+                        border = if (!allDone && totalWarmups > 0) BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)) else null,
+                    ) {
+                        Text(
+                            if (allDone || totalWarmups == 0) "Comenzar 1ª serie" else "Completa las series",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Black,
+                        )
+                    }
                 }
             }
         }
+    }
 
-        // ─── 6. Sticky footer DarkMica (sibling of haze backdrop; no opaque gradient) ───
+    if (embedded) {
+        WarmupBodyContent(
+            contentModifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding)
+                .padding(top = 8.dp, bottom = 16.dp)
+        )
+    } else {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .kpknGlass(hazeState, WorkoutUiTokens.DockShape)
-                .navigationBarsPadding()
-                .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding)
-                .padding(top = 16.dp, bottom = 14.dp),
+                .fillMaxSize()
+                .zIndex(6f),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .kpknHazeEffect(hazeState),
+            )
+            WarmupBodyContent(
+                contentModifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding)
+                    .padding(top = 20.dp, bottom = 110.dp)
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .kpknGlass(hazeState, WorkoutUiTokens.DockShape)
+                    .navigationBarsPadding()
+                    .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding)
+                    .padding(top = 16.dp, bottom = 14.dp),
             ) {
-                Button(
-                    onClick = onSkip,
-                    modifier = Modifier.weight(1f).height(48.dp),
-                    shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF1B232E).copy(alpha = 0.90f),
-                        contentColor = Color.White,
-                    ),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.20f)),
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
-                        "Saltar",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                    )
-                }
+                    Button(
+                        onClick = onSkip,
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(999.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF1B232E).copy(alpha = 0.90f),
+                            contentColor = Color.White,
+                        ),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.20f)),
+                    ) {
+                        Text(
+                            "Saltar",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                        )
+                    }
 
-                Button(
-                    onClick = onContinue,
-                    enabled = allDone,
-                    modifier = Modifier.weight(1.3f).height(48.dp),
-                    shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = sessionAccentColor,
-                        contentColor = Color.Black,
-                        disabledContainerColor = Color(0xFF151B24).copy(alpha = 0.85f),
-                        disabledContentColor = Color.White.copy(alpha = 0.38f),
-                    ),
-                    border = if (!allDone) BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)) else null,
-                ) {
-                    Text(
-                        if (allDone) "Comenzar 1ª serie" else "Completa las series",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Black,
-                    )
+                    Button(
+                        onClick = onContinue,
+                        enabled = allDone,
+                        modifier = Modifier.weight(1.3f).height(48.dp),
+                        shape = RoundedCornerShape(999.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = sessionAccentColor,
+                            contentColor = Color.Black,
+                            disabledContainerColor = Color(0xFF151B24).copy(alpha = 0.85f),
+                            disabledContentColor = Color.White.copy(alpha = 0.38f),
+                        ),
+                        border = if (!allDone) BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)) else null,
+                    ) {
+                        Text(
+                            if (allDone) "Comenzar 1ª serie" else "Completa las series",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Black,
+                        )
+                    }
                 }
             }
         }
@@ -531,6 +518,7 @@ fun WorkoutWarmupOverlay(
 private fun WarmupSetDetailedCard(
     index: Int,
     warmup: WarmupSetDefinition,
+    exerciseBadge: String? = null,
     suggestedWeightKg: Double?,
     actualWeightKg: Double?,
     isCompleted: Boolean,
@@ -546,21 +534,21 @@ private fun WarmupSetDetailedCard(
     onTogglePauseInlineRest: () -> Unit,
     onSkipInlineRest: () -> Unit,
 ) {
-    var textValue by remember(actualWeightKg, suggestedWeightKg) {
+    var textValue by remember(warmup.id, actualWeightKg, suggestedWeightKg) {
         val initial = actualWeightKg ?: suggestedWeightKg
         mutableStateOf(initial?.toTrimmedNumberString() ?: "")
     }
 
-    var selectedEffort by remember(currentEffort) {
+    var selectedEffort by remember(warmup.id, currentEffort) {
         mutableStateOf(currentEffort ?: WarmupEffort.NORMAL)
     }
 
     Surface(
         shape = RoundedCornerShape(18.dp),
-        color = if (isCompleted) Color(0xFF66BB6A).copy(alpha = 0.07f) else Color.White.copy(alpha = 0.04f),
+        color = if (isCompleted) Color(0xFF38BDF8).copy(alpha = 0.08f) else Color.White.copy(alpha = 0.04f),
         border = BorderStroke(
             1.dp,
-            if (isCompleted) Color(0xFF66BB6A).copy(alpha = 0.35f) else Color.White.copy(alpha = 0.08f),
+            if (isCompleted) Color(0xFF38BDF8).copy(alpha = 0.40f) else Color.White.copy(alpha = 0.08f),
         ),
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -569,6 +557,23 @@ private fun WarmupSetDetailedCard(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             // Header del Set con Porcentaje Prominente
+            if (exerciseBadge != null) {
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = Color.White.copy(alpha = 0.08f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+                ) {
+                    Text(
+                        text = exerciseBadge,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.5.sp),
+                        fontWeight = FontWeight.Black,
+                        color = sessionAccentColor,
+                        letterSpacing = 0.8.sp,
+                    )
+                }
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -580,7 +585,7 @@ private fun WarmupSetDetailedCard(
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = if (isCompleted) Color(0xFF66BB6A).copy(alpha = 0.18f) else sessionAccentColor.copy(alpha = 0.15f),
+                        color = if (isCompleted) Color(0xFF38BDF8).copy(alpha = 0.18f) else sessionAccentColor.copy(alpha = 0.15f),
                         modifier = Modifier.size(32.dp),
                     ) {
                         Box(contentAlignment = Alignment.Center) {
@@ -588,7 +593,7 @@ private fun WarmupSetDetailedCard(
                                 "A${index + 1}",
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Black,
-                                color = if (isCompleted) Color(0xFF66BB6A) else sessionAccentColor,
+                                color = if (isCompleted) Color(0xFF38BDF8) else sessionAccentColor,
                             )
                         }
                     }
@@ -635,57 +640,150 @@ private fun WarmupSetDetailedCard(
                 }
             }
 
-            // Input Directo de Carga (Limpio, sin frases obvias)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    "Carga utilizada:",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White.copy(alpha = 0.85f),
-                )
-
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = Color.White.copy(alpha = 0.08f),
-                    border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.35f)),
-                    modifier = Modifier.width(110.dp).height(40.dp),
+            // Input Directo de Carga con Steppers y Chips Rápidos
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize().padding(horizontal = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
+                    Text(
+                        "Carga utilizada:",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White.copy(alpha = 0.85f),
+                    )
+
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color.White.copy(alpha = 0.08f),
+                        border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.35f)),
+                        modifier = Modifier.height(42.dp),
                     ) {
-                        BasicTextField(
-                            value = textValue,
-                            onValueChange = { input ->
-                                textValue = input
-                                input.toDoubleOrNull()?.let { onWeightChanged(it) }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(2.dp),
+                            modifier = Modifier.padding(horizontal = 4.dp),
+                        ) {
+                            Surface(
+                                onClick = {
+                                    val current = textValue.toDoubleOrNull() ?: suggestedWeightKg ?: 0.0
+                                    val next = (current - 2.5).coerceAtLeast(0.0)
+                                    textValue = next.toTrimmedNumberString()
+                                    onWeightChanged(next)
+                                },
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color.White.copy(alpha = 0.06f),
+                                modifier = Modifier.size(32.dp),
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Default.Remove, contentDescription = "Menos", tint = Color.White.copy(alpha = 0.80f), modifier = Modifier.size(16.dp))
+                                }
+                            }
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.widthIn(min = 64.dp).padding(horizontal = 4.dp),
+                            ) {
+                                BasicTextField(
+                                    value = textValue,
+                                    onValueChange = { input ->
+                                        textValue = input
+                                        input.toDoubleOrNull()?.let { onWeightChanged(it) }
+                                    },
+                                    textStyle = TextStyle(
+                                        color = Color.White,
+                                        fontSize = 17.sp,
+                                        fontWeight = FontWeight.Black,
+                                        textAlign = TextAlign.Center,
+                                        fontFamily = FontFamily.Monospace,
+                                    ),
+                                    cursorBrush = SolidColor(sessionAccentColor),
+                                    keyboardOptions = KeyboardOptions(
+                                        keyboardType = KeyboardType.Decimal,
+                                        imeAction = ImeAction.Done,
+                                    ),
+                                    singleLine = true,
+                                    modifier = Modifier.widthIn(min = 36.dp),
+                                )
+                                Text(
+                                    "kg",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White.copy(alpha = 0.60f),
+                                )
+                            }
+
+                            Surface(
+                                onClick = {
+                                    val current = textValue.toDoubleOrNull() ?: suggestedWeightKg ?: 0.0
+                                    val next = current + 2.5
+                                    textValue = next.toTrimmedNumberString()
+                                    onWeightChanged(next)
+                                },
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color.White.copy(alpha = 0.06f),
+                                modifier = Modifier.size(32.dp),
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Default.Add, contentDescription = "Más", tint = Color.White.copy(alpha = 0.80f), modifier = Modifier.size(16.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Quick load adjustment chips
+                if (suggestedWeightKg != null && suggestedWeightKg > 0) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Surface(
+                            onClick = {
+                                textValue = suggestedWeightKg.toTrimmedNumberString()
+                                onWeightChanged(suggestedWeightKg)
                             },
-                            textStyle = TextStyle(
-                                color = Color.White,
-                                fontSize = 17.sp,
-                                fontWeight = FontWeight.Black,
-                                textAlign = TextAlign.Center,
-                                fontFamily = FontFamily.Monospace,
-                            ),
-                            cursorBrush = SolidColor(sessionAccentColor),
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Decimal,
-                                imeAction = ImeAction.Done,
-                            ),
-                            singleLine = true,
-                            modifier = Modifier.weight(1f),
-                        )
-                        Text(
-                            "kg",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White.copy(alpha = 0.60f),
-                        )
+                            shape = RoundedCornerShape(8.dp),
+                            color = sessionAccentColor.copy(alpha = 0.12f),
+                            border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.30f)),
+                            modifier = Modifier.weight(1.3f).height(28.dp),
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    "Sugerido: ${suggestedWeightKg.toTrimmedNumberString()} kg",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.5.sp),
+                                    fontWeight = FontWeight.Bold,
+                                    color = sessionAccentColor,
+                                )
+                            }
+                        }
+
+                        listOf(-2.5, 2.5, 5.0).forEach { delta ->
+                            val label = if (delta > 0) "+${delta.toTrimmedNumberString()}" else delta.toTrimmedNumberString()
+                            Surface(
+                                onClick = {
+                                    val current = textValue.toDoubleOrNull() ?: suggestedWeightKg
+                                    val next = (current + delta).coerceAtLeast(0.0)
+                                    textValue = next.toTrimmedNumberString()
+                                    onWeightChanged(next)
+                                },
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color.White.copy(alpha = 0.05f),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
+                                modifier = Modifier.weight(1f).height(28.dp),
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        label,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.5.sp),
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color.White.copy(alpha = 0.75f),
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -947,3 +1045,6 @@ private fun formatWarmupPercent(raw: Double): String {
     val pct = if (raw <= 1.0) raw * 100.0 else raw
     return "${pct.roundToInt()}%"
 }
+
+private fun Double.roundToStep(step: Double): Double = (this / step).roundToInt() * step
+

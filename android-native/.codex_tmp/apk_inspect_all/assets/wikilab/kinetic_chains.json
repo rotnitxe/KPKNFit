@@ -1,0 +1,37 @@
+[
+  {
+    "id": "tren-superior",
+    "name": "Tren Superior",
+    "description": "Cadena funcional de cintura escapular y miembros superiores. Integra patrones de empuje, tirón y estabilización escapular para producir fuerza eficiente en tareas por encima y frente al torso.",
+    "importance": "Es clave para postura, rendimiento en empujes/tirones y salud del hombro. Debe programarse con equilibrio entre cadenas anterior y posterior para evitar desbalances.",
+    "muscles": ["pectoral", "espalda", "hombros", "brazos", "antebrazo", "serrato-anterior", "trapecio"]
+  },
+  {
+    "id": "tren-inferior",
+    "name": "Tren Inferior",
+    "description": "Cadena locomotora principal que integra cadera, rodilla y tobillo en patrones de sentadilla, bisagra, zancada y salto.",
+    "importance": "Base de potencia y capacidad funcional. Aporta mayor transferencia a rendimiento atlético, metabolismo y resiliencia articular de miembro inferior.",
+    "muscles": ["piernas", "cuádriceps", "isquiosurales", "glúteos", "pantorrillas", "aductores", "tibial-anterior", "glúteo-medio"]
+  },
+  {
+    "id": "core",
+    "name": "Core",
+    "description": "Cadena central de estabilidad y transmisión de fuerza formada por abdominales, estabilizadores profundos espinales y sistema respiratorio-pélvico.",
+    "importance": "Sin un core eficiente disminuye el rendimiento global y aumenta el costo mecánico lumbar. Es el puente funcional entre tren inferior y superior.",
+    "muscles": ["core", "abdomen", "recto-abdominal", "oblicuos", "transverso-abdominal", "multífidos", "diafragma", "suelo-pélvico", "erectores-espinales"]
+  },
+  {
+    "id": "cadena-anterior",
+    "name": "Cadena Anterior",
+    "description": "Cadena funcional frontal orientada a empuje y control anti-extensión. Predomina en tareas de aceleración y en patrones dominantes de rodilla.",
+    "importance": "Debe desarrollarse junto a la cadena posterior para mantener equilibrio postural y distribución de cargas en hombro, pelvis y columna.",
+    "muscles": ["pectoral", "deltoides", "bíceps", "cuádriceps", "recto-abdominal", "transverso-abdominal", "tibial-anterior"]
+  },
+  {
+    "id": "cadena-posterior",
+    "name": "Cadena Posterior",
+    "description": "Cadena funcional posterior orientada a producción de fuerza en bisagra, desaceleración y postura. Integra espalda, cadera y musculatura posterior de miembro inferior.",
+    "importance": "Es el principal determinante de potencia en sprint/salto y de tolerancia a cargas altas en levantamientos. Su déficit se asocia a dolor lumbar y pérdida de rendimiento.",
+    "muscles": ["espalda", "trapecio", "erectores-espinales", "glúteos", "isquiosurales", "pantorrillas", "dorsal-ancho"]
+  }
+]

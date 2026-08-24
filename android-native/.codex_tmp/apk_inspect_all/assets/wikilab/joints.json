@@ -1,0 +1,202 @@
+[
+  {
+    "id": "glenohumeral",
+    "name": "Articulación Glenohumeral (Hombro)",
+    "type": "ball-socket",
+    "description": "Articulación esferoidea de 3 grados de libertad entre húmero y escápula. Es la más móvil del cuerpo y funciona en acoplamiento con la escápula (ritmo escapulohumeral) para repartir carga, preservar espacio subacromial y optimizar torque según el ángulo.",
+    "bodyPart": "upper",
+    "musclesCrossing": ["deltoides-anterior", "deltoides-lateral", "deltoides-posterior", "pectoral-superior", "pectoral-medio", "dorsal-ancho", "redondo-mayor", "trapecio-superior", "trapecio-medio", "trapecio-inferior", "romboides", "serrato-anterior", "cabeza-larga-bíceps", "cabeza-larga-tríceps"],
+    "tendonsRelated": ["tendon-supraespinoso", "tendon-bíceps-largo", "tendon-infraespinoso"],
+    "movementPatterns": ["vertical-push", "vertical-pull", "horizontal-push", "horizontal-pull"],
+    "commonInjuries": [
+      {"name": "Impingement subacromial", "description": "Compresión del manguito rotador bajo el acromion.", "riskExercises": ["db_bench_press_tng", "db_overhead_press"], "contraindications": ["Evitar elevaciones por encima de 90° con carga en fase aguda"], "returnProgressions": ["Pendulums de Codman", "Rotaciones externas con banda", "Press con agarre neutro"]},
+      {"name": "Tendinopatía del manguito", "description": "Degeneración o inflamación de los tendones del manguito rotador.", "riskExercises": ["db_dips", "db_overhead_press"], "contraindications": ["Evitar movimientos overhead repetitivos"], "returnProgressions": ["Face pulls", "Rotaciones externas", "Progresión a press por encima de la cabeza"]}
+    ],
+    "protectiveExercises": ["db_exp_face_pull", "db_plank", "db_lateral_raise", "db_seated_cable_row", "db_overhead_press", "tren_superior_face_pull_polea", "tren_superior_remo_sentado_polea_baja", "tren_superior_press_hombros_sentado_mancuernas"]
+  },
+  {
+    "id": "acromioclavicular",
+    "name": "Articulación Acromioclavicular",
+    "type": "gliding",
+    "description": "Articulación plana que une la clavícula con el acromion de la escápula. Permite movimientos de elevación y rotación de la escápula.",
+    "bodyPart": "upper",
+    "musclesCrossing": ["trapecio-superior", "deltoides-anterior"],
+    "tendonsRelated": [],
+    "movementPatterns": ["vertical-push", "horizontal-push"],
+    "commonInjuries": [
+      {"name": "Separación AC", "description": "Lesión de los ligamentos que estabilizan la articulación.", "riskExercises": ["db_bench_press_tng", "db_dips"], "contraindications": ["Evitar cargas directas sobre el hombro"], "returnProgressions": ["Movilidad escapular", "Fortalecimiento del trapecio inferior", "Progresión gradual de carga"]}
+    ]
+  },
+  {
+    "id": "esternoclavicular",
+    "name": "Articulación Esternoclavicular",
+    "type": "saddle",
+    "description": "Articulación que conecta la clavícula con el esternón. Única unión ósea entre el miembro superior y el esqueleto axial.",
+    "bodyPart": "upper",
+    "musclesCrossing": ["pectoral-superior", "trapecio-superior", "deltoides-anterior"],
+    "tendonsRelated": [],
+    "movementPatterns": ["horizontal-push", "vertical-push"],
+    "commonInjuries": []
+  },
+  {
+    "id": "codo",
+    "name": "Articulación del Codo",
+    "type": "hinge",
+    "description": "Complejo articular en bisagra (humerocubital/humerorradial) asociado a la radiocubital proximal. Su función es flexoextensión con control de pronosupinación, transmitiendo altas fuerzas de compresión y tracción en empujes/tirones.",
+    "bodyPart": "upper",
+    "musclesCrossing": ["bíceps", "braquial", "braquiorradial", "tríceps", "cabeza-larga-tríceps", "cabeza-lateral-tríceps", "cabeza-medial-tríceps", "flexores-de-antebrazo", "extensores-de-antebrazo"],
+    "tendonsRelated": ["tendon-bíceps", "tendon-tríceps"],
+    "movementPatterns": ["horizontal-push", "horizontal-pull", "vertical-pull"],
+    "commonInjuries": [
+      {"name": "Codo de tenista (epicondilitis lateral)", "description": "Inflamación de los tendones extensores.", "riskExercises": ["Curl con barra", "Extensión de tríceps"], "contraindications": ["Evitar agarre prono repetitivo con carga"], "returnProgressions": ["Ejercicios excéntricos de extensores", "Curl martillo", "Progresión a curl con barra"]},
+      {"name": "Codo de golfista (epicondilitis medial)", "description": "Inflamación de los tendones flexores.", "riskExercises": ["Curl con barra", "Remo"], "contraindications": ["Evitar agarre fuerte repetitivo"], "returnProgressions": ["Ejercicios excéntricos de flexores", "Estiramientos de muñeca"]}
+    ],
+    "protectiveExercises": ["db_exp_hammer_curl", "db_plank", "db_triceps_pushdown", "db_seated_cable_row", "tren_superior_curl_martillo_mancuernas", "tren_superior_extension_triceps_polea_cuerda", "tren_superior_remo_sentado_polea_baja"]
+  },
+  {
+    "id": "radiocubital-proximal",
+    "name": "Articulación Radiocubital Proximal",
+    "type": "pivot",
+    "description": "Articulación de tipo pivote entre radio y cúbito proximal que permite pronación y supinación del antebrazo, esencial para orientar la mano y transferir carga en empujes, tirones y agarres.",
+    "bodyPart": "upper",
+    "musclesCrossing": ["bíceps", "braquiorradial"],
+    "tendonsRelated": [],
+    "movementPatterns": ["horizontal-pull"],
+    "commonInjuries": []
+  },
+  {
+    "id": "muñeca",
+    "name": "Articulación de la Muñeca (Radiocarpiana)",
+    "type": "condyloid",
+    "description": "Articulación condílea que conecta el radio con los huesos del carpo. Permite flexión, extensión, desviación radial y cubital.",
+    "bodyPart": "upper",
+    "musclesCrossing": ["flexores-de-antebrazo", "extensores-de-antebrazo"],
+    "tendonsRelated": [],
+    "movementPatterns": ["horizontal-push", "horizontal-pull"],
+    "commonInjuries": [
+      {"name": "Tendinitis de muñeca", "description": "Inflamación de los tendones flexores o extensores.", "riskExercises": ["Press de banca", "Peso muerto"], "contraindications": ["Evitar agarres extremos o cargas repetitivas"], "returnProgressions": ["Movilidad de muñeca", "Fortalecimiento de antebrazo", "Progresión de agarre"]}
+    ]
+  },
+  {
+    "id": "columna-cervical",
+    "name": "Columna Cervical",
+    "type": "condyloid",
+    "description": "Conjunto de vértebras C1-C7 que forman el cuello. Permite flexión, extensión, rotación y flexión lateral.",
+    "bodyPart": "spine",
+    "musclesCrossing": ["trapecio-superior", "trapecio-medio", "erectores-espinales"],
+    "tendonsRelated": [],
+    "movementPatterns": [],
+    "commonInjuries": [
+      {"name": "Latigazo cervical", "description": "Lesión por hiperextensión/hiperflexión del cuello.", "contraindications": ["Evitar movimientos bruscos del cuello"], "returnProgressions": ["Movilidad gradual", "Fortalecimiento isométrico", "Progresión a rangos completos"]}
+    ]
+  },
+  {
+    "id": "columna-toracica",
+    "name": "Columna Torácica",
+    "type": "gliding",
+    "description": "Segmento T1-T12 de la columna. Menor movilidad que cervical y lumbar; clave para la rotación y extensión del tronco.",
+    "bodyPart": "spine",
+    "musclesCrossing": ["erectores-espinales", "romboides", "trapecio-medio", "trapecio-inferior", "serrato-anterior"],
+    "tendonsRelated": [],
+    "movementPatterns": ["horizontal-pull", "horizontal-push", "rotation"],
+    "commonInjuries": []
+  },
+  {
+    "id": "columna-lumbar",
+    "name": "Columna Lumbar",
+    "type": "gliding",
+    "description": "Segmento L1-L5 especializado en soportar carga compresiva y de cizalla. Prioriza estabilidad y control anti-flexión/anti-rotación más que amplitud. Su tolerancia depende de core, cadera y patrón técnico.",
+    "bodyPart": "spine",
+    "musclesCrossing": ["erectores-espinales", "recto-abdominal", "oblicuos", "transverso-abdominal", "multífidos"],
+    "tendonsRelated": [],
+    "movementPatterns": ["squat", "hinge", "anti-extension"],
+    "commonInjuries": [
+      {"name": "Lumbalgia mecánica", "description": "Dolor lumbar por disfunción muscular o postural.", "riskExercises": ["Peso muerto convencional", "Sentadilla frontal"], "contraindications": ["Evitar flexión lumbar repetitiva bajo carga"], "returnProgressions": ["Bird dogs", "Planchas", "Puentes de glúteo", "Progresión a bisagras"]},
+      {"name": "Hernia discal lumbar", "description": "Protrusión del disco intervertebral.", "riskExercises": ["Peso muerto", "Sentadilla"], "contraindications": ["Evitar flexión y compresión axial en fase aguda"], "returnProgressions": ["McKenzie extensiones", "Estabilización core", "Progresión muy gradual"]}
+    ],
+    "protectiveExercises": ["db_plank", "db_ab_wheel", "db_hanging_leg_raises", "db_romanian_deadlift", "db_goblet_squat", "ultimo_plancha_frontal", "ultimo_plancha_rodillo", "tren_inferior_peso_muerto_rumano", "tren_inferior_sentadilla_goblet_mancuerna"]
+  },
+  {
+    "id": "sacroiliaca",
+    "name": "Articulación Sacroilíaca",
+    "type": "gliding",
+    "description": "Articulación que une sacro e ilion con escasa movilidad pero alta función de transferencia de carga entre columna y extremidades inferiores durante marcha, sentadilla y bisagra.",
+    "bodyPart": "lower",
+    "musclesCrossing": ["glúteo-mayor", "glúteo-medio", "erectores-espinales", "transverso-abdominal"],
+    "tendonsRelated": [],
+    "movementPatterns": ["hinge", "squat"],
+    "commonInjuries": [
+      {"name": "Disfunción sacroilíaca", "description": "Dolor en la zona lumbar/glútea por alteración de la articulación.", "riskExercises": ["Peso muerto", "Sentadilla unilateral"], "contraindications": ["Evitar asimetrías marcadas en fase aguda"], "returnProgressions": ["Estabilización pélvica", "Puentes", "Progresión a bisagras"]}
+    ]
+  },
+  {
+    "id": "cadera",
+    "name": "Articulación de la Cadera",
+    "type": "ball-socket",
+    "description": "Articulación esferoidea altamente estable entre fémur y acetábulo. Es el principal generador de torque en bisagras y sentadillas, y su movilidad condiciona la mecánica lumbar y de rodilla.",
+    "bodyPart": "lower",
+    "musclesCrossing": ["glúteo-mayor", "glúteo-medio", "glúteo-menor", "recto-femoral", "bíceps-femoral", "semitendinoso", "semimembranoso", "aductores"],
+    "tendonsRelated": [],
+    "movementPatterns": ["hinge", "squat", "lunge"],
+    "commonInjuries": [
+      {"name": "Síndrome del piramidal", "description": "Compresión del nervio ciático por el músculo piramidal.", "riskExercises": ["Sentadilla profunda", "Peso muerto"], "contraindications": ["Evitar sentarse prolongado"], "returnProgressions": ["Estiramiento del piramidal", "Hip thrusts", "Movilidad de cadera"]},
+      {"name": "Impingement de cadera", "description": "Pinzamiento del labrum o tejidos blandos en la cadera.", "riskExercises": ["Sentadilla profunda", "Estocadas"], "contraindications": ["Evitar flexión profunda con rotación interna"], "returnProgressions": ["Movilidad de cadera", "Fortalecimiento glúteo", "Progresión a sentadilla"]}
+    ],
+    "protectiveExercises": ["db_romanian_deadlift", "db_goblet_squat", "db_plank"]
+  },
+  {
+    "id": "rodilla",
+    "name": "Articulación de la Rodilla",
+    "type": "hinge",
+    "description": "Bisagra modificada con fuerte componente de estabilidad ligamentaria y control frontal/transversal. Gestiona altos picos de torque en sentadilla, zancada, cambios de dirección y aterrizaje.",
+    "bodyPart": "lower",
+    "musclesCrossing": ["cuádriceps", "recto-femoral", "vasto-lateral", "vasto-medial", "bíceps-femoral", "semitendinoso", "semimembranoso", "gastrocnemio"],
+    "tendonsRelated": ["tendon-rotuliano", "tendon-cuádriceps"],
+    "movementPatterns": ["squat", "hinge", "extension"],
+    "commonInjuries": [
+      {"name": "Tendinopatía rotuliana", "description": "Dolor en el tendón rotuliano por sobrecarga.", "riskExercises": ["Sentadilla", "Salto"], "contraindications": ["Evitar saltos y sentadillas profundas en fase aguda"], "returnProgressions": ["Ejercicios excéntricos", "Sentadilla isométrica", "Progresión a sentadilla"]},
+      {"name": "Síndrome patelofemoral", "description": "Dolor anterior de rodilla por mala alineación de la rótula.", "riskExercises": ["Sentadilla", "Estocadas"], "contraindications": ["Evitar flexión profunda con valgo"], "returnProgressions": ["Vasto medial", "Glúteo medio", "Progresión a sentadilla"]}
+    ],
+    "protectiveExercises": ["db_goblet_squat", "db_plank", "db_romanian_deadlift", "db_squat_high_bar", "db_exp_hammer_curl", "tren_inferior_sentadilla_goblet_mancuerna", "tren_inferior_peso_muerto_rumano", "tren_inferior_sentadilla_barra_alta"]
+  },
+  {
+    "id": "tobillo",
+    "name": "Articulación del Tobillo",
+    "type": "hinge",
+    "description": "Complejo talocrural en bisagra que trabaja con la subtalar. Determina dorsiflexión funcional para sentadilla y absorbe/retorna energía elástica en carrera y salto.",
+    "bodyPart": "lower",
+    "musclesCrossing": ["gastrocnemio", "sóleo", "tibial-anterior"],
+    "tendonsRelated": ["tendon-aquiles"],
+    "movementPatterns": ["squat", "extension", "jump"],
+    "commonInjuries": [
+      {"name": "Tendinopatía aquílea", "description": "Degeneración del tendón de Aquiles.", "riskExercises": ["Elevación de talones", "Salto"], "contraindications": ["Evitar saltos y carreras en fase aguda"], "returnProgressions": ["Ejercicios excéntricos de sóleo", "Progresión a elevaciones", "Pliometría gradual"]},
+      {"name": "Esguince de tobillo", "description": "Lesión de los ligamentos laterales del tobillo.", "contraindications": ["Evitar inestabilidad en fase aguda"], "returnProgressions": ["Movilidad", "Equilibrio monopodal", "Progresión a carga"]}
+    ],
+    "protectiveExercises": ["db_goblet_squat", "db_romanian_deadlift", "tren_inferior_elevacion_talones_sentado", "tren_inferior_elevacion_talones_pie_maquina"]
+  },
+  {
+    "id": "subtalar",
+    "name": "Articulación Subastragalina",
+    "type": "gliding",
+    "description": "Articulación entre astrágalo y calcáneo que permite inversión/eversión y ajuste del retropié para adaptar el apoyo al terreno y mejorar la mecánica global de tobillo y rodilla.",
+    "bodyPart": "lower",
+    "musclesCrossing": ["tibial-anterior", "gastrocnemio", "sóleo"],
+    "tendonsRelated": ["tendon-aquiles"],
+    "movementPatterns": ["squat"],
+    "commonInjuries": []
+  },
+  {
+    "id": "escapulotoracica",
+    "name": "Articulación Escapulotorácica",
+    "type": "gliding",
+    "description": "Interfaz funcional de deslizamiento de la escápula sobre la parrilla costal. Aunque no es una articulación sinovial, es clave para orientar la glenoides y mantener eficiencia mecánica del hombro.",
+    "bodyPart": "upper",
+    "musclesCrossing": ["serrato-anterior", "trapecio-superior", "trapecio-medio", "trapecio-inferior", "romboides"],
+    "tendonsRelated": [],
+    "movementPatterns": ["vertical-push", "vertical-pull", "horizontal-push", "horizontal-pull"],
+    "commonInjuries": [
+      {"name": "Escápula alada", "description": "Protrusión anormal del borde medial de la escápula por debilidad del serrato.", "riskExercises": ["Press por encima de la cabeza"], "returnProgressions": ["Fortalecimiento del serrato", "Protuberancias", "Progresión a press"]}
+    ],
+    "protectiveExercises": ["db_exp_face_pull", "db_seated_cable_row", "db_overhead_press", "tren_superior_face_pull_polea", "tren_superior_remo_sentado_polea_baja", "tren_superior_press_militar_pie_barra"]
+  }
+]

@@ -97,6 +97,16 @@ class WorkoutBackNavigationTest {
     }
 
     @Test
+    fun warmupReturnsToMobilityBeforeExitDialog() {
+        assertEquals(
+            WorkoutBackAction.RETURN_TO_MOBILITY_FROM_WARMUP,
+            resolveWorkoutBackAction(
+                WorkoutOverlayFlags(canReturnToMobilityFromWarmup = true),
+            ),
+        )
+    }
+
+    @Test
     fun dockClearanceExpandsWithRoadmap() {
         assertEquals(118, dockBottomClearanceDp(roadmapExpanded = false))
         assertEquals(210, dockBottomClearanceDp(roadmapExpanded = true))

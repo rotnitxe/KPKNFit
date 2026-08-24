@@ -1,0 +1,132 @@
+[
+  {
+    "id": "horizontal-push",
+    "name": "Empuje Horizontal",
+    "description": "Patrón padre de empuje en plano horizontal: alejar una carga del torso manteniendo control escapular. Incluye press banca, press con mancuernas y flexiones. Biomecánicamente exige alta aducción horizontal de hombro y extensión de codo.",
+    "forceTypes": ["Empuje"],
+    "chainTypes": ["anterior"],
+    "primaryMuscles": ["pectoral", "deltoides-anterior", "tríceps"],
+    "primaryJoints": ["glenohumeral", "codo", "escapulotoracica"],
+    "exampleExercises": ["db_bench_press_tng", "db_dumbbell_bench_press", "db_push_up", "db_dips", "tren_superior_press_banca_plano_mancuernas", "tren_superior_press_banca_inclinado_mancuernas"]
+  },
+  {
+    "id": "horizontal-pull",
+    "name": "Tirón Horizontal",
+    "description": "Patrón padre de tracción horizontal: acercar carga al torso priorizando retracción/depresión escapular. Incluye variantes de remo y face pull. Es central para equilibrio postural y salud del hombro en programas con mucho press.",
+    "forceTypes": ["Tirón"],
+    "chainTypes": ["posterior"],
+    "primaryMuscles": ["dorsal-ancho", "trapecio", "deltoides-posterior", "bíceps"],
+    "primaryJoints": ["glenohumeral", "codo", "escapulotoracica"],
+    "exampleExercises": ["db_barbell_row", "db_dumbbell_row", "db_seated_cable_row", "db_exp_face_pull", "tren_superior_remo_sentado_polea_baja", "tren_superior_remo_una_mano_mancuerna"]
+  },
+  {
+    "id": "vertical-push",
+    "name": "Empuje Vertical",
+    "description": "Patrón de empuje por encima de la cabeza. Requiere coordinación glenohumeral-escapulotorácica, estabilidad de core y extensión torácica. Incluye press militar y variantes con mancuernas.",
+    "forceTypes": ["Empuje"],
+    "chainTypes": ["anterior"],
+    "primaryMuscles": ["deltoides-anterior", "deltoides-lateral", "tríceps", "trapecio-superior"],
+    "primaryJoints": ["glenohumeral", "codo", "escapulotoracica"],
+    "exampleExercises": ["db_overhead_press", "db_dumbbell_shoulder_press", "db_dips", "tren_superior_press_militar_pie_barra", "tren_superior_press_hombros_sentado_mancuernas"]
+  },
+  {
+    "id": "vertical-pull",
+    "name": "Tirón Vertical",
+    "description": "Patrón de tracción vertical: llevar una carga desde arriba hacia el torso o elevar el cuerpo. Incluye dominadas y jalones. Demanda alta aducción/extensión de hombro y control escapular en depresión.",
+    "forceTypes": ["Tirón"],
+    "chainTypes": ["posterior"],
+    "primaryMuscles": ["dorsal-ancho", "bíceps", "trapecio"],
+    "primaryJoints": ["glenohumeral", "codo", "escapulotoracica"],
+    "exampleExercises": ["db_pull_up", "db_chin_up", "db_lat_pulldown", "tren_superior_dominadas_supinas", "tren_superior_jalon_pecho_prono"]
+  },
+  {
+    "id": "squat",
+    "name": "Patrón de Sentadilla",
+    "description": "Patrón dominante de rodilla con co-dominancia de cadera. Incluye sentadilla trasera, frontal y goblet. La técnica modula el sesgo: torso más vertical aumenta demanda de cuádriceps; mayor inclinación integra más cadera/posterior.",
+    "forceTypes": ["Sentadilla"],
+    "chainTypes": ["anterior", "posterior", "full"],
+    "primaryMuscles": ["cuádriceps", "glúteo-mayor", "glúteo-medio", "erectores-espinales", "aductores"],
+    "primaryJoints": ["cadera", "rodilla", "columna-lumbar"],
+    "exampleExercises": ["db_squat_high_bar", "db_squat_low_bar", "db_front_squat", "db_goblet_squat", "tren_inferior_sentadilla_barra_alta", "tren_inferior_sentadilla_frontal", "tren_inferior_bulgara_mancuernas"]
+  },
+  {
+    "id": "hinge",
+    "name": "Patrón de Bisagra de Cadera",
+    "description": "Patrón dominante de cadera con rodilla semiflexionada. Incluye peso muerto, RDL y variantes. Prioriza extensión de cadera y control lumbar isométrico; es la base para desarrollar cadena posterior y capacidad de producir fuerza desde cadera.",
+    "forceTypes": ["Bisagra"],
+    "chainTypes": ["posterior"],
+    "primaryMuscles": ["erectores-espinales", "glúteo-mayor", "bíceps-femoral", "semitendinoso", "semimembranoso"],
+    "primaryJoints": ["cadera", "columna-lumbar", "rodilla"],
+    "exampleExercises": ["db_deadlift", "db_romanian_deadlift", "db_sumo_deadlift", "tren_inferior_peso_muerto_convencional", "tren_inferior_peso_muerto_rumano", "tren_inferior_peso_muerto_barra_hexagonal", "tren_inferior_hip_thrust_barra"]
+  },
+  {
+    "id": "lunge",
+    "name": "Patrón de Estocada",
+    "description": "Patrón unilateral de tren inferior con alta demanda de estabilidad frontal y transversal. Incluye estocadas, zancadas y búlgaras. Corrige asimetrías y mejora control de cadera/rodilla bajo carga.",
+    "forceTypes": ["Sentadilla"],
+    "chainTypes": ["full"],
+    "primaryMuscles": ["cuádriceps", "glúteo-mayor", "glúteo-medio", "bíceps-femoral"],
+    "primaryJoints": ["cadera", "rodilla"],
+    "exampleExercises": ["db_goblet_squat", "db_squat_high_bar", "tren_inferior_zancada_caminando_mancuernas", "tren_inferior_zancada_inversa_mancuernas", "tren_inferior_subida_cajon_mancuernas"]
+  },
+  {
+    "id": "extension",
+    "name": "Patrón de Extensión",
+    "description": "Patrón complementario que reúne extensiones dominantes de una articulación (rodilla, cadera o tobillo). Se usa para focalizar tejido específico y completar estímulo cuando los patrones globales no agotan al músculo objetivo.",
+    "forceTypes": ["Extensión"],
+    "chainTypes": ["anterior", "posterior"],
+    "primaryMuscles": ["cuádriceps", "glúteo-mayor", "gastrocnemio", "sóleo"],
+    "primaryJoints": ["rodilla", "cadera", "tobillo"],
+    "exampleExercises": ["db_squat_high_bar", "db_romanian_deadlift", "tren_inferior_extension_cuadriceps", "tren_inferior_curl_femoral_sentado", "tren_inferior_elevacion_talones_sentado"]
+  },
+  {
+    "id": "anti-extension",
+    "name": "Anti-Extensión",
+    "description": "Patrón de estabilidad donde el tronco resiste extensión lumbar no deseada. Es clave para transferir fuerza en sentadilla, peso muerto y presses, al mantener rigidez del cilindro lumbopélvico.",
+    "forceTypes": ["Anti-Extensión"],
+    "chainTypes": ["anterior"],
+    "primaryMuscles": ["recto-abdominal", "transverso-abdominal", "oblicuos"],
+    "primaryJoints": ["columna-lumbar"],
+    "exampleExercises": ["db_plank", "db_ab_wheel", "ultimo_plancha_frontal", "ultimo_plancha_rodillo", "ultimo_bicho_muerto"]
+  },
+  {
+    "id": "anti-rotation",
+    "name": "Anti-Rotación",
+    "description": "Patrón de control rotacional donde el objetivo no es girar, sino impedir la rotación ante una perturbación externa o asimétrica. Fundamental para estabilidad lumbar y eficiencia en patrones unilaterales.",
+    "forceTypes": ["Anti-Rotación"],
+    "chainTypes": ["anterior"],
+    "primaryMuscles": ["oblicuos", "transverso-abdominal", "multífidos"],
+    "primaryJoints": ["columna-lumbar", "columna-toracica"],
+    "exampleExercises": ["db_plank", "ultimo_press_pallof_arrodillado", "ultimo_lenador_polea"]
+  },
+  {
+    "id": "rotation",
+    "name": "Rotación",
+    "description": "Patrón dinámico de rotación de tronco/cintura escapular orientado a potencia y transferencia deportiva. Debe construirse sobre base previa de anti-rotación para proteger columna y mejorar eficiencia.",
+    "forceTypes": ["Rotación"],
+    "chainTypes": ["anterior"],
+    "primaryMuscles": ["oblicuos", "recto-abdominal", "serrato-anterior"],
+    "primaryJoints": ["columna-toracica", "columna-lumbar"],
+    "exampleExercises": ["ultimo_lanzamiento_rotacional_balon", "ultimo_press_landmine_rotacional"]
+  },
+  {
+    "id": "carry",
+    "name": "Patrón de Carga",
+    "description": "Patrón integral de locomoción bajo carga. Incluye farmer y suitcase carry. Entrena agarre, estabilidad del core y control postural en fatiga, con alta transferencia funcional.",
+    "forceTypes": ["Otro"],
+    "chainTypes": ["full"],
+    "primaryMuscles": ["trapecio-superior", "trapecio-medio", "erectores-espinales", "transverso-abdominal", "flexores-de-antebrazo"],
+    "primaryJoints": ["columna-lumbar", "glenohumeral"],
+    "exampleExercises": ["ultimo_paseo_granjero_mancuernas", "ultimo_paseo_granjero_unilateral", "nuevo_farmer_walk_kettlebells"]
+  },
+  {
+    "id": "jump",
+    "name": "Patrón de Salto",
+    "description": "Patrón explosivo basado en ciclo estiramiento-acortamiento. Incluye saltos y tareas reactivas. Su objetivo principal es potencia, rigidez tendinosa útil y eficiencia neuromuscular.",
+    "forceTypes": ["Salto"],
+    "chainTypes": ["full"],
+    "primaryMuscles": ["cuádriceps", "glúteo-mayor", "gastrocnemio", "sóleo"],
+    "primaryJoints": ["rodilla", "cadera", "tobillo"],
+    "exampleExercises": ["tren_inferior_salto_cajon", "tren_inferior_salto_longitud", "tren_inferior_salto_caida"]
+  }
+]

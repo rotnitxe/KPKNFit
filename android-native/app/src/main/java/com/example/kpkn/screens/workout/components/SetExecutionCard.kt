@@ -7,6 +7,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -932,11 +933,11 @@ internal fun SetInputCardV2(
         mutableStateOf(initialDraft?.reachedFailure ?: (sessionCompletedSet?.isFailure == true || currentSet.isFailure || currentSet.intensityMode == IntensityMode.FAILURE))
     }
     var isFailedSet by remember(exercise.id, setIndex, sideKey, sessionCompletedSet?.id) {
+        mutableStateOf(sessionCompletedSet?.isFailedSet == true)
+    }
+    var failedSetReason by remember(exercise.id, setIndex, sideKey, sessionCompletedSet?.id) {
         mutableStateOf(
-            sessionCompletedSet?.isFailedSet == true && (
-                sessionCompletedSet.failureReason == "execution_error" ||
-                    sessionCompletedSet.recordedPayloadV3?.executionError == true
-                )
+            sessionCompletedSet?.failureReason?.takeIf { it != "execution_error" && it != "Serie marcada como fallida" } ?: ""
         )
     }
     var isAmrap by remember(exercise.id, setIndex, sideKey, initialDraft?.amrapOverride) {
@@ -2263,7 +2264,11 @@ internal fun SetInputCardV2(
                                         modifier = Modifier.weight(1f),
                                         onClick = {
                                             isFailedSet = !isFailedSet
-                                            if (isFailedSet) reachedFailure = false
+                                            if (isFailedSet) {
+                                                triggerFailureHaptic(context)
+                                                triggerFailureSound(context)
+                                                reachedFailure = false
+                                            }
                                         },
                                     )
                                     FlatAdjustmentButton(
@@ -2475,7 +2480,7 @@ internal fun SetInputCardV2(
                       else null,
                 reachedFailure = reachedFailure || (isAmrap && amrapReachFailure),
                 isFailedSet = isFailedSet,
-                failureReason = if (isFailedSet) "Serie marcada como fallida" else null,
+                failureReason = if (isFailedSet) failedSetReason.ifBlank { "Serie marcada como fallida" } else null,
                 isPartial = partialRepsTotal > 0,
                 partialReps = partialRepsTotal.takeIf { it > 0 },
                 dropSets = if (dropSetEnabled) {
@@ -2784,29 +2789,32 @@ internal fun SetInputCardV2(
                 }
             }
         }
-            if (isFailedSet) {
+            androidx.compose.animation.AnimatedVisibility(
+                visible = isFailedSet,
+                enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(250)) +
+                        androidx.compose.animation.scaleIn(initialScale = 0.96f, animationSpec = androidx.compose.animation.core.tween(250)),
+                exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(200)) +
+                        androidx.compose.animation.scaleOut(targetScale = 0.96f, animationSpec = androidx.compose.animation.core.tween(200)),
+                modifier = Modifier.matchParentSize(),
+            ) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(WorkoutUiTokens.CardShape)
-                        .background(Color(0xFFB3261E).copy(alpha = 0.86f))
+                        .background(Color(0xFF8B1E1E).copy(alpha = 0.94f))
                         .clickable { /* consume taps while the error state is visible */ }
-                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Column(
-                        // The live roadmap overlays the lower edge of the
-                        // scroll content. Lift the explanation and action
-                        // together so the complete error state remains
-                        // readable and Revertir stays tappable above it.
                         modifier = Modifier
                             .fillMaxWidth()
-                            .offset(y = (-320).dp),
+                            .verticalScroll(rememberScrollState()),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         Text(
-                            "Marcaste esta serie como fallida.",
+                            "Marcaste esta serie como fallida",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Black,
                             color = Color.White,
@@ -2815,18 +2823,85 @@ internal fun SetInputCardV2(
                         Text(
                             "Quiere decir que tuviste una incomodidad, molestia o deformación de la técnica que te impidió completarla. Ten cuidado y siempre procura usar cargas que puedas manejar.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(alpha = 0.94f),
+                            color = Color.White.copy(alpha = 0.92f),
                             textAlign = TextAlign.Center,
                         )
-                        FlatAdjustmentButton(
-                            text = "Revertir",
-                            selected = true,
+
+                        // Input para causa o motivo del fallo
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Text(
+                                "Causa o motivo del fallo (opcional):",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White.copy(alpha = 0.90f),
+                            )
+                            OutlinedTextField(
+                                value = failedSetReason,
+                                onValueChange = { failedSetReason = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                placeholder = {
+                                    Text(
+                                        "Ej. Molestia en hombro, fallo técnico, carga excesiva...",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.White.copy(alpha = 0.50f),
+                                    )
+                                },
+                                textStyle = MaterialTheme.typography.bodySmall.copy(color = Color.White),
+                                singleLine = false,
+                                maxLines = 2,
+                                shape = RoundedCornerShape(10.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color.White.copy(alpha = 0.60f),
+                                    unfocusedBorderColor = Color.White.copy(alpha = 0.25f),
+                                    focusedContainerColor = Color.Black.copy(alpha = 0.25f),
+                                    unfocusedContainerColor = Color.Black.copy(alpha = 0.20f),
+                                    cursorColor = Color.White,
+                                ),
+                            )
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                                listOf("Molestia articular", "Fallo técnico", "Carga excesiva", "Pérdida de agarre").forEach { chipText ->
+                                    Surface(
+                                        onClick = { failedSetReason = chipText },
+                                        shape = RoundedCornerShape(999.dp),
+                                        color = if (failedSetReason == chipText) Color.White.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.10f),
+                                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.20f)),
+                                    ) {
+                                        Text(
+                                            chipText,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+                                            color = Color.White.copy(alpha = 0.90f),
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Button(
                             onClick = {
                                 isFailedSet = false
+                                failedSetReason = ""
                                 onRevertExecutionError?.invoke()
                             },
-                            modifier = Modifier.widthIn(min = 140.dp, max = 220.dp),
-                        )
+                            modifier = Modifier.widthIn(min = 140.dp, max = 220.dp).height(38.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Black.copy(alpha = 0.40f),
+                                contentColor = Color.White,
+                            ),
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f)),
+                        ) {
+                            Text("Revertir", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }

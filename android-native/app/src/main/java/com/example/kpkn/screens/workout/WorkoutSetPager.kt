@@ -3,6 +3,8 @@ package com.example.kpkn.screens.workout
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
@@ -68,6 +70,20 @@ internal sealed class TimelineElement {
         val rightPageIndex: Int?,
         val rightState: WorkoutSetCardVisualState,
     ) : TimelineElement()
+
+    data class MobilityPill(
+        val isCurrent: Boolean,
+        val isCompleted: Boolean,
+        val progress: Float,
+        val onSelect: () -> Unit,
+    ) : TimelineElement()
+
+    data class WarmupPill(
+        val isCurrent: Boolean,
+        val isCompleted: Boolean,
+        val progress: Float,
+        val onSelect: () -> Unit,
+    ) : TimelineElement()
 }
 
 @Composable
@@ -82,17 +98,19 @@ internal fun WorkoutSetPager(
     completedPreviousSets: Int = 0,
     nextExerciseSetCount: Int = 0,
     onAddSet: (() -> Unit)? = null,
+    onLongPressPage: ((Int) -> Unit)? = null,
 ) {
     if (elements.isEmpty()) return
 
     val accent = sessionAccentColor ?: MaterialTheme.colorScheme.primary
+    val timelineProgressColor = Color(0xFF38BDF8) // Soft azure / cyan-blue
     val timelineFillTarget = if (totalCount <= 0) 0f else (completedCount.toFloat() / totalCount).coerceIn(0f, 1f)
     val timelineFillProgress by animateFloatAsState(
         targetValue = timelineFillTarget,
-        animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
         label = "setTimelineContinuousFill",
     )
-    val trackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.18f)
+    val trackColor = Color.White.copy(alpha = 0.12f)
 
     // Determine natural active round from current activeElementIndex
     val activeElement = elements.getOrNull(activeElementIndex)
@@ -141,7 +159,7 @@ internal fun WorkoutSetPager(
             SetProgressBadge(
                 completedCount = completedCount,
                 totalCount = totalCount,
-                accent = accent,
+                accent = timelineProgressColor,
             )
             Spacer(Modifier.width(6.dp))
 
@@ -159,28 +177,29 @@ internal fun WorkoutSetPager(
                     elements.size
                 }
                 val estimatedTotalContentWidth = if (hasRounds) {
-                    (totalVisibleItems * 38.0).dp
+                    (totalVisibleItems * 36.0).dp
                 } else {
                     elements.sumOf { elem ->
                         when (elem) {
-                            is TimelineElement.UnilateralSet -> 72.0
-                            is TimelineElement.RoundBadge -> 40.0
-                            else -> 26.0
+                            is TimelineElement.UnilateralSet -> 68.0
+                            is TimelineElement.RoundBadge -> 38.0
+                            is TimelineElement.MobilityPill, is TimelineElement.WarmupPill -> 40.0
+                            else -> 24.0
                         }
                     }.dp
                 } +
-                    (if (completedPreviousSets > 0) 24.dp else 0.dp) +
-                    (if (nextExerciseSetCount > 0) 24.dp else 0.dp)
+                    (if (completedPreviousSets > 0) 20.dp else 0.dp) +
+                    (if (nextExerciseSetCount > 0) 20.dp else 0.dp)
 
                 val dynamicNormalSpacing = if (!hasRounds && elements.size > 1 && estimatedTotalContentWidth < availableWidth) {
-                    ((availableWidth - estimatedTotalContentWidth) / (elements.size + 1)).coerceIn(14.dp, 60.dp)
+                    ((availableWidth - estimatedTotalContentWidth) / (elements.size + 1)).coerceIn(10.dp, 26.dp)
                 } else {
-                    14.dp
+                    10.dp
                 }
 
-                val intraRoundSpacing = 8.dp
-                val interRoundSpacing = 24.dp
-                val collapsedRoundSpacing = 12.dp
+                val intraRoundSpacing = 6.dp
+                val interRoundSpacing = 16.dp
+                val collapsedRoundSpacing = 10.dp
 
                 Box(
                     modifier = Modifier
@@ -191,13 +210,13 @@ internal fun WorkoutSetPager(
                     Box(
                         modifier = Modifier
                             .matchParentSize()
-                            .padding(horizontal = 14.dp),
+                            .padding(horizontal = 12.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         ContinuousTimelineTrack(
                             progress = timelineFillProgress,
-                            fillColor = WORKOUT_COMPLETED_GREEN.copy(alpha = 0.95f),
-                            trackColor = Color.White.copy(alpha = 0.22f),
+                            fillColor = timelineProgressColor,
+                            trackColor = trackColor,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(3.dp),
@@ -289,10 +308,12 @@ internal fun WorkoutSetPager(
                                                             skipped = isSkipped,
                                                             label = setElement.label,
                                                             modifier = Modifier
-                                                                .clickable(
+                                                                .combinedClickable(
                                                                     interactionSource = remember { MutableInteractionSource() },
                                                                     indication = null,
-                                                                ) { onSelectPage(setElement.pageIndex) },
+                                                                    onClick = { onSelectPage(setElement.pageIndex) },
+                                                                    onLongClick = if (onLongPressPage != null) {{ onLongPressPage(setElement.pageIndex) }} else null,
+                                                                ),
                                                         )
                                                     }
                                                     is TimelineElement.UnilateralSet -> {
@@ -304,6 +325,26 @@ internal fun WorkoutSetPager(
                                                             rightState = setElement.rightState,
                                                             accent = accent,
                                                             onSelectPage = onSelectPage,
+                                                        )
+                                                    }
+                                                    is TimelineElement.MobilityPill -> {
+                                                        StepperProgressPillNode(
+                                                            label = "MOV",
+                                                            isActive = setElement.isCurrent,
+                                                            isCompleted = setElement.isCompleted,
+                                                            progress = if (setElement.isCompleted) 1f else setElement.progress,
+                                                            accent = accent,
+                                                            onClick = setElement.onSelect,
+                                                        )
+                                                    }
+                                                    is TimelineElement.WarmupPill -> {
+                                                        StepperProgressPillNode(
+                                                            label = "APR",
+                                                            isActive = setElement.isCurrent,
+                                                            isCompleted = setElement.isCompleted,
+                                                            progress = if (setElement.isCompleted) 1f else setElement.progress,
+                                                            accent = accent,
+                                                            onClick = setElement.onSelect,
                                                         )
                                                     }
                                                     is TimelineElement.RoundBadge -> {}
@@ -328,10 +369,12 @@ internal fun WorkoutSetPager(
                                             skipped = isSkipped,
                                             label = element.label,
                                             modifier = Modifier
-                                                .clickable(
+                                                .combinedClickable(
                                                     interactionSource = remember { MutableInteractionSource() },
                                                     indication = null,
-                                                ) { onSelectPage(element.pageIndex) },
+                                                    onClick = { onSelectPage(element.pageIndex) },
+                                                    onLongClick = if (onLongPressPage != null) {{ onLongPressPage(element.pageIndex) }} else null,
+                                                ),
                                         )
                                     }
                                     is TimelineElement.UnilateralSet -> {
@@ -343,6 +386,26 @@ internal fun WorkoutSetPager(
                                             rightState = element.rightState,
                                             accent = accent,
                                             onSelectPage = onSelectPage,
+                                        )
+                                    }
+                                    is TimelineElement.MobilityPill -> {
+                                        StepperProgressPillNode(
+                                            label = "MOV",
+                                            isActive = element.isCurrent,
+                                            isCompleted = element.isCompleted,
+                                            progress = if (element.isCompleted) 1f else element.progress,
+                                            accent = accent,
+                                            onClick = element.onSelect,
+                                        )
+                                    }
+                                    is TimelineElement.WarmupPill -> {
+                                        StepperProgressPillNode(
+                                            label = "APR",
+                                            isActive = element.isCurrent,
+                                            isCompleted = element.isCompleted,
+                                            progress = if (element.isCompleted) 1f else element.progress,
+                                            accent = accent,
+                                            onClick = element.onSelect,
                                         )
                                     }
                                     is TimelineElement.RoundBadge -> {}
@@ -401,6 +464,7 @@ internal fun WorkoutSetPager(
     completedPreviousSets: Int = 0,
     nextExerciseSetCount: Int = 0,
     onAddSet: (() -> Unit)? = null,
+    onLongPressPage: ((Int) -> Unit)? = null,
 ) {
     val completedCount = completedPreviousSets + items.count { it.state == WorkoutSetCardVisualState.COMPLETED }
     val totalCount = (completedPreviousSets + items.size + nextExerciseSetCount).coerceAtLeast(1)
@@ -442,6 +506,7 @@ internal fun WorkoutSetPager(
         completedPreviousSets = completedPreviousSets,
         nextExerciseSetCount = nextExerciseSetCount,
         onAddSet = onAddSet,
+        onLongPressPage = onLongPressPage,
     )
 }
 
@@ -476,6 +541,87 @@ private fun SetProgressBadge(
 }
 
 @Composable
+private fun StepperProgressPillNode(
+    label: String,
+    isActive: Boolean,
+    isCompleted: Boolean,
+    progress: Float,
+    accent: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val progressColor = Color(0xFF38BDF8)
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress.coerceIn(0f, 1f),
+        animationSpec = tween(400),
+        label = "pillProgress",
+    )
+    val nodeHeight = if (isActive) 27.dp else 24.dp
+    val nodeWidth = 40.dp
+
+    val bgColor by animateColorAsState(
+        targetValue = when {
+            isCompleted -> Color(0xFF0C4A6E).copy(alpha = 0.85f)
+            isActive -> accent.copy(alpha = 0.18f).compositeOver(TIMELINE_NODE_SOLID_BG)
+            else -> TIMELINE_NODE_SOLID_BG
+        },
+        animationSpec = tween(320),
+        label = "pillBgColor",
+    )
+    val borderColor by animateColorAsState(
+        targetValue = when {
+            isCompleted -> progressColor
+            isActive -> accent
+            else -> Color.White.copy(alpha = 0.22f)
+        },
+        animationSpec = tween(320),
+        label = "pillBorderColor",
+    )
+
+    Surface(
+        modifier = modifier
+            .height(nodeHeight)
+            .width(nodeWidth)
+            .clip(RoundedCornerShape(999.dp))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick,
+            ),
+        shape = RoundedCornerShape(999.dp),
+        color = bgColor,
+        border = BorderStroke(
+            width = if (isActive || isCompleted) 1.2.dp else 1.dp,
+            color = borderColor,
+        ),
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (animatedProgress > 0.01f && !isCompleted) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(animatedProgress)
+                        .fillMaxHeight()
+                        .background(progressColor.copy(alpha = 0.35f))
+                )
+            }
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.5.sp),
+                fontWeight = if (isActive || isCompleted) FontWeight.Black else FontWeight.Bold,
+                color = when {
+                    isCompleted -> progressColor
+                    isActive -> Color.White
+                    else -> Color.White.copy(alpha = 0.70f)
+                },
+            )
+        }
+    }
+}
+
+@Composable
 private fun RoundBadgeNode(
     roundIndex: Int,
     isCurrentRound: Boolean,
@@ -485,6 +631,7 @@ private fun RoundBadgeNode(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val progressColor = Color(0xFF38BDF8)
     Surface(
         modifier = modifier
             .height(32.dp)
@@ -497,14 +644,14 @@ private fun RoundBadgeNode(
             ),
         shape = RoundedCornerShape(999.dp),
         color = when {
-            isAllDone -> Color(0xFF1E3A24)
+            isAllDone -> Color(0xFF0C4A6E).copy(alpha = 0.85f)
             isCurrentRound || isExpanded -> accent.copy(alpha = 0.22f).compositeOver(TIMELINE_NODE_SOLID_BG)
             else -> TIMELINE_NODE_SOLID_BG
         },
         border = BorderStroke(
             width = if (isCurrentRound || isExpanded) 1.8.dp else 1.dp,
             color = when {
-                isAllDone -> WORKOUT_COMPLETED_GREEN
+                isAllDone -> progressColor
                 isCurrentRound || isExpanded -> accent
                 else -> Color.White.copy(alpha = 0.22f)
             },
@@ -515,11 +662,11 @@ private fun RoundBadgeNode(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = if (isAllDone) "R${roundIndex + 1} ✓" else "R${roundIndex + 1}",
+                text = "R${roundIndex + 1}",
                 style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.5.sp),
                 fontWeight = FontWeight.Black,
                 color = when {
-                    isAllDone -> WORKOUT_COMPLETED_GREEN
+                    isAllDone -> progressColor
                     isCurrentRound || isExpanded -> accent
                     else -> Color.White.copy(alpha = 0.65f)
                 },
@@ -539,13 +686,14 @@ private fun UnilateralSetStackNode(
     onSelectPage: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val progressColor = Color(0xFF38BDF8)
     val hasActive = leftState == WorkoutSetCardVisualState.ACTIVE || rightState == WorkoutSetCardVisualState.ACTIVE
     val isAllComplete = leftState == WorkoutSetCardVisualState.COMPLETED && rightState == WorkoutSetCardVisualState.COMPLETED
     Surface(
         modifier = modifier.height(30.dp),
         shape = RoundedCornerShape(999.dp),
         color = when {
-            isAllComplete -> Color(0xFF1E3A24)
+            isAllComplete -> Color(0xFF0C4A6E).copy(alpha = 0.85f)
             hasActive -> accent.copy(alpha = 0.22f).compositeOver(TIMELINE_NODE_SOLID_BG)
             else -> TIMELINE_NODE_SOLID_BG
         },
@@ -553,7 +701,7 @@ private fun UnilateralSetStackNode(
             width = if (hasActive) 1.8.dp else 1.dp,
             color = when {
                 hasActive -> accent
-                isAllComplete -> WORKOUT_COMPLETED_GREEN
+                isAllComplete -> progressColor
                 else -> Color.White.copy(alpha = 0.22f)
             },
         ),
@@ -570,7 +718,7 @@ private fun UnilateralSetStackNode(
                 fontWeight = FontWeight.Black,
                 color = when {
                     hasActive -> accent
-                    isAllComplete -> WORKOUT_COMPLETED_GREEN
+                    isAllComplete -> progressColor
                     else -> Color.White.copy(alpha = 0.65f)
                 },
                 modifier = Modifier.padding(start = 2.dp, end = 3.dp),
@@ -624,14 +772,14 @@ private fun UnilateralDotNode(
         shape = CircleShape,
         color = when {
             isActive -> accent
-            isComplete -> WORKOUT_COMPLETED_GREEN
+            isComplete -> Color(0xFF38BDF8)
             else -> Color(0xFF26252C)
         },
         border = BorderStroke(
             width = if (isActive || isComplete) 0.dp else 1.dp,
             color = when {
                 isActive -> accent
-                isComplete -> WORKOUT_COMPLETED_GREEN
+                isComplete -> Color(0xFF38BDF8)
                 else -> Color.White.copy(alpha = 0.35f)
             },
         ),
@@ -678,6 +826,7 @@ private fun TimelineDot(
     label: String,
     modifier: Modifier = Modifier,
 ) {
+    val progressColor = Color(0xFF38BDF8)
     val size by animateDpAsState(
         targetValue = if (active) 26.dp else 23.dp,
         animationSpec = spring(
@@ -688,7 +837,7 @@ private fun TimelineDot(
     )
     val fillTarget = when {
         active -> accent
-        complete -> WORKOUT_COMPLETED_GREEN
+        complete -> progressColor
         skipped -> accent.copy(alpha = 0.26f).compositeOver(TIMELINE_NODE_SOLID_BG)
         else -> Color(0xFF26252C)
     }
@@ -699,7 +848,7 @@ private fun TimelineDot(
     )
     val borderColor by animateColorAsState(
         targetValue = when {
-            complete -> WORKOUT_COMPLETED_GREEN
+            complete -> progressColor
             active -> accent
             skipped -> accent.copy(alpha = 0.24f)
             else -> Color.White.copy(alpha = 0.35f)

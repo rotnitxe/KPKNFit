@@ -694,6 +694,66 @@ class WorkoutStructuralPersistenceController(
         ports.persistOngoingState()
     }
 
+    fun replaceCardioExercise(
+        exerciseId: String,
+        replacement: com.example.kpkn.data.models.CardioCatalogItem,
+    ) {
+        val state = getState()
+        val base = state.session ?: return
+        val updatedSession = withModeSession(base, state.activeMode) { activeSession ->
+            activeSession.replaceExerciseById(exerciseId) { old ->
+                val existingDetails = old.cardioDetails
+                val newDetails = com.example.kpkn.data.models.CardioDetails(
+                    type = replacement.type,
+                    intensity = existingDetails?.intensity ?: com.example.kpkn.data.models.CardioIntensity.MEDIA,
+                    intensityLevel = existingDetails?.intensityLevel,
+                    targetDurationSeconds = existingDetails?.targetDurationSeconds ?: (20 * 60),
+                    targetDistanceKm = if (replacement.supportsDistance) existingDetails?.targetDistanceKm else null,
+                    requiresGps = replacement.requiresGps,
+                    supportsDistance = replacement.supportsDistance,
+                    intervalBlocks = existingDetails?.intervalBlocks ?: emptyList(),
+                    intervalRounds = existingDetails?.intervalRounds ?: 1,
+                )
+                val synced = if (newDetails.hasIntervals()) newDetails.copy(targetDurationSeconds = newDetails.totalIntervalSeconds()) else newDetails
+                old.copy(
+                    name = replacement.name,
+                    catalogDefinitionId = replacement.id,
+                    cardioDetails = synced,
+                    targetDurationMinutes = synced.targetDurationSeconds?.let { (it / 60).coerceAtLeast(1) } ?: 0,
+                )
+            }
+        }
+
+        val cleanedCompleted = state.completedSets.filterKeys { !it.startsWith("${exerciseId}_") }
+        val cleanedAdvanced = state.setAdvancedFeedback.filterKeys { !it.startsWith("${exerciseId}_") }
+        val cleanedFeedback = state.postExerciseFeedbackByExerciseId - exerciseId
+
+        val activeVisible = ports.visibleExercises(state)
+        val replacingCurrent = activeVisible.getOrNull(state.currentExerciseIdx)?.id == exerciseId
+        val clampedSetIdx = if (replacingCurrent) 0 else state.currentSetIdx
+
+        val normalizedUpdatedSession = ports.normalizeSupersetsForWorkout(updatedSession)
+        val newVisible = ports.visibleExercises(state.copy(session = normalizedUpdatedSession))
+        val newExerciseIdx = if (replacingCurrent) {
+            state.currentExerciseIdx.coerceIn(0, (newVisible.size - 1).coerceAtLeast(0))
+        } else {
+            newVisible.indexOfFirst { it.id == exerciseId }.takeIf { it >= 0 } ?: state.currentExerciseIdx
+        }
+
+        updateState {
+            it.copy(
+                session = normalizedUpdatedSession,
+                currentExerciseIdx = newExerciseIdx,
+                currentSetIdx = clampedSetIdx,
+                activeStepKey = null,
+                completedSets = cleanedCompleted,
+                setAdvancedFeedback = cleanedAdvanced,
+                postExerciseFeedbackByExerciseId = cleanedFeedback,
+            )
+        }
+        ports.persistOngoingState()
+    }
+
     fun applyReplacementDecision(
         exerciseId: String,
         replacement: ExerciseMuscleInfo,

@@ -81,6 +81,10 @@ internal fun WorkoutChronometer(
     sessionHasProgrammedTime: Boolean = false,
     pacingAlertMessage: String? = null,
     coachPaceAlert: String? = null,
+    onUltraFastPreview: (() -> Unit)? = null,
+    ultraFastApplied: Boolean = false,
+    ultraFastSavedSeconds: Int = 0,
+    onRevertUltraFast: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     var elapsedSeconds by remember(startTimeMs) { androidx.compose.runtime.mutableIntStateOf(0) }
@@ -330,6 +334,134 @@ internal fun WorkoutChronometer(
                             )
                         }
                     }
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                    var activeTechniqueTooltip by remember { mutableStateOf<String?>(null) }
+
+                    Text(
+                        "¿Tienes poco tiempo hoy? Prueba el modo Ultrarrápido",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            text = "El modo ultrarrápido automáticamente comprime tu sesión para terminarla mucho más rápido aplicando drop-sets o rest-pauses y otras técnicas para ahorrar tiempo. Sin embargo, debes considerar que esto tiene un costo mayor en fatiga y carga a tus articulaciones, así que procura recuperarte bien.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 18.sp,
+                        )
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text("Ver conceptos:", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Surface(
+                                onClick = { activeTechniqueTooltip = if (activeTechniqueTooltip == "dropset") null else "dropset" },
+                                shape = RoundedCornerShape(6.dp),
+                                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
+                            ) {
+                                Text(
+                                    "Drop-sets ℹ️",
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                            Surface(
+                                onClick = { activeTechniqueTooltip = if (activeTechniqueTooltip == "restpause") null else "restpause" },
+                                shape = RoundedCornerShape(6.dp),
+                                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
+                            ) {
+                                Text(
+                                    "Rest-pauses ℹ️",
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                        }
+
+                        if (activeTechniqueTooltip != null) {
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+                                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                            ) {
+                                Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Text(
+                                            if (activeTechniqueTooltip == "dropset") "Drop-set" else "Rest-pause",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
+                                        Text(
+                                            "✕",
+                                            modifier = Modifier.clickable { activeTechniqueTooltip = null }.padding(4.dp),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                    Text(
+                                        text = if (activeTechniqueTooltip == "dropset") {
+                                            "Consiste en realizar una serie efectiva y, al llegar al fallo o fatiga, reducir el peso de inmediato (un 15-30%) para sacar 3 repeticiones más sin descansar."
+                                        } else {
+                                            "Consiste en realizar una serie y pausar sólo 15 a 20 segundos para luego continuar realizando mini-series adicionales con el mismo peso."
+                                        },
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        lineHeight = 16.sp,
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    if (ultraFastApplied) {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFF66BB6A).copy(alpha = 0.12f),
+                            border = BorderStroke(1.dp, Color(0xFF66BB6A).copy(alpha = 0.28f)),
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text("Activo", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, color = Color(0xFF66BB6A))
+                                    Text(
+                                        if (ultraFastSavedSeconds > 0) "Ahorro ~${ultraFastSavedSeconds / 60}m ${ultraFastSavedSeconds % 60}s" else "Aplicado",
+                                        style = MaterialTheme.typography.bodySmall,
+                                    )
+                                }
+                                if (onRevertUltraFast != null) {
+                                    OutlinedButton(onClick = { closeOverlay(); onRevertUltraFast() }) { Text("Deshacer") }
+                                }
+                            }
+                        }
+                    } else if (onUltraFastPreview != null) {
+                        Button(
+                            onClick = { closeOverlay(); onUltraFastPreview() },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black),
+                        ) {
+                            Text("Modo Ultrarrápido", fontWeight = FontWeight.Black)
+                        }
+                    }
                 }
             },
             confirmButton = {
@@ -389,6 +521,10 @@ internal fun WorkoutHeaderBar(
     onCreateTagClick: () -> Unit = {},
     voiceCaptureMode: com.example.kpkn.data.models.VoiceCaptureMode? = null,
     onVoiceCaptureModeChange: ((com.example.kpkn.data.models.VoiceCaptureMode) -> Unit)? = null,
+    onUltraFastPreview: (() -> Unit)? = null,
+    ultraFastApplied: Boolean = false,
+    ultraFastSavedSeconds: Int = 0,
+    onRevertUltraFast: (() -> Unit)? = null,
 ) {
     val colors = remember(background) { sessionCoverColors(background) }
 
@@ -478,6 +614,10 @@ internal fun WorkoutHeaderBar(
                                 sessionHasProgrammedTime = sessionHasProgrammedTime,
                                 pacingAlertMessage = pacingAlertMessage,
                                 coachPaceAlert = coachPaceAlert,
+                                onUltraFastPreview = onUltraFastPreview,
+                                ultraFastApplied = ultraFastApplied,
+                                ultraFastSavedSeconds = ultraFastSavedSeconds,
+                                onRevertUltraFast = onRevertUltraFast,
                             )
                         }
 

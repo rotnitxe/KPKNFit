@@ -34,6 +34,11 @@ import com.example.kpkn.domain.workout.WarmupEffortReport
 import com.example.kpkn.domain.workout.WorkoutStructuralEditor
 import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.domain.workout.expectedSidesForSet
+import com.example.kpkn.domain.sessionassistant.SeriesTechnique
+import com.example.kpkn.domain.sessionassistant.UltraFastEngine
+import com.example.kpkn.domain.sessionassistant.withSeriesTechniqueRange
+import com.example.kpkn.domain.sessionassistant.withTechnique
+import com.example.kpkn.domain.sessionassistant.transformExercisesFlat
 import com.example.kpkn.services.workout.WorkoutPacingNotificationManager
 import com.example.kpkn.domain.workout.WorkoutContextRecurrenceEngine
 import com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngine
@@ -1400,9 +1405,10 @@ class WorkoutViewModel(
         val key = buildCompletedSetKey(exerciseId, setIdx, side)
         val state = _uiState.value
         val recorded = state.completedSets[key] ?: return
-        val isExecutionError = recorded.failureReason == "execution_error" ||
+        val isExecutionError = recorded.isFailedSet ||
+            recorded.failureReason == "execution_error" ||
             recorded.recordedPayloadV3?.executionError == true
-        if (!recorded.isFailedSet || !isExecutionError) return
+        if (!isExecutionError) return
         val exerciseIdx = visibleExercises(state).indexOfFirst { it.id == exerciseId }
             .takeIf { it >= 0 } ?: return
         val exercise = visibleExercises(state).getOrNull(exerciseIdx) ?: return
@@ -2512,6 +2518,165 @@ class WorkoutViewModel(
         applySessionMutation(updatedSession, preferredExerciseId = exerciseId, persistToProgram = persistToProgram)
     }
 
+    // ── Serie por serie: cambiar tipo (Normal / Dropset / Rest-Pause) ───────
+
+    fun updatePlannedSeriesTechnique(
+        exerciseId: String,
+        fromIdx: Int,
+        toIdx: Int,
+        technique: SeriesTechnique,
+    ) {
+        val state = _uiState.value
+        val base = state.session ?: return
+        // No tocar series ya completadas
+        val currentExId = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id
+        val isSameExercise = currentExId == exerciseId
+        val currentSetIdx = state.currentSetIdx
+        // Filtrar: si es mismo ejercicio, solo permitir índices > currentSetIdx o el actual si no completado
+        val effectiveFrom = fromIdx.coerceAtLeast(0)
+        val effectiveTo = toIdx.coerceAtLeast(effectiveFrom)
+        val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
+        val safeFrom = effectiveFrom.coerceIn(0, (exercise.sets.size - 1).coerceAtLeast(0))
+        val safeTo = effectiveTo.coerceIn(safeFrom, (exercise.sets.size - 1).coerceAtLeast(0))
+        // Verificar al menos una serie futura/pendiente
+        val hasFuture = (safeFrom..safeTo).any { idx ->
+            if (isSameExercise && idx < currentSetIdx) false
+            else if (isSameExercise && idx == currentSetIdx) {
+                val key = "${exerciseId}_$idx"
+                val lKey = "${exerciseId}_${idx}_L"
+                val rKey = "${exerciseId}_${idx}_R"
+                val done = state.completedSets.containsKey(key) || state.completedSets.containsKey(lKey) || state.completedSets.containsKey(rKey)
+                !done
+            } else true
+        }
+        if (!hasFuture) return
+        val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
+            modeSession.replaceExerciseById(exerciseId) { ex ->
+                val mapped = ex.sets.mapIndexed { idx, set ->
+                    if (idx < safeFrom || idx > safeTo) set
+                    else {
+                        if (isSameExercise && idx < currentSetIdx) set
+                        else if (isSameExercise && idx == currentSetIdx) {
+                            val key = "${exerciseId}_$idx"
+                            val lKey = "${exerciseId}_${idx}_L"
+                            val rKey = "${exerciseId}_${idx}_R"
+                            val done = state.completedSets.containsKey(key) || state.completedSets.containsKey(lKey) || state.completedSets.containsKey(rKey)
+                            if (done) set else set.withTechnique(technique)
+                        } else set.withTechnique(technique)
+                    }
+                }
+                ex.copy(sets = mapped)
+            }
+        }
+        if (updatedSession == base) return
+        applySessionMutation(updatedSession, preferredExerciseId = exerciseId, persistToProgram = false)
+        refreshLoadSuggestions(_uiState.value)
+        persistOngoingState()
+    }
+
+    fun showSeriesTypeSheet(exerciseId: String, fromIdx: Int = 0, toIdx: Int? = null) {
+        val ex = visibleExercises(_uiState.value).firstOrNull { it.id == exerciseId } ?: return
+        val start = fromIdx.coerceIn(0, (ex.sets.size - 1).coerceAtLeast(0))
+        val end = (toIdx ?: ex.sets.lastIndex).coerceIn(start, ex.sets.lastIndex)
+        _uiState.update { it.copy(seriesTypeTarget = SeriesTypeTarget(exerciseId, start, end)) }
+    }
+
+    fun hideSeriesTypeSheet() {
+        _uiState.update { it.copy(seriesTypeTarget = null) }
+    }
+
+    // ── Modo Ultrarrápido ─────────────────────────────────────────────────
+
+    fun previewUltraFast() {
+        val state = _uiState.value
+        val base = state.session ?: return
+        val modeSession = sessionForActiveMode(base, state.activeMode)
+        val preview = UltraFastEngine.preview(
+            session = modeSession,
+            exerciseIndex = catalogExerciseIndex(),
+            manualOverrides = state.ultraFastManualOverrides,
+        )
+        _uiState.update { it.copy(ultraFastPreview = preview, showUltraFastSheet = true) }
+    }
+
+    fun hideUltraFastSheet() {
+        _uiState.update { it.copy(showUltraFastSheet = false) }
+    }
+
+    fun toggleUltraFastManualOverride(exerciseId: String) {
+        _uiState.update { state ->
+            val current = state.ultraFastManualOverrides[exerciseId]
+            val next = when (current) {
+                null -> true
+                true -> false
+                false -> null
+            }
+            val nextMap = if (next == null) state.ultraFastManualOverrides - exerciseId else state.ultraFastManualOverrides + (exerciseId to next)
+            // Recompute preview live
+            val base = state.session ?: return@update state.copy(ultraFastManualOverrides = nextMap)
+            val modeSession = sessionForActiveMode(base, state.activeMode)
+            val preview = UltraFastEngine.preview(modeSession, catalogExerciseIndex(), nextMap)
+            state.copy(ultraFastManualOverrides = nextMap, ultraFastPreview = preview)
+        }
+    }
+
+    fun applyUltraFast() {
+        val state = _uiState.value
+        val base = state.session ?: return
+        val modeSession = sessionForActiveMode(base, state.activeMode)
+        // Snapshot for revert
+        val snapshot = modeSession
+        val result = UltraFastEngine.apply(modeSession, catalogExerciseIndex(), state.ultraFastManualOverrides)
+        // Re-inject transformed flat back into session structure (parts vs loose)
+        val flatById = result.transformedExercises.associateBy { it.id }
+        val supersets = result.supersetGroups
+        val updatedBase = withModeSession(base, state.activeMode) { ms ->
+            // Map exercises + parts
+            val newLoose = ms.exercises.map { ex -> flatById[ex.id] ?: ex }
+            val newParts = ms.parts.map { part -> part.copy(exercises = part.exercises.map { ex -> flatById[ex.id] ?: ex }) }
+            // Handle exercises that were re-associated to supersets: supersetGroups at session level
+            ms.copy(exercises = newLoose, parts = newParts, supersetGroups = supersets)
+        }
+        // Also need to handle transformed exercises that were loose vs part — flat handles
+        // For any new superset members, their refs already applied via flatById
+        _uiState.update {
+            it.copy(
+                ultraFastSnapshot = snapshot,
+                ultraFastPreview = result.preview,
+                ultraFastApplied = true,
+                ultraFastSavedSeconds = result.preview.savedSeconds,
+                showUltraFastSheet = false,
+            )
+        }
+        applySessionMutation(updatedBase, persistToProgram = false)
+        refreshLoadSuggestions(_uiState.value)
+        persistOngoingState()
+    }
+
+    fun revertUltraFast() {
+        val state = _uiState.value
+        val snapshot = state.ultraFastSnapshot ?: return
+        val base = state.session ?: return
+        val restored = withModeSession(base, state.activeMode) { _ -> snapshot }
+        _uiState.update {
+            it.copy(
+                ultraFastSnapshot = null,
+                ultraFastPreview = null,
+                ultraFastApplied = false,
+                ultraFastSavedSeconds = 0,
+                showUltraFastSheet = false,
+                ultraFastManualOverrides = emptyMap(),
+            )
+        }
+        applySessionMutation(restored, persistToProgram = false)
+        refreshLoadSuggestions(_uiState.value)
+        persistOngoingState()
+    }
+
+    fun dismissUltraFastAppliedBanner() {
+        _uiState.update { it.copy(ultraFastApplied = false) }
+    }
+
     fun updateExerciseSetPlan(exerciseId: String, setId: String, transform: (ExerciseSet) -> ExerciseSet) {
         updateExerciseDefinition(exerciseId) { exercise ->
             exercise.copy(
@@ -2737,6 +2902,11 @@ class WorkoutViewModel(
         replacement: ExerciseMuscleInfo,
         deferPersistencePrompt: Boolean = false,
     ) = structuralPersistence.replaceExercise(exerciseId, replacement, deferPersistencePrompt)
+
+    fun replaceCardioExercise(
+        exerciseId: String,
+        replacement: com.example.kpkn.data.models.CardioCatalogItem,
+    ) = structuralPersistence.replaceCardioExercise(exerciseId, replacement)
 
     fun applyReplacementDecision(
         exerciseId: String,

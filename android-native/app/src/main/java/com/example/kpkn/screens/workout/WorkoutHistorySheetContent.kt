@@ -44,7 +44,7 @@ internal fun ExerciseHistoryContent(
 
     val grouped = remember(history) {
         history.groupBy { entry ->
-            val date = try { LocalDate.parse(entry.date.take(10)) } catch(e: Exception) { LocalDate.now() }
+            val date = try { LocalDate.parse(entry.date.take(10)) } catch (e: Exception) { LocalDate.now() }
             val now = LocalDate.now()
             when {
                 date.isAfter(now.minusWeeks(1)) -> "Esta semana"
@@ -67,18 +67,18 @@ internal fun ExerciseHistoryContent(
                 Surface(
                     onClick = { expanded = !expanded },
                     color = Color.Transparent,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Row(
                         modifier = Modifier.padding(vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Text(label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color.White)
                         Icon(
                             if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                             null,
-                            tint = Color.White.copy(alpha = 0.6f)
+                            tint = Color.White.copy(alpha = 0.6f),
                         )
                     }
                 }
@@ -98,14 +98,14 @@ internal fun ExerciseHistoryContent(
 @Composable
 internal fun HistoryEntryCard(
     entry: ExerciseHistoryEntry,
-    activeTag: String?
+    activeTag: String?,
 ) {
     val isTagMatch = activeTag != null && entry.tag == activeTag
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         color = if (isTagMatch) Color(0xFF2C2C2C) else Color(0xFF222222),
-        border = if (isTagMatch) BorderStroke(1.dp, Color(0xFFFFD600).copy(alpha = 0.4f)) else null
+        border = if (isTagMatch) BorderStroke(1.dp, Color(0xFFFFD600).copy(alpha = 0.4f)) else null,
     ) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -113,13 +113,13 @@ internal fun HistoryEntryCard(
                 if (entry.tag != null) {
                     Surface(
                         color = Color.White.copy(alpha = 0.1f),
-                        shape = RoundedCornerShape(999.dp)
+                        shape = RoundedCornerShape(999.dp),
                     ) {
                         Text(
                             entry.tag,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.White
+                            color = Color.White,
                         )
                     }
                 }
@@ -139,20 +139,41 @@ internal fun HistoryEntryCard(
                         "right" -> "Der"
                         else -> null
                     }
-                    Text(
-                        text = buildString {
-                            if (sideLabel != null) append("$sideLabel · ")
-                            if (set.weight > 0) append("${set.weight.toTrimmedNumberString()}kg")
-                            if (set.weight > 0 && set.reps > 0) append(" x ")
-                            if (set.reps > 0) append("${set.reps} reps")
-                            if (set.rpe != null) append(" · RPE ${set.rpe}")
-                            if (set.rir != null) append(" · RIR ${set.rir}")
-                            if ((set.partialReps ?: 0) > 0) append(" · +${set.partialReps} parciales")
-                            if ((set.assistedReps ?: 0) > 0) append(" · ${set.assistedReps} con ayuda")
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.8f)
-                    )
+                    if (set.isFailedSet || set.failureReason == "execution_error" || !set.failureReason.isNullOrBlank()) {
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = Color(0xFFB3261E).copy(alpha = 0.20f),
+                            border = BorderStroke(1.dp, Color(0xFFB3261E).copy(alpha = 0.50f)),
+                        ) {
+                            Text(
+                                text = buildString {
+                                    if (sideLabel != null) append("$sideLabel · ")
+                                    append("❌ Fallida")
+                                    val reason = set.failureReason?.takeIf { it.isNotBlank() && it != "execution_error" && it != "Serie marcada como fallida" }
+                                    if (reason != null) append(": $reason")
+                                },
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFFF8A80),
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = buildString {
+                                if (sideLabel != null) append("$sideLabel · ")
+                                if (set.weight > 0) append("${set.weight.toTrimmedNumberString()}kg")
+                                if (set.weight > 0 && set.reps > 0) append(" x ")
+                                if (set.reps > 0) append("${set.reps} reps")
+                                if (set.rpe != null) append(" · RPE ${set.rpe}")
+                                if (set.rir != null) append(" · RIR ${set.rir}")
+                                if ((set.partialReps ?: 0) > 0) append(" · +${set.partialReps} parciales")
+                                if ((set.assistedReps ?: 0) > 0) append(" · ${set.assistedReps} con ayuda")
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.8f),
+                        )
+                    }
                 }
             }
         }

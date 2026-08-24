@@ -344,7 +344,7 @@ fun WorkoutRoadmapBar(
                                         onSelectStep(WorkoutStepRules.workingStepKey(exerciseId, setIdx, side))
                                     },
                                     onLongClick = if (enableLongPress) ({ onOpenContext(exercise.id) }) else null,
-                                    onMemberLongClick = if (enableLongPress) onOpenMemberContext else ({}) ,
+                                    onMemberLongClick = if (enableLongPress) onOpenMemberContext else ({}),
                                 )
                             }
                         }

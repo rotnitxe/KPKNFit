@@ -52,6 +52,40 @@ internal fun triggerPRCelebrationHaptic(context: Context) {
     }
 }
 
+@SuppressLint("MissingPermission")
+internal fun triggerFailureHaptic(context: Context) {
+    val waveform = longArrayOf(0L, 80L, 80L, 160L)
+    runCatching {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val manager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            val vibrator = manager.defaultVibrator
+            vibrator.vibrate(VibrationEffect.createWaveform(waveform, -1))
+        } else {
+            @Suppress("DEPRECATION")
+            val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+            vibrator?.let {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    it.vibrate(VibrationEffect.createWaveform(waveform, -1))
+                } else {
+                    @Suppress("DEPRECATION")
+                    it.vibrate(waveform, -1)
+                }
+            }
+        }
+    }
+}
+
+internal fun triggerFailureSound(context: Context) {
+    runCatching {
+        val toneGenerator = android.media.ToneGenerator(android.media.AudioManager.STREAM_NOTIFICATION, 85)
+        toneGenerator.startTone(android.media.ToneGenerator.TONE_PROP_BEEP2, 220)
+    }.recoverCatching {
+        val notificationUri = android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION)
+        val ringtone = android.media.RingtoneManager.getRingtone(context, notificationUri)
+        ringtone?.play()
+    }
+}
+
 internal fun formatTime(seconds: Int): String {
     val m = seconds / 60
     val s = seconds % 60

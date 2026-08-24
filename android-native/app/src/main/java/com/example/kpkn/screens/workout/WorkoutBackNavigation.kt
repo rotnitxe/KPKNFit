@@ -11,6 +11,7 @@ enum class WorkoutBackAction {
     DISMISS_FINISH_SHEET,
     DISMISS_MOBILITY_PICKER,
     DISMISS_DRAWER,
+    RETURN_TO_MOBILITY_FROM_WARMUP,
     SHOW_EXIT_DIALOG,
 }
 
@@ -23,6 +24,7 @@ data class WorkoutOverlayFlags(
     val hasDrawerOpen: Boolean = false,
     val hasContextTabOpen: Boolean = false,
     val showReadiness: Boolean = false,
+    val canReturnToMobilityFromWarmup: Boolean = false,
 )
 
 fun resolveWorkoutBackAction(flags: WorkoutOverlayFlags): WorkoutBackAction = when {
@@ -33,6 +35,7 @@ fun resolveWorkoutBackAction(flags: WorkoutOverlayFlags): WorkoutBackAction = wh
     flags.showMobilityPicker -> WorkoutBackAction.DISMISS_MOBILITY_PICKER
     flags.hasDrawerOpen || flags.hasContextTabOpen -> WorkoutBackAction.DISMISS_DRAWER
     flags.showReadiness -> WorkoutBackAction.CONSUME_NON_DISMISSIBLE_MODAL
+    flags.canReturnToMobilityFromWarmup -> WorkoutBackAction.RETURN_TO_MOBILITY_FROM_WARMUP
     else -> WorkoutBackAction.SHOW_EXIT_DIALOG
 }
 

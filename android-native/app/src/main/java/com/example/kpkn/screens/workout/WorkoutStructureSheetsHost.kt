@@ -114,6 +114,8 @@ internal class WorkoutStructureSheetsState {
     var showReplaceExercisePicker by mutableStateOf(false)
     var replaceTargetExerciseId by mutableStateOf<String?>(null)
     var replaceSearchQuery by mutableStateOf("")
+    var showReplaceCardioPicker by mutableStateOf(false)
+    var replaceCardioTargetExerciseId by mutableStateOf<String?>(null)
     var setupSheetExerciseId by mutableStateOf<String?>(null)
     var tagSheetExerciseId by mutableStateOf<String?>(null)
     var selectedExerciseContextTab by mutableStateOf<WorkoutExerciseContextTab?>(null)
@@ -136,6 +138,7 @@ internal class WorkoutStructureSheetsState {
     fun hasOpenDrawer(): Boolean =
         exerciseContextExerciseId != null ||
             showReplaceExercisePicker ||
+            showReplaceCardioPicker ||
             setupSheetExerciseId != null ||
             tagSheetExerciseId != null ||
             editSheetExerciseId != null ||
@@ -335,9 +338,8 @@ internal fun WorkoutStructureSheetsHost(
                             state.exerciseContextExerciseId = null
                         }, Modifier.weight(1f))
                         ContextActionButton("Reemplazar", {
-                            state.replaceTargetExerciseId = cardioExercise.id
-                            state.replaceSearchQuery = if (cardioExercise.catalogDefinitionId == null) cardioExercise.name else ""
-                            state.showReplaceExercisePicker = true
+                            state.replaceCardioTargetExerciseId = cardioExercise.id
+                            state.showReplaceCardioPicker = true
                             state.exerciseContextExerciseId = null
                         }, Modifier.weight(1f))
                     }
@@ -1499,6 +1501,24 @@ internal fun WorkoutStructureSheetsHost(
         )
     }
 
+    if (state.showReplaceCardioPicker && state.replaceCardioTargetExerciseId != null) {
+        val targetId = state.replaceCardioTargetExerciseId!!
+        com.example.kpkn.ui.components.KpknSheet(
+            onDismissRequest = {
+                state.showReplaceCardioPicker = false
+                state.replaceCardioTargetExerciseId = null
+            }
+        ) {
+            com.example.kpkn.screens.sessioneditor.components.CardioCatalogSheet(
+                isReplacing = true,
+                onAdd = { item ->
+                    viewModel.replaceCardioExercise(targetId, item)
+                    state.showReplaceCardioPicker = false
+                    state.replaceCardioTargetExerciseId = null
+                },
+            )
+        }
+    }
 }
 
 private fun cardioContextSummary(exercise: Exercise): String {

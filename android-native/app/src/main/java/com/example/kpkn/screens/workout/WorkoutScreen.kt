@@ -272,36 +272,7 @@ fun WorkoutScreen(
             uiState.showHistorySheet ||
             structureSheets.hasOpenDrawer()
 
-    val backAction = resolveWorkoutBackAction(
-        WorkoutOverlayFlags(
-            showExitDialog = showExitDialog,
-            showVolumeAdvance = uiState.showVolumeAdvanceModal,
-            showNonDismissibleModal = uiState.showExecutionErrorDiscomfortSheet,
-            showFinishSheet = uiState.showFinishSheet,
-            hasDrawerOpen = uiState.showHistorySheet || structureSheets.hasOpenDrawer(),
-            hasContextTabOpen = hasContextTabOpen,
-            showReadiness = showReadinessSheet,
-        ),
-    )
-    BackHandler(enabled = !showExitDialog) {
-        if (!hasChildBackOverlay) {
-        when (backAction) {
-            WorkoutBackAction.CONSUME_VOLUME_ADVANCE,
-            WorkoutBackAction.CONSUME_NON_DISMISSIBLE_MODAL,
-            -> Unit
-            WorkoutBackAction.DISMISS_FINISH_SHEET -> viewModel.hideFinish()
-            WorkoutBackAction.DISMISS_DRAWER -> {
-                if (uiState.showHistorySheet) viewModel.hideHistorySheet()
-                else if (hasContextTabOpen) structureSheets.selectedExerciseContextTab = null
-                else structureSheets.exerciseContextExerciseId = null
-            }
-            WorkoutBackAction.SHOW_EXIT_DIALOG -> showExitDialog = true
-            WorkoutBackAction.DISMISS_EXIT_DIALOG,
-            WorkoutBackAction.DISMISS_MOBILITY_PICKER,
-            -> Unit
-        }
-        }
-    }
+
 
     val settings by com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.collectAsStateWithLifecycle()
 
@@ -763,259 +734,8 @@ fun WorkoutScreen(
 
     val sessionAccentColor = remember(session.background) { resolveSessionAccentColor(session.background) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-    Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .hazeSource(state = overlayHazeState),
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        snackbarHost = { SnackbarHost(snackbarHostState) { KpknSnackbar(it) } },
-    ) { padding ->
-        val headerExerciseInfo = currentExercise?.let { workoutCatalogInfo(it) }
-        val headerGroup = resolveWorkoutHeaderGroupLabel(
-            partName = currentPartName,
-            type = headerExerciseInfo?.type,
-            category = headerExerciseInfo?.category,
-        )
-        WorkoutV2Body(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            uiState = uiState,
-            settings = settings,
-            adaptiveCache = adaptiveCache,
-            viewModel = viewModel,
-            currentExercise = currentExercise,
-            visibleExercises = visibleExercises,
-            currentSet = currentSet,
-            selectedContextTab = structureSheets.selectedExerciseContextTab,
-            onSelectedContextTabChange = { structureSheets.selectedExerciseContextTab = it },
-            rmSelectedWeight = rmSelectedWeight.value,
-            onRmWeightConsumed = { rmSelectedWeight.value = null },
-            sessionAccentColor = sessionAccentColor,
-            headerExerciseName = currentExercise?.let { exerciseDisplayParts(it, headerExerciseInfo).parentName } ?: session.name,
-            headerExerciseChips = currentExercise?.let { exerciseDisplayParts(it, headerExerciseInfo).chips }.orEmpty(),
-            headerSessionName = session.name,
-            headerGroupName = headerGroup,
-            headerStartTimeMs = uiState.startTimeMs,
-            headerIsComplete = uiState.isComplete,
-            headerBackground = session.background,
-            headerExerciseTag = activeTagDisplay,
-            exerciseReadinessMap = uiState.exerciseReadinessMap,
-            recordActionHolder = recordActionHolder,
-            cardsHazeState = cardsHazeStateDock,
-            isUnilateral = isUnilateralDock,
-            selectedUnilateralSideOverride = selectedUnilateralSideOverride,
-            onSelectedUnilateralSideOverride = { selectedUnilateralSideOverride = it },
-            activeSide = activeDockSide,
-            showingPostExerciseCard = showingPostExerciseCardDock,
-            onExpandHistory = {
-                val dbId = currentExercise?.exerciseDbId ?: currentExercise?.exerciseId
-                if (dbId != null) viewModel.showHistoryFor(dbId)
-            },
-            onExpandTags = {
-                currentExercise?.id?.let { structureSheets.tagSheetExerciseId = it }
-            },
-            onExpandSetup = {
-                currentExercise?.id?.let { structureSheets.setupSheetExerciseId = it }
-            },
-            onExpandReplace = {
-                currentExercise?.id?.let {
-                    structureSheets.replaceTargetExerciseId = it
-                    structureSheets.replaceSearchQuery = if (currentExercise.catalogDefinitionId == null) currentExercise.name else ""
-                    structureSheets.showReplaceExercisePicker = true
-                }
-            },
-            onExpandEdit = {
-                currentExercise?.id?.let { structureSheets.editSheetExerciseId = it }
-            },
-            onRequestCardioGps = {
-                if (CardioGpsTracker.hasLocationPermission(context)) {
-                    viewModel.startCardioGps()
-                } else {
-                    gpsPermissionsLauncher.launch(
-                        arrayOf(
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION,
-                        ),
-                    )
-                }
-            },
-        )
-    }
-
-    LaunchedEffect(uiState.pendingEditSheetExerciseId) {
-        uiState.pendingEditSheetExerciseId?.let { exId ->
-            structureSheets.editSheetExerciseId = exId
-            viewModel.clearPendingEditSheetExerciseId()
-        }
-    }
-
-    if (!isCardioLiveStage) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-                .zIndex(5f),
-        ) {
-            WorkoutRoadmapBar(
-            exercises = visibleExercises,
-            parts = renderedParts,
-            supersetGroups = modeSession.allSupersetGroups(),
-            currentIdx = uiState.currentExerciseIdx,
-            currentSetIdx = uiState.currentSetIdx,
-            currentSide = activeDockSide,
-            completedSets = uiState.completedSets,
-            onSelect = { viewModel.selectExercise(it) },
-            onSelectStep = { stepKey -> viewModel.selectWorkoutStep(stepKey) },
-            onSelectGroup = { viewModel.selectSupersetGroup(it) },
-            onOpenContext = { exId ->
-                structureSheets.exerciseContextForceMemberActions = false
-                structureSheets.exerciseContextExerciseId = exId
-            },
-            onOpenMemberContext = { exId ->
-                structureSheets.exerciseContextForceMemberActions = true
-                structureSheets.exerciseContextExerciseId = exId
-            },
-            enableLongPress = true,
-            sessionAccentColor = sessionAccentColor,
-            hazeState = overlayHazeState,
-            mode = roadmapMode,
-            onModeChange = { roadmapMode = it },
-            milestones = uiState.sessionMilestones,
-            exerciseNote = currentExercise?.id?.let { uiState.exerciseNotes[it] }.orEmpty(),
-            exercisePhotos = currentExercise?.id?.let { uiState.exercisePhotos[it] }.orEmpty(),
-            onExerciseNoteChange = { note ->
-                currentExercise?.id?.let { viewModel.setExerciseNote(it, note) }
-            },
-            onAddExercisePhoto = { uri ->
-                currentExercise?.id?.let { viewModel.addExercisePhoto(it, uri) }
-            },
-            onRemoveExercisePhoto = { path ->
-                currentExercise?.id?.let { viewModel.removeExercisePhoto(it, path) }
-            },
-            )
-        }
-    }
-
-    if (!isCardioLiveStage && currentExercise != null && currentSet != null && (!showingPostExerciseCardDock || uiState.currentSetIdx < currentExercise.sets.size)) {
-        val dockKey = if (isUnilateralDock && activeDockSide != null) {
-            "${currentExercise.id}_${uiState.currentSetIdx}_${activeDockSide.take(1).uppercase()}"
-        } else {
-            "${currentExercise.id}_${uiState.currentSetIdx}"
-        }
-        WorkoutCommandDock(
-            exercise = currentExercise,
-            setIndex = uiState.currentSetIdx,
-            activeSide = activeDockSide,
-            isUnilateral = isUnilateralDock,
-            voiceSessionEnabled = uiState.voiceSessionEnabled,
-            voiceSessionState = uiState.voiceSessionState,
-            onToggleVoice = {
-                if (uiState.voiceSessionEnabled) {
-                    viewModel.toggleVoiceSession()
-                } else {
-                    val needed = WorkoutVoicePermissionHelper
-                        .permissionsToRequestForVoiceEnable(
-                            context = context,
-                            includeNotifications = true,
-                        )
-                    if (needed.isEmpty()) {
-                        viewModel.toggleVoiceSession()
-                    } else {
-                        voicePermissionsLauncher.launch(needed)
-                    }
-                }
-            },
-            onPrimaryAction = { recordActionHolder.action?.invoke() },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .zIndex(6f)
-                .padding(horizontal = 12.dp)
-                .padding(bottom = 152.dp),
-            sessionAccentColor = sessionAccentColor,
-            hazeState = cardsHazeStateDock,
-            isUpdateMode = uiState.completedSets.containsKey(dockKey),
-        )
-    }
-    }
-
-    val activeRestModalState = uiState.restModalState
     val postExerciseTarget = visibleExercises.getOrNull(uiState.postExerciseTargetIdx) ?: currentExercise
     val isShowingFeedback = uiState.showPostExerciseSheet && postExerciseTarget != null
-
-    if (isShowingFeedback || (uiState.isRestTimerRunning && activeRestModalState != null)) {
-        val currentRoundCompletedSets = currentExercise
-            ?.supersetGroupRefOrLegacyId()
-            ?.let { groupId ->
-                visibleExercises
-                    .filter { it.supersetGroupRefOrLegacyId() == groupId }
-                    .mapNotNull { member ->
-                        val key = "${member.id}_${uiState.currentSetIdx}"
-                        uiState.completedSets[key]?.let { displayWorkoutExerciseName(member) to it }
-                    }
-            }
-            .orEmpty()
-
-        val restState = activeRestModalState ?: WorkoutRestModalState(
-            exerciseId = postExerciseTarget?.id,
-            exerciseName = postExerciseTarget?.let(::displayWorkoutExerciseName).orEmpty(),
-            kind = RestTimerKind.STANDARD,
-            plannedSeconds = postExerciseTarget?.restTime ?: 90,
-            endsAtMs = 0L,
-            activeSeconds = 0,
-        )
-
-        val feedbackExercises = remember(postExerciseTarget, visibleExercises) {
-            buildFeedbackExercisesForTarget(postExerciseTarget, visibleExercises)
-        }
-
-        WorkoutRestOverlayHost(
-            viewModel = viewModel,
-            isRestTimerRunning = uiState.isRestTimerRunning,
-            isRestMinimized = uiState.isRestMinimized,
-            restState = restState,
-            pendingRestSuggestion = uiState.pendingRestSuggestion,
-            lastSetOutcome = uiState.lastSetOutcomeV2,
-            lastCompletedSet = uiState.setJustLoggedKey?.let { uiState.completedSets[it] },
-            lastCompletedSets = currentRoundCompletedSets,
-            sessionAccentColor = sessionAccentColor,
-            hazeState = overlayHazeState,
-            skipExerciseLabel = if (isInsideSupersetRound && !isLastExerciseInSupersetRound) {
-                "Saltar ronda"
-            } else {
-                currentExercise?.let(::displayWorkoutExerciseName)?.let { exerciseName ->
-                    "Saltar series restantes de $exerciseName e ir al siguiente ejercicio"
-                }
-            },
-            onSkipExercise = if (canSkipCurrentExerciseOnRestFinish) {
-                if (isInsideSupersetRound && !isLastExerciseInSupersetRound) {
-                    { viewModel.skipCurrentSupersetRound() }
-                } else {
-                    { viewModel.deferSkipRemainingCurrentExercise() }
-                }
-            } else {
-                null
-            },
-            postExerciseFeedbackContent = if (isShowingFeedback) {
-                {
-                    WorkoutPostExerciseFeedbackContent(
-                        feedbackExercises = feedbackExercises,
-                        postExerciseFeedbackByExerciseId = uiState.postExerciseFeedbackByExerciseId,
-                        sessionAccentColor = sessionAccentColor,
-                        viewModel = viewModel,
-                    )
-                }
-            } else {
-                null
-            },
-            feedbackExerciseCount = feedbackExercises.size,
-            forceShowForFeedback = isShowingFeedback,
-        )
-    }
-
     val catalogV2 = remember { com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache.peek()?.catalog }
 
     val firstIncompleteStep = remember(
@@ -1119,29 +839,301 @@ fun WorkoutScreen(
         activeStepIsWarmup || firstStepIsWarmup
     }
 
-    WorkoutMobilityOverlayHost(
-        viewModel = viewModel,
-        currentExercise = currentExercise,
-        completedExerciseIds = uiState.mobilityCompletedExerciseIds,
-        activeStepKey = uiState.activeStepKey,
-        mobilityTotalTimerState = uiState.mobilityTotalTimerState,
-        sessionAccentColor = sessionAccentColor,
-        hazeState = overlayHazeState,
-        catalog = catalogV2,
-        isVisible = isMobilityOverlayActive,
-    )
+    val canReturnToMobilityFromWarmup = isWarmupOverlayActive && (currentExercise?.mobilitySeries?.isNotEmpty() == true)
 
-    WorkoutWarmupOverlayHost(
-        viewModel = viewModel,
-        currentExercise = currentExercise,
-        warmupDisplaySets = warmupDisplaySets,
-        baseWorkingWeightKg = warmupWorkingWeight,
-        warmupCompletedExerciseIds = uiState.warmupCompletedExerciseIds,
-        completedSets = uiState.completedSets,
-        sessionAccentColor = sessionAccentColor,
-        hazeState = overlayHazeState,
-        isVisible = isWarmupOverlayActive,
+    Box(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .hazeSource(state = overlayHazeState),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        snackbarHost = { SnackbarHost(snackbarHostState) { KpknSnackbar(it) } },
+    ) { padding ->
+        val headerExerciseInfo = currentExercise?.let { workoutCatalogInfo(it) }
+        val headerGroup = resolveWorkoutHeaderGroupLabel(
+            partName = currentPartName,
+            type = headerExerciseInfo?.type,
+            category = headerExerciseInfo?.category,
+        )
+        WorkoutV2Body(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            uiState = uiState,
+            settings = settings,
+            adaptiveCache = adaptiveCache,
+            viewModel = viewModel,
+            currentExercise = currentExercise,
+            visibleExercises = visibleExercises,
+            currentSet = currentSet,
+            selectedContextTab = structureSheets.selectedExerciseContextTab,
+            onSelectedContextTabChange = { structureSheets.selectedExerciseContextTab = it },
+            rmSelectedWeight = rmSelectedWeight.value,
+            onRmWeightConsumed = { rmSelectedWeight.value = null },
+            sessionAccentColor = sessionAccentColor,
+            headerExerciseName = currentExercise?.let { exerciseDisplayParts(it, headerExerciseInfo).parentName } ?: session.name,
+            headerExerciseChips = currentExercise?.let { exerciseDisplayParts(it, headerExerciseInfo).chips }.orEmpty(),
+            headerSessionName = session.name,
+            headerGroupName = headerGroup,
+            headerStartTimeMs = uiState.startTimeMs,
+            headerIsComplete = uiState.isComplete,
+            headerBackground = session.background,
+            headerExerciseTag = activeTagDisplay,
+            exerciseReadinessMap = uiState.exerciseReadinessMap,
+            recordActionHolder = recordActionHolder,
+            cardsHazeState = cardsHazeStateDock,
+            isUnilateral = isUnilateralDock,
+            selectedUnilateralSideOverride = selectedUnilateralSideOverride,
+            onSelectedUnilateralSideOverride = { selectedUnilateralSideOverride = it },
+            activeSide = activeDockSide,
+            showingPostExerciseCard = showingPostExerciseCardDock,
+            onExpandHistory = {
+                val dbId = currentExercise?.exerciseDbId ?: currentExercise?.exerciseId
+                if (dbId != null) viewModel.showHistoryFor(dbId)
+            },
+            onExpandTags = {
+                currentExercise?.id?.let { structureSheets.tagSheetExerciseId = it }
+            },
+            onExpandSetup = {
+                currentExercise?.id?.let { structureSheets.setupSheetExerciseId = it }
+            },
+            onExpandReplace = {
+                currentExercise?.id?.let {
+                    structureSheets.replaceTargetExerciseId = it
+                    structureSheets.replaceSearchQuery = if (currentExercise.catalogDefinitionId == null) currentExercise.name else ""
+                    structureSheets.showReplaceExercisePicker = true
+                }
+            },
+            onExpandEdit = {
+                currentExercise?.id?.let { structureSheets.editSheetExerciseId = it }
+            },
+            onRequestCardioGps = {
+                if (CardioGpsTracker.hasLocationPermission(context)) {
+                    viewModel.startCardioGps()
+                } else {
+                    gpsPermissionsLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                        ),
+                    )
+                }
+            },
+            isMobilityActive = isMobilityOverlayActive,
+            isWarmupActive = isWarmupOverlayActive,
+            warmupDisplaySets = warmupDisplaySets,
+            warmupWorkingWeight = warmupWorkingWeight,
+            catalogV2 = catalogV2,
+            overlayHazeState = overlayHazeState,
+        )
+    }
+
+    LaunchedEffect(uiState.pendingEditSheetExerciseId) {
+        uiState.pendingEditSheetExerciseId?.let { exId ->
+            structureSheets.editSheetExerciseId = exId
+            viewModel.clearPendingEditSheetExerciseId()
+        }
+    }
+
+    if (!isCardioLiveStage) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .zIndex(5f),
+        ) {
+            WorkoutRoadmapBar(
+            exercises = visibleExercises,
+            parts = renderedParts,
+            supersetGroups = modeSession.allSupersetGroups(),
+            currentIdx = uiState.currentExerciseIdx,
+            currentSetIdx = uiState.currentSetIdx,
+            currentSide = activeDockSide,
+            completedSets = uiState.completedSets,
+            onSelect = { viewModel.selectExercise(it) },
+            onSelectStep = { stepKey -> viewModel.selectWorkoutStep(stepKey) },
+            onSelectGroup = { viewModel.selectSupersetGroup(it) },
+            onOpenContext = { exId ->
+                structureSheets.exerciseContextForceMemberActions = false
+                structureSheets.exerciseContextExerciseId = exId
+            },
+            onOpenMemberContext = { exId ->
+                structureSheets.exerciseContextForceMemberActions = true
+                structureSheets.exerciseContextExerciseId = exId
+            },
+            enableLongPress = true,
+            sessionAccentColor = sessionAccentColor,
+            hazeState = overlayHazeState,
+            mode = roadmapMode,
+            onModeChange = { roadmapMode = it },
+            milestones = uiState.sessionMilestones,
+            exerciseNote = currentExercise?.id?.let { uiState.exerciseNotes[it] }.orEmpty(),
+            exercisePhotos = currentExercise?.id?.let { uiState.exercisePhotos[it] }.orEmpty(),
+            onExerciseNoteChange = { note ->
+                currentExercise?.id?.let { viewModel.setExerciseNote(it, note) }
+            },
+            onAddExercisePhoto = { uri ->
+                currentExercise?.id?.let { viewModel.addExercisePhoto(it, uri) }
+            },
+            onRemoveExercisePhoto = { path ->
+                currentExercise?.id?.let { viewModel.removeExercisePhoto(it, path) }
+            },
+            )
+        }
+    }
+
+    if (!isCardioLiveStage && !isMobilityOverlayActive && !isWarmupOverlayActive && currentExercise != null && currentSet != null && (!showingPostExerciseCardDock || uiState.currentSetIdx < currentExercise.sets.size)) {
+        val dockKey = if (isUnilateralDock && activeDockSide != null) {
+            "${currentExercise.id}_${uiState.currentSetIdx}_${activeDockSide.take(1).uppercase()}"
+        } else {
+            "${currentExercise.id}_${uiState.currentSetIdx}"
+        }
+        WorkoutCommandDock(
+            exercise = currentExercise,
+            setIndex = uiState.currentSetIdx,
+            activeSide = activeDockSide,
+            isUnilateral = isUnilateralDock,
+            voiceSessionEnabled = uiState.voiceSessionEnabled,
+            voiceSessionState = uiState.voiceSessionState,
+            onToggleVoice = {
+                if (uiState.voiceSessionEnabled) {
+                    viewModel.toggleVoiceSession()
+                } else {
+                    val needed = WorkoutVoicePermissionHelper
+                        .permissionsToRequestForVoiceEnable(
+                            context = context,
+                            includeNotifications = true,
+                        )
+                    if (needed.isEmpty()) {
+                        viewModel.toggleVoiceSession()
+                    } else {
+                        voicePermissionsLauncher.launch(needed)
+                    }
+                }
+            },
+            onPrimaryAction = { recordActionHolder.action?.invoke() },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .zIndex(6f)
+                .padding(horizontal = 12.dp)
+                .padding(bottom = 152.dp),
+            sessionAccentColor = sessionAccentColor,
+            hazeState = cardsHazeStateDock,
+            isUpdateMode = uiState.completedSets.containsKey(dockKey),
+        )
+    }
+    }
+
+    val activeRestModalState = uiState.restModalState
+
+    if (isShowingFeedback || (uiState.isRestTimerRunning && activeRestModalState != null)) {
+        val currentRoundCompletedSets = currentExercise
+            ?.supersetGroupRefOrLegacyId()
+            ?.let { groupId ->
+                visibleExercises
+                    .filter { it.supersetGroupRefOrLegacyId() == groupId }
+                    .mapNotNull { member ->
+                        val key = "${member.id}_${uiState.currentSetIdx}"
+                        uiState.completedSets[key]?.let { displayWorkoutExerciseName(member) to it }
+                    }
+            }
+            .orEmpty()
+
+        val restState = activeRestModalState ?: WorkoutRestModalState(
+            exerciseId = postExerciseTarget?.id,
+            exerciseName = postExerciseTarget?.let(::displayWorkoutExerciseName).orEmpty(),
+            kind = RestTimerKind.STANDARD,
+            plannedSeconds = postExerciseTarget?.restTime ?: 90,
+            endsAtMs = 0L,
+            activeSeconds = 0,
+        )
+
+        val feedbackExercises = remember(postExerciseTarget, visibleExercises) {
+            buildFeedbackExercisesForTarget(postExerciseTarget, visibleExercises)
+        }
+
+        WorkoutRestOverlayHost(
+            viewModel = viewModel,
+            isRestTimerRunning = uiState.isRestTimerRunning,
+            isRestMinimized = uiState.isRestMinimized,
+            restState = restState,
+            pendingRestSuggestion = uiState.pendingRestSuggestion,
+            lastSetOutcome = uiState.lastSetOutcomeV2,
+            lastCompletedSet = uiState.setJustLoggedKey?.let { uiState.completedSets[it] },
+            lastCompletedSets = currentRoundCompletedSets,
+            sessionAccentColor = sessionAccentColor,
+            hazeState = overlayHazeState,
+            skipExerciseLabel = if (isInsideSupersetRound && !isLastExerciseInSupersetRound) {
+                "Saltar ronda"
+            } else {
+                currentExercise?.let(::displayWorkoutExerciseName)?.let { exerciseName ->
+                    "Saltar series restantes de $exerciseName e ir al siguiente ejercicio"
+                }
+            },
+            onSkipExercise = if (canSkipCurrentExerciseOnRestFinish) {
+                if (isInsideSupersetRound && !isLastExerciseInSupersetRound) {
+                    { viewModel.skipCurrentSupersetRound() }
+                } else {
+                    { viewModel.deferSkipRemainingCurrentExercise() }
+                }
+            } else {
+                null
+            },
+            postExerciseFeedbackContent = if (isShowingFeedback) {
+                {
+                    WorkoutPostExerciseFeedbackContent(
+                        feedbackExercises = feedbackExercises,
+                        postExerciseFeedbackByExerciseId = uiState.postExerciseFeedbackByExerciseId,
+                        sessionAccentColor = sessionAccentColor,
+                        viewModel = viewModel,
+                    )
+                }
+            } else {
+                null
+            },
+            feedbackExerciseCount = feedbackExercises.size,
+            forceShowForFeedback = isShowingFeedback,
+        )
+    }
+
+    val backAction = resolveWorkoutBackAction(
+        WorkoutOverlayFlags(
+            showExitDialog = showExitDialog,
+            showVolumeAdvance = uiState.showVolumeAdvanceModal,
+            showNonDismissibleModal = uiState.showExecutionErrorDiscomfortSheet,
+            showFinishSheet = uiState.showFinishSheet,
+            hasDrawerOpen = uiState.showHistorySheet || structureSheets.hasOpenDrawer(),
+            hasContextTabOpen = hasContextTabOpen,
+            showReadiness = showReadinessSheet,
+            canReturnToMobilityFromWarmup = canReturnToMobilityFromWarmup,
+        ),
     )
+    BackHandler(enabled = !showExitDialog) {
+        if (!hasChildBackOverlay) {
+            when (backAction) {
+                WorkoutBackAction.CONSUME_VOLUME_ADVANCE,
+                WorkoutBackAction.CONSUME_NON_DISMISSIBLE_MODAL,
+                -> Unit
+                WorkoutBackAction.DISMISS_FINISH_SHEET -> viewModel.hideFinish()
+                WorkoutBackAction.DISMISS_DRAWER -> {
+                    if (uiState.showHistorySheet) viewModel.hideHistorySheet()
+                    else if (hasContextTabOpen) structureSheets.selectedExerciseContextTab = null
+                    else structureSheets.exerciseContextExerciseId = null
+                }
+                WorkoutBackAction.RETURN_TO_MOBILITY_FROM_WARMUP -> {
+                    currentExercise?.mobilitySeries?.firstOrNull()?.let { firstMob ->
+                        viewModel.selectWorkoutStep(WorkoutStepRules.mobilityStepKey(currentExercise.id, firstMob.id, 0))
+                    }
+                }
+                WorkoutBackAction.SHOW_EXIT_DIALOG -> showExitDialog = true
+                WorkoutBackAction.DISMISS_EXIT_DIALOG,
+                WorkoutBackAction.DISMISS_MOBILITY_PICKER,
+                -> Unit
+            }
+        }
+    }
 
     WorkoutSessionOverlaysHost(
         viewModel = viewModel,

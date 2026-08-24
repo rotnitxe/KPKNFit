@@ -401,21 +401,41 @@ internal fun WorkoutExerciseHistoryContent(
                                             else -> null
                                         }
                                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                            Text(
-                                                buildString {
-                                                    if (sideLabel != null) append("$sideLabel · ")
-                                                    if (s.weight > 0) append("${s.weight}kg")
-                                                    if (s.weight > 0 && s.reps > 0) append(" x ")
-                                                    if (s.reps > 0) append("${s.reps} reps")
-                                                    if (s.rpe != null) append(" · RPE ${s.rpe}")
-                                                    if ((s.partialReps ?: 0) > 0) append(" · +${s.partialReps} parciales")
-                                                    if ((s.assistedReps ?: 0) > 0) append(" · ${s.assistedReps} con ayuda")
-                                                },
-                                                style = MaterialTheme.typography.bodySmall,
-                                            )
-                                            if (s.isFailure) {
-                                                Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.errorContainer) {
-                                                    Text("F", modifier = Modifier.padding(horizontal = 4.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onErrorContainer)
+                                            if (s.isFailedSet || s.failureReason == "execution_error" || !s.failureReason.isNullOrBlank()) {
+                                                Surface(
+                                                    shape = RoundedCornerShape(6.dp),
+                                                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.50f),
+                                                ) {
+                                                    val reason = s.failureReason?.takeIf { it.isNotBlank() && it != "execution_error" && it != "Serie marcada como fallida" }
+                                                    Text(
+                                                        text = buildString {
+                                                            if (sideLabel != null) append("$sideLabel · ")
+                                                            append("❌ Fallida")
+                                                            if (reason != null) append(": $reason")
+                                                        },
+                                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = MaterialTheme.colorScheme.error,
+                                                    )
+                                                }
+                                            } else {
+                                                Text(
+                                                    buildString {
+                                                        if (sideLabel != null) append("$sideLabel · ")
+                                                        if (s.weight > 0) append("${s.weight}kg")
+                                                        if (s.weight > 0 && s.reps > 0) append(" x ")
+                                                        if (s.reps > 0) append("${s.reps} reps")
+                                                        if (s.rpe != null) append(" · RPE ${s.rpe}")
+                                                        if ((s.partialReps ?: 0) > 0) append(" · +${s.partialReps} parciales")
+                                                        if ((s.assistedReps ?: 0) > 0) append(" · ${s.assistedReps} con ayuda")
+                                                    },
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                )
+                                                if (s.isFailure) {
+                                                    Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.errorContainer) {
+                                                        Text("F", modifier = Modifier.padding(horizontal = 4.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onErrorContainer)
+                                                    }
                                                 }
                                             }
                                         }

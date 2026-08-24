@@ -448,39 +448,6 @@ private fun NormalRestContent(
             }
         }
 
-        if (state.kind == RestTimerKind.WARMUP && onWarmupEffort != null) {
-            var effort by remember(state.warmupSetId, lastCompletedSet?.rpe) {
-                mutableFloatStateOf(lastCompletedSet?.rpe?.toFloat()?.coerceIn(1f, 10f) ?: 6f)
-            }
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Text(
-                    text = "Esfuerzo de la aproximación: RPE ${"%.1f".format(effort)}/10",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = sessionAccentColor,
-                )
-                Slider(
-                    value = effort,
-                    onValueChange = { effort = it },
-                    onValueChangeFinished = { onWarmupEffort(effort.toDouble()) },
-                    valueRange = 1f..10f,
-                    steps = 8,
-                    colors = SliderDefaults.colors(
-                        thumbColor = sessionAccentColor,
-                        activeTrackColor = sessionAccentColor,
-                        inactiveTrackColor = sessionAccentColor.copy(alpha = 0.24f),
-                    ),
-                )
-                Text(
-                    text = "Se guarda y calibra la primera serie efectiva de forma conservadora.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.56f),
-                )
-            }
-        }
 
 
 
