@@ -69,8 +69,21 @@ class WorkoutMobilityCanonicalKnowledgeUiTest {
             }
         }
 
-        composeRule.onNodeWithText("Involucramiento Articular del Ejercicio").assertExists()
-        composeRule.onNodeWithContentDescription("Tarjeta 1 de", substring = true).performClick()
+        composeRule.onNodeWithText("Información articular y muscular").assertExists()
+        composeRule.onNodeWithText("Información articular y muscular").performClick()
+        // Chip label comes from formatJointName(jointId), not the canonical long name.
+        val jointId = configuration.profile.jointInvolvement.first().jointId
+        val chip = when (jointId.trim().lowercase()) {
+            "glenohumeral", "shoulder" -> "Hombro"
+            "humeroulnar", "elbow" -> "Codo"
+            "radiocarpal", "wrist" -> "Muñeca"
+            "coxofemoral", "hip" -> "Cadera"
+            "tibiofemoral", "knee" -> "Rodilla"
+            "talocrural", "ankle" -> "Tobillo"
+            "lumbar_spine", "spine_lumbar" -> "Lumbar"
+            else -> jointId.replace('_', ' ').replaceFirstChar { it.uppercase() }
+        }
+        composeRule.onNodeWithText(chip, substring = true).performClick()
         composeRule.onNodeWithText(canonicalJoint.name).assertExists()
         composeRule.onNodeWithText(canonicalJoint.description).assertExists()
         composeRule.onNodeWithText("Principal:", substring = true).assertDoesNotExist()

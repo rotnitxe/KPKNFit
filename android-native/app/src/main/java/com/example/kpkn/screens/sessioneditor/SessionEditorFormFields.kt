@@ -30,15 +30,19 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -46,8 +50,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.kpkn.data.models.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.ui.graphics.lerp
 import com.example.kpkn.ui.components.KpknAlertDialog
@@ -66,9 +68,29 @@ internal fun EditorMiniField(
 ) {
     var localValue by rememberSaveable(stateKey) { mutableStateOf(value) }
     var isFocused by remember { mutableStateOf(false) }
+    val latestLocal = rememberUpdatedState(localValue)
+    val latestValue = rememberUpdatedState(value)
+    val latestCommit = rememberUpdatedState(onCommit)
+    val commitWhileTyping = keyboardType == KeyboardType.Number ||
+        keyboardType == KeyboardType.Decimal ||
+        keyboardType == KeyboardType.Ascii
     LaunchedEffect(stateKey, value, isFocused) {
         if (!isFocused && value != localValue) {
             localValue = value
+        }
+    }
+    LaunchedEffect(localValue, isFocused, commitWhileTyping) {
+        if (!isFocused || !commitWhileTyping) return@LaunchedEffect
+        kotlinx.coroutines.delay(150)
+        if (latestLocal.value != latestValue.value && isCommitableEditorInput(latestLocal.value, keyboardType)) {
+            latestCommit.value(latestLocal.value)
+        }
+    }
+    DisposableEffect(stateKey) {
+        onDispose {
+            if (latestLocal.value != latestValue.value) {
+                latestCommit.value(latestLocal.value)
+            }
         }
     }
     OutlinedTextField(
@@ -97,6 +119,20 @@ internal fun EditorMiniField(
         ),
         colors = kpknEditorFieldColors(accentColor),
     )
+}
+
+/** True when the draft is a complete-enough numeric/rep value to push live. */
+internal fun isCommitableEditorInput(raw: String, keyboardType: KeyboardType): Boolean {
+    val trimmed = raw.trim()
+    if (trimmed.isEmpty()) return false
+    return when (keyboardType) {
+        KeyboardType.Number -> trimmed.safeIntOrNull() != null
+        KeyboardType.Decimal -> trimmed.safeDoubleOrNull() != null
+        KeyboardType.Ascii -> trimmed.safeIntOrNull() != null ||
+            trimmed.safeDoubleOrNull() != null ||
+            trimmed.contains('-') || trimmed.contains('–')
+        else -> false
+    }
 }
 
 @Composable

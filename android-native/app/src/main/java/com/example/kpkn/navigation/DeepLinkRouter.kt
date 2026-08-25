@@ -50,6 +50,15 @@ object DeepLinkRouter {
             "profile", "perfil" -> ResolvedRoute(KpknRoute.Profile.route)
             "program" -> segments.getOrNull(1)?.takeIf { it.isNotBlank() }
                 ?.let { ResolvedRoute(KpknRoute.ProgramDetail.create(it)) }
+            "workout", "entreno-vivo", "sesion-viva" -> {
+                val programId = segments.getOrNull(1)?.takeIf { it.isNotBlank() }
+                val sessionId = segments.getOrNull(2)?.takeIf { it.isNotBlank() }
+                if (programId != null && sessionId != null) {
+                    ResolvedRoute(KpknRoute.Workout.create(programId, sessionId))
+                } else {
+                    ResolvedRoute(KpknRoute.Training.route)
+                }
+            }
             "concepts", "conceptos" -> ResolvedRoute(KpknRoute.Concepts.create())
             "concept", "concepto" -> conceptRoute(segments.getOrNull(1))
             "wikilab" -> when (second) {

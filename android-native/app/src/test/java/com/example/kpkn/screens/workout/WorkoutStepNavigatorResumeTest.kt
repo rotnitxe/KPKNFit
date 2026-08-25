@@ -59,7 +59,7 @@ class WorkoutStepNavigatorResumeTest {
                     preferredSide: String?,
                 ): WorkoutEditingState? = null
                 override fun stopRestTimer() = Unit
-                override fun persistOngoingState() = Unit
+                override fun persistOngoingState(immediate: Boolean) = Unit
                 override suspend fun persistOngoingStateAndAwait() = Unit
                 override fun refreshLoadSuggestions(state: WorkoutUiState) = Unit
                 override fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?) = Unit
@@ -166,7 +166,7 @@ class WorkoutStepNavigatorResumeTest {
                     completedSets.containsKey("${exerciseId}_$setIdx")
                 override fun buildEditingStateForPosition(completedSets: Map<String, CompletedSet>, exercise: Exercise?, setIdx: Int, preferredSide: String?) = null
                 override fun stopRestTimer() = Unit
-                override fun persistOngoingState() = Unit
+                override fun persistOngoingState(immediate: Boolean) = Unit
                 override suspend fun persistOngoingStateAndAwait() = Unit
                 override fun refreshLoadSuggestions(state: WorkoutUiState) = Unit
                 override fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?) = Unit

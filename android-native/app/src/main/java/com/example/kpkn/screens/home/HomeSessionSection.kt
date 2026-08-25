@@ -58,14 +58,38 @@ fun HomeSessionSection(
     modifier: Modifier = Modifier,
 ) {
     var activeIndex by remember { mutableIntStateOf(0) }
+    var anchoredSessionId by remember { mutableStateOf<String?>(null) }
+    var isProgrammaticScroll by remember { mutableStateOf(false) }
 
-    LaunchedEffect(sessions) {
-        val preferred = sessions.indexOfFirst { it.isToday && !it.isCompleted }
+    fun preferredSessionIndex(items: List<TodaySessionItem>): Int {
+        val preferred = items.indexOfFirst { it.isToday && !it.isCompleted }
             .takeIf { it >= 0 }
-            ?: sessions.indexOfFirst { it.isToday }.takeIf { it >= 0 }
-            ?: sessions.indexOfFirst { it.isOngoing }.takeIf { it >= 0 }
+            ?: items.indexOfFirst { !it.isCompleted }.takeIf { it >= 0 }
+            ?: items.indexOfFirst { it.isOngoing }.takeIf { it >= 0 }
+            ?: items.indexOfFirst { it.isToday }.takeIf { it >= 0 }
             ?: 0
-        activeIndex = preferred.coerceIn(0, (sessions.size - 1).coerceAtLeast(0))
+        return preferred.coerceIn(0, (items.size - 1).coerceAtLeast(0))
+    }
+
+    LaunchedEffect(sessions.map { it.session.id to it.isCompleted }) {
+        val preferred = preferredSessionIndex(sessions)
+        val preferredId = sessions.getOrNull(preferred)?.session?.id
+        if (preferredId != null && preferredId != anchoredSessionId) {
+            anchoredSessionId = preferredId
+            isProgrammaticScroll = true
+            activeIndex = preferred
+        } else if (sessions.isNotEmpty()) {
+            // Mantener ancla por id si el orden cambió.
+            val byId = anchoredSessionId?.let { id -> sessions.indexOfFirst { it.session.id == id } }
+            if (byId != null && byId >= 0 && byId != activeIndex) {
+                isProgrammaticScroll = true
+                activeIndex = byId
+            } else if (activeIndex !in sessions.indices) {
+                isProgrammaticScroll = true
+                activeIndex = preferred
+                anchoredSessionId = preferredId
+            }
+        }
     }
 
     Column(modifier.fillMaxWidth()) {
@@ -92,10 +116,23 @@ fun HomeSessionSection(
 
             if (sessions.size > 1) {
                 val pagerState = rememberPagerState(initialPage = activeIndex) { sessions.size }
-                LaunchedEffect(activeIndex) {
-                    if (pagerState.currentPage != activeIndex) pagerState.animateScrollToPage(activeIndex)
+                LaunchedEffect(activeIndex, sessions.size) {
+                    val needsSnap = pagerState.currentPage != activeIndex ||
+                        pagerState.currentPageOffsetFraction != 0f
+                    if (!needsSnap) return@LaunchedEffect
+                    // Cualquier offset fraccional (también settled==active) se asienta al instante.
+                    pagerState.scrollToPage(activeIndex)
+                    isProgrammaticScroll = false
                 }
-                LaunchedEffect(pagerState.currentPage) { activeIndex = pagerState.currentPage }
+                LaunchedEffect(pagerState) {
+                    snapshotFlow { pagerState.settledPage }
+                        .collect { settled ->
+                            if (!isProgrammaticScroll && settled != activeIndex) {
+                                activeIndex = settled
+                                anchoredSessionId = sessions.getOrNull(settled)?.session?.id
+                            }
+                        }
+                }
                 HorizontalPager(
                     state = pagerState,
                     pageSpacing = 8.dp,

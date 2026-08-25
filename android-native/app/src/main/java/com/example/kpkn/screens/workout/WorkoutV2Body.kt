@@ -1121,38 +1121,51 @@ internal fun WorkoutV2Body(
                                 val isActivePage = page == pagerState.settledPage
                                 val activeSet = targetExercise.sets.getOrNull(activeSetIndex) ?: currentSetForUi
                                 val cardSide = pageSpec.side ?: (if (targetIsUnilateral) activeSide else null)
-                                val activeGhostSet = remember(targetExercise.id, activeSetIndex, uiState.exerciseTags[targetExercise.id]) {
-                                    viewModel.getGhostForSet(
-                                        exerciseId = targetExercise.id,
-                                        setIdx = activeSetIndex,
-                                        exerciseDbId = targetExercise.exerciseDbId ?: targetExercise.exerciseId,
-                                        activeTag = uiState.exerciseTags[targetExercise.id],
-                                    )
-                                }
-                                val baseWeightSuggestion = viewModel.getWeightSuggestionWithAutoRegulation(
-                                    targetExercise,
+                                val activeGhostSet = remember(
+                                    isActivePage,
+                                    targetExercise.id,
                                     activeSetIndex,
                                     uiState.exerciseTags[targetExercise.id],
-                                )
-                                val calibratedWorkingWeight = if (activeSetIndex == 0) {
-                                    viewModel.getCalibratedWorkingWeight(
-                                        exercise = targetExercise,
-                                        baseWorkingWeightKg = baseWeightSuggestion?.suggestedWeight,
+                                ) {
+                                    if (!isActivePage) {
+                                        null
+                                    } else {
+                                        viewModel.getGhostForSet(
+                                            exerciseId = targetExercise.id,
+                                            setIdx = activeSetIndex,
+                                            exerciseDbId = targetExercise.exerciseDbId ?: targetExercise.exerciseId,
+                                            activeTag = uiState.exerciseTags[targetExercise.id],
+                                        )
+                                    }
+                                }
+                                val activeWeightSuggestion = if (!isActivePage) {
+                                    null
+                                } else {
+                                    val baseWeightSuggestion = viewModel.getWeightSuggestionWithAutoRegulation(
+                                        targetExercise,
+                                        activeSetIndex,
                                         activeTag = uiState.exerciseTags[targetExercise.id],
                                     )
-                                } else {
-                                    null
-                                }
-                                val activeWeightSuggestion = baseWeightSuggestion?.let { suggestion ->
-                                    calibratedWorkingWeight?.let { calibratedWeight ->
-                                        suggestion.copy(
-                                            suggestedWeight = calibratedWeight,
-                                            reason = viewModel.getWarmupCalibrationNote(
-                                                exercise = targetExercise,
-                                                workingWeightAnchor = suggestion.suggestedWeight,
-                                            ) ?: suggestion.reason,
+                                    val calibratedWorkingWeight = if (activeSetIndex == 0) {
+                                        viewModel.getCalibratedWorkingWeight(
+                                            exercise = targetExercise,
+                                            baseWorkingWeightKg = baseWeightSuggestion?.suggestedWeight,
+                                            activeTag = uiState.exerciseTags[targetExercise.id],
                                         )
-                                    } ?: suggestion
+                                    } else {
+                                        null
+                                    }
+                                    baseWeightSuggestion?.let { suggestion ->
+                                        calibratedWorkingWeight?.let { calibratedWeight ->
+                                            suggestion.copy(
+                                                suggestedWeight = calibratedWeight,
+                                                reason = viewModel.getWarmupCalibrationNote(
+                                                    exercise = targetExercise,
+                                                    workingWeightAnchor = suggestion.suggestedWeight,
+                                                ) ?: suggestion.reason,
+                                            )
+                                        } ?: suggestion
+                                    }
                                 }
                                 val sessionCompletedSet = uiState.completedSets[
                                     if (targetIsUnilateral) {

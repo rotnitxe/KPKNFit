@@ -14,7 +14,7 @@ import com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledgeKind
 import com.example.kpkn.data.wikilab.TRAINING_CONCEPTS_DATABASE
 import com.example.kpkn.domain.concepts.projectConceptoClave
 import com.example.kpkn.domain.concepts.searchConceptosClave
-import com.example.kpkn.ui.components.CanonicalKnowledgeTooltip
+import com.example.kpkn.ui.components.CanonicalKnowledgeOverlay
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -70,19 +70,27 @@ class ConceptosClaveUiTest {
     }
 
     @Test
-    fun canonicalTooltipKeepsOnlyNameAndIntroForAllKnowledgeKinds() {
+    fun canonicalOverlayKeepsOnlyNameAndIntroForAllKnowledgeKinds() {
         val entries = listOf(
             CanonicalKnowledge(CanonicalKnowledgeKind.MUSCLE, "m", "Músculo", "Intro músculo"),
             CanonicalKnowledge(CanonicalKnowledgeKind.JOINT, "j", "Articulación", "Intro articulación"),
             CanonicalKnowledge(CanonicalKnowledgeKind.STABILIZER, "s", "Estabilizador", "Intro estabilizador"),
             CanonicalKnowledge(CanonicalKnowledgeKind.PATTERN, "p", "Patrón", "Intro patrón"),
         )
+        val selected = mutableStateOf(entries.first())
         composeRule.setContent {
-            MaterialTheme { entries.forEach { CanonicalKnowledgeTooltip(it) } }
+            MaterialTheme {
+                CanonicalKnowledgeOverlay(
+                    knowledge = selected.value,
+                    onDismiss = {},
+                )
+            }
         }
-        entries.forEach {
-            composeRule.onNodeWithText(it.name).assertExists()
-            composeRule.onNodeWithText(it.description).assertExists()
+        entries.forEach { entry ->
+            composeRule.runOnIdle { selected.value = entry }
+            composeRule.waitForIdle()
+            composeRule.onNodeWithText(entry.name).assertExists()
+            composeRule.onNodeWithText(entry.description).assertExists()
         }
         composeRule.onNodeWithText("biomechanicalReason", substring = true).assertDoesNotExist()
         composeRule.onNodeWithText("Drenaje", substring = true).assertDoesNotExist()

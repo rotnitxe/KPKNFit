@@ -288,7 +288,7 @@ object SessionEditorRulesEngine {
                 )
                 IntensityMode.SOLO_RM -> set.copy(
                     intensityMode = IntensityMode.SOLO_RM,
-                    targetPercentageRM = value.coerceIn(40.0, 100.0),
+                    targetPercentageRM = roundToMax2Decimals(value.coerceIn(40.0, 100.0)),
                     targetRPE = null,
                     targetRIR = null,
                     isFailure = false,
@@ -310,13 +310,15 @@ object SessionEditorRulesEngine {
     private fun normalizeSet(set: ExerciseSet, exercise: Exercise): ExerciseSet {
         val normalized = when (exercise.trainingMode) {
             TrainingMode.RM -> set.copy(
-                intensityMode = IntensityMode.LOAD,
+                intensityMode = null,
                 targetRepsRange = null,
                 targetRPE = null,
                 targetRIR = null,
                 isFailure = false,
                 isAmrap = false,
-                targetPercentageRM = (set.targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0),
+                targetPercentageRM = com.example.kpkn.screens.sessioneditor.roundToMax2Decimals(
+                    (set.targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0),
+                ),
             )
             TrainingMode.SOLO_RPE -> set.copy(
                 intensityMode = IntensityMode.RPE,

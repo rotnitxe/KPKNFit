@@ -393,18 +393,21 @@ internal fun WorkoutSessionOverlaysHost(
     val currentExerciseForAlert = remember(uiState.currentExerciseIdx, visibleExercises) {
         visibleExercises.getOrNull(uiState.currentExerciseIdx)
     }
-    val persistentDiscomfortLabel = remember(currentExerciseForAlert?.id) {
+    val persistentHit = remember(currentExerciseForAlert?.id) {
         currentExerciseForAlert?.let { viewModel.persistentDiscomfortForExercise(it) }
     }
+    val bannerCoveredIds = uiState.previousSessionDiscomforts.toSet()
     var dismissedPersistentDiscomfortExercise by remember { mutableStateOf<String?>(null) }
-    val showPersistentDiscomfortAlert = persistentDiscomfortLabel != null &&
+    val showPersistentDiscomfortAlert = persistentHit != null &&
+        persistentHit.id !in bannerCoveredIds &&
         dismissedPersistentDiscomfortExercise != currentExerciseForAlert?.id &&
         !showReadinessSheet &&
         !uiState.showPostExerciseSheet &&
-        !uiState.showFinishSheet
+        !uiState.showFinishSheet &&
+        !showMobilityBanner
 
     if (showPersistentDiscomfortAlert && currentExerciseForAlert != null) {
-        val discomfortLabel = persistentDiscomfortLabel ?: ""
+        val discomfortLabel = persistentHit?.label.orEmpty()
         KpknGlassDialog(
             onDismissRequest = { dismissedPersistentDiscomfortExercise = currentExerciseForAlert.id },
             shape = RoundedCornerShape(KpknGlass.DialogCornerRadius),
@@ -421,7 +424,7 @@ internal fun WorkoutSessionOverlaysHost(
                     textAlign = TextAlign.Center,
                 )
                 Text(
-                    "En este ejercicio reportaste $persistentDiscomfortLabel. " +
+                    "En este ejercicio reportaste $discomfortLabel. " +
                         "Preocúpate por hacer una correcta técnica y manejar cargas adecuadas para ti. " +
                         "Si la molestia persiste en el tiempo, te recomendamos que cambies de ejercicio y " +
                         "que te asesores con un kinesiólogo.",

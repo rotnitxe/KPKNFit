@@ -1047,4 +1047,3 @@ private fun formatWarmupPercent(raw: Double): String {
 }
 
 private fun Double.roundToStep(step: Double): Double = (this / step).roundToInt() * step
-

@@ -409,11 +409,11 @@ class WorkoutSessionHydrator(
             sessionProgress = 0.0,
         )
         val lastLog = repository.history.value.firstOrNull { it.programId == programId && it.id != sessionId }
-        val lastDiscomforts = lastLog?.postExerciseReports
-            ?.flatMap { it.discomfortIds }
+        // Solo molestias marcadas como aún presentes (no resueltas) en la sesión pasada.
+        val lastDiscomforts = lastLog?.stillPresentDiscomfortIds
             ?.filter { it != "none" }
             ?.distinct()
-            ?: emptyList()
+            .orEmpty()
         if (lastDiscomforts.isNotEmpty()) {
             updateState { it.copy(previousSessionDiscomforts = lastDiscomforts) }
         }

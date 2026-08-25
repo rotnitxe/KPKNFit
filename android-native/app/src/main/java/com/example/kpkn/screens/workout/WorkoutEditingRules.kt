@@ -213,7 +213,8 @@ object WorkoutEditingRules {
                 targetRepsRange = null,
                 targetDuration = null,
                 plannedTargetV2 = null,
-                targetPercentageRM = (set.targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0),
+                targetPercentageRM = (set.targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0)
+                    .let { kotlin.math.round(it * 100.0) / 100.0 },
                 isAmrap = false,
             )
             TrainingMode.SOLO_RPE -> set.copy(
@@ -259,11 +260,14 @@ object WorkoutEditingRules {
                 isFailure = true,
             )
         } else when (mode) {
+            // RM prescrito por %RM: la intensidad de esfuerzo se reporta en vivo
+            // (RPE/RIR/Fallo). No forzar LOAD ni borrar la elección del usuario.
             TrainingMode.RM -> metricNormalized.copy(
-                intensityMode = IntensityMode.LOAD,
-                targetRPE = null,
-                targetRIR = null,
-                isFailure = false,
+                intensityMode = when (metricNormalized.intensityMode) {
+                    IntensityMode.LOAD -> null
+                    IntensityMode.SOLO_RM -> null
+                    else -> metricNormalized.intensityMode
+                },
             )
             TrainingMode.SOLO_RPE -> metricNormalized.copy(
                 intensityMode = IntensityMode.RPE,

@@ -1,0 +1,22 @@
+---
+description: Auditoría de Alineación obligatoria en cada petición y chat
+alwaysApply: true
+---
+
+# Auditoría de Alineación (cada petición)
+
+En **toda** petición de este chat y de cualquier chat del repo, antes de declarar el trabajo listo y junto a la doble auto-auditoría técnica:
+
+1. Releer la petición del usuario (y archivos/planes citados) como fuente de verdad del éxito.
+2. Contrastar lo entregado vs lo pedido, ítem por ítem. Preguntar explícitamente:
+   - ¿Se hizo exactamente lo pedido, ni más ni menos de lo esencial?
+   - ¿Se sustituyó el objetivo por uno más fácil, más estrecho, “compatible” o solo parcialmente relacionado?
+   - ¿Quedó trabajo pedido sin hacer, pospuesto o reinterpretado sin que el usuario lo autorizara?
+   - ¿La evidencia prueba el objetivo pedido, o solo algo adyacente (compila, tests verdes, “mejora general”)?
+3. Si hay desalineación: **corregir en el mismo turno** hasta alinear, o declarar el gap con la petición literal incumplida. No redefinir el éxito alrededor de lo ya hecho.
+4. En la respuesta final incluir un bloque **Auditoría de Alineación** con:
+   - Petición (1 línea, paraphrase fiel);
+   - Cumple / No cumple por entregable explícito;
+   - Desvíos detectados y hotfixes de realineación (o “ninguno”);
+   - Veredicto: **alineado** | **realineado** | **desalineado** (este último solo si falta decisión/acceso del usuario).
+5. No contar como alineado el trabajo “útil pero distinto”. Alineación = el estado final hace más verdadera la petición original.

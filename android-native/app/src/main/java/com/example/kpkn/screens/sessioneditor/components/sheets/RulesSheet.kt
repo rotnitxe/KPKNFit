@@ -27,11 +27,13 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -117,10 +119,20 @@ private fun SheetMiniField(
     var local by remember(label) { mutableStateOf(value) }
     var focused by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
+    val latestLocal = rememberUpdatedState(local)
+    val latestValue = rememberUpdatedState(value)
+    val latestCommit = rememberUpdatedState(onCommit)
 
     LaunchedEffect(value) {
         if (!focused) {
             local = value
+        }
+    }
+    DisposableEffect(label) {
+        onDispose {
+            if (latestLocal.value != latestValue.value) {
+                latestCommit.value(latestLocal.value)
+            }
         }
     }
     OutlinedTextField(
@@ -231,6 +243,7 @@ internal fun RulesSheet(
     @Suppress("UNUSED_PARAMETER")
     onApplyGlobalIntensityAdjustment
 
+    val focusManager = LocalFocusManager.current
     var activeTab by remember { mutableIntStateOf(0) }
     LaunchedEffect(uiState.rulesSheetInitialTab) {
         if (uiState.rulesSheetInitialTab == 1) {
@@ -1189,6 +1202,8 @@ internal fun RulesSheet(
         StickyActionBar(
             modifier = Modifier.align(Alignment.BottomCenter),
             onApply = {
+                // Flush campos locales (SheetMiniField) antes de aplicar.
+                focusManager.clearFocus(force = true)
                 val outcome = onApplyRules(activeScopePartId)
                 if (outcome is ApplyRulesOutcome.Applied) onDismiss()
             },

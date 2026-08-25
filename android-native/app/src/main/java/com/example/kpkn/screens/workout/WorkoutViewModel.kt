@@ -400,7 +400,8 @@ class WorkoutViewModel(
                 override fun buildEditingStateForPosition(completedSets: Map<String, CompletedSet>, exercise: Exercise?, setIdx: Int, preferredSide: String?) =
                     this@WorkoutViewModel.buildEditingStateForPosition(completedSets, exercise, setIdx, preferredSide)
                 override fun stopRestTimer() = this@WorkoutViewModel.stopRestTimer()
-                override fun persistOngoingState() = this@WorkoutViewModel.persistOngoingState()
+                override fun persistOngoingState(immediate: Boolean) =
+                    this@WorkoutViewModel.persistOngoingState(immediate = immediate)
                 override suspend fun persistOngoingStateAndAwait() = this@WorkoutViewModel.persistOngoingStateAndAwait()
                 override fun refreshLoadSuggestions(state: WorkoutUiState) = loadSuggestionController.refreshLoadSuggestions(state)
                 override fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?) = this@WorkoutViewModel.clearDraftForSet(exerciseId, setIdx, side)
@@ -882,10 +883,11 @@ class WorkoutViewModel(
         }
     }
 
-    private fun applyStoredPacingAlertModeIfNeeded() {
-        val stored = appContext.getSharedPreferences("workout_prefs", Context.MODE_PRIVATE)
-            .getString("pacing_alert_mode", null)
-            ?: return
+    private suspend fun applyStoredPacingAlertModeIfNeeded() {
+        val stored = withContext(Dispatchers.IO) {
+            appContext.getSharedPreferences("workout_prefs", Context.MODE_PRIVATE)
+                .getString("pacing_alert_mode", null)
+        } ?: return
         val mode = PacingAlertMode.fromStored(stored)
         if (_uiState.value.pacingAlertMode != mode) {
             pacingController.setPacingAlertMode(mode)
@@ -4822,52 +4824,58 @@ class WorkoutViewModel(
     /**
      * Analiza el historial (más reciente primero) buscando la misma molestia
      * reportada en al menos [minConsecutiveSessions] sesiones consecutivas que
-     * contengan este ejercicio/patrón de movimiento. Devuelve el label de la
-     * molestia persistente, o null si no hay patrón.
+     * contengan este ejercicio/patrón de movimiento.
+     *
+     * Prioriza `stillPresentDiscomfortIds` (molestia no resuelta) frente a
+     * `discomfortIds` crudos del reporte.
      */
     fun persistentDiscomfortForExercise(
         exercise: Exercise,
         minConsecutiveSessions: Int = 3,
-    ): String? {
+    ): PersistentDiscomfortHit? {
         val matchKeys = buildSet {
             exercise.exerciseId?.let(::add)
             exercise.exerciseDbId?.let(::add)
             exercise.canonicalExerciseId?.let(::add)
             exercise.relativeToCanonicalExerciseId?.let(::add)
         }
+        fun idsForLog(log: com.example.kpkn.data.models.WorkoutLog): Set<String> {
+            val reports = log.postExerciseReports.filter { report ->
+                report.discomfortIds.any { it != "none" } &&
+                    (
+                        report.exerciseId in matchKeys ||
+                            report.canonicalExerciseId in matchKeys ||
+                            report.exerciseDbId in matchKeys
+                        )
+            }
+            if (reports.isEmpty()) return emptySet()
+            val reported = reports.flatMap { it.discomfortIds }.filter { it != "none" }.toSet()
+            if (reported.isEmpty()) return emptySet()
+            // Preferir molestias marcadas como aún presentes al cerrar la sesión.
+            val still = log.stillPresentDiscomfortIds.filter { it != "none" }.toSet()
+            if (still.isNotEmpty()) {
+                val overlap = still.intersect(reported)
+                if (overlap.isNotEmpty()) return overlap
+            }
+            return reported
+        }
         val sessionsWithDiscomfort = repository.history.value
             .sortedByDescending { it.date }
-            .mapNotNull { log ->
-                val reports = log.postExerciseReports.filter { report ->
-                    report.discomfortIds.isNotEmpty() &&
-                        (
-                            report.exerciseId in matchKeys ||
-                                report.canonicalExerciseId in matchKeys ||
-                                report.exerciseDbId in matchKeys
-                            )
-                }
-                if (reports.isEmpty()) null else reports
-            }
+            .mapNotNull { log -> idsForLog(log).takeIf { it.isNotEmpty() } }
         if (sessionsWithDiscomfort.isEmpty()) return null
 
-        // Contar concurrencia consecutiva (la sesión más reciente primero).
         val firstSessionDiscomforts = sessionsWithDiscomfort.first()
-            .flatMap { it.discomfortIds }
-            .filter { it != "none" }
-            .toSet()
-        if (firstSessionDiscomforts.isEmpty()) return null
         val consecutive = firstSessionDiscomforts.mapNotNull { discomfortId ->
             var count = 1
             for (next in sessionsWithDiscomfort.drop(1)) {
-                val ids = next.flatMap { it.discomfortIds }.filter { it != "none" }.toSet()
-                if (discomfortId in ids) count++ else break
+                if (discomfortId in next) count++ else break
             }
             if (count >= minConsecutiveSessions) discomfortId else null
         }
         if (consecutive.isEmpty()) return null
-        return consecutive.firstNotNullOfOrNull { id ->
-            DISCOMFORT_CATALOG.find { it.id == id }?.label ?: id
-        }
+        val id = consecutive.first()
+        val label = DISCOMFORT_CATALOG.find { it.id == id }?.label ?: id
+        return PersistentDiscomfortHit(id = id, label = label)
     }
 
     fun latestCompletedSessionSnapshot(): WorkoutShareSnapshot? {

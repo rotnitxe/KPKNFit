@@ -15,10 +15,23 @@ internal fun String.safeIntOrNull(): Int? = toIntOrNull()
 
 internal fun String.safeDoubleOrNull(): Double? = replace(",", ".").toDoubleOrNull()
 
+/** Redondea a como máximo 2 decimales (sin inventar ceros). */
+internal fun roundToMax2Decimals(value: Double): Double =
+    kotlin.math.round(value * 100.0) / 100.0
+
+internal fun formatMax2Decimals(value: Double): String {
+    val rounded = roundToMax2Decimals(value)
+    val asLong = rounded.toLong()
+    return if (rounded == asLong.toDouble()) {
+        asLong.toString()
+    } else {
+        String.format(Locale.US, "%.2f", rounded).trimEnd('0').trimEnd('.')
+    }
+}
+
 internal fun formatEditableNumber(value: Double?): String {
     if (value == null) return ""
-    val asLong = value.toLong()
-    return if (value == asLong.toDouble()) asLong.toString() else value.toString()
+    return formatMax2Decimals(value)
 }
 
 internal fun String.toEditorColor(default: Color = Color(0xFF6E8A95)): Color =

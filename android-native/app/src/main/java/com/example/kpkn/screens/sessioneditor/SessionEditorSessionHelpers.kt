@@ -388,7 +388,7 @@ internal fun Exercise.withSharedPerformanceFromHistory(history: List<WorkoutLog>
             withReferences.trainingMode == TrainingMode.RM && set.targetPercentageRM == null -> {
                 set.copy(
                     targetPercentageRM = 75.0,
-                    intensityMode = IntensityMode.LOAD,
+                    intensityMode = null,
                 )
             }
             else -> set
@@ -474,14 +474,16 @@ internal fun ExerciseSet.normalizeSet(exercise: Exercise): ExerciseSet {
             isFailure = true,
         )
         else -> when (exercise.trainingMode) {
+            // En el editor, RM no programa intensidad de esfuerzo (solo %RM).
+            // intensityMode=null: no usar LOAD como "modo de reporte".
             TrainingMode.RM -> copy(
-                intensityMode = IntensityMode.LOAD,
+                intensityMode = null,
                 targetRepsRange = null,
                 targetRPE = null,
                 targetRIR = null,
                 isFailure = false,
                 isAmrap = false,
-                targetPercentageRM = (targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0),
+                targetPercentageRM = roundToMax2Decimals((targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0)),
             )
             TrainingMode.SOLO_RPE -> copy(
                 intensityMode = IntensityMode.RPE,
@@ -519,7 +521,7 @@ internal fun createNextSetTemplate(exercise: Exercise, template: ExerciseSet): E
     }
     return base.copy(
         targetPercentageRM = ((template.targetPercentageRM ?: 100.0) - fatigueDrop).coerceAtLeast(45.0),
-        intensityMode = IntensityMode.LOAD,
+        intensityMode = null,
     )
 }
 

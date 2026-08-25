@@ -19,13 +19,20 @@ class WorkoutFinishSheetEntryTest {
         val source = viewModelFile.readText()
         val trueAssignments = Regex("""showFinishSheet\s*=\s*true""")
             .findAll(source)
-            .count()
+            .toList()
 
-        // Single writer inside openFinishSheet().
+        // Both resume and fresh-finish paths live inside openFinishSheet().
         assertEquals(
-            "Expected exactly one `showFinishSheet = true` assignment (openFinishSheet).",
-            1,
-            trueAssignments,
+            "Expected exactly two `showFinishSheet = true` assignments inside openFinishSheet.",
+            2,
+            trueAssignments.size,
         )
+        val openFinishIdx = source.indexOf("private fun openFinishSheet()")
+        require(openFinishIdx >= 0) { "openFinishSheet() not found" }
+        trueAssignments.forEach { match ->
+            assert(match.range.first > openFinishIdx) {
+                "Found showFinishSheet = true outside openFinishSheet() at ${match.range.first}"
+            }
+        }
     }
 }

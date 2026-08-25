@@ -1464,7 +1464,42 @@ private fun WorkoutSetEditCard(
                     Spacer(Modifier.width(6.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         listOf(IntensityMode.RPE to "RPE", IntensityMode.RIR to "RIR", IntensityMode.FAILURE to "Fallo").forEach { (mode, label) ->
-                            FilterChip(selected = set.intensityMode == mode || (mode == IntensityMode.FAILURE && set.isFailure), onClick = { onUpdateSet(set.id) { when (mode) { IntensityMode.FAILURE -> it.copy(intensityMode = mode, isFailure = true, isAmrap = false, targetRPE = null, targetRIR = null); IntensityMode.RIR -> it.copy(intensityMode = mode, isFailure = false, isAmrap = false, targetRPE = null); IntensityMode.RPE -> it.copy(intensityMode = mode, isFailure = false, isAmrap = false, targetRIR = null); else -> it } } }, label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = if (mode == IntensityMode.FAILURE) Color(0xFFFF5252).copy(alpha = 0.2f) else sessionAccentColor.copy(alpha = 0.2f), selectedLabelColor = if (mode == IntensityMode.FAILURE) Color(0xFFFF5252) else sessionAccentColor))
+                            FilterChip(
+                                selected = set.intensityMode == mode || (mode == IntensityMode.FAILURE && set.isFailure),
+                                onClick = {
+                                    onUpdateSet(set.id) {
+                                        when (mode) {
+                                            IntensityMode.FAILURE -> it.copy(
+                                                intensityMode = mode,
+                                                isFailure = true,
+                                                isAmrap = false,
+                                                targetRPE = null,
+                                                targetRIR = null,
+                                            )
+                                            IntensityMode.RIR -> it.copy(
+                                                intensityMode = mode,
+                                                isFailure = false,
+                                                isAmrap = false,
+                                                targetRPE = null,
+                                                targetRIR = it.targetRIR ?: 2,
+                                            )
+                                            IntensityMode.RPE -> it.copy(
+                                                intensityMode = mode,
+                                                isFailure = false,
+                                                isAmrap = false,
+                                                targetRIR = null,
+                                                targetRPE = it.targetRPE ?: 8.0,
+                                            )
+                                            else -> it
+                                        }
+                                    }
+                                },
+                                label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = if (mode == IntensityMode.FAILURE) Color(0xFFFF5252).copy(alpha = 0.2f) else sessionAccentColor.copy(alpha = 0.2f),
+                                    selectedLabelColor = if (mode == IntensityMode.FAILURE) Color(0xFFFF5252) else sessionAccentColor,
+                                ),
+                            )
                         }
                     }
                     if (set.intensityMode != IntensityMode.FAILURE) {

@@ -826,12 +826,16 @@ private fun RingCaption(label: String, pct: Int, color: Color) {
 
 @Composable
 internal fun AddSetGhostCard(onAddSet: () -> Unit, modifier: Modifier = Modifier) {
+    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()
             .clip(RoundedCornerShape(16.dp))
-            .clickable { onAddSet() },
+            .clickable {
+                focusManager.clearFocus(force = true)
+                onAddSet()
+            },
         color = DarkEditorSurfaceSoft,
     ) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

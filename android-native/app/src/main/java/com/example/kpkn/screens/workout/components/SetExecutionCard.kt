@@ -770,31 +770,39 @@ internal fun SetInputCardV2(
     // Null is meaningful here: the author explicitly left intensity unapplied.
     // Keep the live card free of an RPE/RIR control in that case; perceived
     // intensity is collected by the post-exercise feedback slider instead.
+    // IntensityMode.LOAD under TrainingMode.RM is a legacy marker, not effort reporting.
+    val isRmLoadPrescription = exercise.trainingMode == TrainingMode.RM ||
+        (currentSet.intensityMode == IntensityMode.LOAD && currentSet.targetPercentageRM != null)
+    fun effortIntensityMode(mode: IntensityMode?): IntensityMode? =
+        if (mode == IntensityMode.LOAD && isRmLoadPrescription) null else mode
     val plannedIntensityMode: IntensityMode? = when {
         plannedAmrap -> IntensityMode.AMRAP
-        currentSet.intensityMode != null -> currentSet.intensityMode
+        effortIntensityMode(currentSet.intensityMode) != null -> effortIntensityMode(currentSet.intensityMode)
         currentSet.targetRIR != null -> IntensityMode.RIR
         currentSet.targetRPE != null -> IntensityMode.RPE
-        currentSet.targetPercentageRM != null -> IntensityMode.SOLO_RM
         currentSet.isFailure -> IntensityMode.FAILURE
-        currentSet.leftTarget?.intensityMode != null -> currentSet.leftTarget?.intensityMode
-        currentSet.rightTarget?.intensityMode != null -> currentSet.rightTarget?.intensityMode
+        !isRmLoadPrescription && currentSet.targetPercentageRM != null -> IntensityMode.SOLO_RM
+        effortIntensityMode(currentSet.leftTarget?.intensityMode) != null -> effortIntensityMode(currentSet.leftTarget?.intensityMode)
+        effortIntensityMode(currentSet.rightTarget?.intensityMode) != null -> effortIntensityMode(currentSet.rightTarget?.intensityMode)
         currentSet.leftTarget?.targetRIR != null || currentSet.rightTarget?.targetRIR != null -> IntensityMode.RIR
         currentSet.leftTarget?.targetRPE != null || currentSet.rightTarget?.targetRPE != null -> IntensityMode.RPE
         else -> null
     }
+    val hasEffortReportingModes = plannedIntensityMode in setOf(
+        IntensityMode.RPE,
+        IntensityMode.RIR,
+        IntensityMode.FAILURE,
+        IntensityMode.AMRAP,
+        IntensityMode.SOLO_RM,
+        IntensityMode.LOAD,
+    )
     val hasPlannedIntensityInput = currentSet.targetRPE != null ||
         currentSet.targetRIR != null ||
-        currentSet.targetPercentageRM != null ||
         currentSet.isFailure ||
         plannedAmrap ||
-        currentSet.intensityMode in setOf(
-            IntensityMode.RPE,
-            IntensityMode.RIR,
-            IntensityMode.FAILURE,
-            IntensityMode.AMRAP,
-            IntensityMode.SOLO_RM,
-        ) ||
+        hasEffortReportingModes ||
+        isRmLoadPrescription ||
+        (!isRmLoadPrescription && currentSet.targetPercentageRM != null) ||
         currentSet.leftTarget?.targetRPE != null ||
         currentSet.leftTarget?.targetRIR != null ||
         currentSet.rightTarget?.targetRPE != null ||
@@ -1073,14 +1081,39 @@ internal fun SetInputCardV2(
             }
         }
     }
+    fun resolveDefaultReportedIntensityMode(): IntensityMode? = when {
+        sessionCompletedSet?.actualIntensityMode == IntensityMode.RIR -> IntensityMode.RIR
+        sessionCompletedSet?.actualIntensityMode == IntensityMode.RPE -> IntensityMode.RPE
+        sessionCompletedSet?.actualIntensityMode == IntensityMode.FAILURE -> IntensityMode.FAILURE
+        currentSet.targetRIR != null || plannedIntensityMode == IntensityMode.RIR -> IntensityMode.RIR
+        plannedIntensityMode == IntensityMode.FAILURE -> IntensityMode.FAILURE
+        plannedIntensityMode == IntensityMode.RPE -> IntensityMode.RPE
+        isRmLoadPrescription -> IntensityMode.RPE
+        else -> plannedIntensityMode
+    }
     var reportedIntensityMode by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
-        mutableStateOf(
-            when {
-                sessionCompletedSet?.actualIntensityMode == IntensityMode.RIR -> IntensityMode.RIR
-                currentSet.targetRIR != null || plannedIntensityMode == IntensityMode.RIR -> IntensityMode.RIR
-                else -> plannedIntensityMode
+        mutableStateOf(resolveDefaultReportedIntensityMode())
+    }
+    LaunchedEffect(
+        currentSet.intensityMode,
+        currentSet.targetRPE,
+        currentSet.targetRIR,
+        currentSet.isFailure,
+        plannedIntensityMode,
+        isRmLoadPrescription,
+    ) {
+        if (sessionCompletedSet != null) return@LaunchedEffect
+        val next = resolveDefaultReportedIntensityMode()
+        if (next != reportedIntensityMode) {
+            reportedIntensityMode = next
+            intensityText = when (next) {
+                IntensityMode.RIR -> (currentSet.targetRIR ?: 2).toString()
+                IntensityMode.RPE -> (currentSet.targetRPE ?: 8.0).toTrimmedNumberString()
+                IntensityMode.FAILURE -> ""
+                else -> intensityText
             }
-        )
+            reachedFailure = next == IntensityMode.FAILURE && currentSet.isFailure
+        }
     }
     fun intensityStep(): Double =
         if (reportedIntensityMode == IntensityMode.RIR) 1.0 else if (plannedIntensityMode == IntensityMode.FAILURE) 1.0 else 0.5
@@ -1239,17 +1272,19 @@ internal fun SetInputCardV2(
     }
     val plannedValueLabel = if (isTimeMode) "Tiempo" else "Reps"
     val expectedIntensityLabel = when {
-        currentSet.targetPercentageRM != null -> "%RM a trabajar"
         plannedAmrap || isAmrap -> "AMRAP"
         plannedIntensityMode == IntensityMode.FAILURE -> "FALLO"
         plannedIntensityMode == IntensityMode.RIR -> "RIR"
+        plannedIntensityMode == IntensityMode.RPE -> "RPE"
+        isRmLoadPrescription -> "RPE"
         else -> "RPE"
     }
     val expectedIntensityValue = when {
-        currentSet.targetPercentageRM != null -> "${currentSet.targetPercentageRM.toInt()}%"
         plannedAmrap || isAmrap -> "AMRAP"
         plannedIntensityMode == IntensityMode.FAILURE -> "F"
         plannedIntensityMode == IntensityMode.RIR -> activePlannedRir?.toString() ?: "-"
+        plannedIntensityMode == IntensityMode.RPE -> activePlannedRpe?.toTrimmedNumberString() ?: "-"
+        isRmLoadPrescription -> "-"
         else -> activePlannedRpe?.toTrimmedNumberString() ?: "-"
     }
     val plannedIntensityDisplayLabel = if (plannedIntensityMode == IntensityMode.FAILURE && !reachedFailure) {

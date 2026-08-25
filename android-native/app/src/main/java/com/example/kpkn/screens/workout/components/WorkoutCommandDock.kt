@@ -301,4 +301,3 @@ private fun rememberVoicePulse(enabled: Boolean): Pair<Float, Float> {
     )
     return pulseScale to pulseAlpha
 }
-

@@ -145,6 +145,35 @@ class PlannedIntensityPolicyTest {
     }
 
     @Test
+    fun rm_live_normalization_preserves_effort_intensity_and_clears_legacy_load() {
+        val withRpe = WorkoutEditingRules.normalizeLiveEditedSet(
+            mode = com.example.kpkn.data.models.TrainingMode.RM,
+            set = ExerciseSet(
+                id = "rm-rpe",
+                targetReps = 5,
+                targetPercentageRM = 80.0,
+                intensityMode = IntensityMode.RPE,
+                targetRPE = 8.0,
+            ),
+        )
+        val legacyLoad = WorkoutEditingRules.normalizeLiveEditedSet(
+            mode = com.example.kpkn.data.models.TrainingMode.RM,
+            set = ExerciseSet(
+                id = "rm-load",
+                targetReps = 5,
+                targetPercentageRM = 75.0,
+                intensityMode = IntensityMode.LOAD,
+            ),
+        )
+
+        assertEquals(IntensityMode.RPE, withRpe.intensityMode)
+        assertEquals(8.0, withRpe.targetRPE)
+        assertEquals(80.0, withRpe.targetPercentageRM)
+        assertEquals(null, legacyLoad.intensityMode)
+        assertEquals(75.0, legacyLoad.targetPercentageRM)
+    }
+
+    @Test
     fun load_and_amrap_modes_do_not_require_an_rpe_input() {
         val load = Exercise(id = "load", name = "Load", sets = listOf(ExerciseSet(id = "load-set", intensityMode = IntensityMode.LOAD)))
         val amrap = Exercise(id = "amrap", name = "AMRAP", sets = listOf(ExerciseSet(id = "amrap-set", intensityMode = IntensityMode.AMRAP, isAmrap = true)))

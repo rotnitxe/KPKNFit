@@ -37,10 +37,14 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,6 +70,8 @@ import com.example.kpkn.screens.sessioneditor.components.rememberSessionEditorBr
 import com.example.kpkn.screens.sessioneditor.EditorMiniField
 import com.example.kpkn.screens.sessioneditor.kpknEditorFieldColors
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
+import com.example.kpkn.screens.sessioneditor.formatMax2Decimals
+import com.example.kpkn.screens.sessioneditor.roundToMax2Decimals
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.formatEstimatedMetric
@@ -424,8 +430,8 @@ internal fun InlineSetRow(
                     ) { input ->
                         commitEditedField { current ->
                             current.copy(
-                                targetPercentageRM = input.safeDoubleOrNull(),
-                                intensityMode = IntensityMode.LOAD,
+                                targetPercentageRM = input.safeDoubleOrNull()?.let { roundToMax2Decimals(it) },
+                                intensityMode = null,
                                 targetRPE = null,
                                 targetRIR = null,
                                 isFailure = false,
@@ -668,9 +674,9 @@ internal fun InlineSetRow(
                     ) {
                         Text(
                             text = buildString {
-                                append(displayedWeight?.let { "${"%.1f".format(it)} kg" } ?: "Usa carga inteligente para estimar la carga inicial")
+                                append(displayedWeight?.let { "${formatMax2Decimals(it)} kg" } ?: "Usa carga inteligente para estimar la carga inicial")
                                 if (isRmMode && reference1RM != null) {
-                                    append(" · ${sliderPercent.toInt()}% RM")
+                                    append(" · ${formatMax2Decimals(sliderPercent.toDouble())}% RM")
                                 }
                             },
                             style = MaterialTheme.typography.bodyMedium,
@@ -682,9 +688,9 @@ internal fun InlineSetRow(
                                 value = localSliderPercent,
                                 onValueChange = { localSliderPercent = it },
                                 onValueChangeFinished = {
-                                    val v = localSliderPercent.toDouble()
+                                    val v = roundToMax2Decimals(localSliderPercent.toDouble())
                                     if (v != set.targetPercentageRM) {
-                                        commitEditedField { current -> current.copy(targetPercentageRM = v, intensityMode = IntensityMode.LOAD) }
+                                        commitEditedField { current -> current.copy(targetPercentageRM = v, intensityMode = null) }
                                     }
                                 },
                                 valueRange = 45f..100f,
@@ -720,9 +726,31 @@ private fun AccentSetValueField(
 ) {
     var localValue by rememberSaveable(stateKey) { mutableStateOf(value) }
     var isFocused by remember { mutableStateOf(false) }
+    val latestLocal = rememberUpdatedState(localValue)
+    val latestValue = rememberUpdatedState(value)
+    val latestCommit = rememberUpdatedState(onCommit)
+    val commitWhileTyping = keyboardType == KeyboardType.Number ||
+        keyboardType == KeyboardType.Decimal ||
+        keyboardType == KeyboardType.Ascii
     LaunchedEffect(stateKey, value, isFocused) {
         if (!isFocused && value != localValue) {
             localValue = value
+        }
+    }
+    LaunchedEffect(localValue, isFocused, commitWhileTyping) {
+        if (!isFocused || !commitWhileTyping) return@LaunchedEffect
+        kotlinx.coroutines.delay(150)
+        if (latestLocal.value != latestValue.value &&
+            com.example.kpkn.screens.sessioneditor.isCommitableEditorInput(latestLocal.value, keyboardType)
+        ) {
+            latestCommit.value(latestLocal.value)
+        }
+    }
+    DisposableEffect(stateKey) {
+        onDispose {
+            if (latestLocal.value != latestValue.value) {
+                latestCommit.value(latestLocal.value)
+            }
         }
     }
     val surfaceColor = lerp(DarkEditorChip, accentColor, 0.16f)

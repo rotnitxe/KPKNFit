@@ -87,6 +87,18 @@ class DeepLinkRouterTest {
     }
 
     @Test
+    fun resolvesLiveWorkoutRoute() {
+        assertEquals(
+            KpknRoute.Workout.create("live-visual-prog", "live-visual-sess"),
+            DeepLinkRouter.resolve(Uri.parse("kpkn://workout/live-visual-prog/live-visual-sess"))?.route,
+        )
+        assertEquals(
+            KpknRoute.Training.route,
+            DeepLinkRouter.resolve(Uri.parse("kpkn://workout/only-program"))?.route,
+        )
+    }
+
+    @Test
     fun rejectsNonKpknOrInvalidLinks() {
         val otherHost = DeepLinkRouter.resolve(Uri.parse("https://example.com/nutrition"))
         val noId = DeepLinkRouter.resolve(Uri.parse("https://kpkn.fit/program"))

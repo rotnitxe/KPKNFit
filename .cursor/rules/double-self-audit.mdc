@@ -1,11 +1,11 @@
 ---
-description: Exige dos auto-auditorías consecutivas y hotfixes antes de cerrar cualquier tarea
+description: Exige doble auto-auditoría técnica + Auditoría de Alineación antes de cerrar cualquier tarea
 alwaysApply: true
 ---
 
-# Doble auto-auditoría obligatoria
+# Doble auto-auditoría + Alineación
 
-Para toda tarea de implementación, corrección, refactor, configuración o documentación:
+Para toda tarea de implementación, corrección, refactor, configuración o documentación (y, la Alineación, en **toda** petición):
 
 1. Completar el trabajo y su verificación proporcional al riesgo.
 2. Ejecutar una **primera auditoría automática severa** sin pausar ni pedir permiso:
@@ -14,9 +14,13 @@ Para toda tarea de implementación, corrección, refactor, configuración o docu
 3. Ejecutar una **segunda auditoría automática independiente** sobre el resultado ya corregido:
    - volver a buscar omisiones y validar los hotfixes de la primera;
    - corregir en el mismo turno cualquier gap restante del alcance.
-4. Solo después entregar la respuesta final, incluyendo:
+4. Ejecutar la **Auditoría de Alineación** (regla `alignment-audit.mdc`) sobre el resultado final:
+   - contrastar entrega vs petición literal / plan citado;
+   - corregir desvíos en el mismo turno; no redefinir el éxito alrededor de lo ya hecho.
+5. Solo después entregar la respuesta final, incluyendo:
    - veredicto de auditoría 1 y hotfixes aplicados;
    - veredicto de auditoría 2 y estado final;
+   - bloque **Auditoría de Alineación** (petición, cumple/no cumple, desvíos, veredicto);
    - gaps escalados únicamente si están fuera del alcance o requieren una decisión/acceso del usuario.
-5. No detenerse entre implementación y auditorías, ni preguntar si debe continuarse.
-6. Una auditoría no puede basarse solo en que compila: debe inspeccionar comportamiento, consistencia y cobertura.
+6. No detenerse entre implementación y auditorías, ni preguntar si debe continuarse.
+7. Una auditoría técnica no puede basarse solo en que compila; la de alineación no puede basarse solo en que el trabajo “parece útil”.

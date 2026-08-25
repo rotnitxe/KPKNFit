@@ -4,6 +4,12 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.services.workout.VoiceSessionState
 import com.example.kpkn.screens.sessioneditor.CatalogSupersetConfig
 
+/** Molestia repetida ≥N sesiones en el mismo ejercicio/patrón. */
+data class PersistentDiscomfortHit(
+    val id: String,
+    val label: String,
+)
+
 data class PendingReplacementPersistencePrompt(
     val exerciseId: String,
     val replacement: ExerciseMuscleInfo,

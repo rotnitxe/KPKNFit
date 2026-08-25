@@ -32,7 +32,8 @@ class WorkoutStepNavigator(
             preferredSide: String? = null,
         ): WorkoutEditingState?
         fun stopRestTimer()
-        fun persistOngoingState()
+        /** Cursor-only moves should pass [immediate]=false to avoid main-thread runBlocking ANRs. */
+        fun persistOngoingState(immediate: Boolean = true)
         suspend fun persistOngoingStateAndAwait()
         fun refreshLoadSuggestions(state: WorkoutUiState)
         fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?)
@@ -317,7 +318,6 @@ class WorkoutStepNavigator(
     }
 
     fun selectExercise(idx: Int) {
-        if (getState().showPostExerciseSheet) return
         ports.stopRestTimer()
         val state = getState()
         val targetExercise = ports.visibleExercises(state).getOrNull(idx)
@@ -332,12 +332,14 @@ class WorkoutStepNavigator(
                 pendingRestSuggestion = null,
                 restModalState = null,
                 postExerciseFeedbackTarget = null,
+                showPostExerciseSheet = false,
+                postExerciseTargetIdx = -1,
                 editingState = ports.buildEditingStateForPosition(it.completedSets, targetExercise, targetSetIdx),
                 continuityTransitionTarget = null,
                 continuityFeedbackExerciseId = null,
             )
         }
-        ports.persistOngoingState()
+        ports.persistOngoingState(immediate = false)
         ports.speakCurrentStepAnnouncementIfEnabled()
     }
 
@@ -362,7 +364,7 @@ class WorkoutStepNavigator(
                     continuityFeedbackExerciseId = null,
                 )
             }
-            ports.persistOngoingState()
+            ports.persistOngoingState(immediate = false)
             if (shouldShowFeedback && state.voiceSessionEnabled) {
                 ports.announceFinalPostExerciseFeedback(feedbackTarget.unrecordedFeedbackExerciseIds(state))
             } else if (!shouldShowFeedback) {
@@ -402,7 +404,7 @@ class WorkoutStepNavigator(
                     )
                 }
                 if (state.voiceSessionEnabled) {
-                    ports.persistOngoingState()
+                    ports.persistOngoingState(immediate = false)
                     ports.announcePostExerciseFeedback(feedbackTarget.unrecordedFeedbackExerciseIds(state))
                     return
                 }
@@ -438,7 +440,7 @@ class WorkoutStepNavigator(
                 )
             }
         }
-        ports.persistOngoingState()
+        ports.persistOngoingState(immediate = false)
         ports.speakCurrentStepAnnouncementIfEnabled()
     }
 
@@ -477,11 +479,11 @@ class WorkoutStepNavigator(
                 continuityFeedbackExerciseId = null,
             )
         }
-        ports.persistOngoingState()
+        ports.persistOngoingState(immediate = false)
     }
 
     fun selectWorkoutStep(stepKey: String) {
-        if (getState().showPostExerciseSheet || stepKey.isBlank()) return
+        if (stepKey.isBlank()) return
         val state = getState()
         val visible = ports.visibleExercises(state)
         val targetStep = workoutStepPositions(state).firstOrNull { it.stepKey == stepKey } ?: return
@@ -499,6 +501,9 @@ class WorkoutStepNavigator(
                 currentAutoRegulation = null,
                 pendingRestSuggestion = null,
                 restModalState = null,
+                showPostExerciseSheet = false,
+                postExerciseTargetIdx = -1,
+                postExerciseFeedbackTarget = null,
                 editingState = if (targetStep.type == WorkoutStepType.WORKING_SET) {
                     ports.buildEditingStateForPosition(it.completedSets, targetExercise, position.second)
                 } else {
@@ -508,7 +513,8 @@ class WorkoutStepNavigator(
                 continuityFeedbackExerciseId = null,
             )
         }
-        ports.persistOngoingState()
+        // Cursor navigation only — never block main on Room (ANR on Siguiente / rail taps).
+        ports.persistOngoingState(immediate = false)
     }
 
     fun navigateAdjacentWorkingStep(forward: Boolean) {
@@ -604,7 +610,7 @@ class WorkoutStepNavigator(
                 continuityTransitionTarget = null,
             )
         }
-        ports.persistOngoingState()
+        ports.persistOngoingState(immediate = false)
     }
 
     fun prevSet() {
@@ -628,7 +634,7 @@ class WorkoutStepNavigator(
                 continuityTransitionTarget = null,
             )
         }
-        ports.persistOngoingState()
+        ports.persistOngoingState(immediate = false)
         ports.speakCurrentStepAnnouncementIfEnabled()
     }
 

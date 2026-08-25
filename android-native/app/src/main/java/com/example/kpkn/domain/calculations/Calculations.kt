@@ -134,7 +134,11 @@ fun estimateRepsFromPercent1RM(percent: Double): Int {
     } ?: 1
 }
 
-private fun roundSuggestedLoad(weight: Double): Double = (weight * 4.0).roundToInt() / 4.0
+private fun roundSuggestedLoad(weight: Double): Double {
+    // Saltos de 0.25 kg, nuncaando a ≤2 decimales.
+    val stepped = (weight * 4.0).roundToInt() / 4.0
+    return kotlin.math.round(stepped * 100.0) / 100.0
+}
 
 private fun assistanceFactor(metric: Double): Double {
     if (metric <= 0.0) return 0.0
