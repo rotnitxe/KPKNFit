@@ -82,8 +82,8 @@ class WorkoutPagerSyncTest {
     }
 
     @Test
-    fun preparationStep_doesNotGetOverwrittenByASettledWorkingPage() {
-        assertFalse(
+    fun preparationStep_allowsUserSwipeToWorkingPage() {
+        assertTrue(
             shouldSyncSettledPagerPage(
                 origin = WorkoutPagerSettlementOrigin.USER,
                 activeStepKey = "squat_warmup_w1",

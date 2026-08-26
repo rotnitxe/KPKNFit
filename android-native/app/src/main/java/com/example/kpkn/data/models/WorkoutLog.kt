@@ -30,6 +30,9 @@ data class WorkoutLog(
     val exerciseNotes: Map<String, String> = emptyMap(),   // exerciseId → note
     val exercisePhotos: Map<String, List<String>> = emptyMap(), // exerciseId → local paths (max 2)
     val sessionMilestones: List<SessionMilestone> = emptyList(),
+    val sessionNotes: String = "",
+    val sessionPhotos: List<String> = emptyList(),
+    val sessionChecklist: List<SessionChecklistItem> = emptyList(),
     val contextualPerformanceStateV2: Map<String, ContextPerformanceStateV2> = emptyMap(),
     val globalPerformanceStateV3: Map<String, GlobalPerformanceStateV3> = emptyMap(),
     val contextProfilesV3: Map<String, WorkoutContextProfile> = emptyMap(),
@@ -231,6 +234,9 @@ data class OngoingWorkoutState(
     val exerciseNotes: Map<String, String> = emptyMap(),
     val exercisePhotos: Map<String, List<String>> = emptyMap(),
     val sessionMilestones: List<SessionMilestone> = emptyList(),
+    val sessionNotes: String = "",
+    val sessionPhotos: List<String> = emptyList(),
+    val sessionChecklist: List<SessionChecklistItem> = emptyList(),
     val voiceTimedSet: VoiceTimedSetState? = null,
     val voiceExerciseQueue: List<String> = emptyList(),
     val voicePendingFeedbackExerciseIds: Set<String> = emptySet(),
@@ -288,6 +294,13 @@ data class SessionMilestone(
     val value: Double,
     val detail: String? = null,
     val createdAtIso: String = "",
+)
+
+@Serializable
+data class SessionChecklistItem(
+    val id: String,
+    val text: String,
+    val done: Boolean = false,
 )
 
 /** Summary card data for the Home screen "Sesión de hoy" */

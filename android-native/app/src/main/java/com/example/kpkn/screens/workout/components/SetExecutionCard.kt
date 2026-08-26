@@ -640,21 +640,22 @@ private fun FlatAdjustmentButton(
 ) {
     Surface(
         onClick = onClick,
-        modifier = modifier.heightIn(min = WorkoutUiTokens.MinTouchTarget),
+        modifier = modifier.heightIn(min = 36.dp),
         shape = RoundedCornerShape(8.dp),
-        color = if (selected) Color(0xFF454545) else Color(0xFF292929),
+        color = if (selected) Color(0xFF525252) else Color(0xFF3A3A3A),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
+        border = BorderStroke(1.dp, Color.White.copy(alpha = if (selected) 0.18f else 0.08f)),
     ) {
         Box(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
             contentAlignment = Alignment.Center,
         ) {
             Text(
                 text = text,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelSmall,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                color = Color.White.copy(alpha = if (selected) 0.95f else 0.78f),
+                color = Color.White.copy(alpha = if (selected) 0.95f else 0.82f),
                 textAlign = TextAlign.Center,
             )
         }
@@ -1351,15 +1352,7 @@ internal fun SetInputCardV2(
     val reportWeightText = if (supportsIndependentSides) weightTextForSide(selectedSide) else weightText
     val reportValueText = if (supportsIndependentSides) valueTextForSide(selectedSide) else valueText
 
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = WorkoutUiTokens.CardShape,
-        color = WorkoutUiTokens.setCardColor(),
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
-        border = null,
-    ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
+    Box(modifier = Modifier.fillMaxWidth()) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1889,7 +1882,9 @@ internal fun SetInputCardV2(
                             val maxRepsForPopup = reportValueText.toIntOrNull() ?: 0
                             val partialRepsValueForPopup = partialSets.sum().coerceAtLeast(0)
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 20.dp),
                                 horizontalArrangement = Arrangement.Center,
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
@@ -2059,16 +2054,24 @@ internal fun SetInputCardV2(
                             modifier = modifier,
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            Text(
-                                intensityFieldLabel.uppercase(),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = when {
-                                    isExecutionError -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                                    reachedFailure -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                },
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 20.dp),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    intensityFieldLabel.uppercase(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = when {
+                                        isExecutionError -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                                        reachedFailure -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                                        else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                    },
+                                )
+                            }
                             Spacer(Modifier.height(if (roomyStepper) 8.dp else 6.dp))
 
                             val intensityDisabled = isExecutionError
@@ -2098,6 +2101,7 @@ internal fun SetInputCardV2(
                             horizontalArrangement = Arrangement.spacedBy(
                                 if (roomyStepper) 18.dp else 12.dp
                             ),
+                            verticalAlignment = Alignment.Top,
                         ) {
                             ValueStepperBlock(Modifier.weight(1f))
                             IntensityStepperBlock(Modifier.weight(1f))
@@ -2215,7 +2219,7 @@ internal fun SetInputCardV2(
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = sessionAccentColor,
-                                contentColor = Color.Black,
+                                contentColor = com.example.kpkn.screens.sessioneditor.contentOn(sessionAccentColor),
                             ),
                         ) { Text("Guardar", fontWeight = FontWeight.Bold) }
                     }
@@ -2264,16 +2268,25 @@ internal fun SetInputCardV2(
                     Surface(
                         onClick = { adjustmentsTab = if (adjustmentsTab == index) -1 else index },
                         shape = WorkoutUiTokens.InnerCardShape,
-                        color = if (adjustmentsTab == index) sessionAccentColor.copy(alpha = 0.15f) else Color.Transparent,
-                        border = BorderStroke(1.dp, if (adjustmentsTab == index) sessionAccentColor else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+                        color = if (adjustmentsTab == index) {
+                            sessionAccentColor.copy(alpha = 0.18f)
+                        } else {
+                            Color(0xFF2E2E2E)
+                        },
+                        border = BorderStroke(
+                            1.dp,
+                            if (adjustmentsTab == index) sessionAccentColor
+                            else Color.White.copy(alpha = 0.10f),
+                        ),
                     ) {
                         Text(
                             text = title,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                             style = MaterialTheme.typography.labelSmall,
-                            fontWeight = if (adjustmentsTab == index) FontWeight.SemiBold else FontWeight.Normal,
-                            color = if (adjustmentsTab == index) sessionAccentColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                            maxLines = 2,
+                            fontWeight = if (adjustmentsTab == index) FontWeight.SemiBold else FontWeight.Medium,
+                            color = if (adjustmentsTab == index) sessionAccentColor
+                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.78f),
+                            maxLines = 1,
                         )
                     }
                 }
@@ -2287,12 +2300,12 @@ internal fun SetInputCardV2(
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f))
                 ) {
                     Column(
-                        modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         when (adjustmentsTab) {
-                            0 -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                            0 -> Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
                                     FlatAdjustmentButton(
                                         text = "Error de ejecución",
                                         selected = isFailedSet,
@@ -2940,7 +2953,6 @@ internal fun SetInputCardV2(
                     }
                 }
             }
-        }
     }
 
     // ── Overlay de ajuste por readiness ──

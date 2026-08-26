@@ -37,6 +37,15 @@ object WorkoutUiTokens {
     /** Minimum readable label size for gym/distance UI. */
     val MinLabelSp = 11.sp
     val MinTouchTarget = 40.dp
+    /**
+     * Shared proportional scale for every live pager card.
+     *
+     * The base dimensions remain the previous compact layout; the frame
+     * renders them at this factor so MOV/APR and working sets grow together.
+     */
+    val LivePagerCardScale = 1.20f
+    val LivePagerBaseHeight = 440.dp
+    val LivePagerSlotHeight = LivePagerBaseHeight * LivePagerCardScale
 
     // Semántica de Colores Material 3
     @Composable
@@ -188,9 +197,11 @@ fun WorkoutPrimaryActionButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     containerColor: Color = MaterialTheme.colorScheme.primary,
-    contentColor: Color = MaterialTheme.colorScheme.onPrimary,
+    contentColor: Color? = null,
     icon: (@Composable () -> Unit)? = null
 ) {
+    val resolvedContentColor = contentColor
+        ?: com.example.kpkn.screens.sessioneditor.contentOn(containerColor)
     Button(
         onClick = onClick,
         modifier = modifier.heightIn(min = 52.dp),
@@ -198,7 +209,7 @@ fun WorkoutPrimaryActionButton(
         shape = WorkoutUiTokens.ChipShape,
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
-            contentColor = contentColor,
+            contentColor = resolvedContentColor,
             disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
         ),

@@ -492,7 +492,7 @@ internal fun WorkoutPostExerciseFeedbackContent(
             shape = RoundedCornerShape(12.dp),
             contentPadding = PaddingValues(vertical = 14.dp),
         ) {
-            Text("Registrar feedback", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text("Registrar feedback", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = com.example.kpkn.screens.sessioneditor.contentOn(sessionAccentColor))
         }
     }
 

@@ -413,133 +413,141 @@ internal fun GroupEditorCard(
                 ),
         ) {
             Column {
-                SwipeToDeleteCard(
-                    onDelete = {
-                        if (shouldShowDeleteChoice) {
-                            showDeleteModeConfirm = true
-                        } else {
-                            showDeleteConfirm = true
-                        }
-                    },
-                    shape = headerShape,
+                // Drag handle outside swipe so horizontal delete doesn't cancel long-press.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Row(
+                    var handleWindowOrigin by remember(part.id) { mutableStateOf(Offset.Zero) }
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        var handleWindowOrigin by remember(part.id) { mutableStateOf(Offset.Zero) }
-                        Box(
-                            modifier = Modifier
-                                .width(32.dp)
-                                .height(44.dp)
-                                .onGloballyPositioned { coords ->
-                                    val b = coords.boundsInWindow()
-                                    handleWindowOrigin = Offset(b.left, b.top)
-                                }
-                                .pointerInput(part.id) {
-                                    detectDragGesturesAfterLongPress(
-                                        onDragStart = { offset ->
-                                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            onDragStart(cardBoundsInWindow, handleWindowOrigin + offset)
-                                        },
-                                        onDragCancel = {
-                                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                            onDragCancel()
-                                        },
-                                        onDragEnd = {
-                                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                            onDragEnd()
-                                        },
-                                        onDrag = { change, dragAmount ->
-                                            change.consume()
-                                            onDrag(dragAmount.y)
-                                        }
-                                    )
-                                },
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.DragHandle,
-                                contentDescription = "Arrastra para reordenar grupo",
-                                tint = Color.White.copy(alpha = if (isDragging) 0.7f else 0.36f),
-                                modifier = Modifier.size(24.dp),
-                            )
-                        }
-                        Box(
-                            modifier = Modifier
-                                .size(12.dp)
-                                .clip(CircleShape)
-                                .background(partAccent.brush())
-                                .clickable { showColorPicker = !showColorPicker },
-                        )
-                        if (part.isEditorUncategorized()) {
-                            Text(
-                                "SIN GRUPO",
-                                modifier = Modifier.weight(1f),
-                                style = MaterialTheme.typography.labelLarge,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Black,
-                                color = Color.White.copy(alpha = 0.7f),
-                            )
-                        } else {
-                            BasicTextField(
-                                value = normalizedName.uppercase(),
-                                onValueChange = { input ->
-                                    onRename(input.trim().uppercase())
-                                },
-                                singleLine = true,
-                                cursorBrush = SolidColor(partColor),
-                                textStyle = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.Black,
-                                    fontSize = 16.sp,
-                                    color = Color.White.copy(alpha = 0.92f),
-                                ),
-                                decorationBox = { innerTextField ->
-                                    Box(modifier = Modifier.fillMaxWidth()) {
-                                        if (normalizedName.isBlank()) {
-                                            Text(
-                                                displayName,
-                                                style = MaterialTheme.typography.titleMedium.copy(
-                                                    fontWeight = FontWeight.Black,
-                                                    fontSize = 16.sp,
-                                                ),
-                                                color = Color.White.copy(alpha = 0.45f),
-                                            )
-                                        }
-                                        innerTextField()
+                            .padding(start = 4.dp)
+                            .width(40.dp)
+                            .height(48.dp)
+                            .onGloballyPositioned { coords ->
+                                val b = coords.boundsInWindow()
+                                handleWindowOrigin = Offset(b.left, b.top)
+                            }
+                            .pointerInput(part.id) {
+                                detectDragGesturesAfterLongPress(
+                                    onDragStart = { offset ->
+                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        onDragStart(cardBoundsInWindow, handleWindowOrigin + offset)
+                                    },
+                                    onDragCancel = {
+                                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        onDragCancel()
+                                    },
+                                    onDragEnd = {
+                                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        onDragEnd()
+                                    },
+                                    onDrag = { change, dragAmount ->
+                                        change.consume()
+                                        onDrag(dragAmount.y)
                                     }
-                                },
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                        if (part.isMobilityGroup) {
-                            Text(
-                                "MOVILIDAD",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Black,
-                                color = partColor,
-                            )
-                        } else if (part.isCardioGroup || part.name.trim().lowercase() in setOf("cardio", "espacio de cardio")) {
-                            Text(
-                                "CARDIO",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Black,
-                                color = partColor,
-                            )
-                        }
-                        IconButton(
-                            onClick = onToggleCollapse,
-                            modifier = Modifier.size(30.dp),
+                                )
+                            },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DragHandle,
+                            contentDescription = "Arrastra para reordenar grupo",
+                            tint = Color.White.copy(alpha = if (isDragging) 0.7f else 0.36f),
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+                    SwipeToDeleteCard(
+                        onDelete = {
+                            if (shouldShowDeleteChoice) {
+                                showDeleteModeConfirm = true
+                            } else {
+                                showDeleteConfirm = true
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        shape = headerShape,
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 8.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            Icon(
-                                if (collapsed) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
-                                contentDescription = if (collapsed) "Expandir" else "Colapsar",
-                                tint = Color.White.copy(alpha = 0.6f),
-                                modifier = Modifier.size(20.dp),
+                            Box(
+                                modifier = Modifier
+                                    .size(12.dp)
+                                    .clip(CircleShape)
+                                    .background(partAccent.brush())
+                                    .clickable { showColorPicker = !showColorPicker },
                             )
+                            if (part.isEditorUncategorized()) {
+                                Text(
+                                    "SIN GRUPO",
+                                    modifier = Modifier.weight(1f),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color.White.copy(alpha = 0.7f),
+                                )
+                            } else {
+                                BasicTextField(
+                                    value = normalizedName.uppercase(),
+                                    onValueChange = { input ->
+                                        onRename(input.trim().uppercase())
+                                    },
+                                    singleLine = true,
+                                    cursorBrush = SolidColor(partColor),
+                                    textStyle = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Black,
+                                        fontSize = 16.sp,
+                                        color = Color.White.copy(alpha = 0.92f),
+                                    ),
+                                    decorationBox = { innerTextField ->
+                                        Box(modifier = Modifier.fillMaxWidth()) {
+                                            if (normalizedName.isBlank()) {
+                                                Text(
+                                                    displayName,
+                                                    style = MaterialTheme.typography.titleMedium.copy(
+                                                        fontWeight = FontWeight.Black,
+                                                        fontSize = 16.sp,
+                                                    ),
+                                                    color = Color.White.copy(alpha = 0.45f),
+                                                )
+                                            }
+                                            innerTextField()
+                                        }
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                            if (part.isMobilityGroup) {
+                                Text(
+                                    "MOVILIDAD",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = partColor,
+                                )
+                            } else if (part.isCardioGroup || part.name.trim().lowercase() in setOf("cardio", "espacio de cardio")) {
+                                Text(
+                                    "CARDIO",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = partColor,
+                                )
+                            }
+                            IconButton(
+                                onClick = onToggleCollapse,
+                                modifier = Modifier.size(30.dp),
+                            ) {
+                                Icon(
+                                    if (collapsed) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
+                                    contentDescription = if (collapsed) "Expandir" else "Colapsar",
+                                    tint = Color.White.copy(alpha = 0.6f),
+                                    modifier = Modifier.size(20.dp),
+                                )
+                            }
                         }
                     }
                 }

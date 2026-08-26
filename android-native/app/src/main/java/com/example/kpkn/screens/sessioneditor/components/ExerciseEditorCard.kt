@@ -258,31 +258,19 @@ internal fun ExerciseEditorCard(
                 .background(accentColor.copy(alpha = if (expanded) 0.30f else 0.12f)),
         )
 
-        // Header row — always visible, tap to expand/collapse. The swipe target
-        // intentionally ends here so editing controls never delete the card.
-        SwipeToDeleteCard(
-            onDelete = onDeleteExercise,
+        // Header: drag handle lives outside SwipeToDelete + outside combinedClickable
+        // so neither Quick Actions nor horizontal swipe can steal the long-press.
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            shape = cardShape,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
-                    .combinedClickable(
-                        onClick = { expanded = !expanded },
-                        onLongClick = onOpenQuickActions,
-                    ),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-            // Drag handle — caja angosta para no empujar el título; altura táctil conservada.
             if (enableDrag) {
                 var handleWindowOrigin by remember(exercise.id) { mutableStateOf(Offset.Zero) }
                 Box(
                     modifier = Modifier
-                        .width(28.dp)
-                        .height(44.dp)
+                        .padding(start = 4.dp)
+                        .width(40.dp)
+                        .height(48.dp)
                         .onGloballyPositioned { coords ->
                             val b = coords.boundsInWindow()
                             handleWindowOrigin = Offset(b.left, b.top)
@@ -314,100 +302,117 @@ internal fun ExerciseEditorCard(
                         imageVector = Icons.Default.DragHandle,
                         contentDescription = "Arrastra para reordenar ejercicio",
                         tint = accentColor.copy(alpha = if (isDragging) 0.9f else 0.48f),
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(20.dp),
                     )
                 }
             } else {
-                Spacer(Modifier.width(28.dp).height(44.dp))
+                Spacer(Modifier.width(44.dp).height(48.dp))
             }
-            // Name & subtitle. The parent header owns expand and long-press actions.
-            Column(
-                modifier = Modifier
-                    .weight(1f),
+            // Swipe target is title + actions only — not the reorder grip.
+            SwipeToDeleteCard(
+                onDelete = onDeleteExercise,
+                modifier = Modifier.weight(1f),
+                shape = cardShape,
             ) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    if (exercise.supersetGroupRefOrLegacyId() != null) {
-                        Icon(
-                            Icons.Default.SwapHoriz,
-                            contentDescription = null,
-                            tint = accentColor,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(SpanStyle(color = Color.White.copy(alpha = 0.94f))) {
-                                append(displayParts.parentName.ifBlank { "Seleccionar ejercicio" })
-                            }
-                            displayParts.chips.forEach { chip ->
-                                append(" · ")
-                                withStyle(SpanStyle(color = Color.White.copy(alpha = 0.55f))) {
-                                    append(chip)
-                                }
-                            }
-                        },
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                Text(
-                    text = buildString {
-                        exercise.cardioDetails?.let { details ->
-                            append(cardioCollapsedSummary(details))
-                        } ?: run {
-                            append("${exercise.sets.size} series · ")
-                            if (!suppressIndividualRest) append("${formatRestSummary(exercise.restTime)} · ")
-                            append(trainingModeLabel(exercise.trainingMode))
-                            if (exercise.supersetGroupRefOrLegacyId() != null) append(" · Superserie")
-                            formatExerciseCollapsedSummary(exercise)?.let { append(" · $it") }
-                        }
-                    },
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.58f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (isCompetitionMovement) {
-                    Text(
-                        text = "Movimiento de competición",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.primary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-            if (exercise.cardioDetails == null) {
-                Box(
+                Row(
                     modifier = Modifier
-                        .size(30.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { showGoalSheet = true },
-                    contentAlignment = Alignment.Center,
+                        .fillMaxWidth()
+                        .padding(start = 8.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .combinedClickable(
+                                onClick = { expanded = !expanded },
+                                onLongClick = onOpenQuickActions,
+                            ),
+                    ) {
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            if (exercise.supersetGroupRefOrLegacyId() != null) {
+                                Icon(
+                                    Icons.Default.SwapHoriz,
+                                    contentDescription = null,
+                                    tint = accentColor,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                            Text(
+                                text = buildAnnotatedString {
+                                    withStyle(SpanStyle(color = Color.White.copy(alpha = 0.94f))) {
+                                        append(displayParts.parentName.ifBlank { "Seleccionar ejercicio" })
+                                    }
+                                    displayParts.chips.forEach { chip ->
+                                        append(" · ")
+                                        withStyle(SpanStyle(color = Color.White.copy(alpha = 0.55f))) {
+                                            append(chip)
+                                        }
+                                    }
+                                },
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        Text(
+                            text = buildString {
+                                exercise.cardioDetails?.let { details ->
+                                    append(cardioCollapsedSummary(details))
+                                } ?: run {
+                                    append("${exercise.sets.size} series · ")
+                                    if (!suppressIndividualRest) append("${formatRestSummary(exercise.restTime)} · ")
+                                    append(trainingModeLabel(exercise.trainingMode))
+                                    if (exercise.supersetGroupRefOrLegacyId() != null) append(" · Superserie")
+                                    formatExerciseCollapsedSummary(exercise)?.let { append(" · $it") }
+                                }
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.58f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        if (isCompetitionMovement) {
+                            Text(
+                                text = "Movimiento de competición",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Black,
+                                color = MaterialTheme.colorScheme.primary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                    if (exercise.cardioDetails == null) {
+                        Box(
+                            modifier = Modifier
+                                .size(30.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { showGoalSheet = true },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = if (exercise.isStarTarget || exercise.goal1RM != null) Icons.Default.Star else Icons.Default.StarBorder,
+                                contentDescription = "Meta del ejercicio",
+                                tint = if (exercise.isStarTarget || exercise.goal1RM != null) Color(0xFFFFB300) else Color.White.copy(alpha = 0.6f),
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                    }
                     Icon(
-                        imageVector = if (exercise.isStarTarget || exercise.goal1RM != null) Icons.Default.Star else Icons.Default.StarBorder,
-                        contentDescription = "Meta del ejercicio",
-                        tint = if (exercise.isStarTarget || exercise.goal1RM != null) Color(0xFFFFB300) else Color.White.copy(alpha = 0.6f),
-                        modifier = Modifier.size(18.dp),
+                        imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        contentDescription = if (expanded) "Plegar" else "Desplegar",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .size(34.dp)
+                            .clickable { expanded = !expanded },
                     )
                 }
             }
-            Icon(
-                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                contentDescription = if (expanded) "Plegar" else "Desplegar",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .size(34.dp)
-                    .clickable { expanded = !expanded },
-            )
-        }
         }
 
         // Inline expanded editor

@@ -4198,14 +4198,34 @@ class WorkoutViewModel(
     fun considerSessionMilestoneForSet(exercise: Exercise, weight: Double, reps: Int) {
         if (weight <= 0 || reps <= 0) return
         val e1rm = calculateHybrid1RM(weight, reps)
+        val state = _uiState.value
         val historyBest = getExerciseHistory(canonicalExerciseKey(exercise), limit = 20)
             .mapNotNull { it.e1rm }
             .maxOrNull() ?: 0.0
-        val sessionBestPrevious = _uiState.value.sessionMilestones
+        val sessionWorkingE1rms = state.completedSets
+            .filterKeys { key ->
+                (key.startsWith("${exercise.id}_") || key == exercise.id) &&
+                    !key.contains("_warmup_") &&
+                    !key.contains("_mobility_")
+            }
+            .values
+            .filter { !it.isWarmup && !it.skipped && (it.weight ?: 0.0) > 0.0 && it.reps > 0 }
+            .map { calculateHybrid1RM(it.weight ?: 0.0, it.reps) }
+            .sortedDescending()
+        // Current set is already in completedSets; previous best excludes the top match of this e1rm once.
+        val sessionBestPrevious = when {
+            sessionWorkingE1rms.isEmpty() -> 0.0
+            sessionWorkingE1rms.first() <= e1rm + 0.05 && sessionWorkingE1rms.first() >= e1rm - 0.05 ->
+                sessionWorkingE1rms.drop(1).firstOrNull() ?: 0.0
+            else -> sessionWorkingE1rms.first()
+        }
+        val milestoneBest = state.sessionMilestones
             .filter { it.exerciseId == exercise.id && it.kind == "pr_e1rm" }
             .maxOfOrNull { it.value } ?: 0.0
-        val bestBaseline = maxOf(historyBest, sessionBestPrevious)
-        if (e1rm <= bestBaseline + 0.05) return
+        if (!shouldRecordPrE1rmMilestone(e1rm, historyBest, maxOf(sessionBestPrevious, milestoneBest))) {
+            considerStarGoalMilestone(exercise, e1rm, weight, reps)
+            return
+        }
         val milestone = SessionMilestone(
             id = java.util.UUID.randomUUID().toString(),
             exerciseId = exercise.id,
@@ -4216,13 +4236,113 @@ class WorkoutViewModel(
             detail = "${weight.toTrimmedNumberString()} kg × $reps → ${e1rm.toTrimmedNumberString()} kg",
             createdAtIso = java.time.Instant.now().toString(),
         )
-        _uiState.update { state ->
-            val withoutOlderSame = state.sessionMilestones.filterNot { m ->
+        _uiState.update { current ->
+            val withoutOlderSame = current.sessionMilestones.filterNot { m ->
                 m.exerciseId == exercise.id && m.kind == "pr_e1rm" && m.value < e1rm
             }
-            state.copy(sessionMilestones = withoutOlderSame + milestone)
+            current.copy(sessionMilestones = withoutOlderSame + milestone)
+        }
+        considerStarGoalMilestone(exercise, e1rm, weight, reps)
+        persistOngoingState()
+    }
+
+    private fun considerStarGoalMilestone(
+        exercise: Exercise,
+        e1rm: Double,
+        weight: Double,
+        reps: Int,
+    ) {
+        val goal = exercise.goal1RM?.takeIf { it > 0.0 } ?: return
+        if (!exercise.isStarTarget) return
+        if (e1rm + 0.05 < goal) return
+        val already = _uiState.value.sessionMilestones.any {
+            it.exerciseId == exercise.id && it.kind == "star_goal_reached"
+        }
+        if (already) return
+        val milestone = SessionMilestone(
+            id = java.util.UUID.randomUUID().toString(),
+            exerciseId = exercise.id,
+            exerciseName = displayWorkoutExerciseName(exercise),
+            kind = "star_goal_reached",
+            label = "Meta estrella alcanzada",
+            value = e1rm,
+            detail = "${weight.toTrimmedNumberString()} kg × $reps → ${e1rm.toTrimmedNumberString()} kg (meta ${goal.toTrimmedNumberString()} kg)",
+            createdAtIso = java.time.Instant.now().toString(),
+        )
+        _uiState.update { it.copy(sessionMilestones = it.sessionMilestones + milestone) }
+        persistOngoingState()
+    }
+
+    private var sessionNotePersistJob: Job? = null
+
+    fun setSessionNotes(note: String, flush: Boolean = false) {
+        _uiState.update { it.copy(sessionNotes = note) }
+        sessionNotePersistJob?.cancel()
+        if (flush) {
+            persistOngoingState()
+            return
+        }
+        sessionNotePersistJob = viewModelScope.launch {
+            delay(450)
+            persistOngoingState()
+        }
+    }
+
+    fun addSessionChecklistItem(text: String) {
+        val trimmed = text.trim()
+        if (trimmed.isBlank()) return
+        val item = SessionChecklistItem(
+            id = java.util.UUID.randomUUID().toString(),
+            text = trimmed,
+            done = false,
+        )
+        _uiState.update { it.copy(sessionChecklist = it.sessionChecklist + item) }
+        persistOngoingState()
+    }
+
+    fun toggleSessionChecklistItem(id: String) {
+        _uiState.update { state ->
+            state.copy(
+                sessionChecklist = state.sessionChecklist.map { item ->
+                    if (item.id == id) item.copy(done = !item.done) else item
+                },
+            )
         }
         persistOngoingState()
+    }
+
+    fun removeSessionChecklistItem(id: String) {
+        _uiState.update { it.copy(sessionChecklist = it.sessionChecklist.filterNot { item -> item.id == id }) }
+        persistOngoingState()
+    }
+
+    fun addSessionPhoto(sourceUri: android.net.Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val state = _uiState.value
+            if (state.sessionPhotos.size >= 8) return@launch
+            val dir = java.io.File(appContext.filesDir, "workout_photos/${state.session?.id ?: sessionId}/session")
+            if (!dir.exists()) dir.mkdirs()
+            val dest = java.io.File(dir, "photo_${System.currentTimeMillis()}.jpg")
+            runCatching {
+                appContext.contentResolver.openInputStream(sourceUri)?.use { input ->
+                    dest.outputStream().use { output -> input.copyTo(output) }
+                }
+            }.onFailure { return@launch }
+            if (!dest.exists() || dest.length() <= 0L) return@launch
+            _uiState.update {
+                if (it.sessionPhotos.size >= 8) it
+                else it.copy(sessionPhotos = it.sessionPhotos + dest.absolutePath)
+            }
+            persistOngoingState()
+        }
+    }
+
+    fun removeSessionPhoto(path: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching { java.io.File(path).delete() }
+            _uiState.update { it.copy(sessionPhotos = it.sessionPhotos.filterNot { photo -> photo == path }) }
+            persistOngoingState()
+        }
     }
 
     private fun persistSessionTargetDuration(totalMinutes: Int?) {

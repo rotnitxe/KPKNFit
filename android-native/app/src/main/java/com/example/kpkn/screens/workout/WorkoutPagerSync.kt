@@ -62,6 +62,12 @@ internal fun workoutPagerStepKey(
 ): String = when (page.type) {
     LivePageType.CARDIO -> WorkoutStepRules.cardioStepKey(exerciseId)
     LivePageType.NORMAL -> WorkoutStepRules.workingStepKey(exerciseId, page.setIndex, page.side)
+    LivePageType.WARMUP -> page.stepKey
+        ?: page.warmupSetId?.let { WorkoutStepRules.warmupStepKey(exerciseId, it) }
+        .orEmpty()
+    LivePageType.MOBILITY -> page.stepKey
+        ?: page.mobilityId?.let { WorkoutStepRules.mobilityStepKey(exerciseId, it, 0) }
+        .orEmpty()
 }
 
 internal fun activePagerStepType(
@@ -82,8 +88,8 @@ internal fun activePagerStepType(
 }
 
 /**
- * Preparation steps own the cursor until the user explicitly leaves them.
- * A pager page is only allowed to select a working/cardio step afterwards.
+ * User swipes freely across prep and working pages in the continuous carousel.
+ * Programmatic/initial settles never rewrite the cursor.
  */
 internal fun shouldSyncSettledPagerPage(
     origin: WorkoutPagerSettlementOrigin,
@@ -93,9 +99,5 @@ internal fun shouldSyncSettledPagerPage(
 ): Boolean {
     if (origin != WorkoutPagerSettlementOrigin.USER) return false
     if (targetStepKey.isBlank() || targetStepKey == activeStepKey) return false
-    if (activeStepKey != null && activeStepType == null) return false
-    if (activeStepType != null && activeStepType != WorkoutStepType.WORKING_SET && activeStepType != WorkoutStepType.CARDIO) {
-        return false
-    }
     return true
 }

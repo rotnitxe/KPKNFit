@@ -3,6 +3,7 @@ package com.example.kpkn.screens.workout.components
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -24,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.screens.sessioneditor.contentOn
 import com.example.kpkn.services.workout.VoicePipelineStage
 import com.example.kpkn.services.workout.VoiceSessionState
 import com.example.kpkn.ui.components.kpknGlassOrFallback
@@ -107,17 +109,34 @@ fun WorkoutCommandDock(
     val micInteractionSource = remember { MutableInteractionSource() }
 
     val primaryIconTint = if (primaryActionEnabled) {
-        sessionAccentColor
+        contentOn(sessionAccentColor)
     } else {
         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.46f)
     }
-    val micIconTint = if (voiceSessionEnabled) {
-        when {
-            isListening -> Color(0xFF4CAF50)
-            else -> voiceIndicatorColor
-        }
+    val primaryFabFill = if (primaryActionEnabled) {
+        sessionAccentColor.copy(alpha = 0.92f)
     } else {
-        Color.White.copy(alpha = 0.92f)
+        Color(0xFF1A1D24).copy(alpha = 0.88f)
+    }
+    val micFabFill = when {
+        isListening -> Color(0xFF2E7D32).copy(alpha = 0.90f)
+        voiceSessionEnabled -> Color(0xFF1B2838).copy(alpha = 0.92f)
+        else -> Color(0xFF161A22).copy(alpha = 0.92f)
+    }
+    val micIconTint = when {
+        isListening -> Color.White
+        voiceSessionEnabled -> voiceIndicatorColor
+        else -> Color.White.copy(alpha = 0.92f)
+    }
+    val micBorder = when {
+        isListening -> Color(0xFF81C784).copy(alpha = 0.75f)
+        voiceSessionEnabled -> voiceIndicatorColor.copy(alpha = 0.55f)
+        else -> Color.White.copy(alpha = 0.18f)
+    }
+    val primaryBorder = if (primaryActionEnabled) {
+        Color.White.copy(alpha = 0.28f)
+    } else {
+        Color.White.copy(alpha = 0.10f)
     }
 
     Box(
@@ -224,6 +243,8 @@ fun WorkoutCommandDock(
                         .align(Alignment.BottomEnd)
                         .size(56.dp)
                         .kpknGlassOrFallback(hazeState, CircleShape)
+                        .background(primaryFabFill, CircleShape)
+                        .border(1.5.dp, primaryBorder, CircleShape)
                         .clickable(enabled = primaryActionEnabled) {
                             onPrimaryAction()
                         },
@@ -251,10 +272,12 @@ fun WorkoutCommandDock(
                         .then(
                             if (isListening) Modifier
                                 .scale(pulseScale)
-                                .alpha(pulseAlpha)
+                                .alpha(pulseAlpha.coerceAtLeast(0.75f))
                             else Modifier
                         )
                         .kpknGlassOrFallback(hazeState, CircleShape)
+                        .background(micFabFill, CircleShape)
+                        .border(1.5.dp, micBorder, CircleShape)
                         .clickable(
                             interactionSource = micInteractionSource,
                             indication = null,

@@ -26,19 +26,29 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.toColorInt
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.exercises.displayNameWithSelectedChips
+import com.example.kpkn.screens.sessioneditor.RoadmapCeleste
+import com.example.kpkn.screens.sessioneditor.contentOn
+import com.example.kpkn.screens.sessioneditor.isEditorUncategorized
+import com.example.kpkn.screens.sessioneditor.resolvePartAccent
 import com.example.kpkn.screens.workout.*
 import com.example.kpkn.ui.components.kpknGlassOrFallback
 import dev.chrisbanes.haze.HazeState
+
+private enum class RoadmapCardScale { Full, Mini }
 
 enum class RoadmapMode {
     COMPACT,
@@ -72,20 +82,25 @@ fun WorkoutRoadmapBar(
     mode: RoadmapMode = RoadmapMode.COMPACT,
     onModeChange: (RoadmapMode) -> Unit = {},
     milestones: List<SessionMilestone> = emptyList(),
-    exerciseNote: String = "",
-    exercisePhotos: List<String> = emptyList(),
-    onExerciseNoteChange: (String) -> Unit = {},
-    onAddExercisePhoto: (android.net.Uri) -> Unit = {},
-    onRemoveExercisePhoto: (String) -> Unit = {},
+    liveEnergySummary: SessionEnergySummary = SessionEnergySummary(),
+    sessionNotes: String = "",
+    sessionPhotos: List<String> = emptyList(),
+    sessionChecklist: List<SessionChecklistItem> = emptyList(),
+    onSessionNotesChange: (String) -> Unit = {},
+    onAddSessionPhoto: (android.net.Uri) -> Unit = {},
+    onRemoveSessionPhoto: (String) -> Unit = {},
+    onAddChecklistItem: (String) -> Unit = {},
+    onToggleChecklistItem: (String) -> Unit = {},
+    onRemoveChecklistItem: (String) -> Unit = {},
+    bodyWeight: Double? = null,
+    aboveCarousel: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val activeMode = mode
 
     val accentByPartId = remember(parts) {
         parts.associate { part ->
-            part.id to runCatching {
-                Color((part.color ?: "#3B82F6").toColorInt())
-            }.getOrDefault(Color(0xFF3B82F6))
+            part.id to roadmapAccentForPart(part)
         }
     }
 
@@ -237,24 +252,57 @@ fun WorkoutRoadmapBar(
                     e.sets.indices.sumOf { e.completionKeysForSet(it).size }
                 }
                 WorkoutSessionCockpit(
-                    currentExercise = exercises.getOrNull(currentIdx),
+                    exercises = exercises,
                     completedSets = completedSets,
                     milestones = milestones,
-                    exerciseNote = exerciseNote,
-                    exercisePhotos = exercisePhotos,
                     sessionProgressLabel = "Progreso: $totalCompletedCount/$totalSetsCount",
-                    onNoteChange = onExerciseNoteChange,
-                    onAddPhoto = onAddExercisePhoto,
-                    onRemovePhoto = onRemoveExercisePhoto,
+                    liveEnergySummary = liveEnergySummary,
+                    sessionNotes = sessionNotes,
+                    sessionPhotos = sessionPhotos,
+                    sessionChecklist = sessionChecklist,
+                    onSessionNotesChange = onSessionNotesChange,
+                    onAddSessionPhoto = onAddSessionPhoto,
+                    onRemoveSessionPhoto = onRemoveSessionPhoto,
+                    onAddChecklistItem = onAddChecklistItem,
+                    onToggleChecklistItem = onToggleChecklistItem,
+                    onRemoveChecklistItem = onRemoveChecklistItem,
                     sessionAccentColor = sessionAccentColor,
+                    bodyWeight = bodyWeight,
                 )
+            }
+
+            if (aboveCarousel != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp, bottom = 12.dp),
+                ) {
+                    aboveCarousel()
+                }
             }
 
             LazyRow(
                 state = listState,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 12.dp),
+                    .padding(bottom = 12.dp)
+                    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                    .drawWithContent {
+                        drawContent()
+                        val fadePx = 28.dp.toPx()
+                        val fadeFrac = if (size.width > 0f) (fadePx / size.width).coerceIn(0.04f, 0.18f) else 0.08f
+                        drawRect(
+                            brush = Brush.horizontalGradient(
+                                colorStops = arrayOf(
+                                    0f to Color.Transparent,
+                                    fadeFrac to Color.Black,
+                                    (1f - fadeFrac) to Color.Black,
+                                    1f to Color.Transparent,
+                                ),
+                            ),
+                            blendMode = BlendMode.DstIn,
+                        )
+                    },
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -279,7 +327,12 @@ fun WorkoutRoadmapBar(
 
                             val idx = exercises.indexOfFirst { it.id == exercise.id }.coerceAtLeast(0)
                             val part = parts.firstOrNull { it.exercises.any { e -> e.id == exercise.id } }
-                            val accent = accentByPartId[part?.id] ?: sessionAccentColor
+                            val isSuperset = group.groupId != null && group.exercises.size > 1
+                            val accent = when {
+                                isSuperset -> RoadmapCeleste
+                                part != null -> accentByPartId[part.id] ?: RoadmapCeleste
+                                else -> RoadmapCeleste
+                            }
                             val partName = normalizeWorkoutHeaderLabel(part?.name)
 
                             val completedCount = group.exercises.sumOf { member ->
@@ -303,7 +356,7 @@ fun WorkoutRoadmapBar(
                                     onClick = { onSelect(idx) },
                                     onLongClick = if (enableLongPress) ({ onOpenContext(exercise.id) }) else null,
                                 )
-                            } else if (group.groupId == null || group.exercises.size == 1) {
+                            } else if (!isSuperset) {
                                 ExerciseRoadmapCard(
                                     exercise = exercise,
                                     completedCount = completedCount,
@@ -334,7 +387,7 @@ fun WorkoutRoadmapBar(
                                     completedSets = completedSets,
                                     isCurrent = isCurrent,
                                     isAllDone = isAllDone,
-                                    accent = accent,
+                                    accent = RoadmapCeleste,
                                     groupName = partName,
                                     currentExerciseId = exercises.getOrNull(currentIdx)?.id,
                                     currentRound = if (isCurrent) currentSetIdx + 1 else null,
@@ -354,6 +407,12 @@ fun WorkoutRoadmapBar(
             }
         }
     }
+}
+
+private fun roadmapAccentForPart(part: SessionPart): Color {
+    if (part.isEditorUncategorized()) return RoadmapCeleste
+    val colorId = part.color?.takeIf { it.isNotBlank() } ?: return RoadmapCeleste
+    return resolvePartAccent(colorId).primary
 }
 
 private data class ExerciseRoadmapGroup(
@@ -539,32 +598,37 @@ private fun ExerciseRoadmapCard(
     onClick: () -> Unit,
     onSelectStep: (Int, String?) -> Unit = { _, _ -> },
     onLongClick: (() -> Unit)?,
+    scale: RoadmapCardScale = RoadmapCardScale.Full,
 ) {
     val displayName = exercise.displayNameWithSelectedChips()
     val isUnilateral = exercise.isEffectivelyUnilateral()
     val nameLength = displayName.length
+    val isMini = scale == RoadmapCardScale.Mini
     val minWidth = when {
+        isMini -> 84.dp
         isUnilateral -> 120.dp
         nameLength > 30 -> 130.dp
         nameLength > 22 -> 110.dp
         else -> 88.dp
     }
+    val maxWidth = if (isMini) 138.dp else 220.dp
+    val cardHeight = if (isMini) 48.dp else 64.dp
     val containerColor = when {
         isCurrent -> accent.copy(alpha = 0.86f)
         isAllDone -> Color(0xFF66BB6A).copy(alpha = 0.30f)
-        else -> accent.copy(alpha = 0.28f)
+        else -> accent.copy(alpha = 0.26f)
     }
-    val contentColor = if (isCurrent) Color.White else MaterialTheme.colorScheme.onSurface
+    val contentColor = if (isCurrent) contentOn(containerColor) else MaterialTheme.colorScheme.onSurface
     val borderColor = if (isCurrent) Color.White.copy(alpha = 0.16f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
 
     var isPressed by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (isPressed) 0.95f else 1.0f)
+    val pressScale by animateFloatAsState(if (isPressed) 0.95f else 1.0f)
 
     Surface(
         modifier = Modifier
-            .widthIn(min = minWidth, max = 220.dp)
-            .height(64.dp)
-            .scale(scale)
+            .widthIn(min = minWidth, max = maxWidth)
+            .height(cardHeight)
+            .scale(pressScale)
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
@@ -576,9 +640,12 @@ private fun ExerciseRoadmapCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 6.dp),
+                .padding(
+                    horizontal = if (isMini) 6.dp else 8.dp,
+                    vertical = if (isMini) 4.dp else 6.dp,
+                ),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(if (isMini) 4.dp else 6.dp),
         ) {
             Surface(
                 shape = RoundedCornerShape(999.dp),
@@ -586,22 +653,29 @@ private fun ExerciseRoadmapCard(
             ) {
                 Text(
                     text = if (isAllDone) "✓" else "$completedCount/$totalCount",
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.padding(
+                        horizontal = if (isMini) 5.dp else 6.dp,
+                        vertical = if (isMini) 1.dp else 2.dp,
+                    ),
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontSize = if (isMini) 10.sp else MaterialTheme.typography.labelSmall.fontSize,
+                    ),
                     fontWeight = FontWeight.Bold,
-                    color = if (isCurrent) Color.White else MaterialTheme.colorScheme.onSurface,
+                    color = contentColor,
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = displayName,
-                    maxLines = 2,
+                    maxLines = if (isMini) 1 else 2,
                     overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontSize = if (isMini) 10.sp else MaterialTheme.typography.labelSmall.fontSize,
+                    ),
                     fontWeight = FontWeight.Bold,
                     color = contentColor,
                 )
-                if (!groupName.isNullOrBlank()) {
+                if (!isMini && !groupName.isNullOrBlank()) {
                     Text(
                         text = groupName,
                         maxLines = 1,
@@ -638,14 +712,13 @@ private fun SupersetRoadmapCard(
 ) {
     val safeRoundCount = roundCount.coerceAtLeast(1)
     val currentRoundIndex = ((currentRound ?: 1) - 1).coerceIn(0, safeRoundCount - 1)
-    // Superseries share the same quiet roadmap language as normal exercises.
-    // Accent is reserved for the tiny progress markers; using it as the whole
-    // container made this card read as a neon, unrelated component.
+    val motherAccent = RoadmapCeleste
     val cardColor = when {
-        isAllDone -> Color(0xFF304236).copy(alpha = 0.86f)
-        isCurrent -> Color(0xFF303236).copy(alpha = 0.98f)
-        else -> Color(0xFF252629).copy(alpha = 0.94f)
+        isAllDone -> Color(0xFF66BB6A).copy(alpha = 0.30f)
+        isCurrent -> motherAccent.copy(alpha = 0.86f)
+        else -> motherAccent.copy(alpha = 0.26f)
     }
+    val onCard = if (isCurrent) contentOn(cardColor) else MaterialTheme.colorScheme.onSurface
     val outline = when {
         isAllDone -> Color(0xFF7FBF8A).copy(alpha = 0.42f)
         isCurrent -> Color.White.copy(alpha = 0.20f)
@@ -670,13 +743,13 @@ private fun SupersetRoadmapCard(
                     "Superserie",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color = if (isCurrent) Color.White else MaterialTheme.colorScheme.onSurface,
+                    color = onCard,
                     maxLines = 1,
                 )
                 Text(
                     if (isAllDone) "Completada" else "Ronda ${currentRound ?: 1}/$safeRoundCount",
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                    color = if (isCurrent) accent else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
+                    color = if (isCurrent) onCard.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
                     maxLines = 1,
                 )
             }
@@ -686,70 +759,37 @@ private fun SupersetRoadmapCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 exercises.forEach { member ->
-                    val memberLabel = member.displayNameWithSelectedChips()
-                    val memberRoundDone = member.completionKeysForSet(currentRoundIndex).let { keys ->
-                        keys.isNotEmpty() && keys.all { completedSets.containsKey(it) }
+                    val memberCompleted = member.sets.indices.sumOf { setIdx ->
+                        member.completionKeysForSet(setIdx).count { completedSets.containsKey(it) }
                     }
+                    val memberTotal = member.sets.indices.sumOf { setIdx ->
+                        member.completionKeysForSet(setIdx).size
+                    }
+                    val memberAllDone = memberCompleted >= memberTotal && memberTotal > 0
                     val memberIsCurrent = member.id == currentExerciseId && isCurrent
-                     Surface(
-                         modifier = Modifier
-                            .widthIn(min = 84.dp, max = 138.dp)
-                            .height(46.dp)
-                            .combinedClickable(
-                                onClick = {
-                                    val side = if (member.isEffectivelyUnilateral()) {
-                                        member.expectedSidesForSet(currentRoundIndex).firstOrNull { candidate ->
-                                            !completedSets.containsKey("${member.id}_${currentRoundIndex}_${candidate.take(1).uppercase()}")
-                                        }?.lowercase()
-                                    } else null
-                                    onSelectStep(member.id, currentRoundIndex, side)
-                                },
-                                onLongClick = { onMemberLongClick(member.id) },
-                            ),
-                        shape = RoundedCornerShape(8.dp),
-                         color = if (memberIsCurrent) Color(0xFF45474B) else Color(0xFF1D1E20),
-                         border = BorderStroke(
-                             1.dp,
-                             if (memberIsCurrent) Color.White.copy(alpha = 0.20f)
-                             else Color.White.copy(alpha = 0.08f),
-                         ),
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize().padding(horizontal = 7.dp, vertical = 5.dp),
-                            verticalArrangement = Arrangement.SpaceBetween,
-                        ) {
-                            Text(
-                                memberLabel,
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                fontWeight = FontWeight.SemiBold,
-                                color = if (memberIsCurrent) Color.White else MaterialTheme.colorScheme.onSurface,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                            Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                                repeat(safeRoundCount) { roundIdx ->
-                                    val done = member.completionKeysForSet(roundIdx).let { keys ->
-                                        keys.isNotEmpty() && keys.all { completedSets.containsKey(it) }
-                                    }
-                                    Box(
-                                        modifier = Modifier
-                                            .size(if (roundIdx == currentRoundIndex) 8.dp else 6.dp)
-                                            .clip(CircleShape)
-                                            .background(
-                                                when {
-                                                    done -> Color(0xFF66BB6A)
-                                                    roundIdx == currentRoundIndex -> accent
-                                                    else -> Color.White.copy(alpha = 0.28f)
-                                                }
-                                            ),
+                    ExerciseRoadmapCard(
+                        exercise = member,
+                        completedCount = memberCompleted,
+                        totalCount = memberTotal,
+                        isCurrent = memberIsCurrent,
+                        isAllDone = memberAllDone,
+                        accent = motherAccent,
+                        groupName = null,
+                        onClick = {
+                            val side = if (member.isEffectivelyUnilateral()) {
+                                member.expectedSidesForSet(currentRoundIndex).firstOrNull { candidate ->
+                                    !completedSets.containsKey(
+                                        "${member.id}_${currentRoundIndex}_${candidate.take(1).uppercase()}",
                                     )
-                                }
-                                if (memberRoundDone) {
-                                    Text("✓", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = Color(0xFF66BB6A))
-                                }
+                                }?.lowercase()
+                            } else {
+                                null
                             }
-                        }
-                    }
+                            onSelectStep(member.id, currentRoundIndex, side)
+                        },
+                        onLongClick = { onMemberLongClick(member.id) },
+                        scale = RoadmapCardScale.Mini,
+                    )
                 }
             }
         }

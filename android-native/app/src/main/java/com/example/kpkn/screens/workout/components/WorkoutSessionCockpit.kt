@@ -5,7 +5,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,29 +16,41 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -54,370 +66,526 @@ import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.SessionChecklistItem
+import com.example.kpkn.data.models.SessionEnergySummary
 import com.example.kpkn.data.models.SessionMilestone
-import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
+import com.example.kpkn.screens.workout.WorkoutRmCalcContent
+import com.example.kpkn.screens.workout.WorkoutSessionEnergyContent
 import com.example.kpkn.screens.workout.toTrimmedNumberString
 import java.io.File
-import kotlin.math.max
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-data class UnilateralBalanceUi(
-    val leftScore: Double,
-    val rightScore: Double,
-) {
-    val total: Double get() = leftScore + rightScore
-    val leftRatio: Float get() = if (total <= 0) 0.5f else (leftScore / total).toFloat()
-    val rightRatio: Float get() = 1f - leftRatio
-    val imbalancePercent: Int
-        get() {
-            if (leftScore <= 0 || rightScore <= 0) return 0
-            val ratio = kotlin.math.abs(leftScore - rightScore) / max(leftScore, rightScore)
-            return (ratio * 100).toInt()
-        }
+private enum class CockpitPage(val title: String) {
+    Overview("Resumen"),
+    Photos("Fotos"),
+    Tools("Herramientas"),
+    Notes("Notas"),
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WorkoutSessionCockpit(
-    currentExercise: Exercise?,
+    exercises: List<Exercise>,
     completedSets: Map<String, CompletedSet>,
     milestones: List<SessionMilestone>,
-    exerciseNote: String,
-    exercisePhotos: List<String>,
     sessionProgressLabel: String,
-    onNoteChange: (String) -> Unit,
-    onAddPhoto: (Uri) -> Unit,
-    onRemovePhoto: (String) -> Unit,
+    liveEnergySummary: SessionEnergySummary,
+    sessionNotes: String,
+    sessionPhotos: List<String>,
+    sessionChecklist: List<SessionChecklistItem>,
+    onSessionNotesChange: (String) -> Unit,
+    onAddSessionPhoto: (Uri) -> Unit,
+    onRemoveSessionPhoto: (String) -> Unit,
+    onAddChecklistItem: (String) -> Unit,
+    onToggleChecklistItem: (String) -> Unit,
+    onRemoveChecklistItem: (String) -> Unit,
     sessionAccentColor: Color,
+    bodyWeight: Double? = null,
     modifier: Modifier = Modifier,
 ) {
+    val pages = CockpitPage.entries
+    val pagerState = rememberPagerState(pageCount = { pages.size })
+    val scope = rememberCoroutineScope()
+
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(max = 420.dp)
-            .verticalScroll(rememberScrollState())
-            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .heightIn(max = 460.dp)
+            .padding(bottom = 8.dp),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "Cockpit de la Sesión",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Black,
+                "Cockpit de la sesión",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
             )
             Surface(
-                shape = WorkoutUiTokens.ChipShape,
-                color = sessionAccentColor.copy(alpha = 0.22f),
+                shape = RoundedCornerShape(999.dp),
+                color = sessionAccentColor.copy(alpha = 0.18f),
             ) {
                 Text(
-                    text = sessionProgressLabel,
+                    sessionProgressLabel,
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = sessionAccentColor,
                 )
             }
         }
 
-        CockpitCard(title = "Hitos", icon = { Icon(Icons.Default.EmojiEvents, null, Modifier.size(16.dp), tint = Color(0xFFFFD600)) }) {
-            val relevant = milestones.filter { currentExercise == null || it.exerciseId == currentExercise.id }
-                .ifEmpty { milestones.takeLast(5) }
-            if (relevant.isEmpty()) {
-                Text(
-                    "Todavía no hay hitos. Un PR o meta destacada aparecerán aquí.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            } else {
-                relevant.takeLast(6).asReversed().forEach { milestone ->
-                    Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        color = Color(0xFF1F1F1F),
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(milestone.label, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
-                            Text(
-                                buildString {
-                                    append(milestone.exerciseName)
-                                    milestone.detail?.let { append(" · "); append(it) }
-                                },
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        if (currentExercise?.isStarTarget == true) {
-            val goal = currentExercise.goal1RM?.takeIf { it > 0 }
-            val bestSessionE1rm = completedSets
-                .filterKeys { it.startsWith(currentExercise.id) }
-                .values
-                .filter { it.weight > 0 && it.reps > 0 }
-                .maxOfOrNull { calculateHybrid1RM(it.weight, it.reps) }
-            CockpitCard(title = "META estrella", icon = { Icon(Icons.Default.Star, null, Modifier.size(16.dp), tint = Color(0xFFFFD600)) }) {
-                if (goal == null) {
-                    Text(
-                        "Ejercicio marcado como estrella. Define una meta 1RM en el editor para ver progreso.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                } else {
-                    val progress = ((bestSessionE1rm ?: 0.0) / goal).toFloat().coerceIn(0f, 1f)
-                    Text(
-                        if (bestSessionE1rm != null) {
-                            "${bestSessionE1rm.toTrimmedNumberString()} / ${goal.toTrimmedNumberString()} kg e1RM"
-                        } else {
-                            "Meta ${goal.toTrimmedNumberString()} kg · sin series aún"
-                        },
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    LinearProgressIndicator(
-                        progress = { progress },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(8.dp)
-                            .clip(RoundedCornerShape(99.dp)),
-                        color = sessionAccentColor,
-                        trackColor = Color.White.copy(alpha = 0.12f),
-                    )
-                }
-            }
-        }
-
-        if (currentExercise?.isEffectivelyUnilateral() == true) {
-            val balance = remember(currentExercise.id, completedSets) {
-                unilateralBalanceFor(currentExercise.id, completedSets)
-            }
-            CockpitCard(title = "Balance unilateral") {
-                if (balance == null || balance.total <= 0) {
-                    Text(
-                        "Registra ambos lados para ver el balance visual.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                } else {
-                    Text(
-                        if (balance.imbalancePercent <= 8) "Equilibrado (±${balance.imbalancePercent}%)"
-                        else "Desbalance ~${balance.imbalancePercent}%",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = if (balance.imbalancePercent <= 8) Color(0xFF4CAF50) else Color(0xFFFFC107),
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        BalanceBar(
-                            label = "Izq",
-                            ratio = balance.leftRatio,
-                            color = sessionAccentColor,
-                            modifier = Modifier.weight(1f),
-                        )
-                        BalanceBar(
-                            label = "Der",
-                            ratio = balance.rightRatio,
-                            color = Color(0xFF64B5F6),
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                }
-            }
-        }
-
-        CockpitCard(title = "Notas del ejercicio", icon = { Icon(Icons.AutoMirrored.Filled.Notes, null, Modifier.size(16.dp)) }) {
-            var draft by remember(currentExercise?.id) { mutableStateOf(exerciseNote) }
-            val draftLatest = rememberUpdatedState(draft)
-            LaunchedEffect(currentExercise?.id) {
-                draft = exerciseNote
-            }
-            DisposableEffect(currentExercise?.id) {
-                onDispose { onNoteChange(draftLatest.value) }
-            }
-            OutlinedTextField(
-                value = draft,
-                onValueChange = {
-                    draft = it
-                    onNoteChange(it)
-                },
-                placeholder = { Text("Sensación, setup, tip… se verá en el historial") },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 2,
-                maxLines = 4,
-            )
-        }
-
-        CockpitCard(title = "Fotos (máx. 2)", icon = { Icon(Icons.Default.AddAPhoto, null, Modifier.size(16.dp)) }) {
-            val context = LocalContext.current
-            var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
-            var cameraPermissionDenied by remember { mutableStateOf(false) }
-            val galleryPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-                if (uri != null) onAddPhoto(uri)
-            }
-            val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
-                val uri = pendingCameraUri
-                pendingCameraUri = null
-                if (ok && uri != null) onAddPhoto(uri)
-            }
-            fun launchCameraCapture() {
-                cameraPermissionDenied = false
-                val dir = File(context.cacheDir, "workout_camera").also { it.mkdirs() }
-                val file = File(dir, "capture_${System.currentTimeMillis()}.jpg")
-                val uri = FileProvider.getUriForFile(
-                    context,
-                    "${context.packageName}.fileprovider",
-                    file,
-                )
-                pendingCameraUri = uri
-                cameraLauncher.launch(uri)
-            }
-            val cameraPermissionLauncher = rememberLauncherForActivityResult(
-                ActivityResultContracts.RequestPermission(),
-            ) { granted ->
-                if (granted) {
-                    launchCameraCapture()
-                } else {
-                    cameraPermissionDenied = true
-                }
-            }
-            fun requestCameraOrCapture() {
-                val granted = ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.CAMERA,
-                ) == PackageManager.PERMISSION_GRANTED
-                if (granted) {
-                    launchCameraCapture()
-                } else {
-                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                }
-            }
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    exercisePhotos.forEach { path ->
-                        Box {
-                            AsyncImage(
-                                model = File(path),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(72.dp)
-                                    .clip(RoundedCornerShape(10.dp)),
-                            )
-                            IconButton(
-                                onClick = { onRemovePhoto(path) },
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .size(22.dp),
-                            ) {
-                                Icon(Icons.Default.Close, "Quitar", Modifier.size(14.dp), tint = Color.White)
-                            }
-                        }
-                    }
-                    if (exercisePhotos.size < 2) {
-                        Surface(
-                            onClick = { requestCameraOrCapture() },
-                            shape = RoundedCornerShape(10.dp),
-                            color = Color.White.copy(alpha = 0.08f),
-                            modifier = Modifier.size(72.dp),
-                        ) {
-                            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
-                                Icon(Icons.Default.AddAPhoto, "Cámara", tint = Color.White.copy(alpha = 0.7f))
-                            }
-                        }
-                        Surface(
-                            onClick = { galleryPicker.launch("image/*") },
-                            shape = RoundedCornerShape(10.dp),
-                            color = Color.White.copy(alpha = 0.08f),
-                            modifier = Modifier.size(72.dp),
-                        ) {
-                            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
-                                Icon(Icons.Default.PhotoLibrary, "Galería", tint = Color.White.copy(alpha = 0.7f))
-                            }
-                        }
-                    }
-                }
-                if (cameraPermissionDenied) {
-                    Text(
-                        "Permiso de cámara denegado. Puedes usar la galería o habilitarlo en Ajustes.",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFFFFC107),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun CockpitCard(
-    title: String,
-    icon: (@Composable () -> Unit)? = null,
-    content: @Composable () -> Unit,
-) {
-    Surface(
-        shape = RoundedCornerShape(14.dp),
-        color = Color(0xFF2A2A2A),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ScrollableTabRow(
+            selectedTabIndex = pagerState.currentPage,
+            edgePadding = 12.dp,
+            containerColor = Color.Transparent,
+            divider = {},
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                icon?.invoke()
-                Text(title, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+            pages.forEachIndexed { index, page ->
+                Tab(
+                    selected = pagerState.currentPage == index,
+                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
+                    text = {
+                        Text(
+                            page.title,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = if (pagerState.currentPage == index) FontWeight.Bold else FontWeight.Medium,
+                        )
+                    },
+                )
             }
-            content()
         }
-    }
-}
 
-@Composable
-private fun BalanceBar(
-    label: String,
-    ratio: Float,
-    color: Color,
-    modifier: Modifier = Modifier,
-) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-        Box(
+        HorizontalPager(
+            state = pagerState,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(12.dp)
-                .clip(RoundedCornerShape(99.dp))
-                .background(Color.White.copy(alpha = 0.1f)),
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(ratio.coerceIn(0.08f, 1f))
-                    .height(12.dp)
-                    .background(color),
-            )
+                .weight(1f, fill = false)
+                .heightIn(max = 380.dp),
+        ) { page ->
+            when (pages[page]) {
+                CockpitPage.Overview -> CockpitOverviewPage(
+                    exercises = exercises,
+                    completedSets = completedSets,
+                    milestones = milestones,
+                    sessionAccentColor = sessionAccentColor,
+                )
+                CockpitPage.Photos -> CockpitPhotosPage(
+                    sessionPhotos = sessionPhotos,
+                    onAddPhoto = onAddSessionPhoto,
+                    onRemovePhoto = onRemoveSessionPhoto,
+                    sessionAccentColor = sessionAccentColor,
+                )
+                CockpitPage.Tools -> CockpitToolsPage(
+                    liveEnergySummary = liveEnergySummary,
+                    sessionAccentColor = sessionAccentColor,
+                    bodyWeight = bodyWeight,
+                )
+                CockpitPage.Notes -> CockpitNotesPage(
+                    sessionNotes = sessionNotes,
+                    sessionChecklist = sessionChecklist,
+                    onSessionNotesChange = onSessionNotesChange,
+                    onAddChecklistItem = onAddChecklistItem,
+                    onToggleChecklistItem = onToggleChecklistItem,
+                    onRemoveChecklistItem = onRemoveChecklistItem,
+                    sessionAccentColor = sessionAccentColor,
+                )
+            }
         }
     }
 }
 
-internal fun unilateralBalanceFor(
-    exerciseId: String,
+@Composable
+private fun CockpitOverviewPage(
+    exercises: List<Exercise>,
     completedSets: Map<String, CompletedSet>,
-): UnilateralBalanceUi? {
-    fun score(set: CompletedSet): Double {
-        val metric = when {
-            (set.timeSeconds ?: 0) > 0 -> set.timeSeconds?.toDouble() ?: 0.0
-            set.reps > 0 -> set.reps.toDouble()
-            else -> 0.0
-        }
-        return (set.weight.coerceAtLeast(0.0) + 1.0) * metric
+    milestones: List<SessionMilestone>,
+    sessionAccentColor: Color,
+) {
+    val starExercises = remember(exercises) { exercises.filter { it.isStarTarget } }
+    val orderedMilestones = remember(milestones) {
+        milestones.sortedByDescending { it.createdAtIso }.take(12)
     }
-    val left = completedSets.filterKeys { it.startsWith(exerciseId) && it.endsWith("_L") }.values.sumOf { score(it) }
-    val right = completedSets.filterKeys { it.startsWith(exerciseId) && it.endsWith("_R") }.values.sumOf { score(it) }
-    if (left <= 0 && right <= 0) return null
-    return UnilateralBalanceUi(left, right)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        CockpitSectionTitle(icon = Icons.Default.EmojiEvents, title = "Hitos de la sesión")
+        if (orderedMilestones.isEmpty()) {
+            Text(
+                "Todavía no hay hitos. Aparecen con PRs reales vs historial o meta estrella.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+            )
+        } else {
+            orderedMilestones.forEach { milestone ->
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color.White.copy(alpha = 0.06f),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(modifier = Modifier.padding(10.dp)) {
+                        Text(
+                            milestone.label,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = sessionAccentColor,
+                        )
+                        Text(
+                            milestone.exerciseName,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                        )
+                        milestone.detail?.let {
+                            Text(
+                                it,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        if (starExercises.isNotEmpty()) {
+            CockpitSectionTitle(icon = Icons.Default.Star, title = "Ejercicios estrella")
+            starExercises.forEach { exercise ->
+                val goal = exercise.goal1RM?.takeIf { it > 0 } ?: return@forEach
+                val bestE1rm = completedSets
+                    .filterKeys { key ->
+                        (key.startsWith("${exercise.id}_") || key == exercise.id) &&
+                            !key.contains("_warmup_")
+                    }
+                    .values
+                    .filter { !it.isWarmup && !it.skipped && (it.weight ?: 0.0) > 0 && it.reps > 0 }
+                    .maxOfOrNull { calculateHybrid1RM(it.weight ?: 0.0, it.reps) }
+                    ?: 0.0
+                val progress = (bestE1rm / goal).toFloat().coerceIn(0f, 1f)
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = sessionAccentColor.copy(alpha = 0.12f),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(
+                            exercise.name,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            "${bestE1rm.toTrimmedNumberString()} / ${goal.toTrimmedNumberString()} kg e1RM",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        )
+                        LinearProgressIndicator(
+                            progress = { progress },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(6.dp)
+                                .clip(RoundedCornerShape(999.dp)),
+                            color = sessionAccentColor,
+                            trackColor = Color.White.copy(alpha = 0.08f),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CockpitPhotosPage(
+    sessionPhotos: List<String>,
+    onAddPhoto: (Uri) -> Unit,
+    onRemovePhoto: (String) -> Unit,
+    sessionAccentColor: Color,
+) {
+    val context = LocalContext.current
+    var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) onAddPhoto(uri)
+    }
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
+        val uri = pendingCameraUri
+        if (ok && uri != null) onAddPhoto(uri)
+        pendingCameraUri = null
+    }
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            val uri = createSessionCameraUri(context) ?: return@rememberLauncherForActivityResult
+            pendingCameraUri = uri
+            cameraLauncher.launch(uri)
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TextButton(
+                onClick = {
+                    val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                        PackageManager.PERMISSION_GRANTED
+                    if (granted) {
+                        val uri = createSessionCameraUri(context) ?: return@TextButton
+                        pendingCameraUri = uri
+                        cameraLauncher.launch(uri)
+                    } else {
+                        permissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
+                },
+            ) {
+                Icon(Icons.Default.AddAPhoto, contentDescription = null, tint = sessionAccentColor)
+                Spacer(Modifier.size(6.dp))
+                Text("Cámara")
+            }
+            TextButton(
+                onClick = { galleryLauncher.launch("image/*") },
+                enabled = sessionPhotos.size < 8,
+            ) {
+                Icon(Icons.Default.PhotoLibrary, contentDescription = null, tint = sessionAccentColor)
+                Spacer(Modifier.size(6.dp))
+                Text("Galería")
+            }
+        }
+        if (sessionPhotos.isEmpty()) {
+            Text(
+                "Fotos generales de la sesión (hasta 8).",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+            )
+        } else {
+            sessionPhotos.forEach { path ->
+                Box {
+                    AsyncImage(
+                        model = File(path),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(140.dp)
+                            .clip(RoundedCornerShape(12.dp)),
+                    )
+                    IconButton(
+                        onClick = { onRemovePhoto(path) },
+                        modifier = Modifier.align(Alignment.TopEnd),
+                    ) {
+                        Icon(Icons.Default.Close, contentDescription = "Quitar foto", tint = Color.White)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CockpitToolsPage(
+    liveEnergySummary: SessionEnergySummary,
+    sessionAccentColor: Color,
+    bodyWeight: Double?,
+) {
+    var timerRunning by remember { mutableStateOf(false) }
+    var elapsedMs by remember { mutableLongStateOf(0L) }
+    LaunchedEffect(timerRunning) {
+        while (timerRunning) {
+            delay(250)
+            elapsedMs += 250
+        }
+    }
+
+    val totalSeconds = (elapsedMs / 1000L).toInt()
+    val mm = totalSeconds / 60
+    val ss = totalSeconds % 60
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        WorkoutSessionEnergyContent(sessionEnergy = liveEnergySummary)
+
+        CockpitSectionTitle(icon = Icons.Default.Timer, title = "Timer de herramienta")
+        Surface(
+            shape = RoundedCornerShape(14.dp),
+            color = Color.White.copy(alpha = 0.06f),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(
+                modifier = Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    "%02d:%02d".format(mm, ss),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Black,
+                    color = sessionAccentColor,
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IconButton(
+                        onClick = { timerRunning = !timerRunning },
+                    ) {
+                        Icon(
+                            if (timerRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = if (timerRunning) "Pausar" else "Iniciar",
+                            tint = sessionAccentColor,
+                        )
+                    }
+                    IconButton(
+                        onClick = {
+                            timerRunning = false
+                            elapsedMs = 0L
+                        },
+                    ) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Reiniciar", tint = Color.White.copy(alpha = 0.8f))
+                    }
+                }
+                Text(
+                    "Independiente del descanso entre series",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                )
+            }
+        }
+
+        CockpitSectionTitle(icon = Icons.Default.EmojiEvents, title = "Calculadora RM")
+        WorkoutRmCalcContent(
+            bodyWeight = bodyWeight,
+            sessionAccentColor = sessionAccentColor,
+        )
+    }
+}
+
+@Composable
+private fun CockpitNotesPage(
+    sessionNotes: String,
+    sessionChecklist: List<SessionChecklistItem>,
+    onSessionNotesChange: (String) -> Unit,
+    onAddChecklistItem: (String) -> Unit,
+    onToggleChecklistItem: (String) -> Unit,
+    onRemoveChecklistItem: (String) -> Unit,
+    sessionAccentColor: Color,
+) {
+    var draftItem by remember { mutableStateOf("") }
+    var localNotes by remember(sessionNotes) { mutableStateOf(sessionNotes) }
+    val latestNotesChange = rememberUpdatedState(onSessionNotesChange)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        CockpitSectionTitle(icon = Icons.AutoMirrored.Filled.Notes, title = "Notas de sesión")
+        OutlinedTextField(
+            value = localNotes,
+            onValueChange = {
+                localNotes = it
+                latestNotesChange.value(it)
+            },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 3,
+            maxLines = 6,
+            placeholder = { Text("Anotaciones generales de la sesión…") },
+        )
+
+        CockpitSectionTitle(icon = Icons.Default.Add, title = "Tareas / objetivos")
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            OutlinedTextField(
+                value = draftItem,
+                onValueChange = { draftItem = it },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                placeholder = { Text("Nueva tarea") },
+            )
+            TextButton(
+                onClick = {
+                    onAddChecklistItem(draftItem)
+                    draftItem = ""
+                },
+                enabled = draftItem.isNotBlank(),
+            ) {
+                Text("Añadir", color = sessionAccentColor)
+            }
+        }
+        if (sessionChecklist.isEmpty()) {
+            Text(
+                "Checklist vacío. Añade objetivos para esta sesión.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+            )
+        } else {
+            sessionChecklist.forEach { item ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Checkbox(
+                        checked = item.done,
+                        onCheckedChange = { onToggleChecklistItem(item.id) },
+                    )
+                    Text(
+                        item.text,
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (item.done) {
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
+                    )
+                    IconButton(onClick = { onRemoveChecklistItem(item.id) }) {
+                        Icon(Icons.Default.Close, contentDescription = "Eliminar")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CockpitSectionTitle(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.White.copy(alpha = 0.7f))
+        Text(title, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+    }
+}
+
+private fun createSessionCameraUri(context: android.content.Context): Uri? {
+    return runCatching {
+        val dir = File(context.cacheDir, "workout_camera").also { if (!it.exists()) it.mkdirs() }
+        val file = File(dir, "session_${System.currentTimeMillis()}.jpg")
+        FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+    }.getOrNull()
 }

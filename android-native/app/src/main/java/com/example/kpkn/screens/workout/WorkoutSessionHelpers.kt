@@ -1,5 +1,9 @@
 package com.example.kpkn.screens.workout
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.HomologatedPerformanceResult
@@ -75,4 +79,33 @@ internal fun buildWorkoutAchievementMessage(
 internal class RecordActionHolder {
     var action: (() -> Unit)? = null
     val isArmed: Boolean get() = action != null
+}
+
+/** Publishes live set-stepper args from WorkoutV2Body into WorkoutRoadmapBar. */
+internal data class LiveSetStepperSnapshot(
+    val elements: List<TimelineElement>,
+    val activeElementIndex: Int,
+    val completedCount: Int,
+    val totalCount: Int,
+    val sessionAccentColor: Color?,
+    val canAddSet: Boolean,
+)
+
+internal class LiveSetStepperHolder {
+    var snapshot by mutableStateOf<LiveSetStepperSnapshot?>(null)
+    var onSelectPage: (Int) -> Unit = {}
+    var onAddSet: (() -> Unit)? = null
+    var onLongPressPage: ((Int) -> Unit)? = null
+}
+
+/** Pure gate for PR e1RM session milestones (no first-set-without-baseline). */
+internal fun shouldRecordPrE1rmMilestone(
+    e1rm: Double,
+    historyBest: Double,
+    sessionBestPrevious: Double,
+): Boolean {
+    val bestBaseline = maxOf(historyBest, sessionBestPrevious)
+    if (bestBaseline <= 0.0) return false
+    val minDelta = maxOf(0.5, bestBaseline * 0.01)
+    return e1rm >= bestBaseline + minDelta
 }

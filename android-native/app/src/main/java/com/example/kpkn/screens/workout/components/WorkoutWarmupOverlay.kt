@@ -410,7 +410,7 @@ fun WorkoutWarmupOverlay(
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = sessionAccentColor,
-                            contentColor = Color.Black,
+                            contentColor = com.example.kpkn.screens.sessioneditor.contentOn(sessionAccentColor),
                             disabledContainerColor = Color(0xFF151B24).copy(alpha = 0.85f),
                             disabledContentColor = Color.White.copy(alpha = 0.38f),
                         ),
@@ -492,7 +492,7 @@ fun WorkoutWarmupOverlay(
                         shape = RoundedCornerShape(999.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = sessionAccentColor,
-                            contentColor = Color.Black,
+                            contentColor = com.example.kpkn.screens.sessioneditor.contentOn(sessionAccentColor),
                             disabledContainerColor = Color(0xFF151B24).copy(alpha = 0.85f),
                             disabledContentColor = Color.White.copy(alpha = 0.38f),
                         ),
@@ -848,7 +848,7 @@ private fun WarmupSetDetailedCard(
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (isCompleted) Color(0xFF66BB6A) else sessionAccentColor,
-                    contentColor = Color.Black,
+                    contentColor = com.example.kpkn.screens.sessioneditor.contentOn(sessionAccentColor),
                 ),
             ) {
                 Icon(
@@ -1030,7 +1030,7 @@ private fun TargetWeightGuidanceCard(
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = sessionAccentColor,
-                        contentColor = Color.Black,
+                        contentColor = com.example.kpkn.screens.sessioneditor.contentOn(sessionAccentColor),
                     ),
                     modifier = Modifier.height(38.dp),
                 ) {

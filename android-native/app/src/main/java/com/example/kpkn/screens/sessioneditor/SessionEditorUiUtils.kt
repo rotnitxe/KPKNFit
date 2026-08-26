@@ -159,13 +159,8 @@ internal fun sessionCoverColors(background: SessionBackground?): List<Color> = w
 }
 
 internal fun sessionCoverAccentColor(background: SessionBackground?): Color =
-    if (background?.type == SessionBackgroundType.IMAGE) {
-        // Images have no persisted palette; retain the established neutral
-        // blue fallback instead of deriving an unreadable near-black accent.
-        Color(0xFF3B82F6)
-    } else {
-        sessionCoverColors(background).maxByOrNull { it.luminance() } ?: Color(0xFFE08E45)
-    }
+    resolveSessionLivePalette(background).accent
+
 
 internal fun SessionPart.isEditorUncategorized(): Boolean =
     name.trim().lowercase() in setOf("sin categoría", "sin categoria", "sin grupo")

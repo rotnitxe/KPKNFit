@@ -154,7 +154,7 @@ fun WorkoutWarmupInlineCard(
                                     colors = CheckboxDefaults.colors(
                                         checkedColor = sessionAccentColor,
                                         uncheckedColor = Color.White.copy(alpha = 0.3f),
-                                        checkmarkColor = if (0.2126f * sessionAccentColor.red + 0.7152f * sessionAccentColor.green + 0.0722f * sessionAccentColor.blue > 0.45f) Color.Black else Color.White
+                                        checkmarkColor = com.example.kpkn.screens.sessioneditor.contentOn(sessionAccentColor)
                                     ),
                                     modifier = Modifier.size(24.dp)
                                 )
@@ -227,7 +227,7 @@ fun WorkoutWarmupInlineCard(
                         .height(48.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = sessionAccentColor,
-                        contentColor = if (0.2126f * sessionAccentColor.red + 0.7152f * sessionAccentColor.green + 0.0722f * sessionAccentColor.blue > 0.45f) Color.Black else Color.White
+                        contentColor = com.example.kpkn.screens.sessioneditor.contentOn(sessionAccentColor)
                     ),
                     shape = RoundedCornerShape(999.dp)
                 ) {
@@ -299,7 +299,7 @@ fun WorkoutSupersetWarmupRevealCard(
                 shape = RoundedCornerShape(999.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = sessionAccentColor,
-                    contentColor = if (0.2126f * sessionAccentColor.red + 0.7152f * sessionAccentColor.green + 0.0722f * sessionAccentColor.blue > 0.45f) Color.Black else Color.White
+                    contentColor = com.example.kpkn.screens.sessioneditor.contentOn(sessionAccentColor)
                 ),
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
                 modifier = Modifier.height(36.dp)
@@ -648,7 +648,7 @@ internal fun WorkoutWarmupSheet(
                     .height(48.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFFFB300),
-                    contentColor = Color.Black
+                    contentColor = com.example.kpkn.screens.sessioneditor.contentOn(Color(0xFFFFB300))
                 ),
                 shape = RoundedCornerShape(999.dp)
             ) {
@@ -870,7 +870,7 @@ fun WorkoutMobilitySeriesCard(
                             .height(48.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF66BB6A),
-                            contentColor = Color.Black
+                            contentColor = com.example.kpkn.screens.sessioneditor.contentOn(Color(0xFF66BB6A))
                         ),
                         shape = RoundedCornerShape(999.dp)
                     ) {

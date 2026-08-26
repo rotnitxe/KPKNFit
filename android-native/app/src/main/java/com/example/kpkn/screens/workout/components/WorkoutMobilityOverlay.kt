@@ -236,7 +236,7 @@ fun WorkoutMobilityOverlay(
                                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = sessionAccentColor,
-                                    contentColor = Color.Black,
+                                    contentColor = com.example.kpkn.screens.sessioneditor.contentOn(sessionAccentColor),
                                 ),
                             ) {
                                 Icon(
@@ -738,7 +738,7 @@ fun WorkoutMobilityOverlay(
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = sessionAccentColor,
-                            contentColor = Color.Black,
+                            contentColor = com.example.kpkn.screens.sessioneditor.contentOn(sessionAccentColor),
                             disabledContainerColor = Color(0xFF151B24).copy(alpha = 0.85f),
                             disabledContentColor = Color.White.copy(alpha = 0.38f),
                         ),
@@ -820,7 +820,7 @@ fun WorkoutMobilityOverlay(
                         shape = RoundedCornerShape(999.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = sessionAccentColor,
-                            contentColor = Color.Black,
+                            contentColor = com.example.kpkn.screens.sessioneditor.contentOn(sessionAccentColor),
                             disabledContainerColor = Color(0xFF151B24).copy(alpha = 0.85f),
                             disabledContentColor = Color.White.copy(alpha = 0.38f),
                         ),

@@ -505,6 +505,7 @@ fun WorkoutScreen(
     }
 
     val recordActionHolder = remember { RecordActionHolder() }
+    val liveSetStepperHolder = remember { LiveSetStepperHolder() }
     val isUnilateralDock = currentExercise?.isEffectivelyUnilateral() == true
     var selectedUnilateralSideOverride by remember(currentExercise?.id, uiState.currentSetIdx) {
         mutableStateOf<String?>(null)
@@ -732,7 +733,11 @@ fun WorkoutScreen(
         }
     }
 
-    val sessionAccentColor = remember(session.background) { resolveSessionAccentColor(session.background) }
+    val sessionLivePalette = remember(session.background) {
+        com.example.kpkn.screens.sessioneditor.resolveSessionLivePalette(session.background)
+    }
+    val sessionAccentColor = sessionLivePalette.accent
+    // CTAs/badges use contentOn(sessionAccentColor); curated onAccent lives on sessionLivePalette.
 
     val postExerciseTarget = visibleExercises.getOrNull(uiState.postExerciseTargetIdx) ?: currentExercise
     val isShowingFeedback = uiState.showPostExerciseSheet && postExerciseTarget != null
@@ -881,6 +886,7 @@ fun WorkoutScreen(
             headerExerciseTag = activeTagDisplay,
             exerciseReadinessMap = uiState.exerciseReadinessMap,
             recordActionHolder = recordActionHolder,
+            liveSetStepperHolder = liveSetStepperHolder,
             cardsHazeState = cardsHazeStateDock,
             isUnilateral = isUnilateralDock,
             selectedUnilateralSideOverride = selectedUnilateralSideOverride,
@@ -969,16 +975,35 @@ fun WorkoutScreen(
             mode = roadmapMode,
             onModeChange = { roadmapMode = it },
             milestones = uiState.sessionMilestones,
-            exerciseNote = currentExercise?.id?.let { uiState.exerciseNotes[it] }.orEmpty(),
-            exercisePhotos = currentExercise?.id?.let { uiState.exercisePhotos[it] }.orEmpty(),
-            onExerciseNoteChange = { note ->
-                currentExercise?.id?.let { viewModel.setExerciseNote(it, note) }
-            },
-            onAddExercisePhoto = { uri ->
-                currentExercise?.id?.let { viewModel.addExercisePhoto(it, uri) }
-            },
-            onRemoveExercisePhoto = { path ->
-                currentExercise?.id?.let { viewModel.removeExercisePhoto(it, path) }
+            liveEnergySummary = uiState.liveEnergySummary,
+            sessionNotes = uiState.sessionNotes,
+            sessionPhotos = uiState.sessionPhotos,
+            sessionChecklist = uiState.sessionChecklist,
+            onSessionNotesChange = { viewModel.setSessionNotes(it) },
+            onAddSessionPhoto = { viewModel.addSessionPhoto(it) },
+            onRemoveSessionPhoto = { viewModel.removeSessionPhoto(it) },
+            onAddChecklistItem = { viewModel.addSessionChecklistItem(it) },
+            onToggleChecklistItem = { viewModel.toggleSessionChecklistItem(it) },
+            onRemoveChecklistItem = { viewModel.removeSessionChecklistItem(it) },
+            bodyWeight = viewModel.currentBodyWeight(),
+            aboveCarousel = {
+                val stepper = liveSetStepperHolder.snapshot
+                if (stepper != null) {
+                    WorkoutSetPager(
+                        elements = stepper.elements,
+                        activeElementIndex = stepper.activeElementIndex,
+                        completedCount = stepper.completedCount,
+                        totalCount = stepper.totalCount,
+                        sessionAccentColor = stepper.sessionAccentColor,
+                        onSelectPage = { liveSetStepperHolder.onSelectPage(it) },
+                        onAddSet = if (stepper.canAddSet) {
+                            { liveSetStepperHolder.onAddSet?.invoke() }
+                        } else {
+                            null
+                        },
+                        onLongPressPage = { liveSetStepperHolder.onLongPressPage?.invoke(it) },
+                    )
+                }
             },
             )
         }
@@ -1018,7 +1043,7 @@ fun WorkoutScreen(
                 .align(Alignment.BottomCenter)
                 .zIndex(6f)
                 .padding(horizontal = 12.dp)
-                .padding(bottom = 152.dp),
+                .padding(bottom = 236.dp),
             sessionAccentColor = sessionAccentColor,
             hazeState = cardsHazeStateDock,
             isUpdateMode = uiState.completedSets.containsKey(dockKey),

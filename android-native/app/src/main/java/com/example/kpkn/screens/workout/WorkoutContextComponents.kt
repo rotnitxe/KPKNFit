@@ -1555,7 +1555,7 @@ private fun WorkoutSetEditCard(
 }
 
 @Composable
-private fun WorkoutRmCalcContent(
+internal fun WorkoutRmCalcContent(
     bodyWeight: Double? = null,
     currentLoadMode: LoadModeV2? = null,
     onWeightSelected: ((weight: Double, loadMode: LoadModeV2?) -> Unit)? = null,

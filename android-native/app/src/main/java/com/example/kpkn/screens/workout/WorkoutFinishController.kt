@@ -366,7 +366,7 @@ class WorkoutFinishController(
                                 .filter { it != "none" }
                                 .map { discomfortLabel(it) }
                         ).distinct(),
-                    notes = notes.ifBlank { null },
+                    notes = notes.ifBlank { state.sessionNotes }.ifBlank { null },
                     totalVolume = totalVolume,
                     sessionStressScore = stressScore,
                     muscularImpactV2 = automaticImpact,
@@ -380,6 +380,9 @@ class WorkoutFinishController(
                     exerciseNotes = state.exerciseNotes,
                     exercisePhotos = state.exercisePhotos,
                     sessionMilestones = state.sessionMilestones,
+                    sessionNotes = state.sessionNotes,
+                    sessionPhotos = state.sessionPhotos,
+                    sessionChecklist = state.sessionChecklist,
                     contextualPerformanceStateV2 = state.contextualPerformanceCache,
                     globalPerformanceStateV3 = state.globalPerformanceCache,
                     contextProfilesV3 = state.contextProfilesV3,
