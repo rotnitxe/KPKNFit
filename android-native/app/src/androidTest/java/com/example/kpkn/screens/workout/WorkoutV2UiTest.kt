@@ -231,4 +231,30 @@ class WorkoutV2UiTest {
         composeRule.onNodeWithText("Izq").assertExists()
     }
 
+    @Test
+    fun stepper_renders_both_activity_cloud_areas() {
+        composeRule.setContent {
+            MaterialTheme {
+                WorkoutSetPager(
+                    elements = listOf(
+                        TimelineElement.MobilityPill(false, false, 0f, {}),
+                        TimelineElement.WarmupPill(false, false, 0f, {}),
+                        TimelineElement.BilateralSet(
+                            pageIndex = 0,
+                            label = "S1",
+                            state = WorkoutSetCardVisualState.FUTURE,
+                        ),
+                    ),
+                    activeElementIndex = 2,
+                    completedCount = 0,
+                    totalCount = 3,
+                    onSelectPage = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Preparación").assertExists()
+        composeRule.onNodeWithText("Series efectivas").assertExists()
+    }
+
 }

@@ -193,4 +193,67 @@ class WorkoutStepNavigatorResumeTest {
         )
         assertEquals(WorkoutStepRules.workingStepKey("a", 0), navigator.firstIncompleteStep(state)?.stepKey)
     }
+
+    @Test
+    fun nextIncompleteStepAfter_doesNotJumpBackToIncompleteMobilityAfterWarmup() {
+        val exercise = Exercise(
+            id = "squat",
+            name = "Sentadilla",
+            mobilitySeries = listOf(MobilitySeries(id = "ankle", name = "Tobillo")),
+            warmupSets = listOf(
+                WarmupSetDefinition(id = "warmup-1", percentageOfWorkingWeight = 40.0, targetReps = 8),
+                WarmupSetDefinition(id = "warmup-2", percentageOfWorkingWeight = 60.0, targetReps = 5),
+            ),
+            sets = listOf(ExerciseSet(id = "set-1"), ExerciseSet(id = "set-2")),
+        )
+        var state = WorkoutUiState(
+            session = Session(id = "session", name = "Sesion", exercises = listOf(exercise)),
+            // User already progressed to the first warmup while mobility remains incomplete.
+            activeStepKey = WorkoutStepRules.warmupStepKey("squat", "warmup-1"),
+            currentExerciseIdx = 0,
+            currentSetIdx = 0,
+        )
+        val navigator = WorkoutStepNavigator(
+            scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
+            getState = { state },
+            updateState = { transform -> state = transform(state) },
+            ports = object : WorkoutStepNavigator.Ports {
+                override fun visibleExercises(state: WorkoutUiState): List<Exercise> = state.session?.exercises.orEmpty()
+                override fun sessionForActiveMode(base: Session, mode: WeekVariant): Session = base
+                override fun isSetDone(completedSets: Map<String, CompletedSet>, exerciseId: String, setIdx: Int, isUnilateral: Boolean) =
+                    completedSets.containsKey("${exerciseId}_$setIdx")
+                override fun buildEditingStateForPosition(completedSets: Map<String, CompletedSet>, exercise: Exercise?, setIdx: Int, preferredSide: String?) = null
+                override fun stopRestTimer() = Unit
+                override fun persistOngoingState(immediate: Boolean) = Unit
+                override suspend fun persistOngoingStateAndAwait() = Unit
+                override fun refreshLoadSuggestions(state: WorkoutUiState) = Unit
+                override fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?) = Unit
+                override fun computeImbalanceNotice(exercise: Exercise, setIdx: Int, completedSets: Map<String, CompletedSet>) = null
+                override fun openFinishSheet() = Unit
+                override fun speakCurrentStepAnnouncementIfEnabled() = Unit
+                override fun isRecordingBusy() = false
+                override fun announcePostExerciseFeedback(exerciseIds: List<String>) = Unit
+                override fun announceFinalPostExerciseFeedback(exerciseIds: List<String>) = Unit
+            },
+        )
+
+        // Old firstIncompleteStepForExercise would return mobility; forward advance must not.
+        assertEquals(
+            WorkoutStepRules.mobilityStepKey("squat", "ankle"),
+            navigator.firstIncompleteStepForExercise(state, exercise)?.stepKey,
+        )
+        assertEquals(
+            WorkoutStepRules.warmupStepKey("squat", "warmup-1"),
+            navigator.nextIncompleteStepAfter(state, includeCurrent = true)?.stepKey,
+        )
+
+        state = state.copy(
+            warmupCompletedExerciseIds = setOf(WorkoutStepRules.warmupStepKey("squat", "warmup-1")),
+            activeStepKey = WorkoutStepRules.warmupStepKey("squat", "warmup-1"),
+        )
+        assertEquals(
+            WorkoutStepRules.warmupStepKey("squat", "warmup-2"),
+            navigator.nextIncompleteStepAfter(state)?.stepKey,
+        )
+    }
 }

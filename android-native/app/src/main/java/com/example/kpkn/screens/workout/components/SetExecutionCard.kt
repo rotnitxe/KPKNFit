@@ -94,7 +94,7 @@ private fun AmrapConfigSheet(
                 OutlinedTextField(value = reserveReps, onValueChange = { reserveReps = it.filter { c -> c.isDigit() } }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("RIR (repeticiones en reserva)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = Color.White), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = Color(0xFF555555), focusedLabelColor = Color.White.copy(alpha = 0.7f), unfocusedLabelColor = Color.White.copy(alpha = 0.5f), cursorColor = Color.White, focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedContainerColor = Color(0xFF2A2A2A), unfocusedContainerColor = Color(0xFF2A2A2A)))
             }
             Button(onClick = { onApply(minReps.toIntOrNull() ?: plannedMinReps, reachFailure, reserveReps.toIntOrNull()) }, modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)) { Text("Aplicar", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold) }
-            Spacer(Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
@@ -113,6 +113,7 @@ private fun WorkoutStepperField(
     keyboardOptions: KeyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
     accentColor: Color = MaterialTheme.colorScheme.primary,
     roomier: Boolean = false,
+    placeholder: String? = null,
 ) {
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val scope = rememberCoroutineScope()
@@ -178,6 +179,7 @@ private fun WorkoutStepperField(
             Box(
                 modifier = Modifier
                     .weight(1f)
+                    .widthIn(min = if (roomier) 72.dp else 64.dp)
                     .fillMaxWidth()
                     .fillMaxHeight()
                     .clip(RoundedCornerShape(14.dp))
@@ -186,8 +188,10 @@ private fun WorkoutStepperField(
             ) {
                 val resolvedFontSize = remember(value, textStyle.fontSize) {
                     when {
-                        value.length >= 5 -> 12.sp
-                        value.length == 4 -> 14.sp
+                        value.length >= 9 -> 11.sp
+                        value.length >= 7 -> 12.sp
+                        value.length >= 5 -> 14.sp
+                        value.length == 4 -> 15.sp
                         else -> textStyle.fontSize
                     }
                 }
@@ -211,8 +215,21 @@ private fun WorkoutStepperField(
                         color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                     ),
                     keyboardOptions = keyboardOptions,
+                    maxLines = 1,
                     decorationBox = { innerTextField ->
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            if (value.isBlank() && !placeholder.isNullOrBlank()) {
+                                Text(
+                                    text = placeholder,
+                                    style = textStyle.copy(
+                                        fontSize = resolvedFontSize,
+                                        textAlign = TextAlign.Center,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                                    ),
+                                    maxLines = 1,
+                                )
+                            }
                             innerTextField()
                         }
                     }
@@ -376,10 +393,168 @@ private fun IntegratedLoadInput(
 ) {
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val scope = rememberCoroutineScope()
+    val isBodyweightMode = loadMode == LoadModeV2.BODYWEIGHT
+
+    @Composable
+    fun LoadValueField(modifier: Modifier = Modifier) {
+        Column(
+            modifier = modifier,
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.60f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            BasicTextField(
+                value = if (isBodyweightMode) "" else value,
+                onValueChange = { if (!isBodyweightMode) onValueChange(it) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 32.dp)
+                    .onFocusEvent { focusState ->
+                        if (focusState.isFocused) {
+                            scope.launch { bringIntoViewRequester.bringIntoView() }
+                        }
+                    },
+                enabled = !isBodyweightMode,
+                singleLine = true,
+                maxLines = 1,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                textStyle = MaterialTheme.typography.titleMedium.copy(
+                    fontSize = when {
+                        value.length >= 9 -> 12.sp
+                        value.length >= 7 -> 14.sp
+                        else -> MaterialTheme.typography.titleMedium.fontSize
+                    },
+                    fontWeight = FontWeight.Black,
+                    color = if (isBodyweightMode) {
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.36f)
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
+                ),
+                decorationBox = { innerTextField ->
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.CenterStart,
+                    ) {
+                        if (isBodyweightMode) {
+                            Text(
+                                text = "Peso corporal",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontStyle = FontStyle.Italic,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.36f),
+                                ),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        } else if (value.isBlank() && !placeholder.isNullOrBlank()) {
+                            Text(
+                                text = placeholder,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontStyle = FontStyle.Italic,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.36f),
+                                ),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        innerTextField()
+                    }
+                },
+            )
+        }
+    }
+
+    @Composable
+    fun QuickSuggestionRow(modifier: Modifier = Modifier) {
+        Row(
+            modifier = modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            options.forEach { option ->
+                Surface(
+                    onClick = { onWeightSelected(option.weight.toTrimmedNumberString()) },
+                    shape = RoundedCornerShape(11.dp),
+                    color = if (option.isAuge) {
+                        accentColor.copy(alpha = 0.16f)
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.72f)
+                    },
+                    border = BorderStroke(
+                        1.dp,
+                        if (option.isAuge) {
+                            accentColor.copy(alpha = 0.48f)
+                        } else {
+                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
+                        },
+                    ),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 5.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(1.dp),
+                    ) {
+                        Text(
+                            text = option.label,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 9.sp,
+                            ),
+                            color = if (option.isAuge) {
+                                accentColor
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        val chipUnit = when (loadMode) {
+                            LoadModeV2.LASTRE -> " lastre"
+                            LoadModeV2.ASSISTED -> " asist."
+                            else -> ""
+                        }
+                        Text(
+                            text = "${option.weight.toTrimmedNumberString()}$chipUnit",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Black,
+                                fontSize = 10.sp,
+                            ),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.82f),
+                            maxLines = 1,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun LoadModeButton() {
+        IconButton(
+            onClick = onOpenLoadMode,
+            modifier = Modifier.size(36.dp),
+        ) {
+            Icon(
+                Icons.Default.UnfoldMore,
+                contentDescription = "Cambiar tipo de carga",
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.70f),
+            )
+        }
+    }
+
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 58.dp)
+            .heightIn(min = 48.dp)
             .bringIntoViewRequester(bringIntoViewRequester),
         shape = WorkoutUiTokens.InnerCardShape,
         color = WorkoutUiTokens.setInnerHighestColor(),
@@ -387,137 +562,41 @@ private fun IntegratedLoadInput(
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 12.dp, end = 6.dp, top = 7.dp, bottom = 7.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .widthIn(min = 92.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.60f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                val isBodyweightMode = loadMode == LoadModeV2.BODYWEIGHT
-                BasicTextField(
-                    value = if (isBodyweightMode) "" else value,
-                    onValueChange = { if (!isBodyweightMode) onValueChange(it) },
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            val stackSuggestions = maxWidth < 360.dp
+            if (stackSuggestions) {
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .onFocusEvent { focusState ->
-                            if (focusState.isFocused) {
-                                scope.launch { bringIntoViewRequester.bringIntoView() }
-                            }
-                        },
-                    enabled = !isBodyweightMode,
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    textStyle = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Black,
-                        color = if (isBodyweightMode)
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.36f)
-                        else
-                            MaterialTheme.colorScheme.onSurface,
-                    ),
-                    decorationBox = { innerTextField ->
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.CenterStart,
-                        ) {
-                            if (isBodyweightMode) {
-                                Text(
-                                    text = "Peso corporal",
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        fontStyle = FontStyle.Italic,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.36f),
-                                    ),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            } else if (value.isBlank() && !placeholder.isNullOrBlank()) {
-                                Text(
-                                    text = placeholder,
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        fontStyle = FontStyle.Italic,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.36f),
-                                    ),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            }
-                            innerTextField()
-                        }
-                    },
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .widthIn(max = 152.dp)
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                options.forEach { option ->
-                    Surface(
-                        onClick = { onWeightSelected(option.weight.toTrimmedNumberString()) },
-                        shape = RoundedCornerShape(11.dp),
-                        color = if (option.isAuge) accentColor.copy(alpha = 0.16f) else MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.72f),
-                        border = BorderStroke(
-                            1.dp,
-                            if (option.isAuge) accentColor.copy(alpha = 0.48f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f),
-                        ),
+                        .padding(start = 10.dp, end = 6.dp, top = 5.dp, bottom = 5.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        Column(
-                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 5.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(1.dp),
-                        ) {
-                            Text(
-                                text = option.label,
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 9.sp),
-                                color = if (option.isAuge) accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                            val chipUnit = when (loadMode) {
-                                LoadModeV2.LASTRE -> " lastre"
-                                LoadModeV2.ASSISTED -> " asist."
-                                else -> ""
-                            }
-                            Text(
-                                text = "${option.weight.toTrimmedNumberString()}$chipUnit",
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black, fontSize = 10.sp),
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.82f),
-                                maxLines = 1,
-                            )
-                        }
+                        LoadValueField(Modifier.weight(1f))
+                        LoadModeButton()
                     }
+                    QuickSuggestionRow(Modifier.fillMaxWidth())
                 }
-            }
-
-            IconButton(
-                onClick = onOpenLoadMode,
-                modifier = Modifier.size(30.dp),
-            ) {
-                Icon(
-                    Icons.Default.UnfoldMore,
-                    contentDescription = "Cambiar tipo de carga",
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.70f),
-                )
+            } else {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 10.dp, end = 6.dp, top = 5.dp, bottom = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    LoadValueField(
+                        Modifier
+                            .weight(1f)
+                            .widthIn(min = 96.dp),
+                    )
+                    QuickSuggestionRow(Modifier.widthIn(max = 136.dp))
+                    LoadModeButton()
+                }
             }
         }
     }
@@ -637,9 +716,11 @@ private fun FlatAdjustmentButton(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     Surface(
         onClick = onClick,
+        enabled = enabled,
         modifier = modifier.heightIn(min = 36.dp),
         shape = RoundedCornerShape(8.dp),
         color = if (selected) Color(0xFF525252) else Color(0xFF3A3A3A),
@@ -655,7 +736,13 @@ private fun FlatAdjustmentButton(
                 text = text,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                color = Color.White.copy(alpha = if (selected) 0.95f else 0.82f),
+                color = Color.White.copy(
+                    alpha = when {
+                        !enabled -> 0.38f
+                        selected -> 0.95f
+                        else -> 0.82f
+                    },
+                ),
                 textAlign = TextAlign.Center,
             )
         }
@@ -695,8 +782,7 @@ internal fun SetInputCardV2(
     sideLocked: Boolean = false,
     rmSuggestedWeight: Double? = null,
     onRmWeightConsumed: (() -> Unit)? = null,
-    onGoToPrevSet: (() -> Unit)? = null,
-    onGoToNextSet: (() -> Unit)? = null,
+    adaptActionHolder: AdaptActionHolder? = null,
     onRecordV2: (
         loadMode: LoadModeV2,
         unitMode: UnitModeV2,
@@ -711,6 +797,13 @@ internal fun SetInputCardV2(
     exerciseReadiness: ExerciseReadiness? = null,
     readinessAdjustment: SetAdjustmentSuggestion? = null,
     onApplyReadinessAdjustment: ((SetAdjustmentSuggestion) -> Unit)? = null,
+    godModeActionsVisible: Boolean = false,
+    isDropSet: Boolean = false,
+    isRestPause: Boolean = false,
+    canDeleteSet: Boolean = true,
+    onDropSet: (() -> Unit)? = null,
+    onRestPause: (() -> Unit)? = null,
+    onDeleteSet: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val isNarrowScreen = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp < 360
@@ -749,17 +842,25 @@ internal fun SetInputCardV2(
         currentSet.isAmrap ||
         currentSet.intensityMode == IntensityMode.AMRAP
     val defaultValue = when (resolvedPlannedUnitMode) {
-        UnitModeV2.TIME -> (sessionCompletedSet?.timeSeconds ?: currentSet.targetDuration ?: currentSet.plannedTargetV2?.toInt() ?: ghostSet?.timeSeconds)?.toString()
+        UnitModeV2.TIME -> (sessionCompletedSet?.timeSeconds)?.toString()
         UnitModeV2.DISTANCE,
         UnitModeV2.CUSTOM,
-        -> sessionCompletedSet?.reps?.takeIf { it > 0 }?.toString() ?: currentSet.plannedTargetV2?.toTrimmedNumberString() ?: plannedRepRange?.max?.toString() ?: ghostSet?.reps?.toString()
+        -> sessionCompletedSet?.reps?.takeIf { it > 0 }?.toString()
+        UnitModeV2.REPS -> sessionCompletedSet?.reps?.takeIf { it > 0 }?.toString()
+    }.orEmpty()
+    val plannedValueGhost = when (resolvedPlannedUnitMode) {
+        UnitModeV2.TIME -> (currentSet.targetDuration ?: currentSet.plannedTargetV2?.toInt() ?: ghostSet?.timeSeconds)?.toString()
+        UnitModeV2.DISTANCE,
+        UnitModeV2.CUSTOM,
+        -> currentSet.plannedTargetV2?.toTrimmedNumberString() ?: plannedRepRange?.max?.toString() ?: ghostSet?.reps?.toString()
         UnitModeV2.REPS -> (
-            sessionCompletedSet?.reps?.takeIf { it > 0 }
-                ?: if (plannedAmrap) plannedRepRange?.min else plannedRepRange?.max
+            if (plannedAmrap) plannedRepRange?.min else plannedRepRange?.max
                 ?: currentSet.plannedTargetV2?.toInt()
                 ?: ghostSet?.reps
         )?.toString()
     }.orEmpty()
+    val plannedWeightGhost = currentSet.weight?.takeIf { it > 0.0 }?.toTrimmedNumberString()
+        ?: ghostSet?.weight?.takeIf { it > 0.0 }?.toTrimmedNumberString()
     val isTimeMode = resolvedPlannedUnitMode == UnitModeV2.TIME
     val basePlannedTarget = when (resolvedPlannedUnitMode) {
         UnitModeV2.TIME -> currentSet.targetDuration ?: currentSet.plannedTargetV2?.toInt()
@@ -827,26 +928,33 @@ internal fun SetInputCardV2(
         mutableStateOf(draftValueText ?: defaultValue)
     }
     var showReadinessAdjustmentSheet by remember { mutableStateOf(false) }
-    val targetLeftWeight = currentSet.leftTarget?.weight?.toTrimmedNumberString() ?: defaultWeight
-    val targetRightWeight = currentSet.rightTarget?.weight?.toTrimmedNumberString() ?: defaultWeight
-    val initialLeftWeight = if (initialSelectedSide == "left") draftWeightText ?: targetLeftWeight else targetLeftWeight
-    val initialRightWeight = if (initialSelectedSide == "right") draftWeightText ?: targetRightWeight else targetRightWeight
-    fun sideTargetValueText(target: UnilateralTarget?): String = when {
-        target == null -> defaultValue
-        isTimeMode -> target.targetDuration?.toString() ?: defaultValue
-        currentSet.unitModeV2 == UnitModeV2.DISTANCE || currentSet.unitModeV2 == UnitModeV2.CUSTOM ->
-            target.targetValue?.toTrimmedNumberString() ?: target.targetReps?.toString() ?: defaultValue
-        else -> target.targetRepsRange?.max?.toString() ?: target.targetReps?.toString() ?: defaultValue
+    LaunchedEffect(adaptActionHolder, isActivePage) {
+        if (adaptActionHolder != null && isActivePage) {
+            adaptActionHolder.open = { showReadinessAdjustmentSheet = true }
+        }
     }
-    val initialLeftValue = sideTargetValueText(currentSet.leftTarget)
-    val initialRightValue = sideTargetValueText(currentSet.rightTarget)
+    val targetLeftWeight = currentSet.leftTarget?.weight?.toTrimmedNumberString().orEmpty()
+    val targetRightWeight = currentSet.rightTarget?.weight?.toTrimmedNumberString().orEmpty()
+    val initialLeftWeight = if (initialSelectedSide == "left") draftWeightText.orEmpty() else ""
+    val initialRightWeight = if (initialSelectedSide == "right") draftWeightText.orEmpty() else ""
+    fun sideTargetValueText(target: UnilateralTarget?): String = when {
+        target == null -> plannedValueGhost
+        isTimeMode -> target.targetDuration?.toString() ?: plannedValueGhost
+        currentSet.unitModeV2 == UnitModeV2.DISTANCE || currentSet.unitModeV2 == UnitModeV2.CUSTOM ->
+            target.targetValue?.toTrimmedNumberString() ?: target.targetReps?.toString() ?: plannedValueGhost
+        else -> target.targetRepsRange?.max?.toString() ?: target.targetReps?.toString() ?: plannedValueGhost
+    }
+    val initialLeftValue = ""
+    val initialRightValue = ""
+    val leftValueGhost = sideTargetValueText(currentSet.leftTarget)
+    val rightValueGhost = sideTargetValueText(currentSet.rightTarget)
     var leftWeightText by remember(exercise.id, setIndex, sessionCompletedSet?.id) { mutableStateOf(initialLeftWeight) }
     var rightWeightText by remember(exercise.id, setIndex, sessionCompletedSet?.id) { mutableStateOf(initialRightWeight) }
     var leftValueText by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
-        mutableStateOf(if (initialSelectedSide == "left") draftValueText ?: initialLeftValue else initialLeftValue)
+        mutableStateOf(if (initialSelectedSide == "left") draftValueText.orEmpty() else "")
     }
     var rightValueText by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
-        mutableStateOf(if (initialSelectedSide == "right") draftValueText ?: initialRightValue else initialRightValue)
+        mutableStateOf(if (initialSelectedSide == "right") draftValueText.orEmpty() else "")
     }
     val activeSideTarget = when (lockedSide) {
         "left" -> currentSet.leftTarget
@@ -858,15 +966,18 @@ internal fun SetInputCardV2(
     } else {
         basePlannedTarget
     }
+    val plannedIntensityGhost = (
+        activeSideTarget?.targetRPE?.toTrimmedNumberString()
+            ?: activeSideTarget?.targetRIR?.toString()
+            ?: currentSet.targetRPE?.toTrimmedNumberString()
+            ?: currentSet.targetRIR?.toString()
+    ).orEmpty()
     var intensityText by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
         mutableStateOf(
             initialDraft?.intensityText
                 ?: sessionCompletedSet?.actualIntensityValue?.toTrimmedNumberString()
                 ?: sessionCompletedSet?.rpe?.toTrimmedNumberString()
-                ?: activeSideTarget?.targetRPE?.toTrimmedNumberString()
-                ?: activeSideTarget?.targetRIR?.toString()
-                ?: currentSet.targetRPE?.toTrimmedNumberString()
-                ?: currentSet.targetRIR?.toString().orEmpty()
+                ?: ""
         )
     }
     var bodyWeightText by remember(exercise.id) { mutableStateOf(initialBodyWeight?.toTrimmedNumberString().orEmpty()) }
@@ -1357,9 +1468,35 @@ internal fun SetInputCardV2(
                 modifier = Modifier
                     .fillMaxWidth()
                     .blur(if (isFailedSet) 7.dp else 0.dp)
-                    .padding(horizontal = 12.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
+                if (godModeActionsVisible) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        FlatAdjustmentButton(
+                            text = "Dropset",
+                            selected = isDropSet,
+                            onClick = { onDropSet?.invoke() },
+                            modifier = Modifier.weight(1f),
+                        )
+                        FlatAdjustmentButton(
+                            text = "Rest-Pause",
+                            selected = isRestPause,
+                            onClick = { onRestPause?.invoke() },
+                            modifier = Modifier.weight(1f),
+                        )
+                        FlatAdjustmentButton(
+                            text = "Eliminar",
+                            selected = false,
+                            enabled = canDeleteSet,
+                            onClick = { onDeleteSet?.invoke() },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
                 val guidedSkipAction = remember(exercise.id, setIndex, sideKey) {
                     arrayOf<(() -> Unit)?>(null)
                 }
@@ -1429,7 +1566,7 @@ internal fun SetInputCardV2(
                                         modifier = Modifier.size(16.dp),
                                         tint = contentColor
                                     )
-                                    Spacer(Modifier.width(4.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
                                     Text(
                                         text = label,
                                         style = MaterialTheme.typography.labelMedium,
@@ -1469,7 +1606,7 @@ internal fun SetInputCardV2(
                         )
                     }
                 } else {
-                    Spacer(Modifier.width(1.dp))
+                    Spacer(modifier = Modifier.width(1.dp))
                 }
 
 
@@ -1478,229 +1615,33 @@ internal fun SetInputCardV2(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = WorkoutUiTokens.InnerCardShape,
-                // The failed state is rendered by one red overlay over the
-                // complete card; keep the captured controls neutral underneath.
                 color = WorkoutUiTokens.setInnerColor(),
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = WorkoutUiTokens.MinTouchTarget),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Surface(
-                                shape = RoundedCornerShape(4.dp),
-                                color = if (isFailedSet) MaterialTheme.colorScheme.error.copy(alpha = 0.15f) else sessionAccentColor.copy(alpha = 0.15f),
-                            ) {
-                                Text(
-                                    text = "Planificado",
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isFailedSet) MaterialTheme.colorScheme.error else sessionAccentColor,
-                                    fontSize = WorkoutUiTokens.MinLabelSp,
-                                )
-                            }
-                            if (exerciseReadiness != null &&
-                                exerciseReadiness.overallScore < ExerciseReadinessEngine.ADJUSTMENT_THRESHOLD &&
-                                readinessAdjustment == null &&
-                                onApplyReadinessAdjustment != null
-                            ) {
-                                Surface(
-                                    onClick = { showReadinessAdjustmentSheet = true },
-                                    shape = RoundedCornerShape(4.dp),
-                                    color = WorkoutUiTokens.dangerColor().copy(alpha = 0.15f),
-                                ) {
-                                    Text(
-                                        "Adaptar",
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = WorkoutUiTokens.dangerColor(),
-                                        fontSize = WorkoutUiTokens.MinLabelSp,
-                                    )
-                                }
-                            } else if (readinessAdjustment != null) {
-                                Surface(
-                                    onClick = { showReadinessAdjustmentSheet = true },
-                                    shape = RoundedCornerShape(4.dp),
-                                    color = WorkoutUiTokens.dangerColor().copy(alpha = 0.15f),
-                                ) {
-                                    Text(
-                                        "Adaptado",
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = WorkoutUiTokens.dangerColor(),
-                                        fontSize = WorkoutUiTokens.MinLabelSp,
-                                    )
-                                }
-                            }
-                        }
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            if (onGoToPrevSet != null) {
-                                IconButton(
-                                    onClick = onGoToPrevSet,
-                                    enabled = guidedPhase == null,
-                                    modifier = Modifier.size(WorkoutUiTokens.MinTouchTarget),
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = "Anterior",
-                                        tint = Color.White.copy(alpha = if (guidedPhase == null) 0.78f else 0.28f),
-                                        modifier = Modifier.size(18.dp),
-                                    )
-                                }
-                            }
-                            if (onGoToNextSet != null) {
-                                IconButton(
-                                    onClick = onGoToNextSet,
-                                    enabled = guidedPhase == null,
-                                    modifier = Modifier.size(WorkoutUiTokens.MinTouchTarget),
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                        contentDescription = "Siguiente",
-                                        tint = Color.White.copy(alpha = if (guidedPhase == null) 0.78f else 0.28f),
-                                        modifier = Modifier.size(18.dp),
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        val significantDelta = targetDelta?.takeIf { it != 0.0 }
-                        val badgeText = if (significantDelta != null) {
-                            if (isTimeMode) formatSignedDelta(significantDelta, "s") else formatSignedDelta(significantDelta)
-                        } else null
-                        val badgeColor = if (significantDelta != null && significantDelta < 0.0) Color(0xFFFF5252) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-
-                        WorkoutMetricChip(
-                            label = plannedValueLabel,
-                            value = when {
-                                isAmrap && amrapMinimumReps != null -> "AMRAP · mín. $amrapMinimumReps"
-                                plannedTarget == null -> if (isAmrap) "Libre" else "-"
-                                isTimeMode -> "${plannedTarget}s"
-                                else -> plannedRepRange?.format() ?: plannedTarget.toString()
-                            },
-                            badgeText = badgeText,
-                            badgeColor = badgeColor,
-                            containerColor = WorkoutUiTokens.setInnerHighestColor(),
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        if (hasPlannedIntensityInput) {
-                            val intensityContainerColor = when {
-                                plannedIntensityMode == IntensityMode.FAILURE && reachedFailure -> Color(0xFF4A0000)
-                                // AMRAP keeps its accent identity without the
-                                // deprecated saturated-purple/neon treatment.
-                                isAmrap -> sessionAccentColor.copy(alpha = 0.12f)
-                                difficultyLabel == "Más difícil" || difficultyLabel == "Serie fallida" -> Color(0xFF4A0000)
-                                difficultyLabel == "Más fácil" -> Color(0xFF003A00)
-                                difficultyLabel == "Fallo alcanzado" -> Color(0xFF4A3A00)
-                                else -> WorkoutUiTokens.setInnerHighestColor()
-                            }
-                            val intensityBadgeText = if (plannedIntensityMode == IntensityMode.FAILURE && reachedFailure) {
-                                null
-                            } else {
-                                intensityDelta?.takeIf { it != 0.0 }?.let { formatSignedDelta(it) }
-                            }
-                            val intensityBadgeColor = if (intensityDelta != null && intensityDelta > 0.0) Color(0xFFFF5252) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-
-                            WorkoutMetricChip(
-                                label = plannedIntensityDisplayLabel,
-                                value = if (plannedIntensityMode == IntensityMode.FAILURE && reachedFailure) (if (isNarrowScreen) "F" else "FALLO") else plannedIntensityDisplayValue,
-                                badgeText = intensityBadgeText,
-                                badgeColor = intensityBadgeColor,
-                                containerColor = intensityContainerColor,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                    }
-
-                    val enteredReps = valueText.toIntOrNull()
-                    val minimumAmrapReps = amrapMinimumReps
-                    if (isAmrap && minimumAmrapReps != null && enteredReps != null && enteredReps < minimumAmrapReps) {
-                        Text(
-                            "Bajo el mínimo AMRAP ($enteredReps/$minimumAmrapReps); se registrará el valor real.",
-                            color = Color(0xFFE7B98A),
-                            style = MaterialTheme.typography.labelSmall,
-                        )
-                    }
-
-                    if (currentSet.targetPercentageRM != null) {
-                        val rm1 = lastHomologatedResultV3?.estimatedRm
-                            ?: ghostSet?.let { ghost ->
-                                if (ghost.weight > 0 && ghost.reps > 0 && ghost.reps < 37) {
-                                    ghost.weight / (1.0278 - 0.0278 * ghost.reps)
-                                } else {
-                                    null
-                                }
-                            }
-                        if (rm1 != null) {
-                            Spacer(Modifier.height(4.dp))
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = sessionAccentColor.copy(alpha = 0.15f),
+                        ) {
                             Text(
-                                "1RM estimado: ~${rm1.toTrimmedNumberString()}kg",
+                                if (supportsIndependentSides) {
+                                    "Reportar ${if (selectedSide == "left") "L lado izq." else "R lado der."}"
+                                } else {
+                                    "Reportar serie"
+                                },
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                                 style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center
+                                fontWeight = FontWeight.Bold,
+                                color = sessionAccentColor,
                             )
                         }
-                    }
-
-                    }
-                }
-            }
-
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 4.dp),
-                color = Color(0xFF333333),
-                thickness = 1.dp,
-            )
-
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = WorkoutUiTokens.InnerCardShape,
-                color = WorkoutUiTokens.setInnerColor(),
-            ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    Surface(
-                        shape = RoundedCornerShape(4.dp),
-                        color = sessionAccentColor.copy(alpha = 0.15f),
-                    ) {
-                        Text(
-                            if (supportsIndependentSides) {
-                                "Reportar ${if (selectedSide == "left") "L lado izq." else "R lado der."}"
-                            } else {
-                                "Reportar serie"
-                            },
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = sessionAccentColor,
-                        )
                     }
 
                     Box(
@@ -1713,9 +1654,14 @@ internal fun SetInputCardV2(
                             placeholder = when {
                                 reportWeightText.isNotBlank() -> null
                                 loadMode == LoadModeV2.BODYWEIGHT -> "Sin carga externa"
-                                loadMode == LoadModeV2.LASTRE -> ghostSuggestedWeightText?.let { "$it sugerido" } ?: "Ej: 10"
-                                loadMode == LoadModeV2.ASSISTED -> ghostSuggestedWeightText?.let { "$it sugerido" } ?: "Ej: 20"
+                                loadMode == LoadModeV2.LASTRE -> ghostSuggestedWeightText?.let { "$it sugerido" }
+                                    ?: plannedWeightGhost
+                                    ?: "Ej: 10"
+                                loadMode == LoadModeV2.ASSISTED -> ghostSuggestedWeightText?.let { "$it sugerido" }
+                                    ?: plannedWeightGhost
+                                    ?: "Ej: 20"
                                 else -> ghostSuggestedWeightText?.let { "$it sugerido" }
+                                    ?: plannedWeightGhost
                             },
                             options = quickLoadOptionsFor(
                                 currentWeightText = reportWeightText,
@@ -1801,7 +1747,7 @@ internal fun SetInputCardV2(
                             .takeIf { suggestedMode != LoadModeV2.BODYWEIGHT && it > 0.0 }
                             ?.let { " · ${it.toTrimmedNumberString()} kg" }
                             .orEmpty()
-                        Spacer(Modifier.height(6.dp))
+                        Spacer(modifier = Modifier.height(6.dp))
                         Surface(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(8.dp),
@@ -1967,17 +1913,31 @@ internal fun SetInputCardV2(
                                     }
                                 }
                             }
-                            Spacer(Modifier.height(if (roomyStepper) 8.dp else 6.dp))
+                            Spacer(modifier = Modifier.height(if (roomyStepper) 8.dp else 6.dp))
                             
                             WorkoutStepperField(
                                 value = if (isFailedSet) "0" else reportValueText,
                                 onValueChange = { if (!isFailedSet) updateActiveValueText(it.filter { ch -> ch.isDigit() }) },
                                 onDecrement = {
-                                    val current = reportValueText.toIntOrNull() ?: 0
+                                    val ghostBase = if (supportsIndependentSides) {
+                                        if (selectedSide == "left") leftValueGhost else rightValueGhost
+                                    } else {
+                                        plannedValueGhost
+                                    }
+                                    val current = reportValueText.toIntOrNull()
+                                        ?: ghostBase.toIntOrNull()
+                                        ?: 0
                                     updateActiveValueText((current - 1).coerceAtLeast(0).toString())
                                 },
                                 onIncrement = {
-                                    val current = reportValueText.toIntOrNull() ?: 0
+                                    val ghostBase = if (supportsIndependentSides) {
+                                        if (selectedSide == "left") leftValueGhost else rightValueGhost
+                                    } else {
+                                        plannedValueGhost
+                                    }
+                                    val current = reportValueText.toIntOrNull()
+                                        ?: ghostBase.toIntOrNull()
+                                        ?: 0
                                     updateActiveValueText((current + 1).toString())
                                 },
                                 buttonsEnabled = !isFailedSet,
@@ -1986,6 +1946,11 @@ internal fun SetInputCardV2(
                                 textStyle = MaterialTheme.typography.titleLarge,
                                 accentColor = sessionAccentColor,
                                 roomier = roomyStepper,
+                                placeholder = if (supportsIndependentSides) {
+                                    if (selectedSide == "left") leftValueGhost else rightValueGhost
+                                } else {
+                                    plannedValueGhost
+                                }.takeIf { it.isNotBlank() },
                                 modifier = Modifier.fillMaxWidth()
                             )
 
@@ -2021,7 +1986,7 @@ internal fun SetInputCardV2(
                             }
 
                             if (isTimeMode) {
-                                Spacer(Modifier.height(if (roomyStepper) 8.dp else 6.dp))
+                                Spacer(modifier = Modifier.height(if (roomyStepper) 8.dp else 6.dp))
                                 Box(
                                     modifier = Modifier.size(32.dp).clickable {
                                         if (timerRunning) {
@@ -2072,7 +2037,7 @@ internal fun SetInputCardV2(
                                     },
                                 )
                             }
-                            Spacer(Modifier.height(if (roomyStepper) 8.dp else 6.dp))
+                            Spacer(modifier = Modifier.height(if (roomyStepper) 8.dp else 6.dp))
 
                             val intensityDisabled = isExecutionError
                             WorkoutStepperField(
@@ -2090,21 +2055,37 @@ internal fun SetInputCardV2(
                                 textStyle = MaterialTheme.typography.titleLarge,
                                 accentColor = sessionAccentColor,
                                 roomier = roomyStepper,
+                                placeholder = plannedIntensityGhost.takeIf { it.isNotBlank() && !reachedFailure && !isExecutionError },
                                 modifier = Modifier.fillMaxWidth()
                             )
                         }
                     }
 
                     if (hasPlannedIntensityInput) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(
-                                if (roomyStepper) 18.dp else 12.dp
-                            ),
-                            verticalAlignment = Alignment.Top,
-                        ) {
-                            ValueStepperBlock(Modifier.weight(1f))
-                            IntensityStepperBlock(Modifier.weight(1f))
+                        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                            val stackSteppers = maxWidth < 360.dp
+                            if (stackSteppers) {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(
+                                        if (roomyStepper) 12.dp else 10.dp,
+                                    ),
+                                ) {
+                                    ValueStepperBlock(Modifier.fillMaxWidth())
+                                    IntensityStepperBlock(Modifier.fillMaxWidth())
+                                }
+                            } else {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(
+                                        if (roomyStepper) 18.dp else 12.dp
+                                    ),
+                                    verticalAlignment = Alignment.Top,
+                                ) {
+                                    ValueStepperBlock(Modifier.weight(1f))
+                                    IntensityStepperBlock(Modifier.weight(1f))
+                                }
+                            }
                         }
                     } else {
                         // A set without a planned intensity only asks for its
@@ -2175,6 +2156,7 @@ internal fun SetInputCardV2(
                             }
                         }
                     }
+
                 }
             }
 
@@ -2383,7 +2365,7 @@ internal fun SetInputCardV2(
                                         }
                                         TextButton(onClick = { dropSets = dropSets + DropSetEntry(weight = 0.0, reps = 0) }) {
                                             Icon(Icons.Default.Add, null, Modifier.size(16.dp))
-                                            Spacer(Modifier.width(4.dp))
+                                            Spacer(modifier = Modifier.width(4.dp))
                                             Text("Agregar drop-set", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                         }
                                     }
@@ -2416,7 +2398,7 @@ internal fun SetInputCardV2(
                                         }
                                         TextButton(onClick = { restPauseSets = restPauseSets + RestPauseData(restTime = 20, reps = 0) }) {
                                             Icon(Icons.Default.Add, null, Modifier.size(16.dp))
-                                            Spacer(Modifier.width(4.dp))
+                                            Spacer(modifier = Modifier.width(4.dp))
                                             Text("Agregar rest-pause", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                         }
                                     }
@@ -2426,6 +2408,13 @@ internal fun SetInputCardV2(
                     }
                 }
             }
+
+            SetExecutionRecordFooterButton(
+                sessionCompletedSet = sessionCompletedSet,
+                isActivePage = isActivePage,
+                sessionAccentColor = sessionAccentColor,
+                onClick = { recordActionHolder.action?.invoke() },
+            )
 
             if (showAmrapSheet) {
                 AmrapConfigSheet(
@@ -2984,6 +2973,43 @@ internal fun SetInputCardV2(
                 onApplyReadinessAdjustment?.invoke(suggestion)
                 showReadinessAdjustmentSheet = false
             },
+        )
+    }
+}
+
+/** Shared footer CTA for every live set variant (ROM, no-intensity, assisted, etc.). */
+@Composable
+private fun SetExecutionRecordFooterButton(
+    sessionCompletedSet: CompletedSet?,
+    isActivePage: Boolean,
+    sessionAccentColor: Color,
+    onClick: () -> Unit,
+) {
+    Button(
+        onClick = onClick,
+        enabled = isActivePage,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = WorkoutUiTokens.MinTouchTarget),
+        shape = WorkoutUiTokens.InnerCardShape,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = sessionAccentColor,
+            contentColor = com.example.kpkn.screens.sessioneditor.contentOn(sessionAccentColor),
+            disabledContainerColor = sessionAccentColor.copy(alpha = 0.55f),
+            disabledContentColor = com.example.kpkn.screens.sessioneditor.contentOn(sessionAccentColor)
+                .copy(alpha = 0.72f),
+        ),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+    ) {
+        Icon(
+            imageVector = Icons.Default.Check,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = if (sessionCompletedSet != null) "Actualizar" else "Registrar",
+            fontWeight = FontWeight.Black,
         )
     }
 }

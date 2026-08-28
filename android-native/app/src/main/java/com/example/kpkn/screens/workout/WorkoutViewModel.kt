@@ -24,6 +24,7 @@ import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge
 import com.example.kpkn.screens.sessioneditor.CatalogSupersetConfig
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
+import com.example.kpkn.domain.exercises.ExerciseNicknameResolver
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
@@ -2530,42 +2531,31 @@ class WorkoutViewModel(
     ) {
         val state = _uiState.value
         val base = state.session ?: return
-        // No tocar series ya completadas
+        // No tocar series ya completadas (cualquier ejercicio del lote, no solo el actual).
         val currentExId = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id
         val isSameExercise = currentExId == exerciseId
         val currentSetIdx = state.currentSetIdx
-        // Filtrar: si es mismo ejercicio, solo permitir índices > currentSetIdx o el actual si no completado
         val effectiveFrom = fromIdx.coerceAtLeast(0)
         val effectiveTo = toIdx.coerceAtLeast(effectiveFrom)
         val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
         val safeFrom = effectiveFrom.coerceIn(0, (exercise.sets.size - 1).coerceAtLeast(0))
         val safeTo = effectiveTo.coerceIn(safeFrom, (exercise.sets.size - 1).coerceAtLeast(0))
-        // Verificar al menos una serie futura/pendiente
+        fun setFullyCompleted(idx: Int): Boolean {
+            val keys = exercise.completionKeysForSet(idx)
+            return keys.isNotEmpty() && keys.all { state.completedSets.containsKey(it) }
+        }
         val hasFuture = (safeFrom..safeTo).any { idx ->
             if (isSameExercise && idx < currentSetIdx) false
-            else if (isSameExercise && idx == currentSetIdx) {
-                val key = "${exerciseId}_$idx"
-                val lKey = "${exerciseId}_${idx}_L"
-                val rKey = "${exerciseId}_${idx}_R"
-                val done = state.completedSets.containsKey(key) || state.completedSets.containsKey(lKey) || state.completedSets.containsKey(rKey)
-                !done
-            } else true
+            else !setFullyCompleted(idx)
         }
         if (!hasFuture) return
         val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
             modeSession.replaceExerciseById(exerciseId) { ex ->
                 val mapped = ex.sets.mapIndexed { idx, set ->
                     if (idx < safeFrom || idx > safeTo) set
-                    else {
-                        if (isSameExercise && idx < currentSetIdx) set
-                        else if (isSameExercise && idx == currentSetIdx) {
-                            val key = "${exerciseId}_$idx"
-                            val lKey = "${exerciseId}_${idx}_L"
-                            val rKey = "${exerciseId}_${idx}_R"
-                            val done = state.completedSets.containsKey(key) || state.completedSets.containsKey(lKey) || state.completedSets.containsKey(rKey)
-                            if (done) set else set.withTechnique(technique)
-                        } else set.withTechnique(technique)
-                    }
+                    else if (isSameExercise && idx < currentSetIdx) set
+                    else if (setFullyCompleted(idx)) set
+                    else set.withTechnique(technique)
                 }
                 ex.copy(sets = mapped)
             }
@@ -2574,6 +2564,91 @@ class WorkoutViewModel(
         applySessionMutation(updatedSession, preferredExerciseId = exerciseId, persistToProgram = false)
         refreshLoadSuggestions(_uiState.value)
         persistOngoingState()
+    }
+
+    fun removeSetFromExercise(exerciseId: String, setIndex: Int) {
+        val state = _uiState.value
+        val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
+        if (exercise.sets.size <= 1) return
+        val base = state.session ?: return
+        val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
+            WorkoutStructuralEditor.removeSetFromExercise(modeSession, exerciseId, setIndex)
+        }
+        if (updatedSession == base) return
+        applySessionMutation(updatedSession, preferredExerciseId = exerciseId, persistToProgram = false)
+        persistOngoingState()
+        _uiState.update {
+            it.copy(
+                pendingStructuralPersistence = PendingStructuralChange.RemoveSet(
+                    exerciseId = exerciseId,
+                    exerciseName = displayWorkoutExerciseName(exercise),
+                    setIndex = setIndex,
+                    exerciseSlot = visibleExercises(_uiState.value).indexOfFirst { ex -> ex.id == exerciseId }.takeIf { idx -> idx >= 0 },
+                    exerciseCanonicalKey = exercise.resolvedCanonicalExerciseId(),
+                ),
+            )
+        }
+    }
+
+    fun removeExerciseFromSession(exerciseId: String) {
+        val state = _uiState.value
+        val visible = visibleExercises(state)
+        if (visible.size <= 1) return
+        val exercise = visible.firstOrNull { it.id == exerciseId } ?: return
+        val idx = visible.indexOfFirst { it.id == exerciseId }
+        val neighborId = visible.getOrNull(idx + 1)?.id ?: visible.getOrNull(idx - 1)?.id
+        val base = state.session ?: return
+        val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
+            WorkoutStructuralEditor.removeExerciseById(modeSession, exerciseId)
+        }
+        if (updatedSession == base) return
+        applySessionMutation(updatedSession, preferredExerciseId = neighborId, persistToProgram = false)
+        persistOngoingState()
+        _uiState.update {
+            it.copy(
+                pendingStructuralPersistence = PendingStructuralChange.RemoveExercise(
+                    exerciseId = exerciseId,
+                    exerciseName = displayWorkoutExerciseName(exercise),
+                    exerciseSlot = idx.takeIf { it >= 0 },
+                    exerciseCanonicalKey = exercise.resolvedCanonicalExerciseId(),
+                ),
+            )
+        }
+    }
+
+    fun removeExercisesFromSession(exerciseIds: List<String>) {
+        val ids = exerciseIds.distinct()
+        if (ids.isEmpty()) return
+        val state = _uiState.value
+        val visible = visibleExercises(state)
+        if (visible.size <= ids.size) return
+        val names = ids.map { id -> visible.firstOrNull { it.id == id }?.let(::displayWorkoutExerciseName) ?: id }
+        val neighborId = visible.firstOrNull { it.id !in ids }?.id
+        val base = state.session ?: return
+        val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
+            WorkoutStructuralEditor.removeExercisesByIds(modeSession, ids)
+        }
+        if (updatedSession == base) return
+        applySessionMutation(updatedSession, preferredExerciseId = neighborId, persistToProgram = false)
+        persistOngoingState()
+        _uiState.update {
+            it.copy(
+                pendingStructuralPersistence = PendingStructuralChange.RemoveExercises(
+                    exerciseIds = ids,
+                    exerciseNames = names,
+                ),
+            )
+        }
+    }
+
+    fun setExerciseNickname(nicknameKey: String, nickname: String?) {
+        val trimmed = nickname?.trim().orEmpty()
+        repository.updateSettings { settings ->
+            val next = settings.exerciseNicknames.toMutableMap()
+            if (trimmed.isBlank()) next.remove(nicknameKey) else next[nicknameKey] = trimmed
+            settings.copy(exerciseNicknames = next)
+        }
+        ExerciseNicknameResolver.nicknames = repository.settings.value.exerciseNicknames
     }
 
     fun showSeriesTypeSheet(exerciseId: String, fromIdx: Int = 0, toIdx: Int? = null) {
@@ -2946,9 +3021,7 @@ class WorkoutViewModel(
             it.copy(warmupCompletedExerciseIds = it.warmupCompletedExerciseIds + exerciseId + keys)
         }
         persistOngoingState()
-        // Preparation completion must resolve the first incomplete canonical
-        // step. A relative nextSet() can jump over remaining prep or land on
-        // the wrong member of a superset when activeStepKey is stale.
+        // Advance from the current cursor (not first-incomplete-in-exercise).
         advanceAfterPreparation(exerciseId)
     }
 
@@ -2988,9 +3061,7 @@ class WorkoutViewModel(
                 "reportedReps" to completed.reps,
             ),
         )
-        // Do not advance relative to the pager position here. The canonical
-        // resolver includes remaining mobility/warm-up steps and then R1-A.
-        advanceAfterPreparation(exerciseId)
+        // Stay on the same prep card so inline rest can render; user advances via Continuar.
         startPreparationRestIfNeeded(
             seconds = warmup.restBetween ?: 0,
             kind = RestTimerKind.WARMUP,
@@ -3168,9 +3239,10 @@ class WorkoutViewModel(
 
     fun advanceAfterPreparation(exerciseId: String) {
         val state = _uiState.value
-        val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId }
-        val nextStepInExercise = exercise?.let { stepNavigator.firstIncompleteStepForExercise(state, it) }
-        val targetStep = nextStepInExercise ?: stepNavigator.nextIncompleteStepAfter(state)
+        // Respect the user's course: advance to the next incomplete step after the
+        // current cursor — never jump back to an earlier incomplete mobility/warmup.
+        val targetStep = stepNavigator.nextIncompleteStepAfter(state, includeCurrent = false)
+            ?: stepNavigator.nextIncompleteStepAfter(state, includeCurrent = true)
         targetStep?.let { step ->
             selectWorkoutStep(step.stepKey)
         } ?: openFinishSheet()
@@ -3225,7 +3297,7 @@ class WorkoutViewModel(
     fun completeMobilityStep(exerciseId: String, mobilityId: String, mobilitySetIndex: Int = 0) {
         val state = _uiState.value
         val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
-        if (exercise.mobilitySeries.none { it.id == mobilityId }) return
+        val mobility = exercise.mobilitySeries.firstOrNull { it.id == mobilityId } ?: return
         val key = mobilityCompletionKey(exerciseId, mobilityId, mobilitySetIndex)
         if (key in state.mobilityCompletedExerciseIds) return
         _uiState.update {
@@ -3241,7 +3313,12 @@ class WorkoutViewModel(
                 "setIndex" to mobilitySetIndex,
             ),
         )
-        advanceAfterPreparation(exerciseId)
+        // Stay on the same MOV card for inline rest; Continuar advances course.
+        startPreparationRestIfNeeded(
+            seconds = mobility.restBetweenSeconds,
+            kind = RestTimerKind.WARMUP,
+            lastSet = CompletedSet(id = key),
+        )
     }
 
     fun reportMobilityStep(
@@ -3282,9 +3359,6 @@ class WorkoutViewModel(
                 "exerciseId" to exerciseId,
             ),
         )
-        // The global mobility timer is also a preparation step; resume from
-        // the first incomplete canonical step rather than a relative pager
-        // increment.
         advanceAfterPreparation(exerciseId)
     }
 

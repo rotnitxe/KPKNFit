@@ -492,25 +492,37 @@ class WorkoutStepNavigator(
         if (position.first == state.currentExerciseIdx && position.second == state.currentSetIdx && state.activeStepKey == stepKey) {
             return
         }
-        ports.stopRestTimer()
+        val isReviewDuringActiveRest = state.isRestTimerRunning &&
+            state.restModalState?.kind == RestTimerKind.STANDARD &&
+            targetStep.type == WorkoutStepType.WORKING_SET &&
+            targetExercise != null &&
+            ports.isSetDone(
+                state.completedSets,
+                targetExercise.id,
+                position.second,
+                targetExercise.isEffectivelyUnilateral(),
+            )
+        if (!isReviewDuringActiveRest) {
+            ports.stopRestTimer()
+        }
         updateState {
             it.copy(
                 currentExerciseIdx = position.first,
                 currentSetIdx = position.second,
                 activeStepKey = targetStep.stepKey,
                 currentAutoRegulation = null,
-                pendingRestSuggestion = null,
-                restModalState = null,
-                showPostExerciseSheet = false,
-                postExerciseTargetIdx = -1,
-                postExerciseFeedbackTarget = null,
+                pendingRestSuggestion = if (isReviewDuringActiveRest) it.pendingRestSuggestion else null,
+                restModalState = if (isReviewDuringActiveRest) it.restModalState else null,
+                showPostExerciseSheet = if (isReviewDuringActiveRest) it.showPostExerciseSheet else false,
+                postExerciseTargetIdx = if (isReviewDuringActiveRest) it.postExerciseTargetIdx else -1,
+                postExerciseFeedbackTarget = if (isReviewDuringActiveRest) it.postExerciseFeedbackTarget else null,
                 editingState = if (targetStep.type == WorkoutStepType.WORKING_SET) {
                     ports.buildEditingStateForPosition(it.completedSets, targetExercise, position.second)
                 } else {
                     null
                 },
-                continuityTransitionTarget = null,
-                continuityFeedbackExerciseId = null,
+                continuityTransitionTarget = if (isReviewDuringActiveRest) it.continuityTransitionTarget else null,
+                continuityFeedbackExerciseId = if (isReviewDuringActiveRest) it.continuityFeedbackExerciseId else null,
             )
         }
         // Cursor navigation only — never block main on Room (ANR on Siguiente / rail taps).

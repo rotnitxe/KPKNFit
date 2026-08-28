@@ -1445,6 +1445,9 @@ internal fun WorkoutStructureSheetsHost(
             is PendingStructuralChange.AddExercises -> "Agregar ejercicios"
             is PendingStructuralChange.AddSuperset -> "Crear superserie"
             is PendingStructuralChange.ReorderExercises -> "Reordenar ejercicios"
+            is PendingStructuralChange.RemoveSet -> "Eliminar serie"
+            is PendingStructuralChange.RemoveExercise -> "Eliminar ejercicio"
+            is PendingStructuralChange.RemoveExercises -> "Eliminar ejercicios"
         }
         KpknAlertDialog(
             onDismissRequest = {
@@ -1469,6 +1472,15 @@ internal fun WorkoutStructureSheetsHost(
                             }
                             is PendingStructuralChange.ReorderExercises -> {
                                 "Se reordenaron los ejercicios. ¿Cómo quieres guardar este cambio?"
+                            }
+                            is PendingStructuralChange.RemoveSet -> {
+                                "Se eliminó una serie de «${change.exerciseName}». ¿Cómo quieres guardar este cambio?"
+                            }
+                            is PendingStructuralChange.RemoveExercise -> {
+                                "Se eliminó «${change.exerciseName}». ¿Cómo quieres guardar este cambio?"
+                            }
+                            is PendingStructuralChange.RemoveExercises -> {
+                                "Se eliminaron ${change.exerciseNames.size} ejercicios. ¿Cómo quieres guardar este cambio?"
                             }
                         }
                     )

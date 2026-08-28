@@ -125,9 +125,9 @@ fun Modifier.kpknCoverGlass(
     withBorder: Boolean = true,
 ): Modifier = this
     .clip(shape)
-    .background(Color(0xFF0E0E0E).copy(alpha = 0.20f))
+    .background(Color(0xFF0E0E0E).copy(alpha = 0.28f))
     .hazeEffect(state = hazeState, style = kpknGlassStyle()) {
-        alpha = 0.18f
+        alpha = 0.22f
     }
     .then(
         if (withBorder) {
@@ -136,6 +136,70 @@ fun Modifier.kpknCoverGlass(
             Modifier
         },
     )
+
+/**
+ * Translucent cover mica with solid fallback — for live workout header chrome
+ * that must preserve session artwork/colors.
+ */
+fun Modifier.kpknCoverGlassOrFallback(
+    hazeState: HazeState?,
+    shape: Shape,
+    withBorder: Boolean = true,
+): Modifier = if (hazeState != null) {
+    kpknCoverGlass(hazeState, shape, withBorder = withBorder)
+} else {
+    this
+        .clip(shape)
+        .background(Color(0xFF0E0E0E).copy(alpha = 0.32f))
+        .then(
+            if (withBorder) {
+                Modifier.border(width = KpknGlass.BorderWidth, color = KpknGlass.BorderColor, shape = shape)
+            } else {
+                Modifier
+            },
+        )
+}
+
+/**
+ * Dock DarkMica: darker than cover glass, still translucent enough to read as mica
+ * (not a flat solid slab). Prefer a haze state that is a sibling of a hazeSource.
+ */
+fun Modifier.kpknDockGlass(
+    hazeState: HazeState,
+    shape: Shape,
+    withBorder: Boolean = false,
+): Modifier = this
+    .clip(shape)
+    .background(Color(0xFF0E0E0E).copy(alpha = 0.78f))
+    .hazeEffect(state = hazeState, style = kpknGlassStyle()) {
+        alpha = KpknGlass.EffectAlpha
+    }
+    .then(
+        if (withBorder) {
+            Modifier.border(width = KpknGlass.BorderWidth, color = KpknGlass.BorderColor, shape = shape)
+        } else {
+            Modifier
+        },
+    )
+
+fun Modifier.kpknDockGlassOrFallback(
+    hazeState: HazeState?,
+    shape: Shape,
+    withBorder: Boolean = false,
+): Modifier = if (hazeState != null) {
+    kpknDockGlass(hazeState, shape, withBorder = withBorder)
+} else {
+    this
+        .clip(shape)
+        .background(Color(0xFF0E0E0E).copy(alpha = 0.88f))
+        .then(
+            if (withBorder) {
+                Modifier.border(width = KpknGlass.BorderWidth, color = KpknGlass.BorderColor, shape = shape)
+            } else {
+                Modifier
+            },
+        )
+}
 
 fun Modifier.kpknGlassOrFallback(
     hazeState: HazeState?,

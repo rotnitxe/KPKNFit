@@ -196,6 +196,20 @@ class WorkoutStructuralPersistenceController(
                         }
                     }
                 }
+                is PendingStructuralChange.RemoveSet,
+                is PendingStructuralChange.RemoveExercise,
+                is PendingStructuralChange.RemoveExercises -> {
+                    val week = program.macrocycles
+                        .getOrNull(location.macroIndex)?.blocks
+                        ?.flatMap { it.mesocycles }
+                        ?.getOrNull(location.mesoIndex)?.weeks
+                        ?.firstOrNull { it.id == state.weekId }
+                    week?.let { targetWeek ->
+                        val targetSession = targetWeek.sessions.firstOrNull { it.id == sessionId } ?: return@let
+                        val updatedSession = applyPendingStructuralChangeToSession(targetSession, change, state)
+                        repository.upsertSessionInProgram(programId, state.weekId, location.macroIndex, location.mesoIndex, updatedSession)
+                    }
+                }
             }
         }
 
@@ -333,6 +347,27 @@ class WorkoutStructuralPersistenceController(
             }
             is PendingStructuralChange.ReorderExercises -> {
                 reorderSessionByCanonicalKeys(modeSession, change)
+            }
+            is PendingStructuralChange.RemoveSet -> {
+                val targetExercise = change.exerciseSlot?.let { modeSession.exerciseAtSlot(it) }
+                    ?: change.exerciseCanonicalKey?.let { key ->
+                        modeSession.allExercises().firstOrNull { it.resolvedCanonicalExerciseId().equals(key, ignoreCase = true) }
+                    }
+                    ?: modeSession.allExercises().firstOrNull { it.id == change.exerciseId }
+                    ?: return@withModeSession modeSession
+                WorkoutStructuralEditor.removeSetFromExercise(modeSession, targetExercise.id, change.setIndex)
+            }
+            is PendingStructuralChange.RemoveExercise -> {
+                val targetExercise = change.exerciseSlot?.let { modeSession.exerciseAtSlot(it) }
+                    ?: change.exerciseCanonicalKey?.let { key ->
+                        modeSession.allExercises().firstOrNull { it.resolvedCanonicalExerciseId().equals(key, ignoreCase = true) }
+                    }
+                    ?: modeSession.allExercises().firstOrNull { it.id == change.exerciseId }
+                    ?: return@withModeSession modeSession
+                WorkoutStructuralEditor.removeExerciseById(modeSession, targetExercise.id)
+            }
+            is PendingStructuralChange.RemoveExercises -> {
+                WorkoutStructuralEditor.removeExercisesByIds(modeSession, change.exerciseIds)
             }
         }
     }

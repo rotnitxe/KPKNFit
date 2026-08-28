@@ -72,14 +72,17 @@ class WorkoutRestTimerOrchestrator(
         val alertCapability = restTimer.capability(soundsEnabled = repository.settings.value.soundsEnabled)
 
         updateState {
-            val activeExercise = ports.visibleExercises(it).getOrNull(it.currentExerciseIdx)
+            val anchorExerciseId = it.setJustLoggedKey?.let(::parseCompletedSetKey)?.exerciseId
+            val anchorExercise = anchorExerciseId?.let { id ->
+                ports.visibleExercises(it).firstOrNull { exercise -> exercise.id == id }
+            } ?: ports.visibleExercises(it).getOrNull(it.currentExerciseIdx)
             it.copy(
                 restTimerTotal = seconds,
                 isRestTimerRunning = true,
                 isRestMinimized = false,
                 restModalState = it.restModalState?.copy(
-                    exerciseId = activeExercise?.id,
-                    exerciseName = activeExercise?.let(::displayWorkoutExerciseName) ?: exerciseName,
+                    exerciseId = anchorExercise?.id,
+                    exerciseName = anchorExercise?.let(::displayWorkoutExerciseName) ?: exerciseName,
                     kind = kind,
                     warmupSetId = if (kind == RestTimerKind.WARMUP) {
                         warmupSetId ?: it.restModalState?.warmupSetId
@@ -91,8 +94,8 @@ class WorkoutRestTimerOrchestrator(
                     exactAlarmGranted = alertCapability.exactAlarmGranted,
                     soundReady = alertCapability.soundReady,
                 ) ?: WorkoutRestModalState(
-                    exerciseId = activeExercise?.id,
-                    exerciseName = activeExercise?.let(::displayWorkoutExerciseName) ?: exerciseName,
+                    exerciseId = anchorExercise?.id,
+                    exerciseName = anchorExercise?.let(::displayWorkoutExerciseName) ?: exerciseName,
                     kind = kind,
                     warmupSetId = warmupSetId,
                     plannedSeconds = seconds,

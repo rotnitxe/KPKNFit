@@ -1,20 +1,30 @@
 package com.example.kpkn.screens.workout.components
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.ui.input.pointer.pointerInput
+import com.example.kpkn.domain.sessionassistant.SeriesTechnique
+import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknGlassDialog
+import com.example.kpkn.ui.components.KpknSheetWhiteButton
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -25,6 +35,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
@@ -46,6 +57,7 @@ import com.example.kpkn.screens.sessioneditor.isEditorUncategorized
 import com.example.kpkn.screens.sessioneditor.resolvePartAccent
 import com.example.kpkn.screens.workout.*
 import com.example.kpkn.ui.components.kpknGlassOrFallback
+import kotlinx.coroutines.delay
 import dev.chrisbanes.haze.HazeState
 
 private enum class RoadmapCardScale { Full, Mini }
@@ -61,7 +73,7 @@ enum class RoadmapMode {
  * auto-resolves muscular groups, handles completion states, and blocks
  * expansion when the virtual keyboard is visible.
  */
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun WorkoutRoadmapBar(
     exercises: List<Exercise>,
@@ -94,9 +106,51 @@ fun WorkoutRoadmapBar(
     onRemoveChecklistItem: (String) -> Unit = {},
     bodyWeight: Double? = null,
     aboveCarousel: (@Composable () -> Unit)? = null,
+    godMode: Boolean = false,
+    onDeleteExercise: (String) -> Unit = {},
+    onSkipExercise: (String) -> Unit = {},
+    onAddExercise: () -> Unit = {},
+    onReorderExercises: (List<String>) -> Unit = {},
+    onCreateSupersetFrom: (List<String>) -> Unit = {},
+    onBatchSkip: (List<String>) -> Unit = {},
+    onBatchDelete: (List<String>) -> Unit = {},
+    onBatchUltraFast: (List<String>, com.example.kpkn.domain.sessionassistant.SeriesTechnique) -> Unit = { _, _ -> },
+    onDissolveSuperset: (String) -> Unit = {},
+    onSelectionModeChange: (Boolean) -> Unit = {},
+    clearSelectionNonce: Int = 0,
     modifier: Modifier = Modifier,
 ) {
     val activeMode = mode
+    val godModeActive = godMode && activeMode == RoadmapMode.EXPANDED
+    var selectedIds by remember { mutableStateOf(emptySet<String>()) }
+    var pendingDeleteExerciseId by remember { mutableStateOf<String?>(null) }
+    var pendingDissolveGroupId by remember { mutableStateOf<String?>(null) }
+    var pendingUltraFast by remember { mutableStateOf(false) }
+    var draggingEntryIndex by remember { mutableStateOf<Int?>(null) }
+    LaunchedEffect(godModeActive) {
+        if (!godModeActive) {
+            selectedIds = emptySet()
+            draggingEntryIndex = null
+        }
+    }
+    val selectionMode = selectedIds.isNotEmpty()
+    LaunchedEffect(selectionMode) { onSelectionModeChange(selectionMode) }
+    LaunchedEffect(clearSelectionNonce) {
+        if (clearSelectionNonce > 0) selectedIds = emptySet()
+    }
+    var plusSlot by remember { mutableStateOf(godModeActive) }
+    LaunchedEffect(godModeActive) {
+        if (godModeActive) {
+            plusSlot = true
+        } else {
+            delay(WorkoutUiTokens.GodModeExitMs.toLong())
+            if (!godModeActive) plusSlot = false
+        }
+    }
+    val canDeleteAnyExercise = exercises.size > 1
+    val density = LocalDensity.current
+    val dragThresholdPx = with(density) { 12.dp.toPx() }
+    val dragStridePx = with(density) { 96.dp.toPx() }
 
     val accentByPartId = remember(parts) {
         parts.associate { part ->
@@ -271,18 +325,49 @@ fun WorkoutRoadmapBar(
                 )
             }
 
-            if (aboveCarousel != null) {
+            if (aboveCarousel != null || selectionMode) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 4.dp, bottom = 12.dp),
+                        .padding(top = 4.dp, bottom = 12.dp)
+                        .heightIn(min = 48.dp),
                 ) {
-                    aboveCarousel()
+                    AnimatedContent(
+                        targetState = selectionMode,
+                        transitionSpec = {
+                            fadeIn(tween(WorkoutUiTokens.GodModeEnterMs, easing = FastOutSlowInEasing)) togetherWith
+                                fadeOut(tween(WorkoutUiTokens.GodModeExitMs, easing = FastOutSlowInEasing))
+                        },
+                        label = "godModeBatchBar",
+                    ) { selecting ->
+                        if (selecting) {
+                            GodModeBatchBar(
+                                selectedCount = selectedIds.size,
+                                onCreateSuperset = {
+                                    onCreateSupersetFrom(selectedIds.toList())
+                                    selectedIds = emptySet()
+                                },
+                                onSkip = {
+                                    onBatchSkip(selectedIds.toList())
+                                    selectedIds = emptySet()
+                                },
+                                onDelete = {
+                                    onBatchDelete(selectedIds.toList())
+                                    selectedIds = emptySet()
+                                },
+                                onUltraFast = { pendingUltraFast = true },
+                                onClear = { selectedIds = emptySet() },
+                            )
+                        } else {
+                            aboveCarousel?.invoke()
+                        }
+                    }
                 }
             }
 
             LazyRow(
                 state = listState,
+                userScrollEnabled = draggingEntryIndex == null,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 12.dp)
@@ -308,9 +393,10 @@ fun WorkoutRoadmapBar(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 items(
-                    count = roadmapEntries.size,
+                    count = roadmapEntries.size + if (plusSlot) 1 else 0,
                     key = { entryIdx ->
-                        when (val entry = roadmapEntries[entryIdx]) {
+                        if (entryIdx >= roadmapEntries.size) "roadmap-plus"
+                        else when (val entry = roadmapEntries[entryIdx]) {
                             RoadmapEntry.CardioDivider -> "roadmap-cardio-divider"
                             is RoadmapEntry.Group -> {
                                 val group = entry.group
@@ -319,6 +405,24 @@ fun WorkoutRoadmapBar(
                         }
                     },
                 ) { entryIdx ->
+                    if (entryIdx >= roadmapEntries.size) {
+                        AnimatedVisibility(
+                            visible = godModeActive,
+                            enter = fadeIn(tween(WorkoutUiTokens.GodModeEnterMs, easing = FastOutSlowInEasing)) +
+                                scaleIn(
+                                    initialScale = 0.86f,
+                                    animationSpec = tween(WorkoutUiTokens.GodModeEnterMs, easing = FastOutSlowInEasing),
+                                ),
+                            exit = fadeOut(tween(WorkoutUiTokens.GodModeExitMs, easing = FastOutSlowInEasing)) +
+                                scaleOut(
+                                    targetScale = 0.86f,
+                                    animationSpec = tween(WorkoutUiTokens.GodModeExitMs, easing = FastOutSlowInEasing),
+                                ),
+                        ) {
+                            GodModePlusCard(onClick = onAddExercise, accent = sessionAccentColor)
+                        }
+                        return@items
+                    }
                     when (val entry = roadmapEntries[entryIdx]) {
                         RoadmapEntry.CardioDivider -> CardioRoadmapDivider()
                         is RoadmapEntry.Group -> {
@@ -345,16 +449,129 @@ fun WorkoutRoadmapBar(
                             }
                             val isAllDone = completedCount >= totalSets && totalSets > 0
                             val isCurrent = group.exercises.any { it.id == exercises.getOrNull(currentIdx)?.id }
+                            val groupSelected = group.exercises.any { it.id in selectedIds }
+                            val compactLongPress = enableLongPress && !godModeActive
+                            val onCardClick: () -> Unit = {
+                                if (selectionMode) {
+                                    val id = exercise.id
+                                    selectedIds = if (id in selectedIds) selectedIds - id else selectedIds + id
+                                } else {
+                                    if (isSuperset) onSelectGroup(group.groupId) else onSelect(idx)
+                                }
+                            }
+                            val onCardLongClick: (() -> Unit)? = {
+                                if (godModeActive) {
+                                    selectedIds = selectedIds + exercise.id
+                                } else if (compactLongPress) {
+                                    onOpenContext(exercise.id)
+                                }
+                            }.takeIf { godModeActive || compactLongPress }
 
+                            val selectedBorder by animateDpAsState(
+                                targetValue = if (groupSelected) 2.dp else 0.dp,
+                                animationSpec = if (groupSelected) {
+                                    tween(WorkoutUiTokens.GodModeEnterMs, easing = FastOutSlowInEasing)
+                                } else {
+                                    tween(WorkoutUiTokens.GodModeExitMs, easing = FastOutSlowInEasing)
+                                },
+                                label = "godModeSelectBorder",
+                            )
+                            val selectedScrim by animateFloatAsState(
+                                targetValue = if (groupSelected) 0.12f else 0f,
+                                animationSpec = if (groupSelected) {
+                                    tween(WorkoutUiTokens.GodModeEnterMs, easing = FastOutSlowInEasing)
+                                } else {
+                                    tween(WorkoutUiTokens.GodModeExitMs, easing = FastOutSlowInEasing)
+                                },
+                                label = "godModeSelectScrim",
+                            )
+                            val pickedUp = draggingEntryIndex == entryIdx
+                            var pickupOffset by remember(entryIdx) { mutableStateOf(0f) }
+
+                            Box(
+                                modifier = Modifier
+                                    .animateItem(
+                                        fadeInSpec = tween(WorkoutUiTokens.GodModeEnterMs, easing = FastOutSlowInEasing),
+                                        fadeOutSpec = tween(WorkoutUiTokens.GodModeExitMs, easing = FastOutSlowInEasing),
+                                        placementSpec = tween(WorkoutUiTokens.GodModeEnterMs, easing = FastOutSlowInEasing),
+                                    )
+                                    .graphicsLayer {
+                                        translationX = if (pickedUp) pickupOffset else 0f
+                                        shadowElevation = if (pickedUp) 8f else 0f
+                                        clip = false
+                                    }
+                                    .then(
+                                        if (selectedBorder > 0.dp || selectedScrim > 0.01f) {
+                                            Modifier
+                                                .border(selectedBorder, Color.White.copy(alpha = 0.72f), WorkoutUiTokens.InnerCardShape)
+                                                .drawWithContent {
+                                                    drawContent()
+                                                    if (selectedScrim > 0.01f) {
+                                                        drawRect(Color.Black.copy(alpha = selectedScrim))
+                                                    }
+                                                }
+                                        } else Modifier
+                                    )
+                                    .pointerInput(godModeActive, selectionMode, entryIdx, roadmapEntries.size, dragThresholdPx, dragStridePx) {
+                                        if (!godModeActive || selectionMode) return@pointerInput
+                                        var acc = 0f
+                                        var dragging = false
+                                        detectDragGestures(
+                                            onDragStart = {
+                                                acc = 0f
+                                                dragging = false
+                                                pickupOffset = 0f
+                                            },
+                                            onDragEnd = {
+                                                if (dragging) {
+                                                    val rawSteps = kotlin.math.round(acc / dragStridePx).toInt()
+                                                    val steps = when {
+                                                        rawSteps != 0 -> rawSteps
+                                                        acc > dragThresholdPx -> 1
+                                                        acc < -dragThresholdPx -> -1
+                                                        else -> 0
+                                                    }
+                                                    val target = (entryIdx + steps).coerceIn(0, roadmapEntries.lastIndex)
+                                                    if (target != entryIdx) {
+                                                        onReorderExercises(
+                                                            swappedRoadmapExerciseIds(roadmapEntries, entryIdx, target),
+                                                        )
+                                                    }
+                                                }
+                                                pickupOffset = 0f
+                                                draggingEntryIndex = null
+                                            },
+                                            onDragCancel = {
+                                                pickupOffset = 0f
+                                                draggingEntryIndex = null
+                                            },
+                                            onDrag = { change, amount ->
+                                                acc += amount.x
+                                                if (!dragging && kotlin.math.abs(acc) >= dragThresholdPx) {
+                                                    dragging = true
+                                                    draggingEntryIndex = entryIdx
+                                                }
+                                                if (dragging) {
+                                                    pickupOffset = acc
+                                                    change.consume()
+                                                }
+                                            },
+                                        )
+                                    },
+                            ) {
                             if (exercise.isCardio) {
-                                // Cardio gets its own roadmap language. It has no strength
-                                // set/side steppers or strength action semantics.
                                 CardioRoadmapCard(
                                     exercise = exercise,
                                     isCurrent = isCurrent,
                                     isAllDone = isAllDone,
-                                    onClick = { onSelect(idx) },
-                                    onLongClick = if (enableLongPress) ({ onOpenContext(exercise.id) }) else null,
+                                    onClick = onCardClick,
+                                    onLongClick = onCardLongClick,
+                                    pickedUp = pickedUp,
+                                    onSkipClick = if (godModeActive) {
+                                        { onSkipExercise(exercise.id) }
+                                    } else {
+                                        null
+                                    },
                                 )
                             } else if (!isSuperset) {
                                 ExerciseRoadmapCard(
@@ -368,11 +585,17 @@ fun WorkoutRoadmapBar(
                                     completedSets = completedSets,
                                     currentSetIdx = if (isCurrent) currentSetIdx else null,
                                     currentSide = if (isCurrent) currentSide else null,
-                                    onClick = { onSelect(idx) },
+                                    onClick = onCardClick,
                                     onSelectStep = { setIdx, side ->
                                         onSelectStep(WorkoutStepRules.workingStepKey(exercise.id, setIdx, side))
                                     },
-                                    onLongClick = if (enableLongPress) ({ onOpenContext(exercise.id) }) else null,
+                                    onLongClick = onCardLongClick,
+                                    pickedUp = pickedUp,
+                                    onSkipClick = if (godModeActive) {
+                                        { onSkipExercise(exercise.id) }
+                                    } else {
+                                        null
+                                    },
                                 )
                             } else {
                                 SupersetRoadmapCard(
@@ -392,14 +615,97 @@ fun WorkoutRoadmapBar(
                                     currentExerciseId = exercises.getOrNull(currentIdx)?.id,
                                     currentRound = if (isCurrent) currentSetIdx + 1 else null,
                                     currentSide = if (isCurrent) currentSide else null,
-                                    onClick = { onSelectGroup(group.groupId) },
+                                    onClick = onCardClick,
                                     onSelectStep = { exerciseId, setIdx, side ->
                                         onSelectStep(WorkoutStepRules.workingStepKey(exerciseId, setIdx, side))
                                     },
-                                    onLongClick = if (enableLongPress) ({ onOpenContext(exercise.id) }) else null,
-                                    onMemberLongClick = if (enableLongPress) onOpenMemberContext else ({}),
+                                    onLongClick = onCardLongClick,
+                                    onMemberLongClick = {
+                                        if (godModeActive) selectedIds = selectedIds + it
+                                        else if (compactLongPress) onOpenMemberContext(it)
+                                    },
+                                    godMode = godModeActive,
+                                    onDissolve = { group.groupId?.let { pendingDissolveGroupId = it } },
+                                    onDeleteMember = { memberId -> pendingDeleteExerciseId = memberId },
+                                    pickedUp = pickedUp,
+                                    onSkipClick = if (godModeActive) {
+                                        { group.exercises.forEach { onSkipExercise(it.id) } }
+                                    } else {
+                                        null
+                                    },
                                 )
                             }
+                            GodModeRoadmapBadges(
+                                visible = godModeActive,
+                                canDelete = if (isSuperset) true else canDeleteAnyExercise,
+                                onDelete = {
+                                    if (isSuperset) group.groupId?.let { pendingDissolveGroupId = it }
+                                    else pendingDeleteExerciseId = exercise.id
+                                },
+                            )
+                            }
+                        }
+                    }
+                }
+            }
+            pendingDeleteExerciseId?.let { deleteId ->
+                val name = exercises.firstOrNull { it.id == deleteId }?.displayNameWithSelectedChips() ?: "ejercicio"
+                KpknAlertDialog(
+                    onDismissRequest = { pendingDeleteExerciseId = null },
+                    title = { Text("Eliminar ejercicio", fontWeight = FontWeight.Black) },
+                    text = { Text("¿Eliminar $name de esta sesión?") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            onDeleteExercise(deleteId)
+                            pendingDeleteExerciseId = null
+                        }) { Text("Eliminar") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { pendingDeleteExerciseId = null }) { Text("Cancelar") }
+                    },
+                )
+            }
+            pendingDissolveGroupId?.let { groupId ->
+                KpknAlertDialog(
+                    onDismissRequest = { pendingDissolveGroupId = null },
+                    title = { Text("Disolver superserie", fontWeight = FontWeight.Black) },
+                    text = { Text("Los ejercicios vuelven a ser independientes.") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            onDissolveSuperset(groupId)
+                            pendingDissolveGroupId = null
+                        }) { Text("Disolver") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { pendingDissolveGroupId = null }) { Text("Cancelar") }
+                    },
+                )
+            }
+            if (pendingUltraFast) {
+                KpknGlassDialog(onDismissRequest = { pendingUltraFast = false }) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Text("Modo ultrarrápido", fontWeight = FontWeight.Black, color = Color.White)
+                        KpknSheetWhiteButton(
+                            text = "Drop-set",
+                            onClick = {
+                                onBatchUltraFast(selectedIds.toList(), SeriesTechnique.DROPSET)
+                                selectedIds = emptySet()
+                                pendingUltraFast = false
+                            },
+                        )
+                        KpknSheetWhiteButton(
+                            text = "Rest-pause",
+                            onClick = {
+                                onBatchUltraFast(selectedIds.toList(), SeriesTechnique.REST_PAUSE)
+                                selectedIds = emptySet()
+                                pendingUltraFast = false
+                            },
+                        )
+                        TextButton(onClick = { pendingUltraFast = false }, modifier = Modifier.fillMaxWidth()) {
+                            Text("Cancelar", color = Color.White)
                         }
                     }
                 }
@@ -424,6 +730,33 @@ private sealed interface RoadmapEntry {
     data class Group(val group: ExerciseRoadmapGroup) : RoadmapEntry
     object CardioDivider : RoadmapEntry
 }
+
+internal fun swappedGroupedExerciseIds(
+    groups: List<List<String>>,
+    fromIndex: Int,
+    toIndex: Int,
+): List<String> {
+    if (fromIndex !in groups.indices || toIndex !in groups.indices) return groups.flatten()
+    val mutable = groups.toMutableList()
+    val moved = mutable.removeAt(fromIndex)
+    mutable.add(toIndex, moved)
+    return mutable.flatten()
+}
+
+private fun swappedRoadmapExerciseIds(
+    entries: List<RoadmapEntry>,
+    fromIndex: Int,
+    toIndex: Int,
+): List<String> = swappedGroupedExerciseIds(
+    groups = entries.map { entry ->
+        when (entry) {
+            RoadmapEntry.CardioDivider -> emptyList()
+            is RoadmapEntry.Group -> entry.group.exercises.map { it.id }
+        }
+    },
+    fromIndex = fromIndex,
+    toIndex = toIndex,
+)
 
 private fun Exercise.supersetGroupRefOrLegacyId(): String? =
     supersetGroupRef?.takeIf { it.isNotBlank() } ?: supersetId?.takeIf { it.isNotBlank() }
@@ -457,7 +790,7 @@ private fun CardioRoadmapDivider() {
     Row(
         modifier = Modifier
             .width(82.dp)
-            .height(64.dp),
+            .height(WorkoutUiTokens.GodModeRoadmapCardHeight),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(5.dp),
     ) {
@@ -493,6 +826,8 @@ private fun CardioRoadmapCard(
     isAllDone: Boolean,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)?,
+    pickedUp: Boolean = false,
+    onSkipClick: (() -> Unit)? = null,
 ) {
     val details = exercise.cardioDetails
     val modeLabel = when (details?.programMode()) {
@@ -522,11 +857,24 @@ private fun CardioRoadmapCard(
         else -> CardioRoadmapAccent.copy(alpha = 0.30f)
     }
 
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(
+        if (isPressed || pickedUp) 0.95f else 1.0f,
+        label = "cardioPickup",
+    )
+
     Surface(
         modifier = Modifier
             .widthIn(min = 190.dp, max = 280.dp)
-            .height(64.dp)
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
+            .height(WorkoutUiTokens.GodModeRoadmapCardHeight)
+            .scale(pressScale)
+            .combinedClickable(
+                interactionSource = interactionSource,
+                indication = LocalIndication.current,
+                onClick = onClick,
+                onLongClick = onLongClick,
+            ),
         shape = WorkoutUiTokens.InnerCardShape,
         color = cardColor,
         border = BorderStroke(1.dp, borderColor),
@@ -567,8 +915,38 @@ private fun CardioRoadmapCard(
                     fontWeight = FontWeight.Medium,
                     color = contentColor.copy(alpha = 0.68f),
                 )
+                if (onSkipClick != null) {
+                    RoadmapInCardAction(
+                        label = "Omitir",
+                        onClick = onSkipClick,
+                        color = contentColor,
+                    )
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun RoadmapInCardAction(
+    label: String,
+    onClick: () -> Unit,
+    color: Color,
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(99.dp),
+        color = Color.White.copy(alpha = 0.16f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.22f)),
+    ) {
+        Text(
+            text = label,
+            modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+            fontWeight = FontWeight.Bold,
+            color = color.copy(alpha = 0.92f),
+            maxLines = 1,
+        )
     }
 }
 
@@ -599,6 +977,8 @@ private fun ExerciseRoadmapCard(
     onSelectStep: (Int, String?) -> Unit = { _, _ -> },
     onLongClick: (() -> Unit)?,
     scale: RoadmapCardScale = RoadmapCardScale.Full,
+    pickedUp: Boolean = false,
+    onSkipClick: (() -> Unit)? = null,
 ) {
     val displayName = exercise.displayNameWithSelectedChips()
     val isUnilateral = exercise.isEffectivelyUnilateral()
@@ -612,7 +992,7 @@ private fun ExerciseRoadmapCard(
         else -> 88.dp
     }
     val maxWidth = if (isMini) 138.dp else 220.dp
-    val cardHeight = if (isMini) 48.dp else 64.dp
+    val cardHeight = if (isMini) 48.dp else WorkoutUiTokens.GodModeRoadmapCardHeight
     val containerColor = when {
         isCurrent -> accent.copy(alpha = 0.86f)
         isAllDone -> Color(0xFF66BB6A).copy(alpha = 0.30f)
@@ -621,8 +1001,12 @@ private fun ExerciseRoadmapCard(
     val contentColor = if (isCurrent) contentOn(containerColor) else MaterialTheme.colorScheme.onSurface
     val borderColor = if (isCurrent) Color.White.copy(alpha = 0.16f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
 
-    var isPressed by remember { mutableStateOf(false) }
-    val pressScale by animateFloatAsState(if (isPressed) 0.95f else 1.0f)
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(
+        if (isPressed || pickedUp) 0.95f else 1.0f,
+        label = "exercisePress",
+    )
 
     Surface(
         modifier = Modifier
@@ -630,6 +1014,8 @@ private fun ExerciseRoadmapCard(
             .height(cardHeight)
             .scale(pressScale)
             .combinedClickable(
+                interactionSource = interactionSource,
+                indication = LocalIndication.current,
                 onClick = onClick,
                 onLongClick = onLongClick,
             ),
@@ -685,6 +1071,13 @@ private fun ExerciseRoadmapCard(
                         color = contentColor.copy(alpha = 0.6f),
                     )
                 }
+                if (!isMini && onSkipClick != null) {
+                    RoadmapInCardAction(
+                        label = "Omitir",
+                        onClick = onSkipClick,
+                        color = contentColor,
+                    )
+                }
             }
         }
     }
@@ -709,6 +1102,11 @@ private fun SupersetRoadmapCard(
     onSelectStep: (String, Int, String?) -> Unit = { _, _, _ -> },
     onLongClick: (() -> Unit)?,
     onMemberLongClick: (String) -> Unit = {},
+    godMode: Boolean = false,
+    onDissolve: () -> Unit = {},
+    onDeleteMember: (String) -> Unit = {},
+    pickedUp: Boolean = false,
+    onSkipClick: (() -> Unit)? = null,
 ) {
     val safeRoundCount = roundCount.coerceAtLeast(1)
     val currentRoundIndex = ((currentRound ?: 1) - 1).coerceIn(0, safeRoundCount - 1)
@@ -724,17 +1122,29 @@ private fun SupersetRoadmapCard(
         isCurrent -> Color.White.copy(alpha = 0.20f)
         else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
     }
-    Surface(
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(
+        if (isPressed || pickedUp) 0.95f else 1.0f,
+        label = "supersetPickup",
+    )
+    Box(
         modifier = Modifier
-            .height(64.dp)
-            .widthIn(min = 240.dp, max = 360.dp)
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
-        shape = WorkoutUiTokens.InnerCardShape,
-        color = cardColor,
-        border = BorderStroke(1.dp, outline),
+            .height(WorkoutUiTokens.GodModeRoadmapCardHeight)
+            .wrapContentWidth()
+            .graphicsLayer { clip = false }
+            .scale(pressScale)
+            .background(cardColor, WorkoutUiTokens.InnerCardShape)
+            .border(BorderStroke(1.dp, outline), WorkoutUiTokens.InnerCardShape)
+            .combinedClickable(
+                interactionSource = interactionSource,
+                indication = LocalIndication.current,
+                onClick = onClick,
+                onLongClick = onLongClick,
+            ),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 7.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 7.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -752,9 +1162,15 @@ private fun SupersetRoadmapCard(
                     color = if (isCurrent) onCard.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
                     maxLines = 1,
                 )
+                if (onSkipClick != null) {
+                    RoadmapInCardAction(
+                        label = "Omitir",
+                        onClick = onSkipClick,
+                        color = onCard,
+                    )
+                }
             }
             Row(
-                modifier = Modifier.horizontalScroll(rememberScrollState()).weight(1f),
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -767,6 +1183,7 @@ private fun SupersetRoadmapCard(
                     }
                     val memberAllDone = memberCompleted >= memberTotal && memberTotal > 0
                     val memberIsCurrent = member.id == currentExerciseId && isCurrent
+                    Box(modifier = Modifier.graphicsLayer { clip = false }) {
                     ExerciseRoadmapCard(
                         exercise = member,
                         completedCount = memberCompleted,
@@ -790,6 +1207,12 @@ private fun SupersetRoadmapCard(
                         onLongClick = { onMemberLongClick(member.id) },
                         scale = RoadmapCardScale.Mini,
                     )
+                    GodModeRoadmapBadges(
+                        visible = godMode,
+                        canDelete = true,
+                        onDelete = { onDeleteMember(member.id) },
+                    )
+                    }
                 }
             }
         }

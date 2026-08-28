@@ -2,6 +2,12 @@ package com.example.kpkn.screens.workout
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -29,14 +35,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -46,9 +53,15 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import kotlin.math.roundToInt
+import kotlinx.coroutines.flow.first
 
 internal sealed class TimelineElement {
     data class RoundBadge(
@@ -88,6 +101,200 @@ internal sealed class TimelineElement {
         val progress: Float,
         val onSelect: () -> Unit,
     ) : TimelineElement()
+
+    data class RestPill(
+        val pageIndex: Int,
+        val progress: Float,
+        val remainingLabel: String,
+    ) : TimelineElement()
+}
+
+internal enum class ActivityCloudArea(val label: String) {
+    PREPARATION("PREPARACIÓN"),
+    EFFECTIVE_SERIES("SERIES EFECTIVAS"),
+    SUPERSERIE("SUPERSERIE"),
+    DESCANSO("DESCANSO"),
+}
+
+internal data class ActivityCloudSegment(
+    val area: ActivityCloudArea,
+    val startIndex: Int,
+    val endIndexExclusive: Int,
+)
+
+internal fun activityCloudSegments(elements: List<TimelineElement>): List<ActivityCloudSegment> {
+    if (elements.isEmpty()) return emptyList()
+
+    fun areaFor(element: TimelineElement): ActivityCloudArea = when (element) {
+        is TimelineElement.MobilityPill,
+        is TimelineElement.WarmupPill,
+        -> ActivityCloudArea.PREPARATION
+        is TimelineElement.RestPill -> ActivityCloudArea.DESCANSO
+        is TimelineElement.RoundBadge,
+        is TimelineElement.BilateralSet,
+        is TimelineElement.UnilateralSet,
+        -> ActivityCloudArea.EFFECTIVE_SERIES
+    }
+
+    val segments = mutableListOf<ActivityCloudSegment>()
+    var segmentStart = 0
+    var segmentArea = areaFor(elements.first())
+
+    elements.drop(1).forEachIndexed { offset, element ->
+        val index = offset + 1
+        val area = areaFor(element)
+        if (area != segmentArea) {
+            segments += ActivityCloudSegment(
+                area = segmentArea,
+                startIndex = segmentStart,
+                endIndexExclusive = index,
+            )
+            segmentStart = index
+            segmentArea = area
+        }
+    }
+
+    segments += ActivityCloudSegment(
+        area = segmentArea,
+        startIndex = segmentStart,
+        endIndexExclusive = elements.size,
+    )
+    // Superset clusters stay one EFFECTIVE segment for layout, but display SUPERSERIE.
+    return segments.map { segment ->
+        if (segment.area != ActivityCloudArea.EFFECTIVE_SERIES) return@map segment
+        val hasRoundBadge = (segment.startIndex until segment.endIndexExclusive).any { idx ->
+            elements.getOrNull(idx) is TimelineElement.RoundBadge
+        }
+        if (hasRoundBadge) {
+            segment.copy(area = ActivityCloudArea.SUPERSERIE)
+        } else {
+            segment
+        }
+    }
+}
+
+/** Max pager page index represented by a timeline node (null for prep pills / badges). */
+internal fun timelineElementMaxPageIndex(element: TimelineElement): Int? = when (element) {
+    is TimelineElement.BilateralSet -> element.pageIndex
+    is TimelineElement.UnilateralSet -> listOfNotNull(element.leftPageIndex, element.rightPageIndex).maxOrNull()
+    is TimelineElement.RestPill -> element.pageIndex
+    else -> null
+}
+
+/** Insert RestPill in timeline after the last node whose page index is below [restPageIndex]. */
+internal fun timelineRestInsertIndex(
+    elements: List<TimelineElement>,
+    restPageIndex: Int,
+): Int {
+    var insertAt = 0
+    elements.forEachIndexed { index, element ->
+        val maxPage = timelineElementMaxPageIndex(element)
+        if (maxPage != null && maxPage < restPageIndex) {
+            insertAt = index + 1
+        }
+    }
+    return insertAt.coerceIn(0, elements.size)
+}
+
+/** Insert REST carousel page immediately after the set referenced by [loggedKey]. */
+internal fun restPageInsertIndex(
+    pages: List<WorkoutSetSwipePage>,
+    loggedKey: String?,
+    anchorExerciseId: String,
+): Int {
+    val parsed = loggedKey?.let(::parseCompletedSetKey)
+    if (parsed != null) {
+        val normalizedSide = parsed.side?.let { side ->
+            when (side.uppercase()) {
+                "L", "LEFT" -> "left"
+                "R", "RIGHT" -> "right"
+                else -> side.lowercase()
+            }
+        }
+        val completedPageIdx = pages.indexOfLast { page ->
+            when (page.type) {
+                LivePageType.CARDIO -> parsed.setIdx == 0 && page.exerciseId == parsed.exerciseId
+                LivePageType.NORMAL -> page.exerciseId == parsed.exerciseId &&
+                    page.setIndex == parsed.setIdx &&
+                    (normalizedSide == null || page.side == normalizedSide)
+                else -> false
+            }
+        }
+        if (completedPageIdx >= 0) return (completedPageIdx + 1).coerceAtMost(pages.size)
+    }
+    return pages.indexOfFirst { page ->
+        (page.type == LivePageType.NORMAL || page.type == LivePageType.CARDIO) &&
+            (page.exerciseId ?: anchorExerciseId) == anchorExerciseId
+    }.takeIf { it >= 0 } ?: pages.size
+}
+
+/** Visited rounds stay expanded to the right; extras can peek independently. */
+internal fun stepperExpandedRounds(
+    naturalActiveRound: Int,
+    extraExpandedRounds: Set<Int> = emptySet(),
+    restExpandedRound: Int? = null,
+): Set<Int> {
+    val current = naturalActiveRound.coerceAtLeast(0)
+    return (0..current).toSet() + extraExpandedRounds + setOfNotNull(restExpandedRound)
+}
+
+/** Row/cloud layout order for supersets — keeps RestPill between sets in the active round. */
+internal fun stepperLayoutElements(
+    elements: List<TimelineElement>,
+    expandedRounds: Set<Int>,
+    forceExpandedRound: Int? = null,
+): List<TimelineElement> {
+    val hasRounds = elements.any { it is TimelineElement.RoundBadge }
+    if (!hasRounds) return elements
+    val expanded = if (forceExpandedRound != null) expandedRounds + forceExpandedRound else expandedRounds
+    return buildList {
+        elements.forEach { element ->
+            when (element) {
+                is TimelineElement.RoundBadge,
+                is TimelineElement.MobilityPill,
+                is TimelineElement.WarmupPill,
+                is TimelineElement.RestPill,
+                -> add(element)
+                is TimelineElement.BilateralSet ->
+                    if (element.roundIndex == null || element.roundIndex in expanded) add(element)
+                is TimelineElement.UnilateralSet ->
+                    if (element.roundIndex == null || element.roundIndex in expanded) add(element)
+            }
+        }
+    }
+}
+
+internal fun restPillExpandedRound(elements: List<TimelineElement>): Int? {
+    val restIdx = elements.indexOfFirst { it is TimelineElement.RestPill }
+    if (restIdx < 0) return null
+    return elements.take(restIdx)
+        .filterIsInstance<TimelineElement.BilateralSet>()
+        .lastOrNull()
+        ?.roundIndex
+        ?: elements.take(restIdx)
+            .filterIsInstance<TimelineElement.UnilateralSet>()
+            .lastOrNull()
+            ?.roundIndex
+        ?: elements.take(restIdx)
+            .filterIsInstance<TimelineElement.RoundBadge>()
+            .lastOrNull()
+            ?.roundIndex
+}
+
+internal fun activityCloudSegmentWidthDp(
+    elements: List<TimelineElement>,
+    segment: ActivityCloudSegment,
+    interElementGapDp: Float,
+): Float {
+    val start = segment.startIndex.coerceIn(0, elements.size)
+    val end = segment.endIndexExclusive.coerceIn(start, elements.size)
+    if (start >= end) return 0f
+
+    val elementWidth = (start until end)
+        .sumOf { timelineStepperItemWidthDp(elements[it]).toDouble() }
+        .toFloat()
+    val internalGapCount = (end - start - 1).coerceAtLeast(0)
+    return elementWidth + internalGapCount * interElementGapDp.coerceAtLeast(0f)
 }
 
 /**
@@ -116,6 +323,7 @@ internal fun timelineStepperItemWidthDp(element: TimelineElement): Float = when 
     is TimelineElement.UnilateralSet -> 86f
     is TimelineElement.RoundBadge -> STEPPER_CHROME_SIZE_DP
     is TimelineElement.MobilityPill, is TimelineElement.WarmupPill -> 44f
+    is TimelineElement.RestPill -> 108f
     is TimelineElement.BilateralSet -> STEPPER_CHROME_SIZE_DP
 }
 
@@ -128,6 +336,7 @@ internal fun timelineRailProgress(elements: List<TimelineElement>): Float {
         when (element) {
             is TimelineElement.MobilityPill -> element.progress.coerceIn(0f, 1f)
             is TimelineElement.WarmupPill -> element.progress.coerceIn(0f, 1f)
+            is TimelineElement.RestPill -> element.progress.coerceIn(0f, 1f)
             is TimelineElement.BilateralSet -> when (element.state) {
                 WorkoutSetCardVisualState.COMPLETED,
                 WorkoutSetCardVisualState.SKIPPED,
@@ -156,11 +365,76 @@ internal fun timelineRailProgress(elements: List<TimelineElement>): Float {
     return (fractions.sum() / fractions.size).coerceIn(0f, 1f)
 }
 
+/** Cursor-based rail fill: tracks active step position, not average completion. */
+internal fun timelineRailCursorProgress(
+    elements: List<TimelineElement>,
+    activeElementIndex: Int,
+): Float {
+    if (elements.isEmpty()) return 0f
+    val weightedIndices = elements.mapIndexedNotNull { index, element ->
+        if (element is TimelineElement.RoundBadge) null else index
+    }
+    if (weightedIndices.isEmpty()) return 0f
+    if (weightedIndices.size == 1) {
+        val onlyIdx = weightedIndices.first()
+        if (activeElementIndex != onlyIdx) return 0f
+        val partial = timelineRailCursorPartial(elements[onlyIdx])
+        return if (partial > 0f) partial.coerceIn(0f, 1f) else 1f
+    }
+    val activeWeightedPos = weightedIndices.indexOf(activeElementIndex).coerceAtLeast(0)
+    val partial = elements.getOrNull(activeElementIndex)?.let(::timelineRailCursorPartial) ?: 0f
+    val lastIndex = (weightedIndices.size - 1).coerceAtLeast(1)
+    return ((activeWeightedPos + partial) / lastIndex.toFloat()).coerceIn(0f, 1f)
+}
+
+private fun timelineRailCursorPartial(element: TimelineElement): Float = when (element) {
+    is TimelineElement.MobilityPill -> element.progress.coerceIn(0f, 1f)
+    is TimelineElement.WarmupPill -> element.progress.coerceIn(0f, 1f)
+    is TimelineElement.RestPill -> element.progress.coerceIn(0f, 1f)
+    else -> 0f
+}
+
+private fun timelineRailElementPartial(element: TimelineElement): Float = when (element) {
+    is TimelineElement.MobilityPill -> element.progress.coerceIn(0f, 1f)
+    is TimelineElement.WarmupPill -> element.progress.coerceIn(0f, 1f)
+    is TimelineElement.RestPill -> element.progress.coerceIn(0f, 1f)
+    is TimelineElement.BilateralSet -> when (element.state) {
+        WorkoutSetCardVisualState.COMPLETED,
+        WorkoutSetCardVisualState.SKIPPED,
+        -> 1f
+        else -> 0f
+    }
+    is TimelineElement.UnilateralSet -> {
+        val left = when (element.leftState) {
+            WorkoutSetCardVisualState.COMPLETED,
+            WorkoutSetCardVisualState.SKIPPED,
+            -> 1f
+            else -> 0f
+        }
+        val right = when (element.rightState) {
+            WorkoutSetCardVisualState.COMPLETED,
+            WorkoutSetCardVisualState.SKIPPED,
+            -> 1f
+            else -> 0f
+        }
+        when {
+            element.leftState == WorkoutSetCardVisualState.ACTIVE -> left * 0.5f
+            element.rightState == WorkoutSetCardVisualState.ACTIVE -> 0.5f + right * 0.5f
+            else -> (left + right) / 2f
+        }
+    }
+    is TimelineElement.RoundBadge -> 0f
+}
+
 private const val STEPPER_NODE_GAP_MIN_DP = 10f
 private const val STEPPER_NODE_GAP_MAX_DP = 21f
 private const val STEPPER_CHROME_SIZE_DP = 32f
 
 private val STEPPER_ROW_HEIGHT = 40.dp
+private val STEPPER_CLOUD_HEIGHT = 28.dp
+private val STEPPER_CLOUD_GAP = 4.dp
+private val STEPPER_TOTAL_HEIGHT = STEPPER_CLOUD_HEIGHT + STEPPER_CLOUD_GAP + STEPPER_ROW_HEIGHT
+private val STEPPER_CLUSTER_ESTIMATED_WIDTH = 20.dp
 private val STEPPER_CHROME_SIZE = STEPPER_CHROME_SIZE_DP.dp
 /** Overlay slot for counter / +; overflow content may scroll underneath with edge fade. */
 private val STEPPER_END_SLOT = 52.dp
@@ -206,15 +480,16 @@ internal fun WorkoutSetPager(
     nextExerciseSetCount: Int = 0,
     onAddSet: (() -> Unit)? = null,
     onLongPressPage: ((Int) -> Unit)? = null,
+    onNavigateAdjacentExercise: ((forward: Boolean) -> Unit)? = null,
 ) {
     if (elements.isEmpty()) return
 
     val accent = sessionAccentColor ?: MaterialTheme.colorScheme.primary
     val timelineProgressColor = Color(0xFF38BDF8) // Soft azure / cyan-blue
-    val timelineFillTarget = timelineRailProgress(elements)
+    val timelineFillTarget = timelineRailCursorProgress(elements, activeElementIndex)
     val timelineFillProgress by animateFloatAsState(
         targetValue = timelineFillTarget,
-        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = 480, easing = FastOutSlowInEasing),
         label = "setTimelineContinuousFill",
     )
     val trackColor = Color.White.copy(alpha = 0.38f)
@@ -228,22 +503,28 @@ internal fun WorkoutSetPager(
         else -> null
     } ?: elements.filterIsInstance<TimelineElement.RoundBadge>().firstOrNull { it.isCurrentRound }?.roundIndex ?: 0
 
-    var userToggledRound by remember(naturalActiveRound) { mutableStateOf<Int?>(null) }
-    val expandedRound = userToggledRound ?: naturalActiveRound
-
-    // Check if this timeline contains round badges (supersets)
-    val hasRounds = elements.any { it is TimelineElement.RoundBadge }
-    val roundGroups = remember(elements) {
-        val badges = elements.filterIsInstance<TimelineElement.RoundBadge>()
-        badges.map { badge ->
-            val sets = elements.filter {
-                (it is TimelineElement.BilateralSet && it.roundIndex == badge.roundIndex) ||
-                (it is TimelineElement.UnilateralSet && it.roundIndex == badge.roundIndex)
-            }
-            Pair(badge, sets)
-        }
+    var extraExpandedRounds by remember { mutableStateOf(emptySet<Int>()) }
+    val restExpandedRound = remember(elements) { restPillExpandedRound(elements) }
+    val expandedRounds = remember(
+        naturalActiveRound,
+        extraExpandedRounds,
+        restExpandedRound,
+    ) {
+        stepperExpandedRounds(
+            naturalActiveRound = naturalActiveRound,
+            extraExpandedRounds = extraExpandedRounds,
+            restExpandedRound = restExpandedRound,
+        )
+    }
+    val layoutElements = remember(elements, expandedRounds, restExpandedRound) {
+        stepperLayoutElements(
+            elements = elements,
+            expandedRounds = expandedRounds,
+            forceExpandedRound = restExpandedRound,
+        )
     }
 
+    // Check if this timeline contains round badges (supersets)
     val scrollState = rememberScrollState()
     val hasAddSet = onAddSet != null
     val density = LocalDensity.current
@@ -253,7 +534,7 @@ internal fun WorkoutSetPager(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
-            .height(STEPPER_ROW_HEIGHT)
+            .height(STEPPER_TOTAL_HEIGHT)
             .padding(horizontal = 8.dp),
     ) {
         // Clear band between chrome overlays — active node must stay here.
@@ -262,20 +543,11 @@ internal fun WorkoutSetPager(
         val clearWidth = (maxWidth - leadingChrome - trailingChrome).coerceAtLeast(0.dp)
         val viewportWidthPx = constraints.maxWidth.toFloat()
 
-        val visibleElements: List<TimelineElement> = if (hasRounds) {
-            buildList {
-                roundGroups.forEach { (badge, sets) ->
-                    add(badge)
-                    if (badge.roundIndex == expandedRound) addAll(sets)
-                }
-            }
-        } else {
-            elements
-        }
+        val visibleElements: List<TimelineElement> = layoutElements
         val estimatedTotalContentWidth = (
             visibleElements.sumOf { timelineStepperItemWidthDp(it).toDouble() } +
-                (if (completedPreviousSets > 0) 20.0 else 0.0) +
-                (if (nextExerciseSetCount > 0) 20.0 else 0.0)
+                (if (completedPreviousSets > 0) STEPPER_CLUSTER_ESTIMATED_WIDTH.value.toDouble() else 0.0) +
+                (if (nextExerciseSetCount > 0) STEPPER_CLUSTER_ESTIMATED_WIDTH.value.toDouble() else 0.0)
             ).dp
 
         val gapCount = (visibleElements.size - 1).coerceAtLeast(0)
@@ -298,6 +570,14 @@ internal fun WorkoutSetPager(
         } else {
             Arrangement.spacedBy(dynamicNormalSpacing, Alignment.CenterHorizontally)
         }
+        val cloudSegments = activityCloudSegments(visibleElements)
+        val cloudSegmentWidths = cloudSegments.map { segment ->
+            activityCloudSegmentWidthDp(
+                elements = visibleElements,
+                segment = segment,
+                interElementGapDp = dynamicNormalSpacing.value,
+            ).dp
+        }
 
         fun isElementActive(element: TimelineElement): Boolean = when (element) {
             is TimelineElement.BilateralSet ->
@@ -310,10 +590,11 @@ internal fun WorkoutSetPager(
                     element.leftState == WorkoutSetCardVisualState.ACTIVE ||
                     element.rightState == WorkoutSetCardVisualState.ACTIVE
             is TimelineElement.RoundBadge ->
-                element.roundIndex == expandedRound &&
+                element.roundIndex in expandedRounds &&
                     element.firstPageIndex == activeElementIndex
             is TimelineElement.MobilityPill -> element.isCurrent
             is TimelineElement.WarmupPill -> element.isCurrent
+            is TimelineElement.RestPill -> elements.indexOf(element) == activeElementIndex
         }
 
         fun Modifier.keepActiveVisible(active: Boolean): Modifier {
@@ -328,100 +609,161 @@ internal fun WorkoutSetPager(
 
         LaunchedEffect(
             activeElementIndex,
-            expandedRound,
+            expandedRounds,
             overflows,
-            activeNodeLeftPx,
-            activeNodeWidthPx,
             viewportWidthPx,
             scrollState.maxValue,
         ) {
             if (!overflows) return@LaunchedEffect
-            val left = activeNodeLeftPx ?: return@LaunchedEffect
-            val width = activeNodeWidthPx ?: return@LaunchedEffect
+            val (left, width, maxScroll) = snapshotFlow {
+                Triple(activeNodeLeftPx, activeNodeWidthPx, scrollState.maxValue)
+            }.first { (nodeLeft, nodeWidth, maxScrollValue) ->
+                nodeLeft != null && nodeWidth != null && maxScrollValue > 0
+            }
+            val resolvedLeft = left ?: return@LaunchedEffect
+            val resolvedWidth = width ?: return@LaunchedEffect
             val leadingPx = with(density) { leadingChrome.toPx() }
             val trailingPx = with(density) { trailingChrome.toPx() }
             val target = workoutStepperScrollToKeepActiveVisible(
-                nodeLeftPx = left,
-                nodeWidthPx = width,
+                nodeLeftPx = resolvedLeft,
+                nodeWidthPx = resolvedWidth,
                 viewportWidthPx = viewportWidthPx,
                 leadingChromePx = leadingPx,
                 trailingChromePx = trailingPx,
                 currentScrollPx = scrollState.value,
-                maxScrollPx = scrollState.maxValue,
+                maxScrollPx = maxScroll,
             ) ?: return@LaunchedEffect
-            scrollState.scrollTo(target)
+            if (kotlin.math.abs(target - scrollState.value) <= 2) return@LaunchedEffect
+            scrollState.animateScrollTo(
+                target,
+                animationSpec = tween(
+                    durationMillis = 480,
+                    easing = FastOutSlowInEasing,
+                ),
+            )
+        }
+
+        var overscrollAccumulation by remember { mutableFloatStateOf(0f) }
+        val exerciseSwipeConnection = remember(overflows, onNavigateAdjacentExercise) {
+            object : NestedScrollConnection {
+                override fun onPostScroll(
+                    consumed: Offset,
+                    available: Offset,
+                    source: NestedScrollSource,
+                ): Offset {
+                    if (onNavigateAdjacentExercise == null || source != NestedScrollSource.UserInput) {
+                        return Offset.Zero
+                    }
+                    if (available.x != 0f) {
+                        overscrollAccumulation += available.x
+                    }
+                    return Offset.Zero
+                }
+
+                override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                    if (onNavigateAdjacentExercise == null) return Velocity.Zero
+                    val threshold = with(density) { 56.dp.toPx() }
+                    if (kotlin.math.abs(overscrollAccumulation) >= threshold) {
+                        val forward = overscrollAccumulation < 0f
+                        val atLeft = scrollState.value <= 0
+                        val atRight = scrollState.value >= scrollState.maxValue
+                        if (!overflows || (forward && atRight) || (!forward && atLeft)) {
+                            onNavigateAdjacentExercise(forward)
+                        }
+                    }
+                    overscrollAccumulation = 0f
+                    return Velocity.Zero
+                }
+            }
         }
 
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(STEPPER_ROW_HEIGHT),
+                .height(STEPPER_TOTAL_HEIGHT)
+                .then(
+                    when {
+                        onNavigateAdjacentExercise != null && overflows ->
+                            Modifier.nestedScroll(exerciseSwipeConnection)
+                        onNavigateAdjacentExercise != null && !overflows ->
+                            Modifier.pointerInput(Unit) {
+                                var totalDrag = 0f
+                                val threshold = 56.dp.toPx()
+                                detectHorizontalDragGestures(
+                                    onDragStart = { totalDrag = 0f },
+                                    onHorizontalDrag = { _, delta -> totalDrag += delta },
+                                    onDragEnd = {
+                                        if (kotlin.math.abs(totalDrag) >= threshold) {
+                                            onNavigateAdjacentExercise(totalDrag < 0f)
+                                        }
+                                        totalDrag = 0f
+                                    },
+                                )
+                            }
+                        else -> Modifier
+                    },
+                ),
         ) {
-            ContinuousTimelineTrack(
-                progress = timelineFillProgress,
-                fillColor = timelineProgressColor,
-                trackColor = trackColor,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .fillMaxWidth()
-                    .height(STEPPER_RAIL_HEIGHT)
-                    .padding(horizontal = STEPPER_END_SLOT / 2),
+            ActivityCloudStrip(
+                segments = cloudSegments,
+                segmentWidths = cloudSegmentWidths,
+                gap = dynamicNormalSpacing,
+                overflows = overflows,
+                leadingChrome = leadingChrome,
+                trailingChrome = trailingChrome,
+                completedPreviousSets = completedPreviousSets,
+                nextExerciseSetCount = nextExerciseSetCount,
+                scrollState = scrollState,
+                accent = accent,
+                modifier = Modifier.align(Alignment.TopCenter),
             )
 
-            // Overflow: nodes may pass under chrome with fade. Fit: stay inside clear band only.
             Box(
                 modifier = Modifier
+                    .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .height(STEPPER_ROW_HEIGHT)
-                    .then(
-                        if (overflows) {
-                            Modifier
-                                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                                .drawWithContent {
-                                    drawContent()
-                                    val w = size.width
-                                    if (w <= 0f) return@drawWithContent
-                                    val leftFade = (leadingChrome.toPx() / w).coerceIn(0f, 0.45f)
-                                    val rightFade = (trailingChrome.toPx() / w).coerceIn(0f, 0.45f)
-                                    drawRect(
-                                        brush = Brush.horizontalGradient(
-                                            colorStops = arrayOf(
-                                                0f to Color.Transparent,
-                                                leftFade to Color.Black,
-                                                (1f - rightFade) to Color.Black,
-                                                1f to Color.Transparent,
-                                            ),
-                                        ),
-                                        blendMode = BlendMode.DstIn,
-                                    )
-                                }
-                        } else {
-                            Modifier
-                        }
-                    ),
+                    .height(STEPPER_ROW_HEIGHT),
             ) {
-                Row(
+                ContinuousTimelineTrack(
+                    progress = timelineFillProgress,
+                    fillColor = timelineProgressColor,
+                    trackColor = trackColor,
                     modifier = Modifier
+                        .align(Alignment.Center)
+                        .fillMaxWidth()
+                        .height(STEPPER_RAIL_HEIGHT)
+                        .padding(horizontal = STEPPER_END_SLOT / 2),
+                )
+
+                // Overflow: nodes may pass under chrome with fade. Fit: stay inside clear band only.
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .height(STEPPER_ROW_HEIGHT)
-                        .animateContentSize(
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioNoBouncy,
-                                stiffness = Spring.StiffnessMediumLow,
-                            )
-                        )
-                        .then(
-                            if (overflows) {
-                                Modifier.horizontalScroll(scrollState)
-                            } else {
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(start = leadingChrome, end = trailingChrome)
-                            }
-                        )
-                        .align(Alignment.Center),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = nodeArrangement,
+                        .stepperOverflowFade(
+                            enabled = overflows,
+                            leadingChrome = leadingChrome,
+                            trailingChrome = trailingChrome,
+                        ),
                 ) {
+                    Row(
+                        modifier = Modifier
+                            .height(STEPPER_ROW_HEIGHT)
+                            .then(
+                                if (overflows) {
+                                    Modifier
+                                        .nestedScroll(exerciseSwipeConnection)
+                                        .horizontalScroll(scrollState)
+                                } else {
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(start = leadingChrome, end = trailingChrome)
+                                }
+                            )
+                            .align(Alignment.Center),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = nodeArrangement,
+                    ) {
                     if (overflows) {
                         Spacer(modifier = Modifier.width(leadingChrome))
                     }
@@ -433,143 +775,101 @@ internal fun WorkoutSetPager(
                         )
                     }
 
-                    if (hasRounds) {
-                        roundGroups.forEach { (badge, sets) ->
-                            val isExpanded = badge.roundIndex == expandedRound
-                            RoundBadgeNode(
-                                roundIndex = badge.roundIndex,
-                                isCurrentRound = badge.isCurrentRound,
-                                isExpanded = isExpanded,
-                                isAllDone = badge.isAllDone,
-                                accent = accent,
-                                onClick = {
-                                    userToggledRound = badge.roundIndex
-                                    onSelectPage(badge.firstPageIndex)
-                                },
-                                modifier = Modifier.keepActiveVisible(isElementActive(badge)),
-                            )
-                            if (isExpanded) {
-                                sets.forEach { setElement ->
-                                    when (setElement) {
-                                        is TimelineElement.BilateralSet -> {
-                                            val isActive = setElement.state == WorkoutSetCardVisualState.ACTIVE
-                                            val isComplete = setElement.state == WorkoutSetCardVisualState.COMPLETED
-                                            val isSkipped = setElement.state == WorkoutSetCardVisualState.SKIPPED
-                                            val accentColor = workoutSetPagerAccent(setElement.state, MaterialTheme.colorScheme, false, sessionAccentColor)
-                                            TimelineDot(
-                                                accent = accentColor,
-                                                active = isActive || setElement.isEditing,
-                                                complete = isComplete,
-                                                skipped = isSkipped,
-                                                label = setElement.label,
-                                                modifier = Modifier
-                                                    .keepActiveVisible(isElementActive(setElement))
-                                                    .combinedClickable(
-                                                        interactionSource = remember { MutableInteractionSource() },
-                                                        indication = null,
-                                                        onClick = { onSelectPage(setElement.pageIndex) },
-                                                        onLongClick = if (onLongPressPage != null) {{ onLongPressPage(setElement.pageIndex) }} else null,
-                                                    ),
-                                            )
+                    layoutElements.forEach { element ->
+                        when (element) {
+                            is TimelineElement.RoundBadge -> {
+                                val isExpanded = element.roundIndex in expandedRounds
+                                RoundBadgeNode(
+                                    roundIndex = element.roundIndex,
+                                    isCurrentRound = element.isCurrentRound,
+                                    isExpanded = isExpanded,
+                                    isAllDone = element.isAllDone,
+                                    accent = accent,
+                                    onClick = {
+                                        val round = element.roundIndex
+                                        if (round !in expandedRounds) {
+                                            extraExpandedRounds = extraExpandedRounds + round
                                         }
-                                        is TimelineElement.UnilateralSet -> {
-                                            UnilateralSetStackNode(
-                                                setLabel = setElement.setLabel,
-                                                leftPageIndex = setElement.leftPageIndex,
-                                                leftState = setElement.leftState,
-                                                rightPageIndex = setElement.rightPageIndex,
-                                                rightState = setElement.rightState,
-                                                accent = accent,
-                                                onSelectPage = onSelectPage,
-                                                modifier = Modifier.keepActiveVisible(isElementActive(setElement)),
-                                            )
-                                        }
-                                        is TimelineElement.MobilityPill -> {
-                                            StepperProgressPillNode(
-                                                label = "MOV",
-                                                isActive = setElement.isCurrent,
-                                                isCompleted = setElement.isCompleted,
-                                                progress = if (setElement.isCompleted) 1f else setElement.progress,
-                                                accent = accent,
-                                                onClick = setElement.onSelect,
-                                                modifier = Modifier.keepActiveVisible(isElementActive(setElement)),
-                                            )
-                                        }
-                                        is TimelineElement.WarmupPill -> {
-                                            StepperProgressPillNode(
-                                                label = "APR",
-                                                isActive = setElement.isCurrent,
-                                                isCompleted = setElement.isCompleted,
-                                                progress = if (setElement.isCompleted) 1f else setElement.progress,
-                                                accent = accent,
-                                                onClick = setElement.onSelect,
-                                                modifier = Modifier.keepActiveVisible(isElementActive(setElement)),
-                                            )
-                                        }
-                                        is TimelineElement.RoundBadge -> {}
-                                    }
-                                }
+                                        onSelectPage(element.firstPageIndex)
+                                    },
+                                    modifier = Modifier.keepActiveVisible(isElementActive(element)),
+                                )
                             }
-                        }
-                    } else {
-                        elements.forEach { element ->
-                            when (element) {
-                                is TimelineElement.BilateralSet -> {
-                                    val isActive = element.state == WorkoutSetCardVisualState.ACTIVE
-                                    val isComplete = element.state == WorkoutSetCardVisualState.COMPLETED
-                                    val isSkipped = element.state == WorkoutSetCardVisualState.SKIPPED
-                                    val accentColor = workoutSetPagerAccent(element.state, MaterialTheme.colorScheme, false, sessionAccentColor)
-                                    TimelineDot(
-                                        accent = accentColor,
-                                        active = isActive || element.isEditing,
-                                        complete = isComplete,
-                                        skipped = isSkipped,
-                                        label = element.label,
-                                        modifier = Modifier
-                                            .keepActiveVisible(isElementActive(element))
-                                            .combinedClickable(
-                                                interactionSource = remember { MutableInteractionSource() },
-                                                indication = null,
-                                                onClick = { onSelectPage(element.pageIndex) },
-                                                onLongClick = if (onLongPressPage != null) {{ onLongPressPage(element.pageIndex) }} else null,
-                                            ),
-                                    )
-                                }
-                                is TimelineElement.UnilateralSet -> {
-                                    UnilateralSetStackNode(
-                                        setLabel = element.setLabel,
-                                        leftPageIndex = element.leftPageIndex,
-                                        leftState = element.leftState,
-                                        rightPageIndex = element.rightPageIndex,
-                                        rightState = element.rightState,
-                                        accent = accent,
-                                        onSelectPage = onSelectPage,
-                                        modifier = Modifier.keepActiveVisible(isElementActive(element)),
-                                    )
-                                }
-                                is TimelineElement.MobilityPill -> {
-                                    StepperProgressPillNode(
-                                        label = "MOV",
-                                        isActive = element.isCurrent,
-                                        isCompleted = element.isCompleted,
-                                        progress = if (element.isCompleted) 1f else element.progress,
-                                        accent = accent,
-                                        onClick = element.onSelect,
-                                        modifier = Modifier.keepActiveVisible(isElementActive(element)),
-                                    )
-                                }
-                                is TimelineElement.WarmupPill -> {
-                                    StepperProgressPillNode(
-                                        label = "APR",
-                                        isActive = element.isCurrent,
-                                        isCompleted = element.isCompleted,
-                                        progress = if (element.isCompleted) 1f else element.progress,
-                                        accent = accent,
-                                        onClick = element.onSelect,
-                                        modifier = Modifier.keepActiveVisible(isElementActive(element)),
-                                    )
-                                }
-                                is TimelineElement.RoundBadge -> {}
+                            is TimelineElement.BilateralSet -> {
+                                val isActive = element.state == WorkoutSetCardVisualState.ACTIVE
+                                val isComplete = element.state == WorkoutSetCardVisualState.COMPLETED
+                                val isSkipped = element.state == WorkoutSetCardVisualState.SKIPPED
+                                val accentColor = workoutSetPagerAccent(
+                                    element.state,
+                                    MaterialTheme.colorScheme,
+                                    false,
+                                    sessionAccentColor,
+                                )
+                                TimelineDot(
+                                    accent = accentColor,
+                                    active = isActive || element.isEditing,
+                                    complete = isComplete,
+                                    skipped = isSkipped,
+                                    label = element.label,
+                                    modifier = Modifier
+                                        .keepActiveVisible(isElementActive(element))
+                                        .combinedClickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = null,
+                                            onClick = { onSelectPage(element.pageIndex) },
+                                            onLongClick = if (onLongPressPage != null) {
+                                                { onLongPressPage(element.pageIndex) }
+                                            } else {
+                                                null
+                                            },
+                                        ),
+                                )
+                            }
+                            is TimelineElement.UnilateralSet -> {
+                                UnilateralSetStackNode(
+                                    setLabel = element.setLabel,
+                                    leftPageIndex = element.leftPageIndex,
+                                    leftState = element.leftState,
+                                    rightPageIndex = element.rightPageIndex,
+                                    rightState = element.rightState,
+                                    accent = accent,
+                                    onSelectPage = onSelectPage,
+                                    modifier = Modifier.keepActiveVisible(isElementActive(element)),
+                                )
+                            }
+                            is TimelineElement.MobilityPill -> {
+                                StepperProgressPillNode(
+                                    label = "MOV",
+                                    isActive = element.isCurrent,
+                                    isCompleted = element.isCompleted,
+                                    progress = if (element.isCompleted) 1f else element.progress,
+                                    accent = accent,
+                                    onClick = element.onSelect,
+                                    modifier = Modifier.keepActiveVisible(isElementActive(element)),
+                                )
+                            }
+                            is TimelineElement.WarmupPill -> {
+                                StepperProgressPillNode(
+                                    label = "APR",
+                                    isActive = element.isCurrent,
+                                    isCompleted = element.isCompleted,
+                                    progress = if (element.isCompleted) 1f else element.progress,
+                                    accent = accent,
+                                    onClick = element.onSelect,
+                                    modifier = Modifier.keepActiveVisible(isElementActive(element)),
+                                )
+                            }
+                            is TimelineElement.RestPill -> {
+                                StepperProgressPillNode(
+                                    label = element.remainingLabel,
+                                    isActive = elements.indexOf(element) == activeElementIndex,
+                                    isCompleted = false,
+                                    progress = element.progress,
+                                    accent = accent,
+                                    onClick = { onSelectPage(element.pageIndex) },
+                                    modifier = Modifier.keepActiveVisible(isElementActive(element)),
+                                    widthDp = 108.dp,
+                                )
                             }
                         }
                     }
@@ -614,6 +914,187 @@ internal fun WorkoutSetPager(
                     )
                 }
             }
+        }
+    }
+}
+
+}
+
+private fun Modifier.stepperOverflowFade(
+    enabled: Boolean,
+    leadingChrome: Dp,
+    trailingChrome: Dp,
+): Modifier {
+    if (!enabled) return this
+    return this
+        .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+        .drawWithContent {
+            drawContent()
+            val widthPx = size.width
+            if (widthPx <= 0f) return@drawWithContent
+            val leftFade = (leadingChrome.toPx() / widthPx).coerceIn(0f, 0.45f)
+            val rightFade = (trailingChrome.toPx() / widthPx).coerceIn(0f, 0.45f)
+            drawRect(
+                brush = Brush.horizontalGradient(
+                    colorStops = arrayOf(
+                        0f to Color.Transparent,
+                        leftFade to Color.Black,
+                        (1f - rightFade) to Color.Black,
+                        1f to Color.Transparent,
+                    ),
+                ),
+                blendMode = BlendMode.DstIn,
+            )
+        }
+}
+
+@Composable
+private fun ActivityCloudStrip(
+    segments: List<ActivityCloudSegment>,
+    segmentWidths: List<Dp>,
+    gap: Dp,
+    overflows: Boolean,
+    leadingChrome: Dp,
+    trailingChrome: Dp,
+    completedPreviousSets: Int,
+    nextExerciseSetCount: Int,
+    scrollState: androidx.compose.foundation.ScrollState,
+    accent: Color,
+    modifier: Modifier = Modifier,
+) {
+    if (segments.isEmpty()) return
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(STEPPER_CLOUD_HEIGHT)
+            .animateContentSize(
+                animationSpec = tween(
+                    durationMillis = 220,
+                    easing = FastOutSlowInEasing,
+                ),
+            )
+            .stepperOverflowFade(
+                enabled = overflows,
+                leadingChrome = leadingChrome,
+                trailingChrome = trailingChrome,
+            ),
+    ) {
+        Row(
+            modifier = Modifier
+                .height(STEPPER_CLOUD_HEIGHT)
+                .then(
+                    if (overflows) {
+                        Modifier.horizontalScroll(scrollState)
+                    } else {
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(start = leadingChrome, end = trailingChrome)
+                    }
+                ),
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = if (overflows) {
+                Arrangement.spacedBy(gap)
+            } else {
+                Arrangement.spacedBy(gap, Alignment.CenterHorizontally)
+            },
+        ) {
+            if (overflows) {
+                Spacer(modifier = Modifier.width(leadingChrome))
+            }
+
+            if (completedPreviousSets > 0) {
+                Spacer(modifier = Modifier.width(STEPPER_CLUSTER_ESTIMATED_WIDTH))
+            }
+
+            segments.forEachIndexed { index, segment ->
+                ActivityCloudPill(
+                    area = segment.area,
+                    segmentWidth = segmentWidths[index],
+                    accent = accent,
+                )
+            }
+
+            if (nextExerciseSetCount > 0) {
+                Spacer(modifier = Modifier.width(STEPPER_CLUSTER_ESTIMATED_WIDTH))
+            }
+
+            if (overflows) {
+                Spacer(modifier = Modifier.width(trailingChrome))
+            }
+        }
+    }
+}
+
+@Composable
+private fun ActivityCloudPill(
+    area: ActivityCloudArea,
+    segmentWidth: Dp,
+    accent: Color,
+) {
+    val connectorColor = accent.copy(alpha = 0.30f)
+    val cloudLabelWidth = when (area) {
+        ActivityCloudArea.PREPARATION -> (segmentWidth - 8.dp)
+            .coerceAtLeast(72.dp)
+            .coerceAtMost(148.dp)
+        ActivityCloudArea.EFFECTIVE_SERIES -> (segmentWidth - 8.dp)
+            .coerceAtLeast(100.dp)
+            .coerceAtMost(168.dp)
+        ActivityCloudArea.SUPERSERIE -> (segmentWidth - 8.dp)
+            .coerceAtLeast(88.dp)
+            .coerceAtMost(156.dp)
+        ActivityCloudArea.DESCANSO -> (segmentWidth - 8.dp)
+            .coerceAtLeast(88.dp)
+            .coerceAtMost(140.dp)
+    }
+    val cloudLabelFontSize = if (segmentWidth < 100.dp) 8.5.sp else 10.sp
+    Box(
+        modifier = Modifier
+            .width(segmentWidth)
+            .height(STEPPER_CLOUD_HEIGHT),
+        contentAlignment = Alignment.BottomCenter,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.72f)
+                .height(1.dp)
+                .align(Alignment.BottomCenter)
+                .background(connectorColor),
+        )
+        Column(
+            modifier = Modifier.align(Alignment.BottomCenter),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Bottom,
+        ) {
+            Surface(
+                modifier = Modifier.requiredWidth(cloudLabelWidth),
+                shape = WorkoutUiTokens.ChipShape,
+                color = accent.copy(alpha = 0.12f),
+                border = BorderStroke(1.dp, accent.copy(alpha = 0.30f)),
+                tonalElevation = 0.dp,
+                shadowElevation = 0.dp,
+            ) {
+                Text(
+                    text = area.label,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = cloudLabelFontSize),
+                    fontWeight = FontWeight.Black,
+                    color = accent.copy(alpha = 0.92f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                )
+            }
+            Spacer(modifier = Modifier.height(2.dp))
+            Box(
+                modifier = Modifier
+                    .width(2.dp)
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(connectorColor),
+            )
         }
     }
 }
@@ -716,15 +1197,24 @@ private fun StepperProgressPillNode(
     accent: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    widthDp: Dp = 40.dp,
 ) {
     val progressColor = Color(0xFF38BDF8)
     val animatedProgress by animateFloatAsState(
         targetValue = progress.coerceIn(0f, 1f),
-        animationSpec = tween(400),
+        animationSpec = tween(520, easing = FastOutSlowInEasing),
         label = "pillProgress",
     )
+    val activeScale by animateFloatAsState(
+        targetValue = if (isActive) 1.08f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = Spring.StiffnessMediumLow,
+        ),
+        label = "pillActiveScale",
+    )
     val nodeHeight = STEPPER_CHROME_SIZE
-    val nodeWidth = 40.dp
+    val nodeWidth = widthDp
 
     val bgColor by animateColorAsState(
         targetValue = when {
@@ -732,7 +1222,7 @@ private fun StepperProgressPillNode(
             isActive -> accent.copy(alpha = 0.18f).compositeOver(TIMELINE_NODE_SOLID_BG)
             else -> TIMELINE_NODE_SOLID_BG
         },
-        animationSpec = tween(320),
+        animationSpec = tween(440, easing = FastOutSlowInEasing),
         label = "pillBgColor",
     )
     val borderColor by animateColorAsState(
@@ -741,7 +1231,7 @@ private fun StepperProgressPillNode(
             isActive -> accent
             else -> Color.White.copy(alpha = 0.22f)
         },
-        animationSpec = tween(320),
+        animationSpec = tween(440, easing = FastOutSlowInEasing),
         label = "pillBorderColor",
     )
 
@@ -749,6 +1239,10 @@ private fun StepperProgressPillNode(
         modifier = modifier
             .height(nodeHeight)
             .width(nodeWidth)
+            .graphicsLayer {
+                scaleX = activeScale
+                scaleY = activeScale
+            }
             .clip(RoundedCornerShape(999.dp))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
@@ -800,9 +1294,45 @@ private fun RoundBadgeNode(
     modifier: Modifier = Modifier,
 ) {
     val progressColor = Color(0xFF38BDF8)
+    val isHighlighted = isCurrentRound || isExpanded
+    val activeScale by animateFloatAsState(
+        targetValue = if (isHighlighted) 1.08f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = Spring.StiffnessMediumLow,
+        ),
+        label = "roundBadgeActiveScale",
+    )
+    val fillColor by animateColorAsState(
+        targetValue = when {
+            isAllDone -> Color(0xFF0C4A6E).copy(alpha = 0.85f)
+            isHighlighted -> accent.copy(alpha = 0.22f).compositeOver(TIMELINE_NODE_SOLID_BG)
+            else -> TIMELINE_NODE_SOLID_BG
+        },
+        animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
+        label = "roundBadgeFill",
+    )
+    val borderColor by animateColorAsState(
+        targetValue = when {
+            isAllDone -> progressColor
+            isHighlighted -> accent
+            else -> Color.White.copy(alpha = 0.22f)
+        },
+        animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
+        label = "roundBadgeBorder",
+    )
+    val borderWidth by animateDpAsState(
+        targetValue = if (isHighlighted) 1.8.dp else 1.dp,
+        animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
+        label = "roundBadgeBorderWidth",
+    )
     Surface(
         modifier = modifier
             .size(STEPPER_CHROME_SIZE)
+            .graphicsLayer {
+                scaleX = activeScale
+                scaleY = activeScale
+            }
             .clip(CircleShape)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
@@ -810,18 +1340,10 @@ private fun RoundBadgeNode(
                 onClick = onClick,
             ),
         shape = CircleShape,
-        color = when {
-            isAllDone -> Color(0xFF0C4A6E).copy(alpha = 0.85f)
-            isCurrentRound || isExpanded -> accent.copy(alpha = 0.22f).compositeOver(TIMELINE_NODE_SOLID_BG)
-            else -> TIMELINE_NODE_SOLID_BG
-        },
+        color = fillColor,
         border = BorderStroke(
-            width = if (isCurrentRound || isExpanded) 1.8.dp else 1.dp,
-            color = when {
-                isAllDone -> progressColor
-                isCurrentRound || isExpanded -> accent
-                else -> Color.White.copy(alpha = 0.22f)
-            },
+            width = borderWidth,
+            color = borderColor,
         ),
     ) {
         Box(
@@ -857,21 +1379,49 @@ private fun UnilateralSetStackNode(
     val progressColor = Color(0xFF38BDF8)
     val hasActive = leftState == WorkoutSetCardVisualState.ACTIVE || rightState == WorkoutSetCardVisualState.ACTIVE
     val isAllComplete = leftState == WorkoutSetCardVisualState.COMPLETED && rightState == WorkoutSetCardVisualState.COMPLETED
-    Surface(
-        modifier = modifier.height(STEPPER_CHROME_SIZE),
-        shape = RoundedCornerShape(999.dp),
-        color = when {
+    val activeScale by animateFloatAsState(
+        targetValue = if (hasActive) 1.06f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = Spring.StiffnessMediumLow,
+        ),
+        label = "unilateralStackActiveScale",
+    )
+    val fillColor by animateColorAsState(
+        targetValue = when {
             isAllComplete -> Color(0xFF0C4A6E).copy(alpha = 0.85f)
             hasActive -> accent.copy(alpha = 0.22f).compositeOver(TIMELINE_NODE_SOLID_BG)
             else -> TIMELINE_NODE_SOLID_BG
         },
-        border = BorderStroke(
-            width = if (hasActive) 1.8.dp else 1.dp,
-            color = when {
-                hasActive -> accent
-                isAllComplete -> progressColor
-                else -> Color.White.copy(alpha = 0.22f)
+        animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
+        label = "unilateralStackFill",
+    )
+    val borderColor by animateColorAsState(
+        targetValue = when {
+            hasActive -> accent
+            isAllComplete -> progressColor
+            else -> Color.White.copy(alpha = 0.22f)
+        },
+        animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
+        label = "unilateralStackBorder",
+    )
+    val borderWidth by animateDpAsState(
+        targetValue = if (hasActive) 1.8.dp else 1.dp,
+        animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
+        label = "unilateralStackBorderWidth",
+    )
+    Surface(
+        modifier = modifier
+            .height(STEPPER_CHROME_SIZE)
+            .graphicsLayer {
+                scaleX = activeScale
+                scaleY = activeScale
             },
+        shape = RoundedCornerShape(999.dp),
+        color = fillColor,
+        border = BorderStroke(
+            width = borderWidth,
+            color = borderColor,
         ),
     ) {
         Row(
@@ -928,6 +1478,29 @@ private fun UnilateralDotNode(
         ),
         label = "unilateralDotSize",
     )
+    val fillColor by animateColorAsState(
+        targetValue = when {
+            isActive -> accent
+            isComplete -> Color(0xFF38BDF8)
+            else -> Color(0xFF26252C)
+        },
+        animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
+        label = "unilateralDotFill",
+    )
+    val borderColor by animateColorAsState(
+        targetValue = when {
+            isActive -> accent
+            isComplete -> Color(0xFF38BDF8)
+            else -> Color.White.copy(alpha = 0.35f)
+        },
+        animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
+        label = "unilateralDotBorder",
+    )
+    val borderWidth by animateDpAsState(
+        targetValue = if (isActive || isComplete) 0.dp else 1.dp,
+        animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
+        label = "unilateralDotBorderWidth",
+    )
     Surface(
         modifier = Modifier
             .size(size)
@@ -938,18 +1511,10 @@ private fun UnilateralDotNode(
                 onClick = onClick,
             ),
         shape = CircleShape,
-        color = when {
-            isActive -> accent
-            isComplete -> Color(0xFF38BDF8)
-            else -> Color(0xFF26252C)
-        },
+        color = fillColor,
         border = BorderStroke(
-            width = if (isActive || isComplete) 0.dp else 1.dp,
-            color = when {
-                isActive -> accent
-                isComplete -> Color(0xFF38BDF8)
-                else -> Color.White.copy(alpha = 0.35f)
-            },
+            width = borderWidth,
+            color = borderColor,
         ),
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -1036,6 +1601,14 @@ private fun TimelineDot(
         ),
         label = "setTimelineDotSize",
     )
+    val activeScale by animateFloatAsState(
+        targetValue = if (active) 1.08f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = Spring.StiffnessMediumLow,
+        ),
+        label = "setTimelineDotActiveScale",
+    )
     val fillTarget = when {
         active -> accent
         complete -> progressColor
@@ -1044,7 +1617,7 @@ private fun TimelineDot(
     }
     val fillColor by animateColorAsState(
         targetValue = fillTarget,
-        animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
         label = "setTimelineDotFill",
     )
     val borderColor by animateColorAsState(
@@ -1054,16 +1627,21 @@ private fun TimelineDot(
             skipped -> accent.copy(alpha = 0.24f)
             else -> Color.White.copy(alpha = 0.35f)
         },
-        animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
         label = "setTimelineDotBorder",
     )
     val borderWidth by animateDpAsState(
         targetValue = if (active || complete) 0.dp else 1.2.dp,
-        animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
         label = "setTimelineDotBorderWidth",
     )
     Surface(
-        modifier = modifier.size(size),
+        modifier = modifier
+            .size(size)
+            .graphicsLayer {
+                scaleX = activeScale
+                scaleY = activeScale
+            },
         shape = CircleShape,
         color = fillColor,
         border = BorderStroke(
@@ -1125,7 +1703,7 @@ private fun PreviousCompletedCluster(
                 ) {}
             }
             if (count > 12) {
-                Spacer(Modifier.width(2.dp))
+                Spacer(modifier = Modifier.width(2.dp))
                 Surface(
                     modifier = Modifier.size(4.dp),
                     shape = CircleShape,

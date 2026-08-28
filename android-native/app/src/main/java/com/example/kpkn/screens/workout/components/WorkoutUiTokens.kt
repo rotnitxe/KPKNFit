@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,11 +20,19 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.kpknGlassOrFallback
 import dev.chrisbanes.haze.HazeState
+import kotlin.math.min
+
+/**
+ * Uniform live-pager scale derived from viewport width/height.
+ * Applied equally on X and Y so cards shrink as a whole (never width-only crush).
+ */
+val LocalLivePagerAdaptScale = compositionLocalOf { 1f }
 
 object WorkoutUiTokens {
     val ScreenHorizontalPadding = 12.dp
@@ -42,10 +51,54 @@ object WorkoutUiTokens {
      *
      * The base dimensions remain the previous compact layout; the frame
      * renders them at this factor so MOV/APR and working sets grow together.
+     * Final on-screen scale = [LivePagerCardScale] * [LocalLivePagerAdaptScale].
+     * Adapt scale is 1f outside god mode so compact cards keep this size.
      */
     val LivePagerCardScale = 1.20f
     val LivePagerBaseHeight = 440.dp
+    /**
+     * Tallest expected NORMAL set card (plan + report + tabs + footer CTA) before adapt.
+     */
+    val LivePagerNormalExpandedBaseHeight = 520.dp
     val LivePagerSlotHeight = LivePagerBaseHeight * LivePagerCardScale
+    /** Design reference for proportional adapt (typical phone width / card slot). */
+    val LivePagerReferenceWidth = 411.dp
+    val LivePagerReferenceHeight = 520.dp
+    val LivePagerEdgeFadeWidth = 16.dp
+
+    fun liveAdaptScale(availableWidth: Dp, availableHeight: Dp): Float {
+        val widthScale = if (availableWidth > 0.dp) {
+            (availableWidth / LivePagerReferenceWidth).coerceIn(0.72f, 1f)
+        } else {
+            1f
+        }
+        val heightScale = if (availableHeight > 0.dp && availableHeight < 10_000.dp) {
+            (availableHeight / LivePagerReferenceHeight).coerceIn(0.72f, 1f)
+        } else {
+            1f
+        }
+        return min(widthScale, heightScale)
+    }
+
+    @Composable
+    fun effectiveLivePagerCardScale(): Float =
+        LivePagerCardScale * LocalLivePagerAdaptScale.current
+
+    @Composable
+    fun effectiveLivePagerSlotHeight(): Dp =
+        LivePagerBaseHeight * effectiveLivePagerCardScale()
+
+    /** Fixed pager slot shared by every page type (NORMAL, MOV, APR, REST). */
+    @Composable
+    fun effectiveLivePagerStableHeight(): Dp =
+        LivePagerNormalExpandedBaseHeight * effectiveLivePagerCardScale()
+
+    const val GodModeEnterMs = 260
+    const val GodModeExitMs = 220
+    const val GodModeScrimAlpha = 0.32f
+    val GodModeBadgeVisual = 20.dp
+    val GodModeRoadmapCardHeight = 64.dp
+    val GodModePlusCardWidth = 88.dp
 
     // Semántica de Colores Material 3
     @Composable

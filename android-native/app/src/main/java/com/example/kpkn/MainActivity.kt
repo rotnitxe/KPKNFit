@@ -142,8 +142,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // DEBUG: Haze internals (remove before release)
-        dev.chrisbanes.haze.HazeLogger.enabled = true
+        // HazeLogger must stay off — enabling it floods logcat and tanks emulator FPS.
 
         // Initialize telemetry
         telemetryHelper = TelemetryHelper(this)

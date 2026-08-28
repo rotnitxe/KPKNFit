@@ -6,6 +6,12 @@ import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 
+/** Snapshot of user display nicknames. Updated from Settings; never mutate the catalog asset. */
+object ExerciseNicknameResolver {
+    @Volatile
+    var nicknames: Map<String, String> = emptyMap()
+}
+
 data class ExerciseDisplayParts(
     val parentName: String,
     val chips: List<String> = emptyList(),
@@ -22,11 +28,17 @@ data class ExerciseDisplayParts(
 fun exerciseDisplayParts(
     exercise: Exercise,
     catalogInfo: ExerciseMuscleInfo?,
+    nicknames: Map<String, String> = ExerciseNicknameResolver.nicknames,
 ): ExerciseDisplayParts {
+    val parentName = overlayExerciseParentName(
+        fallbackName = exercise.name,
+        nicknameKey = exercise.nicknameKey(),
+        nicknames = nicknames,
+    )
     val v2Chips = catalogInfo?.catalogVariantChips.orEmpty()
     if (v2Chips.isNotEmpty()) {
         return ExerciseDisplayParts(
-            parentName = exercise.name,
+            parentName = parentName,
             chips = dedupeChips(v2Chips).filterNot(::isDisplayNoiseChip),
         )
     }
@@ -41,7 +53,7 @@ fun exerciseDisplayParts(
         ?.takeIf { it.isNotBlank() }
         ?.takeUnless { value -> options.any { it.name.equals(value, ignoreCase = true) } }
     return ExerciseDisplayParts(
-        parentName = exercise.name,
+        parentName = parentName,
         chips = dedupeChips(options.map { it.name } + listOfNotNull(legacyVariant))
             .filterNot(::isDisplayNoiseChip),
     )

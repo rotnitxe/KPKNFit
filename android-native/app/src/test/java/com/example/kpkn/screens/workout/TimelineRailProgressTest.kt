@@ -7,6 +7,7 @@ class TimelineRailProgressTest {
     @Test
     fun empty_isZero() {
         assertEquals(0f, timelineRailProgress(emptyList()), 0.001f)
+        assertEquals(0f, timelineRailCursorProgress(emptyList(), 0), 0.001f)
     }
 
     @Test
@@ -30,6 +31,31 @@ class TimelineRailProgressTest {
     }
 
     @Test
+    fun cursorProgress_followsActiveSet_notAverageCompletion() {
+        val elements = listOf(
+            TimelineElement.BilateralSet(pageIndex = 0, label = "S1", state = WorkoutSetCardVisualState.COMPLETED),
+            TimelineElement.BilateralSet(pageIndex = 1, label = "S2", state = WorkoutSetCardVisualState.COMPLETED),
+            TimelineElement.BilateralSet(pageIndex = 2, label = "S3", state = WorkoutSetCardVisualState.ACTIVE),
+        )
+        // Cursor on S3 (index 2): 2/2 = 1.0
+        assertEquals(1f, timelineRailCursorProgress(elements, 2), 0.001f)
+        // Navigate back to S2 (index 1): 1/2 = 0.5 — not ante-anterior (0)
+        assertEquals(0.5f, timelineRailCursorProgress(elements, 1), 0.001f)
+        // S1 (index 0): 0/2 = 0
+        assertEquals(0f, timelineRailCursorProgress(elements, 0), 0.001f)
+    }
+
+    @Test
+    fun cursorProgress_restPill_extendsFill() {
+        val elements = listOf(
+            TimelineElement.BilateralSet(pageIndex = 0, label = "S1", state = WorkoutSetCardVisualState.COMPLETED),
+            TimelineElement.RestPill(pageIndex = 1, progress = 0.5f, remainingLabel = "0:45"),
+        )
+        // Rest at index 1, half done: (1 + 0.5) / 1 = 1.0 capped
+        assertEquals(1f, timelineRailCursorProgress(elements, 1), 0.001f)
+    }
+
+    @Test
     fun roundBadges_areIgnored() {
         val elements = listOf(
             TimelineElement.RoundBadge(
@@ -45,5 +71,39 @@ class TimelineRailProgressTest {
             ),
         )
         assertEquals(1f, timelineRailProgress(elements), 0.001f)
+        assertEquals(1f, timelineRailCursorProgress(elements, 1), 0.001f)
+    }
+
+    @Test
+    fun restPageInsertIndex_afterLoggedSet() {
+        val pages = listOf(
+            WorkoutSetSwipePage(type = LivePageType.NORMAL, setIndex = 0, exerciseId = "ex1"),
+            WorkoutSetSwipePage(type = LivePageType.NORMAL, setIndex = 1, exerciseId = "ex1"),
+            WorkoutSetSwipePage(type = LivePageType.NORMAL, setIndex = 2, exerciseId = "ex1"),
+        )
+        assertEquals(1, restPageInsertIndex(pages, "ex1_0", "ex1"))
+    }
+
+    @Test
+    fun timelineRestInsertIndex_afterCompletedSetNode() {
+        val elements = listOf(
+            TimelineElement.BilateralSet(pageIndex = 0, label = "S1", state = WorkoutSetCardVisualState.COMPLETED),
+            TimelineElement.BilateralSet(pageIndex = 2, label = "S2", state = WorkoutSetCardVisualState.FUTURE),
+        )
+        assertEquals(1, timelineRestInsertIndex(elements, restPageIndex = 1))
+    }
+
+    @Test
+    fun activityCloudSegments_restPill_getsDescansoArea() {
+        val elements = listOf(
+            TimelineElement.BilateralSet(pageIndex = 0, label = "S1", state = WorkoutSetCardVisualState.COMPLETED),
+            TimelineElement.RestPill(pageIndex = 1, progress = 0.2f, remainingLabel = "1:00"),
+            TimelineElement.BilateralSet(pageIndex = 2, label = "S2", state = WorkoutSetCardVisualState.FUTURE),
+        )
+        val segments = activityCloudSegments(elements)
+        assertEquals(3, segments.size)
+        assertEquals(ActivityCloudArea.EFFECTIVE_SERIES, segments[0].area)
+        assertEquals(ActivityCloudArea.DESCANSO, segments[1].area)
+        assertEquals(ActivityCloudArea.EFFECTIVE_SERIES, segments[2].area)
     }
 }

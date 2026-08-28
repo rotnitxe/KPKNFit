@@ -36,6 +36,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -161,7 +162,6 @@ import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.WorkoutUiTokens
-import com.example.kpkn.screens.workout.components.WorkoutCommandDock
 import com.example.kpkn.screens.workout.components.VoiceCaptureModeDialog
 import com.example.kpkn.screens.workout.components.WorkoutRoadmapBar
 import com.example.kpkn.screens.workout.components.RoadmapMode
@@ -250,12 +250,30 @@ fun WorkoutScreen(
         onResult = viewModel::completeVoiceDiagnosticExport,
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val onToggleVoice: () -> Unit = {
+        if (uiState.voiceSessionEnabled) {
+            viewModel.toggleVoiceSession()
+        } else {
+            val needed = WorkoutVoicePermissionHelper
+                .permissionsToRequestForVoiceEnable(
+                    context = context,
+                    includeNotifications = true,
+                )
+            if (needed.isEmpty()) {
+                viewModel.toggleVoiceSession()
+            } else {
+                voicePermissionsLauncher.launch(needed)
+            }
+        }
+    }
     val allUserTags by viewModel.allUserTags.collectAsStateWithLifecycle()
     val session = uiState.session
     val restTimerRemaining by viewModel.restTimerRemaining.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showExitDialog by remember { mutableStateOf(false) }
     var roadmapMode by rememberSaveable(programId, sessionId) { mutableStateOf(RoadmapMode.COMPACT) }
+    var roadmapSelecting by remember { mutableStateOf(false) }
+    var selectionClearNonce by remember { mutableIntStateOf(0) }
 
     // ─── Readiness sheet state ─────────────────────────────────────────────────
     val isMeetOrComp = session?.isCompetitionMeet == true
@@ -275,6 +293,9 @@ fun WorkoutScreen(
 
 
     val settings by com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.collectAsStateWithLifecycle()
+    LaunchedEffect(settings.exerciseNicknames) {
+        com.example.kpkn.domain.exercises.ExerciseNicknameResolver.nicknames = settings.exerciseNicknames
+    }
 
     // Recovery data
     val augeSnapshot by augeViewModel.snapshot.collectAsStateWithLifecycle()
@@ -533,7 +554,6 @@ fun WorkoutScreen(
     val showingPostExerciseCardDock = currentExercise != null &&
         uiState.showPostExerciseSheet &&
         uiState.postExerciseTargetIdx == uiState.currentExerciseIdx
-    val isCardioLiveStage = currentExercise?.isCardio == true && !showingPostExerciseCardDock
     val cardsHazeStateDock = remember { HazeState() }
 
     var lastAnnouncedSetKey by rememberSaveable { mutableStateOf<String?>(null) }
@@ -854,16 +874,21 @@ fun WorkoutScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) { KpknSnackbar(it) } },
     ) { padding ->
-        val headerExerciseInfo = currentExercise?.let { workoutCatalogInfo(it) }
-        val headerGroup = resolveWorkoutHeaderGroupLabel(
-            partName = currentPartName,
-            type = headerExerciseInfo?.type,
-            category = headerExerciseInfo?.category,
-        )
-        WorkoutV2Body(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
+        Column(modifier = Modifier.fillMaxSize()) {
+            val headerExerciseInfo = currentExercise?.let { workoutCatalogInfo(it) }
+            val headerGroup = resolveWorkoutHeaderGroupLabel(
+                partName = currentPartName,
+                type = headerExerciseInfo?.type,
+                category = headerExerciseInfo?.category,
+            )
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(padding),
+            ) {
+            WorkoutV2Body(
+            modifier = Modifier.fillMaxSize(),
             uiState = uiState,
             settings = settings,
             adaptiveCache = adaptiveCache,
@@ -876,14 +901,15 @@ fun WorkoutScreen(
             rmSelectedWeight = rmSelectedWeight.value,
             onRmWeightConsumed = { rmSelectedWeight.value = null },
             sessionAccentColor = sessionAccentColor,
-            headerExerciseName = currentExercise?.let { exerciseDisplayParts(it, headerExerciseInfo).parentName } ?: session.name,
-            headerExerciseChips = currentExercise?.let { exerciseDisplayParts(it, headerExerciseInfo).chips }.orEmpty(),
+            headerExerciseName = currentExercise?.let { exerciseDisplayParts(it, headerExerciseInfo, settings.exerciseNicknames).parentName } ?: session.name,
+            headerExerciseChips = currentExercise?.let { exerciseDisplayParts(it, headerExerciseInfo, settings.exerciseNicknames).chips }.orEmpty(),
             headerSessionName = session.name,
             headerGroupName = headerGroup,
             headerStartTimeMs = uiState.startTimeMs,
             headerIsComplete = uiState.isComplete,
             headerBackground = session.background,
             headerExerciseTag = activeTagDisplay,
+            onToggleVoice = onToggleVoice,
             exerciseReadinessMap = uiState.exerciseReadinessMap,
             recordActionHolder = recordActionHolder,
             liveSetStepperHolder = liveSetStepperHolder,
@@ -931,7 +957,123 @@ fun WorkoutScreen(
             warmupWorkingWeight = warmupWorkingWeight,
             catalogV2 = catalogV2,
             overlayHazeState = overlayHazeState,
-        )
+            roadmapExpanded = roadmapMode == RoadmapMode.EXPANDED,
+            onCreateSuperset = {
+                currentExercise?.id?.let {
+                    structureSheets.workoutSupersetSelectedExerciseId = it
+                    structureSheets.showWorkoutSupersetCreator = true
+                }
+            },
+            )
+            if (roadmapSelecting) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() },
+                        ) { selectionClearNonce++ },
+                )
+            }
+            }
+            Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .zIndex(5f)
+                        .background(Color.Transparent),
+                ) {
+                    WorkoutRoadmapBar(
+                        exercises = visibleExercises,
+                        parts = renderedParts,
+                        supersetGroups = modeSession.allSupersetGroups(),
+                        currentIdx = uiState.currentExerciseIdx,
+                        currentSetIdx = uiState.currentSetIdx,
+                        currentSide = activeDockSide,
+                        completedSets = uiState.completedSets,
+                        onSelect = { viewModel.selectExercise(it) },
+                        onSelectStep = { stepKey -> viewModel.selectWorkoutStep(stepKey) },
+                        onSelectGroup = { viewModel.selectSupersetGroup(it) },
+                        onOpenContext = { exId ->
+                            structureSheets.exerciseContextForceMemberActions = false
+                            structureSheets.exerciseContextExerciseId = exId
+                        },
+                        onOpenMemberContext = { exId ->
+                            structureSheets.exerciseContextForceMemberActions = true
+                            structureSheets.exerciseContextExerciseId = exId
+                        },
+                        enableLongPress = roadmapMode != RoadmapMode.EXPANDED,
+                        godMode = roadmapMode == RoadmapMode.EXPANDED,
+                        onDeleteExercise = { viewModel.removeExerciseFromSession(it) },
+                        onSkipExercise = { viewModel.skipExercise(it) },
+                        onAddExercise = {
+                            val afterId = currentExercise?.id ?: visibleExercises.lastOrNull()?.id
+                            structureSheets.addExerciseAfterId = afterId
+                            structureSheets.addExerciseSearchQuery = ""
+                            structureSheets.addExerciseSelectedIds = emptySet()
+                        },
+                        onReorderExercises = { orderedIds ->
+                            val partMap = visibleExercises.associate { ex ->
+                                ex.id to (renderedParts.firstOrNull { part ->
+                                    part.exercises.any { it.id == ex.id }
+                                }?.name ?: "")
+                            }
+                            viewModel.applyReorderAndPromptPersistence(orderedIds, partMap, isGlobal = true)
+                        },
+                        onCreateSupersetFrom = { ids -> viewModel.createLiveSuperset(ids) },
+                        onBatchSkip = { ids -> ids.forEach(viewModel::skipExercise) },
+                        onBatchDelete = { viewModel.removeExercisesFromSession(it) },
+                        onBatchUltraFast = { ids, technique ->
+                            ids.forEach { id ->
+                                val ex = visibleExercises.firstOrNull { it.id == id } ?: return@forEach
+                                if (ex.sets.isNotEmpty()) {
+                                    viewModel.updatePlannedSeriesTechnique(id, 0, ex.sets.lastIndex, technique)
+                                }
+                            }
+                        },
+                        onDissolveSuperset = { viewModel.dissolveLiveSuperset(it) },
+                        onSelectionModeChange = { roadmapSelecting = it },
+                        clearSelectionNonce = selectionClearNonce,
+                        sessionAccentColor = sessionAccentColor,
+                        hazeState = cardsHazeStateDock,
+                        mode = roadmapMode,
+                        onModeChange = { roadmapMode = it },
+                        milestones = uiState.sessionMilestones,
+                        liveEnergySummary = uiState.liveEnergySummary,
+                        sessionNotes = uiState.sessionNotes,
+                        sessionPhotos = uiState.sessionPhotos,
+                        sessionChecklist = uiState.sessionChecklist,
+                        onSessionNotesChange = { viewModel.setSessionNotes(it) },
+                        onAddSessionPhoto = { viewModel.addSessionPhoto(it) },
+                        onRemoveSessionPhoto = { viewModel.removeSessionPhoto(it) },
+                        onAddChecklistItem = { viewModel.addSessionChecklistItem(it) },
+                        onToggleChecklistItem = { viewModel.toggleSessionChecklistItem(it) },
+                        onRemoveChecklistItem = { viewModel.removeSessionChecklistItem(it) },
+                        bodyWeight = viewModel.currentBodyWeight(),
+                        aboveCarousel = {
+                            val stepper = liveSetStepperHolder.snapshot
+                            if (stepper != null) {
+                                WorkoutSetPager(
+                                    elements = stepper.elements,
+                                    activeElementIndex = stepper.activeElementIndex,
+                                    completedCount = stepper.completedCount,
+                                    totalCount = stepper.totalCount,
+                                    sessionAccentColor = stepper.sessionAccentColor,
+                                    onSelectPage = { liveSetStepperHolder.onSelectPage(it) },
+                                    onAddSet = if (stepper.canAddSet) {
+                                        { liveSetStepperHolder.onAddSet?.invoke() }
+                                    } else {
+                                        null
+                                    },
+                                    onLongPressPage = { liveSetStepperHolder.onLongPressPage?.invoke(it) },
+                                    onNavigateAdjacentExercise = liveSetStepperHolder.onNavigateAdjacentExercise,
+                                )
+                            }
+                        },
+                    )
+                }
+        }
     }
 
     LaunchedEffect(uiState.pendingEditSheetExerciseId) {
@@ -941,119 +1083,16 @@ fun WorkoutScreen(
         }
     }
 
-    if (!isCardioLiveStage) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-                .zIndex(5f),
-        ) {
-            WorkoutRoadmapBar(
-            exercises = visibleExercises,
-            parts = renderedParts,
-            supersetGroups = modeSession.allSupersetGroups(),
-            currentIdx = uiState.currentExerciseIdx,
-            currentSetIdx = uiState.currentSetIdx,
-            currentSide = activeDockSide,
-            completedSets = uiState.completedSets,
-            onSelect = { viewModel.selectExercise(it) },
-            onSelectStep = { stepKey -> viewModel.selectWorkoutStep(stepKey) },
-            onSelectGroup = { viewModel.selectSupersetGroup(it) },
-            onOpenContext = { exId ->
-                structureSheets.exerciseContextForceMemberActions = false
-                structureSheets.exerciseContextExerciseId = exId
-            },
-            onOpenMemberContext = { exId ->
-                structureSheets.exerciseContextForceMemberActions = true
-                structureSheets.exerciseContextExerciseId = exId
-            },
-            enableLongPress = true,
-            sessionAccentColor = sessionAccentColor,
-            hazeState = overlayHazeState,
-            mode = roadmapMode,
-            onModeChange = { roadmapMode = it },
-            milestones = uiState.sessionMilestones,
-            liveEnergySummary = uiState.liveEnergySummary,
-            sessionNotes = uiState.sessionNotes,
-            sessionPhotos = uiState.sessionPhotos,
-            sessionChecklist = uiState.sessionChecklist,
-            onSessionNotesChange = { viewModel.setSessionNotes(it) },
-            onAddSessionPhoto = { viewModel.addSessionPhoto(it) },
-            onRemoveSessionPhoto = { viewModel.removeSessionPhoto(it) },
-            onAddChecklistItem = { viewModel.addSessionChecklistItem(it) },
-            onToggleChecklistItem = { viewModel.toggleSessionChecklistItem(it) },
-            onRemoveChecklistItem = { viewModel.removeSessionChecklistItem(it) },
-            bodyWeight = viewModel.currentBodyWeight(),
-            aboveCarousel = {
-                val stepper = liveSetStepperHolder.snapshot
-                if (stepper != null) {
-                    WorkoutSetPager(
-                        elements = stepper.elements,
-                        activeElementIndex = stepper.activeElementIndex,
-                        completedCount = stepper.completedCount,
-                        totalCount = stepper.totalCount,
-                        sessionAccentColor = stepper.sessionAccentColor,
-                        onSelectPage = { liveSetStepperHolder.onSelectPage(it) },
-                        onAddSet = if (stepper.canAddSet) {
-                            { liveSetStepperHolder.onAddSet?.invoke() }
-                        } else {
-                            null
-                        },
-                        onLongPressPage = { liveSetStepperHolder.onLongPressPage?.invoke(it) },
-                    )
-                }
-            },
-            )
-        }
-    }
-
-    if (!isCardioLiveStage && !isMobilityOverlayActive && !isWarmupOverlayActive && currentExercise != null && currentSet != null && (!showingPostExerciseCardDock || uiState.currentSetIdx < currentExercise.sets.size)) {
-        val dockKey = if (isUnilateralDock && activeDockSide != null) {
-            "${currentExercise.id}_${uiState.currentSetIdx}_${activeDockSide.take(1).uppercase()}"
-        } else {
-            "${currentExercise.id}_${uiState.currentSetIdx}"
-        }
-        WorkoutCommandDock(
-            exercise = currentExercise,
-            setIndex = uiState.currentSetIdx,
-            activeSide = activeDockSide,
-            isUnilateral = isUnilateralDock,
-            voiceSessionEnabled = uiState.voiceSessionEnabled,
-            voiceSessionState = uiState.voiceSessionState,
-            onToggleVoice = {
-                if (uiState.voiceSessionEnabled) {
-                    viewModel.toggleVoiceSession()
-                } else {
-                    val needed = WorkoutVoicePermissionHelper
-                        .permissionsToRequestForVoiceEnable(
-                            context = context,
-                            includeNotifications = true,
-                        )
-                    if (needed.isEmpty()) {
-                        viewModel.toggleVoiceSession()
-                    } else {
-                        voicePermissionsLauncher.launch(needed)
-                    }
-                }
-            },
-            onPrimaryAction = { recordActionHolder.action?.invoke() },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .zIndex(6f)
-                .padding(horizontal = 12.dp)
-                .padding(bottom = 236.dp),
-            sessionAccentColor = sessionAccentColor,
-            hazeState = cardsHazeStateDock,
-            isUpdateMode = uiState.completedSets.containsKey(dockKey),
-        )
-    }
     }
 
     val activeRestModalState = uiState.restModalState
+    val workingRestActive = uiState.isRestTimerRunning &&
+        uiState.restModalState != null &&
+        uiState.restModalState?.kind != RestTimerKind.WARMUP
+    val showWorkingRestOverlay = workingRestActive && !uiState.isRestMinimized
+    val showRestOverlayHost = isShowingFeedback || showWorkingRestOverlay
 
-    if (isShowingFeedback || (uiState.isRestTimerRunning && activeRestModalState != null)) {
+    if (showRestOverlayHost) {
         val currentRoundCompletedSets = currentExercise
             ?.supersetGroupRefOrLegacyId()
             ?.let { groupId ->
@@ -1182,22 +1221,7 @@ fun WorkoutScreen(
         perMuscle = perMuscle,
         voiceSessionEnabled = uiState.voiceSessionEnabled,
         voiceCaptureMode = settings.voiceCaptureMode,
-        onVoiceToggle = {
-            if (uiState.voiceSessionEnabled) {
-                viewModel.toggleVoiceSession()
-            } else {
-                val needed = WorkoutVoicePermissionHelper
-                    .permissionsToRequestForVoiceEnable(
-                        context = context,
-                        includeNotifications = true,
-                    )
-                if (needed.isEmpty()) {
-                    viewModel.toggleVoiceSession()
-                } else {
-                    voicePermissionsLauncher.launch(needed)
-                }
-            }
-        },
+        onVoiceToggle = onToggleVoice,
         onVoiceCaptureModeChange = { mode -> viewModel.setVoiceCaptureMode(mode) },
         showExitDialog = showExitDialog,
         onShowExitDialogChange = { showExitDialog = it },

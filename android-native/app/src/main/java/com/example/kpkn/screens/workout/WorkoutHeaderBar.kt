@@ -12,6 +12,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
@@ -37,10 +40,17 @@ import com.example.kpkn.data.models.WorkoutTag
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.kpknCoverGlass
 import com.example.kpkn.ui.components.kpknSheetWhiteFilterChipColors
 import com.example.kpkn.ui.components.kpknSheetWhiteTonalButtonColors
 import com.example.kpkn.screens.sessioneditor.sessionCoverAccentColor
 import com.example.kpkn.screens.sessioneditor.sessionCoverColors
+import com.example.kpkn.services.workout.VoiceSessionState
+import com.example.kpkn.domain.auge.ExerciseReadinessEngine
+import com.example.kpkn.data.models.SetAdjustmentSuggestion
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
+import androidx.compose.ui.graphics.RectangleShape
 
 private val PaceChipGreen = Color(0xFF66BB6A)
 private val PaceChipRed = Color(0xFFFF5252)
@@ -521,22 +531,42 @@ internal fun WorkoutHeaderBar(
     onCreateTagClick: () -> Unit = {},
     voiceCaptureMode: com.example.kpkn.data.models.VoiceCaptureMode? = null,
     onVoiceCaptureModeChange: ((com.example.kpkn.data.models.VoiceCaptureMode) -> Unit)? = null,
+    voiceSessionEnabled: Boolean = false,
+    voiceSessionState: VoiceSessionState = VoiceSessionState(),
+    onToggleVoice: (() -> Unit)? = null,
     onUltraFastPreview: (() -> Unit)? = null,
     ultraFastApplied: Boolean = false,
     ultraFastSavedSeconds: Int = 0,
     onRevertUltraFast: (() -> Unit)? = null,
+    readinessAdjustment: SetAdjustmentSuggestion? = null,
+    onAdaptClick: (() -> Unit)? = null,
+    godModeActive: Boolean = false,
+    onHistoryClick: (() -> Unit)? = null,
+    onReplaceClick: (() -> Unit)? = null,
+    onNicknameClick: (() -> Unit)? = null,
+    onCreateSupersetClick: (() -> Unit)? = null,
 ) {
     val colors = remember(background) { sessionCoverColors(background) }
 
     val surfaceColor = MaterialTheme.colorScheme.surface
+    val coverHaze = remember { HazeState() }
 
     Box(modifier = Modifier.fillMaxWidth()) {
-        // Gradient Background layer
+        // Gradient Background layer — sibling haze source for cover mica.
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(160.dp)
+                .hazeSource(state = coverHaze)
                 .background(Brush.linearGradient(colors))
+        )
+
+        // Translucent KPKN mica — blurs the session cover, not a nested overlay source.
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(160.dp)
+                .kpknCoverGlass(coverHaze, RectangleShape, withBorder = false),
         )
 
         // Fading mask to Surface color
@@ -566,6 +596,10 @@ internal fun WorkoutHeaderBar(
                 verticalAlignment = Alignment.Top,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
                     Text(
                         text = buildAnnotatedString {
                             withStyle(SpanStyle(color = Color.White)) {
@@ -582,8 +616,12 @@ internal fun WorkoutHeaderBar(
                         fontWeight = FontWeight.Black,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.weight(1f),
                     )
+                    if (godModeActive && onNicknameClick != null) {
+                        HeaderCoverChip(label = "Apodo", onClick = onNicknameClick)
+                    }
+                    }
                     Text(
                         text = buildString {
                             if (!groupName.isNullOrBlank()) append("$groupName · ")
@@ -595,6 +633,9 @@ internal fun WorkoutHeaderBar(
                     )
                     Spacer(Modifier.height(6.dp))
                     Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
@@ -631,6 +672,10 @@ internal fun WorkoutHeaderBar(
                             }
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(99.dp))
                                     .background(chipColor.copy(alpha = 0.18f))
@@ -651,6 +696,34 @@ internal fun WorkoutHeaderBar(
                                     fontSize = 11.sp,
                                 )
                             }
+                            val showAdapt = onAdaptClick != null && (
+                                readinessAdjustment != null ||
+                                    score < ExerciseReadinessEngine.ADJUSTMENT_THRESHOLD
+                                )
+                            if (showAdapt) {
+                                Surface(
+                                    onClick = { onAdaptClick?.invoke() },
+                                    shape = RoundedCornerShape(99.dp),
+                                    color = Color(0xFFFF5252).copy(alpha = 0.18f),
+                                ) {
+                                    Text(
+                                        text = if (readinessAdjustment != null) "Adaptado" else "Adaptar",
+                                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 3.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFFFF8A80),
+                                        fontSize = 11.sp,
+                                    )
+                                }
+                            }
+                            }
+                        }
+
+                        if (godModeActive && onReplaceClick != null) {
+                            HeaderCoverChip(label = "Reemplazar", onClick = onReplaceClick)
+                        }
+                        if (godModeActive && onCreateSupersetClick != null && !isSuperset) {
+                            HeaderCoverChip(label = "Superserie", onClick = onCreateSupersetClick)
                         }
 
                         if (isSuperset) {
@@ -775,33 +848,125 @@ internal fun WorkoutHeaderBar(
                         }
                     }
                 }
-                if (voiceCaptureMode != null && onVoiceCaptureModeChange != null) {
-                    val musicSelected = voiceCaptureMode == com.example.kpkn.data.models.VoiceCaptureMode.MUSIC
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(99.dp))
-                            .background(Color.White.copy(alpha = 0.14f))
-                            .padding(2.dp),
-                    ) {
-                        VoiceModeHeaderSegment(
-                            label = "Manos libres",
-                            selected = !musicSelected,
-                            onClick = {
-                                if (musicSelected) onVoiceCaptureModeChange(com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE)
-                            },
+                Row(
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    if (onHistoryClick != null) {
+                        HeaderCoverIconButton(
+                            onClick = onHistoryClick,
+                            icon = Icons.Default.History,
+                            contentDescription = "Historial",
                         )
-                        VoiceModeHeaderSegment(
-                            label = "Música",
-                            selected = musicSelected,
-                            onClick = {
-                                if (!musicSelected) onVoiceCaptureModeChange(com.example.kpkn.data.models.VoiceCaptureMode.MUSIC)
+                    }
+                    if (voiceCaptureMode != null && onVoiceCaptureModeChange != null) {
+                        val musicSelected = voiceCaptureMode == com.example.kpkn.data.models.VoiceCaptureMode.MUSIC
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(99.dp))
+                                .background(Color.White.copy(alpha = 0.14f))
+                                .padding(2.dp),
+                        ) {
+                            VoiceModeHeaderSegment(
+                                label = "Manos libres",
+                                selected = !musicSelected,
+                                onClick = {
+                                    if (musicSelected) onVoiceCaptureModeChange(com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE)
+                                },
+                            )
+                            VoiceModeHeaderSegment(
+                                label = "Música",
+                                selected = musicSelected,
+                                onClick = {
+                                    if (!musicSelected) onVoiceCaptureModeChange(com.example.kpkn.data.models.VoiceCaptureMode.MUSIC)
+                                },
+                            )
+                        }
+                    }
+                    if (onToggleVoice != null) {
+                        val voiceButtonFill = when {
+                            voiceSessionState.isListening -> Color(0xFF2E7D32).copy(alpha = 0.92f)
+                            voiceSessionEnabled -> Color(0xFF1B2838).copy(alpha = 0.92f)
+                            else -> Color.Black.copy(alpha = 0.24f)
+                        }
+                        val voiceButtonBorder = when {
+                            voiceSessionState.isListening -> Color(0xFF81C784).copy(alpha = 0.78f)
+                            voiceSessionEnabled -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.58f)
+                            else -> Color.White.copy(alpha = 0.22f)
+                        }
+                        HeaderCoverIconButton(
+                            onClick = onToggleVoice,
+                            icon = if (voiceSessionEnabled) Icons.Default.Mic else Icons.Default.MicOff,
+                            contentDescription = if (voiceSessionEnabled) {
+                                "Desactivar control por voz"
+                            } else {
+                                "Activar control por voz"
+                            },
+                            fill = voiceButtonFill,
+                            border = voiceButtonBorder,
+                            iconTint = when {
+                                voiceSessionState.isListening -> Color.White
+                                voiceSessionEnabled -> MaterialTheme.colorScheme.secondary
+                                else -> Color.White.copy(alpha = 0.9f)
                             },
                         )
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun HeaderCoverIconButton(
+    onClick: () -> Unit,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    contentDescription: String,
+    fill: Color = Color.Black.copy(alpha = 0.24f),
+    border: Color = Color.White.copy(alpha = 0.22f),
+    iconTint: Color = Color.White.copy(alpha = 0.9f),
+) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.size(44.dp),
+        shape = CircleShape,
+        color = fill,
+        contentColor = Color.White,
+        border = BorderStroke(1.5.dp, border),
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = iconTint,
+            modifier = Modifier.padding(10.dp),
+        )
+    }
+}
+
+@Composable
+private fun HeaderCoverChip(
+    label: String,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        color = Color.White.copy(alpha = 0.16f),
+        shape = RoundedCornerShape(99.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f)),
+    ) {
+        Text(
+            text = label,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White.copy(alpha = 0.9f),
+            fontWeight = FontWeight.Black,
+            fontSize = 10.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 

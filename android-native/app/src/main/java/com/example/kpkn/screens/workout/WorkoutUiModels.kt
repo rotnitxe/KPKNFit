@@ -55,6 +55,23 @@ sealed class PendingStructuralChange {
         val orderedExerciseCanonicalKeys: List<String> = emptyList(),
         val orderedExercisePartKeys: List<String?> = emptyList(),
     ) : PendingStructuralChange()
+    data class RemoveSet(
+        val exerciseId: String,
+        val exerciseName: String,
+        val setIndex: Int,
+        val exerciseSlot: Int? = null,
+        val exerciseCanonicalKey: String? = null,
+    ) : PendingStructuralChange()
+    data class RemoveExercise(
+        val exerciseId: String,
+        val exerciseName: String,
+        val exerciseSlot: Int? = null,
+        val exerciseCanonicalKey: String? = null,
+    ) : PendingStructuralChange()
+    data class RemoveExercises(
+        val exerciseIds: List<String>,
+        val exerciseNames: List<String>,
+    ) : PendingStructuralChange()
 }
 
 data class FinishResumeSnapshot(

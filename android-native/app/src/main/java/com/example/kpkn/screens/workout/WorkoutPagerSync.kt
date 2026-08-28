@@ -68,6 +68,7 @@ internal fun workoutPagerStepKey(
     LivePageType.MOBILITY -> page.stepKey
         ?: page.mobilityId?.let { WorkoutStepRules.mobilityStepKey(exerciseId, it, 0) }
         .orEmpty()
+    LivePageType.REST -> ""
 }
 
 internal fun activePagerStepType(

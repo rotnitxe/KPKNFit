@@ -1294,6 +1294,17 @@ private fun ColumnScope.CatalogReadyContent(
                             )
                         }
                     }
+                    val aka = com.example.kpkn.domain.exercises.ExerciseNicknameResolver.nicknames[definition.id]
+                        ?.trim()?.takeIf { it.isNotBlank() }
+                    if (!aka.isNullOrBlank()) {
+                        Text(
+                            "a.k.a. $aka",
+                            color = Color.White.copy(alpha = 0.62f),
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
 
                     // Chips de búsqueda: fila propia debajo del título, nunca pegados a él.
                     if (!isExpanded && query.isNotBlank()) {

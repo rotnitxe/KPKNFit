@@ -81,6 +81,11 @@ internal class RecordActionHolder {
     val isArmed: Boolean get() = action != null
 }
 
+/** Opens readiness Adapt sheet from header into the active set card. */
+internal class AdaptActionHolder {
+    var open: (() -> Unit)? = null
+}
+
 /** Publishes live set-stepper args from WorkoutV2Body into WorkoutRoadmapBar. */
 internal data class LiveSetStepperSnapshot(
     val elements: List<TimelineElement>,
@@ -96,6 +101,7 @@ internal class LiveSetStepperHolder {
     var onSelectPage: (Int) -> Unit = {}
     var onAddSet: (() -> Unit)? = null
     var onLongPressPage: ((Int) -> Unit)? = null
+    var onNavigateAdjacentExercise: ((forward: Boolean) -> Unit)? = null
 }
 
 /** Pure gate for PR e1RM session milestones (no first-set-without-baseline). */

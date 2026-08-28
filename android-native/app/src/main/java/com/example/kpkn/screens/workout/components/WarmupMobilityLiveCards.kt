@@ -1,18 +1,23 @@
 package com.example.kpkn.screens.workout.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -24,6 +29,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -39,9 +45,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -50,6 +59,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.Constraints
 import com.example.kpkn.data.models.WarmupSetDefinition
 import com.example.kpkn.screens.sessioneditor.contentOn
 import com.example.kpkn.screens.workout.toTrimmedNumberString
@@ -74,9 +84,13 @@ internal fun MobilityPhaseLiveCard(
     onSkip: () -> Unit,
     onContinue: () -> Unit,
     modifier: Modifier = Modifier,
+    inlineRestRemainingSeconds: Int? = null,
+    inlineRestTotalSeconds: Int? = null,
+    onSkipInlineRest: (() -> Unit)? = null,
 ) {
     val allDone = items.isNotEmpty() && items.all { it.stepKey in completedStepKeys }
     val showExerciseBadge = items.map { it.exerciseId }.distinct().size > 1
+    val showInlineRest = inlineRestRemainingSeconds != null && (inlineRestTotalSeconds ?: 0) > 0
     PrepChecklistShell(
         title = "MOVILIDAD",
         doneCount = items.count { it.stepKey in completedStepKeys },
@@ -96,13 +110,22 @@ internal fun MobilityPhaseLiveCard(
             )
         },
         footer = {
-            PrepPhaseActionBar(
-                allDone = allDone || items.isEmpty(),
-                continueLabel = "Continuar",
-                sessionAccentColor = sessionAccentColor,
-                onSkip = onSkip,
-                onContinue = onContinue,
-            )
+            if (showInlineRest) {
+                PrepInlineRestBar(
+                    remainingSeconds = inlineRestRemainingSeconds!!.coerceAtLeast(0),
+                    totalSeconds = (inlineRestTotalSeconds ?: 1).coerceAtLeast(1),
+                    sessionAccentColor = sessionAccentColor,
+                    onSkip = onSkipInlineRest ?: {},
+                )
+            } else {
+                PrepPhaseActionBar(
+                    allDone = allDone || items.isEmpty(),
+                    continueLabel = "Continuar",
+                    sessionAccentColor = sessionAccentColor,
+                    onSkip = onSkip,
+                    onContinue = onContinue,
+                )
+            }
         },
     ) {
         items.forEachIndexed { index, item ->
@@ -137,8 +160,13 @@ internal fun WarmupPhaseLiveCard(
     onSkip: () -> Unit,
     onContinue: () -> Unit,
     modifier: Modifier = Modifier,
+    onAddSet: (() -> Unit)? = null,
+    inlineRestRemainingSeconds: Int? = null,
+    inlineRestTotalSeconds: Int? = null,
+    onSkipInlineRest: (() -> Unit)? = null,
 ) {
     val allDone = rows.isNotEmpty() && rows.all { it.isCompleted }
+    val showInlineRest = inlineRestRemainingSeconds != null && (inlineRestTotalSeconds ?: 0) > 0
     PrepChecklistShell(
         title = "APROXIMACIÓN",
         doneCount = rows.count { it.isCompleted },
@@ -146,13 +174,46 @@ internal fun WarmupPhaseLiveCard(
         sessionAccentColor = sessionAccentColor,
         modifier = modifier,
         footer = {
-            PrepPhaseActionBar(
-                allDone = allDone || rows.isEmpty(),
-                continueLabel = "Comenzar 1ª serie",
-                sessionAccentColor = sessionAccentColor,
-                onSkip = onSkip,
-                onContinue = onContinue,
-            )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                if (showInlineRest) {
+                    PrepInlineRestBar(
+                        remainingSeconds = inlineRestRemainingSeconds!!.coerceAtLeast(0),
+                        totalSeconds = (inlineRestTotalSeconds ?: 1).coerceAtLeast(1),
+                        sessionAccentColor = sessionAccentColor,
+                        onSkip = onSkipInlineRest ?: {},
+                    )
+                } else {
+                    if (onAddSet != null) {
+                        OutlinedButton(
+                            onClick = onAddSet,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(40.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.45f)),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = sessionAccentColor,
+                            ),
+                        ) {
+                            Text(
+                                text = "Agregar serie",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
+                    PrepPhaseActionBar(
+                        allDone = allDone || rows.isEmpty(),
+                        continueLabel = "Comenzar 1ª serie",
+                        sessionAccentColor = sessionAccentColor,
+                        onSkip = onSkip,
+                        onContinue = onContinue,
+                    )
+                }
+            }
         },
     ) {
         rows.forEachIndexed { index, row ->
@@ -195,26 +256,76 @@ internal data class WarmupPhaseRow(
  * Planificado/Reportar inner sections provide containers. Prep cards add one
  * undivided Surface inside this slot, while the slot keeps every page aligned.
  * The inner frame scales the previous base bounds uniformly so all card
- * content grows without spilling into the neighboring pager page.
+ * content grows without spilling into the neighboring pager page. Normal
+ * set cards can opt into measured height expansion so plan/technique panels
+ * are laid out below the card instead of being hidden by the fixed slot.
  */
 @Composable
 internal fun LivePagerCardFrame(
     modifier: Modifier = Modifier,
+    allowContentExpansion: Boolean = false,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(WorkoutUiTokens.LivePagerSlotHeight),
-        contentAlignment = Alignment.Center,
-    ) {
+    val scale = WorkoutUiTokens.effectiveLivePagerCardScale()
+    val slotHeight = WorkoutUiTokens.effectiveLivePagerSlotHeight()
+    if (!allowContentExpansion) {
         Box(
-            modifier = Modifier
-                .fillMaxWidth(1f / WorkoutUiTokens.LivePagerCardScale)
-                .height(WorkoutUiTokens.LivePagerBaseHeight)
-                .scale(WorkoutUiTokens.LivePagerCardScale),
-            content = content,
+            modifier = modifier
+                .fillMaxWidth()
+                .height(slotHeight),
+            contentAlignment = Alignment.Center,
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(1f / scale)
+                    .height(WorkoutUiTokens.LivePagerBaseHeight)
+                    .scale(scale),
+                content = content,
+            )
+        }
+        return
+    }
+
+    SubcomposeLayout(modifier = modifier.fillMaxWidth().wrapContentHeight()) { constraints ->
+        val baseHeightPx = WorkoutUiTokens.LivePagerBaseHeight.roundToPx()
+        val slotHeightPx = slotHeight.roundToPx()
+        val maxChildWidth = if (constraints.hasBoundedWidth) {
+            (constraints.maxWidth / scale).roundToInt().coerceAtLeast(0)
+        } else {
+            Constraints.Infinity
+        }
+        val minChildWidth = (constraints.minWidth / scale).roundToInt().coerceAtLeast(0)
+        val placeable = subcompose("expandable_live_pager_card") {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .heightIn(min = WorkoutUiTokens.LivePagerBaseHeight),
+                contentAlignment = Alignment.TopCenter,
+                content = content,
+            )
+        }.first().measure(
+            Constraints(
+                minWidth = minChildWidth.coerceAtMost(maxChildWidth),
+                maxWidth = maxChildWidth,
+                minHeight = baseHeightPx,
+                maxHeight = Constraints.Infinity,
+            ),
         )
+        val scaledWidth = (placeable.width * scale).roundToInt()
+        val width = scaledWidth.coerceIn(constraints.minWidth, constraints.maxWidth)
+        val layoutHeight = (placeable.height * scale).roundToInt().coerceAtLeast(slotHeightPx)
+
+        layout(width, layoutHeight) {
+            placeable.placeRelativeWithLayer(
+                x = ((width - scaledWidth) / 2f).roundToInt().coerceAtLeast(0),
+                y = 0,
+            ) {
+                scaleX = scale
+                scaleY = scale
+                transformOrigin = TransformOrigin(0f, 0f)
+            }
+        }
     }
 }
 
@@ -475,6 +586,65 @@ private fun TinyChip(label: String, onClick: () -> Unit) {
         style = MaterialTheme.typography.labelSmall,
         color = Color.White.copy(alpha = 0.75f),
     )
+}
+
+/**
+ * Inline prep rest countdown on MOV/APR cards (RestTimerKind.WARMUP).
+ */
+@Composable
+private fun PrepInlineRestBar(
+    remainingSeconds: Int,
+    totalSeconds: Int,
+    sessionAccentColor: Color,
+    onSkip: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val progress = (remainingSeconds.toFloat() / totalSeconds.coerceAtLeast(1)).coerceIn(0f, 1f)
+    val mins = remainingSeconds / 60
+    val secs = remainingSeconds % 60
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "Descanso %02d:%02d".format(mins, secs),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Black,
+                color = Color.White,
+            )
+            Button(
+                onClick = onSkip,
+                modifier = Modifier.height(36.dp),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = sessionAccentColor,
+                    contentColor = contentOn(sessionAccentColor),
+                ),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+            ) {
+                Text("Saltar", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+            }
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(5.dp)
+                .clip(RoundedCornerShape(999.dp))
+                .background(Color.White.copy(alpha = 0.08f)),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(progress)
+                    .fillMaxHeight()
+                    .background(sessionAccentColor.copy(alpha = 0.85f)),
+            )
+        }
+    }
 }
 
 @Composable

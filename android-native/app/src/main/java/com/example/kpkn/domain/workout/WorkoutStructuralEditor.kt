@@ -3,6 +3,7 @@ package com.example.kpkn.domain.workout
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekVariant
+import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 
 /**
  * Pure session-structure transforms for the live workout editor.
@@ -184,5 +185,41 @@ object WorkoutStructuralEditor {
         val lastMemberIndex = session.exercises.indexOfLast { it.id in memberIdSet }
         val insertionIndex = (lastMemberIndex + 1).coerceIn(0, session.exercises.size)
         return session.copy(exercises = session.exercises.toMutableList().apply { add(insertionIndex, exercise) })
+    }
+
+    fun removeSetFromExercise(session: Session, exerciseId: String, setIndex: Int): Session {
+        return replaceExerciseById(session, exerciseId) { exercise ->
+            if (setIndex !in exercise.sets.indices || exercise.sets.size <= 1) exercise
+            else {
+                val remaining = exercise.sets.filterIndexed { index, _ -> index != setIndex }
+                exercise.copy(sets = remaining.ifEmpty { exercise.sets.take(1) })
+            }
+        }
+    }
+
+    fun removeExerciseById(session: Session, exerciseId: String): Session {
+        val all = session.allExercises()
+        if (all.size <= 1) return session
+        if (all.none { it.id == exerciseId }) return session
+        val groupId = all.firstOrNull { it.id == exerciseId }?.supersetGroupRefOrLegacyId()
+        val afterGroup = if (!groupId.isNullOrBlank()) {
+            com.example.kpkn.domain.workout.SupersetRules.deleteExercise(session, groupId, exerciseId)
+        } else {
+            session
+        }
+        return afterGroup.copy(
+            exercises = afterGroup.exercises.filterNot { it.id == exerciseId },
+            parts = afterGroup.parts.map { part ->
+                part.copy(exercises = part.exercises.filterNot { it.id == exerciseId })
+            },
+        )
+    }
+
+    fun removeExercisesByIds(session: Session, exerciseIds: Collection<String>): Session {
+        var current = session
+        exerciseIds.forEach { id ->
+            current = removeExerciseById(current, id)
+        }
+        return current
     }
 }

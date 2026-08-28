@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.kpkn.data.db.*
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
+import com.example.kpkn.domain.exercises.ExerciseNicknameResolver
 import com.example.kpkn.domain.training.ProgramActiveStateEngine
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ProgramMigrationEngine
@@ -708,6 +709,7 @@ class ProgramRepository private constructor(
 
     fun updateSettings(update: (Settings) -> Settings) {
         _settings.update(update)
+        ExerciseNicknameResolver.nicknames = _settings.value.exerciseNicknames
         scope.launch { db.settingsDao().upsert(_settings.value.toEntity()) }
     }
 
@@ -897,6 +899,7 @@ class ProgramRepository private constructor(
                     }
                     _history.value = logs
                     _settings.value = settings
+                    ExerciseNicknameResolver.nicknames = settings.exerciseNicknames
                     _activeProgramState.value = normalizedActiveProgram
                     _ongoingWorkout.value = ongoingWorkout
                     _contextPerformance.value = contextPerformance

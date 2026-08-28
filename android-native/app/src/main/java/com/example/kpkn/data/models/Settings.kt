@@ -49,6 +49,8 @@ data class Settings(
 
     /** User nicknames → exerciseId for voice matching. */
     val voiceExerciseAliases: Map<String, String> = emptyMap(),
+    /** Display nicknames keyed by catalogDefinitionId / exerciseDbId / canonical id. */
+    val exerciseNicknames: Map<String, String> = emptyMap(),
     val showPRsInWorkout: Boolean = true,
     val oneRMFormula: OneRMFormula = OneRMFormula.BRZYCKI,
     val workoutLoggerMode: WorkoutLoggerMode = WorkoutLoggerMode.PRO,

@@ -90,6 +90,72 @@ class WorkoutStructuralEditorTest {
         assertTrue(reordered.exercises.size == 3)
     }
 
+    @Test
+    fun removeSetFromExerciseKeepsAtLeastOne() {
+        val session = Session(
+            id = "s1",
+            name = "Push",
+            exercises = listOf(
+                Exercise(
+                    id = "a",
+                    name = "A",
+                    sets = listOf(ExerciseSet(id = "s1"), ExerciseSet(id = "s2")),
+                ),
+            ),
+        )
+        val oneLeft = WorkoutStructuralEditor.removeSetFromExercise(session, "a", 0)
+        assertEquals(1, oneLeft.exercises.single().sets.size)
+        val blocked = WorkoutStructuralEditor.removeSetFromExercise(oneLeft, "a", 0)
+        assertEquals(1, blocked.exercises.single().sets.size)
+    }
+
+    @Test
+    fun removeExerciseByIdLeavesAtLeastOne() {
+        val session = Session(
+            id = "s1",
+            name = "Push",
+            exercises = listOf(ex("a", "A"), ex("b", "B")),
+        )
+        val removed = WorkoutStructuralEditor.removeExerciseById(session, "a")
+        assertEquals(listOf("b"), removed.exercises.map { it.id })
+        val blocked = WorkoutStructuralEditor.removeExerciseById(removed, "b")
+        assertEquals(listOf("b"), blocked.exercises.map { it.id })
+    }
+
+    @Test
+    fun removeExerciseByIdRemovesSupersetMember() {
+        val withGroup = Session(
+            id = "s1",
+            name = "Push",
+            exercises = listOf(
+                Exercise(id = "a", name = "A", sets = listOf(ExerciseSet(id = "a_s1")), supersetGroupRef = "g1"),
+                Exercise(id = "b", name = "B", sets = listOf(ExerciseSet(id = "b_s1")), supersetGroupRef = "g1"),
+                Exercise(id = "c", name = "C", sets = listOf(ExerciseSet(id = "c_s1"))),
+            ),
+            supersetGroups = listOf(
+                com.example.kpkn.data.models.SupersetGroup(
+                    id = "g1",
+                    exerciseOrder = listOf("a", "b"),
+                ),
+            ),
+        )
+        val removed = WorkoutStructuralEditor.removeExerciseById(withGroup, "a")
+        assertEquals(listOf("b", "c"), removed.exercises.map { it.id })
+        assertTrue(removed.supersetGroups.none { it.id == "g1" })
+    }
+
+    @Test
+    fun removeExercisesByIdsLeavesAtLeastOne() {
+        val session = Session(
+            id = "s1",
+            name = "Push",
+            exercises = listOf(ex("a", "A"), ex("b", "B"), ex("c", "C")),
+        )
+        val removed = WorkoutStructuralEditor.removeExercisesByIds(session, listOf("a", "b", "c"))
+        assertEquals(1, removed.exercises.size)
+        assertTrue(removed.exercises.single().id in listOf("a", "b", "c"))
+    }
+
     private fun ex(id: String, name: String) = Exercise(
         id = id,
         name = name,
