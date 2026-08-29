@@ -368,4 +368,25 @@ class WorkoutStepRulesTest {
             completedSets = mapOf(),
         ))
     }
+
+    @Test
+    fun roadmapSlotCounters_excludeOmittedSets() {
+        val exercise = Exercise(
+            id = "bench",
+            name = "Press banca",
+            sets = listOf(
+                ExerciseSet("s1"),
+                ExerciseSet("s2"),
+                ExerciseSet("s3"),
+            ),
+        )
+        val omitted = setOf(WorkoutStepRules.omittedSetKey("bench", 1))
+        val completed = mapOf(
+            "bench_0" to CompletedSet(id = "bench_0"),
+            "bench_2" to CompletedSet(id = "bench_2"),
+        )
+
+        assertEquals(2, WorkoutStepRules.totalRoadmapSlotsForExercise(exercise, omitted))
+        assertEquals(2, WorkoutStepRules.completedRoadmapSlotsForExercise(exercise, completed, omitted))
+    }
 }

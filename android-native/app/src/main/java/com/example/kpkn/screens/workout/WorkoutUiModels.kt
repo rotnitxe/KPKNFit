@@ -81,6 +81,8 @@ data class FinishResumeSnapshot(
     val activeStepKey: String? = null,
     val editingState: WorkoutEditingState? = null,
     val skippedExerciseIds: Set<String> = emptySet(),
+    /** Session-only hidden working sets: key = "${exerciseId}_${setIdx}". */
+    val omittedSetKeys: Set<String> = emptySet(),
     val lastRenderableStepKey: String? = null,
     /** Kept only as a fallback for snapshots created by older process state. */
     val currentExerciseIdx: Int = 0,
@@ -159,6 +161,8 @@ data class WorkoutUiState(
     val readinessSpinalOverride: Int? = null,
     val readinessMuscleOverrides: Map<String, Int> = emptyMap(),
     val skippedExerciseIds: Set<String> = emptySet(),
+    /** Session-only hidden working sets: key = "${exerciseId}_${setIdx}". */
+    val omittedSetKeys: Set<String> = emptySet(),
     val warmupCompletedExerciseIds: Set<String> = emptySet(),
     val mobilityCompletedExerciseIds: Set<String> = emptySet(),
     val mobilityTotalCompletedStepKeys: Set<String> = emptySet(),
@@ -177,6 +181,7 @@ data class WorkoutUiState(
     val exercisePhotos: Map<String, List<String>> = emptyMap(),
     val sessionMilestones: List<SessionMilestone> = emptyList(),
     val sessionNotes: String = "",
+    val sessionSavedNotes: List<SessionSavedNote> = emptyList(),
     val sessionPhotos: List<String> = emptyList(),
     val sessionChecklist: List<SessionChecklistItem> = emptyList(),
     val showHistorySheet: Boolean = false,
@@ -263,6 +268,8 @@ data class WorkoutUiState(
     val showUltraFastSheet: Boolean = false,
     val ultraFastManualOverrides: Map<String, Boolean> = emptyMap(),
     val seriesTypeTarget: SeriesTypeTarget? = null,
+    val godModeUndoStack: List<GodModeUndoSnapshot> = emptyList(),
+    val plannedSessionBaseline: Session? = null,
 )
 
 data class SeriesTypeTarget(
@@ -270,6 +277,24 @@ data class SeriesTypeTarget(
     val fromSetIdx: Int,
     val toSetIdx: Int,
 )
+
+data class GodModeUndoSnapshot(
+    val label: String,
+    val session: Session? = null,
+    val skippedExerciseIds: Set<String> = emptySet(),
+    val omittedSetKeys: Set<String> = emptySet(),
+    val currentExerciseIdx: Int = 0,
+    val currentSetIdx: Int = 0,
+    val activeStepKey: String? = null,
+)
+
+fun godModeUndoStackAfterRevert(
+    stack: List<GodModeUndoSnapshot>,
+    index: Int,
+): List<GodModeUndoSnapshot> {
+    if (index !in stack.indices) return stack
+    return stack.take(index)
+}
 
 data class WorkoutSessionSummary(
     val intensityDescriptor: String,

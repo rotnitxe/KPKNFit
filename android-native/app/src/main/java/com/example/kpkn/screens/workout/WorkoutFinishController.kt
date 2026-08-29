@@ -381,6 +381,7 @@ class WorkoutFinishController(
                     exercisePhotos = state.exercisePhotos,
                     sessionMilestones = state.sessionMilestones,
                     sessionNotes = state.sessionNotes,
+                    sessionSavedNotes = state.sessionSavedNotes,
                     sessionPhotos = state.sessionPhotos,
                     sessionChecklist = state.sessionChecklist,
                     contextualPerformanceStateV2 = state.contextualPerformanceCache,

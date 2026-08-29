@@ -71,7 +71,7 @@ import com.example.kpkn.data.models.SessionEnergySummary
 import com.example.kpkn.data.models.SessionMilestone
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.screens.workout.WorkoutRmCalcContent
-import com.example.kpkn.screens.workout.WorkoutSessionEnergyContent
+import com.example.kpkn.screens.workout.sessionCalorieStatus
 import com.example.kpkn.screens.workout.toTrimmedNumberString
 import java.io.File
 import kotlinx.coroutines.delay
@@ -79,6 +79,7 @@ import kotlinx.coroutines.launch
 
 private enum class CockpitPage(val title: String) {
     Overview("Resumen"),
+    Actions("Acciones"),
     Photos("Fotos"),
     Tools("Herramientas"),
     Notes("Notas"),
@@ -93,9 +94,11 @@ fun WorkoutSessionCockpit(
     sessionProgressLabel: String,
     liveEnergySummary: SessionEnergySummary,
     sessionNotes: String,
+    sessionSavedNotes: List<com.example.kpkn.data.models.SessionSavedNote> = emptyList(),
     sessionPhotos: List<String>,
     sessionChecklist: List<SessionChecklistItem>,
     onSessionNotesChange: (String) -> Unit,
+    onSaveSessionNote: (String) -> Unit = {},
     onAddSessionPhoto: (Uri) -> Unit,
     onRemoveSessionPhoto: (String) -> Unit,
     onAddChecklistItem: (String) -> Unit,
@@ -103,6 +106,10 @@ fun WorkoutSessionCockpit(
     onRemoveChecklistItem: (String) -> Unit,
     sessionAccentColor: Color,
     bodyWeight: Double? = null,
+    planAspects: List<com.example.kpkn.screens.workout.SessionPlanAspect> = emptyList(),
+    onRevertPlanAspect: (String) -> Unit = {},
+    godModeActions: List<com.example.kpkn.screens.workout.GodModeUndoSnapshot> = emptyList(),
+    onRevertGodModeAction: (Int) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val pages = CockpitPage.entries
@@ -125,7 +132,8 @@ fun WorkoutSessionCockpit(
             Text(
                 "Cockpit de la sesión",
                 style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Surface(
                 shape = RoundedCornerShape(999.dp),
@@ -176,6 +184,10 @@ fun WorkoutSessionCockpit(
                     milestones = milestones,
                     sessionAccentColor = sessionAccentColor,
                 )
+                CockpitPage.Actions -> CockpitActionsPage(
+                    aspects = planAspects,
+                    onRevert = onRevertPlanAspect,
+                )
                 CockpitPage.Photos -> CockpitPhotosPage(
                     sessionPhotos = sessionPhotos,
                     onAddPhoto = onAddSessionPhoto,
@@ -189,13 +201,72 @@ fun WorkoutSessionCockpit(
                 )
                 CockpitPage.Notes -> CockpitNotesPage(
                     sessionNotes = sessionNotes,
+                    sessionSavedNotes = sessionSavedNotes,
                     sessionChecklist = sessionChecklist,
                     onSessionNotesChange = onSessionNotesChange,
+                    onSaveSessionNote = onSaveSessionNote,
                     onAddChecklistItem = onAddChecklistItem,
                     onToggleChecklistItem = onToggleChecklistItem,
                     onRemoveChecklistItem = onRemoveChecklistItem,
                     sessionAccentColor = sessionAccentColor,
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CockpitActionsPage(
+    aspects: List<com.example.kpkn.screens.workout.SessionPlanAspect>,
+    onRevert: (String) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        if (aspects.isEmpty()) {
+            Text(
+                "Sin cambios respecto al plan.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+            )
+        } else {
+            Text(
+                "Cada acción deshace solo ese cambio. El resto se mantiene.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+            )
+            aspects.forEach { aspect ->
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color.White.copy(alpha = 0.06f),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            aspect.label,
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+                            maxLines = 2,
+                        )
+                        TextButton(onClick = { onRevert(aspect.id) }) {
+                            Text(
+                                "Deshacer",
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -238,8 +309,8 @@ private fun CockpitOverviewPage(
                         Text(
                             milestone.label,
                             style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = sessionAccentColor,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                         Text(
                             milestone.exerciseName,
@@ -396,12 +467,19 @@ private fun CockpitPhotosPage(
     }
 }
 
+private enum class CockpitToolTab(val title: String) {
+    Timer("Temporizador"),
+    Rm("Calculadora RM"),
+    Calories("Calorías"),
+}
+
 @Composable
 private fun CockpitToolsPage(
     liveEnergySummary: SessionEnergySummary,
     sessionAccentColor: Color,
     bodyWeight: Double?,
 ) {
+    var selectedTool by remember { mutableStateOf(CockpitToolTab.Timer) }
     var timerRunning by remember { mutableStateOf(false) }
     var elapsedMs by remember { mutableLongStateOf(0L) }
     LaunchedEffect(timerRunning) {
@@ -420,75 +498,144 @@ private fun CockpitToolsPage(
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        WorkoutSessionEnergyContent(sessionEnergy = liveEnergySummary)
-
-        CockpitSectionTitle(icon = Icons.Default.Timer, title = "Timer de herramienta")
-        Surface(
-            shape = RoundedCornerShape(14.dp),
-            color = Color.White.copy(alpha = 0.06f),
+        Row(
             modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Column(
-                modifier = Modifier.padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    "%02d:%02d".format(mm, ss),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Black,
-                    color = sessionAccentColor,
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    IconButton(
-                        onClick = { timerRunning = !timerRunning },
-                    ) {
-                        Icon(
-                            if (timerRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = if (timerRunning) "Pausar" else "Iniciar",
-                            tint = sessionAccentColor,
-                        )
-                    }
-                    IconButton(
-                        onClick = {
-                            timerRunning = false
-                            elapsedMs = 0L
-                        },
-                    ) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Reiniciar", tint = Color.White.copy(alpha = 0.8f))
-                    }
+            CockpitToolTab.entries.forEach { tab ->
+                val selected = selectedTool == tab
+                Surface(
+                    onClick = { selectedTool = tab },
+                    shape = RoundedCornerShape(16.dp),
+                    color = if (selected) {
+                        sessionAccentColor.copy(alpha = 0.18f)
+                    } else {
+                        Color.White.copy(alpha = 0.06f)
+                    },
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(
+                        tab.title,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (selected) 0.92f else 0.68f),
+                    )
                 }
-                Text(
-                    "Independiente del descanso entre series",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                )
             }
         }
 
-        CockpitSectionTitle(icon = Icons.Default.EmojiEvents, title = "Calculadora RM")
-        WorkoutRmCalcContent(
-            bodyWeight = bodyWeight,
-            sessionAccentColor = sessionAccentColor,
-        )
+        when (selectedTool) {
+            CockpitToolTab.Timer -> {
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = Color.White.copy(alpha = 0.06f),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            "%02d:%02d".format(mm, ss),
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            IconButton(onClick = { timerRunning = !timerRunning }) {
+                                Icon(
+                                    if (timerRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                    contentDescription = if (timerRunning) "Pausar" else "Iniciar",
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                )
+                            }
+                            IconButton(
+                                onClick = {
+                                    timerRunning = false
+                                    elapsedMs = 0L
+                                },
+                            ) {
+                                Icon(
+                                    Icons.Default.Refresh,
+                                    contentDescription = "Reiniciar",
+                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                                )
+                            }
+                        }
+                        Text(
+                            "Independiente del descanso entre series",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        )
+                    }
+                }
+            }
+            CockpitToolTab.Rm -> {
+                WorkoutRmCalcContent(
+                    bodyWeight = bodyWeight,
+                    sessionAccentColor = sessionAccentColor,
+                    softInputs = true,
+                )
+            }
+            CockpitToolTab.Calories -> {
+                val completedCount = liveEnergySummary.exerciseContributions.sumOf { it.completedSets }
+                val status = sessionCalorieStatus(liveEnergySummary, completedCount, bodyWeight)
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = Color.White.copy(alpha = 0.06f),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(
+                            "Calorías quemadas",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
+                        )
+                        if (status.kcal != null) {
+                            Text(
+                                "${status.kcal} kcal",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        } else {
+                            Text(
+                                status.hint.orEmpty(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
 @Composable
 private fun CockpitNotesPage(
     sessionNotes: String,
+    sessionSavedNotes: List<com.example.kpkn.data.models.SessionSavedNote>,
     sessionChecklist: List<SessionChecklistItem>,
     onSessionNotesChange: (String) -> Unit,
+    onSaveSessionNote: (String) -> Unit,
     onAddChecklistItem: (String) -> Unit,
     onToggleChecklistItem: (String) -> Unit,
     onRemoveChecklistItem: (String) -> Unit,
     sessionAccentColor: Color,
 ) {
+    val lastSaved = sessionSavedNotes.lastOrNull()?.text
     var draftItem by remember { mutableStateOf("") }
-    var localNotes by remember(sessionNotes) { mutableStateOf(sessionNotes) }
-    val latestNotesChange = rememberUpdatedState(onSessionNotesChange)
+    var localNotes by remember(lastSaved, sessionNotes) {
+        mutableStateOf(lastSaved ?: sessionNotes)
+    }
 
     Column(
         modifier = Modifier
@@ -498,17 +645,27 @@ private fun CockpitNotesPage(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         CockpitSectionTitle(icon = Icons.AutoMirrored.Filled.Notes, title = "Notas de sesión")
-        OutlinedTextField(
+        WorkoutSoftField(
             value = localNotes,
-            onValueChange = {
-                localNotes = it
-                latestNotesChange.value(it)
-            },
-            modifier = Modifier.fillMaxWidth(),
+            onValueChange = { localNotes = it },
+            placeholder = "Anotaciones generales de la sesión…",
+            singleLine = false,
             minLines = 3,
             maxLines = 6,
-            placeholder = { Text("Anotaciones generales de la sesión…") },
         )
+        TextButton(
+            onClick = { onSaveSessionNote(localNotes) },
+            enabled = localNotes.isNotBlank(),
+        ) {
+            Text("Guardar nota", color = MaterialTheme.colorScheme.onSurface)
+        }
+        if (lastSaved != null) {
+            Text(
+                "Última nota guardada",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+            )
+        }
 
         CockpitSectionTitle(icon = Icons.Default.Add, title = "Tareas / objetivos")
         Row(
@@ -516,12 +673,11 @@ private fun CockpitNotesPage(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            OutlinedTextField(
+            WorkoutSoftField(
                 value = draftItem,
                 onValueChange = { draftItem = it },
                 modifier = Modifier.weight(1f),
-                singleLine = true,
-                placeholder = { Text("Nueva tarea") },
+                placeholder = "Nueva tarea",
             )
             TextButton(
                 onClick = {
@@ -530,7 +686,7 @@ private fun CockpitNotesPage(
                 },
                 enabled = draftItem.isNotBlank(),
             ) {
-                Text("Añadir", color = sessionAccentColor)
+                Text("Añadir", color = MaterialTheme.colorScheme.onSurface)
             }
         }
         if (sessionChecklist.isEmpty()) {
@@ -548,6 +704,11 @@ private fun CockpitNotesPage(
                     Checkbox(
                         checked = item.done,
                         onCheckedChange = { onToggleChecklistItem(item.id) },
+                        colors = androidx.compose.material3.CheckboxDefaults.colors(
+                            checkedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
+                            uncheckedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                            checkmarkColor = MaterialTheme.colorScheme.surface,
+                        ),
                     )
                     Text(
                         item.text,

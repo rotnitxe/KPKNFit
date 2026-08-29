@@ -31,6 +31,7 @@ data class WorkoutLog(
     val exercisePhotos: Map<String, List<String>> = emptyMap(), // exerciseId → local paths (max 2)
     val sessionMilestones: List<SessionMilestone> = emptyList(),
     val sessionNotes: String = "",
+    val sessionSavedNotes: List<SessionSavedNote> = emptyList(),
     val sessionPhotos: List<String> = emptyList(),
     val sessionChecklist: List<SessionChecklistItem> = emptyList(),
     val contextualPerformanceStateV2: Map<String, ContextPerformanceStateV2> = emptyMap(),
@@ -214,6 +215,7 @@ data class OngoingWorkoutState(
     val contextProfilesV3: Map<String, WorkoutContextProfile> = emptyMap(),
     val activeContextProfileByExerciseId: Map<String, String> = emptyMap(),
     val skippedExerciseIds: Set<String> = emptySet(),
+    val omittedSetKeys: Set<String> = emptySet(),
     val warmupCompletedExerciseIds: Set<String> = emptySet(),
     val mobilityCompletedExerciseIds: Set<String> = emptySet(),
     /** Stable keys for legacy total mobility blocks; focused checklists use series keys. */
@@ -235,6 +237,8 @@ data class OngoingWorkoutState(
     val exercisePhotos: Map<String, List<String>> = emptyMap(),
     val sessionMilestones: List<SessionMilestone> = emptyList(),
     val sessionNotes: String = "",
+    val sessionSavedNotes: List<SessionSavedNote> = emptyList(),
+    val plannedSessionBaseline: Session? = null,
     val sessionPhotos: List<String> = emptyList(),
     val sessionChecklist: List<SessionChecklistItem> = emptyList(),
     val voiceTimedSet: VoiceTimedSetState? = null,
@@ -293,6 +297,13 @@ data class SessionMilestone(
     val label: String,
     val value: Double,
     val detail: String? = null,
+    val createdAtIso: String = "",
+)
+
+@Serializable
+data class SessionSavedNote(
+    val id: String,
+    val text: String,
     val createdAtIso: String = "",
 )
 

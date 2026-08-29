@@ -85,6 +85,24 @@ private fun parseDropPcts(technique: PlannedTechnique?): List<Double> {
  * Suggests drop weight for ~3 reps from the main set performance,
  * progressive with planned % reductions, never heavier than the main set.
  */
+internal fun suggestedDropLoadsForMainSet(
+    mainWeight: Double,
+    mainReps: Int,
+    count: Int = DropSetPlanDefaults.DefaultDrops,
+): List<Double> {
+    val clamped = count.coerceIn(DropSetPlanDefaults.MinDrops, DropSetPlanDefaults.MaxDrops)
+    val pcts = DropSetPlanDefaults.weightPctsFor(clamped)
+        .split(",")
+        .mapNotNull { it.trim().toDoubleOrNull() }
+        .ifEmpty { listOf(-20.0) }
+    return (0 until clamped).map { index ->
+        suggestDropWeightForThreeReps(mainWeight, mainReps, index, pcts)
+    }
+}
+
+internal fun shouldAutoCommitTechniqueRows(doneFlags: List<Boolean>): Boolean =
+    doneFlags.isNotEmpty() && doneFlags.all { it }
+
 internal fun suggestDropWeightForThreeReps(
     mainWeight: Double,
     mainReps: Int,

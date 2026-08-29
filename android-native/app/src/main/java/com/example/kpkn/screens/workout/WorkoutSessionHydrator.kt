@@ -124,6 +124,7 @@ class WorkoutSessionHydrator(
         val restoredMode = resumedState?.activeMode ?: WeekVariant.A
         val restoredCompletedSets = resumedState?.completedSets ?: emptyMap()
         val restoredSkippedExerciseIds = resumedState?.skippedExerciseIds ?: emptySet()
+        val restoredOmittedSetKeys = resumedState?.omittedSetKeys ?: emptySet()
         val restoredWarmupCompletedExerciseIds = resumedState?.warmupCompletedExerciseIds ?: emptySet()
         val restoredMobilityCompletedExerciseIds = resumedState?.mobilityCompletedExerciseIds ?: emptySet()
         val restoredMobilityTotalCompletedStepKeys = resumedState?.mobilityTotalCompletedStepKeys ?: emptySet()
@@ -275,6 +276,7 @@ class WorkoutSessionHydrator(
                 activeStepKey = restoredResumeStep?.stepKey,
                 completedSets = restoredCompletedSets,
                 skippedExerciseIds = restoredSkippedExerciseIds,
+                omittedSetKeys = restoredOmittedSetKeys,
                 warmupCompletedExerciseIds = restoredWarmupCompletedExerciseIds,
                 mobilityCompletedExerciseIds = migratedMobilityCompletedExerciseIds,
                 mobilityTotalCompletedStepKeys = restoredMobilityTotalCompletedStepKeys,
@@ -321,6 +323,14 @@ class WorkoutSessionHydrator(
                 exercisePhotos = resumedState?.exercisePhotos.orEmpty(),
                 sessionMilestones = resumedState?.sessionMilestones.orEmpty(),
                 sessionNotes = resumedState?.sessionNotes.orEmpty(),
+                sessionSavedNotes = resumedState?.sessionSavedNotes.orEmpty(),
+                plannedSessionBaseline = resumedState?.plannedSessionBaseline
+                    ?: ports.sessionForActiveMode(
+                        session.normalizeMobilityCompatibility()
+                            .let(ports::normalizeSupersetsForWorkout)
+                            .let(ports::sanitizeSessionLoadModes),
+                        restoredMode,
+                    ),
                 sessionPhotos = resumedState?.sessionPhotos.orEmpty(),
                 sessionChecklist = resumedState?.sessionChecklist.orEmpty(),
                 voiceTimedSet = resumedState?.voiceTimedSet?.copy(isRunning = false),
@@ -382,6 +392,8 @@ class WorkoutSessionHydrator(
                     contextProfilesV3 = hydratedProfiles.first,
                     activeContextProfileByExerciseId = restoredActiveProfiles,
                     skippedExerciseIds = restoredSkippedExerciseIds,
+                    omittedSetKeys = restoredOmittedSetKeys,
+                    plannedSessionBaseline = getState().plannedSessionBaseline,
                     warmupCompletedExerciseIds = restoredWarmupCompletedExerciseIds,
                     mobilityCompletedExerciseIds = restoredMobilityCompletedExerciseIds,
                     mobilityTotalCompletedStepKeys = restoredMobilityTotalCompletedStepKeys,

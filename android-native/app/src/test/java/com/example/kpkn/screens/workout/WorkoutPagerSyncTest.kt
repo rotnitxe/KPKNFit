@@ -92,4 +92,26 @@ class WorkoutPagerSyncTest {
             ),
         )
     }
+
+    @Test
+    fun canonicalMobility_doesNotYankPagerOffApproximation() {
+        assertTrue(
+            shouldIgnoreCanonicalMobilityScroll(
+                canonicalType = LivePageType.MOBILITY,
+                settledType = LivePageType.WARMUP,
+            ),
+        )
+        assertFalse(
+            shouldIgnoreCanonicalMobilityScroll(
+                canonicalType = LivePageType.MOBILITY,
+                settledType = LivePageType.MOBILITY,
+            ),
+        )
+        assertFalse(
+            shouldIgnoreCanonicalMobilityScroll(
+                canonicalType = LivePageType.WARMUP,
+                settledType = LivePageType.WARMUP,
+            ),
+        )
+    }
 }

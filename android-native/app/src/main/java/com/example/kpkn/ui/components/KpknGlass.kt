@@ -84,6 +84,15 @@ fun kpknGlassStyle(): HazeStyle = HazeStyle(
     fallbackTint = HazeTint(KpknGlass.Tint),
 )
 
+/** Cover mica: same DarkMica blur, lighter tint so session artwork remains readable. */
+fun kpknCoverGlassStyle(): HazeStyle = HazeStyle(
+    blurRadius = KpknGlass.BlurRadius,
+    tint = HazeTint(Color(0xFF0E0E0E).copy(alpha = 0.18f)),
+    backgroundColor = Color.Transparent,
+    noiseFactor = KpknGlass.NoiseFactor,
+    fallbackTint = HazeTint(Color(0xFF0E0E0E).copy(alpha = 0.18f)),
+)
+
 /**
  * DarkMica: dark translucent base + light live blur.
  */
@@ -125,9 +134,9 @@ fun Modifier.kpknCoverGlass(
     withBorder: Boolean = true,
 ): Modifier = this
     .clip(shape)
-    .background(Color(0xFF0E0E0E).copy(alpha = 0.28f))
-    .hazeEffect(state = hazeState, style = kpknGlassStyle()) {
-        alpha = 0.22f
+    .background(Color(0xFF0E0E0E).copy(alpha = 0.12f))
+    .hazeEffect(state = hazeState, style = kpknCoverGlassStyle()) {
+        alpha = 0.50f
     }
     .then(
         if (withBorder) {

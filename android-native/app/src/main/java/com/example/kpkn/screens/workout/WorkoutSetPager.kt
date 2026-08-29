@@ -26,6 +26,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +49,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
@@ -1790,6 +1793,76 @@ private fun NextGhostCluster(
                         color = accent.copy(alpha = 0.10f),
                     ),
                 ) {}
+            }
+        }
+    }
+}
+
+@Composable
+internal fun LivePagerPeekNavArrows(
+    settledPage: Int,
+    totalPages: Int,
+    peekWidth: Dp,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (totalPages <= 1) return
+    val slotWidth = peekWidth.coerceAtLeast(WorkoutUiTokens.MinTouchTarget)
+    Box(modifier = modifier) {
+        LivePagerPeekNavButton(
+            enabled = settledPage > 0,
+            onClick = onPrevious,
+            contentDescription = "Serie anterior",
+            icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .width(slotWidth)
+                .fillMaxHeight(),
+        )
+        LivePagerPeekNavButton(
+            enabled = settledPage < totalPages - 1,
+            onClick = onNext,
+            contentDescription = "Serie siguiente",
+            icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .width(slotWidth)
+                .fillMaxHeight(),
+        )
+    }
+}
+
+@Composable
+private fun LivePagerPeekNavButton(
+    enabled: Boolean,
+    onClick: () -> Unit,
+    contentDescription: String,
+    icon: ImageVector,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center,
+    ) {
+        Surface(
+            onClick = onClick,
+            enabled = enabled,
+            shape = CircleShape,
+            color = Color.Black.copy(alpha = if (enabled) 0.42f else 0.18f),
+            border = BorderStroke(
+                width = 1.dp,
+                color = Color.White.copy(alpha = if (enabled) 0.22f else 0.10f),
+            ),
+            modifier = Modifier.size(36.dp),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = contentDescription,
+                    tint = Color.White.copy(alpha = if (enabled) 0.88f else 0.32f),
+                    modifier = Modifier.size(22.dp),
+                )
             }
         }
     }

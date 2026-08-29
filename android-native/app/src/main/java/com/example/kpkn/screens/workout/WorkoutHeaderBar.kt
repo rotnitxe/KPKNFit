@@ -22,8 +22,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +43,7 @@ import com.example.kpkn.data.models.WorkoutSubTag
 import com.example.kpkn.data.models.WorkoutTag
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
+import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.kpknCoverGlass
 import com.example.kpkn.ui.components.kpknSheetWhiteFilterChipColors
@@ -49,7 +54,6 @@ import com.example.kpkn.services.workout.VoiceSessionState
 import com.example.kpkn.domain.auge.ExerciseReadinessEngine
 import com.example.kpkn.data.models.SetAdjustmentSuggestion
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
 import androidx.compose.ui.graphics.RectangleShape
 
 private val PaceChipGreen = Color(0xFF66BB6A)
@@ -543,51 +547,60 @@ internal fun WorkoutHeaderBar(
     godModeActive: Boolean = false,
     onHistoryClick: (() -> Unit)? = null,
     onReplaceClick: (() -> Unit)? = null,
-    onNicknameClick: (() -> Unit)? = null,
+    nicknameKey: String? = null,
+    nicknameValue: String = "",
+    canonicalExerciseName: String = exerciseName,
+    onNicknameChange: ((String) -> Unit)? = null,
     onCreateSupersetClick: (() -> Unit)? = null,
+    bodyHazeState: HazeState? = null,
 ) {
     val colors = remember(background) { sessionCoverColors(background) }
 
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val coverHaze = remember { HazeState() }
-
     Box(modifier = Modifier.fillMaxWidth()) {
-        // Gradient Background layer — sibling haze source for cover mica.
+        // Only the cover/background is masked. Keeping the header chrome outside
+        // this layer prevents the timer, chips and labels from fading with it.
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(160.dp)
-                .hazeSource(state = coverHaze)
-                .background(Brush.linearGradient(colors))
-        )
-
-        // Translucent KPKN mica — blurs the session cover, not a nested overlay source.
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(160.dp)
-                .kpknCoverGlass(coverHaze, RectangleShape, withBorder = false),
-        )
-
-        // Fading mask to Surface color
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(160.dp)
-                .background(
-                    Brush.verticalGradient(
-                        0f to Color.Transparent,
-                        0.5f to Color.Transparent,
-                        1f to surfaceColor
+                .matchParentSize()
+                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                .drawWithContent {
+                    drawContent()
+                    drawRect(
+                        brush = Brush.verticalGradient(
+                            0.00f to Color.White,
+                            0.58f to Color.White,
+                            1.00f to Color.Transparent,
+                        ),
+                        blendMode = BlendMode.DstIn,
                     )
+                },
+        ) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        Brush.verticalGradient(
+                            0.00f to colors.first(),
+                            0.48f to colors.last().copy(alpha = 0.42f),
+                            1.00f to Color.Transparent,
+                        ),
+                    ),
+            )
+
+            if (bodyHazeState != null) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .kpknCoverGlass(bodyHazeState, RectangleShape, withBorder = false),
                 )
-        )
+            }
+        }
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 0.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 20.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Row(
@@ -600,27 +613,24 @@ internal fun WorkoutHeaderBar(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(SpanStyle(color = Color.White)) {
-                                append(exerciseName)
-                            }
-                            exerciseChips.forEach { chip ->
-                                append(" · ")
-                                withStyle(SpanStyle(color = Color.White.copy(alpha = 0.72f))) {
-                                    append(chip)
+                        Text(
+                            text = buildAnnotatedString {
+                                withStyle(SpanStyle(color = Color.White)) {
+                                    append(exerciseName)
                                 }
-                            }
-                        },
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Black,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f),
-                    )
-                    if (godModeActive && onNicknameClick != null) {
-                        HeaderCoverChip(label = "Apodo", onClick = onNicknameClick)
-                    }
+                                exerciseChips.forEach { chip ->
+                                    append(" · ")
+                                    withStyle(SpanStyle(color = Color.White.copy(alpha = 0.72f))) {
+                                        append(chip)
+                                    }
+                                }
+                            },
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Black,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     }
                     Text(
                         text = buildString {
@@ -717,13 +727,6 @@ internal fun WorkoutHeaderBar(
                                 }
                             }
                             }
-                        }
-
-                        if (godModeActive && onReplaceClick != null) {
-                            HeaderCoverChip(label = "Reemplazar", onClick = onReplaceClick)
-                        }
-                        if (godModeActive && onCreateSupersetClick != null && !isSuperset) {
-                            HeaderCoverChip(label = "Superserie", onClick = onCreateSupersetClick)
                         }
 
                         if (isSuperset) {
@@ -942,30 +945,6 @@ private fun HeaderCoverIconButton(
             contentDescription = contentDescription,
             tint = iconTint,
             modifier = Modifier.padding(10.dp),
-        )
-    }
-}
-
-@Composable
-private fun HeaderCoverChip(
-    label: String,
-    onClick: () -> Unit,
-) {
-    Surface(
-        onClick = onClick,
-        color = Color.White.copy(alpha = 0.16f),
-        shape = RoundedCornerShape(99.dp),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f)),
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.White.copy(alpha = 0.9f),
-            fontWeight = FontWeight.Black,
-            fontSize = 10.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
         )
     }
 }

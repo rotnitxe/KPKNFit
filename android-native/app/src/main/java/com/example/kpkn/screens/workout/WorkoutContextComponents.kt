@@ -1560,6 +1560,7 @@ internal fun WorkoutRmCalcContent(
     currentLoadMode: LoadModeV2? = null,
     onWeightSelected: ((weight: Double, loadMode: LoadModeV2?) -> Unit)? = null,
     sessionAccentColor: Color = MaterialTheme.colorScheme.primary,
+    softInputs: Boolean = false,
 ) {
     var rmWeightText by remember { mutableStateOf("") }
     var rmRepsText by remember { mutableStateOf("") }
@@ -1608,22 +1609,38 @@ internal fun WorkoutRmCalcContent(
     }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            OutlinedTextField(
-                value = rmWeightText,
-                onValueChange = { rmWeightText = it },
-                label = { Text(weightLabel) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                singleLine = true,
-                modifier = Modifier.weight(1f),
-            )
-            OutlinedTextField(
-                value = rmRepsText,
-                onValueChange = { rmRepsText = it },
-                label = { Text("Reps") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
-                modifier = Modifier.weight(1f),
-            )
+            if (softInputs) {
+                com.example.kpkn.screens.workout.components.WorkoutSoftNumberField(
+                    value = rmWeightText,
+                    onValueChange = { rmWeightText = it },
+                    label = weightLabel,
+                    decimal = true,
+                    modifier = Modifier.weight(1f),
+                )
+                com.example.kpkn.screens.workout.components.WorkoutSoftNumberField(
+                    value = rmRepsText,
+                    onValueChange = { rmRepsText = it },
+                    label = "Reps",
+                    modifier = Modifier.weight(1f),
+                )
+            } else {
+                OutlinedTextField(
+                    value = rmWeightText,
+                    onValueChange = { rmWeightText = it },
+                    label = { Text(weightLabel) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true,
+                    modifier = Modifier.weight(1f),
+                )
+                OutlinedTextField(
+                    value = rmRepsText,
+                    onValueChange = { rmRepsText = it },
+                    label = { Text("Reps") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
         if (rmResult != null && rmTable.isNotEmpty()) {
             Surface(

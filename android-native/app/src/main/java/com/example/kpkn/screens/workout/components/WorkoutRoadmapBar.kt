@@ -6,9 +6,13 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.input.pointer.pointerInput
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
 import com.example.kpkn.domain.sessionassistant.SeriesTechnique
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknGlassDialog
@@ -39,6 +43,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -83,6 +88,7 @@ fun WorkoutRoadmapBar(
     currentSetIdx: Int = 0,
     currentSide: String? = null,
     completedSets: Map<String, CompletedSet>,
+    omittedSetKeys: Set<String> = emptySet(),
     onSelect: (Int) -> Unit,
     onSelectStep: (String) -> Unit = {},
     onSelectGroup: (String) -> Unit = {},
@@ -96,9 +102,11 @@ fun WorkoutRoadmapBar(
     milestones: List<SessionMilestone> = emptyList(),
     liveEnergySummary: SessionEnergySummary = SessionEnergySummary(),
     sessionNotes: String = "",
+    sessionSavedNotes: List<com.example.kpkn.data.models.SessionSavedNote> = emptyList(),
     sessionPhotos: List<String> = emptyList(),
     sessionChecklist: List<SessionChecklistItem> = emptyList(),
     onSessionNotesChange: (String) -> Unit = {},
+    onSaveSessionNote: (String) -> Unit = {},
     onAddSessionPhoto: (android.net.Uri) -> Unit = {},
     onRemoveSessionPhoto: (String) -> Unit = {},
     onAddChecklistItem: (String) -> Unit = {},
@@ -118,6 +126,10 @@ fun WorkoutRoadmapBar(
     onDissolveSuperset: (String) -> Unit = {},
     onSelectionModeChange: (Boolean) -> Unit = {},
     clearSelectionNonce: Int = 0,
+    godModeUndoStack: List<GodModeUndoSnapshot> = emptyList(),
+    onRevertGodModeAction: (Int) -> Unit = {},
+    planAspects: List<com.example.kpkn.screens.workout.SessionPlanAspect> = emptyList(),
+    onRevertPlanAspect: (String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val activeMode = mode
@@ -127,10 +139,12 @@ fun WorkoutRoadmapBar(
     var pendingDissolveGroupId by remember { mutableStateOf<String?>(null) }
     var pendingUltraFast by remember { mutableStateOf(false) }
     var draggingEntryIndex by remember { mutableStateOf<Int?>(null) }
+    var autoScrollDirection by remember { mutableStateOf(0) }
     LaunchedEffect(godModeActive) {
         if (!godModeActive) {
             selectedIds = emptySet()
             draggingEntryIndex = null
+            autoScrollDirection = 0
         }
     }
     val selectionMode = selectedIds.isNotEmpty()
@@ -223,6 +237,13 @@ fun WorkoutRoadmapBar(
         }
     }
 
+    LaunchedEffect(autoScrollDirection, draggingEntryIndex) {
+        while (autoScrollDirection != 0 && draggingEntryIndex != null) {
+            listState.animateScrollBy(autoScrollDirection * dragStridePx * 0.35f)
+            delay(16)
+        }
+    }
+
     val supersetOrdinalById = remember(roadmapGroups) {
         roadmapGroups.mapNotNull { group ->
             group.groupId?.takeIf { group.exercises.size > 1 }
@@ -297,14 +318,15 @@ fun WorkoutRoadmapBar(
                     animationSpec = tween(durationMillis = 220),
                 ) + fadeOut(animationSpec = tween(durationMillis = 140)),
             ) {
-                val totalCompletedCount = exercises.sumOf { e ->
-                    e.sets.indices.sumOf { sIdx ->
-                        e.completionKeysForSet(sIdx).count { completedSets.containsKey(it) }
-                    }
-                }
-                val totalSetsCount = exercises.sumOf { e ->
-                    e.sets.indices.sumOf { e.completionKeysForSet(it).size }
-                }
+                val totalCompletedCount = WorkoutStepRules.completedRoadmapSlotsForExercises(
+                    exercises = exercises,
+                    completedSets = completedSets,
+                    omittedSetKeys = omittedSetKeys,
+                )
+                val totalSetsCount = WorkoutStepRules.totalRoadmapSlotsForExercises(
+                    exercises = exercises,
+                    omittedSetKeys = omittedSetKeys,
+                )
                 WorkoutSessionCockpit(
                     exercises = exercises,
                     completedSets = completedSets,
@@ -312,9 +334,11 @@ fun WorkoutRoadmapBar(
                     sessionProgressLabel = "Progreso: $totalCompletedCount/$totalSetsCount",
                     liveEnergySummary = liveEnergySummary,
                     sessionNotes = sessionNotes,
+                    sessionSavedNotes = sessionSavedNotes,
                     sessionPhotos = sessionPhotos,
                     sessionChecklist = sessionChecklist,
                     onSessionNotesChange = onSessionNotesChange,
+                    onSaveSessionNote = onSaveSessionNote,
                     onAddSessionPhoto = onAddSessionPhoto,
                     onRemoveSessionPhoto = onRemoveSessionPhoto,
                     onAddChecklistItem = onAddChecklistItem,
@@ -322,6 +346,10 @@ fun WorkoutRoadmapBar(
                     onRemoveChecklistItem = onRemoveChecklistItem,
                     sessionAccentColor = sessionAccentColor,
                     bodyWeight = bodyWeight,
+                    planAspects = planAspects,
+                    onRevertPlanAspect = onRevertPlanAspect,
+                    godModeActions = godModeUndoStack,
+                    onRevertGodModeAction = onRevertGodModeAction,
                 )
             }
 
@@ -439,14 +467,15 @@ fun WorkoutRoadmapBar(
                             }
                             val partName = normalizeWorkoutHeaderLabel(part?.name)
 
-                            val completedCount = group.exercises.sumOf { member ->
-                                member.sets.indices.sumOf { setIdx ->
-                                    member.completionKeysForSet(setIdx).count { key -> completedSets.containsKey(key) }
-                                }
-                            }
-                            val totalSets = group.exercises.sumOf { member ->
-                                member.sets.indices.sumOf { setIdx -> member.completionKeysForSet(setIdx).size }
-                            }
+                            val completedCount = WorkoutStepRules.completedRoadmapSlotsForExercises(
+                                exercises = group.exercises,
+                                completedSets = completedSets,
+                                omittedSetKeys = omittedSetKeys,
+                            )
+                            val totalSets = WorkoutStepRules.totalRoadmapSlotsForExercises(
+                                exercises = group.exercises,
+                                omittedSetKeys = omittedSetKeys,
+                            )
                             val isAllDone = completedCount >= totalSets && totalSets > 0
                             val isCurrent = group.exercises.any { it.id == exercises.getOrNull(currentIdx)?.id }
                             val groupSelected = group.exercises.any { it.id in selectedIds }
@@ -460,12 +489,8 @@ fun WorkoutRoadmapBar(
                                 }
                             }
                             val onCardLongClick: (() -> Unit)? = {
-                                if (godModeActive) {
-                                    selectedIds = selectedIds + exercise.id
-                                } else if (compactLongPress) {
-                                    onOpenContext(exercise.id)
-                                }
-                            }.takeIf { godModeActive || compactLongPress }
+                                onOpenContext(exercise.id)
+                            }.takeIf { compactLongPress }
 
                             val selectedBorder by animateDpAsState(
                                 targetValue = if (groupSelected) 2.dp else 0.dp,
@@ -512,17 +537,55 @@ fun WorkoutRoadmapBar(
                                                 }
                                         } else Modifier
                                     )
-                                    .pointerInput(godModeActive, selectionMode, entryIdx, roadmapEntries.size, dragThresholdPx, dragStridePx) {
+                                    .pointerInput(
+                                        godModeActive,
+                                        selectionMode,
+                                        entryIdx,
+                                        roadmapEntries.size,
+                                        dragThresholdPx,
+                                        dragStridePx,
+                                    ) {
                                         if (!godModeActive || selectionMode) return@pointerInput
-                                        var acc = 0f
-                                        var dragging = false
-                                        detectDragGestures(
-                                            onDragStart = {
-                                                acc = 0f
-                                                dragging = false
-                                                pickupOffset = 0f
-                                            },
-                                            onDragEnd = {
+                                        awaitEachGesture {
+                                            val down = awaitFirstDown(requireUnconsumed = false)
+                                            val touchSlop = viewConfiguration.touchSlop
+                                            val longPressTimeout = viewConfiguration.longPressTimeoutMillis
+                                            val wonLongPress = withTimeoutOrNull(longPressTimeout) {
+                                                while (true) {
+                                                    val event = awaitPointerEvent()
+                                                    val change = event.changes.firstOrNull { it.id == down.id }
+                                                        ?: return@withTimeoutOrNull false
+                                                    if (!change.pressed) return@withTimeoutOrNull false
+                                                    if ((change.position - down.position).getDistance() > touchSlop) {
+                                                        return@withTimeoutOrNull false
+                                                    }
+                                                }
+                                            }
+                                            if (wonLongPress != null) return@awaitEachGesture
+                                            draggingEntryIndex = entryIdx
+                                            var acc = 0f
+                                            var dragging = false
+                                            pickupOffset = 0f
+                                            autoScrollDirection = 0
+                                            try {
+                                                while (true) {
+                                                    val event = awaitPointerEvent()
+                                                    val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                                                    if (!change.pressed) break
+                                                    acc += change.position.x - change.previousPosition.x
+                                                    if (!dragging && kotlin.math.abs(acc) >= dragThresholdPx) {
+                                                        dragging = true
+                                                    }
+                                                    if (dragging) {
+                                                        pickupOffset = acc
+                                                        autoScrollDirection = when {
+                                                            acc < -dragStridePx * 0.75f && entryIdx > 0 -> -1
+                                                            acc > dragStridePx * 0.75f && entryIdx < roadmapEntries.lastIndex -> 1
+                                                            else -> 0
+                                                        }
+                                                        change.consume()
+                                                    }
+                                                }
                                                 if (dragging) {
                                                     val rawSteps = kotlin.math.round(acc / dragStridePx).toInt()
                                                     val steps = when {
@@ -537,26 +600,15 @@ fun WorkoutRoadmapBar(
                                                             swappedRoadmapExerciseIds(roadmapEntries, entryIdx, target),
                                                         )
                                                     }
+                                                } else {
+                                                    selectedIds = selectedIds + exercise.id
                                                 }
+                                            } finally {
                                                 pickupOffset = 0f
                                                 draggingEntryIndex = null
-                                            },
-                                            onDragCancel = {
-                                                pickupOffset = 0f
-                                                draggingEntryIndex = null
-                                            },
-                                            onDrag = { change, amount ->
-                                                acc += amount.x
-                                                if (!dragging && kotlin.math.abs(acc) >= dragThresholdPx) {
-                                                    dragging = true
-                                                    draggingEntryIndex = entryIdx
-                                                }
-                                                if (dragging) {
-                                                    pickupOffset = acc
-                                                    change.consume()
-                                                }
-                                            },
-                                        )
+                                                autoScrollDirection = 0
+                                            }
+                                        }
                                     },
                             ) {
                             if (exercise.isCardio) {
@@ -567,11 +619,6 @@ fun WorkoutRoadmapBar(
                                     onClick = onCardClick,
                                     onLongClick = onCardLongClick,
                                     pickedUp = pickedUp,
-                                    onSkipClick = if (godModeActive) {
-                                        { onSkipExercise(exercise.id) }
-                                    } else {
-                                        null
-                                    },
                                 )
                             } else if (!isSuperset) {
                                 ExerciseRoadmapCard(
@@ -591,11 +638,6 @@ fun WorkoutRoadmapBar(
                                     },
                                     onLongClick = onCardLongClick,
                                     pickedUp = pickedUp,
-                                    onSkipClick = if (godModeActive) {
-                                        { onSkipExercise(exercise.id) }
-                                    } else {
-                                        null
-                                    },
                                 )
                             } else {
                                 SupersetRoadmapCard(
@@ -608,6 +650,7 @@ fun WorkoutRoadmapBar(
                                         ?.takeIf { it > 0 }
                                         ?: (group.exercises.maxOfOrNull { it.sets.size } ?: 0),
                                     completedSets = completedSets,
+                                    omittedSetKeys = omittedSetKeys,
                                     isCurrent = isCurrent,
                                     isAllDone = isAllDone,
                                     accent = RoadmapCeleste,
@@ -628,11 +671,6 @@ fun WorkoutRoadmapBar(
                                     onDissolve = { group.groupId?.let { pendingDissolveGroupId = it } },
                                     onDeleteMember = { memberId -> pendingDeleteExerciseId = memberId },
                                     pickedUp = pickedUp,
-                                    onSkipClick = if (godModeActive) {
-                                        { group.exercises.forEach { onSkipExercise(it.id) } }
-                                    } else {
-                                        null
-                                    },
                                 )
                             }
                             GodModeRoadmapBadges(
@@ -769,19 +807,8 @@ private fun Exercise.expectedSidesForSet(setIndex: Int): List<String> {
     return WorkoutStepRules.workingSidesForSet(this, setIndex)
 }
 
-private fun Exercise.completionKeysForSet(setIndex: Int): List<String> {
-    if (setIndex !in sets.indices) return emptyList()
-    if (!isEffectivelyUnilateral()) return listOf("${id}_$setIndex")
-
-    val set = sets[setIndex]
-    val hasLeftOnly = set.leftTarget != null && set.rightTarget == null
-    val hasRightOnly = set.rightTarget != null && set.leftTarget == null
-    return when {
-        hasLeftOnly -> listOf("${id}_${setIndex}_L")
-        hasRightOnly -> listOf("${id}_${setIndex}_R")
-        else -> listOf("${id}_${setIndex}_L", "${id}_${setIndex}_R")
-    }
-}
+private fun Exercise.completionKeysForSet(setIndex: Int): List<String> =
+    WorkoutStepRules.completionKeysForRoadmapSet(this, setIndex)
 
 private val CardioRoadmapAccent = Color(0xFFE0A13A)
 
@@ -827,7 +854,6 @@ private fun CardioRoadmapCard(
     onClick: () -> Unit,
     onLongClick: (() -> Unit)?,
     pickedUp: Boolean = false,
-    onSkipClick: (() -> Unit)? = null,
 ) {
     val details = exercise.cardioDetails
     val modeLabel = when (details?.programMode()) {
@@ -915,48 +941,8 @@ private fun CardioRoadmapCard(
                     fontWeight = FontWeight.Medium,
                     color = contentColor.copy(alpha = 0.68f),
                 )
-                if (onSkipClick != null) {
-                    RoadmapInCardAction(
-                        label = "Omitir",
-                        onClick = onSkipClick,
-                        color = contentColor,
-                    )
-                }
             }
         }
-    }
-}
-
-@Composable
-private fun RoadmapInCardAction(
-    label: String,
-    onClick: () -> Unit,
-    color: Color,
-) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(99.dp),
-        color = Color.White.copy(alpha = 0.16f),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.22f)),
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-            fontWeight = FontWeight.Bold,
-            color = color.copy(alpha = 0.92f),
-            maxLines = 1,
-        )
-    }
-}
-
-private fun formatRoadmapDuration(totalSeconds: Int): String {
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-    return when {
-        minutes > 0 && seconds > 0 -> "${minutes}m ${seconds}s"
-        minutes > 0 -> "${minutes} min"
-        else -> "${seconds}s"
     }
 }
 
@@ -978,7 +964,6 @@ private fun ExerciseRoadmapCard(
     onLongClick: (() -> Unit)?,
     scale: RoadmapCardScale = RoadmapCardScale.Full,
     pickedUp: Boolean = false,
-    onSkipClick: (() -> Unit)? = null,
 ) {
     val displayName = exercise.displayNameWithSelectedChips()
     val isUnilateral = exercise.isEffectivelyUnilateral()
@@ -1071,15 +1056,18 @@ private fun ExerciseRoadmapCard(
                         color = contentColor.copy(alpha = 0.6f),
                     )
                 }
-                if (!isMini && onSkipClick != null) {
-                    RoadmapInCardAction(
-                        label = "Omitir",
-                        onClick = onSkipClick,
-                        color = contentColor,
-                    )
-                }
             }
         }
+    }
+}
+
+private fun formatRoadmapDuration(totalSeconds: Int): String {
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return when {
+        minutes > 0 && seconds > 0 -> "${minutes}m ${seconds}s"
+        minutes > 0 -> "${minutes} min"
+        else -> "${seconds}s"
     }
 }
 
@@ -1091,6 +1079,7 @@ private fun SupersetRoadmapCard(
     supersetCount: Int,
     roundCount: Int,
     completedSets: Map<String, CompletedSet>,
+    omittedSetKeys: Set<String> = emptySet(),
     isCurrent: Boolean,
     isAllDone: Boolean,
     accent: Color,
@@ -1106,7 +1095,6 @@ private fun SupersetRoadmapCard(
     onDissolve: () -> Unit = {},
     onDeleteMember: (String) -> Unit = {},
     pickedUp: Boolean = false,
-    onSkipClick: (() -> Unit)? = null,
 ) {
     val safeRoundCount = roundCount.coerceAtLeast(1)
     val currentRoundIndex = ((currentRound ?: 1) - 1).coerceIn(0, safeRoundCount - 1)
@@ -1162,25 +1150,21 @@ private fun SupersetRoadmapCard(
                     color = if (isCurrent) onCard.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.62f),
                     maxLines = 1,
                 )
-                if (onSkipClick != null) {
-                    RoadmapInCardAction(
-                        label = "Omitir",
-                        onClick = onSkipClick,
-                        color = onCard,
-                    )
-                }
             }
             Row(
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 exercises.forEach { member ->
-                    val memberCompleted = member.sets.indices.sumOf { setIdx ->
-                        member.completionKeysForSet(setIdx).count { completedSets.containsKey(it) }
-                    }
-                    val memberTotal = member.sets.indices.sumOf { setIdx ->
-                        member.completionKeysForSet(setIdx).size
-                    }
+                    val memberCompleted = WorkoutStepRules.completedRoadmapSlotsForExercise(
+                        exercise = member,
+                        completedSets = completedSets,
+                        omittedSetKeys = omittedSetKeys,
+                    )
+                    val memberTotal = WorkoutStepRules.totalRoadmapSlotsForExercise(
+                        exercise = member,
+                        omittedSetKeys = omittedSetKeys,
+                    )
                     val memberAllDone = memberCompleted >= memberTotal && memberTotal > 0
                     val memberIsCurrent = member.id == currentExerciseId && isCurrent
                     Box(modifier = Modifier.graphicsLayer { clip = false }) {

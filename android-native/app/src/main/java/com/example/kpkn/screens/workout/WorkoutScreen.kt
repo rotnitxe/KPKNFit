@@ -964,6 +964,16 @@ fun WorkoutScreen(
                     structureSheets.showWorkoutSupersetCreator = true
                 }
             },
+            onReplaceExercise = { exerciseId ->
+                val target = visibleExercises.firstOrNull { it.id == exerciseId }
+                structureSheets.replaceTargetExerciseId = exerciseId
+                structureSheets.replaceSearchQuery = if (target?.catalogDefinitionId == null) {
+                    target?.name.orEmpty()
+                } else {
+                    ""
+                }
+                structureSheets.showReplaceExercisePicker = true
+            },
             )
             if (roadmapSelecting) {
                 Box(
@@ -992,6 +1002,7 @@ fun WorkoutScreen(
                         currentSetIdx = uiState.currentSetIdx,
                         currentSide = activeDockSide,
                         completedSets = uiState.completedSets,
+                        omittedSetKeys = uiState.omittedSetKeys,
                         onSelect = { viewModel.selectExercise(it) },
                         onSelectStep = { stepKey -> viewModel.selectWorkoutStep(stepKey) },
                         onSelectGroup = { viewModel.selectSupersetGroup(it) },
@@ -1022,7 +1033,7 @@ fun WorkoutScreen(
                             viewModel.applyReorderAndPromptPersistence(orderedIds, partMap, isGlobal = true)
                         },
                         onCreateSupersetFrom = { ids -> viewModel.createLiveSuperset(ids) },
-                        onBatchSkip = { ids -> ids.forEach(viewModel::skipExercise) },
+                        onBatchSkip = { ids -> viewModel.skipExercises(ids) },
                         onBatchDelete = { viewModel.removeExercisesFromSession(it) },
                         onBatchUltraFast = { ids, technique ->
                             ids.forEach { id ->
@@ -1035,6 +1046,31 @@ fun WorkoutScreen(
                         onDissolveSuperset = { viewModel.dissolveLiveSuperset(it) },
                         onSelectionModeChange = { roadmapSelecting = it },
                         clearSelectionNonce = selectionClearNonce,
+                        godModeUndoStack = uiState.godModeUndoStack,
+                        onRevertGodModeAction = { index -> viewModel.revertGodModeChange(index) },
+                        planAspects = remember(
+                            uiState.plannedSessionBaseline,
+                            uiState.session,
+                            uiState.skippedExerciseIds,
+                            uiState.omittedSetKeys,
+                            uiState.activeMode,
+                        ) {
+                            val current = uiState.session?.let { session ->
+                                when (uiState.activeMode) {
+                                    com.example.kpkn.data.models.WeekVariant.A -> session
+                                    com.example.kpkn.data.models.WeekVariant.B -> session.sessionB ?: session
+                                    com.example.kpkn.data.models.WeekVariant.C -> session.sessionC ?: session
+                                    com.example.kpkn.data.models.WeekVariant.D -> session.sessionD ?: session
+                                }
+                            }
+                            diffSessionPlan(
+                                baseline = uiState.plannedSessionBaseline,
+                                current = current,
+                                skippedExerciseIds = uiState.skippedExerciseIds,
+                                omittedSetKeys = uiState.omittedSetKeys,
+                            )
+                        },
+                        onRevertPlanAspect = { viewModel.revertPlanAspect(it) },
                         sessionAccentColor = sessionAccentColor,
                         hazeState = cardsHazeStateDock,
                         mode = roadmapMode,
@@ -1042,9 +1078,11 @@ fun WorkoutScreen(
                         milestones = uiState.sessionMilestones,
                         liveEnergySummary = uiState.liveEnergySummary,
                         sessionNotes = uiState.sessionNotes,
+                        sessionSavedNotes = uiState.sessionSavedNotes,
                         sessionPhotos = uiState.sessionPhotos,
                         sessionChecklist = uiState.sessionChecklist,
                         onSessionNotesChange = { viewModel.setSessionNotes(it) },
+                        onSaveSessionNote = { viewModel.saveSessionNote(it) },
                         onAddSessionPhoto = { viewModel.addSessionPhoto(it) },
                         onRemoveSessionPhoto = { viewModel.removeSessionPhoto(it) },
                         onAddChecklistItem = { viewModel.addSessionChecklistItem(it) },

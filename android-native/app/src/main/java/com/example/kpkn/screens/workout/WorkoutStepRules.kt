@@ -40,7 +40,62 @@ data class WorkoutStep(
 )
 
 object WorkoutStepRules {
-    fun buildSteps(session: Session, visibleExercises: List<Exercise> = session.allExercises()): List<WorkoutStep> {
+    fun omittedSetKey(exerciseId: String, setIndex: Int): String = "${exerciseId}_$setIndex"
+
+    fun isSetOmitted(exerciseId: String, setIndex: Int, omittedSetKeys: Set<String>): Boolean =
+        omittedSetKey(exerciseId, setIndex) in omittedSetKeys
+
+    /** Completion keys for roadmap progress badges; mirrors the roadmap card model. */
+    fun completionKeysForRoadmapSet(exercise: Exercise, setIndex: Int): List<String> {
+        if (setIndex !in exercise.sets.indices) return emptyList()
+        if (!exercise.isEffectivelyUnilateral()) return listOf(workingStepKey(exercise.id, setIndex))
+
+        val set = exercise.sets[setIndex]
+        val hasLeftOnly = set.leftTarget != null && set.rightTarget == null
+        val hasRightOnly = set.rightTarget != null && set.leftTarget == null
+        return when {
+            hasLeftOnly -> listOf(workingStepKey(exercise.id, setIndex, "left"))
+            hasRightOnly -> listOf(workingStepKey(exercise.id, setIndex, "right"))
+            else -> listOf(
+                workingStepKey(exercise.id, setIndex, "left"),
+                workingStepKey(exercise.id, setIndex, "right"),
+            )
+        }
+    }
+
+    fun totalRoadmapSlotsForExercise(
+        exercise: Exercise,
+        omittedSetKeys: Set<String> = emptySet(),
+    ): Int = exercise.sets.indices
+        .filter { !isSetOmitted(exercise.id, it, omittedSetKeys) }
+        .sumOf { completionKeysForRoadmapSet(exercise, it).size }
+
+    fun completedRoadmapSlotsForExercise(
+        exercise: Exercise,
+        completedSets: Map<String, CompletedSet>,
+        omittedSetKeys: Set<String> = emptySet(),
+    ): Int = exercise.sets.indices
+        .filter { !isSetOmitted(exercise.id, it, omittedSetKeys) }
+        .sumOf { setIdx ->
+            completionKeysForRoadmapSet(exercise, setIdx).count { completedSets.containsKey(it) }
+        }
+
+    fun totalRoadmapSlotsForExercises(
+        exercises: List<Exercise>,
+        omittedSetKeys: Set<String> = emptySet(),
+    ): Int = exercises.sumOf { totalRoadmapSlotsForExercise(it, omittedSetKeys) }
+
+    fun completedRoadmapSlotsForExercises(
+        exercises: List<Exercise>,
+        completedSets: Map<String, CompletedSet>,
+        omittedSetKeys: Set<String> = emptySet(),
+    ): Int = exercises.sumOf { completedRoadmapSlotsForExercise(it, completedSets, omittedSetKeys) }
+
+    fun buildSteps(
+        session: Session,
+        visibleExercises: List<Exercise> = session.allExercises(),
+        omittedSetKeys: Set<String> = emptySet(),
+    ): List<WorkoutStep> {
         val steps = mutableListOf<WorkoutStep>()
         val emittedSupersets = mutableSetOf<String>()
 
@@ -48,10 +103,10 @@ object WorkoutStepRules {
             val groupId = exercise.supersetGroupRefOrLegacyId()
             if (groupId != null) {
                 if (emittedSupersets.add(groupId)) {
-                    appendSupersetSteps(session, visibleExercises, groupId, steps)
+                    appendSupersetSteps(session, visibleExercises, groupId, steps, omittedSetKeys)
                 }
             } else {
-                appendExerciseSteps(exercise, groupId = null, steps = steps)
+                appendExerciseSteps(exercise, groupId = null, steps = steps, omittedSetKeys = omittedSetKeys)
             }
         }
 
@@ -61,8 +116,9 @@ object WorkoutStepRules {
     fun buildWorkingPositions(
         session: Session,
         visibleExercises: List<Exercise> = session.allExercises(),
+        omittedSetKeys: Set<String> = emptySet(),
     ): List<WorkoutStep> {
-        return buildSteps(session, visibleExercises)
+        return buildSteps(session, visibleExercises, omittedSetKeys)
             .filter { it.type == WorkoutStepType.WORKING_SET && it.setIndex != null }
     }
 
@@ -168,6 +224,7 @@ WorkoutStepType.MOBILITY,
         visibleExercises: List<Exercise>,
         groupId: String,
         steps: MutableList<WorkoutStep>,
+        omittedSetKeys: Set<String>,
     ) {
         val visibleIds = visibleExercises.map { it.id }.toSet()
         val members = SupersetRules.orderedMembers(session, groupId)
@@ -197,6 +254,7 @@ WorkoutStepType.MOBILITY,
             members.forEachIndexed { memberIdx, exercise ->
                 if (exercise.isCardio) return@forEachIndexed
                 if (roundIdx !in exercise.sets.indices) return@forEachIndexed
+                if (isSetOmitted(exercise.id, roundIdx, omittedSetKeys)) return@forEachIndexed
                 val isLastMemberWithSet = members
                     .drop(memberIdx + 1)
                     .none { roundIdx in it.sets.indices }
@@ -217,6 +275,7 @@ WorkoutStepType.MOBILITY,
         exercise: Exercise,
         groupId: String?,
         steps: MutableList<WorkoutStep>,
+        omittedSetKeys: Set<String>,
     ) {
         if (exercise.isCardio) {
             appendCardioStep(exercise, groupId, steps)
@@ -224,6 +283,7 @@ WorkoutStepType.MOBILITY,
         }
         appendPreparationSteps(exercise, groupId, steps)
         exercise.sets.indices.forEach { setIndex ->
+            if (isSetOmitted(exercise.id, setIndex, omittedSetKeys)) return@forEach
             appendWorkingSetSteps(
                 exercise = exercise,
                 setIndex = setIndex,

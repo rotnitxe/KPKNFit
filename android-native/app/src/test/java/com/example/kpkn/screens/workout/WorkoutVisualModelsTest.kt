@@ -86,9 +86,46 @@ class WorkoutVisualModelsTest {
     }
 
     @Test
-    fun live_pager_compact_scale_matches_pre_god_mode_slot() {
+    fun live_pager_viewport_adapt_scale_only_on_god_mode_or_very_narrow() {
+        val tokens = com.example.kpkn.screens.workout.components.WorkoutUiTokens
+        val phone = tokens.livePagerViewportAdaptScale(
+            availableWidth = androidx.compose.ui.unit.Dp(411f),
+            availableHeight = androidx.compose.ui.unit.Dp(400f),
+            godModeActive = false,
+        )
+        val compactPhone = tokens.livePagerViewportAdaptScale(
+            availableWidth = androidx.compose.ui.unit.Dp(360f),
+            availableHeight = androidx.compose.ui.unit.Dp(520f),
+            godModeActive = false,
+        )
+        val flipCover = tokens.livePagerViewportAdaptScale(
+            availableWidth = androidx.compose.ui.unit.Dp(280f),
+            availableHeight = androidx.compose.ui.unit.Dp(520f),
+            godModeActive = false,
+        )
+        val godShort = tokens.livePagerViewportAdaptScale(
+            availableWidth = androidx.compose.ui.unit.Dp(411f),
+            availableHeight = androidx.compose.ui.unit.Dp(400f),
+            godModeActive = true,
+        )
+        assertEquals(1f, phone, 0.01f)
+        assertEquals(1f, compactPhone, 0.01f)
         assertEquals(
-            1.20f,
+            tokens.liveAdaptScale(
+                availableWidth = androidx.compose.ui.unit.Dp(280f),
+                availableHeight = androidx.compose.ui.unit.Dp(520f),
+            ),
+            flipCover,
+            0.01f,
+        )
+        assert(flipCover < 1f)
+        assertEquals(1f, godShort, 0.01f)
+    }
+
+    @Test
+    fun live_pager_card_scale_is_fifteen_percent_below_previous_scale() {
+        assertEquals(
+            1.20f * 0.85f,
             com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardScale,
             0.001f,
         )
@@ -96,6 +133,15 @@ class WorkoutVisualModelsTest {
         val expected = com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerBaseHeight *
             com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardScale
         assertEquals(expected, compactSlot)
+    }
+
+    @Test
+    fun live_pager_card_top_nudge_is_thirteen_percent_of_slot() {
+        assertEquals(
+            0.13f,
+            com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardTopNudgeFraction,
+            0.001f,
+        )
     }
 
     @Test

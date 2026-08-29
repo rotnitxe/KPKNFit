@@ -102,3 +102,14 @@ internal fun shouldSyncSettledPagerPage(
     if (targetStepKey.isBlank() || targetStepKey == activeStepKey) return false
     return true
 }
+
+/**
+ * The canonical step can still be mobility after the user already swiped to
+ * approximation (or another page). Never yank the pager back in that case.
+ */
+internal fun shouldIgnoreCanonicalMobilityScroll(
+    canonicalType: LivePageType?,
+    settledType: LivePageType?,
+): Boolean = canonicalType == LivePageType.MOBILITY &&
+    settledType != null &&
+    settledType != LivePageType.MOBILITY

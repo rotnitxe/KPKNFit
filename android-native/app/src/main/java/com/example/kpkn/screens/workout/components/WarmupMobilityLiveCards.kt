@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,7 +16,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -45,11 +49,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -264,21 +270,57 @@ internal data class WarmupPhaseRow(
 internal fun LivePagerCardFrame(
     modifier: Modifier = Modifier,
     allowContentExpansion: Boolean = false,
+    godModeActive: Boolean = false,
     content: @Composable BoxScope.() -> Unit,
 ) {
+    if (godModeActive) {
+        val scale = WorkoutUiTokens.GodModeCardScale
+        val baseHeight = WorkoutUiTokens.LivePagerNormalExpandedBaseHeight
+        BoxWithConstraints(
+            modifier = modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center,
+        ) {
+            val pageWidth = maxWidth
+            Box(
+                modifier = Modifier
+                    .width(pageWidth * scale)
+                    .height(baseHeight * scale),
+                contentAlignment = Alignment.Center,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .requiredWidth(pageWidth)
+                        .requiredHeight(baseHeight)
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                            transformOrigin = TransformOrigin.Center
+                        }
+                        .blur(WorkoutUiTokens.GodModeCardBlur),
+                    content = content,
+                )
+            }
+        }
+        return
+    }
+
     val scale = WorkoutUiTokens.effectiveLivePagerCardScale()
     val slotHeight = WorkoutUiTokens.effectiveLivePagerSlotHeight()
+    val baseHeight = WorkoutUiTokens.LivePagerBaseHeight
+    val topNudge = slotHeight * WorkoutUiTokens.LivePagerCardTopNudgeFraction
     if (!allowContentExpansion) {
+        val widthFraction = if (scale >= 1f) (1f / scale).coerceIn(0.01f, 1f) else 1f
         Box(
             modifier = modifier
                 .fillMaxWidth()
-                .height(slotHeight),
-            contentAlignment = Alignment.Center,
+                .height(slotHeight + topNudge),
+            contentAlignment = Alignment.TopCenter,
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(1f / scale)
-                    .height(WorkoutUiTokens.LivePagerBaseHeight)
+                    .padding(top = topNudge)
+                    .fillMaxWidth(widthFraction)
+                    .height(baseHeight)
                     .scale(scale),
                 content = content,
             )
@@ -290,11 +332,19 @@ internal fun LivePagerCardFrame(
         val baseHeightPx = WorkoutUiTokens.LivePagerBaseHeight.roundToPx()
         val slotHeightPx = slotHeight.roundToPx()
         val maxChildWidth = if (constraints.hasBoundedWidth) {
-            (constraints.maxWidth / scale).roundToInt().coerceAtLeast(0)
+            if (scale >= 1f) {
+                (constraints.maxWidth / scale).roundToInt().coerceAtLeast(0)
+            } else {
+                constraints.maxWidth
+            }
         } else {
             Constraints.Infinity
         }
-        val minChildWidth = (constraints.minWidth / scale).roundToInt().coerceAtLeast(0)
+        val minChildWidth = if (scale >= 1f) {
+            (constraints.minWidth / scale).roundToInt().coerceAtLeast(0)
+        } else {
+            0
+        }
         val placeable = subcompose("expandable_live_pager_card") {
             Box(
                 modifier = Modifier
@@ -313,17 +363,24 @@ internal fun LivePagerCardFrame(
             ),
         )
         val scaledWidth = (placeable.width * scale).roundToInt()
-        val width = scaledWidth.coerceIn(constraints.minWidth, constraints.maxWidth)
-        val layoutHeight = (placeable.height * scale).roundToInt().coerceAtLeast(slotHeightPx)
+        val layoutWidth = if (constraints.hasBoundedWidth) {
+            constraints.maxWidth
+        } else {
+            scaledWidth
+        }
+        val scaledHeight = (placeable.height * scale).roundToInt().coerceAtLeast(slotHeightPx)
+        val topNudgePx = (scaledHeight * WorkoutUiTokens.LivePagerCardTopNudgeFraction).roundToInt()
+        val layoutHeight = scaledHeight + topNudgePx
 
-        layout(width, layoutHeight) {
+        layout(layoutWidth, layoutHeight) {
             placeable.placeRelativeWithLayer(
-                x = ((width - scaledWidth) / 2f).roundToInt().coerceAtLeast(0),
-                y = 0,
+                x = ((layoutWidth - scaledWidth) / 2f).roundToInt(),
+                y = topNudgePx,
             ) {
                 scaleX = scale
                 scaleY = scale
                 transformOrigin = TransformOrigin(0f, 0f)
+                clip = false
             }
         }
     }
@@ -413,7 +470,7 @@ private fun ChecklistLine(
             checked = isCompleted,
             onCheckedChange = onToggle,
             colors = CheckboxDefaults.colors(
-                checkedColor = Color(0xFF38BDF8),
+                checkedColor = accent,
                 uncheckedColor = Color.White.copy(alpha = 0.30f),
                 checkmarkColor = Color.Black,
             ),
@@ -424,7 +481,7 @@ private fun ChecklistLine(
                 title,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = if (isCompleted) Color(0xFF38BDF8) else Color.White,
+                color = if (isCompleted) accent else Color.White,
                 maxLines = 2,
             )
             if (subtitle.isNotBlank()) {
@@ -469,7 +526,7 @@ private fun WarmupChecklistLine(
                 onToggle(checked, kg)
             },
             colors = CheckboxDefaults.colors(
-                checkedColor = Color(0xFF38BDF8),
+                checkedColor = accent,
                 uncheckedColor = Color.White.copy(alpha = 0.30f),
                 checkmarkColor = Color.Black,
             ),
@@ -480,7 +537,7 @@ private fun WarmupChecklistLine(
                 title,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = if (isCompleted) Color(0xFF38BDF8) else Color.White,
+                color = if (isCompleted) accent else Color.White,
                 maxLines = 1,
             )
             if (subtitle.isNotBlank()) {

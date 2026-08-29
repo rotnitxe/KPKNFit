@@ -108,6 +108,7 @@ class WorkoutStepNavigator(
         return WorkoutStepRules.buildSteps(
             session = modeSession,
             visibleExercises = ports.visibleExercises(state),
+            omittedSetKeys = state.omittedSetKeys,
         )
     }
 

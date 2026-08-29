@@ -30,11 +30,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -53,8 +58,6 @@ import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.WorkoutMobilityChecklistItem
 import com.example.kpkn.screens.workout.components.WorkoutWarmupDisplaySet
 import com.example.kpkn.screens.workout.components.GodModeTechniqueScopeDialog
-import com.example.kpkn.screens.workout.components.GodModeNicknameDialog
-import com.example.kpkn.screens.workout.components.godModeScrim
 import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
@@ -120,6 +123,7 @@ internal fun WorkoutV2Body(
     overlayHazeState: HazeState = remember { HazeState() },
     roadmapExpanded: Boolean = false,
     onCreateSuperset: () -> Unit = {},
+    onReplaceExercise: (String) -> Unit = {},
 ) {
     val allUserTags by viewModel.allUserTags.collectAsStateWithLifecycle()
     val cardioGpsState by viewModel.cardioGpsState.collectAsStateWithLifecycle()
@@ -175,7 +179,6 @@ internal fun WorkoutV2Body(
     }
     var drainOverlayState by remember { mutableStateOf<ExerciseDrainOverlayState?>(null) }
     var expandedSupersetWarmups by remember { mutableStateOf<Set<String>>(emptySet()) }
-    var showNicknameDialog by remember { mutableStateOf(false) }
     var pendingDeleteSet by remember { mutableStateOf<Pair<String, Int>?>(null) }
     var pendingTechnique by remember {
         mutableStateOf<Pair<com.example.kpkn.domain.sessionassistant.SeriesTechnique, Pair<String, Int>>?>(null)
@@ -269,7 +272,9 @@ internal fun WorkoutV2Body(
                 activeMainTagLabels = currentExerciseActiveTagLabels,
                 activeSubTags = currentExerciseActiveSubTags,
                 onTagClick = { tagId -> tagManagerTagId = tagId },
-                onRemoveSubTag = { subTagId -> viewModel.toggleSubTagActive(currentExercise?.id ?: "", subTagId) },
+                onRemoveSubTag = { subTagId ->
+                    viewModel.toggleSubTagActive(currentExercise?.id ?: "", subTagId)
+                },
                 onCreateTagClick = { showCreateTagDialog = true },
                 voiceCaptureMode = settings.voiceCaptureMode.takeIf { uiState.voiceSessionEnabled },
                 onVoiceCaptureModeChange = { mode -> viewModel.setVoiceCaptureMode(mode) },
@@ -292,25 +297,31 @@ internal fun WorkoutV2Body(
                 } else {
                     null
                 },
-                godModeActive = roadmapExpanded,
                 onHistoryClick = onExpandHistory,
                 onReplaceClick = onExpandReplace,
-                onNicknameClick = { showNicknameDialog = true },
+                nicknameKey = currentExercise?.nicknameKey(),
+                nicknameValue = currentExercise?.nicknameKey()?.let { key ->
+                    com.example.kpkn.domain.exercises.ExerciseNicknameResolver.nicknames[key]
+                }.orEmpty(),
+                canonicalExerciseName = currentExercise?.name ?: headerExerciseName,
+                onNicknameChange = currentExercise?.nicknameKey()?.let { key ->
+                    { value -> viewModel.setExerciseNickname(key, value.ifBlank { null }) }
+                },
                 onCreateSupersetClick = onCreateSuperset,
+                bodyHazeState = cardsHazeState,
             )
-
+            Spacer(Modifier.height(12.dp))
             BoxWithConstraints(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
             ) {
-                val dockClearance = dockBottomClearanceDp(roadmapExpanded).dp
-                val effectiveAvailableHeight = (maxHeight - dockClearance).coerceAtLeast(0.dp)
-                val targetLiveAdaptScale = if (roadmapExpanded) {
-                    WorkoutUiTokens.liveAdaptScale(maxWidth, effectiveAvailableHeight)
-                } else {
-                    1f
-                }
+                val effectiveAvailableHeight = maxHeight
+                val targetLiveAdaptScale = WorkoutUiTokens.livePagerViewportAdaptScale(
+                    availableWidth = maxWidth,
+                    availableHeight = effectiveAvailableHeight,
+                    godModeActive = false,
+                )
                 val liveAdaptScale by androidx.compose.animation.core.animateFloatAsState(
                     targetValue = targetLiveAdaptScale,
                     animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
@@ -328,9 +339,6 @@ internal fun WorkoutV2Body(
                             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Bottom))
                             .padding(bottom = 24.dp),
                     ) {
-            // Give the header and the live carousel a little more visual air.
-            Spacer(Modifier.height(16.dp))
-
             // ─── Tag manager modal ────────────────────────────────────────────
             if (tagManagerTagId != null && currentExercise != null) {
                 val tag = currentExerciseActiveMainTags.firstOrNull { it.id == tagManagerTagId }
@@ -528,6 +536,7 @@ internal fun WorkoutV2Body(
                         workingRestActive,
                         uiState.currentSetIdx,
                         uiState.setJustLoggedKey,
+                        uiState.omittedSetKeys,
                     ) {
                         val list = mutableListOf<WorkoutSetSwipePage>()
                         // Continuous carousel: [MOV phase?][APR phase?][working…][REST?]
@@ -565,7 +574,9 @@ internal fun WorkoutV2Body(
                             val rounds = pagerSupersetMembers.maxOfOrNull { it.sets.size }?.coerceAtLeast(1) ?: 1
                             for (roundIdx in 0 until rounds) {
                                 for (member in pagerSupersetMembers) {
-                                    if (roundIdx in member.sets.indices) {
+                                    if (roundIdx in member.sets.indices &&
+                                        !WorkoutStepRules.isSetOmitted(member.id, roundIdx, uiState.omittedSetKeys)
+                                    ) {
                                         if (member.isEffectivelyUnilateral()) {
                                             val expectedSides = member.expectedSidesForSet(roundIdx)
                                             expectedSides.forEach { side ->
@@ -596,6 +607,9 @@ internal fun WorkoutV2Body(
                         } else {
                             val pagerIsUnilateral = pagerExercise.isEffectivelyUnilateral()
                             pagerExercise.sets.forEachIndexed { i, _ ->
+                                if (WorkoutStepRules.isSetOmitted(pagerExercise.id, i, uiState.omittedSetKeys)) {
+                                    return@forEachIndexed
+                                }
                                 if (pagerIsUnilateral) {
                                     val expectedSides = pagerExercise.expectedSidesForSet(i)
                                     expectedSides.forEach { side ->
@@ -770,6 +784,11 @@ internal fun WorkoutV2Body(
                         var forcePagerScrollPage by remember { mutableStateOf<Int?>(null) }
                         LaunchedEffect(activeSwipePageIndex, totalSetPages, uiState.isRestMinimized, workingRestActive) {
                             if (workingRestActive && uiState.isRestMinimized) return@LaunchedEffect
+                            val settledType = setPagerPages.getOrNull(pagerState.settledPage)?.type
+                            val targetType = setPagerPages.getOrNull(activeSwipePageIndex)?.type
+                            if (shouldIgnoreCanonicalMobilityScroll(targetType, settledType)) {
+                                return@LaunchedEffect
+                            }
                             if (activeSwipePageIndex in 0 until totalSetPages &&
                                 activeSwipePageIndex != pagerState.settledPage
                             ) {
@@ -808,6 +827,28 @@ internal fun WorkoutV2Body(
                                     pagerSyncCoordinator.clearProgrammaticScroll(page)
                                 }
                             }
+                        }
+                        val requestPagerPage: (Int) -> Unit = requestPagerPage@{ pageIndex ->
+                            val targetPage = setPagerPages.getOrNull(pageIndex) ?: return@requestPagerPage
+                            val targetExerciseId = targetPage.exerciseId ?: currentExercise.id
+                            if (targetPage.type != LivePageType.REST) {
+                                val key = when (targetPage.type) {
+                                    LivePageType.CARDIO -> WorkoutStepRules.cardioStepKey(targetExerciseId)
+                                    LivePageType.NORMAL -> WorkoutStepRules.workingStepKey(
+                                        targetExerciseId,
+                                        targetPage.setIndex,
+                                        targetPage.side,
+                                    )
+                                    LivePageType.WARMUP, LivePageType.MOBILITY ->
+                                        targetPage.stepKey ?: workoutPagerStepKey(targetExerciseId, targetPage)
+                                    LivePageType.REST -> ""
+                                }
+                                if (key.isNotBlank()) {
+                                    viewModel.selectWorkoutStep(key)
+                                }
+                            }
+                            forcePagerScrollPage = pageIndex
+                            forcePagerScrollEpoch++
                         }
                         val timelineElements = remember(
                             pagerExercise,
@@ -934,6 +975,9 @@ internal fun WorkoutV2Body(
                                     )
 
                                     pagerSupersetMembers.filter { roundIdx in it.sets.indices }.forEachIndexed { exIdx, member ->
+                                        if (WorkoutStepRules.isSetOmitted(member.id, roundIdx, uiState.omittedSetKeys)) {
+                                            return@forEachIndexed
+                                        }
                                         if (member.isEffectivelyUnilateral()) {
                                             val leftPageIdx = setPagerPages.indexOfFirst {
                                                 it.type == LivePageType.NORMAL &&
@@ -1009,6 +1053,9 @@ internal fun WorkoutV2Body(
                                 )
                             } else {
                                 pagerExercise.sets.forEachIndexed { setIdx, _ ->
+                                    if (WorkoutStepRules.isSetOmitted(pagerExercise.id, setIdx, uiState.omittedSetKeys)) {
+                                        return@forEachIndexed
+                                    }
                                     if (pagerExercise.isEffectivelyUnilateral()) {
                                         val leftPageIdx = setPagerPages.indexOfFirst {
                                             it.type == LivePageType.NORMAL && it.setIndex == setIdx && it.side == "left"
@@ -1234,27 +1281,7 @@ internal fun WorkoutV2Body(
                     // moving between MOV/APR and working sets.
                     val canAddSetToCurrentExercise = !currentExercise.isCardio
                     SideEffect {
-                        liveSetStepperHolder.onSelectPage = { pageIndex ->
-                            val targetPage = setPagerPages.getOrNull(pageIndex)
-                            if (targetPage != null) {
-                                val targetExerciseId = targetPage.exerciseId ?: currentExercise.id
-                                if (targetPage.type != LivePageType.REST) {
-                                    val key = when (targetPage.type) {
-                                        LivePageType.CARDIO -> WorkoutStepRules.cardioStepKey(targetExerciseId)
-                                        LivePageType.NORMAL -> WorkoutStepRules.workingStepKey(targetExerciseId, targetPage.setIndex, targetPage.side)
-                                        LivePageType.WARMUP, LivePageType.MOBILITY ->
-                                            targetPage.stepKey ?: workoutPagerStepKey(targetExerciseId, targetPage)
-                                        LivePageType.REST -> ""
-                                    }
-                                    if (key.isNotBlank()) {
-                                        viewModel.selectWorkoutStep(key)
-                                    }
-                                }
-                                // Always animate the carousel — even when already on that step.
-                                forcePagerScrollPage = pageIndex
-                                forcePagerScrollEpoch++
-                            }
-                        }
+                        liveSetStepperHolder.onSelectPage = requestPagerPage
                         liveSetStepperHolder.onAddSet = if (canAddSetToCurrentExercise) {
                             { viewModel.addSetToCurrentExercise() }
                         } else {
@@ -1292,7 +1319,11 @@ internal fun WorkoutV2Body(
                         }
                     }
 
-                    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                    BoxWithConstraints(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .livePagerFullBleed(horizontalInset = 10.dp),
+                    ) {
                         val availableWidth = maxWidth
                         val cardScale = WorkoutUiTokens.effectiveLivePagerCardScale()
                         val basePeekFraction = when {
@@ -1308,7 +1339,7 @@ internal fun WorkoutV2Body(
                                 (cardScale - 1f) / 2f
                             ).coerceIn(0.14f, 0.26f)
                         val peekPadding = availableWidth * peekFraction
-                        val edgeFadeWidth = (peekPadding * 0.72f).coerceIn(44.dp, 68.dp)
+                        val edgeFadeWidth = WorkoutUiTokens.LivePagerEdgeFadeWidth
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -1318,7 +1349,32 @@ internal fun WorkoutV2Body(
                                 state = pagerState,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .heightIn(max = 1200.dp),
+                                    .heightIn(max = 1200.dp)
+                                    // Same offscreen alpha mask used by the
+                                    // exercise carousel below: the peek fades
+                                    // to the black rail at each viewport edge.
+                                    .graphicsLayer {
+                                        compositingStrategy = CompositingStrategy.Offscreen
+                                    }
+                                    .drawWithContent {
+                                        drawContent()
+                                        if (totalSetPages > 1 && size.width > 0f) {
+                                            val fade = (
+                                                edgeFadeWidth.toPx() / size.width
+                                            ).coerceIn(0f, 0.45f)
+                                            drawRect(
+                                                brush = Brush.horizontalGradient(
+                                                    colorStops = arrayOf(
+                                                        0f to Color.Transparent,
+                                                        fade to Color.Black,
+                                                        (1f - fade) to Color.Black,
+                                                        1f to Color.Transparent,
+                                                    ),
+                                                ),
+                                                blendMode = BlendMode.DstIn,
+                                            )
+                                        }
+                                    },
                             contentPadding = PaddingValues(horizontal = peekPadding),
                             // Keep the side peeks symmetric, with a small extra
                             // breathing gap between cards (~20% over the old 12.dp).
@@ -1353,14 +1409,16 @@ internal fun WorkoutV2Body(
                                         .fillMaxWidth()
                                         .graphicsLayer {
                                             alpha = pageAlpha
+                                            clip = false
                                         },
                                 ) {
                         com.example.kpkn.screens.workout.components.LivePagerCardFrame(
                             allowContentExpansion = pageSpec.type == LivePageType.NORMAL,
+                            godModeActive = false,
                         ) {
                         val pageExercise = pageSpec.exerciseId?.let { id -> visibleExercises.firstOrNull { it.id == id } } ?: currentExercise
                         Box(modifier = Modifier.fillMaxWidth()) {
-                        Box(modifier = Modifier.fillMaxWidth().godModeScrim(roadmapExpanded)) {
+                        Box(modifier = Modifier.fillMaxWidth()) {
                         when (pageSpec.type) {
                             LivePageType.MOBILITY -> {
                                 val mobilityItems = prepMobilityMembers.flatMap { member ->
@@ -1773,7 +1831,7 @@ internal fun WorkoutV2Body(
                                             suggestion,
                                         )
                                     },
-                                    godModeActionsVisible = roadmapExpanded,
+                                    godModeActionsVisible = false,
                                     isDropSet = activeSet.isDropSet,
                                     isRestPause = activeSet.isRestPause,
                                     canDeleteSet = targetExercise.sets.size > 1,
@@ -1786,6 +1844,9 @@ internal fun WorkoutV2Body(
                                     onDeleteSet = {
                                         pendingDeleteSet = targetExercise.id to activeSetIndex
                                     },
+                                    onOmitSet = {
+                                        viewModel.omitSet(targetExercise.id, activeSetIndex)
+                                    },
                                         )
                                     }
                                 }
@@ -1796,28 +1857,18 @@ internal fun WorkoutV2Body(
                         } // LivePagerCardFrame
                             } // peek graphicsLayer Box
                         } // HorizontalPager
-                          Box(
-                              modifier = Modifier
-                                  .align(Alignment.CenterStart)
-                                  .fillMaxHeight()
-                                  .width(edgeFadeWidth)
-                                  .background(
-                                      Brush.horizontalGradient(
-                                          colors = listOf(Color.Black, Color.Transparent),
-                                      ),
-                                  ),
-                          )
-                          Box(
-                              modifier = Modifier
-                                  .align(Alignment.CenterEnd)
-                                  .fillMaxHeight()
-                                  .width(edgeFadeWidth)
-                                  .background(
-                                      Brush.horizontalGradient(
-                                          colors = listOf(Color.Transparent, Color.Black),
-                                      ),
-                                  ),
-                          )
+                        if (totalSetPages > 1) {
+                            LivePagerPeekNavArrows(
+                                settledPage = pagerState.settledPage,
+                                totalPages = totalSetPages,
+                                peekWidth = peekPadding,
+                                onPrevious = { requestPagerPage(pagerState.settledPage - 1) },
+                                onNext = { requestPagerPage(pagerState.settledPage + 1) },
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .zIndex(2f),
+                            )
+                        }
                         } // pager + edge fades
                     } // BoxWithConstraints
                     } // key(pagerScopeKey)
@@ -1851,12 +1902,37 @@ internal fun WorkoutV2Body(
                 Spacer(Modifier.height(8.dp))
             }
 
-            Spacer(Modifier.height(168.dp))
+            Spacer(Modifier.height(16.dp))
                     } // Column(padding horizontal) exercise stage
                     } // verticalScroll column
                 } // CompositionLocalProvider
-            } // BoxWithConstraints
-        } // pinned header + body Column
+                if (!roadmapExpanded &&
+                    currentExercise != null &&
+                    !currentExercise.isCardio &&
+                    !isMobilityActive &&
+                    !isWarmupActive &&
+                    !showingPostExerciseCard &&
+                    !(workingRestActive && !uiState.isRestMinimized)
+                ) {
+                    val recordSide = activeSide
+                    val recordKey = when (recordSide) {
+                        "left" -> "${currentExercise.id}_${uiState.currentSetIdx}_L"
+                        "right" -> "${currentExercise.id}_${uiState.currentSetIdx}_R"
+                        else -> "${currentExercise.id}_${uiState.currentSetIdx}"
+                    }
+                    com.example.kpkn.screens.workout.components.WorkoutRecordFab(
+                        sessionAccentColor = sessionAccentColor,
+                        isUpdateMode = uiState.completedSets.containsKey(recordKey),
+                        enabled = true,
+                        onClick = { recordActionHolder.action?.invoke() },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 18.dp, bottom = 12.dp)
+                            .zIndex(8f),
+                    )
+                }
+            } // BoxWithConstraints body
+        } // header + body Column
 
     pendingDeleteSet?.let { (exerciseId, setIndex) ->
         KpknAlertDialog(
@@ -1886,22 +1962,6 @@ internal fun WorkoutV2Body(
                 pendingTechnique = null
             },
             onDismiss = { pendingTechnique = null },
-        )
-    }
-    if (showNicknameDialog && currentExercise != null) {
-        val key = currentExercise.nicknameKey().orEmpty()
-        val currentNick = com.example.kpkn.domain.exercises.ExerciseNicknameResolver.nicknames[key].orEmpty()
-        GodModeNicknameDialog(
-            initialValue = currentNick,
-            onSave = { value ->
-                if (key.isNotBlank()) viewModel.setExerciseNickname(key, value)
-                showNicknameDialog = false
-            },
-            onRemove = {
-                if (key.isNotBlank()) viewModel.setExerciseNickname(key, null)
-                showNicknameDialog = false
-            },
-            onDismiss = { showNicknameDialog = false },
         )
     }
 
@@ -2025,3 +2085,22 @@ internal fun InfoPill(label: String, value: String, color: Color) {
         }
     }
 }
+
+private fun Modifier.livePagerFullBleed(horizontalInset: Dp): Modifier =
+    layout { measurable, constraints ->
+        val extra = (horizontalInset * 2).roundToPx()
+        val childMaxWidth = if (constraints.hasBoundedWidth) {
+            (constraints.maxWidth + extra).coerceAtLeast(0)
+        } else {
+            constraints.maxWidth
+        }
+        val placeable = measurable.measure(
+            constraints.copy(
+                minWidth = childMaxWidth,
+                maxWidth = childMaxWidth,
+            ),
+        )
+        layout(width = constraints.maxWidth, height = placeable.height) {
+            placeable.placeRelative(x = -extra / 2, y = 0)
+        }
+    }

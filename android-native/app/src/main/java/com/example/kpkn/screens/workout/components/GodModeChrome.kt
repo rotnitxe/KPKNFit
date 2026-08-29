@@ -48,6 +48,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.exercises.GodModeTechniqueScope
@@ -225,6 +229,124 @@ private fun GodModeTextAction(
             color = if (danger) WorkoutUiTokens.dangerColor() else Color.White.copy(alpha = if (enabled) 0.88f else 0.38f),
             maxLines = 1,
         )
+    }
+}
+
+@Composable
+internal fun GodModeSetActionsOverlay(
+    visible: Boolean,
+    isDropSet: Boolean,
+    isRestPause: Boolean,
+    canDeleteSet: Boolean,
+    onDropSet: () -> Unit,
+    onRestPause: () -> Unit,
+    onDeleteSet: () -> Unit,
+    onOmitSet: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(tween(WorkoutUiTokens.GodModeEnterMs, easing = FastOutSlowInEasing)) +
+            scaleIn(initialScale = 0.98f, animationSpec = tween(WorkoutUiTokens.GodModeEnterMs, easing = FastOutSlowInEasing)),
+        exit = fadeOut(tween(WorkoutUiTokens.GodModeExitMs, easing = FastOutSlowInEasing)) +
+            scaleOut(targetScale = 0.98f, animationSpec = tween(WorkoutUiTokens.GodModeExitMs, easing = FastOutSlowInEasing)),
+        modifier = modifier,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.Black.copy(alpha = 0.42f))
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(
+                    text = "Convertir serie normal a:",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White.copy(alpha = 0.88f),
+                    textAlign = TextAlign.Center,
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    GodModeOverlayAction(
+                        label = "Dropset",
+                        selected = isDropSet,
+                        onClick = onDropSet,
+                        modifier = Modifier.weight(1f),
+                    )
+                    GodModeOverlayAction(
+                        label = "Rest-Pause",
+                        selected = isRestPause,
+                        onClick = onRestPause,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                GodModeOverlayAction(
+                    label = "Eliminar serie",
+                    enabled = canDeleteSet,
+                    danger = true,
+                    onClick = onDeleteSet,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                GodModeOverlayAction(
+                    label = "Omitir serie",
+                    onClick = onOmitSet,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun GodModeOverlayAction(
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    selected: Boolean = false,
+    enabled: Boolean = true,
+    danger: Boolean = false,
+) {
+    Surface(
+        onClick = onClick,
+        enabled = enabled,
+        shape = RoundedCornerShape(8.dp),
+        color = when {
+            selected -> Color.White.copy(alpha = 0.22f)
+            danger -> WorkoutUiTokens.dangerColor().copy(alpha = 0.22f)
+            else -> Color(0xFF2B2B2B).copy(alpha = 0.92f)
+        },
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            when {
+                selected -> Color.White.copy(alpha = 0.55f)
+                danger -> WorkoutUiTokens.dangerColor().copy(alpha = 0.45f)
+                else -> Color.White.copy(alpha = 0.14f)
+            },
+        ),
+        modifier = modifier.heightIn(min = 34.dp),
+    ) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = label,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 7.dp),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = when {
+                    danger -> WorkoutUiTokens.dangerColor()
+                    selected -> Color.White
+                    else -> Color.White.copy(alpha = if (enabled) 0.88f else 0.38f)
+                },
+                maxLines = 1,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 

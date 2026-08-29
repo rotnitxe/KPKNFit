@@ -49,22 +49,35 @@ object WorkoutUiTokens {
     /**
      * Shared proportional scale for every live pager card.
      *
-     * The base dimensions remain the previous compact layout; the frame
-     * renders them at this factor so MOV/APR and working sets grow together.
+     * The previous live-card scale was 1.20f. Reducing it to 85% of that
+     * value makes every page (MOV/APR, working sets, cardio and rest) 15%
+     * smaller without changing the content layout independently on either
+     * axis.
      * Final on-screen scale = [LivePagerCardScale] * [LocalLivePagerAdaptScale].
-     * Adapt scale is 1f outside god mode so compact cards keep this size.
      */
-    val LivePagerCardScale = 1.20f
-    val LivePagerBaseHeight = 440.dp
+    val LivePagerCardScale = 1.20f * 0.85f
+    /**
+     * Height budget for the live card contents, including the in-card record
+     * action and the plan/technique controls below it.
+     */
+    val LivePagerBaseHeight = 480.dp
     /**
      * Tallest expected NORMAL set card (plan + report + tabs + footer CTA) before adapt.
      */
     val LivePagerNormalExpandedBaseHeight = 520.dp
     val LivePagerSlotHeight = LivePagerBaseHeight * LivePagerCardScale
+    /**
+     * Extra empty space above every live pager card (13% of the card slot).
+     * Lowers the card away from the header without changing card size, and
+     * leaves room for the 3D flip so it is not clipped at the top.
+     */
+    const val LivePagerCardTopNudgeFraction = 0.13f
     /** Design reference for proportional adapt (typical phone width / card slot). */
     val LivePagerReferenceWidth = 411.dp
     val LivePagerReferenceHeight = 520.dp
-    val LivePagerEdgeFadeWidth = 16.dp
+    val LivePagerVeryNarrowWidth = 320.dp
+    /** Same edge-fade depth as the exercise carousel's chrome. */
+    val LivePagerEdgeFadeWidth = 52.dp
 
     fun liveAdaptScale(availableWidth: Dp, availableHeight: Dp): Float {
         val widthScale = if (availableWidth > 0.dp) {
@@ -78,6 +91,20 @@ object WorkoutUiTokens {
             1f
         }
         return min(widthScale, heightScale)
+    }
+
+    fun livePagerViewportAdaptScale(
+        availableWidth: Dp,
+        availableHeight: Dp,
+        godModeActive: Boolean,
+    ): Float {
+        if (godModeActive) return 1f
+        val needsViewportAdapt = availableWidth < LivePagerVeryNarrowWidth
+        return if (needsViewportAdapt) {
+            liveAdaptScale(availableWidth, availableHeight)
+        } else {
+            1f
+        }
     }
 
     @Composable
@@ -95,7 +122,9 @@ object WorkoutUiTokens {
 
     const val GodModeEnterMs = 260
     const val GodModeExitMs = 220
-    const val GodModeScrimAlpha = 0.32f
+    const val GodModeScrimAlpha = 0.55f
+    const val GodModeCardScale = 0.58f
+    val GodModeCardBlur = 18.dp
     val GodModeBadgeVisual = 20.dp
     val GodModeRoadmapCardHeight = 64.dp
     val GodModePlusCardWidth = 88.dp
@@ -124,6 +153,19 @@ object WorkoutUiTokens {
 
     @Composable
     fun infoBlue(): Color = Color(0xFF448AFF)
+
+    /** Subtle carousel center glow alphas for semantic feedback. */
+    fun carouselGlowGreen(): Color = Color(0xFF66BB6A).copy(alpha = 0.52f)
+
+    fun carouselGlowRed(): Color = Color(0xFFFF5252).copy(alpha = 0.50f)
+
+    fun carouselGlowBlue(): Color = Color(0xFF448AFF).copy(alpha = 0.52f)
+
+    fun carouselTextGreen(): Color = Color(0xFFA5D6A7)
+
+    fun carouselTextRed(): Color = Color(0xFFFF8A80)
+
+    fun carouselTextBlue(): Color = Color(0xFF90CAF9)
 
     /** Readiness / recovery score → green / amber / red. */
     fun readinessColor(score: Int): Color = when {
