@@ -33,6 +33,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.ui.adapt.LocalViewportAdapt
+import com.example.kpkn.ui.adapt.adapt
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.*
@@ -127,9 +129,10 @@ fun NutritionScreen(
                 .background(MaterialTheme.colorScheme.surface)
                 .hazeSource(state = nutritionHazeState),
         ) {
+            val nutritionAdapt = LocalViewportAdapt.current
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 160.dp),
+                contentPadding = PaddingValues(bottom = 160.dp.adapt(nutritionAdapt)),
             ) {
                 item {
                     NutritionHeroHeader(
@@ -191,7 +194,7 @@ fun NutritionScreen(
                     item {
                         TextButton(
                             onClick = onNavigateToMealHistory,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp.adapt(nutritionAdapt)),
                         ) {
                             Icon(Icons.Default.History, null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(6.dp))

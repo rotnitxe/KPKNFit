@@ -291,20 +291,12 @@ private data class KinshipScoredCandidate(
     val rationale: String,
 )
 
-private fun roleWeight(role: MuscleRole): Double = when (role) {
-    MuscleRole.PRIMARY -> 1.0
-    MuscleRole.SECONDARY -> 0.55
-    MuscleRole.STABILIZER -> 0.25
-    MuscleRole.NEUTRALIZER -> 0.15
-}
-
 private fun muscleProfile(info: ExerciseMuscleInfo): Map<String, Double> {
     if (info.involvedMuscles.isEmpty()) return emptyMap()
     val aggregated = linkedMapOf<String, Double>()
     info.involvedMuscles.forEach { muscle ->
         val canonical = broadMuscleLabel(muscle.muscle)
-        val contribution = max(muscle.volumeContribution ?: 0.0, 0.0)
-        val weighted = roleWeight(muscle.role) * if (contribution > 0.0) contribution else 1.0
+        val weighted = resolveMuscleVolumeContribution(muscle)
         aggregated[canonical] = (aggregated[canonical] ?: 0.0) + weighted
     }
     val total = aggregated.values.sum().takeIf { it > 0.0 } ?: return emptyMap()

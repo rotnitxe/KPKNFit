@@ -172,12 +172,28 @@ object AugeFatigueEngine {
         dbInfo: ExerciseMuscleInfo? = null,
     ): AugeMetrics? = deriveAugeMetricsFromDb(dbInfo) ?: deriveAugeMetricsHeuristic(exerciseName, equipment)
 
-    /** Fallback heurístico para ejercicios sin mapa muscular (custom/legacy). */
-    private fun heuristicInvolvedMuscles(exerciseName: String): List<InvolvedMuscle> {
+    /**
+     * Catalog snapshot first; named-family fallback only for known patterns.
+     * Unknown / unmapped custom work does **not** invent Core.
+     */
+    internal fun resolveInvolvedMuscles(
+        exerciseName: String,
+        snapshot: List<InvolvedMuscle>?,
+        dbInfo: ExerciseMuscleInfo?,
+    ): List<InvolvedMuscle> {
+        val raw = snapshot?.takeIf { it.isNotEmpty() } ?: dbInfo?.involvedMuscles.orEmpty()
+        if (raw.isNotEmpty()) return raw
+        return namedFamilyInvolvedMuscles(exerciseName)
+    }
+
+    /** Known movement families only. Empty = no muscular map, not Core. */
+    internal fun namedFamilyInvolvedMuscles(exerciseName: String): List<InvolvedMuscle> {
         val lower = exerciseName.lowercase().trim()
-        fun mus(m: String, role: MuscleRole = MuscleRole.PRIMARY) = InvolvedMuscle(muscle = m, role = role)
+        fun mus(m: String, role: MuscleRole = MuscleRole.PRIMARY) =
+            InvolvedMuscle(muscle = m, role = role, volumeContribution = VOLUME_CONTRIBUTION_FALLBACKS[role])
         return when {
-            lower.contains("press banca") || lower.contains("bench press") || lower.contains("press de banca") ->
+            lower.contains("press banca") || lower.contains("bench press") || lower.contains("press de banca") ||
+                (lower.contains("press") && (lower.contains("suelo") || lower.contains("floor"))) ->
                 listOf(mus("Pectorales"), mus("Tríceps", MuscleRole.SECONDARY), mus("Deltoides Anterior", MuscleRole.SECONDARY))
             lower.contains("dominada") || lower.contains("pull-up") || lower.contains("pull up") || lower.contains("chin") ->
                 listOf(mus("Dorsales"), mus("Bíceps", MuscleRole.SECONDARY))
@@ -197,8 +213,9 @@ object AugeFatigueEngine {
             lower.contains("leg curl") || lower.contains("femoral") -> listOf(mus("Isquiosurales"))
             lower.contains("leg extension") -> listOf(mus("Cuádriceps"))
             lower.contains("plancha") || lower.contains("plank") || lower.contains("abdomen") || lower.contains("core") -> listOf(mus("Abdomen"))
-            lower.contains("lunge") || lower.contains("zancada") || lower.contains("búlgara") || lower.contains("bulgara") -> listOf(mus("Cuádriceps"), mus("Glúteos", MuscleRole.SECONDARY))
-            else -> listOf(mus("Core"))
+            lower.contains("lunge") || lower.contains("zancada") || lower.contains("búlgara") || lower.contains("bulgara") ->
+                listOf(mus("Cuádriceps"), mus("Glúteos", MuscleRole.SECONDARY))
+            else -> emptyList()
         }
     }
 
@@ -519,11 +536,15 @@ object AugeFatigueEngine {
         val perMuscleMuscular: MutableMap<String, Double> = mutableMapOf(),
     )
 
-    private fun roleWeightForDrain(role: MuscleRole): Double = when (role) {
-        MuscleRole.PRIMARY -> 1.0
-        MuscleRole.SECONDARY -> 0.5
-        MuscleRole.STABILIZER, MuscleRole.NEUTRALIZER -> 0.4
-    }
+    private fun roleWeightForDrain(involvement: InvolvedMuscle): Double =
+        resolveMuscleVolumeContribution(involvement)
+
+    private fun involvementWeightsFor(involved: List<InvolvedMuscle>): List<Pair<String, Double>> =
+        involved
+            .map { getAugeMusclePillarId(it.muscle, it.emphasis) to roleWeightForDrain(it) }
+            .groupBy({ it.first }, { it.second })
+            .map { (pillar, weights) -> pillar to (weights.maxOrNull() ?: 0.0) }
+            .filter { it.second > 0.0 }
 
     private fun attributeMuscularDrain(
         acc: AggregateDrainAcc,
@@ -533,11 +554,7 @@ object AugeFatigueEngine {
     ) {
         if (adjustedMuscular <= 0.0) return
         val weightSum = involvementWeights.sumOf { it.second }
-        if (weightSum <= 0.0 || involvementWeights.isEmpty()) {
-            acc.perMuscleMuscular[primaryPillar] =
-                (acc.perMuscleMuscular[primaryPillar] ?: 0.0) + adjustedMuscular
-            return
-        }
+        if (weightSum <= 0.0 || involvementWeights.isEmpty()) return
         involvementWeights.forEach { (pillar, weight) ->
             val share = adjustedMuscular * (weight / weightSum)
             acc.perMuscleMuscular[pillar] = (acc.perMuscleMuscular[pillar] ?: 0.0) + share
@@ -671,17 +688,17 @@ object AugeFatigueEngine {
             )
             // Completed logs carry the chip-adjusted snapshot. Fall back to the
             // catalog only for logs created before chip metadata was persisted.
-            val rawInvolved = ex.effectiveMuscles?.takeIf { it.isNotEmpty() }
-                ?: dbInfo?.involvedMuscles.orEmpty()
-            val involved = if (rawInvolved.isNotEmpty()) rawInvolved else heuristicInvolvedMuscles(ex.exerciseName)
+            val involved = resolveInvolvedMuscles(
+                exerciseName = ex.exerciseName,
+                snapshot = ex.effectiveMuscles,
+                dbInfo = dbInfo,
+            )
             val primaryMuscle = involved
                 .find { it.role == MuscleRole.PRIMARY }
                 ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
-                ?: "Core"
-            val involvementWeights = involved
-                .map { getAugeMusclePillarId(it.muscle, it.emphasis) to roleWeightForDrain(it.role) }
-                .groupBy({ it.first }, { it.second })
-                .map { (pillar, weights) -> pillar to weights.maxOrNull()!! }
+                ?: involved.firstOrNull()?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
+                ?: ""
+            val involvementWeights = involvementWeightsFor(involved)
             val muscleMult = lookupMuscleDrainMultiplier(remappedMultipliers, primaryMuscle)
 
             ex.sets.forEach { s ->
@@ -822,19 +839,17 @@ object AugeFatigueEngine {
             )
             val metrics = getDynamicAugeMetrics(ex.name, dbInfo?.equipment, dbInfo) ?: AugeMetrics()
             val densityMult = getDensityMultiplierForExercise(ex.supersetId, ex.restTime ?: 90)
-            val rawInvolved = when {
-                !ex.effectiveMuscles.isNullOrEmpty() -> ex.effectiveMuscles!!
-                else -> dbInfo?.involvedMuscles.orEmpty()
-            }
-            val involved = if (rawInvolved.isNotEmpty()) rawInvolved else heuristicInvolvedMuscles(ex.name)
+            val involved = resolveInvolvedMuscles(
+                exerciseName = ex.name,
+                snapshot = ex.effectiveMuscles,
+                dbInfo = dbInfo,
+            )
             val primaryMuscle = involved
                 .find { it.role == MuscleRole.PRIMARY }
                 ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
-                ?: "Core"
-            val involvementWeights = involved
-                .map { getAugeMusclePillarId(it.muscle, it.emphasis) to roleWeightForDrain(it.role) }
-                .groupBy({ it.first }, { it.second })
-                .map { (pillar, weights) -> pillar to weights.maxOrNull()!! }
+                ?: involved.firstOrNull()?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
+                ?: ""
+            val involvementWeights = involvementWeightsFor(involved)
             val muscleMult = lookupMuscleDrainMultiplier(remappedMultipliers, primaryMuscle)
 
             ex.sets.forEach { s ->

@@ -1,58 +1,36 @@
 package com.example.kpkn.screens.workout
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Healing
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.DailyWellbeingLog
-import com.example.kpkn.data.models.DISCOMFORT_CATALOG
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Gender
-import com.example.kpkn.data.models.MobilityExerciseCatalog
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
 import com.example.kpkn.screens.auge.AugeViewModel
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknGlassDialog
-import com.example.kpkn.ui.components.kpknGlassOrFallback
 import com.example.kpkn.screens.workout.components.WorkoutReadinessSheet
 import dev.chrisbanes.haze.HazeState
 import java.time.LocalDate
@@ -138,131 +116,6 @@ internal fun WorkoutSessionOverlaysHost(
         onVoiceToggle = onVoiceToggle,
         onVoiceCaptureModeChange = onVoiceCaptureModeChange,
     )
-
-    val mobilityExercisesForSession = remember(uiState.previousSessionDiscomforts) {
-        if (uiState.previousSessionDiscomforts.isNotEmpty()) {
-            MobilityExerciseCatalog.getMobilityForDiscomforts(uiState.previousSessionDiscomforts)
-        } else {
-            emptyList()
-        }
-    }
-    var showMobilityBanner by remember(uiState.previousSessionDiscomforts) {
-        mutableStateOf(uiState.previousSessionDiscomforts.isNotEmpty())
-    }
-    var showMobilityPicker by remember { mutableStateOf(false) }
-
-    if (showMobilityBanner && mobilityExercisesForSession.isNotEmpty()) {
-        val discomfortLabels = uiState.previousSessionDiscomforts.mapNotNull { id ->
-            DISCOMFORT_CATALOG.find { it.id == id }?.label
-        }
-        val bannerHaze = null // Nested under workout hazeSource — FallbackScrim only.
-        val bannerShape = RoundedCornerShape(16.dp)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 6.dp)
-                .kpknGlassOrFallback(
-                    hazeState = bannerHaze,
-                    shape = bannerShape,
-                    additionalScrim = Color(0xFF1A2744).copy(alpha = 0.35f),
-                )
-                .border(BorderStroke(1.dp, Color(0xFF448AFF).copy(alpha = 0.3f)), bannerShape),
-        ) {
-            Column(modifier = Modifier.padding(12.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    androidx.compose.material3.Icon(Icons.Default.Healing, null, tint = Color(0xFF448AFF))
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        "Molestias detectadas: ${discomfortLabels.joinToString(", ")}",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                    )
-                }
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    "¿Agregar ejercicios de movilidad para estas zonas?",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.7f),
-                )
-                Spacer(Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { showMobilityBanner = false }) {
-                        Text("Omitir")
-                    }
-                    Button(onClick = { showMobilityPicker = true }) {
-                        Text("Agregar movilidad (${mobilityExercisesForSession.size} ejercicios)")
-                    }
-                }
-            }
-        }
-    }
-
-    if (showMobilityPicker) {
-        BackHandler(enabled = true) { showMobilityPicker = false }
-        var mobilitySearchQuery by remember { mutableStateOf("") }
-        val filteredMobility = remember(mobilitySearchQuery) {
-            if (mobilitySearchQuery.isBlank()) mobilityExercisesForSession
-            else MobilityExerciseCatalog.searchMobilityByName(mobilitySearchQuery)
-        }
-        KpknGlassDialog(
-            onDismissRequest = { showMobilityPicker = false },
-            shape = RoundedCornerShape(20.dp),
-        ) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("Agregar movilidad", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color.White)
-                    OutlinedTextField(
-                        value = mobilitySearchQuery,
-                        onValueChange = { mobilitySearchQuery = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        label = { Text("Buscar ejercicio") },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = Color(0xFF555555),
-                            cursorColor = Color.White,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            focusedContainerColor = Color(0xFF2A2A2A),
-                            unfocusedContainerColor = Color(0xFF2A2A2A),
-                        ),
-                    )
-                    Column(
-                        modifier = Modifier.heightIn(max = 300.dp).verticalScroll(rememberScrollState()),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        filteredMobility.forEach { mob ->
-                            Surface(
-                                onClick = {
-                                    viewModel.addMobilityExerciseToSession(mob.name, mob.durationSeconds)
-                                    showMobilityPicker = false
-                                    showMobilityBanner = false
-                                },
-                                shape = RoundedCornerShape(10.dp),
-                                color = Color(0xFF333333),
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Column(Modifier.weight(1f)) {
-                                        Text(mob.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = Color.White)
-                                        Text(mob.description, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(
-                            onClick = { showMobilityPicker = false; showMobilityBanner = false },
-                            modifier = Modifier.weight(1f),
-                        ) { Text("Cancelar") }
-                    }
-                }
-        }
-    }
 
     if (uiState.showVolumeAdvanceModal && uiState.pendingVolumeAdvances.isNotEmpty()) {
         BackHandler(enabled = true) { /* El adelanto de volumen requiere acción explícita. */ }
@@ -396,15 +249,14 @@ internal fun WorkoutSessionOverlaysHost(
     val persistentHit = remember(currentExerciseForAlert?.id) {
         currentExerciseForAlert?.let { viewModel.persistentDiscomfortForExercise(it) }
     }
-    val bannerCoveredIds = uiState.previousSessionDiscomforts.toSet()
+    val previousDiscomfortIds = uiState.previousSessionDiscomforts.toSet()
     var dismissedPersistentDiscomfortExercise by remember { mutableStateOf<String?>(null) }
     val showPersistentDiscomfortAlert = persistentHit != null &&
-        persistentHit.id !in bannerCoveredIds &&
+        persistentHit.id !in previousDiscomfortIds &&
         dismissedPersistentDiscomfortExercise != currentExerciseForAlert?.id &&
         !showReadinessSheet &&
         !uiState.showPostExerciseSheet &&
-        !uiState.showFinishSheet &&
-        !showMobilityBanner
+        !uiState.showFinishSheet
 
     if (showPersistentDiscomfortAlert && currentExerciseForAlert != null) {
         val discomfortLabel = persistentHit?.label.orEmpty()

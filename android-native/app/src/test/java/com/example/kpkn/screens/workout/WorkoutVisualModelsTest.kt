@@ -86,7 +86,7 @@ class WorkoutVisualModelsTest {
     }
 
     @Test
-    fun live_pager_viewport_adapt_scale_only_on_god_mode_or_very_narrow() {
+    fun live_pager_viewport_adapt_scale_always_uses_uniform_xy() {
         val tokens = com.example.kpkn.screens.workout.components.WorkoutUiTokens
         val phone = tokens.livePagerViewportAdaptScale(
             availableWidth = androidx.compose.ui.unit.Dp(411f),
@@ -108,8 +108,8 @@ class WorkoutVisualModelsTest {
             availableHeight = androidx.compose.ui.unit.Dp(400f),
             godModeActive = true,
         )
-        assertEquals(1f, phone, 0.01f)
-        assertEquals(1f, compactPhone, 0.01f)
+        assertEquals(400f / 520f, phone, 0.01f)
+        assertEquals(360f / 411f, compactPhone, 0.01f)
         assertEquals(
             tokens.liveAdaptScale(
                 availableWidth = androidx.compose.ui.unit.Dp(280f),
@@ -118,7 +118,7 @@ class WorkoutVisualModelsTest {
             flipCover,
             0.01f,
         )
-        assert(flipCover < 1f)
+        assertEquals(0.72f, flipCover, 0.01f)
         assertEquals(1f, godShort, 0.01f)
     }
 
@@ -425,6 +425,45 @@ class WorkoutVisualModelsTest {
             )
         )
         assert(uni > bi)
+    }
+
+    @Test
+    fun session_chronometer_shows_remaining_over_limit_when_capped() {
+        assertEquals(
+            "12:30 / 45:00",
+            formatSessionChronometerText(
+                hasLimit = true,
+                remainingSeconds = 12 * 60 + 30,
+                elapsedSeconds = 100,
+                targetMinutes = 45,
+            ),
+        )
+    }
+
+    @Test
+    fun session_chronometer_shows_elapsed_without_limit() {
+        assertEquals(
+            "05:04",
+            formatSessionChronometerText(
+                hasLimit = false,
+                remainingSeconds = 0,
+                elapsedSeconds = 5 * 60 + 4,
+                targetMinutes = 45,
+            ),
+        )
+    }
+
+    @Test
+    fun session_chronometer_overtime_keeps_limit_visible() {
+        assertEquals(
+            "-00:15 / 30:00",
+            formatSessionChronometerText(
+                hasLimit = true,
+                remainingSeconds = -15,
+                elapsedSeconds = 30 * 60 + 15,
+                targetMinutes = 30,
+            ),
+        )
     }
 
     @Test

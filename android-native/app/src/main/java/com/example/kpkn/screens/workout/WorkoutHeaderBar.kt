@@ -43,18 +43,24 @@ import com.example.kpkn.data.models.WorkoutSubTag
 import com.example.kpkn.data.models.WorkoutTag
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
-import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import com.example.kpkn.ui.components.KpknAlertDialog
-import com.example.kpkn.ui.components.kpknCoverGlass
 import com.example.kpkn.ui.components.kpknSheetWhiteFilterChipColors
 import com.example.kpkn.ui.components.kpknSheetWhiteTonalButtonColors
 import com.example.kpkn.screens.sessioneditor.sessionCoverAccentColor
 import com.example.kpkn.screens.sessioneditor.sessionCoverColors
+import com.example.kpkn.ui.components.kpknCoverGlass
 import com.example.kpkn.services.workout.VoiceSessionState
 import com.example.kpkn.domain.auge.ExerciseReadinessEngine
+import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.data.models.SetAdjustmentSuggestion
 import dev.chrisbanes.haze.HazeState
 import androidx.compose.ui.graphics.RectangleShape
+
+private const val HeaderCompactScale = 0.80f
+
+@Composable
+private fun headerCompactScale(): Float =
+    HeaderCompactScale * LocalViewportAdapt.current.uniformScale
 
 private val PaceChipGreen = Color(0xFF66BB6A)
 private val PaceChipRed = Color(0xFFFF5252)
@@ -136,15 +142,12 @@ internal fun WorkoutChronometer(
         0f
     }
 
-    val text = if (hasLimit) {
-        val absSeconds = kotlin.math.abs(displayRemaining)
-        val minutes = absSeconds / 60
-        val seconds = absSeconds % 60
-        val sign = if (isExceeded) "-" else ""
-        "$sign${"%02d:%02d".format(minutes, seconds)}"
-    } else {
-        formatElapsed(elapsedSeconds)
-    }
+    val text = formatSessionChronometerText(
+        hasLimit = hasLimit,
+        remainingSeconds = displayRemaining,
+        elapsedSeconds = elapsedSeconds,
+        targetMinutes = liveTargetMinutes ?: resolvedTargetMinutes.takeIf { hasLimit },
+    )
 
     val accent = sessionTimeChipAccent(isExceeded = isExceeded, coachPaceAlert = coachPaceAlert)
     val countdownMessage = pacingAlertMessage?.takeIf { it in SessionTimeCues.ALL }
@@ -191,24 +194,24 @@ internal fun WorkoutChronometer(
             .clip(RoundedCornerShape(99.dp))
             .background(accent.copy(alpha = 0.16f))
             .clickable { showAdjustDialog = true }
-            .padding(horizontal = 9.dp, vertical = 3.dp),
+            .padding(horizontal = 9.dp * headerCompactScale(), vertical = 3.dp * headerCompactScale()),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp * headerCompactScale()),
     ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(18.dp)) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(18.dp * headerCompactScale())) {
             if (hasLimit) {
                 CircularProgressIndicator(
                     progress = { ringProgress },
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(18.dp * headerCompactScale()),
                     color = accent,
                     trackColor = Color.White.copy(alpha = 0.18f),
-                    strokeWidth = 1.6.dp,
+                    strokeWidth = 1.6.dp * headerCompactScale(),
                 )
             }
             Icon(
                 imageVector = Icons.Default.Timer,
                 contentDescription = null,
-                modifier = Modifier.size(11.dp),
+                modifier = Modifier.size(11.dp * headerCompactScale()),
                 tint = accent,
             )
         }
@@ -219,15 +222,14 @@ internal fun WorkoutChronometer(
             ),
             color = accent,
             fontWeight = FontWeight.Black,
-            fontSize = 12.sp,
+            fontSize = 12.sp * headerCompactScale(),
         )
         if (!countdownMessage.isNullOrBlank()) {
             Text(
                 text = countdownMessage,
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp * headerCompactScale()),
                 color = accent,
                 fontWeight = FontWeight.Bold,
-                fontSize = 11.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -554,11 +556,11 @@ internal fun WorkoutHeaderBar(
     onCreateSupersetClick: (() -> Unit)? = null,
     bodyHazeState: HazeState? = null,
 ) {
+    val headerScale = headerCompactScale()
+    fun cs(dp: androidx.compose.ui.unit.Dp): androidx.compose.ui.unit.Dp = dp * headerScale
     val colors = remember(background) { sessionCoverColors(background) }
 
     Box(modifier = Modifier.fillMaxWidth()) {
-        // Only the cover/background is masked. Keeping the header chrome outside
-        // this layer prevents the timer, chips and labels from fading with it.
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -586,7 +588,6 @@ internal fun WorkoutHeaderBar(
                         ),
                     ),
             )
-
             if (bodyHazeState != null) {
                 Box(
                     modifier = Modifier
@@ -600,8 +601,8 @@ internal fun WorkoutHeaderBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+                .padding(start = cs(16.dp), end = cs(16.dp), top = cs(12.dp), bottom = cs(20.dp)),
+            verticalArrangement = Arrangement.spacedBy(cs(4.dp)),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -611,7 +612,7 @@ internal fun WorkoutHeaderBar(
                 Column(modifier = Modifier.weight(1f)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(cs(8.dp)),
                     ) {
                         Text(
                             text = buildAnnotatedString {
@@ -626,7 +627,10 @@ internal fun WorkoutHeaderBar(
                                 }
                             },
                             modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.headlineSmall,
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontSize = MaterialTheme.typography.headlineSmall.fontSize * headerCompactScale(),
+                                lineHeight = MaterialTheme.typography.headlineSmall.lineHeight * headerCompactScale(),
+                            ),
                             fontWeight = FontWeight.Black,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
@@ -637,17 +641,19 @@ internal fun WorkoutHeaderBar(
                             if (!groupName.isNullOrBlank()) append("$groupName · ")
                             append(sessionName)
                         },
-                        style = MaterialTheme.typography.labelMedium,
-                        color = Color.White.copy(alpha = 0.85f),
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontSize = MaterialTheme.typography.labelMedium.fontSize * headerCompactScale(),
+                        ),
+                        color = Color.White.copy(alpha = 0.72f),
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(Modifier.height(6.dp))
+                    Spacer(Modifier.height(cs(6.dp)))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .horizontalScroll(rememberScrollState()),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(cs(6.dp)),
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -682,28 +688,27 @@ internal fun WorkoutHeaderBar(
                             }
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                horizontalArrangement = Arrangement.spacedBy(cs(6.dp)),
                             ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(99.dp))
                                     .background(chipColor.copy(alpha = 0.18f))
-                                    .padding(horizontal = 9.dp, vertical = 3.dp),
+                                    .padding(horizontal = cs(9.dp), vertical = cs(3.dp)),
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(6.dp)
+                                        .size(cs(6.dp))
                                         .clip(CircleShape)
                                         .background(chipColor)
                                 )
-                                Spacer(Modifier.width(5.dp))
+                                Spacer(Modifier.width(cs(5.dp)))
                                 Text(
                                     text = "${score}%",
-                                    style = MaterialTheme.typography.labelSmall,
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp * headerCompactScale()),
                                     color = Color.White.copy(alpha = 0.85f),
                                     fontWeight = FontWeight.Black,
-                                    fontSize = 11.sp,
                                 )
                             }
                             val showAdapt = onAdaptClick != null && (
@@ -718,11 +723,10 @@ internal fun WorkoutHeaderBar(
                                 ) {
                                     Text(
                                         text = if (readinessAdjustment != null) "Adaptado" else "Adaptar",
-                                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 3.dp),
-                                        style = MaterialTheme.typography.labelSmall,
+                                        modifier = Modifier.padding(horizontal = cs(9.dp), vertical = cs(3.dp)),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp * headerCompactScale()),
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFFFF8A80),
-                                        fontSize = 11.sp,
                                     )
                                 }
                             }
@@ -736,22 +740,21 @@ internal fun WorkoutHeaderBar(
                                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f)),
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                                    modifier = Modifier.padding(horizontal = cs(7.dp), vertical = cs(3.dp)),
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(cs(3.dp)),
                                 ) {
                                     Icon(
                                         Icons.Default.SwapHoriz,
                                         contentDescription = null,
                                         tint = Color.White,
-                                        modifier = Modifier.size(10.dp),
+                                        modifier = Modifier.size(cs(10.dp)),
                                     )
                                     Text(
                                         "Superserie",
-                                        style = MaterialTheme.typography.labelSmall,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp * headerCompactScale()),
                                         fontWeight = FontWeight.ExtraBold,
                                         color = Color.White,
-                                        fontSize = 10.sp,
                                         maxLines = 1,
                                     )
                                 }
@@ -766,23 +769,22 @@ internal fun WorkoutHeaderBar(
                                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f)),
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                                    modifier = Modifier.padding(horizontal = cs(6.dp), vertical = cs(3.dp)),
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(cs(3.dp)),
                                 ) {
                                     Text(
                                         text = activeMainTagLabels[tag.id] ?: tag.name,
-                                        style = MaterialTheme.typography.labelSmall,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp * headerCompactScale()),
                                         color = Color.White.copy(alpha = 0.9f),
                                         fontWeight = FontWeight.Black,
-                                        fontSize = 10.sp,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                     )
                                     Icon(
                                         Icons.Default.ArrowDropDown,
                                         contentDescription = "Editar",
-                                        modifier = Modifier.size(12.dp),
+                                        modifier = Modifier.size(cs(12.dp)),
                                         tint = Color.White.copy(alpha = 0.7f),
                                     )
                                 }
@@ -796,21 +798,20 @@ internal fun WorkoutHeaderBar(
                                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)),
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                                    modifier = Modifier.padding(horizontal = cs(6.dp), vertical = cs(3.dp)),
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(cs(3.dp)),
                                 ) {
                                     Text(
                                         text = subTag.name,
-                                        style = MaterialTheme.typography.labelSmall,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp * headerCompactScale()),
                                         color = Color.White.copy(alpha = 0.7f),
-                                        fontSize = 9.sp,
                                         maxLines = 1,
                                     )
                                     Icon(
                                         Icons.Default.Close,
                                         contentDescription = "Quitar",
-                                        modifier = Modifier.size(10.dp),
+                                        modifier = Modifier.size(cs(10.dp)),
                                         tint = Color.White.copy(alpha = 0.5f),
                                     )
                                 }
@@ -826,7 +827,7 @@ internal fun WorkoutHeaderBar(
                             Icon(
                                 Icons.Default.Add,
                                 contentDescription = "Crear etiqueta",
-                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 3.dp).size(12.dp),
+                                modifier = Modifier.padding(horizontal = cs(5.dp), vertical = cs(3.dp)).size(cs(12.dp)),
                                 tint = Color.White.copy(alpha = 0.8f),
                             )
                         }
@@ -839,11 +840,10 @@ internal fun WorkoutHeaderBar(
                             ) {
                                 Text(
                                     text = exerciseTag,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                    style = MaterialTheme.typography.labelSmall,
+                                    modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(3.dp)),
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp * headerCompactScale()),
                                     color = Color.White.copy(alpha = 0.9f),
                                     fontWeight = FontWeight.Black,
-                                    fontSize = 10.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
@@ -853,7 +853,7 @@ internal fun WorkoutHeaderBar(
                 }
                 Row(
                     verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(cs(8.dp)),
                 ) {
                     if (onHistoryClick != null) {
                         HeaderCoverIconButton(
@@ -869,7 +869,7 @@ internal fun WorkoutHeaderBar(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(99.dp))
                                 .background(Color.White.copy(alpha = 0.14f))
-                                .padding(2.dp),
+                                .padding(cs(2.dp)),
                         ) {
                             VoiceModeHeaderSegment(
                                 label = "Manos libres",
@@ -932,11 +932,11 @@ private fun HeaderCoverIconButton(
 ) {
     Surface(
         onClick = onClick,
-        modifier = Modifier.size(44.dp),
+        modifier = Modifier.size(44.dp * headerCompactScale()),
         shape = CircleShape,
         color = fill,
         contentColor = Color.White,
-        border = BorderStroke(1.5.dp, border),
+        border = BorderStroke(1.5.dp * headerCompactScale(), border),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
     ) {
@@ -944,7 +944,7 @@ private fun HeaderCoverIconButton(
             imageVector = icon,
             contentDescription = contentDescription,
             tint = iconTint,
-            modifier = Modifier.padding(10.dp),
+            modifier = Modifier.padding(10.dp * headerCompactScale()),
         )
     }
 }
@@ -960,12 +960,12 @@ private fun VoiceModeHeaderSegment(
             .clip(RoundedCornerShape(99.dp))
             .background(if (selected) Color.White.copy(alpha = 0.30f) else Color.Transparent)
             .clickable(onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 5.dp),
+            .padding(horizontal = 10.dp * headerCompactScale(), vertical = 5.dp * headerCompactScale()),
     ) {
         Text(
             text = label,
             color = Color.White,
-            fontSize = 10.sp,
+            fontSize = 10.sp * headerCompactScale(),
             fontWeight = if (selected) FontWeight.Black else FontWeight.Bold,
             maxLines = 1,
         )

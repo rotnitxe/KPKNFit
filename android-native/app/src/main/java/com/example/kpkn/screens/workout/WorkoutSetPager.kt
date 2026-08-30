@@ -487,6 +487,10 @@ internal fun WorkoutSetPager(
 ) {
     if (elements.isEmpty()) return
 
+    val chromeScale = com.example.kpkn.ui.adapt.LocalViewportAdapt.current.uniformScale
+    val stepperHeight = STEPPER_TOTAL_HEIGHT * chromeScale
+    val stepperRowHeight = STEPPER_ROW_HEIGHT * chromeScale
+    val stepperEndSlot = STEPPER_END_SLOT * chromeScale
     val accent = sessionAccentColor ?: MaterialTheme.colorScheme.primary
     val timelineProgressColor = Color(0xFF38BDF8) // Soft azure / cyan-blue
     val timelineFillTarget = timelineRailCursorProgress(elements, activeElementIndex)
@@ -537,12 +541,12 @@ internal fun WorkoutSetPager(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
-            .height(STEPPER_TOTAL_HEIGHT)
+            .height(stepperHeight)
             .padding(horizontal = 8.dp),
     ) {
         // Clear band between chrome overlays — active node must stay here.
-        val leadingChrome = STEPPER_END_SLOT
-        val trailingChrome = if (hasAddSet) STEPPER_END_SLOT else 0.dp
+        val leadingChrome = stepperEndSlot
+        val trailingChrome = if (hasAddSet) stepperEndSlot else 0.dp
         val clearWidth = (maxWidth - leadingChrome - trailingChrome).coerceAtLeast(0.dp)
         val viewportWidthPx = constraints.maxWidth.toFloat()
 
@@ -683,7 +687,7 @@ internal fun WorkoutSetPager(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(STEPPER_TOTAL_HEIGHT)
+                .height(stepperHeight)
                 .then(
                     when {
                         onNavigateAdjacentExercise != null && overflows ->
@@ -725,7 +729,7 @@ internal fun WorkoutSetPager(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .height(STEPPER_ROW_HEIGHT),
+                    .height(stepperRowHeight),
             ) {
                 ContinuousTimelineTrack(
                     progress = timelineFillProgress,
@@ -734,15 +738,15 @@ internal fun WorkoutSetPager(
                     modifier = Modifier
                         .align(Alignment.Center)
                         .fillMaxWidth()
-                        .height(STEPPER_RAIL_HEIGHT)
-                        .padding(horizontal = STEPPER_END_SLOT / 2),
+                        .height(STEPPER_RAIL_HEIGHT * chromeScale)
+                        .padding(horizontal = stepperEndSlot / 2),
                 )
 
                 // Overflow: nodes may pass under chrome with fade. Fit: stay inside clear band only.
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(STEPPER_ROW_HEIGHT)
+                        .height(stepperRowHeight)
                         .stepperOverflowFade(
                             enabled = overflows,
                             leadingChrome = leadingChrome,
@@ -751,7 +755,7 @@ internal fun WorkoutSetPager(
                 ) {
                     Row(
                         modifier = Modifier
-                            .height(STEPPER_ROW_HEIGHT)
+                            .height(stepperRowHeight)
                             .then(
                                 if (overflows) {
                                     Modifier
@@ -893,8 +897,8 @@ internal fun WorkoutSetPager(
             Box(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
-                    .width(STEPPER_END_SLOT)
-                    .height(STEPPER_ROW_HEIGHT),
+                    .width(stepperEndSlot)
+                    .height(stepperRowHeight),
                 contentAlignment = Alignment.Center,
             ) {
                 SetProgressBadge(
@@ -907,8 +911,8 @@ internal fun WorkoutSetPager(
                 Box(
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
-                        .width(STEPPER_END_SLOT)
-                        .height(STEPPER_ROW_HEIGHT),
+                        .width(stepperEndSlot)
+                        .height(stepperRowHeight),
                     contentAlignment = Alignment.Center,
                 ) {
                     AddSetStepperButton(
@@ -1595,7 +1599,6 @@ private fun TimelineDot(
     label: String,
     modifier: Modifier = Modifier,
 ) {
-    val progressColor = Color(0xFF38BDF8)
     val size by animateDpAsState(
         targetValue = STEPPER_CHROME_SIZE,
         animationSpec = spring(
@@ -1614,7 +1617,7 @@ private fun TimelineDot(
     )
     val fillTarget = when {
         active -> accent
-        complete -> progressColor
+        complete -> Color(0xFF38BDF8)
         skipped -> accent.copy(alpha = 0.26f).compositeOver(TIMELINE_NODE_SOLID_BG)
         else -> Color(0xFF26252C)
     }
@@ -1625,7 +1628,7 @@ private fun TimelineDot(
     )
     val borderColor by animateColorAsState(
         targetValue = when {
-            complete -> progressColor
+            complete -> Color(0xFF38BDF8)
             active -> accent
             skipped -> accent.copy(alpha = 0.24f)
             else -> Color.White.copy(alpha = 0.35f)

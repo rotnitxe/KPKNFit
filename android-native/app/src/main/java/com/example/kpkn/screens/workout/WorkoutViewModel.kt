@@ -288,6 +288,7 @@ class WorkoutViewModel(
             override fun onSetRecordedMilestone(exercise: Exercise, weight: Double, reps: Int) {
                 this@WorkoutViewModel.considerSessionMilestoneForSet(exercise, weight, reps)
             }
+            override fun onRecordingRejected(message: String) = showWorkoutToast(message)
         },
     )
 
@@ -413,6 +414,7 @@ class WorkoutViewModel(
                 override fun openFinishSheet() = this@WorkoutViewModel.openFinishSheet()
                 override fun speakCurrentStepAnnouncementIfEnabled() = voiceCommandHandler.speakCurrentStepAnnouncementIfEnabled()
                 override fun isRecordingBusy() = recordingGate.isBusy()
+                override fun onRecordingBusyBlocked(message: String) = showWorkoutToast(message)
                 override fun announcePostExerciseFeedback(exerciseIds: List<String>) =
                     voiceController.onVoicePendingFeedbackPrompt(exerciseIds.toSet())
                 override fun announceFinalPostExerciseFeedback(exerciseIds: List<String>) =
@@ -710,32 +712,8 @@ class WorkoutViewModel(
         )
     }
 
-    private fun updatePredictionBiasFromClosingFeedback(closingFeedback: SessionClosingFeedback) {
-        val musclesEdited = closingFeedback.editedMuscleKeys.isNotEmpty()
-        val neuralEdited = closingFeedback.neuralEdited
-        val spinalEdited = closingFeedback.spinalEdited
-        if (!musclesEdited && !neuralEdited && !spinalEdited) return
-        repository.updateSettings { settings ->
-            val prev = settings.augePredictionBias
-            val alpha = 0.30
-            val newSamples = (prev.sampleCount + 1).coerceAtMost(500)
-            settings.copy(
-                augePredictionBias = prev.copy(
-                    cnsBias = if (neuralEdited) {
-                        (prev.cnsBias * (1.0 - alpha) + closingFeedback.systemAdjustment * alpha).coerceIn(-20.0, 20.0)
-                    } else prev.cnsBias,
-                    muscularBias = if (musclesEdited) {
-                        (prev.muscularBias * (1.0 - alpha) + closingFeedback.muscularAdjustment * alpha).coerceIn(-20.0, 20.0)
-                    } else prev.muscularBias,
-                    spinalBias = if (spinalEdited) {
-                        (prev.spinalBias * (1.0 - alpha) + closingFeedback.structureAdjustment * alpha).coerceIn(-20.0, 20.0)
-                    } else prev.spinalBias,
-                    sampleCount = newSamples,
-                    lastUpdatedMs = System.currentTimeMillis(),
-                    muscularBiasVersion = if (musclesEdited) 2 else prev.muscularBiasVersion,
-                )
-            )
-        }
+    private fun updatePredictionBiasFromClosingFeedback(@Suppress("UNUSED_PARAMETER") closingFeedback: SessionClosingFeedback) {
+        // Single memory: adaptive cache (τ). Finish edits only persist battery anchors.
     }
 
     // Last log for ghost performance (by sessionId)
@@ -2245,19 +2223,49 @@ class WorkoutViewModel(
             )
         }
         if (updatedSession == base) return
-        applySessionMutation(updatedSession, preferredExerciseId = targetIds.firstOrNull())
-        _uiState.update { it.copy(godModeUndoStack = it.godModeUndoStack + snapshot) }
+        val createdGroup = updatedSession.allSupersetGroups().firstOrNull { it.id == groupId } ?: return
+        val memberNames = targetIds.mapNotNull { id ->
+            updatedSession.allExercises().firstOrNull { it.id == id }?.name
+        }
+        applySessionMutation(
+            updatedSession,
+            preferredExerciseId = targetIds.firstOrNull(),
+            persistToProgram = false,
+        )
+        _uiState.update {
+            it.copy(
+                godModeUndoStack = it.godModeUndoStack + snapshot,
+                pendingStructuralPersistence = PendingStructuralChange.AddSuperset(
+                    groupId = groupId,
+                    afterExerciseId = targetIds.firstOrNull(),
+                    newExerciseIds = targetIds,
+                    newExerciseNames = memberNames,
+                    supersetConfig = CatalogSupersetConfig(
+                        rounds = rounds ?: createdGroup.rounds ?: 1,
+                        restBetweenExercisesSeconds = restBetween,
+                        restAfterSupersetSeconds = restAfter,
+                    ),
+                    group = createdGroup,
+                    activeMode = state.activeMode,
+                ),
+            )
+        }
     }
 
     fun addCatalogExerciseToLiveSuperset(groupId: String, catalogExercise: ExerciseMuscleInfo) {
         val state = _uiState.value
         val base = state.session ?: return
+        val modeSession = sessionForActiveMode(base, state.activeMode)
+        val existingMembers = SupersetRules.orderedMembers(modeSession, groupId)
+        if (existingMembers.size >= 4) {
+            showWorkoutToast("Máximo 4 ejercicios por superserie")
+            return
+        }
         var newExerciseId: String? = null
         val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
             val group = modeSession.allSupersetGroups().firstOrNull { it.id == groupId } ?: return@withModeSession modeSession
             val members = SupersetRules.orderedMembers(modeSession, groupId)
             val template = members.firstOrNull() ?: return@withModeSession modeSession
-            if (members.size >= 4) return@withModeSession modeSession
 
             val generatedId = UUID.randomUUID().toString()
             newExerciseId = generatedId
@@ -2398,13 +2406,28 @@ class WorkoutViewModel(
     fun dissolveLiveSuperset(groupId: String, preferredExerciseId: String? = null) {
         val state = _uiState.value
         val base = state.session ?: return
+        val memberNames = visibleExercises(state)
+            .filter { it.supersetGroupRefOrLegacyId() == groupId }
+            .map { it.name }
         val snapshot = captureGodModeUndoSnapshot("Disolver superserie")
         val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
             SupersetRules.dissolve(modeSession, groupId)
         }
         if (updatedSession == base) return
-        applySessionMutation(updatedSession, preferredExerciseId = preferredExerciseId)
-        _uiState.update { it.copy(godModeUndoStack = it.godModeUndoStack + snapshot) }
+        applySessionMutation(
+            updatedSession,
+            preferredExerciseId = preferredExerciseId,
+            persistToProgram = false,
+        )
+        _uiState.update {
+            it.copy(
+                godModeUndoStack = it.godModeUndoStack + snapshot,
+                pendingStructuralPersistence = PendingStructuralChange.DissolveSuperset(
+                    groupId = groupId,
+                    exerciseNames = memberNames,
+                ),
+            )
+        }
     }
 
     fun removeExerciseFromLiveSuperset(exerciseId: String) {
@@ -2426,9 +2449,18 @@ class WorkoutViewModel(
         val state = _uiState.value
         val base = state.session ?: return
         val modeSession = sessionForActiveMode(base, state.activeMode)
-        val memberIds = (SupersetRules.orderedMembers(modeSession, groupId).map { it.id } + exerciseId).distinct()
-        if (memberIds.size < 2) return
-        createLiveSuperset(memberIds, undoLabel = "Unir a superserie")
+        val memberIds = SupersetRules.orderedMembers(modeSession, groupId).map { it.id }
+        if (memberIds.size >= 4) {
+            showWorkoutToast("Máximo 4 ejercicios por superserie")
+            return
+        }
+        val mergedMemberIds = (memberIds + exerciseId).distinct()
+        if (mergedMemberIds.size < 2) return
+        if (mergedMemberIds.size > 4) {
+            showWorkoutToast("Máximo 4 ejercicios por superserie")
+            return
+        }
+        createLiveSuperset(mergedMemberIds, undoLabel = "Unir a superserie")
     }
 
     fun moveLiveExerciseToPart(exerciseId: String, targetPartId: String) {
@@ -5053,6 +5085,14 @@ class WorkoutViewModel(
 
     fun consumeFinishWarning() {
         _uiState.update { it.copy(finishWarning = null) }
+    }
+
+    fun showWorkoutToast(message: String) {
+        _uiState.update { it.copy(workoutToastNotice = message) }
+    }
+
+    fun consumeWorkoutToastNotice() {
+        _uiState.update { it.copy(workoutToastNotice = null) }
     }
 
     fun acceptVolumeAdvance() {

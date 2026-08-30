@@ -81,6 +81,25 @@ internal class RecordActionHolder {
     val isArmed: Boolean get() = action != null
 }
 
+/** Gate for the live-session record FAB (strength sets only). */
+internal fun shouldShowWorkoutRecordFab(
+    hasCurrentExercise: Boolean,
+    hasCurrentSet: Boolean,
+    isCardio: Boolean,
+    showingPostExerciseCard: Boolean,
+    isWarmupOverlayActive: Boolean,
+    isMobilityOverlayActive: Boolean,
+    showReadinessSheet: Boolean,
+    showRestOverlayHost: Boolean,
+): Boolean = hasCurrentExercise &&
+    hasCurrentSet &&
+    !isCardio &&
+    !showingPostExerciseCard &&
+    !isWarmupOverlayActive &&
+    !isMobilityOverlayActive &&
+    !showReadinessSheet &&
+    !showRestOverlayHost
+
 /** Opens readiness Adapt sheet from header into the active set card. */
 internal class AdaptActionHolder {
     var open: (() -> Unit)? = null

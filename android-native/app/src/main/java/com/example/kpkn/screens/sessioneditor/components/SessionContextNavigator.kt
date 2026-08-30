@@ -173,7 +173,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -187,6 +186,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.viewinterop.AndroidView
+import com.example.kpkn.ui.adapt.adapt
 import com.example.kpkn.ui.components.kpknGlassOrFallback
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
@@ -469,8 +469,10 @@ internal fun SessionContextNavigator(
                 }
             }
 
-            // Day circles row — responsive sizing to avoid overflow on narrow screens
-            val circleSize = if (LocalConfiguration.current.screenWidthDp < 360) 40.dp else 42.dp
+            // Day circles row — proportional + reflow instead of a raw width crush
+            val navigatorAdapt = com.example.kpkn.ui.adapt.LocalViewportAdapt.current
+            val circleSize = (if (navigatorAdapt.shouldReflow) 40.dp else 42.dp)
+                .adapt(navigatorAdapt)
             Box(modifier = Modifier.fillMaxWidth()) {
                 Box(
                     modifier = Modifier.fillMaxWidth(),

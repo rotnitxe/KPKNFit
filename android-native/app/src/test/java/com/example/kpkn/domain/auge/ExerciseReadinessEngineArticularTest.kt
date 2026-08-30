@@ -104,7 +104,7 @@ class ExerciseReadinessEngineArticularTest {
         // Glúteos: HIP (60) * SECONDARY (0.5) = 30.0
         // Total sum = 60.0, Total weight = 1.5. Avg = 40
         assertTrue(readiness != null)
-        assertEquals(35, readiness!!.articularComponent)
+        assertEquals(40, readiness!!.articularComponent)
     }
 
     @Test
@@ -146,8 +146,8 @@ class ExerciseReadinessEngineArticularTest {
 
         assertTrue(readiness != null)
         assertEquals(80, readiness!!.muscularComponent)
-        assertEquals(35, readiness!!.articularComponent)
-        assertEquals(35, readiness!!.structuralComponent) // min(80, 35) = 35
+        assertEquals(40, readiness!!.articularComponent)
+        assertEquals(40, readiness!!.structuralComponent) // min(80, 40) = 40
     }
 
     @Test

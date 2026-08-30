@@ -37,8 +37,7 @@ object InterferenceEngine {
         "Isquiosurales" to 96.0, "Erectores Espinales" to 96.0,
     )
 
-    // Peso de impacto por rol muscular — misma fuente que fatiga AUGE
-    private val ROLE_DRAIN_WEIGHT = FATIGUE_ROLE_MULTIPLIERS
+    private const val MAX_HOURS_APART = 96.0
 
     // Umbral mínimo de drenaje residual para que un músculo cuente como interferencia
     private const val MIN_RESIDUAL_THRESHOLD = 0.08   // 8% fatiga residual mínima
@@ -70,8 +69,7 @@ object InterferenceEngine {
             val msB  = parseIsoMs(logB.date)
             val hoursApart = (msB - msA) / 3_600_000.0
 
-            // Solo analizar si B ocurre dentro de 72h de A
-            if (hoursApart <= 0 || hoursApart > 72.0) continue
+            if (hoursApart <= 0 || hoursApart > MAX_HOURS_APART) continue
 
             val drainsA = buildMuscleDrainsFromLog(logA, exerciseDb, settings)
             val usagesB = buildMuscleUsagesFromLog(logB, exerciseDb)
@@ -134,7 +132,7 @@ object InterferenceEngine {
             val (sessionB, dayB) = sorted[i + 1]
             val hoursApart = ((dayB - dayA).coerceAtLeast(1)) * 24.0
 
-            if (hoursApart > 72.0) continue
+            if (hoursApart > MAX_HOURS_APART) continue
 
             val drainsA = buildMuscleDrainsFromSession(sessionA, exerciseDb)
             val usagesB = buildMuscleUsagesFromSession(sessionB, exerciseDb)
@@ -161,7 +159,7 @@ object InterferenceEngine {
             val (sessionFirst, dayFirst) = sorted.first()
             // Asume semana de 7 días: días restantes hasta el lunes siguiente
             val hoursApart = ((7 - dayZ + dayFirst).coerceAtLeast(1)) * 24.0
-            if (hoursApart <= 72.0) {
+            if (hoursApart <= MAX_HOURS_APART) {
                 val drainsZ  = buildMuscleDrainsFromSession(sessionZ, exerciseDb)
                 val usagesF  = buildMuscleUsagesFromSession(sessionFirst, exerciseDb)
                 val interference = computeInterference(
@@ -181,6 +179,77 @@ object InterferenceEngine {
         }
 
         return results.sortedByDescending { it.interferencePercent }
+    }
+
+    /**
+     * Interferencia de la sesión que se está editando contra historial reciente
+     * y otras sesiones de la semana (seguidas o separadas, si el tiempo no alcanza).
+     */
+    fun analyzeUpcomingSession(
+        current: Session,
+        weekSessions: List<Session>,
+        history: List<WorkoutLog>,
+        exerciseDb: Map<String, ExerciseMuscleInfo>,
+        settings: Settings,
+        nowMs: Long = System.currentTimeMillis(),
+    ): List<SessionInterference> {
+        val usagesB = buildMuscleUsagesFromSession(current, exerciseDb)
+        if (usagesB.isEmpty()) return emptyList()
+
+        val results = mutableListOf<SessionInterference>()
+        val cutoff = nowMs - (MAX_HOURS_APART * 3_600_000.0).toLong()
+
+        history.filter { parseIsoMs(it.date) in cutoff until nowMs }.forEach { log ->
+            val hoursApart = (nowMs - parseIsoMs(log.date)) / 3_600_000.0
+            if (hoursApart <= 0.0 || hoursApart > MAX_HOURS_APART) return@forEach
+            val interference = computeInterference(
+                sessionAId = log.sessionId,
+                sessionAName = log.sessionName,
+                sessionBId = current.id,
+                sessionBName = current.name,
+                sessionADate = log.date.take(10),
+                sessionBDate = null,
+                drainsA = buildMuscleDrainsFromLog(log, exerciseDb, settings),
+                usagesB = usagesB,
+                hoursApart = hoursApart,
+                isFromHistory = true,
+            )
+            if (interference != null) results.add(interference)
+        }
+
+        val currentDow = current.dayOfWeek ?: current.assignedDays.firstOrNull()
+        weekSessions.filter { it.id != current.id }.forEach { other ->
+            val hoursApart = hoursBetweenAssignedDays(
+                fromDow = other.dayOfWeek ?: other.assignedDays.firstOrNull(),
+                toDow = currentDow,
+            ) ?: return@forEach
+            if (hoursApart <= 0.0 || hoursApart > MAX_HOURS_APART) return@forEach
+            val interference = computeInterference(
+                sessionAId = other.id,
+                sessionAName = other.name,
+                sessionBId = current.id,
+                sessionBName = current.name,
+                sessionADate = null,
+                sessionBDate = null,
+                drainsA = buildMuscleDrainsFromSession(other, exerciseDb),
+                usagesB = usagesB,
+                hoursApart = hoursApart,
+                isFromHistory = false,
+            )
+            if (interference != null) results.add(interference)
+        }
+
+        return results
+            .sortedByDescending { it.interferencePercent }
+            .distinctBy { it.sessionAId to it.sessionBId }
+    }
+
+    private fun hoursBetweenAssignedDays(fromDow: Int?, toDow: Int?): Double? {
+        if (fromDow == null || toDow == null) return null
+        val raw = toDow - fromDow
+        if (raw == 0) return null
+        val days = if (raw > 0) raw else raw + 7
+        return days * 24.0
     }
 
     // ─── Construcción de drains/usages ───────────────────────────────────────
@@ -233,7 +302,7 @@ object InterferenceEngine {
                 val involvedMuscles = ce.effectiveMuscles?.takeIf { it.isNotEmpty() }
                     ?: info.involvedMuscles
                 involvedMuscles.forEach { im ->
-                    val roleW = ROLE_DRAIN_WEIGHT[im.role] ?: 0.0
+                    val roleW = resolveMuscleVolumeContribution(im)
                     if (roleW > 0.0) {
                         val muscleKey = getAugeMusclePillarId(im.muscle, im.emphasis)
                         val muscleDrain = drain.muscularDrainPct * roleW * 0.01
@@ -267,7 +336,7 @@ object InterferenceEngine {
             val involvedMuscles = ce.effectiveMuscles?.takeIf { it.isNotEmpty() }
                 ?: info.involvedMuscles
             involvedMuscles.forEach { im ->
-                val roleW = ROLE_DRAIN_WEIGHT[im.role] ?: 0.0
+                val roleW = resolveMuscleVolumeContribution(im)
                 if (roleW > 0.0) {
                     val muscleKey = getAugeMusclePillarId(im.muscle, im.emphasis)
                     usages[muscleKey] = maxOf(usages[muscleKey] ?: 0.0, roleW)
@@ -294,13 +363,13 @@ object InterferenceEngine {
             val info = resolveExercise(
                 catalogConfigurationId = ex.catalogConfigurationId,
                 exerciseDbId = ex.exerciseDbId,
-                exerciseId = ex.exerciseId,
+                exerciseId = ex.exerciseId ?: ex.id,
                 exerciseName = ex.name,
                 exerciseDb = exerciseDb,
             ) ?: return@forEach
             val metrics = AugeFatigueEngine.getDynamicAugeMetrics(info.name, info.equipment, info) ?: AugeMetrics()
-            // Estimar drenaje basado en EFC normalizado (sin sets reales)
-            val estimatedDrain = (metrics.efc / 5.0) * 0.4   // 40% max drain estimado por ejercicio
+            val workingSets = ex.sets.count { !it.isIneffective }.coerceAtLeast(1)
+            val estimatedDrain = ((metrics.efc / 5.0) * 0.18 * workingSets).coerceIn(0.08, 0.85)
 
             val involvedMuscles = if (!ex.effectiveMuscles.isNullOrEmpty()) {
                 ex.effectiveMuscles!!
@@ -309,7 +378,7 @@ object InterferenceEngine {
             }
 
             involvedMuscles.forEach { im ->
-                val roleW = ROLE_DRAIN_WEIGHT[im.role] ?: 0.0
+                val roleW = resolveMuscleVolumeContribution(im)
                 if (roleW > 0.0) {
                     val muscleKey = getAugeMusclePillarId(im.muscle, im.emphasis)
                     val muscleDrain = estimatedDrain * roleW
@@ -342,7 +411,7 @@ object InterferenceEngine {
                 info.involvedMuscles
             }
             involvedMuscles.forEach { im ->
-                val roleW = ROLE_DRAIN_WEIGHT[im.role] ?: 0.0
+                val roleW = resolveMuscleVolumeContribution(im)
                 if (roleW > 0.0) {
                     // Drains and usages must share the AUGE pillar key. Raw
                     // chip names such as "Glúteo Mayor" otherwise miss

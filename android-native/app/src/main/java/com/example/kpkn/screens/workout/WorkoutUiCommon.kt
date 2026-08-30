@@ -103,6 +103,24 @@ internal fun formatElapsed(seconds: Int): String {
     }
 }
 
+/** Header timer chip: elapsed, or remaining / limit when a session time cap is on. */
+internal fun formatSessionChronometerText(
+    hasLimit: Boolean,
+    remainingSeconds: Int,
+    elapsedSeconds: Int,
+    targetMinutes: Int?,
+): String {
+    if (!hasLimit) return formatElapsed(elapsedSeconds.coerceAtLeast(0))
+    val absRemaining = abs(remainingSeconds)
+    val remainingText = "${if (remainingSeconds < 0) "-" else ""}${formatElapsed(absRemaining)}"
+    val limitSeconds = (targetMinutes?.takeIf { it > 0 } ?: 0) * 60
+    return if (limitSeconds > 0) {
+        "$remainingText / ${formatElapsed(limitSeconds)}"
+    } else {
+        remainingText
+    }
+}
+
 internal fun buildWorkoutAchievementMessage(
     homologated: HomologatedPerformanceResult?,
     showPRsInWorkout: Boolean,

@@ -72,6 +72,10 @@ sealed class PendingStructuralChange {
         val exerciseIds: List<String>,
         val exerciseNames: List<String>,
     ) : PendingStructuralChange()
+    data class DissolveSuperset(
+        val groupId: String,
+        val exerciseNames: List<String>,
+    ) : PendingStructuralChange()
 }
 
 data class FinishResumeSnapshot(
@@ -226,6 +230,7 @@ data class WorkoutUiState(
     val emptyFinishGuardNotice: String? = null,
     // Aviso reintentable cuando el cierre no pudo esperar una grabación en curso.
     val finishWarning: String? = null,
+    val workoutToastNotice: String? = null,
     val continuityTransitionTarget: WorkoutContinuityTransitionTarget? = null,
     val continuityFeedbackExerciseId: String? = null,
     // EMA de estrés acumulado en el mesociclo actual

@@ -8,8 +8,8 @@ import org.junit.Test
 import java.time.Instant
 
 /**
- * Overnight muscular recovery should feel like a real night of sleep (~+12–20 pts),
- * not a stuck ring (~+3–7 with the old 0.15× early sigmoidal).
+ * Overnight muscular recovery should feel like a real night (~+10–20 pts)
+ * from the sigmoidal curve alone — sleep hours are not a recovery bonus.
  */
 class OvernightRecoverySensationTest {
 
@@ -44,8 +44,8 @@ class OvernightRecoverySensationTest {
         )
 
         assertTrue(
-            "Overnight from 40% should land ~52–62 with decent sleep, got ${status.recoveryScore}",
-            status.recoveryScore in 52..62,
+            "Overnight from 40% should land ~50–62 without a sleep-habit bonus, got ${status.recoveryScore}",
+            status.recoveryScore in 50..62,
         )
     }
 

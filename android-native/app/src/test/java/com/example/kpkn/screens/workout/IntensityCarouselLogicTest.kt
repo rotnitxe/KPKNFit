@@ -140,4 +140,65 @@ class IntensityCarouselLogicTest {
         assertEquals(50, repsCarouselIndexFromValue("999", 50))
         assertEquals(0, repsCarouselIndexFromValue("-3", 50))
     }
+
+    @Test
+    fun effectiveWeightText_usesGhostWhenBlankOrZero() {
+        assertEquals("80", effectiveCarouselWeightText("", "80"))
+        assertEquals("80", effectiveCarouselWeightText("0", "80"))
+        assertEquals("72.5", effectiveCarouselWeightText("72.5", "80"))
+    }
+
+    @Test
+    fun effectiveCarouselSelectedIndex_prefersCenterWhileInFlight() {
+        assertEquals(7, effectiveCarouselSelectedIndex(selectedIndex = 3, centeredIndex = 7, itemCount = 10))
+        assertEquals(3, effectiveCarouselSelectedIndex(selectedIndex = 3, centeredIndex = 99, itemCount = 10))
+    }
+
+    @Test
+    fun effectiveRepsText_usesGhostWhenBlankOrZero() {
+        assertEquals("10", effectiveCarouselRepsText("", "10"))
+        assertEquals("10", effectiveCarouselRepsText("0", "10"))
+        assertEquals("8", effectiveCarouselRepsText("8", "10"))
+    }
+
+    @Test
+    fun effectiveIntensity_usesVisibleCarouselWhenTextBlank() {
+        val items = buildIntensityCarouselItems(
+            plannedIntensityMode = IntensityMode.RPE,
+            reportedIntensityMode = IntensityMode.RPE,
+            targetRir = null,
+            targetRpe = 8.0,
+        )
+        val index = intensityCarouselIndexFromState(
+            items = items,
+            reachedFailure = false,
+            intensityText = "",
+            reportedIntensityMode = IntensityMode.RPE,
+            plannedRpe = 8.0,
+        )
+        assertEquals(
+            8.0,
+            effectiveCarouselIntensityValue(
+                intensityText = "",
+                reachedFailure = false,
+                items = items,
+                selectedIndex = index,
+            )!!,
+            0.001,
+        )
+    }
+
+    @Test
+    fun effectiveIntensity_failureUsesTen() {
+        assertEquals(
+            10.0,
+            effectiveCarouselIntensityValue(
+                intensityText = "",
+                reachedFailure = true,
+                items = emptyList(),
+                selectedIndex = 0,
+            )!!,
+            0.001,
+        )
+    }
 }

@@ -103,6 +103,7 @@ class WorkoutSetRecorder(
         )
         fun checkPaceCoachAlert()
         fun onSetRecordedMilestone(exercise: Exercise, weight: Double, reps: Int)
+        fun onRecordingRejected(message: String)
     }
 
     suspend fun record(
@@ -125,14 +126,30 @@ class WorkoutSetRecorder(
     ) {
         val state = getState()
         val allExercises = ports.visibleExercises(state)
-        val exercise = allExercises.getOrNull(state.currentExerciseIdx) ?: return
+        val exercise = allExercises.getOrNull(state.currentExerciseIdx)
+        if (exercise == null) {
+            ports.onRecordingRejected("No hay ejercicio activo para registrar.")
+            return
+        }
         val targetSetIdx = setIdxOverride ?: state.currentSetIdx
-        if (expectedExerciseId != null && expectedExerciseId != exercise.id) return
-        if (expectedSetIdx != null && expectedSetIdx != targetSetIdx) return
+        if (expectedExerciseId != null && expectedExerciseId != exercise.id) {
+            ports.onRecordingRejected("El ejercicio cambió. Vuelve a la serie activa.")
+            return
+        }
+        if (expectedSetIdx != null && expectedSetIdx != targetSetIdx) {
+            ports.onRecordingRejected("La serie cambió. Vuelve a la serie activa.")
+            return
+        }
         val initialSide = if (exercise.isEffectivelyUnilateral()) side ?: expectedSide ?: "left" else null
-        if (exercise.isEffectivelyUnilateral() && expectedSide != null && expectedSide != initialSide) return
+        if (exercise.isEffectivelyUnilateral() && expectedSide != null && expectedSide != initialSide) {
+            ports.onRecordingRejected("Cambia al lado activo antes de registrar.")
+            return
+        }
         val recordingKey = buildCompletedSetKey(exercise.id, targetSetIdx, initialSide)
-        if (!tryStartRecording(recordingKey)) return
+        if (!tryStartRecording(recordingKey)) {
+            ports.onRecordingRejected("Espera a que termine el registro anterior.")
+            return
+        }
         updateState { it.copy(recordingSetKey = recordingKey) }
         try {
             val plannedSet = exercise.sets.getOrNull(targetSetIdx)
@@ -163,9 +180,11 @@ class WorkoutSetRecorder(
             val resolvedSide = if (isUnilateralExercise) initialSide else null
             val isFailedEntry = advanced.isFailedSet || advanced.executionError
             if (resolvedLoadMode != LoadModeV2.BODYWEIGHT && weight <= 0.0 && !isFailedEntry) {
+                ports.onRecordingRejected("Carga inválida. Revisa el peso antes de registrar.")
                 return
             }
             if (resolvedUnitMode != UnitModeV2.TIME && value <= 0.0 && !isFailedEntry) {
+                ports.onRecordingRejected("Reps/tiempo inválidos. Revisa el valor antes de registrar.")
                 return
             }
             val actualValue = when (resolvedUnitMode) {

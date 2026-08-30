@@ -16,8 +16,8 @@ android {
         applicationId = "com.example.kpkn"
         minSdk = 24
         targetSdk = 35
-        versionCode = 24
-        versionName = "Beta 13.5"
+        versionCode = 26
+        versionName = "Beta 13.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

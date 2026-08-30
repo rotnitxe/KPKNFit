@@ -41,6 +41,25 @@ object AugeClassifiers {
         else       -> AcwrZone.SAFE
     }
 
+    /**
+     * Acute:Chronic Workload Ratio = carga de 7 días / promedio semanal de 28 días.
+     * Null si no hay crónica usable (evita un spike falso en la primera semana).
+     */
+    fun computeAcwr(acuteLoad: Double, chronicWeeklyLoad: Double): Double? {
+        if (acuteLoad < 0.0 || chronicWeeklyLoad <= 0.0) return null
+        return acuteLoad / chronicWeeklyLoad
+    }
+
+    /**
+     * Extra remaining muscular fatigue when the last week spikes vs the month.
+     * 1.0 = no change. Only CAUTION/DANGER move the ring.
+     */
+    fun muscularLoadFactorFromAcwr(acwr: Double): Double = when (classifyAcwrZone(acwr)) {
+        AcwrZone.DANGER -> 1.12
+        AcwrZone.CAUTION -> 1.06
+        AcwrZone.SAFE, AcwrZone.UNDER -> 1.0
+    }
+
     fun acwrZoneLabel(zone: AcwrZone): String = when (zone) {
         AcwrZone.UNDER   -> "Sub-entrenando"
         AcwrZone.SAFE    -> "Zona Segura"

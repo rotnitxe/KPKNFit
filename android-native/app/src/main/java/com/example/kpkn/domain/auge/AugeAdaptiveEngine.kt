@@ -8,32 +8,31 @@ import kotlin.math.min
 
 object AugeAdaptiveEngine {
 
+    /** Minimum elapsed time before a sensation can teach τ. Finish-sheet (~0 h) must not invert. */
+    const val MIN_HOURS_FOR_TAU_LEARNING = 8.0
+
     private fun clamp(v: Double, lo: Double, hi: Double) = min(hi, max(lo, v))
 
     /**
      * Derives the implied recovery time tau from prediction-vs-reality.
-     * Ported from backend/engines/adaptive_engine.py:_derive_implied_recovery_time()
      *
-     * If AUGE predicted battery P but user reports actual battery A,
-     * we solve for the tau that produces A given the stress and time elapsed.
+     * Forward muscular decay uses [AugeUtils.getSigmoidalHours]; CNS is linear hours;
+     * spinal uses [AugeUtils.getSpinalRecoveryHours]. The inversion uses the same
+     * time warp so τ is in the same units the ring consumes.
      *
      * remaining_fraction = (100 - actualBattery) / (100 - initialDepletion)
-     * k = -ln(remaining_fraction) / hoursSince
+     * k = -ln(remaining_fraction) / effectiveHours
      * tau = 2.9957 / k
      */
     private fun deriveImpliedRecoveryTime(obs: RecoveryLearningObservation): Double? {
-        // Floor of 0.5h to prevent division by zero or extreme instability for immediate post-session feedback
-        if (obs.hoursSinceSession < 0.5) return null
-
-        if (obs.sessionStress <= 0) {
-            return if (obs.actualBattery >= 95) 12.0 else null
-        }
+        if (obs.hoursSinceSession < MIN_HOURS_FOR_TAU_LEARNING) return null
+        if (obs.sessionStress <= 0) return null
 
         val actualDepletion = max(1.0, 100.0 - obs.actualBattery)
         val initialDepletion = max(actualDepletion, obs.sessionStress)
 
         val remainingFraction = clamp(actualDepletion / initialDepletion, 0.01, 0.99)
-        val hours = max(0.5, obs.hoursSinceSession)
+        val hours = obs.hoursSinceSession
 
         val effectiveHours = when (obs.muscle.lowercase().trim()) {
             "cns" -> hours
@@ -45,25 +44,15 @@ object AugeAdaptiveEngine {
         if (k <= 0) return null
 
         val impliedTau = 2.9957 / k
-        val sleepAdj = when {
-            obs.sleepQuality >= 4 -> 0.94
-            obs.sleepQuality <= 2 -> 1.08
-            else -> 1.0
-        }
-        val nutritionAdj = obs.nutritionMultiplier.coerceIn(0.85, 1.15)
-        return clamp(impliedTau * sleepAdj * nutritionAdj, 6.0, 200.0)
+        return clamp(impliedTau, 6.0, 200.0)
     }
 
     /**
-     * Updates the per-muscle personalized recovery hours using a simplified
-     * Bayesian-like exponential moving average.
+     * Updates the per-muscle personalized recovery hours using an EMA
+     * (not Bayesian / GP). One observation should update τ only — not
+     * drain multipliers or battery deltas in the same gesture.
      *
-     * When the user manually adjusts rings in the closing feedback,
-     * we compare the prediction to their actual feel and nudge the
-     * learned recovery time toward the implied tau.
-     *
-     * Learning rate: alpha = min(0.3, 1 / (1 + totalObs)) so early
-     * observations are more influential.
+     * Learning rate: alpha = max(0.05, min(0.5, 1.5 / (totalObs + 1))).
      */
     fun updatePersonalizedRecoveryHours(
         current: Map<String, Double>,

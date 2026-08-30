@@ -177,6 +177,37 @@ class SmartExerciseCreatorRegressionTest {
     }
 
     @Test
+    fun custom_press_inherits_catalog_muscles_not_core() {
+        val benchCatalog = listOf(
+            ExerciseMuscleInfo(
+                id = "bench_press",
+                name = "Press de banca",
+                alias = "press banca, bench press",
+                equipment = "Barra",
+                force = "Empuje Horizontal",
+                movementPattern = "horizontal_push",
+                efc = 3.2,
+                cnc = 3.5,
+                ssc = 0.8,
+                involvedMuscles = listOf(
+                    InvolvedMuscle("Pectorales", MuscleRole.PRIMARY, 1.0),
+                    InvolvedMuscle("Tríceps", MuscleRole.SECONDARY, 0.5),
+                    InvolvedMuscle("Deltoides Anterior", MuscleRole.SECONDARY, 0.5),
+                ),
+            ),
+        )
+        val created = SmartExerciseCreator.create(
+            SmartCreateRequest(name = "Press banca con pausa", implementoId = "barbell"),
+            benchCatalog,
+        )
+        assertTrue(created.involvedMuscles.any { it.muscle == "Pectorales" && it.role == MuscleRole.PRIMARY })
+        val triceps = created.involvedMuscles.first { it.muscle == "Tríceps" }
+        assertEquals(MuscleRole.SECONDARY, triceps.role)
+        assertEquals(0.5, triceps.volumeContribution ?: 0.0, 0.0001)
+        assertTrue(created.involvedMuscles.none { it.muscle.equals("Core", ignoreCase = true) })
+    }
+
+    @Test
     fun automatic_creation_finds_reference_by_english_synonym() {
         val created = SmartExerciseCreator.createAutomatic("Chest Fly Planas", catalog)
         assertEquals("Chest Fly Planas", created.name)

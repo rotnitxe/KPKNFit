@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,16 +24,26 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.ui.adapt.ViewportAdapt
+import com.example.kpkn.ui.adapt.ViewportAdaptMath
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.kpknGlassOrFallback
 import dev.chrisbanes.haze.HazeState
-import kotlin.math.min
 
 /**
- * Uniform live-pager scale derived from viewport width/height.
- * Applied equally on X and Y so cards shrink as a whole (never width-only crush).
+ * Uniform live-pager scale derived from the pager hole (width/height).
+ * Defaults to the window [LocalViewportAdapt] so callers outside the pager
+ * still track the shared X+Y factor.
  */
 val LocalLivePagerAdaptScale = compositionLocalOf { 1f }
+
+val LocalLivePagerShouldReflow = compositionLocalOf { false }
+
+/**
+ * Wrap height in px of SetInputCardV2 (the visible Reportar serie stack).
+ * Prep live cards clamp to this; not [WorkoutUiTokens.LivePagerBaseHeight].
+ */
+val LocalLivePagerWorkingSetVisualHeightPx = compositionLocalOf<MutableIntState?> { null }
 
 object WorkoutUiTokens {
     val ScreenHorizontalPadding = 12.dp
@@ -73,39 +84,42 @@ object WorkoutUiTokens {
      */
     const val LivePagerCardTopNudgeFraction = 0.13f
     /** Design reference for proportional adapt (typical phone width / card slot). */
-    val LivePagerReferenceWidth = 411.dp
-    val LivePagerReferenceHeight = 520.dp
-    val LivePagerVeryNarrowWidth = 320.dp
+    val LivePagerReferenceWidth = ViewportAdaptMath.LIVE_PAGER_REF_WIDTH_DP.dp
+    val LivePagerReferenceHeight = ViewportAdaptMath.LIVE_PAGER_REF_HEIGHT_DP.dp
+    val LivePagerVeryNarrowWidth = ViewportAdaptMath.COMPACT_WIDTH_DP.dp
     /** Same edge-fade depth as the exercise carousel's chrome. */
     val LivePagerEdgeFadeWidth = 52.dp
 
-    fun liveAdaptScale(availableWidth: Dp, availableHeight: Dp): Float {
-        val widthScale = if (availableWidth > 0.dp) {
-            (availableWidth / LivePagerReferenceWidth).coerceIn(0.72f, 1f)
-        } else {
-            1f
-        }
-        val heightScale = if (availableHeight > 0.dp && availableHeight < 10_000.dp) {
-            (availableHeight / LivePagerReferenceHeight).coerceIn(0.72f, 1f)
-        } else {
-            1f
-        }
-        return min(widthScale, heightScale)
+    fun livePagerViewportAdapt(
+        availableWidth: Dp,
+        availableHeight: Dp,
+        godModeActive: Boolean,
+    ): ViewportAdapt {
+        val computed = ViewportAdaptMath.compute(
+            widthDp = availableWidth.value,
+            heightDp = availableHeight.value,
+            refWidthDp = ViewportAdaptMath.LIVE_PAGER_REF_WIDTH_DP,
+            refHeightDp = ViewportAdaptMath.LIVE_PAGER_REF_HEIGHT_DP,
+        )
+        return if (godModeActive) computed.copy(uniformScale = 1f, shouldReflow = false) else computed
     }
+
+    fun liveAdaptScale(availableWidth: Dp, availableHeight: Dp): Float =
+        livePagerViewportAdapt(
+            availableWidth = availableWidth,
+            availableHeight = availableHeight,
+            godModeActive = false,
+        ).uniformScale
 
     fun livePagerViewportAdaptScale(
         availableWidth: Dp,
         availableHeight: Dp,
         godModeActive: Boolean,
-    ): Float {
-        if (godModeActive) return 1f
-        val needsViewportAdapt = availableWidth < LivePagerVeryNarrowWidth
-        return if (needsViewportAdapt) {
-            liveAdaptScale(availableWidth, availableHeight)
-        } else {
-            1f
-        }
-    }
+    ): Float = livePagerViewportAdapt(
+        availableWidth = availableWidth,
+        availableHeight = availableHeight,
+        godModeActive = godModeActive,
+    ).uniformScale
 
     @Composable
     fun effectiveLivePagerCardScale(): Float =

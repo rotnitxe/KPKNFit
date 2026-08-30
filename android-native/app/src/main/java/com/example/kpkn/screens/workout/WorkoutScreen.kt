@@ -69,7 +69,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import com.example.kpkn.data.models.SessionBackground
@@ -161,7 +163,6 @@ import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.screens.workout.components.SetInputCardV2
-import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import com.example.kpkn.screens.workout.components.VoiceCaptureModeDialog
 import com.example.kpkn.screens.workout.components.WorkoutRoadmapBar
 import com.example.kpkn.screens.workout.components.RoadmapMode
@@ -169,6 +170,7 @@ import com.example.kpkn.screens.workout.components.RestTimerOverlay
 import com.example.kpkn.screens.workout.components.RestTimerPill
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
 import com.example.kpkn.screens.workout.components.WorkoutReadinessSheet
+import com.example.kpkn.screens.workout.components.WorkoutRecordFab
 import com.example.kpkn.screens.workout.components.AdjustableRingCompact
 import com.example.kpkn.screens.workout.components.MinimalMuscleSlider
 import com.example.kpkn.data.models.discomfortLabel
@@ -270,9 +272,16 @@ fun WorkoutScreen(
     val session = uiState.session
     val restTimerRemaining by viewModel.restTimerRemaining.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val snackbarScope = rememberCoroutineScope()
     var showExitDialog by remember { mutableStateOf(false) }
     var roadmapMode by rememberSaveable(programId, sessionId) { mutableStateOf(RoadmapMode.COMPACT) }
     var roadmapSelecting by remember { mutableStateOf(false) }
+    val density = LocalDensity.current
+    var measuredRoadmapHeightDp by remember { mutableIntStateOf(0) }
+    val dockBottomClearance = resolveDockBottomClearanceDp(
+        measuredRoadmapHeightDp = measuredRoadmapHeightDp.takeIf { it > 0 },
+        roadmapExpanded = roadmapMode == RoadmapMode.EXPANDED,
+    ).dp
     var selectionClearNonce by remember { mutableIntStateOf(0) }
 
     // ─── Readiness sheet state ─────────────────────────────────────────────────
@@ -713,6 +722,7 @@ fun WorkoutScreen(
         } else {
             structureSheets.addCatalogToSupersetGroupId = null
             structureSheets.addExerciseAfterId = null
+            structureSheets.createSupersetFromCatalogAnchorId = null
             structureSheets.showReplaceExercisePicker = false
             structureSheets.replaceTargetExerciseId = null
         }
@@ -757,7 +767,6 @@ fun WorkoutScreen(
         com.example.kpkn.screens.sessioneditor.resolveSessionLivePalette(session.background)
     }
     val sessionAccentColor = sessionLivePalette.accent
-    // CTAs/badges use contentOn(sessionAccentColor); curated onAccent lives on sessionLivePalette.
 
     val postExerciseTarget = visibleExercises.getOrNull(uiState.postExerciseTargetIdx) ?: currentExercise
     val isShowingFeedback = uiState.showPostExerciseSheet && postExerciseTarget != null
@@ -866,27 +875,61 @@ fun WorkoutScreen(
 
     val canReturnToMobilityFromWarmup = isWarmupOverlayActive && (currentExercise?.mobilitySeries?.isNotEmpty() == true)
 
+    val showWorkingRestOverlayForFab = uiState.isRestTimerRunning &&
+        uiState.restModalState != null &&
+        uiState.restModalState?.kind != RestTimerKind.WARMUP &&
+        !uiState.isRestMinimized
+    val showRestOverlayHostForFab = isShowingFeedback || showWorkingRestOverlayForFab
+    val recordUpdateKey = remember(
+        currentExercise?.id,
+        uiState.currentSetIdx,
+        activeDockSide,
+        isUnilateralDock,
+        uiState.completedSets,
+    ) {
+        currentExercise?.let { exercise ->
+            workoutSetKey(
+                exercise.id,
+                uiState.currentSetIdx,
+                if (isUnilateralDock) activeDockSide else null,
+            )
+        }
+    }
+    val isRecordUpdateMode = recordUpdateKey?.let { uiState.completedSets.containsKey(it) } == true
+    val showRecordFab = shouldShowWorkoutRecordFab(
+        hasCurrentExercise = currentExercise != null,
+        hasCurrentSet = currentSet != null,
+        isCardio = currentExercise?.isCardio == true,
+        showingPostExerciseCard = showingPostExerciseCardDock,
+        isWarmupOverlayActive = isWarmupOverlayActive,
+        isMobilityOverlayActive = isMobilityOverlayActive,
+        showReadinessSheet = showReadinessSheet,
+        showRestOverlayHost = showRestOverlayHostForFab,
+    )
+
     Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
             .hazeSource(state = overlayHazeState),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        snackbarHost = { SnackbarHost(snackbarHostState) { KpknSnackbar(it) } },
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .navigationBarsPadding()
+                    .padding(bottom = dockBottomClearance + 8.dp)
+                    .zIndex(20f),
+            ) { KpknSnackbar(it) }
+        },
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             val headerExerciseInfo = currentExercise?.let { workoutCatalogInfo(it) }
             val headerGroup = resolveWorkoutHeaderGroupLabel(
                 partName = currentPartName,
                 type = headerExerciseInfo?.type,
                 category = headerExerciseInfo?.category,
             )
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(padding),
-            ) {
             WorkoutV2Body(
             modifier = Modifier.fillMaxSize(),
             uiState = uiState,
@@ -958,6 +1001,7 @@ fun WorkoutScreen(
             catalogV2 = catalogV2,
             overlayHazeState = overlayHazeState,
             roadmapExpanded = roadmapMode == RoadmapMode.EXPANDED,
+            dockBottomClearance = dockBottomClearance,
             onCreateSuperset = {
                 currentExercise?.id?.let {
                     structureSheets.workoutSupersetSelectedExerciseId = it
@@ -985,14 +1029,17 @@ fun WorkoutScreen(
                         ) { selectionClearNonce++ },
                 )
             }
-            }
             Box(
                     modifier = Modifier
+                        .align(Alignment.BottomCenter)
                         .fillMaxWidth()
                         .navigationBarsPadding()
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                         .zIndex(5f)
-                        .background(Color.Transparent),
+                        .background(Color.Transparent)
+                        .onSizeChanged { size ->
+                            measuredRoadmapHeightDp = with(density) { size.height.toDp().value.toInt() }
+                        },
                 ) {
                     WorkoutRoadmapBar(
                         exercises = visibleExercises,
@@ -1043,7 +1090,12 @@ fun WorkoutScreen(
                                 }
                             }
                         },
-                        onDissolveSuperset = { viewModel.dissolveLiveSuperset(it) },
+                        onDissolveSuperset = { groupId ->
+                            viewModel.dissolveLiveSuperset(
+                                groupId,
+                                preferredExerciseId = currentExercise?.id,
+                            )
+                        },
                         onSelectionModeChange = { roadmapSelecting = it },
                         clearSelectionNonce = selectionClearNonce,
                         godModeUndoStack = uiState.godModeUndoStack,
@@ -1119,6 +1171,20 @@ fun WorkoutScreen(
             structureSheets.editSheetExerciseId = exId
             viewModel.clearPendingEditSheetExerciseId()
         }
+    }
+
+    if (showRecordFab) {
+        WorkoutRecordFab(
+            sessionAccentColor = sessionAccentColor,
+            isUpdateMode = isRecordUpdateMode,
+            enabled = uiState.recordingSetKey == null,
+            onClick = { recordActionHolder.action?.invoke() },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .navigationBarsPadding()
+                .padding(end = 16.dp, bottom = dockBottomClearance + 12.dp)
+                .zIndex(6f),
+        )
     }
 
     }
@@ -1293,7 +1359,18 @@ fun WorkoutScreen(
     if (uiState.showExecutionErrorDiscomfortSheet && currentExercise != null) {
         QuickExecutionErrorDiscomfortSheet(
             exerciseName = displayWorkoutExerciseName(currentExercise),
-            onSave = { discomfortIds -> viewModel.dismissExecutionErrorDiscomfortSheet(discomfortIds) },
+            onSave = { discomfortIds ->
+                viewModel.dismissExecutionErrorDiscomfortSheet(discomfortIds)
+                if (discomfortIds.any { it.isNotBlank() && it != "none" }) {
+                    snackbarScope.launch {
+                        snackbarHostState.showKpknSnackbar(
+                            message = "Molestia registrada",
+                            type = SnackbarType.SUCCESS,
+                            duration = SnackbarDuration.Short,
+                        )
+                    }
+                }
+            },
             onDismiss = { viewModel.dismissExecutionErrorDiscomfortSheet(emptyList()) },
         )
     }
@@ -1312,6 +1389,13 @@ fun WorkoutScreen(
         if (warning != null) {
             android.widget.Toast.makeText(context, warning, android.widget.Toast.LENGTH_LONG).show()
             viewModel.consumeFinishWarning()
+        }
+    }
+    LaunchedEffect(uiState.workoutToastNotice) {
+        val notice = uiState.workoutToastNotice
+        if (notice != null) {
+            android.widget.Toast.makeText(context, notice, android.widget.Toast.LENGTH_SHORT).show()
+            viewModel.consumeWorkoutToastNotice()
         }
     }
     if (uiState.showFinishSheet) {
@@ -1406,19 +1490,21 @@ fun WorkoutScreen(
                     fatigueLevel = fatigue,
                     closingFeedback = closingFeedback,
                     onComplete = {
-                        val anyRingEdit = closingFeedback.neuralEdited ||
-                            closingFeedback.spinalEdited ||
+                        val neuralChanged = closingFeedback.finalNeuralBattery != postSessionPreview.neural
+                        val spinalChanged = closingFeedback.finalSpinalBattery != postSessionPreview.spinal
+                        val anyRingEdit = neuralChanged ||
+                            spinalChanged ||
                             closingFeedback.editedMuscleKeys.isNotEmpty()
                         if (anyRingEdit) {
                             val predictedMuscles = postSessionPreview.perMuscle.mapValues { it.value.recoveryScore }
                             augeViewModel.applyManualBatteries(
-                                neural = if (closingFeedback.neuralEdited) {
+                                neural = if (neuralChanged) {
                                     closingFeedback.finalNeuralBattery
                                 } else {
                                     null
                                 },
                                 muscular = null,
-                                spinal = if (closingFeedback.spinalEdited) {
+                                spinal = if (spinalChanged) {
                                     closingFeedback.finalSpinalBattery
                                 } else {
                                     null
@@ -1485,6 +1571,7 @@ fun WorkoutScreen(
             }
             )
         } else {
+            BackHandler { viewModel.hideFinish() }
             Box(
                 modifier = Modifier.fillMaxSize().padding(32.dp),
                 contentAlignment = Alignment.Center,

@@ -68,7 +68,7 @@ object ExerciseReadinessEngine {
             val displayId = getAugeMuscleDisplayId(involved.muscle, involved.emphasis)
             val recovery = (perMuscle[displayId] ?: perMuscle[pillarId])?.recoveryScore?.toDouble()
                 ?: return@fold s to w
-            val roleWeight = FATIGUE_ROLE_MULTIPLIERS[involved.role] ?: return@fold s to w
+            val roleWeight = resolveMuscleVolumeContribution(involved).takeIf { it > 0.0 } ?: return@fold s to w
             (s + recovery * roleWeight) to (w + roleWeight)
         }
 
@@ -82,7 +82,7 @@ object ExerciseReadinessEngine {
         val (artScoreSum, artWeightSum) = involvedMuscles.fold(0.0 to 0.0) { (s, w), involved ->
             val relatedArtic = AugeTtcEngine.articularBatteriesFor(involved.muscle, involved.emphasis)
             if (relatedArtic.isEmpty()) return@fold s to w
-            val roleWeight = FATIGUE_ROLE_MULTIPLIERS[involved.role] ?: return@fold s to w
+            val roleWeight = resolveMuscleVolumeContribution(involved).takeIf { it > 0.0 } ?: return@fold s to w
             val avgScore = relatedArtic
                 .mapNotNull { articularBatteries[it]?.recoveryScore }
                 .takeIf { it.isNotEmpty() }
@@ -508,7 +508,7 @@ object ExerciseReadinessEngine {
         when {
             score >= 75 -> {
                 tone = CoachingTone.GREEN
-                headline = "Tus rings dicen que estás listo para tus $plural."
+                headline = "Estimación: el plan de $plural encaja con tu estado de hoy."
                 detail = buildString {
                     append("El grueso de tu sesión ($sharePercent% de las series) va por $exercisePhrase")
                     if (muscleScores.isNotEmpty()) {

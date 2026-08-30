@@ -129,6 +129,7 @@ internal class WorkoutStructureSheetsState {
     var addExerciseAfterId by mutableStateOf<String?>(null)
     var addExerciseSearchQuery by mutableStateOf("")
     var addExerciseSelectedIds by mutableStateOf<Set<String>>(emptySet())
+    var createSupersetFromCatalogAnchorId by mutableStateOf<String?>(null)
     var showReorderSheet by mutableStateOf(false)
     var reorderSheetExerciseIds by mutableStateOf<List<String>>(emptyList())
     var showReorderCrossBoundaryConfirm by mutableStateOf(false)
@@ -146,6 +147,7 @@ internal class WorkoutStructureSheetsState {
             supersetSettingsGroupId != null ||
             addCatalogToSupersetGroupId != null ||
             addExerciseAfterId != null ||
+            createSupersetFromCatalogAnchorId != null ||
             showReorderSheet
 }
 
@@ -247,6 +249,7 @@ internal fun WorkoutStructureSheetsHost(
         state.addCatalogSearchQuery,
         state.addCatalogSelectedIds,
         state.addExerciseAfterId,
+        state.createSupersetFromCatalogAnchorId,
         state.addExerciseSearchQuery,
         state.addExerciseSelectedIds,
         state.showReplaceExercisePicker,
@@ -279,6 +282,17 @@ internal fun WorkoutStructureSheetsHost(
                 state.addExerciseAfterId = null
                 state.addExerciseSearchQuery = ""
                 state.addExerciseSelectedIds = emptySet()
+                req
+            }
+            state.createSupersetFromCatalogAnchorId != null -> {
+                val req = CatalogLaunchRequest(
+                    origin = CatalogLaunchOrigin.LIVE_SESSION,
+                    selectionMode = CatalogSelectionMode.MULTIPLE,
+                    targetExerciseId = state.createSupersetFromCatalogAnchorId,
+                    selectedExerciseIds = emptyList(),
+                    initialQuery = "",
+                )
+                state.createSupersetFromCatalogAnchorId = null
                 req
             }
             state.showReplaceExercisePicker && state.replaceTargetExerciseId != null -> {
@@ -867,9 +881,7 @@ internal fun WorkoutStructureSheetsHost(
                             onClick = {
                                 val anchor = supersetAnchorId
                                 closeWorkoutSupersetCreator()
-                                state.addExerciseAfterId = anchor
-                                state.addExerciseSearchQuery = ""
-                                state.addExerciseSelectedIds = emptySet()
+                                state.createSupersetFromCatalogAnchorId = anchor
                             },
                         ) { Text("Desde catálogo") }
                     }
@@ -1448,6 +1460,7 @@ internal fun WorkoutStructureSheetsHost(
             is PendingStructuralChange.RemoveSet -> "Eliminar serie"
             is PendingStructuralChange.RemoveExercise -> "Eliminar ejercicio"
             is PendingStructuralChange.RemoveExercises -> "Eliminar ejercicios"
+            is PendingStructuralChange.DissolveSuperset -> "Disolver superserie"
         }
         KpknAlertDialog(
             onDismissRequest = {
@@ -1481,6 +1494,9 @@ internal fun WorkoutStructureSheetsHost(
                             }
                             is PendingStructuralChange.RemoveExercises -> {
                                 "Se eliminaron ${change.exerciseNames.size} ejercicios. ¿Cómo quieres guardar este cambio?"
+                            }
+                            is PendingStructuralChange.DissolveSuperset -> {
+                                "Se disolvió una superserie (${change.exerciseNames.size} ejercicios). ¿Cómo quieres guardar este cambio?"
                             }
                         }
                     )

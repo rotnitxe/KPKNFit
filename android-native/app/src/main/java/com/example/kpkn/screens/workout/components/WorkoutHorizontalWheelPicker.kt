@@ -19,9 +19,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,6 +58,7 @@ fun WorkoutHorizontalWheelPicker(
     accentColor: Color = MaterialTheme.colorScheme.primary,
     centerGlowColor: Color? = null,
     showSemanticGlow: Boolean = centerGlowColor != null,
+    centeredIndexHolder: MutableIntState? = null,
 ) {
     if (items.isEmpty()) return
 
@@ -76,19 +82,35 @@ fun WorkoutHorizontalWheelPicker(
         }
     }
 
+    SideEffect {
+        centeredIndexHolder?.intValue = centerIndex
+    }
+
+    var programmaticScrolls by remember { mutableIntStateOf(0) }
+    var emitAfterUserScroll by remember { mutableStateOf(false) }
+
     LaunchedEffect(safeIndex, items.size) {
-        if (items.isNotEmpty() && !listState.isScrollInProgress) {
-            val target = safeIndex.coerceIn(0, items.lastIndex)
-            if (listState.firstVisibleItemIndex != target || listState.firstVisibleItemScrollOffset != 0) {
-                listState.animateScrollToItem(target)
+        if (items.isEmpty() || listState.isScrollInProgress) return@LaunchedEffect
+        val target = safeIndex.coerceIn(0, items.lastIndex)
+        if (listState.firstVisibleItemIndex != target || listState.firstVisibleItemScrollOffset != 0) {
+            programmaticScrolls += 1
+            try {
+                listState.scrollToItem(target)
+            } finally {
+                programmaticScrolls -= 1
             }
         }
     }
 
     LaunchedEffect(listState, items.size) {
-        snapshotFlow { listState.isScrollInProgress }
-            .collect { scrolling ->
-                if (scrolling) return@collect
+        snapshotFlow { listState.isScrollInProgress to programmaticScrolls }
+            .collect { (scrolling, programmatic) ->
+                if (scrolling) {
+                    if (programmatic == 0) emitAfterUserScroll = true
+                    return@collect
+                }
+                if (!emitAfterUserScroll) return@collect
+                emitAfterUserScroll = false
                 val centered = centerIndex
                 if (centered in items.indices && centered != selectedIndex) {
                     onSelectedIndexChange(centered)
@@ -144,6 +166,8 @@ fun WorkoutHorizontalWheelPicker(
             val cellCornerPx = with(density) { 14.dp.toPx() }
             val fillColor = if (showSemanticGlow && centerGlowColor != null) {
                 centerGlowColor
+            } else if (isError) {
+                MaterialTheme.colorScheme.error.copy(alpha = 0.35f)
             } else {
                 cellColor
             }

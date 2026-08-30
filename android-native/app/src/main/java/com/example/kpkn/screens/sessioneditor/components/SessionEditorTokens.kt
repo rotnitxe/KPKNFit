@@ -1,12 +1,15 @@
 package com.example.kpkn.screens.sessioneditor.components
 
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.ui.adapt.LocalViewportAdapt
+import com.example.kpkn.ui.adapt.ViewportAdapt
+import com.example.kpkn.ui.adapt.ViewportAdaptMath
+import com.example.kpkn.ui.adapt.ViewportDensityClass
+import com.example.kpkn.ui.adapt.adapt
 
 enum class SessionEditorBreakpoint {
     Compact,
@@ -72,18 +75,52 @@ object SessionEditorTokens {
         widthDp <= 400 -> SessionEditorBreakpoint.Normal
         else -> SessionEditorBreakpoint.Comfortable
     }
+
+    fun breakpointFor(adapt: ViewportAdapt): SessionEditorBreakpoint = when {
+        adapt.shouldReflow || adapt.densityClass == ViewportDensityClass.Compact ->
+            SessionEditorBreakpoint.Compact
+        adapt.densityClass == ViewportDensityClass.Regular ->
+            SessionEditorBreakpoint.Normal
+        else -> SessionEditorBreakpoint.Comfortable
+    }
+
+    fun spacing(breakpoint: SessionEditorBreakpoint, adapt: ViewportAdapt): SessionEditorSpacing {
+        val base = spacing(breakpoint)
+        val minTouch = ViewportAdaptMath.MIN_TOUCH_DP.dp
+        val cardRadius = when (breakpoint) {
+            SessionEditorBreakpoint.Compact -> 16.dp
+            SessionEditorBreakpoint.Normal -> 18.dp
+            SessionEditorBreakpoint.Comfortable -> 20.dp
+        }.adapt(adapt)
+        val setRadius = when (breakpoint) {
+            SessionEditorBreakpoint.Compact -> 14.dp
+            SessionEditorBreakpoint.Normal -> 16.dp
+            SessionEditorBreakpoint.Comfortable -> 18.dp
+        }.adapt(adapt)
+        return base.copy(
+            screenPadding = base.screenPadding.adapt(adapt),
+            cardPadding = base.cardPadding.adapt(adapt),
+            cardGap = base.cardGap.adapt(adapt),
+            chipHeight = base.chipHeight.adapt(adapt),
+            bottomContentPadding = base.bottomContentPadding.adapt(adapt),
+            fabBottomPadding = base.fabBottomPadding.adapt(adapt),
+            touchTargetMin = base.touchTargetMin.adapt(adapt, min = minTouch),
+            cardShape = RoundedCornerShape(cardRadius),
+            setCardShape = RoundedCornerShape(setRadius),
+        )
+    }
 }
 
 @Composable
 fun rememberSessionEditorSpacing(): SessionEditorSpacing {
-    val widthDp = LocalConfiguration.current.screenWidthDp
-    return remember(widthDp) {
-        SessionEditorTokens.spacing(SessionEditorTokens.breakpointFor(widthDp))
+    val adapt = LocalViewportAdapt.current
+    return remember(adapt) {
+        SessionEditorTokens.spacing(SessionEditorTokens.breakpointFor(adapt), adapt)
     }
 }
 
 @Composable
 fun rememberSessionEditorBreakpoint(): SessionEditorBreakpoint {
-    val widthDp = LocalConfiguration.current.screenWidthDp
-    return remember(widthDp) { SessionEditorTokens.breakpointFor(widthDp) }
+    val adapt = LocalViewportAdapt.current
+    return remember(adapt) { SessionEditorTokens.breakpointFor(adapt) }
 }

@@ -158,3 +158,49 @@ internal fun buildRepsCarouselMax(currentValue: Int, ghostValue: Int?, minimum: 
 internal fun repsCarouselIndexFromValue(valueText: String, maxReps: Int): Int {
     return (valueText.toIntOrNull() ?: 0).coerceIn(0, maxReps)
 }
+
+/**
+ * The reps wheel always shows a concrete number (ghost/plan if the field is
+ * still empty). Record/AUGE must use that visible number, not a blank/zero
+ * leftover from the old typed field.
+ */
+internal fun effectiveCarouselRepsText(valueText: String, displayedGhost: String): String {
+    val parsed = valueText.toIntOrNull()
+    if (parsed != null && parsed > 0) return valueText.trim()
+    val ghost = displayedGhost.toIntOrNull()
+    if (ghost != null && ghost > 0) return displayedGhost.trim()
+    return valueText.trim()
+}
+
+/**
+ * Weight carousel shows ghost/suggested load when the field is empty.
+ * Record must accept that visible number, not a blank leftover.
+ */
+internal fun effectiveCarouselWeightText(valueText: String, displayedGhost: String): String {
+    val parsed = valueText.replace(',', '.').toDoubleOrNull()
+    if (parsed != null && parsed > 0.0) return valueText.trim()
+    val ghost = displayedGhost.replace(',', '.').toDoubleOrNull()
+    if (ghost != null && ghost > 0.0) return displayedGhost.trim()
+    return valueText.trim()
+}
+
+/** Prefer the wheel center while a fling/snap is still in flight. */
+internal fun effectiveCarouselSelectedIndex(selectedIndex: Int, centeredIndex: Int, itemCount: Int): Int {
+    if (itemCount <= 0) return 0
+    val clampedSelected = selectedIndex.coerceIn(0, itemCount - 1)
+    if (centeredIndex !in 0 until itemCount) return clampedSelected
+    return centeredIndex
+}
+
+internal fun effectiveCarouselIntensityValue(
+    intensityText: String,
+    reachedFailure: Boolean,
+    items: List<IntensityCarouselItem>,
+    selectedIndex: Int,
+): Double? {
+    if (reachedFailure) return 10.0
+    intensityText.toDoubleOrNull()?.let { return it }
+    val item = items.getOrNull(selectedIndex) ?: return null
+    if (item.isFailure) return 10.0
+    return item.numericValue
+}

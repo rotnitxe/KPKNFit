@@ -55,6 +55,62 @@ class SessionAssistantEngineTest {
         assertTrue(report.ajustes.any { it.message.contains("fatigante", ignoreCase = true) })
     }
 
+    @Test
+    fun overlapping_week_sessions_surface_plain_language_suggestion() {
+        val bench = Exercise(
+            id = "ex-bench",
+            name = "Press banca",
+            exerciseDbId = "bench",
+            exerciseId = "bench",
+            sets = listOf(
+                ExerciseSet(id = "s1", targetReps = 8, targetRPE = 8.5),
+                ExerciseSet(id = "s2", targetReps = 8, targetRPE = 8.5),
+                ExerciseSet(id = "s3", targetReps = 8, targetRPE = 8.5),
+            ),
+        )
+        val info = ExerciseMuscleInfo(
+            id = "bench",
+            name = "Press banca",
+            efc = 3.2,
+            cnc = 3.5,
+            ssc = 0.8,
+            involvedMuscles = listOf(
+                InvolvedMuscle("Pectorales", MuscleRole.PRIMARY, 1.0),
+                InvolvedMuscle("Tríceps", MuscleRole.SECONDARY, 0.5),
+            ),
+        )
+        val day1 = Session(id = "session-a", name = "Pecho A", exercises = listOf(bench), dayOfWeek = 1)
+        val day2 = Session(id = "session-b", name = "Pecho B", exercises = listOf(bench), dayOfWeek = 2)
+        val report = SessionAssistantEngine.evaluate(
+            SessionAssistantInput(
+                allExercisesInSession = listOf(bench),
+                weekSessions = listOf(day1, day2),
+                currentSessionId = "session-b",
+                program = Program(id = "p1", name = "P"),
+                settings = Settings(),
+                workoutLogs = emptyList(),
+                exerciseIndex = mapOf(
+                    "bench" to info,
+                    "ex-bench" to info,
+                    "press banca" to info,
+                ),
+                ruleLimits = SessionEditorRuleLimits(),
+                mesoIndex = 0,
+                programId = "p1",
+                customDrain = PredictedDrain(cns = 30, muscular = 35, spinal = 20),
+            ),
+        )
+        assertTrue(report.ajustes.any { it.id.startsWith("overlap-") })
+        assertTrue(report.ajustes.any { it.title.contains("Poco descanso", ignoreCase = true) })
+        assertTrue(report.ajustes.filter { it.id.startsWith("overlap-") }.all { suggestion ->
+            val text = (suggestion.title + " " + suggestion.message).lowercase()
+            !text.contains("interferencia") &&
+                !text.contains("drenaje") &&
+                !text.contains("auge") &&
+                !text.contains("snc")
+        })
+    }
+
     private fun input(customDrain: PredictedDrain? = null): SessionAssistantInput {
         val exercise = Exercise(
             id = "ex1",

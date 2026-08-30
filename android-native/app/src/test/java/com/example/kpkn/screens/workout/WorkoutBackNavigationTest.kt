@@ -44,6 +44,14 @@ class WorkoutBackNavigationTest {
 
 
     @Test
+    fun finishSheetConsumesBackEvenWhileLoading() {
+        assertEquals(
+            WorkoutBackAction.DISMISS_FINISH_SHEET,
+            resolveWorkoutBackAction(WorkoutOverlayFlags(showFinishSheet = true)),
+        )
+    }
+
+    @Test
     fun finishBeatsDrawer() {
         assertEquals(
             WorkoutBackAction.DISMISS_FINISH_SHEET,

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -49,7 +48,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
@@ -295,8 +293,7 @@ internal fun LivePagerCardFrame(
                             scaleX = scale
                             scaleY = scale
                             transformOrigin = TransformOrigin.Center
-                        }
-                        .blur(WorkoutUiTokens.GodModeCardBlur),
+                        },
                     content = content,
                 )
             }
@@ -329,8 +326,6 @@ internal fun LivePagerCardFrame(
     }
 
     SubcomposeLayout(modifier = modifier.fillMaxWidth().wrapContentHeight()) { constraints ->
-        val baseHeightPx = WorkoutUiTokens.LivePagerBaseHeight.roundToPx()
-        val slotHeightPx = slotHeight.roundToPx()
         val maxChildWidth = if (constraints.hasBoundedWidth) {
             if (scale >= 1f) {
                 (constraints.maxWidth / scale).roundToInt().coerceAtLeast(0)
@@ -349,8 +344,7 @@ internal fun LivePagerCardFrame(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight()
-                    .heightIn(min = WorkoutUiTokens.LivePagerBaseHeight),
+                    .wrapContentHeight(),
                 contentAlignment = Alignment.TopCenter,
                 content = content,
             )
@@ -358,7 +352,7 @@ internal fun LivePagerCardFrame(
             Constraints(
                 minWidth = minChildWidth.coerceAtMost(maxChildWidth),
                 maxWidth = maxChildWidth,
-                minHeight = baseHeightPx,
+                minHeight = 0,
                 maxHeight = Constraints.Infinity,
             ),
         )
@@ -368,7 +362,7 @@ internal fun LivePagerCardFrame(
         } else {
             scaledWidth
         }
-        val scaledHeight = (placeable.height * scale).roundToInt().coerceAtLeast(slotHeightPx)
+        val scaledHeight = (placeable.height * scale).roundToInt()
         val topNudgePx = (scaledHeight * WorkoutUiTokens.LivePagerCardTopNudgeFraction).roundToInt()
         val layoutHeight = scaledHeight + topNudgePx
 
@@ -397,56 +391,110 @@ private fun PrepChecklistShell(
     footer: @Composable () -> Unit,
     content: @Composable () -> Unit,
 ) {
+    val workingSetVisualHeightPx = LocalLivePagerWorkingSetVisualHeightPx.current?.intValue ?: 0
     Surface(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxWidth()
+            .wrapContentHeight(),
         shape = WorkoutUiTokens.CardShape,
         color = WorkoutUiTokens.setCardColor(),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
     ) {
-        Column(
+        SubcomposeLayout(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 12.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f, fill = true),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text(
-                        title,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        color = sessionAccentColor,
-                        letterSpacing = 1.sp,
-                    )
-                    Text(
-                        "$doneCount/$totalCount",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White.copy(alpha = 0.55f),
-                    )
-                }
-                headerExtra?.invoke()
+                .fillMaxWidth()
+                .wrapContentHeight(),
+        ) { constraints ->
+            val padH = 12.dp.roundToPx()
+            val padV = 12.dp.roundToPx()
+            val outerSpacing = 6.dp.roundToPx()
+            val maxInnerW = (constraints.maxWidth - padH * 2).coerceAtLeast(0)
+            val innerConstraints = Constraints(minWidth = maxInnerW, maxWidth = maxInnerW)
+
+            val headerPlaceable = subcompose("prep_header") {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f, fill = true)
-                        .verticalScroll(rememberScrollState()),
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(
+                            title,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.60f),
+                            letterSpacing = 1.sp,
+                        )
+                        Text(
+                            "$doneCount/$totalCount",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.60f),
+                        )
+                    }
+                    headerExtra?.invoke()
+                }
+            }.first().measure(innerConstraints)
+
+            val footerPlaceable = subcompose("prep_footer") {
+                footer()
+            }.first().measure(innerConstraints)
+
+            val looseBody = subcompose("prep_body_loose") {
+                Column(modifier = Modifier.fillMaxWidth()) {
                     content()
                 }
+            }.first().measure(
+                Constraints(maxWidth = maxInnerW, maxHeight = Constraints.Infinity),
+            )
+
+            val chromeHeight = padV * 2 + headerPlaceable.height + footerPlaceable.height + outerSpacing * 2
+            val layoutHeight = if (workingSetVisualHeightPx > 0) {
+                workingSetVisualHeightPx.coerceAtLeast(chromeHeight)
+            } else {
+                chromeHeight + looseBody.height
             }
-            footer()
+            val bodyBudget = (layoutHeight - chromeHeight).coerceAtLeast(0)
+            val bodyPlaceable = if (looseBody.height > bodyBudget) {
+                subcompose("prep_body_scroll") {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = bodyBudget.toDp())
+                            .verticalScroll(rememberScrollState()),
+                    ) {
+                        content()
+                    }
+                }.first().measure(
+                    Constraints(
+                        minWidth = maxInnerW,
+                        maxWidth = maxInnerW,
+                        maxHeight = bodyBudget,
+                    ),
+                )
+            } else {
+                looseBody
+            }
+
+            val extra = (bodyBudget - bodyPlaceable.height).coerceAtLeast(0)
+            val layoutWidth = if (constraints.hasBoundedWidth) {
+                constraints.maxWidth
+            } else {
+                maxInnerW + padH * 2
+            }
+
+            layout(layoutWidth, layoutHeight) {
+                var y = padV
+                headerPlaceable.placeRelative(padH, y)
+                y += headerPlaceable.height + outerSpacing
+                bodyPlaceable.placeRelative(padH, y + extra / 2)
+                footerPlaceable.placeRelative(padH, layoutHeight - padV - footerPlaceable.height)
+            }
         }
     }
 }

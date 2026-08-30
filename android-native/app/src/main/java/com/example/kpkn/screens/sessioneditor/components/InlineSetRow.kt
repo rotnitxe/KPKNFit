@@ -51,7 +51,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -150,7 +149,8 @@ internal fun InlineSetRow(
     var showLoadModeMenu by remember(set.id) { mutableStateOf(false) }
     // La intensidad es opcional: siempre se parte desde "Programar intensidad".
     var showPlannedIntensity by rememberSaveable(set.id) { mutableStateOf(false) }
-    val isNarrowScreen = LocalConfiguration.current.screenWidthDp <= 380
+    val isNarrowScreen = rememberSessionEditorBreakpoint() == SessionEditorBreakpoint.Compact ||
+        com.example.kpkn.ui.adapt.LocalViewportAdapt.current.shouldReflow
     val setCardDensity = when (rememberSessionEditorBreakpoint()) {
         SessionEditorBreakpoint.Compact -> SetCardDensity.Compact
         SessionEditorBreakpoint.Normal -> SetCardDensity.Comfortable

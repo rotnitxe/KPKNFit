@@ -33,6 +33,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.ui.adapt.LocalViewportAdapt
+import com.example.kpkn.ui.adapt.adapt
 import com.example.kpkn.R
 import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.Program
@@ -330,7 +332,7 @@ fun HomeScreen(
                         if (uiState.overtrainedMuscles.isNotEmpty()) {
                             Text("Zonas con fatiga acumulada: ${uiState.overtrainedMuscles.joinToString(", ")}.")
                         }
-                        Text("No necesitas ajustar ningún sistema manualmente; la recomendación se actualizará con tus próximas sesiones.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Es una sugerencia a partir de tu historial, no un diagnóstico. Puedes seguir entrenando o bajar volumen según cómo te sientas.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 },
                 confirmButton = { TextButton(onClick = { showAugeRecommendations = false }) { Text("Cerrar") } },
@@ -394,12 +396,16 @@ private fun HomeWithProgram(
     onAddMeal: () -> Unit = {},
     onOpenNutritionOverlay: () -> Unit = {},
 ) {
+    val homeAdapt = LocalViewportAdapt.current
     LazyColumn(
         state = listState,
         modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp.adapt(homeAdapt)),
         // Keep the first Home card visually separate from the floating dock.
-        contentPadding = PaddingValues(top = 176.dp, bottom = 140.dp),
+        contentPadding = PaddingValues(
+            top = 176.dp.adapt(homeAdapt),
+            bottom = 140.dp.adapt(homeAdapt),
+        ),
     ) {
 
         item(key = "session") {
@@ -440,8 +446,8 @@ private fun HomeWithProgram(
         if (overtrainedMuscles.isNotEmpty()) {
             item(key = "overtraining") {
                 AlertActionCard(
-                    title = "Sobreentrenamiento crónico detectado",
-                    body = "Fatiga crítica acumulada en: ${overtrainedMuscles.joinToString(", ")}. Considera reducir series semanales o tomar un descanso activo.",
+                    title = "Posible exceso de volumen",
+                    body = "Hay señales de carga alta en: ${overtrainedMuscles.joinToString(", ")}. Considera reducir series semanales o un descanso activo.",
                     actionLabel = "Ver recomendaciones",
                     onAction = { onNavigate("settings/auge") },
                     emphasize = true,

@@ -83,38 +83,11 @@ object AugeRecoveryEngine {
     private fun involvedMusclesFor(
         exercise: CompletedExercise,
         info: ExerciseMuscleInfo?,
-    ): List<InvolvedMuscle> {
-        val raw = exercise.effectiveMuscles?.takeIf { it.isNotEmpty() }
-            ?: info?.involvedMuscles.orEmpty()
-        if (raw.isNotEmpty()) return raw
-        // Fallback heurístico para logs custom/legacy sin snapshot muscular: evita drenaje 0 en rings.
-        val lower = exercise.exerciseName.lowercase().trim()
-        fun mus(m: String, role: MuscleRole = MuscleRole.PRIMARY) = InvolvedMuscle(muscle = m, role = role)
-        return when {
-            lower.contains("press banca") || lower.contains("bench press") || lower.contains("press de banca") ->
-                listOf(mus("Pectorales"), mus("Tríceps", MuscleRole.SECONDARY), mus("Deltoides Anterior", MuscleRole.SECONDARY))
-            lower.contains("dominada") || lower.contains("pull-up") || lower.contains("pull up") || lower.contains("chin") ->
-                listOf(mus("Dorsales"), mus("Bíceps", MuscleRole.SECONDARY))
-            lower.contains("remo") || lower.contains("row") -> listOf(mus("Dorsales"), mus("Bíceps", MuscleRole.SECONDARY))
-            lower.contains("sentadilla") || lower.contains("squat") -> listOf(mus("Cuádriceps"), mus("Glúteos", MuscleRole.SECONDARY))
-            lower.contains("peso muerto") || lower.contains("deadlift") || lower.contains("rumano") ->
-                listOf(mus("Isquiosurales"), mus("Glúteos", MuscleRole.SECONDARY), mus("Erectores Espinales", MuscleRole.STABILIZER))
-            lower.contains("hip thrust") || lower.contains("empuje de cadera") -> listOf(mus("Glúteos"), mus("Isquiosurales", MuscleRole.SECONDARY))
-            lower.contains("press militar") || lower.contains("overhead press") || lower.contains("military press") ->
-                listOf(mus("Deltoides"), mus("Tríceps", MuscleRole.SECONDARY))
-            lower.contains("curl") && (lower.contains("bicep") || lower.contains("bíceps")) -> listOf(mus("Bíceps"))
-            lower.contains("tricep") || lower.contains("tríceps") || lower.contains("pushdown") || lower.contains("francés") || lower.contains("frances") ->
-                listOf(mus("Tríceps"))
-            lower.contains("lateral") -> listOf(mus("Deltoides Lateral"))
-            lower.contains("pantorrilla") || lower.contains("gemelo") || lower.contains("calf") -> listOf(mus("Pantorrillas"))
-            lower.contains("leg press") || lower.contains("prensa") -> listOf(mus("Cuádriceps"), mus("Glúteos", MuscleRole.SECONDARY))
-            lower.contains("leg curl") || lower.contains("femoral") -> listOf(mus("Isquiosurales"))
-            lower.contains("leg extension") -> listOf(mus("Cuádriceps"))
-            lower.contains("plancha") || lower.contains("plank") || lower.contains("abdomen") || lower.contains("core") -> listOf(mus("Abdomen"))
-            lower.contains("lunge") || lower.contains("zancada") || lower.contains("búlgara") || lower.contains("bulgara") -> listOf(mus("Cuádriceps"), mus("Glúteos", MuscleRole.SECONDARY))
-            else -> listOf(mus("Core"))
-        }
-    }
+    ): List<InvolvedMuscle> = AugeFatigueEngine.resolveInvolvedMuscles(
+        exerciseName = exercise.exerciseName,
+        snapshot = exercise.effectiveMuscles,
+        dbInfo = info,
+    )
 
     private fun normKey(s: String) = s
         .lowercase().trim()
@@ -212,21 +185,15 @@ object AugeRecoveryEngine {
         }
     }
 
+    /**
+     * Sleep hours are a habit, not the Energy/SNC structure the product measures.
+     * Recovery τ must not stretch or shrink from a 7.5 h fallback written by readiness.
+     */
+    @Suppress("UNUSED_PARAMETER")
     private fun systemicRecoveryMultiplier(
         wellbeing: DailyWellbeingLog?,
         sleepLogs: List<SleepLog>,
-    ): Double {
-        val hours = calculateWeightedSleepHours(sleepLogs, wellbeing)
-        val quality = wellbeing?.sleepQuality ?: 3
-        val multiplier = when {
-            hours >= 7.5 && quality >= 4 -> 0.85
-            hours >= 7.0 && quality >= 3 -> 0.92
-            hours < 6.0 || quality <= 2 -> 1.18
-            hours < 6.5 -> 1.08
-            else -> 1.0
-        }
-        return multiplier.coerceIn(0.85, 1.25)
-    }
+    ): Double = 1.0
 
     private fun resolveDbInfo(
         ex: CompletedExercise,
@@ -343,24 +310,62 @@ object AugeRecoveryEngine {
         }
     }
 
+    /** Columna = axial + articular + guard muscles (dorsales, erectores/lumbar, trapecio). */
+    internal fun structureRingScore(
+        spinal: Int,
+        articularFloor: Int,
+        guardMuscleScores: Collection<Int>,
+    ): Int {
+        val muscleGuard = guardMuscleScores.minOrNull() ?: 100
+        val blended = (spinal * 0.50) + (articularFloor * 0.25) + (muscleGuard * 0.25)
+        return min(spinal, blended.roundToInt()).coerceIn(0, 100)
+    }
+
+    private fun muscularLoadInWindow(
+        history: List<WorkoutLog>,
+        fromMs: Long,
+        toMs: Long,
+    ): Double = history
+        .filter { logDateMs(it) in fromMs until toMs }
+        .sumOf { log ->
+            val stored = log.muscularImpactV2?.perMuscle?.values?.sumOf { it.stressUnits } ?: 0.0
+            if (stored > 0.0) stored else (log.sessionStressScore ?: 0.0)
+        }
+
+    internal fun muscularAcwrFor(history: List<WorkoutLog>, nowMs: Long = nowMs()): Double? {
+        val day = 24L * 3600_000L
+        val acute = muscularLoadInWindow(history, nowMs - 7L * day, nowMs)
+        val month = muscularLoadInWindow(history, nowMs - 28L * day, nowMs)
+        val chronicWeekly = month / 4.0
+        if (month <= 0.0) return null
+        val recent = history.filter { logDateMs(it) in (nowMs - 28L * day) until nowMs }
+        if (recent.size < 4) return null
+        val oldest = recent.minOf { logDateMs(it) }
+        if (nowMs - oldest < 14L * day) return null
+        return AugeClassifiers.computeAcwr(acute, chronicWeekly)
+    }
+
+    private fun applyMuscularAcwr(muscularAvg: Double, history: List<WorkoutLog>): Double {
+        val acwr = muscularAcwrFor(history) ?: return muscularAvg
+        val factor = AugeClassifiers.muscularLoadFactorFromAcwr(acwr)
+        return (100.0 - (100.0 - muscularAvg) * factor).coerceIn(0.0, 100.0)
+    }
+
     /**
-     * Capacidad de trabajo dinámica para un músculo basada en el historial de 4 semanas.
-     * Equivalente a calculateUserWorkCapacity() en recoveryService.ts líneas 136-175.
-     *
-     * La capacidad = promedio semanal de estrés para ese músculo × 1.8 (supercompensación),
-     * con suelo en el floor del tipo de atleta y techo en 3500.
+     * Fallback capacity for callers that skip the V2 precompute map.
+     * Same catalog share as everywhere else (secondary = 0.5), never role × activation.
      */
     private fun calculateUserWorkCapacity(
         muscleName: String,
         history: List<WorkoutLog>,
         settings: Settings,
         exerciseDb: Map<String, ExerciseMuscleInfo>,
+        @Suppress("UNUSED_PARAMETER") adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
     ): Double {
         val now = nowMs()
         val fourWeeksAgo = now - 28L * 24 * 3600 * 1000
-        val recentLogs = history.filter { logDateMs(it) > fourWeeksAgo - 7L * 24 * 3600 * 1000 } // 28-35d fade window
+        val recentLogs = history.filter { logDateMs(it) > fourWeeksAgo - 7L * 24 * 3600 * 1000 }
         val baseFloor = AugeFatigueEngine.getAthleteCapacity(settings)
-
         if (recentLogs.isEmpty()) return baseFloor
 
         val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
@@ -373,10 +378,6 @@ object AugeRecoveryEngine {
                 else if (daysSince >= 35.0) 0.0
                 else (35.0 - daysSince) / 7.0
 
-            // V2 history already contains canonical local stress. Reusing it
-            // here avoids re-running the legacy role/activation path when a
-            // caller requests a battery directly instead of through the
-            // precomputed finish/home map.
             val storedV2Stress = log.muscularImpactV2?.perMuscle?.entries
                 ?.filter { (key, _) -> muscleMatchesCategory(key, muscleName) }
                 ?.sumOf { (_, impact) -> impact.immediateDrainPct }
@@ -400,14 +401,12 @@ object AugeRecoveryEngine {
                 }
                 val dbInfo = resolveDbInfo(ex, exerciseDb)
                 val involvedMuscles = involvedMusclesFor(ex, dbInfo)
-
                 val involvement = involvedMuscles.find {
                     muscleMatchesCategory(it.muscle, muscleName)
                 } ?: return@forEach
 
                 val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo) ?: AugeMetrics()
                 val densityMult = densityMultiplierForCompletedExercise(ex)
-
                 var accumulated = 0
                 val setStress = ex.sets.sumOf { s ->
                     if (!isSetEffective(s)) return@sumOf 0.0
@@ -422,19 +421,12 @@ object AugeRecoveryEngine {
                     )
                     drain.muscularDrainPct
                 }
-
-                val roleMult = FATIGUE_ROLE_MULTIPLIERS[involvement.role] ?: 1.0
-                totalStress += setStress * roleMult * decay
+                totalStress += setStress * resolveMuscleVolumeContribution(involvement) * decay
             }
         }
 
-        // Promedio semanal × buffer supercompensación (1.8×)
         val weeklyAvg = totalStress / 4.0
         val calculatedCapacity = weeklyAvg * 1.8
-
-        // Recalibración 2026-08-17: floor inferior de 500 → 120 para que la
-        // capacidad sea adaptativa desde volumen realista (2-3 sesiones/sem).
-        // Antes clamp(500) anulaba el factor 1.8 para cualquier volumen normal.
         return clamp(max(calculatedCapacity, baseFloor), 120.0, 3500.0)
     }
 
@@ -456,7 +448,9 @@ object AugeRecoveryEngine {
     ): MuscleRecoveryStatus {
         val now = nowOverride ?: nowMs()
         val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
-        val capacity = precomputedCapacity ?: calculateUserWorkCapacity(muscleName, history, settings, exerciseDb)
+        val capacity = precomputedCapacity ?: calculateUserWorkCapacity(
+            muscleName, history, settings, exerciseDb, adaptiveCache,
+        )
 
         val profileKey = MUSCLE_PROFILE_MAP.entries
             .firstOrNull { normKey(it.key) == normKey(muscleName) }?.value ?: "medium"
@@ -468,11 +462,6 @@ object AugeRecoveryEngine {
         val baseRecoveryTime = clamp(adaptiveHours ?: RECOVERY_PROFILES[profileKey] ?: 48.0, 18.0, 144.0)
 
         var multiplier = nutritionMultiplier
-
-        val age = settings.userVitals.age ?: 25
-        if (age > 35) multiplier *= (1.0 + (age - 35) * 0.01)
-        val gender = settings.userVitals.gender
-        if (gender == Gender.FEMALE) multiplier *= 0.85
 
         val feedbackPenaltyPct = calculateMuscleFeedbackPenaltyPct(muscleName, feedbacks)
         val discomfortPenaltyPct = calculateMuscleDiscomfortPenaltyPct(
@@ -571,7 +560,8 @@ object AugeRecoveryEngine {
                 val primaryMuscle = involvedMuscles
                     .find { it.role == MuscleRole.PRIMARY }
                     ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
-                    ?: "Core"
+                    ?: involvedMuscles.firstOrNull()?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
+                    ?: ""
                 var accumulated = overallMuscleVolumeMap[primaryMuscle] ?: 0
                 val muscleMult = lookupMuscleDrainMultiplier(
                     adaptiveCache.muscleDrainMultipliers,
@@ -603,9 +593,8 @@ object AugeRecoveryEngine {
                     accumulatedDrain += (adjustedMuscular + adjustedCns + adjustedSpinal) / 3.0
                     
                     if (involvement != null) {
-                        val roleMult = FATIGUE_ROLE_MULTIPLIERS[involvement.role] ?: 1.0
-                        val activation = involvement.volumeContribution ?: VOLUME_CONTRIBUTION_FALLBACKS[involvement.role] ?: 1.0
-                        val contrib = adjustedMuscular * roleMult * activation
+                        val share = resolveMuscleVolumeContribution(involvement)
+                        val contrib = adjustedMuscular * share
                         val capped = AugeUtils.applySessionSoftCap(contrib, sessionSoftAccum, muscularCap)
                         sessionSoftAccum += capped
                         sessionMuscleStress += capped
@@ -700,7 +689,8 @@ object AugeRecoveryEngine {
             val primaryMuscle = involvedMuscles
                 .find { it.role == MuscleRole.PRIMARY }
                 ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
-                ?: "Core"
+                ?: involvedMuscles.firstOrNull()?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
+                ?: ""
             var accumulated = overallMuscleVolumeMap[primaryMuscle] ?: 0
             val muscleMult = lookupMuscleDrainMultiplier(remappedMultipliers, primaryMuscle)
 
@@ -727,9 +717,8 @@ object AugeRecoveryEngine {
                 accumulatedDrain += (adjustedMuscular + adjustedCns + adjustedSpinal) / 3.0
                 
                 if (involvement != null) {
-                    val roleMult = FATIGUE_ROLE_MULTIPLIERS[involvement.role] ?: 1.0
-                    val activation = involvement.volumeContribution ?: VOLUME_CONTRIBUTION_FALLBACKS[involvement.role] ?: 1.0
-                    sessionMuscleStress += adjustedMuscular * roleMult * activation
+                    val share = resolveMuscleVolumeContribution(involvement)
+                    sessionMuscleStress += adjustedMuscular * share
                 }
             }
             overallMuscleVolumeMap[primaryMuscle] = accumulated
@@ -789,7 +778,8 @@ object AugeRecoveryEngine {
                 val primaryMuscle = involvedMuscles
                     .find { it.role == MuscleRole.PRIMARY }
                     ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
-                    ?: "Core"
+                    ?: involvedMuscles.firstOrNull()?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
+                    ?: ""
                 var accumulated = overallMuscleVolumeMap[primaryMuscle] ?: 0
                 val densityMult = densityMultiplierForCompletedExercise(ex)
                 val muscleMult = lookupMuscleDrainMultiplier(
@@ -850,6 +840,8 @@ object AugeRecoveryEngine {
 
     // ─── 3. BATERÍA ESPINAL ───────────────────────────────────────────────────
 
+    internal val SPINE_GUARD_MUSCLES = listOf("Erectores Espinales", "Dorsales", "Trapecio")
+
     private fun calculateSpineFatigueMultiplier(
         history: List<WorkoutLog>,
         wellbeing: DailyWellbeingLog?,
@@ -860,22 +852,18 @@ object AugeRecoveryEngine {
         feedbacks: List<PostSessionFeedback>,
         adaptiveCache: AugeAdaptiveCache,
         erectorsCapacity: Double? = null,
-        coreCapacity: Double? = null,
-        glutesCapacity: Double? = null,
         latsCapacity: Double? = null,
+        trapsCapacity: Double? = null,
         nowOverride: Long? = null,
     ): Double {
         val erectors = calculateMuscleBattery("Erectores Espinales", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, adaptiveCache, erectorsCapacity, nowOverride).recoveryScore.toDouble()
-        val core = calculateMuscleBattery("Core", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, adaptiveCache, coreCapacity, nowOverride).recoveryScore.toDouble()
-        val glutes = calculateMuscleBattery("Glúteos", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, adaptiveCache, glutesCapacity, nowOverride).recoveryScore.toDouble()
         val lats = calculateMuscleBattery("Dorsales", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, adaptiveCache, latsCapacity, nowOverride).recoveryScore.toDouble()
+        val traps = calculateMuscleBattery("Trapecio", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, adaptiveCache, trapsCapacity, nowOverride).recoveryScore.toDouble()
+        // Lumbar maps to Erectores. Guard muscles: erectores/lumbar, dorsales, trapecio.
+        val spf = (erectors * 0.45) + (lats * 0.30) + (traps * 0.25)
 
-        // Spine Protection Factor (SPF) - Promedio ponderado de rigidez y bracing activo
-        val spf = (erectors * 0.50) + (core * 0.25) + (glutes * 0.15) + (lats * 0.10)
-        
         if (spf >= 80.0) return 1.0
 
-        // Amplificación exponencial de fatiga espinal debido a Spinal Bracing Failure
         val fatigueDeficit = (100.0 - spf) / 100.0
         return 1.0 + (fatigueDeficit * fatigueDeficit * 0.75)
     }
@@ -916,11 +904,9 @@ object AugeRecoveryEngine {
         val stressLevel = wellbeing?.stressLevel ?: 3
         val nutritionMultiplier = getNutritionMultiplier(settings, nutritionLogs, stressLevel)
 
-        // Optimización O(N^2): Precalcular capacidades musculares de los erectores, core, glúteos y lumbares una sola vez
-        val erectorsCapacity = calculateUserWorkCapacity("Erectores Espinales", history, settings, exerciseDb)
-        val coreCapacity = calculateUserWorkCapacity("Core", history, settings, exerciseDb)
-        val glutesCapacity = calculateUserWorkCapacity("Glúteos", history, settings, exerciseDb)
-        val latsCapacity = calculateUserWorkCapacity("Dorsales", history, settings, exerciseDb)
+        val erectorsCapacity = calculateUserWorkCapacity("Erectores Espinales", history, settings, exerciseDb, adaptiveCache)
+        val latsCapacity = calculateUserWorkCapacity("Dorsales", history, settings, exerciseDb, adaptiveCache)
+        val trapsCapacity = calculateUserWorkCapacity("Trapecio", history, settings, exerciseDb, adaptiveCache)
 
         recentLogs.forEach { log ->
             val logTime = logDateMs(log)
@@ -945,9 +931,8 @@ object AugeRecoveryEngine {
                 feedbacks = feedbacksUpToLog,
                 adaptiveCache = adaptiveCache,
                 erectorsCapacity = erectorsCapacity,
-                coreCapacity = coreCapacity,
-                glutesCapacity = glutesCapacity,
                 latsCapacity = latsCapacity,
+                trapsCapacity = trapsCapacity,
                 nowOverride = logTime,
             )
 
@@ -964,7 +949,8 @@ object AugeRecoveryEngine {
                 val primaryMuscle = involvedMuscles
                     .find { it.role == MuscleRole.PRIMARY }
                     ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
-                    ?: "Core"
+                    ?: involvedMuscles.firstOrNull()?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
+                    ?: ""
                 var accumulated = overallMuscleVolumeMap[primaryMuscle] ?: 0
                 val densityMult = densityMultiplierForCompletedExercise(ex)
                 val muscleMult = lookupMuscleDrainMultiplier(
@@ -1086,6 +1072,12 @@ object AugeRecoveryEngine {
             (overallAvg * 0.85 + bottomQuartileAvg * 0.15).toInt()
         }
 
+        val muscularWithAcwr = if (wellbeing?.manualMuscularBattery != null) {
+            muscularAvg.toDouble()
+        } else {
+            applyMuscularAcwr(muscularAvg.toDouble(), history)
+        }
+
         val (cncBattery, _, _) = calculateSystemicFatigue(
             history = history,
             wellbeing = wellbeing,
@@ -1113,7 +1105,7 @@ object AugeRecoveryEngine {
         val spinalDelta = adaptiveCache.spinalLearningDelta.coerceIn(-15.0, 15.0)
         val floor = physiologicalFloor(settings)
 
-        val decelMuscular = decelerateBattery(muscularAvg.toDouble())
+        val decelMuscular = decelerateBattery(muscularWithAcwr)
         val finalMuscular = max(
             clamp(decelMuscular + avgMuscleDelta, 0.0, 100.0),
             floor.muscular.toDouble(),
@@ -1209,13 +1201,18 @@ object AugeRecoveryEngine {
             ?.average()
             ?.toInt()
             ?: 100
-        val structureScore = min(
-            batteries.spinal,
-            ((batteries.spinal * 0.6) + (articularFloor * 0.4)).toInt(),
-        ).coerceIn(0, 100)
+        val guardScores = SPINE_GUARD_MUSCLES.mapNotNull { name ->
+            perMuscle.entries.firstOrNull { muscleMatchesCategory(it.key, name) }?.value?.recoveryScore
+        }
+        val structureScore = structureRingScore(
+            spinal = batteries.spinal,
+            articularFloor = articularFloor,
+            guardMuscleScores = guardScores,
+        )
         val muscularScore = batteries.muscular
         val systemScore = batteries.cnc
         val displayStructureScore = structureScore
+        val muscleGuard = guardScores.minOrNull() ?: 100
 
         val baseConfidence = when {
             recentSessionCount >= 16 -> 82
@@ -1252,12 +1249,12 @@ object AugeRecoveryEngine {
             if (systemScore < 70) add("Carga neural reciente acumulada")
         }
         val structureCauses = buildList {
-            if (displayStructureScore < 75) add("Carga axial reciente elevada")
-            if (weakestArticular.isNotEmpty()) {
+            if (batteries.spinal < 75) add("Carga axial reciente elevada")
+            if (muscleGuard < 75) add("Dorsales, erectores o trapecio aún cargados")
+            if (weakestArticular.isNotEmpty() && articularFloor < 80) {
                 add(weakestArticular.joinToString(" y ") { "${AugeTtcEngine.articularLabel(it.key)} ${it.value.recoveryScore}%" })
-            } else {
-                add("Sin cuello de botella estructural claro")
             }
+            if (isEmpty() && displayStructureScore >= 75) add("Sin cuello de botella estructural claro")
             if (wellbeing?.manualSpinalBattery != null) add("Ajuste manual de readiness")
             if ((wellbeing?.doms ?: 1) >= 4) add("Tejidos aún sensibles hoy")
         }
@@ -1293,7 +1290,7 @@ object AugeRecoveryEngine {
                 shortTitle = "Col.",
                 score = displayStructureScore,
                 band = recoveryBand(displayStructureScore),
-                description = "Cómo llega hoy tu columna, tus tendones y tus articulaciones a la carga.",
+                description = "Carga axial, piso articular y el estado de dorsales, erectores/lumbar y trapecio.",
                 action = actionForChannel(RecoveryChannelId.STRUCTURE, displayStructureScore),
                 causes = structureCauses.take(3),
                 confidence = structureConfidence,

@@ -174,7 +174,7 @@ class ExerciseReadinessEngineTest {
         assertEquals(CoachingTone.GREEN, coaching?.tone)
         assertEquals("Empuje", coaching?.dominantPatternLabel)
         assertEquals(100, coaching?.dominantSharePercent)
-        assertTrue(coaching?.headline?.contains("listo para tus presses") == true)
+        assertTrue(coaching?.headline?.contains("plan de presses") == true)
         assertTrue(coaching?.detail?.contains("press banca") == true)
         assertTrue(coaching?.detail?.contains("100% de las series") == true)
         assertTrue(coaching?.detail?.contains("Sigue el plan tal cual") == true)

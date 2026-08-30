@@ -27,6 +27,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.ui.adapt.LocalViewportAdapt
+import com.example.kpkn.ui.adapt.adapt
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.screens.programs.ProgramStats
@@ -62,15 +64,16 @@ fun ProgramsScreen(
             modifier = Modifier.fillMaxSize().statusBarsPadding(),
         )
     } else {
+        val programsAdapt = LocalViewportAdapt.current
         LazyColumn(
             modifier = Modifier.fillMaxSize().statusBarsPadding(),
-            contentPadding = PaddingValues(bottom = 120.dp),
+            contentPadding = PaddingValues(bottom = 120.dp.adapt(programsAdapt)),
         ) {
             item {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 24.dp),
+                        .padding(horizontal = 20.dp.adapt(programsAdapt), vertical = 24.dp.adapt(programsAdapt)),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {

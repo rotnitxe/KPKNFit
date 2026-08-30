@@ -11,7 +11,7 @@ import org.junit.Test
 class AdaptiveCalibrationAppliesTest {
 
     @Test
-    fun postSessionHours_halfHourFloor_allowsTauLearning() {
+    fun finishSheetHalfHour_doesNotLearnTau() {
         val obs = RecoveryLearningObservation(
             muscle = "cns",
             predictedBattery = 55,
@@ -28,9 +28,30 @@ class AdaptiveCalibrationAppliesTest {
             spinalObservation = null,
             totalObservations = 0,
         )
-        assertNotNull("τ CNS must update with hoursSinceSession=0.5", newCns)
+        assertEquals("Finish-near-zero must not invert τ", 36.0, newCns)
+    }
+
+    @Test
+    fun readinessAfterEightHours_learnsTau() {
+        val obs = RecoveryLearningObservation(
+            muscle = "cns",
+            predictedBattery = 55,
+            actualBattery = 70,
+            sessionStress = 40.0,
+            hoursSinceSession = 8.0,
+            sleepQuality = 4,
+            nutritionMultiplier = 1.0,
+        )
+        val (newCns, _) = AugeAdaptiveEngine.updateSystemRecoveryHours(
+            currentCnsTau = 36.0,
+            currentSpinalTau = 52.0,
+            cnsObservation = obs,
+            spinalObservation = null,
+            totalObservations = 0,
+        )
+        assertNotNull(newCns)
         assertTrue(newCns!! in 12.0..144.0)
-        assertTrue("Immediate post-session should nudge τ away from default", newCns != 36.0)
+        assertTrue("A delayed sensation should nudge τ", newCns != 36.0)
     }
 
     @Test
@@ -111,8 +132,7 @@ class AdaptiveCalibrationAppliesTest {
     }
 
     @Test
-    fun sleepQuality_nudgesImpliedTauInLearning() {
-        // Mid-range implied τ so sleepAdj is not crushed by the 200h clamp
+    fun sleepQuality_doesNotChangeImpliedTau() {
         val base = RecoveryLearningObservation(
             muscle = "Pectorales",
             predictedBattery = 40,
@@ -136,9 +156,6 @@ class AdaptiveCalibrationAppliesTest {
             totalObservations = 0,
         )["pectorales"]!!
 
-        assertTrue(
-            "Better sleep should imply shorter learned τ ($tauGood vs $tauBad)",
-            tauGood < tauBad,
-        )
+        assertEquals(tauGood, tauBad, 0.001)
     }
 }

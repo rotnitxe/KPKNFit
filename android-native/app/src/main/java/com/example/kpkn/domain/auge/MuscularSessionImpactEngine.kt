@@ -164,10 +164,11 @@ object MuscularSessionImpactEngine {
                 exerciseId = exercise.exerciseId,
                 exerciseName = exercise.exerciseName,
             )
-            val involved = exercise.effectiveMuscles
-                ?.takeIf { it.isNotEmpty() }
-                ?: dbInfo?.involvedMuscles.orEmpty()
-                .ifEmpty { fallbackInvolvedMuscles(exercise.exerciseName) }
+            val involved = AugeFatigueEngine.resolveInvolvedMuscles(
+                exerciseName = exercise.exerciseName,
+                snapshot = exercise.effectiveMuscles,
+                dbInfo = dbInfo,
+            )
             // This is deliberately the only volume-contribution resolver in the
             // local path.  Role multipliers are not multiplied a second time.
             val contributions = VolumeCalculator.buildPerExerciseMuscleContributions(involved)
@@ -314,25 +315,6 @@ object MuscularSessionImpactEngine {
 
     private fun defaultCapacity(settings: Settings): Double =
         AugeFatigueEngine.getAthleteCapacity(settings).coerceIn(120.0, 3500.0)
-
-    private fun fallbackInvolvedMuscles(name: String): List<InvolvedMuscle> {
-        val lower = name.lowercase()
-        fun primary(muscle: String) = InvolvedMuscle(muscle, MuscleRole.PRIMARY)
-        fun secondary(muscle: String) = InvolvedMuscle(muscle, MuscleRole.SECONDARY)
-        return when {
-            "press" in lower && ("banca" in lower || "bench" in lower || "inclinado" in lower) ->
-                listOf(primary("Pectorales"), secondary("Tríceps"), secondary("Deltoides"))
-            "franc" in lower || "triceps" in lower || "tríceps" in lower -> listOf(primary("Tríceps"))
-            "sentadilla" in lower || "squat" in lower -> listOf(primary("Cuádriceps"), secondary("Glúteos"))
-            "prensa" in lower || "leg press" in lower -> listOf(primary("Cuádriceps"), secondary("Glúteos"))
-            "rumano" in lower || "rdl" in lower || "deadlift" in lower ->
-                listOf(primary("Isquiosurales"), secondary("Glúteos"), InvolvedMuscle("Erectores Espinales", MuscleRole.STABILIZER))
-            "hombro" in lower || "militar" in lower || "overhead" in lower ->
-                listOf(primary("Deltoides"), secondary("Tríceps"))
-            "apertura" in lower || "fly" in lower || "pec deck" in lower -> listOf(primary("Pectorales"))
-            else -> listOf(primary("Core"))
-        }
-    }
 
     private fun sha256(value: String): String {
         val bytes = MessageDigest.getInstance("SHA-256").digest(value.toByteArray(Charsets.UTF_8))

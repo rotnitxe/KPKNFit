@@ -41,8 +41,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.ui.adapt.adapt
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknDropdownMenu
+
+@Composable
+private fun settingsItemPadding() = androidx.compose.foundation.layout.PaddingValues(
+    horizontal = 16.dp.adapt(),
+    vertical = 14.dp.adapt(),
+)
 
 @Composable
 fun SettingsSectionCard(content: @Composable ColumnScope.() -> Unit) {
@@ -64,7 +71,7 @@ fun SettingsSwitchItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(settingsItemPadding()),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -121,7 +128,7 @@ fun <T> SettingsDropdownItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(settingsItemPadding()),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -179,7 +186,7 @@ fun <T> SettingsSegmentedButtonItem(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(settingsItemPadding()),
     ) {
         Text(
             text = title,
@@ -221,7 +228,7 @@ fun SettingsSliderItem(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(settingsItemPadding()),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -264,7 +271,7 @@ fun SettingsTextFieldItem(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(settingsItemPadding()),
     ) {
         Text(
             text = label,
@@ -303,7 +310,7 @@ fun SettingsTimePickerItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(enabled = enabled) { showDialog = true }
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(settingsItemPadding()),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -372,7 +379,7 @@ fun SettingsActionItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = onClick)
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(settingsItemPadding()),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (icon != null) {
@@ -409,7 +416,7 @@ fun SettingsInfoRow(title: String, value: String) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(settingsItemPadding()),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {

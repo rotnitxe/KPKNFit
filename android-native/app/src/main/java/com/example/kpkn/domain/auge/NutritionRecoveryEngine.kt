@@ -1,6 +1,5 @@
 package com.example.kpkn.domain.auge
 
-import com.example.kpkn.data.models.CalorieGoalObjective
 import com.example.kpkn.data.models.LoggedFood
 import com.example.kpkn.data.models.NutritionLog
 import com.example.kpkn.data.models.NutritionPlan
@@ -44,21 +43,11 @@ object NutritionRecoveryEngine {
         val proteinGoal = goals.proteinGoal
 
         if (recentLogs.isEmpty()) {
-            val fallback = settings.calorieGoalObjective
-            return when (fallback) {
-                CalorieGoalObjective.DEFICIT -> NutritionRecoveryResult(
-                    1.25, NutritionRecoveryStatus.DEFICIT,
-                    listOf("Sin datos recientes; asumiendo déficit según objetivo.")
-                )
-                CalorieGoalObjective.SURPLUS -> NutritionRecoveryResult(
-                    0.95, NutritionRecoveryStatus.SURPLUS,
-                    listOf("Sin datos recientes; asumiendo superávit según objetivo.")
-                )
-                CalorieGoalObjective.MAINTENANCE -> NutritionRecoveryResult(
-                    1.0, NutritionRecoveryStatus.MAINTENANCE,
-                    emptyList()
-                )
-            }
+            return NutritionRecoveryResult(
+                1.0,
+                NutritionRecoveryStatus.MAINTENANCE,
+                listOf("Sin comidas en la ventana; no se asume déficit ni superávit."),
+            )
         }
 
         var totalCal = 0.0

@@ -161,6 +161,17 @@ class WorkoutStructuralPersistenceController(
                         )
                     }
                 }
+                is PendingStructuralChange.DissolveSuperset -> {
+                    state.session?.let { liveSession ->
+                        repository.upsertSessionInProgram(
+                            programId,
+                            state.weekId,
+                            location.macroIndex,
+                            location.mesoIndex,
+                            liveSession,
+                        )
+                    }
+                }
                 is PendingStructuralChange.ReorderExercises -> {
                     state.session?.let { liveSession ->
                         val week = program.macrocycles
@@ -344,6 +355,9 @@ class WorkoutStructuralPersistenceController(
             }
             is PendingStructuralChange.AddSuperset -> {
                 applyAddSupersetToProgramSession(targetSession, state, change)
+            }
+            is PendingStructuralChange.DissolveSuperset -> {
+                SupersetRules.dissolve(modeSession, change.groupId)
             }
             is PendingStructuralChange.ReorderExercises -> {
                 reorderSessionByCanonicalKeys(modeSession, change)

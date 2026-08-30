@@ -176,12 +176,12 @@ fun AugeAdaptiveCacheEntity.toAdaptiveCache(): com.example.kpkn.data.models.Auge
                 .jsonObject["schemaVersion"]?.jsonPrimitive?.intOrNull ?: 1
         }.getOrDefault(1)
         if (storedVersion < 2) {
-            // Selective invalidation: CNS/spinal learning and recovery curves
-            // remain valid, while the old muscular path was contaminated by
-            // full-map calibration and must not bias V2.
+            // v1 muscular τ/deltas/multipliers were learned from finish-sheet
+            // inversions (hoursSince≈0.5). Drop all three; keep CNS/spinal deltas.
             decoded.copy(
                 muscleDeltas = emptyMap(),
                 muscleDrainMultipliers = emptyMap(),
+                personalizedRecoveryHours = emptyMap(),
                 schemaVersion = 2,
             )
         } else {

@@ -48,6 +48,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.ui.adapt.adapt
 import androidx.compose.ui.zIndex
 import dev.chrisbanes.haze.HazeState
 import kotlin.math.roundToInt
@@ -331,7 +332,7 @@ private fun KpknSheetBody(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(48.dp)
+                                .height(48.dp.adapt())
                                 .then(if (dismissible) dragModifier else Modifier)
                                 .semantics {
                                     contentDescription = if (dismissible) {
@@ -344,7 +345,7 @@ private fun KpknSheetBody(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(width = 42.dp, height = 5.dp)
+                                    .size(width = 42.dp.adapt(), height = 5.dp.adapt())
                                     .clip(RoundedCornerShape(999.dp))
                                     .background(KpknSheetTokens.Handle),
                             )

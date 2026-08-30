@@ -61,6 +61,7 @@ class WorkoutStepNavigatorNavigationTest {
                 override fun openFinishSheet() = Unit
                 override fun speakCurrentStepAnnouncementIfEnabled() = Unit
                 override fun isRecordingBusy(): Boolean = false
+                override fun onRecordingBusyBlocked(message: String) = Unit
                 override fun announcePostExerciseFeedback(exerciseIds: List<String>) = Unit
                 override fun announceFinalPostExerciseFeedback(exerciseIds: List<String>) = Unit
             },

@@ -45,6 +45,7 @@ class WorkoutStepNavigator(
         fun openFinishSheet()
         fun speakCurrentStepAnnouncementIfEnabled()
         fun isRecordingBusy(): Boolean
+        fun onRecordingBusyBlocked(message: String)
         /** Prompt de feedback de un ejercicio completado antes de avanzar al siguiente. */
         fun announcePostExerciseFeedback(exerciseIds: List<String>)
         /** Prompt de voz del feedback final (último descanso, pendingPostExerciseIdx = -2). */
@@ -252,7 +253,10 @@ class WorkoutStepNavigator(
     }
 
     fun skipSet() {
-        if (ports.isRecordingBusy()) return
+        if (ports.isRecordingBusy()) {
+            ports.onRecordingBusyBlocked("Espera a que termine el registro actual.")
+            return
+        }
         ports.stopRestTimer()
         val state = getState()
         val exercise = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx) ?: return

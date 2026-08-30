@@ -477,6 +477,8 @@ internal fun WorkoutPostExerciseFeedbackContent(
                     viewModel.savePostExerciseFeedback(
                         PostExerciseFeedback(
                             exerciseId = ex.id,
+                            exerciseDbId = ex.exerciseDbId ?: viewModel.canonicalExerciseKey(ex),
+                            canonicalExerciseId = viewModel.canonicalExerciseKey(ex),
                             exerciseName = displayWorkoutExerciseName(ex),
                             technicalQuality = tech,
                             discomfortIds = selectedDiscomfortIds.toList().ifEmpty { listOf("none") },

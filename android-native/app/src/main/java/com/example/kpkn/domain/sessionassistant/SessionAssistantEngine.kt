@@ -21,6 +21,7 @@ import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.models.AugeMetrics
 import com.example.kpkn.domain.auge.AugeClassifiers
 import com.example.kpkn.domain.auge.AugeFatigueEngine
+import com.example.kpkn.domain.auge.InterferenceEngine
 import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.training.VolumeCalculator
@@ -54,12 +55,13 @@ object SessionAssistantEngine {
         } else {
             emptyList()
         }
+        val overlapAjustes = generarSugerenciasSolapamiento(input)
 
         return SessionAssistantReport(
             veredicto = Verdict.OPTIMAL,
             scoreEstimado = 0,
             riesgos = emptyList(),
-            ajustes = ajustes + timeAjustes,
+            ajustes = ajustes + timeAjustes + overlapAjustes,
             oportunidades = emptyList(),
             tarjetasFantasma = emptyList(),
             plantillasCompatibles = emptyList(),
@@ -774,6 +776,53 @@ object SessionAssistantEngine {
                 details = details,
             ),
         )
+    }
+
+    internal fun generarSugerenciasSolapamiento(
+        input: SessionAssistantInput,
+    ): List<AssistantSuggestion> {
+        if (input.allExercisesInSession.isEmpty()) return emptyList()
+        val weekHit = input.weekSessions.firstOrNull { it.id == input.currentSessionId }
+        val current = (weekHit ?: Session(
+            id = input.currentSessionId,
+            name = "Esta sesión",
+        )).copy(exercises = input.allExercisesInSession)
+        val hits = InterferenceEngine.analyzeUpcomingSession(
+            current = current,
+            weekSessions = input.weekSessions,
+            history = input.workoutLogs,
+            exerciseDb = input.exerciseIndex,
+            settings = input.settings,
+        ).filter { it.interferencePercent >= 10 }
+            .take(2)
+        return hits.map { hit ->
+            val hours = hit.hoursApart.roundToInt()
+            val muscles = hit.sharedMuscles.take(2).joinToString(" y ") { it.muscleName }
+            val top = hit.sharedMuscles.maxByOrNull { it.recoveryDeficit }?.muscleName
+            val from = hit.sessionAName.ifBlank { "otra sesión" }
+            val whenLabel = when {
+                hit.isFromHistory && hours < 20 -> "hace pocas horas"
+                hit.isFromHistory -> "hace $hours horas"
+                hours <= 24 -> "al día siguiente"
+                else -> "con $hours horas de separación"
+            }
+            AssistantSuggestion(
+                id = "overlap-${hit.sessionAId}",
+                type = AssistantActionType.KEEP,
+                title = "Poco descanso para $muscles",
+                message = "Entrenaste $from $whenLabel y esta sesión vuelve a pedir $muscles. Baja un poco el volumen o cambia el orden.",
+                muscle = top,
+                priority = 2,
+                details = if (top != null) listOf(
+                    AssistantSuggestionDetail(
+                        id = "overlap-reduce-$top",
+                        label = "Quitar 1 serie de $top",
+                        action = AssistantDetailAction.ReduceSet(muscle = top),
+                        defaultAccepted = false,
+                    ),
+                ) else emptyList(),
+            )
+        }
     }
 
     internal fun generarOportunidades(

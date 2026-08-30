@@ -788,7 +788,7 @@ internal fun SetInputCardV2(
     currentSet: ExerciseSet,
     ghostSet: CompletedSet?,
     sessionCompletedSet: CompletedSet? = null,
-    weightSuggestion: WeightSuggestion?,
+    weightSuggestion: WeightSuggestion? = null,
     sessionAccentColor: Color = MaterialTheme.colorScheme.primary,
     isJustLogged: Boolean = false,
     lastOutcomeV2: SetOutcomeV2? = null,
@@ -837,8 +837,11 @@ internal fun SetInputCardV2(
     onOmitSet: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
-    val isNarrowScreen = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp < 360
-    val suggestedWeightText: String? = weightSuggestion?.suggestedWeight?.toTrimmedNumberString()
+    val isNarrowScreen = LocalLivePagerShouldReflow.current
+    val resolvedWeightSuggestion = weightSuggestion
+    val suggestedWeightText: String? = resolvedWeightSuggestion?.let { suggestion ->
+        suggestion.suggestedWeight.toTrimmedNumberString()
+    }
     val completedWeightText = sessionCompletedSet
         ?.weight
         ?.takeIf { it > 0.0 }
@@ -956,7 +959,7 @@ internal fun SetInputCardV2(
         mutableStateOf(!draftWeightText.isNullOrBlank() || completedWeightText != null)
     }
     var valueText by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
-        mutableStateOf(draftValueText ?: defaultValue)
+        mutableStateOf((draftValueText ?: defaultValue).ifBlank { plannedValueGhost })
     }
     var showReadinessAdjustmentSheet by remember { mutableStateOf(false) }
     LaunchedEffect(adaptActionHolder, isActivePage) {
@@ -982,10 +985,22 @@ internal fun SetInputCardV2(
     var leftWeightText by remember(exercise.id, setIndex, sessionCompletedSet?.id) { mutableStateOf(initialLeftWeight) }
     var rightWeightText by remember(exercise.id, setIndex, sessionCompletedSet?.id) { mutableStateOf(initialRightWeight) }
     var leftValueText by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
-        mutableStateOf(if (initialSelectedSide == "left") draftValueText.orEmpty() else "")
+        mutableStateOf(
+            if (initialSelectedSide == "left") {
+                (draftValueText ?: defaultValue).ifBlank { leftValueGhost }
+            } else {
+                leftValueGhost
+            },
+        )
     }
     var rightValueText by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
-        mutableStateOf(if (initialSelectedSide == "right") draftValueText.orEmpty() else "")
+        mutableStateOf(
+            if (initialSelectedSide == "right") {
+                (draftValueText ?: defaultValue).ifBlank { rightValueGhost }
+            } else {
+                rightValueGhost
+            },
+        )
     }
     val activeSideTarget = when (lockedSide) {
         "left" -> currentSet.leftTarget
@@ -1346,8 +1361,10 @@ internal fun SetInputCardV2(
         plannedRir = activePlannedRir,
         plannedRpe = activePlannedRpe,
     )
+    val repsWheelCenterIndex = remember(exercise.id, setIndex, sideKey) { mutableIntStateOf(0) }
+    val intensityWheelCenterIndex = remember(exercise.id, setIndex, sideKey) { mutableIntStateOf(intensityCarouselSelectedIndex) }
     fun onIntensityCarouselIndexChange(index: Int) {
-        if (isFailedSet || reportedIntensityMode == null) return
+        if (isFailedSet) return
         val item = intensityCarouselItems.getOrNull(index) ?: return
         val selection = intensitySelectionFromCarouselItem(item)
         reachedFailure = selection.reachedFailure
@@ -1404,6 +1421,20 @@ internal fun SetInputCardV2(
                     IntensityMode.RPE
                 }
             }
+            ensureReportedIntensityText()
+        }
+    }
+    LaunchedEffect(exercise.id, setIndex, hasPlannedIntensityInput, reportedIntensityMode, intensityCarouselSelectedIndex) {
+        if (isFailedSet || !hasPlannedIntensityInput || reachedFailure) return@LaunchedEffect
+        if (intensityText.isNotBlank()) return@LaunchedEffect
+        val item = intensityCarouselItems.getOrNull(intensityCarouselSelectedIndex)
+        if (item != null && !item.isFailure) {
+            val selection = intensitySelectionFromCarouselItem(item)
+            if (selection.reportedIntensityMode != null) {
+                reportedIntensityMode = selection.reportedIntensityMode
+            }
+            intensityText = selection.intensityText
+        } else {
             ensureReportedIntensityText()
         }
     }
@@ -1500,7 +1531,11 @@ internal fun SetInputCardV2(
         arrayOf<(() -> Unit)?>(null)
     }
     val density = LocalDensity.current
+    val workingSetVisualHeightHolder = LocalLivePagerWorkingSetVisualHeightPx.current
     var frontHeightPx by remember { mutableIntStateOf(0) }
+    LaunchedEffect(exercise.id) {
+        workingSetVisualHeightHolder?.intValue = 0
+    }
     val flipRotation by animateFloatAsState(
         targetValue = if (cardFlipped) 180f else 0f,
         animationSpec = tween(durationMillis = 420),
@@ -1546,6 +1581,10 @@ internal fun SetInputCardV2(
                     .onSizeChanged { size ->
                         if (!cardFlipped && size.height > 0) {
                             frontHeightPx = size.height
+                            val holder = workingSetVisualHeightHolder
+                            if (holder != null && holder.intValue != size.height) {
+                                holder.intValue = size.height
+                            }
                         }
                     }
                     .graphicsLayer { alpha = if (flipRotation <= 90f) 1f else 0f }
@@ -1565,8 +1604,7 @@ internal fun SetInputCardV2(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight()
-                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                    .wrapContentHeight(),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
 
@@ -1630,37 +1668,7 @@ internal fun SetInputCardV2(
                 }
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (!supportsIndependentSides && ghostSet != null && (ghostSet.weight > 0 || ghostSet.reps > 0)) {
-                    Row(
-                        modifier = Modifier.clickable(onClick = onShowHistory),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(Icons.Default.History, null, Modifier.size(14.dp), tint = WorkoutUiTokens.infoBlue())
-                        Text(
-                            buildString {
-                                append("Última ")
-                                if (ghostSet.weight > 0) append("${ghostSet.weight.toTrimmedNumberString()}kg")
-                                if (ghostSet.weight > 0 && ghostSet.reps > 0) append(" · ")
-                                if (ghostSet.reps > 0) append(ghostSet.reps)
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = WorkoutUiTokens.infoBlue(),
-                            fontSize = WorkoutUiTokens.MinLabelSp,
-                        )
-                    }
-                } else {
-                    Spacer(modifier = Modifier.width(1.dp))
-                }
-
-
-            }
+            // Ghost 'Última' removed - base container message eliminated
 
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -1671,28 +1679,16 @@ internal fun SetInputCardV2(
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = sessionAccentColor.copy(alpha = 0.15f),
-                        ) {
-                            Text(
-                                if (supportsIndependentSides) {
-                                    "Reportar ${if (selectedSide == "left") "L lado izq." else "R lado der."}"
-                                } else {
-                                    "Reportar serie"
-                                },
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = sessionAccentColor,
-                            )
-                        }
-                    }
+                    Text(
+                        if (supportsIndependentSides) {
+                            "Reportar ${if (selectedSide == "left") "L lado izq." else "R lado der."}"
+                        } else {
+                            "Reportar serie"
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.60f),
+                    )
 
                     Box(
                         modifier = Modifier.fillMaxWidth(),
@@ -1714,10 +1710,12 @@ internal fun SetInputCardV2(
                             },
                             options = quickLoadOptionsFor(
                                 currentWeightText = reportWeightText,
-                                suggestedWeight = weightSuggestion?.suggestedWeight?.takeIf {
-                                    weightSuggestion.suggestedLoadMode == null ||
-                                        weightSuggestion.suggestedLoadMode == loadMode
-                                },
+                                suggestedWeight = resolvedWeightSuggestion
+                                    ?.takeIf { suggestion ->
+                                        suggestion.suggestedLoadMode == null ||
+                                            suggestion.suggestedLoadMode == loadMode
+                                    }
+                                    ?.suggestedWeight,
                                 loadIncrementKg = quickLoadIncrementFor(exercise, currentSet),
                             ),
                             onWeightSelected = { selectedWeight ->
@@ -1792,7 +1790,7 @@ internal fun SetInputCardV2(
                                         (if (isTimeMode) "Tiempo" else "Reps").uppercase(),
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.60f),
                                     )
                                     if (!isTimeMode) {
                                         Box(
@@ -1939,6 +1937,7 @@ internal fun SetInputCardV2(
                                     accentColor = sessionAccentColor,
                                     roomier = roomyStepper,
                                     centerGlowColor = carouselGlowForTone(repsCarouselTone),
+                                    centeredIndexHolder = repsWheelCenterIndex,
                                     modifier = Modifier.fillMaxWidth(),
                                 )
                             }
@@ -2025,6 +2024,7 @@ internal fun SetInputCardV2(
                                     accentColor = sessionAccentColor,
                                     roomier = roomyStepper,
                                     centerGlowColor = carouselGlowForTone(intensityTone),
+                                    centeredIndexHolder = intensityWheelCenterIndex,
                                     modifier = Modifier.fillMaxWidth(),
                                 )
                             }
@@ -2033,6 +2033,8 @@ internal fun SetInputCardV2(
 
                     if (hasPlannedIntensityInput) {
                         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                            // El ancho de la tarjeta (con peek), no el viewport: en vivo
+                            // cada carta es más estrecha que la pantalla.
                             val stackSteppers = maxWidth < 360.dp
                             if (stackSteppers) {
                                 Column(
@@ -2257,9 +2259,15 @@ internal fun SetInputCardV2(
                 }
             }
 
+            val resolvedCarouselIntensity = effectiveCarouselIntensityValue(
+                intensityText = intensityText,
+                reachedFailure = reachedFailure,
+                items = intensityCarouselItems,
+                selectedIndex = intensityCarouselSelectedIndex,
+            )
             val advanced = SetAdvancedFeedback(
                 rir = if (isAmrap && !amrapReachFailure) amrapReserveReps
-                      else if (reportedIntensityMode == IntensityMode.RIR) intensityText.toIntOrNull()
+                      else if (reportedIntensityMode == IntensityMode.RIR) resolvedCarouselIntensity?.toInt()
                       else null,
                 reachedFailure = reachedFailure || (isAmrap && amrapReachFailure),
                 isFailedSet = isFailedSet,
@@ -2288,7 +2296,7 @@ internal fun SetInputCardV2(
                     isAmrap && amrapReachFailure -> 10.0
                     isAmrap && !amrapReachFailure -> amrapReserveReps?.toDouble()
                     reachedFailure -> 10.0
-                    else -> intensityText.toDoubleOrNull()
+                    else -> resolvedCarouselIntensity
                 },
                 amrapOverride = isAmrap.takeIf { it != plannedAmrap },
                 amrapMinimumReps = amrapMinimumReps,
@@ -2451,11 +2459,66 @@ internal fun SetInputCardV2(
                             ).show()
                             return@label
                         }
+                        if (isFailedSet) {
+                            if (onExecutionError != null) {
+                                onExecutionError.invoke()
+                                return@label
+                            }
+                        }
                         val reportingSide = if (supportsIndependentSides) selectedSide else null
-                        val reportedWeightText = reportingSide?.let { weightTextForSide(it) } ?: weightText
-                        val reportedValueText = reportingSide?.let { valueTextForSide(it) } ?: valueText
+                        val reportedWeightTextRaw = reportingSide?.let { weightTextForSide(it) } ?: weightText
+                        val rawReportedValueText = reportingSide?.let { valueTextForSide(it) } ?: valueText
+                        val valueGhost = if (supportsIndependentSides) {
+                            if (selectedSide == "left") leftValueGhost else rightValueGhost
+                        } else {
+                            plannedValueGhost
+                        }
+                        val weightGhost = when {
+                            !ghostSuggestedWeightText.isNullOrBlank() -> ghostSuggestedWeightText.orEmpty()
+                            !plannedWeightGhost.isNullOrBlank() -> plannedWeightGhost.orEmpty()
+                            else -> ""
+                        }
+                        if (!isTimeMode && !isFailedSet) {
+                            val repsMax = buildRepsCarouselMax(
+                                currentValue = rawReportedValueText.toIntOrNull() ?: valueGhost.toIntOrNull() ?: 0,
+                                ghostValue = valueGhost.toIntOrNull(),
+                            )
+                            val centeredRepsIndex = effectiveCarouselSelectedIndex(
+                                selectedIndex = repsCarouselIndexFromValue(
+                                    rawReportedValueText.ifBlank { valueGhost },
+                                    repsMax,
+                                ),
+                                centeredIndex = repsWheelCenterIndex.intValue,
+                                itemCount = repsMax + 1,
+                            )
+                            updateActiveValueText(centeredRepsIndex.toString())
+                        }
+                        if (!isFailedSet && hasPlannedIntensityInput && intensityCarouselItems.isNotEmpty()) {
+                            val centeredIntensityIndex = effectiveCarouselSelectedIndex(
+                                selectedIndex = intensityCarouselSelectedIndex,
+                                centeredIndex = intensityWheelCenterIndex.intValue,
+                                itemCount = intensityCarouselItems.size,
+                            )
+                            onIntensityCarouselIndexChange(centeredIntensityIndex)
+                        }
+                        val syncedValueText = reportingSide?.let { valueTextForSide(it) } ?: valueText
+                        val syncedWeightText = reportingSide?.let { weightTextForSide(it) } ?: weightText
+                        val timeFallbackGhost = when {
+                            timerElapsedSeconds > 0 -> timerElapsedSeconds.toString()
+                            plannedTarget != null -> plannedTarget.toString()
+                            else -> valueGhost
+                        }
+                        val reportedValueText = if (isTimeMode) {
+                            effectiveCarouselRepsText(
+                                if (timerElapsedSeconds > 0) timerElapsedSeconds.toString() else syncedValueText,
+                                timeFallbackGhost,
+                            )
+                        } else {
+                            effectiveCarouselRepsText(syncedValueText, valueGhost)
+                        }
+                        val reportedWeightText = effectiveCarouselWeightText(reportedWeightTextRaw, weightGhost)
                         if (!isFailedSet && loadMode != LoadModeV2.BODYWEIGHT) {
-                            val parsedWeight = reportedWeightText.toDoubleOrNull()
+                            val parsedWeight = reportedWeightText.replace(',', '.').toDoubleOrNull()
                             if (parsedWeight == null || parsedWeight <= 0.0) {
                                 android.widget.Toast.makeText(
                                     context,
@@ -2476,14 +2539,23 @@ internal fun SetInputCardV2(
                                 return@label
                             }
                         }
-                        val weight = if (loadMode == LoadModeV2.BODYWEIGHT) 0.0 else (reportedWeightText.toDoubleOrNull() ?: 0.0)
+                        val weight = if (loadMode == LoadModeV2.BODYWEIGHT) 0.0 else (reportedWeightText.replace(',', '.').toDoubleOrNull() ?: 0.0)
                         val typedValue = if (isFailedSet) 0.0 else (reportedValueText.toDoubleOrNull() ?: 0.0)
                         val intensity = when {
                             isFailedSet -> null
                             isAmrap && amrapReachFailure -> 10.0
                             isAmrap && !amrapReachFailure -> amrapReserveReps?.toDouble()
                             reachedFailure -> 10.0
-                            else -> intensityText.toDoubleOrNull()
+                            else -> effectiveCarouselIntensityValue(
+                                intensityText = intensityText,
+                                reachedFailure = reachedFailure,
+                                items = intensityCarouselItems,
+                                selectedIndex = effectiveCarouselSelectedIndex(
+                                    selectedIndex = intensityCarouselSelectedIndex,
+                                    centeredIndex = intensityWheelCenterIndex.intValue,
+                                    itemCount = intensityCarouselItems.size,
+                                ),
+                            )
                         }
                         val resolvedUnitMode = when {
                             currentSet.unitModeV2 != null -> currentSet.unitModeV2
@@ -2707,7 +2779,7 @@ internal fun SetInputCardV2(
             currentSet = currentSet,
             setIndex = setIndex,
             exerciseReadiness = exerciseReadiness,
-            weightSuggestion = weightSuggestion,
+            weightSuggestion = resolvedWeightSuggestion,
             averageErm = rm1,
             bodyWeight = initialBodyWeight ?: bodyWeightText.toDoubleOrNull(),
             loadMode = loadMode,

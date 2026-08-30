@@ -139,7 +139,7 @@ class AugeRepository private constructor(context: Context) {
             KpknDiagnosticLogger.event(
                 namespace = "auge",
                 name = "muscular_calibration_reset_v2",
-                fields = mapOf("previousSchemaVersion" to rawVersion, "preservedChannels" to listOf("cns", "spinal", "recovery")),
+                fields = mapOf("previousSchemaVersion" to rawVersion, "preservedChannels" to listOf("cns", "spinal")),
                 priority = com.example.kpkn.data.diagnostics.TelemetryPriority.CRITICAL,
             )
         }

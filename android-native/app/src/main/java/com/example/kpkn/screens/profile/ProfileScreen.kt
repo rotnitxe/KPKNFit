@@ -70,6 +70,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.ui.adapt.LocalViewportAdapt
+import com.example.kpkn.ui.adapt.adapt
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -235,13 +237,14 @@ fun ProfileScreen(
             )
         },
     ) { padding ->
+        val profileAdapt = LocalViewportAdapt.current
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(padding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(horizontal = 16.dp.adapt(profileAdapt)),
+            verticalArrangement = Arrangement.spacedBy(16.dp.adapt(profileAdapt)),
         ) {
             Spacer(Modifier.height(2.dp))
             ProfileIdentityCard(

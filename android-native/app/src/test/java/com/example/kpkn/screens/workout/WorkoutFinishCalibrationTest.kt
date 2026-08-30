@@ -29,6 +29,13 @@ class WorkoutFinishCalibrationTest {
     }
 
     @Test
+    fun touchWithoutValueChange_isNotARingEdit() {
+        val neuralChanged = 90 != preview.neural
+        val spinalChanged = 88 != preview.spinal
+        assertTrue(!neuralChanged && !spinalChanged)
+    }
+
+    @Test
     fun editingOnlyChest_changesOnlyChestAndRestoringRemovesKey() {
         val seed = mapOf("Pectorales" to 78, "Tríceps" to 86)
         val edited = seed + ("Pectorales" to 70)

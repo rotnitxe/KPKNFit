@@ -4,6 +4,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -168,6 +169,56 @@ class SetExecutionCardUiTest {
 
         composeRule.runOnIdle { holder.action?.invoke() }
         composeRule.runOnIdle { assertEquals("right", recordedSide) }
+    }
+
+    @Test
+    fun recordFabShowsRegisterLabelByDefault() {
+        composeRule.setContent {
+            MaterialTheme {
+                WorkoutRecordFab(
+                    sessionAccentColor = Color(0xFF00E5FF),
+                    isUpdateMode = false,
+                    enabled = true,
+                    onClick = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithContentDescription("Registrar serie").assertExists()
+    }
+
+    @Test
+    fun recordFabShowsUpdateLabelWhenSeriesAlreadyLogged() {
+        composeRule.setContent {
+            MaterialTheme {
+                WorkoutRecordFab(
+                    sessionAccentColor = Color(0xFF00E5FF),
+                    isUpdateMode = true,
+                    enabled = true,
+                    onClick = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithContentDescription("Actualizar serie").assertExists()
+    }
+
+    @Test
+    fun recordFabInvokesOnClickWhenEnabled() {
+        var clicked = false
+        composeRule.setContent {
+            MaterialTheme {
+                WorkoutRecordFab(
+                    sessionAccentColor = Color(0xFF00E5FF),
+                    isUpdateMode = false,
+                    enabled = true,
+                    onClick = { clicked = true },
+                )
+            }
+        }
+
+        composeRule.onNodeWithContentDescription("Registrar serie").performClick()
+        composeRule.runOnIdle { assertEquals(true, clicked) }
     }
 
     private fun unilateralExercise() = Exercise(

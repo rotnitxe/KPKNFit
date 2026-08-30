@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.ui.adapt.adapt
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -44,7 +45,7 @@ fun SectionHeader(
         style = MaterialTheme.typography.labelLarge,
         fontWeight = FontWeight.Black,
         letterSpacing = 1.sp,
-        modifier = modifier.padding(bottom = 16.dp),
+        modifier = modifier.padding(bottom = 16.dp.adapt()),
     )
 }
 
@@ -67,10 +68,10 @@ fun SwipeToDeleteCard(
     content: @Composable () -> Unit,
 ) {
     val density = LocalDensity.current
-    val deleteThreshold = with(density) { 80.dp.toPx() }
-    val maxReveal = with(density) { 112.dp.toPx() }
+    val deleteThreshold = with(density) { 80.dp.adapt().toPx() }
+    val maxReveal = with(density) { 112.dp.adapt().toPx() }
     val haptics = LocalHapticFeedback.current
-    val revealTrigger = with(density) { 24.dp.toPx() }
+    val revealTrigger = with(density) { 24.dp.adapt().toPx() }
 
     val offsetX = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()

@@ -4,6 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import com.example.kpkn.ui.adapt.ViewportAdaptProvider
 
 enum class AppThemeMode {
     HIGH_CONTRAST
@@ -32,6 +33,7 @@ fun KPKNTheme(
     MaterialTheme(
         colorScheme = HighContrastColorScheme,
         typography = Typography,
-        content = content
-    )
+    ) {
+        ViewportAdaptProvider(content = content)
+    }
 }

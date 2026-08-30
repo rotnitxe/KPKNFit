@@ -466,13 +466,6 @@ object AugeTtcEngine {
         val veryLow = low.filter { (_, s) -> s.recoveryScore < 30 }
 
         val suggestions = mutableListOf<TendonCompensationSuggestion>()
-        if (low.isNotEmpty()) {
-            suggestions.add(TendonCompensationSuggestion(
-                type    = SuggestionType.NUTRITION,
-                title   = "Soporte nutricional",
-                message = "Colageno hidrolizado + Vitamina C 30-60 min antes del entrenamiento puede mejorar la sintesis de colageno en tendones y acelerar la recuperacion (~10%).",
-            ))
-        }
         if (veryLow.isNotEmpty()) {
             suggestions.add(TendonCompensationSuggestion(
                 type    = SuggestionType.BIOMECHANICAL,

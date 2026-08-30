@@ -61,8 +61,8 @@ import com.example.kpkn.screens.sessioneditor.contentOn
 import com.example.kpkn.screens.sessioneditor.isEditorUncategorized
 import com.example.kpkn.screens.sessioneditor.resolvePartAccent
 import com.example.kpkn.screens.workout.*
+import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.components.kpknGlassOrFallback
-import kotlinx.coroutines.delay
 import dev.chrisbanes.haze.HazeState
 
 private enum class RoadmapCardScale { Full, Mini }
@@ -264,10 +264,12 @@ fun WorkoutRoadmapBar(
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
     ) {
+        val cockpitGlassModifier = Modifier
+            .fillMaxWidth()
+            .clip(roadmapShape)
+            .kpknGlassOrFallback(hazeState, roadmapShape, withBorder = false)
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .kpknGlassOrFallback(hazeState, roadmapShape, withBorder = false)
+            modifier = cockpitGlassModifier
                 .clickable(enabled = activeMode == RoadmapMode.COMPACT) {
                     onModeChange(RoadmapMode.EXPANDED)
                 }
@@ -814,10 +816,11 @@ private val CardioRoadmapAccent = Color(0xFFE0A13A)
 
 @Composable
 private fun CardioRoadmapDivider() {
+    val chromeScale = LocalViewportAdapt.current.uniformScale
     Row(
         modifier = Modifier
-            .width(82.dp)
-            .height(WorkoutUiTokens.GodModeRoadmapCardHeight),
+            .width(82.dp * chromeScale)
+            .height(WorkoutUiTokens.GodModeRoadmapCardHeight * chromeScale),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(5.dp),
     ) {
@@ -969,15 +972,16 @@ private fun ExerciseRoadmapCard(
     val isUnilateral = exercise.isEffectivelyUnilateral()
     val nameLength = displayName.length
     val isMini = scale == RoadmapCardScale.Mini
+    val chromeScale = LocalViewportAdapt.current.uniformScale
     val minWidth = when {
         isMini -> 84.dp
         isUnilateral -> 120.dp
         nameLength > 30 -> 130.dp
         nameLength > 22 -> 110.dp
         else -> 88.dp
-    }
-    val maxWidth = if (isMini) 138.dp else 220.dp
-    val cardHeight = if (isMini) 48.dp else WorkoutUiTokens.GodModeRoadmapCardHeight
+    } * chromeScale
+    val maxWidth = (if (isMini) 138.dp else 220.dp) * chromeScale
+    val cardHeight = (if (isMini) 48.dp else WorkoutUiTokens.GodModeRoadmapCardHeight) * chromeScale
     val containerColor = when {
         isCurrent -> accent.copy(alpha = 0.86f)
         isAllDone -> Color(0xFF66BB6A).copy(alpha = 0.30f)
@@ -1020,7 +1024,7 @@ private fun ExerciseRoadmapCard(
         ) {
             Surface(
                 shape = RoundedCornerShape(999.dp),
-                color = if (isCurrent) Color.White.copy(alpha = 0.20f) else accent.copy(alpha = 0.28f),
+                color = Color.White.copy(alpha = 0.08f),
             ) {
                 Text(
                     text = if (isAllDone) "✓" else "$completedCount/$totalCount",
@@ -1106,8 +1110,7 @@ private fun SupersetRoadmapCard(
     }
     val onCard = if (isCurrent) contentOn(cardColor) else MaterialTheme.colorScheme.onSurface
     val outline = when {
-        isAllDone -> Color(0xFF7FBF8A).copy(alpha = 0.42f)
-        isCurrent -> Color.White.copy(alpha = 0.20f)
+        isCurrent -> Color.White.copy(alpha = 0.16f)
         else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
     }
     val interactionSource = remember { MutableInteractionSource() }

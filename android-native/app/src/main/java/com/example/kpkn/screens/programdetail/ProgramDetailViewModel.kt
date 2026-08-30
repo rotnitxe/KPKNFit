@@ -327,7 +327,7 @@ class ProgramDetailViewModel(
             val isOverreaching = factorVol && activeCount < 3
 
             val explanation = when {
-                isOvertrained -> "Sobreentrenamiento Crónico: Detectado por ${factorsList.joinToString(", ")}."
+                isOvertrained -> "Posible exceso de volumen: ${factorsList.joinToString(", ")}."
                 isOverreaching -> "Sobreachance Funcional: Volumen alto pero buena tolerancia sistémica."
                 else -> "Óptimo o acumulando volumen."
             }

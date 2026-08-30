@@ -18,10 +18,8 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.SelfImprovement
@@ -54,13 +52,15 @@ import com.example.kpkn.domain.sessionassistant.SeriesTechnique
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.domain.exercises.exerciseDisplayParts
 import com.example.kpkn.screens.workout.components.LocalLivePagerAdaptScale
+import com.example.kpkn.screens.workout.components.LocalLivePagerShouldReflow
+import com.example.kpkn.screens.workout.components.LocalLivePagerWorkingSetVisualHeightPx
+import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.WorkoutMobilityChecklistItem
 import com.example.kpkn.screens.workout.components.WorkoutWarmupDisplaySet
 import com.example.kpkn.screens.workout.components.GodModeTechniqueScopeDialog
 import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
@@ -122,6 +122,7 @@ internal fun WorkoutV2Body(
     catalogV2: com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2? = null,
     overlayHazeState: HazeState = remember { HazeState() },
     roadmapExpanded: Boolean = false,
+    dockBottomClearance: Dp = 140.dp,
     onCreateSuperset: () -> Unit = {},
     onReplaceExercise: (String) -> Unit = {},
 ) {
@@ -141,7 +142,6 @@ internal fun WorkoutV2Body(
             ?.takeIf { it.isCardio && it.cardioDetails?.requiresGps == true }
             ?.let(viewModel::restoreCardioGpsIfAvailable)
     }
-    val scroll = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
     var pendingUpdateAction by remember { mutableStateOf<(() -> Unit)?>(null) }
     var tagManagerTagId by remember { mutableStateOf<String?>(null) }
@@ -194,42 +194,6 @@ internal fun WorkoutV2Body(
         if (drainOverlayState?.key == activeKey) {
             drainOverlayState = null
         }
-    }
-
-    // Cardio is a separate execution space.  Keeping it out of the strength
-    // pager prevents the pager/timeline/roadmap composition from being rebuilt
-    // on every timer tick and gives the user the full-screen stage used by
-    // mobility and warm-up flows.
-    if (currentExercise?.isCardio == true && !showingPostExerciseCard) {
-        val cardioExercise = currentExercise
-        val cardioDetails = cardioExercise.cardioDetails
-        if (cardioDetails != null) {
-            CardioLiveCard(
-                modifier = modifier,
-                details = cardioDetails,
-                completedSet = uiState.completedSets["${cardioExercise.id}_0"],
-                accentColor = sessionAccentColor,
-                executionState = uiState.cardioTimerState?.takeIf { it.exerciseId == cardioExercise.id },
-                liveHeartRateBpm = cardioHealthState.heartRateBpm.takeIf { cardioHealthState.exerciseId == cardioExercise.id },
-                onStartTimer = {
-                    viewModel.startCardioTimer(cardioExercise.id, cardioDetails.effectiveDurationSeconds().coerceAtLeast(1))
-                },
-                onPauseTimer = viewModel::pauseCardioTimer,
-                onSkipBlock = viewModel::skipCardioBlock,
-                onRequestRecord = { duration, distance, heartRate ->
-                    viewModel.requestCardioRecord(cardioExercise.id, duration, distance, heartRate)
-                },
-                onCancelRecord = viewModel::cancelCardioRecord,
-                gpsState = currentCardioGpsState,
-                onRequestGps = onRequestCardioGps,
-                onPauseGps = viewModel::pauseCardioGps,
-                onResumeGps = viewModel::resumeCardioGps,
-                onRecord = { duration, distance, heartRate ->
-                    viewModel.recordCardioSetUsingGps(duration, distance, heartRate)
-                },
-            )
-        }
-        return
     }
 
     Box(modifier = modifier) {
@@ -310,34 +274,38 @@ internal fun WorkoutV2Body(
                 onCreateSupersetClick = onCreateSuperset,
                 bodyHazeState = cardsHazeState,
             )
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(0.dp))
             BoxWithConstraints(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
             ) {
                 val effectiveAvailableHeight = maxHeight
-                val targetLiveAdaptScale = WorkoutUiTokens.livePagerViewportAdaptScale(
+                val windowScale = LocalViewportAdapt.current.uniformScale
+                val pagerAdapt = WorkoutUiTokens.livePagerViewportAdapt(
                     availableWidth = maxWidth,
                     availableHeight = effectiveAvailableHeight,
                     godModeActive = false,
                 )
+                val targetLiveAdaptScale = minOf(windowScale, pagerAdapt.uniformScale)
                 val liveAdaptScale by androidx.compose.animation.core.animateFloatAsState(
                     targetValue = targetLiveAdaptScale,
                     animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
                     label = "liveAdaptScale",
                 )
-                CompositionLocalProvider(LocalLivePagerAdaptScale provides liveAdaptScale) {
+                val workingSetVisualHeightPx = remember { mutableIntStateOf(0) }
+                LaunchedEffect(currentExercise?.id) {
+                    workingSetVisualHeightPx.intValue = 0
+                }
+                CompositionLocalProvider(
+                    LocalLivePagerAdaptScale provides liveAdaptScale,
+                    LocalLivePagerShouldReflow provides pagerAdapt.shouldReflow,
+                    LocalLivePagerWorkingSetVisualHeightPx provides workingSetVisualHeightPx,
+                ) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .verticalScroll(
-                                scroll,
-                                enabled = !(workingRestActive && !uiState.isRestMinimized) && !warmupRestActive,
-                            )
-                            .hazeSource(state = cardsHazeState)
-                            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Bottom))
-                            .padding(bottom = 24.dp),
+                            .padding(bottom = dockBottomClearance),
                     ) {
             // ─── Tag manager modal ────────────────────────────────────────────
             if (tagManagerTagId != null && currentExercise != null) {
@@ -444,8 +412,9 @@ internal fun WorkoutV2Body(
             }
 
             Column(
-                modifier = Modifier.padding(horizontal = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 10.dp),
             ) {
 
             if (currentExercise != null && (
@@ -460,6 +429,68 @@ internal fun WorkoutV2Body(
                     // context sheet. Keeping this zone dedicated to the active
                     // set/cardio stage prevents the old chip row from consuming
                     // vertical space and avoids two competing action surfaces.
+
+                    if (currentExercise.isCardio) {
+                        LaunchedEffect(currentExercise.id) {
+                            liveSetStepperHolder.snapshot = null
+                            liveSetStepperHolder.onSelectPage = {}
+                            liveSetStepperHolder.onAddSet = null
+                            liveSetStepperHolder.onLongPressPage = null
+                            liveSetStepperHolder.onNavigateAdjacentExercise = null
+                            workingSetVisualHeightPx.intValue = 0
+                        }
+                        val cardioDetails = currentExercise.cardioDetails
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            if (cardioDetails != null) {
+                                CardioLiveCard(
+                                    modifier = Modifier.fillMaxSize(),
+                                    details = cardioDetails,
+                                    completedSet = uiState.completedSets["${currentExercise.id}_0"],
+                                    accentColor = sessionAccentColor,
+                                    executionState = uiState.cardioTimerState?.takeIf { it.exerciseId == currentExercise.id },
+                                    liveHeartRateBpm = cardioHealthState.heartRateBpm.takeIf { cardioHealthState.exerciseId == currentExercise.id },
+                                    onStartTimer = {
+                                        viewModel.startCardioTimer(
+                                            currentExercise.id,
+                                            cardioDetails.effectiveDurationSeconds().coerceAtLeast(1),
+                                        )
+                                    },
+                                    onPauseTimer = viewModel::pauseCardioTimer,
+                                    onSkipBlock = viewModel::skipCardioBlock,
+                                    onRequestRecord = { duration, distance, heartRate ->
+                                        viewModel.requestCardioRecord(currentExercise.id, duration, distance, heartRate)
+                                    },
+                                    onCancelRecord = viewModel::cancelCardioRecord,
+                                    gpsState = currentCardioGpsState,
+                                    onRequestGps = onRequestCardioGps,
+                                    onPauseGps = viewModel::pauseCardioGps,
+                                    onResumeGps = viewModel::resumeCardioGps,
+                                    onRecord = { duration, distance, heartRate ->
+                                        viewModel.recordCardioSetUsingGps(duration, distance, heartRate)
+                                    },
+                                )
+                            } else {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(24.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center,
+                                ) {
+                                    Text(
+                                        "Este bloque de cardio no tiene configuración.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        textAlign = TextAlign.Center,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                                    )
+                                    Spacer(Modifier.height(12.dp))
+                                    TextButton(onClick = { viewModel.skipCardioBlock() }) {
+                                        Text("Volver al roadmap")
+                                    }
+                                }
+                            }
+                        }
+                    } else {
 
                     val currentSupersetGroupId = currentExercise.supersetGroupRefOrLegacyId()
                     val currentSupersetMembers = remember(currentSupersetGroupId, visibleExercises) {
@@ -1237,43 +1268,9 @@ internal fun WorkoutV2Body(
                         }
                     }
 
-                    val targetMin = exerciseBudgetMin ?: partBudgetMin
-                    if (targetMin != null && targetMin > 0) {
-                        val isExerciseBudget = exerciseBudgetMin != null
-                        val elapsedSeconds = if (isExerciseBudget) exerciseSecondsElapsed else partSecondsElapsed
-                        val targetSeconds = targetMin * 60
-                        val progress = (elapsedSeconds.toFloat() / targetSeconds).coerceIn(0f, 1f)
-                        val barColor = when {
-                            progress >= 0.9f -> Color(0xFFEF4444)
-                            progress >= 0.75f -> Color(0xFFF59E0B)
-                            else -> sessionAccentColor ?: MaterialTheme.colorScheme.primary
-                        }
-                        LinearProgressIndicator(
-                            progress = { progress },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(3.dp)
-                                .padding(horizontal = 8.dp)
-                                .clip(RoundedCornerShape(999.dp)),
-                            color = barColor,
-                            trackColor = Color.White.copy(alpha = 0.08f),
-                        )
-                        val statusLabel = when {
-                            progress >= 1f -> "Tiempo agotado"
-                            progress >= 0.9f -> "90%"
-                            progress >= 0.75f -> "75%"
-                            else -> null
-                        }
-                        if (statusLabel != null) {
-                            Text(
-                                statusLabel,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = barColor,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                            )
-                        }
-                        Spacer(Modifier.height(4.dp))
-                    }
+                    // Session/exercise time remaining lives in the header timer chip
+                    // (and the existing blue timeline). A second bar here would
+                    // steal pager height and force the stage to scroll.
 
                     // Publish set stepper into the bottom roadmap container (not above the card).
                     // The + action belongs to the exercise, not to the currently
@@ -1326,8 +1323,9 @@ internal fun WorkoutV2Body(
                     ) {
                         val availableWidth = maxWidth
                         val cardScale = WorkoutUiTokens.effectiveLivePagerCardScale()
+                        val shouldReflow = LocalLivePagerShouldReflow.current
                         val basePeekFraction = when {
-                            availableWidth < 360.dp -> 0.26f
+                            shouldReflow -> 0.26f
                             availableWidth < 420.dp -> 0.22f
                             else -> 0.20f
                         }
@@ -1379,7 +1377,7 @@ internal fun WorkoutV2Body(
                             // Keep the side peeks symmetric, with a small extra
                             // breathing gap between cards (~20% over the old 12.dp).
                             pageSpacing = 14.dp,
-                            beyondViewportPageCount = 1,
+                            beyondViewportPageCount = 2,
                             key = { index ->
                                 val page = setPagerPages.getOrNull(index)
                                 val pageExerciseId = page?.exerciseId ?: currentExercise.id
@@ -1413,7 +1411,9 @@ internal fun WorkoutV2Body(
                                         },
                                 ) {
                         com.example.kpkn.screens.workout.components.LivePagerCardFrame(
-                            allowContentExpansion = pageSpec.type == LivePageType.NORMAL,
+                            allowContentExpansion = pageSpec.type == LivePageType.NORMAL ||
+                                pageSpec.type == LivePageType.MOBILITY ||
+                                pageSpec.type == LivePageType.WARMUP,
                             godModeActive = false,
                         ) {
                         val pageExercise = pageSpec.exerciseId?.let { id -> visibleExercises.firstOrNull { it.id == id } } ?: currentExercise
@@ -1488,7 +1488,7 @@ internal fun WorkoutV2Body(
                                     } else {
                                         null
                                     },
-                                    modifier = Modifier.fillMaxSize(),
+                                    modifier = Modifier.fillMaxWidth().wrapContentHeight(),
                                 )
                             }
                             LivePageType.WARMUP -> {
@@ -1569,7 +1569,7 @@ internal fun WorkoutV2Body(
                                     } else {
                                         null
                                     },
-                                    modifier = Modifier.fillMaxSize(),
+                                    modifier = Modifier.fillMaxWidth().wrapContentHeight(),
                                 )
                             }
                             LivePageType.CARDIO -> {
@@ -1603,6 +1603,7 @@ internal fun WorkoutV2Body(
                                 )
                             }
                             LivePageType.REST -> {
+                                if (!uiState.isRestMinimized) {
                                 val restState = uiState.restModalState
                                 val total = (restState?.activeSeconds ?: restState?.plannedSeconds ?: 90).coerceAtLeast(1)
                                 com.example.kpkn.screens.workout.components.RestLiveCard(
@@ -1620,6 +1621,7 @@ internal fun WorkoutV2Body(
                                     onExpand = { viewModel.toggleRestMinimized() },
                                     modifier = Modifier.fillMaxSize(),
                                 )
+                                }
                             }
                             LivePageType.NORMAL -> {
                                 val targetExercise = visibleExercises.firstOrNull { it.id == pageSpec.exerciseId } ?: currentExercise
@@ -1872,65 +1874,14 @@ internal fun WorkoutV2Body(
                         } // pager + edge fades
                     } // BoxWithConstraints
                     } // key(pagerScopeKey)
+                    } // strength / prep pager (non-cardio)
                 } else {
                     SideEffect { liveSetStepperHolder.snapshot = null }
                 }
-
-                if (!showingPostExerciseCard && !uiState.imbalanceNotice.isNullOrBlank()) {
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.72f),
-                    ) {
-                        Text(
-                            text = uiState.imbalanceNotice!!,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onErrorContainer,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                    }
-                }
             }
-            if (uiState.ultraFastApplied) {
-                com.example.kpkn.screens.workout.components.UltraFastAppliedBanner(
-                    savedSeconds = uiState.ultraFastSavedSeconds,
-                    onUndo = { viewModel.revertUltraFast() },
-                    onDismiss = { viewModel.dismissUltraFastAppliedBanner() },
-                    modifier = Modifier.padding(horizontal = 10.dp),
-                )
-                Spacer(Modifier.height(8.dp))
-            }
-
-            Spacer(Modifier.height(16.dp))
                     } // Column(padding horizontal) exercise stage
-                    } // verticalScroll column
+                    } // pager slot column
                 } // CompositionLocalProvider
-                if (!roadmapExpanded &&
-                    currentExercise != null &&
-                    !currentExercise.isCardio &&
-                    !isMobilityActive &&
-                    !isWarmupActive &&
-                    !showingPostExerciseCard &&
-                    !(workingRestActive && !uiState.isRestMinimized)
-                ) {
-                    val recordSide = activeSide
-                    val recordKey = when (recordSide) {
-                        "left" -> "${currentExercise.id}_${uiState.currentSetIdx}_L"
-                        "right" -> "${currentExercise.id}_${uiState.currentSetIdx}_R"
-                        else -> "${currentExercise.id}_${uiState.currentSetIdx}"
-                    }
-                    com.example.kpkn.screens.workout.components.WorkoutRecordFab(
-                        sessionAccentColor = sessionAccentColor,
-                        isUpdateMode = uiState.completedSets.containsKey(recordKey),
-                        enabled = true,
-                        onClick = { recordActionHolder.action?.invoke() },
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(end = 18.dp, bottom = 12.dp)
-                            .zIndex(8f),
-                    )
-                }
             } // BoxWithConstraints body
         } // header + body Column
 
@@ -2019,8 +1970,8 @@ internal fun WorkoutV2Body(
         AnimatedVisibility(
             visible = drainOverlayState != null,
             modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(horizontal = 14.dp, vertical = 12.dp)
+                .align(Alignment.BottomCenter)
+                .padding(start = 14.dp, end = 14.dp, bottom = dockBottomClearance + 8.dp)
                 .zIndex(4f),
             enter = fadeIn(animationSpec = tween(120)),
             exit = fadeOut(animationSpec = tween(220)),
@@ -2029,6 +1980,25 @@ internal fun WorkoutV2Body(
                 ExerciseDrainOverlayCard(
                     state = overlay,
                     modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+        if (!showingPostExerciseCard && !uiState.imbalanceNotice.isNullOrBlank()) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(start = 12.dp, end = 12.dp, bottom = dockBottomClearance + 8.dp)
+                    .zIndex(4f)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.72f),
+            ) {
+                Text(
+                    text = uiState.imbalanceNotice!!,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    fontWeight = FontWeight.SemiBold,
                 )
             }
         }
