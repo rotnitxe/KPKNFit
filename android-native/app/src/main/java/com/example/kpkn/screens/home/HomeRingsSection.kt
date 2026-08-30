@@ -2,27 +2,24 @@ package com.example.kpkn.screens.home
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.semantics.contentDescription
@@ -164,42 +161,42 @@ private fun CombinedRingsView(
     }
 }
 
+private val AugeRingCoreStroke = 2.dp
+private val AugeRingBloomFar = 8.dp
+private val AugeRingBloomNear = 4.5.dp
+private val AugeRingHighlight = 1.dp
+
 @Composable
 internal fun SingleRingCanvas(
     value: Float,
     color: Color,
     ringDiameter: Float = 140f,
-    strokeWidth: Float = 8f,
+    @Suppress("UNUSED_PARAMETER") strokeWidth: Float = 8f,
 ) {
     val animatedValue by animateFloatAsState(targetValue = value, label = "ringValue")
-    val density = LocalDensity.current.density
-    Canvas(Modifier.size(ringDiameter.dp)) {
-        val strokePx = strokeWidth * density
-        val r = (this.size.minDimension - strokePx) / 2f
-        val c = Offset(this.size.width / 2f, this.size.height / 2f)
-
-        drawCircle(
-            color.copy(alpha = 0.15f),
-            r,
-            c,
-            style = Stroke(strokePx),
-        )
-        drawArc(
-            color,
-            -90f,
-            360f * animatedValue,
-            false,
-            Offset(c.x - r, c.y - r),
-            Size(r * 2, r * 2),
-            style = Stroke(strokePx),
-        )
+    Canvas(
+        Modifier
+            .size(ringDiameter.dp)
+            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen },
+    ) {
+        val bloomFarPx = AugeRingBloomFar.toPx()
+        val r = (size.minDimension - bloomFarPx) / 2f
+        val c = Offset(size.width / 2f, size.height / 2f)
+        val progress = animatedValue.coerceIn(0f, 1f)
+        drawAugeRingTrack(c, r, color)
+        drawAugeRingBlooms(c, r, color, progress, BlendMode.Plus)
+        drawAugeRingCore(c, r, color, progress)
     }
 }
 
 @Composable
 internal fun AugeRingsCanvas(mp: Float, sp: Float, cp: Float, ringColors: List<Color> = RingColors) {
     val values = listOf(mp, sp, cp)
-    Canvas(Modifier.fillMaxSize()) {
+    Canvas(
+        Modifier
+            .fillMaxSize()
+            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen },
+    ) {
         val radius = min(size.width / 5f, size.height * 0.38f)
         val centerX = size.width / 2f
         val centerY = size.height / 2f
@@ -210,27 +207,111 @@ internal fun AugeRingsCanvas(mp: Float, sp: Float, cp: Float, ringColors: List<C
             Offset(centerX, centerY + dy),
             Offset(centerX + dx, centerY - dy),
         )
-        val stroke = 5.dp.toPx()
+        val rings = centers.mapIndexed { index, center ->
+            Triple(center, ringColors[index], values[index].coerceIn(0f, 1f))
+        }
 
-        centers.forEachIndexed { index, center ->
-            val color = ringColors[index]
-            val progress = values[index].coerceIn(0f, 1f)
-            val topLeft = Offset(center.x - radius, center.y - radius)
-            val arcSize = Size(radius * 2, radius * 2)
-            drawCircle(color.copy(alpha = 0.28f), radius, center, style = Stroke(stroke))
-            listOf(18.dp.toPx() to 0.12f, 12.dp.toPx() to 0.20f, 7.dp.toPx() to 0.32f).forEach { (width, alpha) ->
-                drawArc(
-                    color = color.copy(alpha = alpha), startAngle = -90f, sweepAngle = 360f * progress,
-                    useCenter = false, topLeft = topLeft, size = arcSize,
-                    style = Stroke(width = width, cap = androidx.compose.ui.graphics.StrokeCap.Round),
-                )
-            }
+        rings.forEach { (center, color, _) ->
+            drawAugeRingTrack(center, radius, color)
+        }
+        rings.forEach { (center, color, progress) ->
+            drawAugeRingBlooms(center, radius, color, progress, BlendMode.Plus)
+        }
+        rings.forEach { (center, color, progress) ->
+            drawAugeRingCore(center, radius, color, progress)
+        }
+    }
+}
+
+internal fun DrawScope.drawAugeRingTrack(center: Offset, radius: Float, color: Color) {
+    drawCircle(
+        color = color.copy(alpha = 0.16f),
+        radius = radius,
+        center = center,
+        style = Stroke(width = AugeRingCoreStroke.toPx()),
+        blendMode = BlendMode.SrcOver,
+    )
+}
+
+internal fun DrawScope.drawAugeRingBlooms(
+    center: Offset,
+    radius: Float,
+    color: Color,
+    progress: Float,
+    blendMode: BlendMode,
+) {
+    val clamped = progress.coerceIn(0f, 1f)
+    if (clamped <= 0f) return
+    val topLeft = Offset(center.x - radius, center.y - radius)
+    val arcSize = Size(radius * 2f, radius * 2f)
+    val full = clamped >= 1f
+    listOf(AugeRingBloomFar.toPx() to 0.10f, AugeRingBloomNear.toPx() to 0.18f).forEach { (width, alpha) ->
+        if (full) {
+            drawCircle(
+                color = color.copy(alpha = alpha),
+                radius = radius,
+                center = center,
+                style = Stroke(width = width),
+                blendMode = blendMode,
+            )
+        } else {
             drawArc(
-                color = color, startAngle = -90f, sweepAngle = 360f * progress,
-                useCenter = false, topLeft = topLeft, size = arcSize,
-                style = Stroke(width = stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round),
+                color = color.copy(alpha = alpha),
+                startAngle = -90f,
+                sweepAngle = 360f * clamped,
+                useCenter = false,
+                topLeft = topLeft,
+                size = arcSize,
+                style = Stroke(width = width, cap = StrokeCap.Butt),
+                blendMode = blendMode,
             )
         }
+    }
+}
+
+internal fun DrawScope.drawAugeRingCore(center: Offset, radius: Float, color: Color, progress: Float) {
+    val clamped = progress.coerceIn(0f, 1f)
+    if (clamped <= 0f) return
+    val topLeft = Offset(center.x - radius, center.y - radius)
+    val arcSize = Size(radius * 2f, radius * 2f)
+    val full = clamped >= 1f
+    val highlight = lerp(color, Color.White, 0.35f)
+    if (full) {
+        drawCircle(
+            color = color,
+            radius = radius,
+            center = center,
+            style = Stroke(width = AugeRingCoreStroke.toPx()),
+            blendMode = BlendMode.SrcOver,
+        )
+        drawCircle(
+            color = highlight,
+            radius = radius,
+            center = center,
+            style = Stroke(width = AugeRingHighlight.toPx()),
+            blendMode = BlendMode.SrcOver,
+        )
+    } else {
+        drawArc(
+            color = color,
+            startAngle = -90f,
+            sweepAngle = 360f * clamped,
+            useCenter = false,
+            topLeft = topLeft,
+            size = arcSize,
+            style = Stroke(width = AugeRingCoreStroke.toPx(), cap = StrokeCap.Round),
+            blendMode = BlendMode.SrcOver,
+        )
+        drawArc(
+            color = highlight,
+            startAngle = -90f,
+            sweepAngle = 360f * clamped,
+            useCenter = false,
+            topLeft = topLeft,
+            size = arcSize,
+            style = Stroke(width = AugeRingHighlight.toPx(), cap = StrokeCap.Round),
+            blendMode = BlendMode.SrcOver,
+        )
     }
 }
 internal fun batteryColor(score: Int): Color = when {
@@ -284,7 +365,7 @@ private fun RingsInfoDialog(onDismiss: () -> Unit) {
                     color = com.example.kpkn.ui.theme.RingBlue,
                 )
                 Text(
-                    "Representa qué tan fresco y enfocado te sientes en el día, con ello se busca representar cómo te sientes a nivel neural.",
+                    "Es tu sistema nervioso estructural: la carga neural de entrenar más cómo te sientes. No pedimos horas de sueño; si dormiste mal, eso ya llega en esta sensación.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                 )
@@ -296,7 +377,7 @@ private fun RingsInfoDialog(onDismiss: () -> Unit) {
                     color = com.example.kpkn.ui.theme.RingYellow,
                 )
                 Text(
-                    "Representa qué tan preparada está tu columna para un entrenamiento; especialmente relevante si realizas sentadillas libres o peso muerto.",
+                    "Mezcla la carga axial reciente (sentadilla, peso muerto y similares), el piso articular y el estado de dorsales, erectores/lumbar y trapecio. Si esos músculos están cansados, la columna queda más expuesta. No es una medición clínica.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                 )
@@ -309,7 +390,7 @@ private fun RingsInfoDialog(onDismiss: () -> Unit) {
                     fontWeight = FontWeight.Black,
                 )
                 Text(
-                    "Los RINGS se recalibran automáticamente en tres momentos clave: antes de cada entrenamiento (donde puedes ajustar tu estado del día), al finalizar una sesión y en el feedback de recuperación que recibirás al día siguiente. Así el algoritmo mejora progresivamente sin que necesites intervenir manualmente.",
+                    "Se recalculan con lo que entrenas (y un decaimiento en el tiempo). Puedes corregir cómo te sientes en el sheet de estado antes de entrenar y, si hace falta, al cerrar la sesión. Si no tocas los rings, no se “aprende” un tiempo de recuperación nuevo: solo se ancla lo que reportas.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                 )

@@ -81,10 +81,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
+import com.example.kpkn.screens.home.drawAugeRingBlooms
+import com.example.kpkn.screens.home.drawAugeRingCore
+import com.example.kpkn.screens.home.drawAugeRingTrack
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -1078,27 +1078,18 @@ private fun FinishCircularProgressVisual(
         label = "finishCircularProgressVisual",
     )
 
-    Canvas(Modifier.fillMaxSize()) {
-        val strokePx = 4.dp.toPx()
-        val radius = (size.minDimension - strokePx) / 2f
+    Canvas(
+        Modifier
+            .fillMaxSize()
+            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen },
+    ) {
+        val bloomFarPx = 8.dp.toPx()
+        val radius = (size.minDimension - bloomFarPx) / 2f
         val center = Offset(size.width / 2f, size.height / 2f)
-
-        drawCircle(
-            color = color.copy(alpha = 0.1f),
-            radius = radius,
-            center = center,
-            style = Stroke(strokePx),
-        )
-
-        drawArc(
-            color = color,
-            startAngle = -90f,
-            sweepAngle = 360f * animatedValue,
-            useCenter = false,
-            topLeft = Offset(center.x - radius, center.y - radius),
-            size = Size(radius * 2f, radius * 2f),
-            style = Stroke(strokePx),
-        )
+        val progress = animatedValue.coerceIn(0f, 1f)
+        drawAugeRingTrack(center, radius, color)
+        drawAugeRingBlooms(center, radius, color, progress, BlendMode.Plus)
+        drawAugeRingCore(center, radius, color, progress)
     }
 }
 
