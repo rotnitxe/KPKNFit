@@ -45,6 +45,18 @@ val LocalLivePagerShouldReflow = compositionLocalOf { false }
  */
 val LocalLivePagerWorkingSetVisualHeightPx = compositionLocalOf<MutableIntState?> { null }
 
+/** Keep the tallest measured working-set card; never shrink on later pages. */
+internal fun publishLivePagerWorkingSetVisualHeight(holder: MutableIntState?, heightPx: Int) {
+    if (holder == null || heightPx <= 0) return
+    if (heightPx > holder.intValue) {
+        holder.intValue = heightPx
+    }
+}
+
+/** Prep cards share the same unscaled height as working sets (or the design floor). */
+internal fun resolveLivePagerPrepCardHeightPx(measuredWorkingSetHeightPx: Int, floorPx: Int): Int =
+    if (measuredWorkingSetHeightPx > 0) measuredWorkingSetHeightPx else floorPx
+
 object WorkoutUiTokens {
     val ScreenHorizontalPadding = 12.dp
     val CardShape = RoundedCornerShape(28.dp)

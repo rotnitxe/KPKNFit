@@ -42,10 +42,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.example.kpkn.screens.workout.RecordActionHolder
+import com.example.kpkn.screens.workout.RecordFabHolder
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -91,10 +95,28 @@ internal fun MobilityPhaseLiveCard(
     inlineRestRemainingSeconds: Int? = null,
     inlineRestTotalSeconds: Int? = null,
     onSkipInlineRest: (() -> Unit)? = null,
+    recordActionHolder: RecordActionHolder? = null,
+    recordFabHolder: RecordFabHolder? = null,
+    isActivePage: Boolean = false,
 ) {
     val allDone = items.isNotEmpty() && items.all { it.stepKey in completedStepKeys }
     val showExerciseBadge = items.map { it.exerciseId }.distinct().size > 1
     val showInlineRest = inlineRestRemainingSeconds != null && (inlineRestTotalSeconds ?: 0) > 0
+    val targetItem = items.firstOrNull { it.stepKey !in completedStepKeys } ?: items.lastOrNull()
+    DisposableEffect(isActivePage, items, completedStepKeys) {
+        if (isActivePage && recordActionHolder != null) {
+            recordActionHolder.action = action@{
+                val item = items.firstOrNull { it.stepKey !in completedStepKeys } ?: return@action
+                onToggleComplete(item, true)
+            }
+            recordFabHolder?.isUpdateMode = targetItem?.stepKey in completedStepKeys
+        }
+        onDispose {
+            if (isActivePage) {
+                recordActionHolder?.action = null
+            }
+        }
+    }
     PrepChecklistShell(
         title = "MOVILIDAD",
         doneCount = items.count { it.stepKey in completedStepKeys },
@@ -168,9 +190,28 @@ internal fun WarmupPhaseLiveCard(
     inlineRestRemainingSeconds: Int? = null,
     inlineRestTotalSeconds: Int? = null,
     onSkipInlineRest: (() -> Unit)? = null,
+    recordActionHolder: RecordActionHolder? = null,
+    recordFabHolder: RecordFabHolder? = null,
+    isActivePage: Boolean = false,
 ) {
     val allDone = rows.isNotEmpty() && rows.all { it.isCompleted }
     val showInlineRest = inlineRestRemainingSeconds != null && (inlineRestTotalSeconds ?: 0) > 0
+    val targetRow = rows.firstOrNull { !it.isCompleted } ?: rows.lastOrNull()
+    DisposableEffect(isActivePage, rows) {
+        if (isActivePage && recordActionHolder != null) {
+            recordActionHolder.action = action@{
+                val row = rows.firstOrNull { !it.isCompleted } ?: return@action
+                val kg = row.actualWeightKg ?: row.suggestedWeightKg ?: 0.0
+                onToggleComplete(row, true, kg)
+            }
+            recordFabHolder?.isUpdateMode = targetRow?.isCompleted == true
+        }
+        onDispose {
+            if (isActivePage) {
+                recordActionHolder?.action = null
+            }
+        }
+    }
     PrepChecklistShell(
         title = "APROXIMACIÓN",
         doneCount = rows.count { it.isCompleted },
@@ -392,109 +433,62 @@ private fun PrepChecklistShell(
     content: @Composable () -> Unit,
 ) {
     val workingSetVisualHeightPx = LocalLivePagerWorkingSetVisualHeightPx.current?.intValue ?: 0
+    val density = LocalDensity.current
+    val floorHeightPx = with(density) { WorkoutUiTokens.LivePagerBaseHeight.roundToPx() }
+    val targetHeightPx = resolveLivePagerPrepCardHeightPx(workingSetVisualHeightPx, floorHeightPx)
+    val targetHeightDp = with(density) { targetHeightPx.toDp() }
+    val bodyScrollState = rememberScrollState()
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .wrapContentHeight(),
+            .height(targetHeightDp),
         shape = WorkoutUiTokens.CardShape,
         color = WorkoutUiTokens.setCardColor(),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
     ) {
-        SubcomposeLayout(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .wrapContentHeight(),
-        ) { constraints ->
-            val padH = 12.dp.roundToPx()
-            val padV = 12.dp.roundToPx()
-            val outerSpacing = 6.dp.roundToPx()
-            val maxInnerW = (constraints.maxWidth - padH * 2).coerceAtLeast(0)
-            val innerConstraints = Constraints(minWidth = maxInnerW, maxWidth = maxInnerW)
-
-            val headerPlaceable = subcompose("prep_header") {
-                Column(
+                .fillMaxHeight()
+                .padding(horizontal = 12.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Text(
-                            title,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.60f),
-                            letterSpacing = 1.sp,
-                        )
-                        Text(
-                            "$doneCount/$totalCount",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.60f),
-                        )
-                    }
-                    headerExtra?.invoke()
+                    Text(
+                        title,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.60f),
+                        letterSpacing = 1.sp,
+                    )
+                    Text(
+                        "$doneCount/$totalCount",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.60f),
+                    )
                 }
-            }.first().measure(innerConstraints)
-
-            val footerPlaceable = subcompose("prep_footer") {
-                footer()
-            }.first().measure(innerConstraints)
-
-            val looseBody = subcompose("prep_body_loose") {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    content()
-                }
-            }.first().measure(
-                Constraints(maxWidth = maxInnerW, maxHeight = Constraints.Infinity),
-            )
-
-            val chromeHeight = padV * 2 + headerPlaceable.height + footerPlaceable.height + outerSpacing * 2
-            val layoutHeight = if (workingSetVisualHeightPx > 0) {
-                workingSetVisualHeightPx.coerceAtLeast(chromeHeight)
-            } else {
-                chromeHeight + looseBody.height
+                headerExtra?.invoke()
             }
-            val bodyBudget = (layoutHeight - chromeHeight).coerceAtLeast(0)
-            val bodyPlaceable = if (looseBody.height > bodyBudget) {
-                subcompose("prep_body_scroll") {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = bodyBudget.toDp())
-                            .verticalScroll(rememberScrollState()),
-                    ) {
-                        content()
-                    }
-                }.first().measure(
-                    Constraints(
-                        minWidth = maxInnerW,
-                        maxWidth = maxInnerW,
-                        maxHeight = bodyBudget,
-                    ),
-                )
-            } else {
-                looseBody
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = true)
+                    .verticalScroll(bodyScrollState),
+            ) {
+                content()
             }
-
-            val extra = (bodyBudget - bodyPlaceable.height).coerceAtLeast(0)
-            val layoutWidth = if (constraints.hasBoundedWidth) {
-                constraints.maxWidth
-            } else {
-                maxInnerW + padH * 2
-            }
-
-            layout(layoutWidth, layoutHeight) {
-                var y = padV
-                headerPlaceable.placeRelative(padH, y)
-                y += headerPlaceable.height + outerSpacing
-                bodyPlaceable.placeRelative(padH, y + extra / 2)
-                footerPlaceable.placeRelative(padH, layoutHeight - padV - footerPlaceable.height)
-            }
+            footer()
         }
     }
 }

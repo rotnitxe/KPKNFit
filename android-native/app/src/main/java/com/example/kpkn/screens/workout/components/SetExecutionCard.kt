@@ -799,6 +799,7 @@ internal fun SetInputCardV2(
     onSetBodyWeight: (Double) -> Unit,
     initialBodyWeight: Double?,
     recordActionHolder: RecordActionHolder,
+    recordFabHolder: RecordFabHolder? = null,
     isActivePage: Boolean = true,
     initialDraft: WorkoutSetDraft? = null,
     onDraftChange: (WorkoutSetDraft, String?) -> Unit = { _, _ -> },
@@ -1533,9 +1534,6 @@ internal fun SetInputCardV2(
     val density = LocalDensity.current
     val workingSetVisualHeightHolder = LocalLivePagerWorkingSetVisualHeightPx.current
     var frontHeightPx by remember { mutableIntStateOf(0) }
-    LaunchedEffect(exercise.id) {
-        workingSetVisualHeightHolder?.intValue = 0
-    }
     val flipRotation by animateFloatAsState(
         targetValue = if (cardFlipped) 180f else 0f,
         animationSpec = tween(durationMillis = 420),
@@ -1557,7 +1555,13 @@ internal fun SetInputCardV2(
                 } else {
                     Modifier.wrapContentHeight()
                 },
-            ),
+            )
+            .onSizeChanged { size ->
+                if (!cardFlipped && size.height > 0) {
+                    frontHeightPx = size.height
+                    publishLivePagerWorkingSetVisualHeight(workingSetVisualHeightHolder, size.height)
+                }
+            },
     ) {
     Box(
         modifier = Modifier
@@ -1578,15 +1582,6 @@ internal fun SetInputCardV2(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
-                    .onSizeChanged { size ->
-                        if (!cardFlipped && size.height > 0) {
-                            frontHeightPx = size.height
-                            val holder = workingSetVisualHeightHolder
-                            if (holder != null && holder.intValue != size.height) {
-                                holder.intValue = size.height
-                            }
-                        }
-                    }
                     .graphicsLayer { alpha = if (flipRotation <= 90f) 1f else 0f }
                     .blur(
                         when {
@@ -2376,6 +2371,12 @@ internal fun SetInputCardV2(
                     total = total,
                     secondsLeft = RestPausePlanDefaults.PauseSeconds,
                 )
+            }
+
+            SideEffect {
+                if (isActivePage) {
+                    recordFabHolder?.isUpdateMode = sessionCompletedSet != null
+                }
             }
 
             SideEffect {

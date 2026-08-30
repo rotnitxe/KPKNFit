@@ -18,109 +18,55 @@ class RecordActionHolderTest {
     }
 
     @Test
-    fun shouldShowWorkoutRecordFab_trueForStrengthSet() {
-        assertTrue(
-            shouldShowWorkoutRecordFab(
-                hasCurrentExercise = true,
-                hasCurrentSet = true,
-                isCardio = false,
-                showingPostExerciseCard = false,
-                isWarmupOverlayActive = false,
-                isMobilityOverlayActive = false,
-                showReadinessSheet = false,
-                showRestOverlayHost = false,
-            ),
-        )
+    fun shouldShowWorkoutRecordFab_trueOnWorkingWarmupAndMobilityPages() {
+        listOf(
+            LivePageType.NORMAL,
+            LivePageType.WARMUP,
+            LivePageType.MOBILITY,
+        ).forEach { pageType ->
+            assertTrue(
+                shouldShowWorkoutRecordFab(
+                    pageType = pageType,
+                    showingPostExerciseCard = false,
+                    workingRestActive = false,
+                    isCardio = false,
+                ),
+            )
+        }
     }
 
     @Test
-    fun shouldShowWorkoutRecordFab_falseWhenCardio() {
+    fun shouldShowWorkoutRecordFab_falseOnRestCardioOrOverlays() {
         assertFalse(
             shouldShowWorkoutRecordFab(
-                hasCurrentExercise = true,
-                hasCurrentSet = true,
+                pageType = LivePageType.REST,
+                showingPostExerciseCard = false,
+                workingRestActive = false,
+                isCardio = false,
+            ),
+        )
+        assertFalse(
+            shouldShowWorkoutRecordFab(
+                pageType = LivePageType.CARDIO,
+                showingPostExerciseCard = false,
+                workingRestActive = false,
                 isCardio = true,
-                showingPostExerciseCard = false,
-                isWarmupOverlayActive = false,
-                isMobilityOverlayActive = false,
-                showReadinessSheet = false,
-                showRestOverlayHost = false,
-            ),
-        )
-    }
-
-    @Test
-    fun shouldShowWorkoutRecordFab_falseWhenWarmupOrMobilityOrOverlays() {
-        val base = shouldShowWorkoutRecordFab(
-            hasCurrentExercise = true,
-            hasCurrentSet = true,
-            isCardio = false,
-            showingPostExerciseCard = false,
-            isWarmupOverlayActive = false,
-            isMobilityOverlayActive = false,
-            showReadinessSheet = false,
-            showRestOverlayHost = false,
-        )
-        assertTrue(base)
-
-        assertFalse(
-            shouldShowWorkoutRecordFab(
-                hasCurrentExercise = true,
-                hasCurrentSet = true,
-                isCardio = false,
-                showingPostExerciseCard = false,
-                isWarmupOverlayActive = true,
-                isMobilityOverlayActive = false,
-                showReadinessSheet = false,
-                showRestOverlayHost = false,
             ),
         )
         assertFalse(
             shouldShowWorkoutRecordFab(
-                hasCurrentExercise = true,
-                hasCurrentSet = true,
-                isCardio = false,
-                showingPostExerciseCard = false,
-                isWarmupOverlayActive = false,
-                isMobilityOverlayActive = true,
-                showReadinessSheet = false,
-                showRestOverlayHost = false,
-            ),
-        )
-        assertFalse(
-            shouldShowWorkoutRecordFab(
-                hasCurrentExercise = true,
-                hasCurrentSet = true,
-                isCardio = false,
+                pageType = LivePageType.NORMAL,
                 showingPostExerciseCard = true,
-                isWarmupOverlayActive = false,
-                isMobilityOverlayActive = false,
-                showReadinessSheet = false,
-                showRestOverlayHost = false,
+                workingRestActive = false,
+                isCardio = false,
             ),
         )
         assertFalse(
             shouldShowWorkoutRecordFab(
-                hasCurrentExercise = true,
-                hasCurrentSet = true,
-                isCardio = false,
+                pageType = LivePageType.NORMAL,
                 showingPostExerciseCard = false,
-                isWarmupOverlayActive = false,
-                isMobilityOverlayActive = false,
-                showReadinessSheet = true,
-                showRestOverlayHost = false,
-            ),
-        )
-        assertFalse(
-            shouldShowWorkoutRecordFab(
-                hasCurrentExercise = true,
-                hasCurrentSet = true,
+                workingRestActive = true,
                 isCardio = false,
-                showingPostExerciseCard = false,
-                isWarmupOverlayActive = false,
-                isMobilityOverlayActive = false,
-                showReadinessSheet = false,
-                showRestOverlayHost = true,
             ),
         )
     }

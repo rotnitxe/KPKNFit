@@ -81,24 +81,26 @@ internal class RecordActionHolder {
     val isArmed: Boolean get() = action != null
 }
 
-/** Gate for the live-session record FAB (strength sets only). */
+/** FAB visibility driven from the live pager's settled page. */
+internal class RecordFabHolder {
+    var visible by mutableStateOf(false)
+    var isUpdateMode by mutableStateOf(false)
+}
+
+/** Gate for the live-session record FAB (working, warmup and mobility pages). */
 internal fun shouldShowWorkoutRecordFab(
-    hasCurrentExercise: Boolean,
-    hasCurrentSet: Boolean,
-    isCardio: Boolean,
+    pageType: LivePageType?,
     showingPostExerciseCard: Boolean,
-    isWarmupOverlayActive: Boolean,
-    isMobilityOverlayActive: Boolean,
-    showReadinessSheet: Boolean,
-    showRestOverlayHost: Boolean,
-): Boolean = hasCurrentExercise &&
-    hasCurrentSet &&
-    !isCardio &&
+    workingRestActive: Boolean,
+    isCardio: Boolean,
+): Boolean = (
+    pageType == LivePageType.NORMAL ||
+        pageType == LivePageType.WARMUP ||
+        pageType == LivePageType.MOBILITY
+    ) &&
     !showingPostExerciseCard &&
-    !isWarmupOverlayActive &&
-    !isMobilityOverlayActive &&
-    !showReadinessSheet &&
-    !showRestOverlayHost
+    !workingRestActive &&
+    !isCardio
 
 /** Opens readiness Adapt sheet from header into the active set card. */
 internal class AdaptActionHolder {

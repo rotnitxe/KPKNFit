@@ -107,6 +107,7 @@ internal fun WorkoutV2Body(
     onRequestCardioGps: () -> Unit = {},
     exerciseReadinessMap: Map<String, ExerciseReadiness> = emptyMap(),
     recordActionHolder: RecordActionHolder = remember { RecordActionHolder() },
+    recordFabHolder: RecordFabHolder = remember { RecordFabHolder() },
     adaptActionHolder: AdaptActionHolder = remember { AdaptActionHolder() },
     liveSetStepperHolder: LiveSetStepperHolder = remember { LiveSetStepperHolder() },
     cardsHazeState: HazeState = remember { HazeState() },
@@ -186,6 +187,13 @@ internal fun WorkoutV2Body(
 
     LaunchedEffect(currentExercise?.id, uiState.currentSetIdx) {
         recordActionHolder.action = null
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            recordFabHolder.visible = false
+            recordFabHolder.isUpdateMode = false
+        }
     }
 
     LaunchedEffect(drainOverlayState?.key) {
@@ -431,6 +439,10 @@ internal fun WorkoutV2Body(
                     // vertical space and avoids two competing action surfaces.
 
                     if (currentExercise.isCardio) {
+                        SideEffect {
+                            recordFabHolder.visible = false
+                            recordFabHolder.isUpdateMode = false
+                        }
                         LaunchedEffect(currentExercise.id) {
                             liveSetStepperHolder.snapshot = null
                             liveSetStepperHolder.onSelectPage = {}
@@ -759,6 +771,19 @@ internal fun WorkoutV2Body(
                         }
                         val pagerState = rememberPagerState(initialPage = activeSwipePageIndex, pageCount = { totalSetPages })
                         val pagerSyncCoordinator = remember(pagerScopeKey) { WorkoutPagerSyncCoordinator() }
+
+                        SideEffect {
+                            val settledPage = setPagerPages.getOrNull(pagerState.settledPage)
+                            recordFabHolder.visible = shouldShowWorkoutRecordFab(
+                                pageType = settledPage?.type,
+                                showingPostExerciseCard = showingPostExerciseCard,
+                                workingRestActive = workingRestActive,
+                                isCardio = currentExercise.isCardio,
+                            )
+                            if (!recordFabHolder.visible) {
+                                recordFabHolder.isUpdateMode = false
+                            }
+                        }
 
                         LaunchedEffect(totalSetPages) {
                             if (pagerState.currentPage >= totalSetPages) {
@@ -1417,6 +1442,7 @@ internal fun WorkoutV2Body(
                             godModeActive = false,
                         ) {
                         val pageExercise = pageSpec.exerciseId?.let { id -> visibleExercises.firstOrNull { it.id == id } } ?: currentExercise
+                        val isActivePage = page == pagerState.settledPage
                         Box(modifier = Modifier.fillMaxWidth()) {
                         Box(modifier = Modifier.fillMaxWidth()) {
                         when (pageSpec.type) {
@@ -1488,6 +1514,9 @@ internal fun WorkoutV2Body(
                                     } else {
                                         null
                                     },
+                                    recordActionHolder = recordActionHolder,
+                                    recordFabHolder = recordFabHolder,
+                                    isActivePage = isActivePage,
                                     modifier = Modifier.fillMaxWidth().wrapContentHeight(),
                                 )
                             }
@@ -1569,6 +1598,9 @@ internal fun WorkoutV2Body(
                                     } else {
                                         null
                                     },
+                                    recordActionHolder = recordActionHolder,
+                                    recordFabHolder = recordFabHolder,
+                                    isActivePage = isActivePage,
                                     modifier = Modifier.fillMaxWidth().wrapContentHeight(),
                                 )
                             }
@@ -1627,7 +1659,6 @@ internal fun WorkoutV2Body(
                                 val targetExercise = visibleExercises.firstOrNull { it.id == pageSpec.exerciseId } ?: currentExercise
                                 val targetIsUnilateral = targetExercise.isEffectivelyUnilateral()
                                 val activeSetIndex = pageSpec.setIndex.coerceIn(0, (targetExercise.sets.size - 1).coerceAtLeast(0))
-                                val isActivePage = page == pagerState.settledPage
                                 val activeSet = targetExercise.sets.getOrNull(activeSetIndex) ?: currentSetForUi
                                 val cardSide = pageSpec.side ?: (if (targetIsUnilateral) activeSide else null)
                                 val activeGhostSet = remember(
@@ -1725,6 +1756,7 @@ internal fun WorkoutV2Body(
                                     setIndex = activeSetIndex,
                                     currentSet = activeSet,
                                     recordActionHolder = recordActionHolder,
+                                    recordFabHolder = recordFabHolder,
                                     adaptActionHolder = adaptActionHolder,
                                     ghostSet = activeGhostSet,
                                     sessionCompletedSet = sessionCompletedSet,

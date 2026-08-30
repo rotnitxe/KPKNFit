@@ -535,6 +535,7 @@ fun WorkoutScreen(
     }
 
     val recordActionHolder = remember { RecordActionHolder() }
+    val recordFabHolder = remember { RecordFabHolder() }
     val liveSetStepperHolder = remember { LiveSetStepperHolder() }
     val isUnilateralDock = currentExercise?.isEffectivelyUnilateral() == true
     var selectedUnilateralSideOverride by remember(currentExercise?.id, uiState.currentSetIdx) {
@@ -875,38 +876,6 @@ fun WorkoutScreen(
 
     val canReturnToMobilityFromWarmup = isWarmupOverlayActive && (currentExercise?.mobilitySeries?.isNotEmpty() == true)
 
-    val showWorkingRestOverlayForFab = uiState.isRestTimerRunning &&
-        uiState.restModalState != null &&
-        uiState.restModalState?.kind != RestTimerKind.WARMUP &&
-        !uiState.isRestMinimized
-    val showRestOverlayHostForFab = isShowingFeedback || showWorkingRestOverlayForFab
-    val recordUpdateKey = remember(
-        currentExercise?.id,
-        uiState.currentSetIdx,
-        activeDockSide,
-        isUnilateralDock,
-        uiState.completedSets,
-    ) {
-        currentExercise?.let { exercise ->
-            workoutSetKey(
-                exercise.id,
-                uiState.currentSetIdx,
-                if (isUnilateralDock) activeDockSide else null,
-            )
-        }
-    }
-    val isRecordUpdateMode = recordUpdateKey?.let { uiState.completedSets.containsKey(it) } == true
-    val showRecordFab = shouldShowWorkoutRecordFab(
-        hasCurrentExercise = currentExercise != null,
-        hasCurrentSet = currentSet != null,
-        isCardio = currentExercise?.isCardio == true,
-        showingPostExerciseCard = showingPostExerciseCardDock,
-        isWarmupOverlayActive = isWarmupOverlayActive,
-        isMobilityOverlayActive = isMobilityOverlayActive,
-        showReadinessSheet = showReadinessSheet,
-        showRestOverlayHost = showRestOverlayHostForFab,
-    )
-
     Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
         modifier = Modifier
@@ -955,6 +924,7 @@ fun WorkoutScreen(
             onToggleVoice = onToggleVoice,
             exerciseReadinessMap = uiState.exerciseReadinessMap,
             recordActionHolder = recordActionHolder,
+            recordFabHolder = recordFabHolder,
             liveSetStepperHolder = liveSetStepperHolder,
             cardsHazeState = cardsHazeStateDock,
             isUnilateral = isUnilateralDock,
@@ -1163,6 +1133,19 @@ fun WorkoutScreen(
                         },
                     )
                 }
+            if (recordFabHolder.visible) {
+                WorkoutRecordFab(
+                    sessionAccentColor = sessionAccentColor,
+                    isUpdateMode = recordFabHolder.isUpdateMode,
+                    enabled = uiState.recordingSetKey == null,
+                    onClick = { recordActionHolder.action?.invoke() },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .navigationBarsPadding()
+                        .padding(end = 16.dp, bottom = dockBottomClearance + 12.dp)
+                        .zIndex(12f),
+                )
+            }
         }
     }
 
@@ -1171,20 +1154,6 @@ fun WorkoutScreen(
             structureSheets.editSheetExerciseId = exId
             viewModel.clearPendingEditSheetExerciseId()
         }
-    }
-
-    if (showRecordFab) {
-        WorkoutRecordFab(
-            sessionAccentColor = sessionAccentColor,
-            isUpdateMode = isRecordUpdateMode,
-            enabled = uiState.recordingSetKey == null,
-            onClick = { recordActionHolder.action?.invoke() },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .navigationBarsPadding()
-                .padding(end = 16.dp, bottom = dockBottomClearance + 12.dp)
-                .zIndex(6f),
-        )
     }
 
     }
