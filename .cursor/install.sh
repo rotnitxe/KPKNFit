@@ -103,6 +103,9 @@ log "Setting up backend Python virtualenv"
   . .venv/bin/activate
   python -m pip install --quiet --upgrade pip
   python -m pip install --quiet -r requirements.txt
+  # pytest is the backend test runner (not a runtime dependency, so it is not
+  # listed in requirements.txt). Provision it so `python -m pytest` works.
+  python -m pip install --quiet pytest
 )
 
 log "Install complete."
