@@ -246,6 +246,26 @@ class FoodParserTest {
         assertTrue(result.items.size == 1)
     }
 
+    @Test
+    fun `parse arroz con pollo splits into two foods`() {
+        val result = parseMealDescription("arroz con pollo")
+        assertEquals(listOf("arroz", "pollo"), result.items.map { it.tag })
+    }
+
+    @Test
+    fun `parse arroz con leche stays a single dish`() {
+        val result = parseMealDescription("arroz con leche")
+        assertEquals(1, result.items.size)
+        assertEquals("arroz con leche", result.items.single().tag)
+    }
+
+    @Test
+    fun `parse salsa de tomate stays protected`() {
+        val result = parseMealDescription("salsa de tomate")
+        assertEquals(1, result.items.size)
+        assertEquals("salsa de tomate", result.items.single().tag)
+    }
+
     // ─── Iteración 1: regresiones de la auditoría ──────────────────────────
 
     @Test

@@ -2,6 +2,7 @@ package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.models.FoodItem
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -99,5 +100,22 @@ class FoodIndexTest {
         index.addStaticFood(customFood())
         assertTrue(index.search("manzana").contains("gen001"))
         assertTrue(index.search("almuerzo").contains("custom1"))
+    }
+
+    @Test
+    fun `search with exact local name does not require fuzzy expansion`() {
+        val tomato = FoodItem(
+            id = "gen026", name = "Tomate", brand = "Genérico", servingSize = 100.0, unit = "g",
+            calories = 18.0, protein = 0.9, carbs = 3.9, fats = 0.2,
+        )
+        val pizza = FoodItem(
+            id = "off1", name = "Pizza de Tomate", brand = "OFF", servingSize = 100.0, unit = "g",
+            calories = 266.0, protein = 11.0, carbs = 33.0, fats = 10.0,
+        )
+        val index = FoodIndex()
+        index.build(globalFoods = emptyList(), staticFoods = listOf(tomato, pizza), staticAliases = emptyMap())
+        val hits = index.search("tomate")
+        assertTrue(hits.contains("gen026"))
+        assertFalse("exact LOCAL tomate no debe expandir a pizza", hits.contains("off1"))
     }
 }

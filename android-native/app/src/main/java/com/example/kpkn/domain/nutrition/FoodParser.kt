@@ -22,15 +22,20 @@ private val CONNECTOR_Y = Regex("""\s+(?:y|e|mas|más)\s+""", RegexOption.IGNORE
 private val CONNECTOR_CON = Regex("""\s+con\s+""", RegexOption.IGNORE_CASE)
 
 private val PROTECTED_ENTITIES = listOf(
-    "arroz con leche", "arroz con pollo", "pollo con papas", "pan con queso",
-    "pan con palta y jamon", "pan con palta y jamón", "pan con palta",
-    "pan con mantequilla", "papas con mayo", "pastel de choclo", "pasteles de choclo",
-    "empanada de pino", "empanadas de pino", "empanada de queso", "empanadas de queso",
+    "arroz con leche",
+    "pastel de choclo", "pasteles de choclo",
+    "empanada de pino", "empanadas de pino",
+    "empanada de queso", "empanadas de queso",
+    "porotos con riendas",
+    "cafe con leche", "café con leche",
+    "te con leche", "té con leche",
+    "leche con chocolate",
+    "leche con platano", "leche con plátano",
     "sandwich de pollo con mayonesa", "sandwich de jamon con mayonesa",
     "sándwich de pollo con mayonesa", "sándwich de jamón con mayonesa",
-    "hamburguesa con queso", "hamburguesas con queso", "papas fritas con mayonesa", "papa fritas con mayonesa",
-    "cafe con leche", "café con leche", "te con leche", "té con leche",
-    "leche con chocolate", "leche con platano", "leche con plátano", "porotos con riendas",
+    "hamburguesa con queso", "hamburguesas con queso",
+    "papas fritas con mayonesa", "papa fritas con mayonesa",
+    "papas con mayo",
 )
 
 private val LITERAL_QUANTITIES = mapOf(
@@ -60,6 +65,7 @@ private val PORTION_PATTERNS = listOf(
 
 private val COOKING_PATTERNS = listOf(
     Pair(Regex("""\b(?:empanizad[oa]s?|empanad[o]s?|apanad[oa]s?|breaded)\b""", RegexOption.IGNORE_CASE), CookingMethod.EMPANIZADO_FRITO),
+    Pair(Regex("""\b(?:microondas|microndas|microondead[oa]s?|al\s+microondas|al\s+microndas|al\s+micro)\b""", RegexOption.IGNORE_CASE), CookingMethod.COCIDO),
     
     // 2. PLANCHA / PLANCHADO
     Pair(Regex("""\b(?:a\s+la\s+)?(?:plancha|planchad[oa]s?)\b""", RegexOption.IGNORE_CASE), CookingMethod.PLANCHA),
@@ -92,6 +98,13 @@ private val COOKING_PATTERNS = listOf(
     
     // 11. AHUMADO
     Pair(Regex("""\bahumad[oa]s?\b|\bhumad[oa]s?\b|\bsmoked\b""", RegexOption.IGNORE_CASE), CookingMethod.AHUMADO),
+    Pair(Regex("""\b(?:sous\s+vide|al\s+vac[ií]o|en\s+bolsa\s+sellada)\b""", RegexOption.IGNORE_CASE), CookingMethod.COCIDO),
+    Pair(Regex("""\b(?:escalfad[oa]s?|pochad[oa]s?|poch[eé]|huevo\s+poch[eé])\b""", RegexOption.IGNORE_CASE), CookingMethod.COCIDO),
+    Pair(Regex("""\b(?:olla\s+(?:de\s+)?presi[oó]n|olla\s+expr[eé]s)\b""", RegexOption.IGNORE_CASE), CookingMethod.OLLA),
+    Pair(Regex("""\b(?:en\s+ceviche|estilo\s+ceviche|aguachile)\b""", RegexOption.IGNORE_CASE), CookingMethod.CRUDO),
+    Pair(Regex("""\b(?:papillote|en\s+papillote|empapelad[oa]s?)\b""", RegexOption.IGNORE_CASE), CookingMethod.HORNO),
+    Pair(Regex("""\b(?:al\s+wok|wok-wok)\b""", RegexOption.IGNORE_CASE), CookingMethod.FRITO),
+    Pair(Regex("""\b(?:a\s+la\s+brasa|al\s+carb[oó]n|a\s+la\s+le[nñ]a)\b""", RegexOption.IGNORE_CASE), CookingMethod.ASADO_PARRILLA),
 )
 
 private val REFERENCE_PATTERNS = listOf(
@@ -146,6 +159,12 @@ private val TRAILING_DE_PATTERN = Regex("\\s+de\\s+$")
 
 private val PROTECTED_ENTITY_PHRASES = (PROTECTED_ENTITIES + staticFoodPhrases() + listOf("salsa de tomate"))
     .distinct()
+    .filter { phrase ->
+        val n = phrase.lowercase()
+        if (n == "salsa de tomate" || n.endsWith(" salsa de tomate")) return@filter true
+        if (PROTECTED_ENTITIES.any { it.equals(phrase, ignoreCase = true) }) return@filter true
+        !Regex("""\s+con\s+""", RegexOption.IGNORE_CASE).containsMatchIn(n)
+    }
     .sortedByDescending { it.length }
 
 private val PROTECTED_ENTITIES_REGEX = Regex(
@@ -165,7 +184,11 @@ private val COOKING_KEYWORDS_FAST = listOf(
     "saltea", "sofrit", "soffrit", "fried", "cocid", "cocin", "hervid", "sancoch", "duro", "dura",
     "boiled", "estofad", "guis", "crud", "raw", "vapor", "steamed", "olla",
     "parrill", "grilled", "asado", "carbón", "carbon", "cazuel",
-    "ahumad", "humad", "smoked"
+    "ahumad", "humad", "smoked",
+    "microondas", "microndas", "microonde", "al micro", "sous vide", "vacio", "vacío",
+    "escalf", "poche", "poché", "presion", "presión", "expres",
+    "ceviche", "aguachile",
+    "papillote", "empapelad", "wok", "brasa", "leña", "lena",
 )
 
 private val PORTION_KEYWORDS_FAST = listOf(

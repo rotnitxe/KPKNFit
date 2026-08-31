@@ -84,20 +84,29 @@ class FoodIndex {
 
     /**
      * Search for foods matching a query. Returns foodIds sorted by relevance.
+     * Exact LOCAL names skip fuzzy expansion so "tomate" does not pull pizza/salsa.
      */
     fun search(query: String): Set<String> {
         val normalizedQuery = normalizeSearch(query)
         val queryTokens = tokenize(normalizedQuery)
         if (queryTokens.isEmpty()) return emptySet()
 
+        val localExact = exactMatches(normalizedQuery).filter { it.source == "LOCAL" }
+        if (localExact.isNotEmpty()) {
+            return localExact.map { it.foodId }.toSet()
+        }
+
         val candidates = mutableSetOf<String>()
 
-        // 1. Exact token matches
         for (token in queryTokens) {
             tokenIndex[token]?.let { candidates.addAll(it) }
         }
 
-        // 2. Trigram matches (for typos)
+        val shortHeadNoun = queryTokens.size == 1 && queryTokens[0].length >= 5
+        if (shortHeadNoun && candidates.isNotEmpty()) {
+            return candidates
+        }
+
         for (token in queryTokens) {
             val trigrams = generateTrigrams(token)
             for (trigram in trigrams) {
@@ -105,7 +114,6 @@ class FoodIndex {
             }
         }
 
-        // 3. Phonetic matches
         for (token in queryTokens) {
             val phonetic = PhoneticEs.encode(token)
             if (phonetic.isNotEmpty()) {

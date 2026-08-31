@@ -27,6 +27,11 @@ object CookingStateResolver {
         "salmon", "atún", "atun", "lomo", "bife", "filete", "molida",
     )
 
+    private val PRODUCE_KEYWORDS = listOf(
+        "tomate", "lechuga", "zanahoria", "brócoli", "brocoli", "palta", "aguacate",
+        "manzana", "plátano", "platano", "naranja", "pepino", "apio", "espinaca",
+    )
+
     fun isDbFoodRaw(food: FoodItem): Boolean {
         val blob = (food.name + " " + food.searchAliases.joinToString(" ")).lowercase()
         return blob.contains("(crudo)") || blob.contains("cruda") || blob.contains("crudo") ||
@@ -206,15 +211,59 @@ object CookingStateResolver {
         return when (kind) {
             ClarificationKind.DRY_VS_COOKED -> {
                 val assumed = when {
-                    food != null && isDbFoodRaw(food) -> "seco"
+                    food != null && isDbFoodRaw(food) && assumedDefault(tag, food) == FoodState.RAW -> "seco"
                     else -> "cocido"
                 }
                 "Asumí ${tag.trim()} $assumed — cambia si era lo contrario."
             }
             ClarificationKind.RAW_VS_COOKED ->
-                "Asumí peso según la ficha (${food?.name ?: tag}) — aclara crudo o cocido."
+                "Asumí ${tag.trim()} cocido — cambia si era crudo."
             ClarificationKind.NONE -> null
         }
+    }
+
+    /**
+     * Default eaten-as state when the user omits crudo/seco/cocido.
+     * Grains, legumes and proteins → cooked; raw produce → raw.
+     */
+    fun assumedDefault(tag: String, food: FoodItem?): FoodState? {
+        if (FoodIdentity.stateFor(tag) != FoodState.UNKNOWN) return null
+        val family = FoodIdentity.familyFor(tag)
+        if (family in setOf("salsa_de_tomate", "ketchup", "pizza", "sopa", "jugo")) return null
+        val blob = FoodIdentity.normalize(tag + " " + (food?.name ?: ""))
+        val produceFamily = family in setOf(
+            "tomate", "lechuga", "zanahoria", "brocoli", "palta", "manzana", "platano",
+        ) || PRODUCE_KEYWORDS.any { FoodIdentity.normalize(it) == FoodIdentity.normalize(tag) }
+        if (produceFamily && !FoodIdentity.isCompoundProduct(tag)) return FoodState.RAW
+        if (HYDRATION_KEYWORDS.any { blob.contains(it) }) return FoodState.COOKED
+        if (PROTEIN_KEYWORDS.any { blob.contains(it) }) return FoodState.COOKED
+        if (blob.contains("huevo")) return FoodState.COOKED
+        if (FoodIdentity.isStateSensitive(tag)) return FoodState.COOKED
+        return null
+    }
+
+    fun resolveAssumedVariant(tag: String, food: FoodItem?, assumed: FoodState): FoodItem? {
+        val wantCooked = assumed == FoodState.COOKED || assumed == FoodState.HYDRATED
+        if (food != null) {
+            if (wantCooked && isDbFoodCooked(food) && !isDbFoodRaw(food)) return food
+            if (!wantCooked && isDbFoodRaw(food) && !isDbFoodCooked(food)) return food
+        }
+        val fromTag = if (wantCooked) {
+            findPreparedVariant(tag, CookingMethod.COCIDO) ?: findDryOrCookedVariant(tag, true)
+        } else {
+            findDryOrCookedVariant(tag, false)
+        }
+        if (fromTag != null) return fromTag
+        val baseName = food?.name?.replace(Regex("""\s*\([^)]*\)"""), "")?.trim().orEmpty()
+        if (baseName.isNotBlank()) {
+            val fromName = if (wantCooked) {
+                findPreparedVariant(baseName, CookingMethod.COCIDO) ?: findDryOrCookedVariant(baseName, true)
+            } else {
+                findDryOrCookedVariant(baseName, false) ?: food?.let(::findRawVariant)
+            }
+            if (fromName != null) return fromName
+        }
+        return food
     }
 
     fun shouldApplyOil(food: FoodItem?, method: CookingMethod?): Boolean {

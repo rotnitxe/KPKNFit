@@ -392,11 +392,18 @@ class SmartFoodResolver(
             } else 0.0
         } ?: 0.0
         val baseTopScore = top.first().score - learnedBoostApplied
+        val winner = top.first()
+        val firstRealRival = top.drop(1).firstOrNull { rival -> isRealIdentityRival(originalQuery, winner, rival) }
+        val gapOk = firstRealRival == null || winner.score - firstRealRival.score >= SAFE_GAP
+        val plainLocalWinner = winner.source == "LOCAL" &&
+            FoodIdentity.isPlainSimpleFood(originalQuery, winner.name) &&
+            baseTopScore >= 0.70
 
         val decision = when {
-            FoodIdentity.isAmbiguousStateQuery(originalQuery) -> Decision.NEEDS_REVIEW
+            FoodIdentity.isAmbiguousStateQuery(originalQuery) && !plainLocalWinner -> Decision.NEEDS_REVIEW
             learned != null && baseTopScore >= LEARNED_AUTO_THRESHOLD -> Decision.AUTO_SELECT
-            baseTopScore >= HIGH_THRESHOLD && (top.size == 1 || top.first().score - top[1].score >= SAFE_GAP) -> Decision.AUTO_SELECT
+            plainLocalWinner -> Decision.AUTO_SELECT
+            baseTopScore >= HIGH_THRESHOLD && gapOk -> Decision.AUTO_SELECT
             top.first().score >= MEDIUM_THRESHOLD -> Decision.NEEDS_REVIEW
             else -> Decision.NEEDS_REVIEW
         }
@@ -499,9 +506,18 @@ class SmartFoodResolver(
         // la palabra del tag: el parser ya la extrajo antes de resolver.
         val queryState = stateHint ?: FoodIdentity.stateFor(normalizedQuery)
         val exactAlias = food.normalizedAliases.contains(normalizedQuery)
+        val queryIsSimple = queryTokens.size <= 2 && !FoodIdentity.isCompoundProduct(normalizedQuery)
+        val foodIsPlain = FoodIdentity.isPlainSimpleFood(normalizedQuery, food.name)
         if (queryFamily != null && queryFamily == food.canonicalFamily) {
             score += 0.22
             if (food.source == "LOCAL") score += 0.12
+            if (foodIsPlain) score += 0.10
+        }
+        if (queryFamily != null && food.canonicalFamily != null && queryFamily != food.canonicalFamily) {
+            score -= 0.40
+        }
+        if (queryIsSimple && FoodIdentity.isCompoundProduct(food.normalizedName) && !foodIsPlain) {
+            score -= 0.45
         }
         if (queryState != FoodState.UNKNOWN && food.state != FoodState.UNKNOWN && food.state != queryState) {
             score -= 0.35
@@ -591,6 +607,29 @@ class SmartFoodResolver(
         score += fuzzyBonus
 
         return score.coerceIn(0.0, 1.0)
+    }
+
+    private fun isRealIdentityRival(
+        query: String,
+        winner: ResolutionCandidate,
+        other: ResolutionCandidate,
+    ): Boolean {
+        if (FoodIdentity.isPlainSimpleFood(query, winner.name) &&
+            FoodIdentity.isCompoundProduct(other.name)
+        ) {
+            return false
+        }
+        val winnerFamily = winner.canonicalFamily ?: FoodIdentity.familyFor(winner.name)
+        val otherFamily = other.canonicalFamily ?: FoodIdentity.familyFor(other.name)
+        if (winnerFamily != null && otherFamily != null && winnerFamily != otherFamily) {
+            return false
+        }
+        if (winner.state != FoodState.UNKNOWN && other.state != FoodState.UNKNOWN &&
+            winner.state != other.state
+        ) {
+            return false
+        }
+        return true
     }
 
     private fun candidateIdentityKey(candidate: ResolutionCandidate, brandHint: String?): String {

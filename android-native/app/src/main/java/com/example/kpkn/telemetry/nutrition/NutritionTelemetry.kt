@@ -48,7 +48,14 @@ object NutritionTelemetry {
 
     private val sessionId: String = newId()
     private val seq = AtomicLong(0L)
-    private val startedAtUptimeMs = SystemClock.elapsedRealtime()
+    private fun elapsedRealtimeSafe(): Long =
+        try {
+            SystemClock.elapsedRealtime()
+        } catch (_: Throwable) {
+            System.nanoTime() / 1_000_000L
+        }
+
+    private val startedAtUptimeMs = elapsedRealtimeSafe()
 
     // ─── Ciclo de vida ───────────────────────────────────────────────────────
 
@@ -143,7 +150,7 @@ object NutritionTelemetry {
 
     /** Traza de un análisis: spans por etapa + cierre con resultado agregado. */
     class NutritionTrace internal constructor(val traceId: String) {
-        private val traceStartedAtMs = SystemClock.elapsedRealtime()
+        private val traceStartedAtMs = elapsedRealtimeSafe()
         private val stageOrder = AtomicInteger(0)
         @Volatile private var closed = false
 
@@ -177,13 +184,13 @@ object NutritionTelemetry {
 
         /** Mide una etapa, registra el span y propaga cualquier fallo. */
         suspend fun <T> stage(name: String, fields: Map<String, Any?> = emptyMap(), block: suspend () -> T): T {
-            val startedAtMs = SystemClock.elapsedRealtime()
+            val startedAtMs = elapsedRealtimeSafe()
             try {
                 val result = block()
-                stageEnded(name, SystemClock.elapsedRealtime() - startedAtMs, ok = true, fields = fields)
+                stageEnded(name, elapsedRealtimeSafe() - startedAtMs, ok = true, fields = fields)
                 return result
             } catch (failure: Throwable) {
-                stageEnded(name, SystemClock.elapsedRealtime() - startedAtMs, ok = false, fields = fields, error = failure)
+                stageEnded(name, elapsedRealtimeSafe() - startedAtMs, ok = false, fields = fields, error = failure)
                 throw failure
             }
         }
@@ -194,7 +201,7 @@ object NutritionTelemetry {
             runCatching {
                 val payload = LinkedHashMap<String, Any?>(fields)
                 payload["outcome"] = outcome
-                payload["durationMs"] = (SystemClock.elapsedRealtime() - traceStartedAtMs).coerceAtLeast(0L)
+                payload["durationMs"] = (elapsedRealtimeSafe() - traceStartedAtMs).coerceAtLeast(0L)
                 payload["stageCount"] = stageOrder.get()
                 emit("analysis_end", payload, traceId)
             }
@@ -246,7 +253,7 @@ object NutritionTelemetry {
         map["schemaVersion"] = SCHEMA_VERSION
         map["timestamp"] = Instant.now().toString()
         map["epochMs"] = System.currentTimeMillis()
-        map["elapsedSinceSessionStartMs"] = SystemClock.elapsedRealtime() - startedAtUptimeMs
+        map["elapsedSinceSessionStartMs"] = elapsedRealtimeSafe() - startedAtUptimeMs
         map["sessionId"] = sessionId
         map["seq"] = seq.incrementAndGet()
         map["event"] = event

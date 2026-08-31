@@ -1129,24 +1129,7 @@ fun FoodLoggerDrawer(
             )
             return
         }
-        val materiallyUncertain = activeTags.any { tag ->
-            !tag.isUncertain && !tag.explicitDecision && !tag.hasManualEdits && (
-                (tag.resolutionConfidence?.let { it < 0.80 } == true) ||
-                    (tag.resolutionMargin?.let { it < 0.15 } == true) ||
-                    tag.needsCookingClarification ||
-                    tag.reviewCandidates.any { candidate ->
-                        val selected = tag.foodItem
-                        if (selected == null) {
-                            false
-                        } else {
-                            val kcalGap = kotlin.math.abs(candidate.calories - selected.calories)
-                            val proteinGap = kotlin.math.abs(candidate.protein - selected.protein)
-                            val fatGap = kotlin.math.abs(candidate.fats - selected.fats)
-                            kcalGap >= 50.0 || proteinGap >= 5.0 || fatGap >= 5.0
-                        }
-                    }
-                )
-        }
+        val materiallyUncertain = activeTags.any { it.hasMaterialQuestion() }
         if (materiallyUncertain) {
             NutritionTelemetry.event("save_rejected", mapOf("reason" to "material_uncertainty", "tags" to activeTags.size))
             reviewRequired = true
@@ -1332,8 +1315,7 @@ fun FoodLoggerDrawer(
 
     val activeTagsForSave = tags.filterNot { it.isExcluded }
     val saveBlocked = activeTagsForSave.any { tag ->
-        (!tag.isResolved && !tag.explicitDecision) || tag.needsCookingClarification ||
-            tag.hasMaterialQuestion()
+        (!tag.isResolved && !tag.explicitDecision) || tag.hasMaterialQuestion()
     }
 
     // ─── Sheet ───────────────────────────────────────────────────────────────
@@ -1578,11 +1560,7 @@ fun FoodLoggerDrawer(
             // ── Tag List ────────────────────────────────────────────────────
             if (tags.isNotEmpty()) {
                 val pendingClarifications = tags.filter { tag ->
-                    !tag.isExcluded && (
-                        tag.needsCookingClarification ||
-                            (!tag.isResolved && !tag.explicitDecision && tag.amountIntent == AmountIntent.UNSPECIFIED) ||
-                            tag.hasMaterialQuestion()
-                        )
+                    !tag.isExcluded && tag.hasMaterialQuestion()
                 }
                 if (pendingClarifications.isNotEmpty()) {
                     item {

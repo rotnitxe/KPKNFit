@@ -30,4 +30,19 @@ class NutritionClarificationContractTest {
         )
         assertFalse(unsure.hasMaterialQuestion())
     }
+
+    @Test
+    fun `auto assumed state is not a material question`() {
+        val auto = ResolvedTag(
+            tag = "arroz",
+            foodItem = FoodItem(id = "gen005", name = "Arroz Blanco (cocido)"),
+            loggedFood = com.example.kpkn.data.models.LoggedFood(foodName = "Arroz Blanco (cocido)", calories = 130.0),
+            isResolved = true,
+            resolutionStatus = FoodResolutionStatus.AUTO,
+            stateAssumed = true,
+            resolutionConfidence = 0.72,
+            resolutionMargin = 0.10,
+        )
+        assertFalse(auto.hasMaterialQuestion())
+    }
 }

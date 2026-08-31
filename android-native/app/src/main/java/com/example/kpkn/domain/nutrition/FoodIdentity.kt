@@ -88,13 +88,100 @@ object FoodIdentity {
     // Grouping them collapses duplicate OFF rows before SAFE_GAP check and allows AUTO.
     private val BREAD_CHILENO_WORDS = setOf("hallulla", "hallullas", "marraqueta", "marraquetas", "pan batido", "pan frances")
 
+    private val SIMPLE_FAMILY_BY_TOKEN = mapOf(
+        "tomate" to "tomate",
+        "jitomate" to "tomate",
+        "platano" to "platano",
+        "banana" to "platano",
+        "manzana" to "manzana",
+        "zanahoria" to "zanahoria",
+        "brocoli" to "brocoli",
+        "lechuga" to "lechuga",
+        "palta" to "palta",
+        "aguacate" to "palta",
+        "pollo" to "pollo",
+        "pechuga" to "pollo",
+        "arroz" to "arroz",
+        "avena" to "avena",
+        "lenteja" to "lenteja",
+        "lentejas" to "lenteja",
+        "garbanzo" to "garbanzo",
+        "garbanzos" to "garbanzo",
+        "huevo" to "huevo",
+        "huevos" to "huevo",
+        "leche" to "leche",
+        "yogurt" to "yogurt",
+        "yogur" to "yogurt",
+        "pan" to "pan",
+        "atun" to "atun",
+        "tuna" to "atun",
+        "salmon" to "salmon",
+    )
+
+    private val COMPOUND_PRODUCT_MARKERS = listOf(
+        " pizza", "pizza ",
+        " ketchup", "catsup",
+        " caldo ",
+        " bread",
+        "salsa de ",
+        " pasta de ",
+        " extracto",
+        " mermelada",
+        " helado de ",
+        " sopa de ",
+        " jugo de ",
+        " pan de ",
+        " con ",
+    )
+
+    private val PLAIN_FOOD_EXTRA_TOKENS = setOf(
+        "pechuga", "blanco", "blanca", "entero", "entera", "hojuelas",
+        "cocido", "cocida", "cocidos", "cocidas", "crudo", "cruda", "crudos", "crudas",
+        "hidratado", "hidratada", "seco", "seca", "secos", "secas",
+        "generico", "fresco", "fresca",
+    )
+
+    fun isCompoundProduct(value: String): Boolean {
+        val padded = " ${normalize(value)} "
+        return COMPOUND_PRODUCT_MARKERS.any { padded.contains(it) }
+    }
+
+    /**
+     * True when [query] is a short head-noun and [foodName] is that same simple food
+     * (possibly with state/cut qualifiers), not a mixed dish or branded compound.
+     */
+    fun isPlainSimpleFood(query: String, foodName: String): Boolean {
+        val q = normalize(query)
+        val n = normalize(foodName).replace(STATE_SUFFIX, "").trim()
+        if (q.length < 2 || n.length < 2) return false
+        if (isCompoundProduct(n) && !isCompoundProduct(q)) return false
+        val queryFamily = familyFor(q)
+        val foodFamily = familyFor(n)
+        if (queryFamily != null && foodFamily != null && queryFamily != foodFamily) return false
+        val stop = setOf("de", "la", "el", "los", "las", "un", "una")
+        val queryTokens = q.split(" ").filter { it.length >= 2 && it !in stop }.toSet()
+        if (queryTokens.isEmpty() || queryTokens.size > 3) return false
+        val foodTokens = n.split(" ").filter { it.length >= 2 && it !in stop }.toSet()
+        val extra = foodTokens - queryTokens - PLAIN_FOOD_EXTRA_TOKENS
+        return extra.isEmpty() && foodTokens.any { it in queryTokens || queryFamily != null }
+    }
+
     fun familyFor(value: String): String? {
         val normalized = normalize(value)
+        val tokens = normalized.split(" ").filter { it.isNotBlank() }
         return when {
             normalized.contains("salsa de tomate") || normalized == "salsa tomate" -> "salsa_de_tomate"
+            normalized.contains("ketchup") || normalized.contains("catsup") -> "ketchup"
             BREAD_CHILENO_WORDS.any { normalized.contains(it) } -> "pan_chileno"
-            normalized.split(" ").any { it in PASTA_WORDS } -> "pasta"
-            else -> null
+            tokens.any { it in PASTA_WORDS } -> "pasta"
+            isCompoundProduct(normalized) -> when {
+                normalized.contains("pizza") -> "pizza"
+                normalized.contains("sopa") || normalized.contains("caldo") -> "sopa"
+                normalized.contains("jugo") -> "jugo"
+                normalized.contains("pan de") || normalized.contains("bread") -> "pan_compuesto"
+                else -> null
+            }
+            else -> tokens.firstNotNullOfOrNull { SIMPLE_FAMILY_BY_TOKEN[it] }
         }
     }
 

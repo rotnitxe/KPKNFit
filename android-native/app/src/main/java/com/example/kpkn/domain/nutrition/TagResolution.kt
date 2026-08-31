@@ -6,8 +6,6 @@ import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.UUID
-import android.os.SystemClock
-
 /**
  * TagResolution — resolución de ítems parseados a tags registrables.
  *
@@ -59,6 +57,8 @@ data class ResolvedTag(
     val isUncertain: Boolean = false,
     val explicitDecision: Boolean = false,
     val calibrationUsed: Boolean = false,
+    /** True when dry/raw vs cooked was assumed as eaten, not asked. */
+    val stateAssumed: Boolean = false,
 )
 
 /** Acceso a datos del resolver — implementado por el drawer con NutritionRepository. */
@@ -99,18 +99,19 @@ class TagResolver(
         // FIX NUT-02: trace común por análisis + subtiempos por tag
         val analysisTraceId = UUID.randomUUID().toString().substring(0, 8)
         for (item in parsed.items) {
-            val tagStart = SystemClock.elapsedRealtime()
+            val tagStart = System.nanoTime()
             val lockedPortionAdj = scalingForIntent(item.amountIntent, portionAdj)
 
             // Phase B: SmartFoodResolver para matching fuzzy sobre toda la DB
             // (con contextHint = descripción completa para boost de co-ocurrencia D6;
             // stateHint = estado declarado vía método, porque el parser ya extrajo
             // la palabra "cocida/cruda" del tag antes de resolver)
+            val assumedHint = CookingStateResolver.assumedDefault(item.tag, null)
             val smartResult = port.resolveSmart(
                 item.tag,
                 item.brandHint,
                 parsed.rawDescription,
-                CookingStateResolver.stateForMethod(item.cookingMethod),
+                CookingStateResolver.stateForMethod(item.cookingMethod) ?: assumedHint,
             )
             val smartCandidate = smartResult.candidates.firstOrNull()
             val retrievalResult = smartResult.semanticRetrieval
@@ -140,13 +141,21 @@ class TagResolver(
 
             // Prefer DB row that already encodes the method (pollo frito → pechuga frita).
             val preparedVariant = CookingStateResolver.findPreparedVariant(item.tag, item.cookingMethod)
-            val usingPreparedVariant = preparedVariant != null
+            val assumedState = if (item.cookingMethod == null) {
+                CookingStateResolver.assumedDefault(item.tag, food)
+            } else null
+            val assumedVariant = if (assumedState != null) {
+                CookingStateResolver.resolveAssumedVariant(item.tag, food, assumedState)
+            } else null
+            val usingPreparedVariant = preparedVariant != null ||
+                (assumedVariant != null && assumedVariant.id != food?.id &&
+                    (CookingStateResolver.isDbFoodCooked(assumedVariant) ||
+                        assumedState == FoodState.RAW))
             val effectiveFood = when {
                 preparedVariant != null -> preparedVariant
+                assumedVariant != null -> assumedVariant
                 item.cookingMethod == CookingMethod.CRUDO && food != null &&
                     CookingStateResolver.isDbFoodCooked(food) ->
-                    // El usuario declaró crudo: si el resolver trajo una fila cocida
-                    // (p. ej. por empate), preferir la variante cruda del catálogo.
                     CookingStateResolver.findRawVariant(food) ?: food
                 item.cookingMethod != null && item.cookingMethod != CookingMethod.CRUDO && food != null -> {
                     if (CookingStateResolver.isAlreadyPreparedForMethod(food, item.cookingMethod)) {
@@ -155,12 +164,13 @@ class TagResolver(
                 }
                 else -> food
             }
+            val stateAssumed = assumedState != null && item.cookingMethod == null && effectiveFood != null
 
             // Oil only when frying on a raw/base profile (not when DB row is already fried).
             val applyOil = CookingStateResolver.shouldApplyOil(
-                if (usingPreparedVariant) preparedVariant else effectiveFood,
+                effectiveFood,
                 item.cookingMethod,
-            ) && !usingPreparedVariant
+            ) && !usingPreparedVariant && item.cookingMethod != null
             val effectiveOilLevel = when {
                 !applyOil -> "medio"
                 item.isExcluded && isOilTag(item.tag) -> "poco"
@@ -176,6 +186,7 @@ class TagResolver(
             val requiresCandidateReview =
                 smartResult.decision == SmartFoodResolver.Decision.NEEDS_REVIEW &&
                     !usingPreparedVariant &&
+                    !stateAssumed &&
                     smartCandidate?.foodId == effectiveFood?.id
 
             val clarifyKind = CookingStateResolver.clarificationKind(
@@ -199,19 +210,35 @@ class TagResolver(
             // Now: if effectiveFood has plausible macros and is exact normalized match (unique, authoritative), treat as AUTO even if source is OFF/USDA.
             val isVerifiedGlobalExact = effectiveFood != null &&
                 smartCandidate != null &&
-                smartResult.decision == SmartFoodResolver.Decision.AUTO_SELECT &&
                 smartCandidate.foodId == effectiveFood.id &&
                 FoodIdentity.hasPlausibleMacros(effectiveFood) &&
-                (FoodIndex.normalizeSearch(item.tag) == FoodIndex.normalizeSearch(effectiveFood.name) ||
-                    effectiveFood.searchAliases.any { FoodIndex.normalizeSearch(it) == FoodIndex.normalizeSearch(item.tag) } ||
-                    FoodIdentity.normalize(item.tag) == FoodIdentity.normalize(effectiveFood.name)) &&
-                smartCandidate.score >= 0.86 // HIGH_THRESHOLD
+                (
+                    smartResult.decision == SmartFoodResolver.Decision.AUTO_SELECT ||
+                        FoodIdentity.isPlainSimpleFood(item.tag, effectiveFood.name)
+                    ) &&
+                (
+                    FoodIdentity.isPlainSimpleFood(item.tag, effectiveFood.name) ||
+                        FoodIndex.normalizeSearch(item.tag) == FoodIndex.normalizeSearch(effectiveFood.name) ||
+                        effectiveFood.searchAliases.any { FoodIndex.normalizeSearch(it) == FoodIndex.normalizeSearch(item.tag) } ||
+                        FoodIdentity.normalize(item.tag) == FoodIdentity.normalize(effectiveFood.name) ||
+                        (
+                            FoodIdentity.familyFor(item.tag) != null &&
+                                FoodIdentity.familyFor(item.tag) == FoodIdentity.familyFor(effectiveFood)
+                            )
+                    ) &&
+                smartCandidate.score >= 0.70
             val localAuthority = effectiveFood != null && (
                 staticIsExact ||
                     preparedVariant != null ||
+                    assumedVariant != null ||
+                    stateAssumed ||
                     (smartResult.decision == SmartFoodResolver.Decision.AUTO_SELECT &&
                         smartCandidate?.source == "LOCAL") ||
-                    isVerifiedGlobalExact
+                    isVerifiedGlobalExact ||
+                    (
+                        FoodIdentity.isPlainSimpleFood(item.tag, effectiveFood.name) &&
+                            FoodIdentity.hasPlausibleMacros(effectiveFood)
+                        )
                 )
             // Los rangos semánticos describen ejemplos del dataset, no la fila local
             // ya seleccionada. La evidencia todavía puede aportar una porción por defecto,
@@ -233,11 +260,9 @@ class TagResolver(
                     if (candidates.size < 2) 1.0 else (candidates[0].score - candidates[1].score).coerceAtLeast(0.0)
                 }
             val resolutionStatus = when {
-                // E16: alias de aproximación primero — "cereal" no debe pedir estado
-                // de avena (identidad equivocada): pasa a revisión visible.
                 approximationAlias -> FoodResolutionStatus.NEEDS_CONFIRMATION
                 bareTunaQuery -> FoodResolutionStatus.NEEDS_CONFIRMATION
-                needsClarify -> FoodResolutionStatus.NEEDS_STATE
+                needsClarify && !stateAssumed -> FoodResolutionStatus.NEEDS_STATE
                 localAuthority && !requiresCandidateReview -> FoodResolutionStatus.AUTO
                 effectiveFood != null -> FoodResolutionStatus.NEEDS_CONFIRMATION
                 else -> FoodResolutionStatus.NO_RESOLVED
@@ -249,28 +274,30 @@ class TagResolver(
                 else -> NutritionSourceKind.HEURISTIC_ESTIMATE
             }
             // FIX NUT-02: per-tag instrumentation (anonimizado, sin texto crudo) — after status known
-            val tagElapsed = SystemClock.elapsedRealtime() - tagStart
+            val tagElapsed = (System.nanoTime() - tagStart) / 1_000_000L
             val tagHash = FoodIdentity.normalize(item.tag).hashCode().toString(16)
-            NutritionTelemetry.event(
-                "tag_resolved",
-                mapOf(
-                    "traceId" to analysisTraceId,
-                    "tagHash" to tagHash,
-                    "tagLen" to item.tag.length,
-                    "source" to (smartCandidate?.source ?: "none"),
-                    "score" to (smartCandidate?.score ?: 0.0),
-                    "confidence" to (resolutionConfidence ?: 0.0),
-                    "margin" to (resolutionMargin ?: 0.0),
-                    "decision" to smartResult.decision.name,
-                    "resolutionStatus" to resolutionStatus.name,
-                    "isResolved" to (resolutionStatus == FoodResolutionStatus.AUTO),
-                    "isVerifiedGlobalExact" to isVerifiedGlobalExact,
-                    "candidateCount" to smartResult.candidates.size,
-                    "durationMs" to tagElapsed,
-                    "hasFood" to (effectiveFood != null),
-                ),
-                traceId = analysisTraceId
-            )
+            runCatching {
+                NutritionTelemetry.event(
+                    "tag_resolved",
+                    mapOf(
+                        "traceId" to analysisTraceId,
+                        "tagHash" to tagHash,
+                        "tagLen" to item.tag.length,
+                        "source" to (smartCandidate?.source ?: "none"),
+                        "score" to (smartCandidate?.score ?: 0.0),
+                        "confidence" to (resolutionConfidence ?: 0.0),
+                        "margin" to (resolutionMargin ?: 0.0),
+                        "decision" to smartResult.decision.name,
+                        "resolutionStatus" to resolutionStatus.name,
+                        "isResolved" to (resolutionStatus == FoodResolutionStatus.AUTO),
+                        "isVerifiedGlobalExact" to isVerifiedGlobalExact,
+                        "candidateCount" to smartResult.candidates.size,
+                        "durationMs" to tagElapsed,
+                        "hasFood" to (effectiveFood != null),
+                    ),
+                    traceId = analysisTraceId
+                )
+            }
             // D2: las instrucciones del dataset son evidencia de recuperación, no una
             // interpretación fiable de la identidad. Un vecino como "Completo con
             // champiñones salteados" puede ser una comida distinta aunque comparta un
@@ -349,10 +376,15 @@ class TagResolver(
                     )
                 }
 
+                val assumedPortionText =
+                    if (item.amountIntent == AmountIntent.UNSPECIFIED && item.amountGrams == null) {
+                        (calibratedGrams ?: effectiveGrams)?.takeIf { it > 0 }?.let { "Asumí ${it.toInt()} g." }
+                    } else null
                 val warningText = listOfNotNull(
                     calibratedGrams?.let { "Usé tu habitual: ${it.toInt()} g · Cambiar" },
-                    validated.warnings.firstOrNull()?.takeIf { it.isNotBlank() && !needsClarify },
-                    if (needsClarify) "Falta el estado: selecciona seco o cocido para calcular los macros." else assumeStatus,
+                    assumedPortionText?.takeIf { calibratedGrams == null },
+                    validated.warnings.firstOrNull()?.takeIf { it.isNotBlank() && !(needsClarify && !stateAssumed) },
+                    if (stateAssumed) assumeStatus else if (needsClarify) "Falta el estado: selecciona seco o cocido para calcular los macros." else assumeStatus,
                     if (approximationAlias) "«${item.tag}» es un plato general: elegí el alimento más parecido (${effectiveFood.name}). Cámbialo si no era eso." else null,
                     if (requiresCandidateReview && !needsClarify) "Coincidencia aproximada: revisa el alimento seleccionado." else null,
                     interpretation?.let { "Entendí: $it" },
@@ -372,7 +404,7 @@ class TagResolver(
                     } else item.amountGrams ?: effectiveGrams,
                     cookingMethod = item.cookingMethod,
                     foodItem = effectiveFood,
-                    loggedFood = oiled.takeUnless { needsClarify },
+                    loggedFood = oiled.takeUnless { needsClarify && !stateAssumed },
                     isResolved = resolutionStatus == FoodResolutionStatus.AUTO,
                     isFuzzyMatch = approximationAlias || (isSmartMatch && smartCandidate?.confidence != SmartFoodResolver.Confidence.HIGH),
                     analysisSource = AnalysisSource.DATABASE,
@@ -381,7 +413,7 @@ class TagResolver(
                     isExcluded = item.isExcluded,
                     amountIntent = effectiveAmountIntent,
                     calibrationUsed = calibratedGrams != null,
-                    needsCookingClarification = needsClarify,
+                    needsCookingClarification = needsClarify && !stateAssumed,
                     clarificationKind = clarifyKind,
                     oilApplied = applyOil,
                     reviewCandidates = reviewCandidates,
@@ -392,6 +424,7 @@ class TagResolver(
                     nutritionSource = nutritionSource,
                     resolutionConfidence = resolutionConfidence,
                     resolutionMargin = resolutionMargin,
+                    stateAssumed = stateAssumed,
                 )
             } else if (item.amountGrams != null && item.amountGrams > 0) {
                 val mac = item.macroOverrides
@@ -536,69 +569,67 @@ class TagResolver(
             resolvedTags += resolved
         }
 
-        // Composite food context capping
         val combination = FoodCombinationParser.parse(parsed.rawDescription)
-
-        // A5: el capping recorta acompañamientos; jamás debe castigar un plato
-        // protegido que se resolvió como un solo tag ("arroz con pollo" = 1 ítem
-        // y no se recorta "pollo" a 60g) ni descuadrar el único alimento.
         val isSingleTagPlate = resolvedTags.size == 1
 
-        if (!isSingleTagPlate && combination.confidence >= 0.70 && combination.accompaniments.isNotEmpty()) {
+        if (!isSingleTagPlate && combination.confidence >= 0.70) {
             val totalGrams = resolvedTags.sumOf { it.loggedFood?.amount ?: 0.0 }
-
-            for (accomp in combination.accompaniments) {
-                val matching = resolvedTags.filter { tag ->
-                    val name = tag.foodItem?.name?.lowercase() ?: tag.tag.lowercase()
-                    name.contains(accomp.food.lowercase()) || accomp.food.lowercase().contains(name)
+            val comboParts = buildList {
+                add(Triple(combination.baseFood, combination.baseProportion, FoodCombinationParser.Role.STARCH))
+                combination.accompaniments.forEach { acc ->
+                    add(Triple(acc.food, acc.proportion, acc.role))
                 }
-                for (match in matching) {
-                    val existingFood = match.foodItem ?: continue
-                    val existingLogged = match.loggedFood ?: continue
-
-                    // Saltar tags compuestos protegidos ("arroz con leche", "pollo con papas"…):
-                    // el substring del acompañante matchearía dentro del plato completo.
-                    val tagLower = match.tag.lowercase()
-                    if (tagLower.contains(" con ") || tagLower.contains(" y ") || tagLower.contains(" e ")) {
-                        continue
+            }
+            if (totalGrams > 0 && comboParts.isNotEmpty()) {
+                for ((foodName, proportion, role) in comboParts) {
+                    val matching = resolvedTags.filter { tag ->
+                        val name = tag.foodItem?.name?.lowercase() ?: tag.tag.lowercase()
+                        val needle = foodName.lowercase()
+                        name.contains(needle) || needle.contains(name)
                     }
-
-                    val maxAllowedGrams = when (accomp.role) {
-                        FoodCombinationParser.Role.SAUCE -> {
-                            val lowerName = existingFood.name.lowercase()
-                            if (lowerName.contains("aceite") || lowerName.contains("oil") || lowerName.contains("mantequilla") || lowerName.contains("ghee") || lowerName.contains("margarina") || lowerName.contains("manteca") || lowerName.contains("mayonesa") || lowerName.contains("mayo")) {
-                                minOf(accomp.proportion * totalGrams, 15.0) // Fats capped tighter to 15g!
-                            } else {
-                                minOf(accomp.proportion * totalGrams, 30.0)
-                            }
+                    for (match in matching) {
+                        val existingFood = match.foodItem ?: continue
+                        val existingLogged = match.loggedFood ?: continue
+                        val tagLower = match.tag.lowercase()
+                        if (tagLower.contains(" con ") || tagLower.contains(" y ") || tagLower.contains(" e ")) {
+                            continue
                         }
-                        FoodCombinationParser.Role.TOPPING -> minOf(accomp.proportion * totalGrams, 60.0)
-                        FoodCombinationParser.Role.FILLING -> minOf(accomp.proportion * totalGrams, 80.0)
-                        FoodCombinationParser.Role.SIDE, FoodCombinationParser.Role.STARCH,
-                        FoodCombinationParser.Role.GARNISH -> null
-                    }
-
-                    if (maxAllowedGrams != null &&
-                        match.amountIntent == AmountIntent.UNSPECIFIED &&
-                        match.amountGrams == null &&
-                        existingLogged.amount > maxAllowedGrams &&
-                        maxAllowedGrams > 1.0
-                    ) {
-                        val capped = scaleFoodByPortion(
+                        if (match.amountIntent == AmountIntent.EXPLICIT_MASS ||
+                            match.amountIntent == AmountIntent.RESOLVED_SUBJECTIVE
+                        ) {
+                            continue
+                        }
+                        val proportional = proportion * totalGrams
+                        val sauceCap = when (role) {
+                            FoodCombinationParser.Role.SAUCE -> {
+                                val lowerName = existingFood.name.lowercase()
+                                if (lowerName.contains("aceite") || lowerName.contains("oil") ||
+                                    lowerName.contains("mantequilla") || lowerName.contains("ghee") ||
+                                    lowerName.contains("margarina") || lowerName.contains("manteca") ||
+                                    lowerName.contains("mayonesa") || lowerName.contains("mayo")
+                                ) 15.0 else 30.0
+                            }
+                            else -> null
+                        }
+                        val newGrams = (sauceCap?.let { minOf(proportional, it) } ?: proportional)
+                            .takeIf { it > 1.0 } ?: continue
+                        if (kotlin.math.abs(existingLogged.amount - newGrams) < 1.0) continue
+                        val scaled = scaleFoodByPortion(
                             food = existingFood,
                             quantity = match.quantity,
-                            portion = PortionPreset.MEDIUM,
-                            amountGrams = maxAllowedGrams,
+                            portion = match.portion,
+                            amountGrams = newGrams,
                             cookingMethod = match.cookingMethod,
-                            portionAdjustment = 1.0, // Capped explicitly
+                            portionAdjustment = 1.0,
                         )
                         val idx = resolvedTags.indexOfFirst { it.id == match.id }
                         if (idx >= 0) {
                             resolvedTags[idx] = match.copy(
-                                loggedFood = capped.copy(analysisSource = existingLogged.analysisSource),
-                                amountGrams = maxAllowedGrams,
-                                portion = PortionPreset.SMALL,
-                                statusText = "${match.statusText} (comp)",
+                                loggedFood = scaled.copy(analysisSource = existingLogged.analysisSource),
+                                amountGrams = newGrams,
+                                statusText = listOf(match.statusText, "Asumí ${newGrams.toInt()} g.")
+                                    .filter { it.isNotBlank() }
+                                    .joinToString(" "),
                             )
                         }
                     }
@@ -710,13 +741,14 @@ private fun roundPortionGrams(value: Double): Double =
     kotlin.math.round(value.coerceAtLeast(1.0) * 10.0) / 10.0
 
 /** Material uncertainty used by both the UI gate and JVM tests. */
-fun ResolvedTag.hasMaterialQuestion(): Boolean =
-    !isExcluded && !explicitDecision && (
-        needsCookingClarification ||
-            (!isResolved && !isUncertain) ||
-            (resolutionConfidence?.let { it < 0.80 } == true) ||
-            (resolutionMargin?.let { it < 0.15 } == true)
-        )
+fun ResolvedTag.hasMaterialQuestion(): Boolean {
+    if (isExcluded || explicitDecision) return false
+    if (resolutionStatus == FoodResolutionStatus.AUTO && isResolved) return false
+    if (needsCookingClarification && !stateAssumed) return true
+    if (!isResolved && !isUncertain) return true
+    return resolutionStatus == FoodResolutionStatus.NEEDS_CONFIRMATION ||
+        resolutionStatus == FoodResolutionStatus.NO_RESOLVED
+}
 
 fun applyModifierScale(logged: LoggedFood, scale: MacroOverrides?): LoggedFood {
     if (scale == null) return logged

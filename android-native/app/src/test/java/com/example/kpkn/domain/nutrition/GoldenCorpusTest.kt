@@ -350,7 +350,7 @@ class GoldenCorpusTest {
         GoldenCase("capuchino", listOf(Expectation("capuchino"))),
 
         // ─── E15 · Almuerzos y cenas ────────────────────────────────────────
-        GoldenCase("arroz con pollo", listOf(Expectation("arroz con pollo"))),
+        GoldenCase("arroz con pollo", listOf(Expectation("arroz"), Expectation("pollo"))),
         GoldenCase("arroz con mariscos", listOf(Expectation("arroz"), Expectation("mariscos"))),
         GoldenCase("arroz integral", listOf(Expectation("arroz integral"))),
         GoldenCase("arroz con lentejas", listOf(Expectation("arroz"), Expectation("lenteja"))),
@@ -398,7 +398,7 @@ class GoldenCorpusTest {
 
         // ─── E15 · Once y colaciones ────────────────────────────────────────
         GoldenCase("once", listOf(Expectation("once"))),
-        GoldenCase("pan con palta", listOf(Expectation("pan con palta"))),
+        GoldenCase("pan con palta", listOf(Expectation("pan"), Expectation("palta"))),
         GoldenCase("marraqueta con mantequilla", listOf(Expectation("marraqueta"), Expectation("mantequilla"))),
         GoldenCase("hallulla con queso", listOf(Expectation("hallulla"), Expectation("queso"))),
         GoldenCase("galletas de avena", listOf(Expectation("galletas de avena"))),
@@ -498,7 +498,7 @@ class GoldenCorpusTest {
         GoldenCase("huevo duro con pan", listOf(Expectation("huevo", cooking = CookingMethod.COCIDO), Expectation("pan"))),
         GoldenCase("pollo al horno con papas", listOf(Expectation("pollo", cooking = CookingMethod.HORNO), Expectation("papa"))),
         GoldenCase("ensaladita", listOf(Expectation("ensalada"))),
-        GoldenCase("arros con pollo", listOf(Expectation("arroz con pollo"))),
+        GoldenCase("arros con pollo", listOf(Expectation("arroz"), Expectation("pollo"))),
         GoldenCase("fideos con salsa de tomate", listOf(Expectation("fideos"), Expectation("salsa de tomate"))),
         // CRI-ANALYSIS: reproducción del reporte "no se pudo analizar esta descripción".
         // Un plato común debe parsear sin lanzar: fideos + salsa de tomate + carne molida.
@@ -506,7 +506,7 @@ class GoldenCorpusTest {
         GoldenCase("una hallulla con mantequilla", listOf(Expectation("hallulla", gramsPositive = true, intent = AmountIntent.RESOLVED_SUBJECTIVE), Expectation("mantequilla"))),
         GoldenCase("cafecito", listOf(Expectation("cafe"))),
         GoldenCase("juguito de naranja", listOf(Expectation("juguito de naranja"))),
-        GoldenCase("pan con queso y tomate", listOf(Expectation("pan con queso"), Expectation("tomate"))),
+        GoldenCase("pan con queso y tomate", listOf(Expectation("pan"), Expectation("queso"), Expectation("tomate"))),
         GoldenCase("mil hojas", listOf(Expectation("mil hojas"))),
         GoldenCase("cuatro quesos", listOf(Expectation("quesos", quantity = 4.0))),
         GoldenCase("dos quesos", listOf(Expectation("quesos", quantity = 2.0))),
@@ -521,7 +521,7 @@ class GoldenCorpusTest {
         GoldenCase("jugo sin azúcar", listOf(Expectation("jugo"), Expectation("azúcar", excluded = true))),
 
         // ─── E15 · Comidas multi-alimento ───────────────────────────────────
-        GoldenCase("arroz con pollo y ensalada", listOf(Expectation("arroz con pollo"), Expectation("ensalada"))),
+        GoldenCase("arroz con pollo y ensalada", listOf(Expectation("arroz"), Expectation("pollo"), Expectation("ensalada"))),
         GoldenCase("2 huevos con 3 tostadas", listOf(Expectation("huevo", quantity = 2.0), Expectation("tostada", quantity = 3.0))),
         GoldenCase("atún con palta y limón", listOf(Expectation("atún"), Expectation("palta"), Expectation("limón"))),
         GoldenCase("pollo, arroz y ensalada", listOf(Expectation("pollo"), Expectation("arroz"), Expectation("ensalada"))),
@@ -531,7 +531,7 @@ class GoldenCorpusTest {
         GoldenCase("yogurt con granola y frutas", listOf(Expectation("yogurt"), Expectation("granola"), Expectation("frutas"))),
         GoldenCase("avena con leche, manzana y canela", listOf(Expectation("avena"), Expectation("leche"), Expectation("manzana"), Expectation("canela"))),
         GoldenCase("huevos revueltos con tomate y pan", listOf(Expectation("huevos", cooking = CookingMethod.FRITO), Expectation("tomate"), Expectation("pan"))),
-        GoldenCase("pan con palta y huevo", listOf(Expectation("pan con palta"), Expectation("huevo"))),
+        GoldenCase("pan con palta y huevo", listOf(Expectation("pan"), Expectation("palta"), Expectation("huevo"))),
         GoldenCase("sopa de pollo con arroz", listOf(Expectation("sopa de pollo"), Expectation("arroz"))),
         GoldenCase("pescado con papas y verduras", listOf(Expectation("pescado"), Expectation("papa"), Expectation("verduras"))),
         GoldenCase("tallarines con carne y salsa", listOf(Expectation("tallarines"), Expectation("carne"), Expectation("salsa"))),

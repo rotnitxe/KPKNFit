@@ -102,10 +102,11 @@ class ResolutionGoldenCorpusTest {
     }
 
     @Test
-    fun `fideos pide estado y no expone macros provisionales`() = runBlocking {
+    fun `fideos asume cocido y expone macros`() = runBlocking {
         val tags = resolve("fideos")
-        assertEquals(FoodResolutionStatus.NEEDS_STATE, tags.single().resolutionStatus)
-        assertNull(tags.single().loggedFood)
+        assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
+        assertNotNull(tags.single().loggedFood)
+        assertTrue(tags.single().isResolved)
     }
 
     @Test
@@ -182,10 +183,11 @@ class ResolutionGoldenCorpusTest {
     }
 
     @Test
-    fun `pasta a secas no se autoconfirma y pide estado`() = runBlocking {
+    fun `pasta a secas asume cocido`() = runBlocking {
         val tags = resolve("pasta")
-        assertEquals(FoodResolutionStatus.NEEDS_STATE, tags.single().resolutionStatus)
+        assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
         assertEquals("gen040", tags.single().foodItem?.id)
+        assertNotNull(tags.single().loggedFood)
     }
 
     @Test

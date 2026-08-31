@@ -36,7 +36,7 @@ class NutritionResolutionConsistencyTest {
         val parsed = parseMealDescription("arroz con pollo, champiñones y salsa de yogurt")
 
         assertEquals(
-            listOf("arroz con pollo", "champiñones", "salsa de yogurt"),
+            listOf("arroz", "pollo", "champiñones", "salsa de yogurt"),
             parsed.items.map { it.tag },
         )
     }
@@ -230,7 +230,7 @@ class NutritionResolutionConsistencyTest {
     }
 
     @Test
-    fun `ambiguous fideos asks for state without exposing provisional macros`() = runBlocking {
+    fun `ambiguous fideos asume cocido y expone macros`() = runBlocking {
         val dry = findFoodExactByNormalized("fideos secos")!!
         val candidate = SmartFoodResolver.ResolutionCandidate(
             foodId = dry.id,
@@ -268,10 +268,11 @@ class NutritionResolutionConsistencyTest {
             ),
         )
 
-        assertFalse(tags.single().isResolved)
-        assertEquals(FoodResolutionStatus.NEEDS_STATE, tags.single().resolutionStatus)
-        assertTrue(tags.single().needsCookingClarification)
-        assertNull(tags.single().loggedFood)
+        assertTrue(tags.single().isResolved)
+        assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
+        assertFalse(tags.single().needsCookingClarification)
+        assertNotNull(tags.single().loggedFood)
+        assertTrue(tags.single().stateAssumed)
         assertEquals(0, port.learnedWrites)
     }
 

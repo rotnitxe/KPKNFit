@@ -93,6 +93,30 @@ class FoodParserCookingTest {
     }
 
     @Test
+    fun `detects microondas as cocido`() {
+        val result = parseMealDescription("pollo al microondas")
+        assertEquals(CookingMethod.COCIDO, result.items[0].cookingMethod)
+    }
+
+    @Test
+    fun `detects sous vide as cocido`() {
+        val result = parseMealDescription("salmón sous vide")
+        assertEquals(CookingMethod.COCIDO, result.items[0].cookingMethod)
+    }
+
+    @Test
+    fun `detects olla de presion`() {
+        val result = parseMealDescription("lentejas en olla de presion")
+        assertEquals(CookingMethod.OLLA, result.items[0].cookingMethod)
+    }
+
+    @Test
+    fun `detects al wok as frito`() {
+        val result = parseMealDescription("verduras al wok")
+        assertEquals(CookingMethod.FRITO, result.items[0].cookingMethod)
+    }
+
+    @Test
     fun `no cooking method returns null`() {
         val result = parseMealDescription("200g de pollo")
         assertEquals(1, result.items.size)
