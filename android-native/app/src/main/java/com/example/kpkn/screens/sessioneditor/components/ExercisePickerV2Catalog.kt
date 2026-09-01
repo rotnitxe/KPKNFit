@@ -137,6 +137,8 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.rememberCoroutineScope
+import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
+import com.example.kpkn.data.exercises.ExerciseTechniqueImageVariant
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknGlassDialog
 import com.example.kpkn.ui.components.KpknGlass
@@ -145,16 +147,7 @@ import com.example.kpkn.ui.components.LocalHazeState
 import com.example.kpkn.ui.components.kpknGlassOrFallback
 import dev.chrisbanes.haze.HazeState
 
-private const val FLAT_BENCH_PRESS_DEFINITION_ID = "bench_press"
-private const val HIGH_BAR_BACK_SQUAT_DEFINITION_ID = "high_bar_back_squat"
-private const val LOW_BAR_BACK_SQUAT_DEFINITION_ID = "low_bar_back_squat"
-private const val CONVENTIONAL_DEADLIFT_DEFINITION_ID = "conventional_deadlift"
-
-private data class CatalogExerciseImageVariant(
-    val implementation: String,
-    val imageResId: Int,
-    val label: String,
-)
+private typealias CatalogExerciseImageVariant = ExerciseTechniqueImageVariant
 
 private data class CatalogSearchResultState(
     val committedQuery: String = "",
@@ -222,97 +215,8 @@ internal fun shouldShowCatalogCreateSuggestion(
     globalCatalogResultCount == 0 &&
     customResultCount == 0
 
-private fun exerciseCatalogImageVariants(definitionId: String): List<CatalogExerciseImageVariant> = when (definitionId) {
-    HIGH_BAR_BACK_SQUAT_DEFINITION_ID -> listOf(
-        CatalogExerciseImageVariant(
-            implementation = "barbell",
-            imageResId = R.drawable.exercise_sentadilla_trasera_barra_alta,
-            label = "Barra Libre",
-        ),
-        CatalogExerciseImageVariant(
-            implementation = "smith_machine",
-            imageResId = R.drawable.exercise_sentadilla_trasera_barra_alta_smith,
-            label = "Máquina Smith",
-        ),
-        CatalogExerciseImageVariant(
-            implementation = "safety_bar",
-            imageResId = R.drawable.exercise_sentadilla_trasera_barra_alta_safety_bar,
-            label = "Barra de Seguridad",
-        ),
-    )
-    LOW_BAR_BACK_SQUAT_DEFINITION_ID -> listOf(
-        CatalogExerciseImageVariant(
-            implementation = "barbell",
-            imageResId = R.drawable.exercise_sentadilla_trasera_barra_baja,
-            label = "Barra Libre",
-        ),
-        CatalogExerciseImageVariant(
-            implementation = "smith_machine",
-            imageResId = R.drawable.exercise_sentadilla_trasera_barra_baja_smith,
-            label = "Máquina Smith",
-        ),
-    )
-    CONVENTIONAL_DEADLIFT_DEFINITION_ID -> listOf(
-        CatalogExerciseImageVariant(
-            implementation = "barbell",
-            imageResId = R.drawable.exercise_peso_muerto_convencional,
-            label = "Barra Libre",
-        ),
-        CatalogExerciseImageVariant(
-            implementation = "smith_machine",
-            imageResId = R.drawable.exercise_peso_muerto_convencional_smith,
-            label = "Máquina Smith",
-        ),
-        CatalogExerciseImageVariant(
-            implementation = "hex_bar",
-            imageResId = R.drawable.exercise_peso_muerto_convencional_hex_bar,
-            label = "Barra Hexagonal",
-        ),
-        CatalogExerciseImageVariant(
-            implementation = "dumbbells",
-            imageResId = R.drawable.exercise_peso_muerto_convencional_mancuernas,
-            label = "Mancuernas",
-        ),
-        CatalogExerciseImageVariant(
-            implementation = "kettlebell",
-            imageResId = R.drawable.exercise_peso_muerto_convencional_kettlebell,
-            label = "Kettlebell",
-        ),
-    )
-    FLAT_BENCH_PRESS_DEFINITION_ID -> listOf(
-        CatalogExerciseImageVariant(
-            implementation = "barbell",
-            imageResId = R.drawable.exercise_press_de_banca_plano,
-            label = "Barra",
-        ),
-        CatalogExerciseImageVariant(
-            implementation = "dumbbells",
-            imageResId = R.drawable.exercise_press_de_banca_plano_mancuernas,
-            label = "Mancuernas",
-        ),
-        CatalogExerciseImageVariant(
-            implementation = "smith_machine",
-            imageResId = R.drawable.exercise_press_de_banca_plano_smith,
-            label = "Máquina Smith",
-        ),
-        CatalogExerciseImageVariant(
-            implementation = "machine",
-            imageResId = R.drawable.exercise_press_de_banca_plano_maquina_convergente,
-            label = "Máquina",
-        ),
-        CatalogExerciseImageVariant(
-            implementation = "cable",
-            imageResId = R.drawable.exercise_press_de_banca_plano_polea,
-            label = "Polea",
-        ),
-        CatalogExerciseImageVariant(
-            implementation = "kettlebell",
-            imageResId = R.drawable.exercise_press_de_banca_plano_kettlebell,
-            label = "Kettlebell",
-        ),
-    )
-    else -> emptyList()
-}
+private fun exerciseCatalogImageVariants(definitionId: String): List<CatalogExerciseImageVariant> =
+    ExerciseTechniqueImageLookup.variants(definitionId)
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

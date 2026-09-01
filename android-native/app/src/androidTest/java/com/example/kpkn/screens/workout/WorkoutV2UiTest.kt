@@ -55,7 +55,7 @@ class WorkoutV2UiTest {
         composeRule.onNodeWithText("Dropsets").performClick()
         composeRule.onNodeWithText("Dropsets activos")
         composeRule.onNodeWithText("Restpauses")
-        composeRule.onNodeWithText("Cambio de planes").performClick()
+                    composeRule.onNodeWithText("Opciones avanzadas").performClick()
         composeRule.onNodeWithText("Error de ejecución")
         composeRule.onNodeWithText("AMRAP").performClick()
     }

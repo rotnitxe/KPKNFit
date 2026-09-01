@@ -1,9 +1,7 @@
 package com.example.kpkn.screens.workout.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -111,13 +110,14 @@ internal fun WorkoutCompactNumberField(
     modifier: Modifier = Modifier,
     decimal: Boolean = false,
     width: Dp = 56.dp,
+    fixedWidth: Boolean = true,
 ) {
     val fill = WorkoutUiTokens.setInnerHighestColor()
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier
-            .width(width)
+            .then(if (fixedWidth) Modifier.width(width) else Modifier)
             .height(28.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(fill)
@@ -126,21 +126,24 @@ internal fun WorkoutCompactNumberField(
         textStyle = MaterialTheme.typography.labelMedium.copy(
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
         ),
         keyboardOptions = KeyboardOptions(
             keyboardType = if (decimal) KeyboardType.Decimal else KeyboardType.Number,
         ),
         decorationBox = { inner ->
-            Row(
-                modifier = Modifier.fillMaxSize(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(3.dp),
-            ) {
-                Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(end = 14.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
                     inner()
                 }
                 Text(
                     unit,
+                    modifier = Modifier.align(Alignment.CenterEnd),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
                     maxLines = 1,

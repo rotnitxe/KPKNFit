@@ -221,6 +221,32 @@ class SetExecutionCardUiTest {
         composeRule.runOnIdle { assertEquals(true, clicked) }
     }
 
+    @Test
+    fun advancedOptionsCtaUsesNewCopyAndHidesReportLabel() {
+        composeRule.setContent {
+            MaterialTheme {
+                SetInputCardV2(
+                    exercise = bilateralExercise(),
+                    setIndex = 0,
+                    currentSet = bilateralSet(),
+                    ghostSet = null,
+                    weightSuggestion = null,
+                    initialBodyWeight = 80.0,
+                    recordActionHolder = RecordActionHolder(),
+                    isActivePage = true,
+                    onShowHistory = {},
+                    onSetBodyWeight = {},
+                    onRecordV2 = { _, _, _, _, _, _, _, _, _ -> },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Opciones avanzadas").assertExists()
+        composeRule.onNodeWithText("Ver ejercicio/Fotos").assertExists()
+        composeRule.onNodeWithText("Reportar serie").assertDoesNotExist()
+        composeRule.onNodeWithText("¿Cambio de planes o añadir técnica de intensidad?").assertDoesNotExist()
+    }
+
     private fun unilateralExercise() = Exercise(
         id = "uni-ex",
         name = "Split squat",
