@@ -39,7 +39,7 @@ import java.util.UUID
 
 /** Canonical rest-pause defaults — not user-configurable in the editor. */
 internal object RestPausePlanDefaults {
-    const val PauseSeconds = 10
+    const val PauseSeconds = 15
     const val Reps = 3
     const val MinCount = 1
     const val MaxCount = 5
@@ -50,11 +50,14 @@ internal object DropSetPlanDefaults {
     const val MinDrops = 1
     const val MaxDrops = 3
     const val DefaultDrops = 1
+    /** Small absolute drop so the next set still allows ~3 reps, not a dump. */
+    const val DropKg = 5.0
+    const val DropReps = 3
 
     fun weightPctsFor(dropCount: Int): String = when (dropCount.coerceIn(MinDrops, MaxDrops)) {
-        1 -> "-20"
-        2 -> "-15,-25"
-        else -> "-15,-25,-35"
+        1 -> "-5"
+        2 -> "-5,-10"
+        else -> "-5,-10,-15"
     }
 }
 

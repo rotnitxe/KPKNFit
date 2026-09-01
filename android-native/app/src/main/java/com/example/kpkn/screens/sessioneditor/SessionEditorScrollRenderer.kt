@@ -506,7 +506,12 @@ internal fun SessionEditorListItem(
                     .graphicsLayer { translationY = footerShiftY }
                     .padding(horizontal = 4.dp, vertical = 6.dp)
                     .onGloballyPositioned {
-                        val rect = it.boundsInWindow()
+                        val raw = it.boundsInWindow()
+                        val rect = if (footerShiftY != 0f) {
+                            Rect(raw.left, raw.top - footerShiftY, raw.right, raw.bottom - footerShiftY)
+                        } else {
+                            raw
+                        }
                         dragController.registerPartFooterBounds(part.id, rect)
                         onPartContentBoundsReport(part.id, rect)
                     },

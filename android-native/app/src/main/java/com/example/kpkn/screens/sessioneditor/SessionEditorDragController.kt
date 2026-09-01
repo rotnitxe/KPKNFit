@@ -146,6 +146,58 @@ class SessionEditorDragController {
         looseContentBounds = null
     }
 
+    /** Drop cached geometry after session mutations while no drag is active. */
+    fun invalidateLayoutCachesIfIdle() {
+        if (isExerciseDragging || draggingPartId != null) return
+        clearBounds()
+    }
+
+    /**
+     * Merge visible LazyColumn bounds at drag start and purge stale children for
+     * partially visible groups (e.g. footer left at an old Y after prior drops).
+     */
+    private fun mergeLiveBoundsForExerciseDrag(liveBounds: Map<String, Rect>) {
+        val refreshedPartIds = mutableSetOf<String>()
+        val refreshedExerciseKeys = mutableSetOf<String>()
+        liveBounds.forEach { (k, r) ->
+            when {
+                k.startsWith("header|") -> {
+                    val pid = k.removePrefix("header|")
+                    partBounds[pid] = r
+                    refreshedPartIds += pid
+                }
+                k.startsWith("footer|") -> {
+                    val pid = k.removePrefix("footer|")
+                    partFooterBounds[pid] = r
+                    refreshedPartIds += pid
+                }
+                k.startsWith("loose_container|") -> {
+                    if (looseContentBounds == null ||
+                        exerciseBounds.keys.none { it.startsWith("$LOOSE_PART_ID|") }
+                    ) {
+                        looseContentBounds = r
+                    }
+                }
+                else -> {
+                    exerciseBounds[k] = r
+                    refreshedPartIds += k.substringBefore("|")
+                    refreshedExerciseKeys += k
+                }
+            }
+        }
+        refreshedPartIds.forEach { pid ->
+            partContentBounds.remove(pid)
+            if (pid == LOOSE_PART_ID) return@forEach
+            val visibleExerciseKeys = refreshedExerciseKeys.filter { it.startsWith("$pid|") }.toSet()
+            exerciseBounds.keys.removeAll { key ->
+                key.startsWith("$pid|") && key !in visibleExerciseKeys
+            }
+            if (!liveBounds.containsKey("footer|$pid")) {
+                partFooterBounds.remove(pid)
+            }
+        }
+    }
+
     /** Mantiene solo los bounds de ítems que siguen existiendo (y no están colapsados). */
     fun pruneBounds(session: Session, collapsedPartIds: Set<String>) {
         val activePartIds = session.parts.filterNot { it.isUncategorizedPart() }.map { it.id }.toSet()
@@ -178,21 +230,7 @@ class SessionEditorDragController {
         dragScope: ExerciseDragScope = ExerciseDragScope.BLOCK,
     ): Boolean {
         if (liveBounds != null) {
-            liveBounds.forEach { (k, r) ->
-                when {
-                    k.startsWith("header|") -> partBounds[k.removePrefix("header|")] = r
-                    k.startsWith("footer|") -> partFooterBounds[k.removePrefix("footer|")] = r
-                    k.startsWith("loose_container|") -> {
-                        // Only accept StrengthAddActions as loose zone when there are no loose exercises.
-                        if (looseContentBounds == null ||
-                            exerciseBounds.keys.none { it.startsWith("$LOOSE_PART_ID|") }
-                        ) {
-                            looseContentBounds = r
-                        }
-                    }
-                    else -> exerciseBounds[k] = r
-                }
-            }
+            mergeLiveBoundsForExerciseDrag(liveBounds)
         }
 
         // Header drags keep the superset together; member handles can opt into
@@ -251,43 +289,150 @@ class SessionEditorDragController {
     }
 
     /**
-     * Desplaza todos los Rect congelados inverso al scroll de la lista.
-     * deltaPx > 0  => contenido sube (scroll down), window Y de los Rect baja.
+     * Desplaza Rects congelados inverso al scroll. Las claves visibles de
+     * [visibleGeometry] no se desplazan: [refreshVisibleGeometryDuringDrag]
+     * las pisa con LayoutInfo, que es la autoridad del viewport.
      */
-    fun applyScrollDelta(deltaPx: Float) {
+    fun applyScrollDelta(deltaPx: Float, visibleGeometry: Map<String, Rect> = emptyMap()) {
         if (!isExerciseDragging && draggingPartId == null) return
-        if (deltaPx == 0f) return
+        if (deltaPx == 0f) {
+            if (visibleGeometry.isNotEmpty()) refreshVisibleGeometryDuringDrag(visibleGeometry)
+            return
+        }
         accumulatedScrollPx += deltaPx
+        val skip = parseVisibleSkipKeys(visibleGeometry)
         fun Rect.shifted(): Rect = Rect(left, top - deltaPx, right, bottom - deltaPx)
-        frozenExerciseBounds = frozenExerciseBounds.mapValues { (_, r) -> r.shifted() }
-        frozenPartBounds = frozenPartBounds.mapValues { (_, r) -> r.shifted() }
-        frozenPartFooterBounds = frozenPartFooterBounds.mapValues { (_, r) -> r.shifted() }
-        frozenPartContentBounds = frozenPartContentBounds.mapValues { (_, r) -> r.shifted() }
-        frozenLooseContentBounds = frozenLooseContentBounds?.shifted()
-        frozenPartDragBounds = frozenPartDragBounds.mapValues { (_, r) -> r.shifted() }
+        fun Map<String, Rect>.shiftedSkipping(skipKeys: Set<String>): Map<String, Rect> =
+            mapValues { (k, r) -> if (k in skipKeys) r else r.shifted() }
+
+        frozenExerciseBounds = frozenExerciseBounds.shiftedSkipping(skip.exercises)
+        frozenPartBounds = frozenPartBounds.shiftedSkipping(skip.parts)
+        frozenPartFooterBounds = frozenPartFooterBounds.shiftedSkipping(skip.footers)
+        frozenPartContentBounds = frozenPartContentBounds.shiftedSkipping(skip.parts)
+        frozenLooseContentBounds = if (skip.looseContainer) frozenLooseContentBounds else frozenLooseContentBounds?.shifted()
+        frozenPartDragBounds = frozenPartDragBounds.shiftedSkipping(skip.parts)
         if (partBounds.isNotEmpty()) {
-            val shiftedParts = partBounds.mapValues { (_, r) -> r.shifted() }
+            val shiftedParts = partBounds.toMap().shiftedSkipping(skip.parts)
             partBounds.clear()
             partBounds.putAll(shiftedParts)
         }
         if (partFooterBounds.isNotEmpty()) {
-            val shiftedFooters = partFooterBounds.mapValues { (_, r) -> r.shifted() }
+            val shiftedFooters = partFooterBounds.toMap().shiftedSkipping(skip.footers)
             partFooterBounds.clear()
             partFooterBounds.putAll(shiftedFooters)
         }
         if (exerciseBounds.isNotEmpty()) {
-            val shiftedExercises = exerciseBounds.mapValues { (_, r) -> r.shifted() }
+            val shiftedExercises = exerciseBounds.toMap().shiftedSkipping(skip.exercises)
             exerciseBounds.clear()
             exerciseBounds.putAll(shiftedExercises)
         }
         if (partContentBounds.isNotEmpty()) {
-            val shiftedPartContents = partContentBounds.mapValues { (_, r) -> r.shifted() }
+            val shiftedPartContents = partContentBounds.toMap().shiftedSkipping(skip.parts)
             partContentBounds.clear()
             partContentBounds.putAll(shiftedPartContents)
         }
-        looseContentBounds = looseContentBounds?.shifted()
-        // Window-space finger position stays fixed during auto-scroll; only content rects move.
-        // Do not shift dragPointerStartWindow / dragPartPointerStartWindow / dragStart*Rect.
+        if (!skip.looseContainer) {
+            looseContentBounds = looseContentBounds?.shifted()
+        }
+        if (visibleGeometry.isNotEmpty()) {
+            refreshVisibleGeometryDuringDrag(visibleGeometry)
+        }
+    }
+
+    /**
+     * Overwrite frozen geometry for rows currently reported by LazyColumn.
+     * Off-screen rows keep their last scroll-compensated rect.
+     */
+    fun refreshVisibleGeometryDuringDrag(visibleGeometry: Map<String, Rect>) {
+        if ((!isExerciseDragging && draggingPartId == null) || visibleGeometry.isEmpty()) return
+        val headers = mutableMapOf<String, Rect>()
+        val footers = mutableMapOf<String, Rect>()
+        val exercises = mutableMapOf<String, Rect>()
+        visibleGeometry.forEach { (k, r) ->
+            when {
+                k.startsWith("header|") -> headers[k.removePrefix("header|")] = r
+                k.startsWith("footer|") -> footers[k.removePrefix("footer|")] = r
+                k.startsWith("loose_container|") -> Unit
+                else -> exercises[k] = r
+            }
+        }
+        if (isExerciseDragging) {
+            if (headers.isNotEmpty()) frozenPartBounds = frozenPartBounds + headers
+            if (footers.isNotEmpty()) frozenPartFooterBounds = frozenPartFooterBounds + footers
+            if (exercises.isNotEmpty()) {
+                val incoming = if (draggingExerciseScope == ExerciseDragScope.INDIVIDUAL) {
+                    exercises
+                } else {
+                    collapseSupersetMemberBounds(exercises, lastExerciseDragSession)
+                }
+                frozenExerciseBounds = frozenExerciseBounds + incoming
+            }
+            dropStaleFooters(visibleExercises = exercises, liveFooters = footers)
+            rebuildFrozenZones(lastExerciseDragSession)
+        }
+        if (draggingPartId != null && headers.isNotEmpty()) {
+            frozenPartDragBounds = frozenPartDragBounds + headers
+        }
+    }
+
+    /**
+     * A footer cached above the lowest visible exercise of the same group is
+     * leftover from before the group grew. Drop it so the zone can extend.
+     */
+    private fun dropStaleFooters(
+        visibleExercises: Map<String, Rect>,
+        liveFooters: Map<String, Rect>,
+    ) {
+        val partIds = visibleExercises.keys
+            .map { it.substringBefore("|") }
+            .filter { it != LOOSE_PART_ID }
+            .toSet()
+        var next = frozenPartFooterBounds
+        var changed = false
+        partIds.forEach { pid ->
+            if (pid in liveFooters) return@forEach
+            val footer = next[pid] ?: return@forEach
+            val lowestVisible = visibleExercises
+                .filterKeys { it.startsWith("$pid|") }
+                .values
+                .maxOfOrNull { it.bottom } ?: return@forEach
+            if (footer.bottom <= lowestVisible + 1f) {
+                next = next - pid
+                changed = true
+            }
+        }
+        if (changed) frozenPartFooterBounds = next
+    }
+
+    private data class VisibleSkipKeys(
+        val exercises: Set<String>,
+        val parts: Set<String>,
+        val footers: Set<String>,
+        val looseContainer: Boolean,
+    )
+
+    private fun parseVisibleSkipKeys(visibleGeometry: Map<String, Rect>): VisibleSkipKeys {
+        val exercises = mutableSetOf<String>()
+        val parts = mutableSetOf<String>()
+        val footers = mutableSetOf<String>()
+        var looseContainer = false
+        visibleGeometry.keys.forEach { k ->
+            when {
+                k.startsWith("header|") -> parts += k.removePrefix("header|")
+                k.startsWith("footer|") -> {
+                    val pid = k.removePrefix("footer|")
+                    footers += pid
+                    parts += pid
+                }
+                k.startsWith("loose_container|") -> looseContainer = true
+                else -> {
+                    exercises += k
+                    val pid = k.substringBefore("|")
+                    if (pid != LOOSE_PART_ID) parts += pid
+                }
+            }
+        }
+        return VisibleSkipKeys(exercises, parts, footers, looseContainer)
     }
 
     /**
@@ -521,22 +666,23 @@ class SessionEditorDragController {
         return unionRects(live)
     }
 
-    /** Clip overlapping section bottoms/tops to midpoints so zones are pairwise disjoint. */
+    /**
+     * Consecutive sections share a midpoint boundary so the Y axis between the
+     * first top and last bottom is a partition (no dead strips, no overlap).
+     */
     private fun makeDisjointByMidpoints(sorted: List<SectionZone>): List<SectionZone> {
         if (sorted.size <= 1) return sorted
         val result = sorted.toMutableList()
         for (i in 0 until result.size - 1) {
             val current = result[i]
             val next = result[i + 1]
-            if (current.bounds.bottom > next.bounds.top) {
-                val mid = (current.bounds.bottom + next.bounds.top) / 2f
-                result[i] = current.copy(
-                    bounds = Rect(current.bounds.left, current.bounds.top, current.bounds.right, mid),
-                )
-                result[i + 1] = next.copy(
-                    bounds = Rect(next.bounds.left, mid, next.bounds.right, next.bounds.bottom),
-                )
-            }
+            val mid = (current.bounds.bottom + next.bounds.top) / 2f
+            result[i] = current.copy(
+                bounds = Rect(current.bounds.left, current.bounds.top, current.bounds.right, mid),
+            )
+            result[i + 1] = next.copy(
+                bounds = Rect(next.bounds.left, mid, next.bounds.right, next.bounds.bottom),
+            )
         }
         return result
     }

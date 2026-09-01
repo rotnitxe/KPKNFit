@@ -1085,4 +1085,189 @@ class SessionEditorDragControllerTest {
         assertTrue(controller.calculateProjectedShift(session, "__loose__", 1, "e2", 80f) < 0f)
         assertTrue(controller.calculateProjectedShift(session, "p1", 1, "e4", 80f) > 0f)
     }
+
+    @Test
+    fun beginExerciseDrag_purgesStaleFooterWhenGroupGrewOffScreen() {
+        val controller = SessionEditorDragController()
+        val session = Session(
+            id = "s1",
+            name = "Test",
+            exercises = listOf(Exercise(id = "loose", name = "Loose")),
+            parts = listOf(
+                SessionPart(
+                    id = "p2",
+                    name = "Grupo 2",
+                    exercises = listOf(
+                        Exercise(id = "e1", name = "A"),
+                        Exercise(id = "e2", name = "B"),
+                        Exercise(id = "e3", name = "C"),
+                    ),
+                ),
+            ),
+        )
+        controller.looseContentBounds = Rect(0f, 0f, 300f, 100f)
+        controller.exerciseBounds["__loose__|loose"] = Rect(0f, 20f, 300f, 90f)
+        controller.partBounds["p2"] = Rect(0f, 300f, 300f, 350f)
+        controller.exerciseBounds["p2|e1"] = Rect(0f, 350f, 300f, 450f)
+        controller.exerciseBounds["p2|e2"] = Rect(0f, 450f, 300f, 550f)
+        controller.registerPartFooterBounds("p2", Rect(0f, 550f, 300f, 600f))
+
+        val liveBounds = mapOf(
+            "header|p2" to Rect(0f, 500f, 300f, 550f),
+            "p2|e2" to Rect(0f, 550f, 300f, 650f),
+            "p2|e3" to Rect(0f, 650f, 300f, 750f),
+        )
+        controller.beginExerciseDrag(
+            partId = SessionEditorDragController.LOOSE_PART_ID,
+            exerciseId = "loose",
+            liveBounds = liveBounds,
+            pointerStartWindow = Offset(20f, 60f),
+            session = session,
+        )
+        controller.updateExerciseDrag(Offset(0f, 640f), session)
+
+        assertEquals("p2", controller.exerciseDropTargetPartId)
+        assertFalse(controller.exerciseDropOutOfRange)
+    }
+
+    @Test
+    fun invalidateLayoutCachesIfIdle_clearsStaleBoundsBetweenDrags() {
+        val controller = SessionEditorDragController()
+        controller.partBounds["p1"] = Rect(0f, 0f, 300f, 50f)
+        controller.registerPartFooterBounds("p1", Rect(0f, 50f, 300f, 100f))
+        controller.invalidateLayoutCachesIfIdle()
+        assertTrue(controller.partBounds.isEmpty())
+        assertTrue(controller.partFooterBounds.isEmpty())
+    }
+
+    @Test
+    fun refreshVisibleGeometryDuringDrag_extendsSecondGroupAfterGrowth() {
+        val controller = SessionEditorDragController()
+        val session = Session(
+            id = "s1",
+            name = "Test",
+            exercises = listOf(Exercise(id = "loose", name = "Loose")),
+            parts = listOf(
+                SessionPart(
+                    id = "p1",
+                    name = "Grupo 1",
+                    exercises = listOf(Exercise(id = "a", name = "A")),
+                ),
+                SessionPart(
+                    id = "p2",
+                    name = "Grupo 2",
+                    exercises = listOf(
+                        Exercise(id = "e1", name = "1"),
+                        Exercise(id = "e2", name = "2"),
+                        Exercise(id = "e3", name = "3"),
+                    ),
+                ),
+            ),
+        )
+        controller.looseContentBounds = Rect(0f, 0f, 300f, 80f)
+        controller.exerciseBounds["__loose__|loose"] = Rect(0f, 10f, 300f, 70f)
+        controller.partBounds["p1"] = Rect(0f, 90f, 300f, 130f)
+        controller.exerciseBounds["p1|a"] = Rect(0f, 130f, 300f, 210f)
+        controller.registerPartFooterBounds("p1", Rect(0f, 210f, 300f, 250f))
+        controller.partBounds["p2"] = Rect(0f, 260f, 300f, 300f)
+        controller.exerciseBounds["p2|e1"] = Rect(0f, 300f, 300f, 380f)
+        controller.registerPartFooterBounds("p2", Rect(0f, 380f, 300f, 420f))
+
+        controller.beginExerciseDrag(
+            SessionEditorDragController.LOOSE_PART_ID,
+            "loose",
+            pointerStartWindow = Offset(20f, 40f),
+            session = session,
+        )
+
+        controller.refreshVisibleGeometryDuringDrag(
+            mapOf(
+                "header|p2" to Rect(0f, 500f, 300f, 540f),
+                "p2|e1" to Rect(0f, 540f, 300f, 620f),
+                "p2|e2" to Rect(0f, 620f, 300f, 700f),
+                "p2|e3" to Rect(0f, 700f, 300f, 780f),
+            ),
+        )
+        controller.updateExerciseDrag(Offset(0f, 680f), session)
+
+        assertEquals("p2", controller.exerciseDropTargetPartId)
+        assertFalse(controller.exerciseDropOutOfRange)
+        assertTrue(
+            "stale footer above the grown cards must be dropped",
+            controller.frozenPartFooterBounds["p2"] == null ||
+                (controller.frozenPartFooterBounds["p2"]?.bottom ?: 0f) > 700f,
+        )
+    }
+
+    @Test
+    fun applyScrollDelta_shiftsOffscreenOnlyWhenVisibleGeometryProvided() {
+        val controller = SessionEditorDragController()
+        val session = Session(
+            id = "s1",
+            name = "Test",
+            exercises = listOf(Exercise(id = "loose", name = "Loose")),
+            parts = listOf(
+                SessionPart(
+                    id = "p1",
+                    name = "Grupo",
+                    exercises = listOf(
+                        Exercise(id = "vis", name = "Visible"),
+                        Exercise(id = "off", name = "Offscreen"),
+                    ),
+                ),
+            ),
+        )
+        controller.exerciseBounds["__loose__|loose"] = Rect(0f, 0f, 300f, 80f)
+        controller.partBounds["p1"] = Rect(0f, 100f, 300f, 140f)
+        controller.exerciseBounds["p1|vis"] = Rect(0f, 140f, 300f, 220f)
+        controller.exerciseBounds["p1|off"] = Rect(0f, 800f, 300f, 880f)
+        controller.registerPartFooterBounds("p1", Rect(0f, 880f, 300f, 920f))
+
+        controller.beginExerciseDrag(
+            SessionEditorDragController.LOOSE_PART_ID,
+            "loose",
+            pointerStartWindow = Offset(10f, 40f),
+            session = session,
+        )
+        controller.applyScrollDelta(
+            40f,
+            visibleGeometry = mapOf(
+                "header|p1" to Rect(0f, 100f, 300f, 140f),
+                "p1|vis" to Rect(0f, 140f, 300f, 220f),
+            ),
+        )
+
+        assertEquals(140f, controller.frozenExerciseBounds["p1|vis"]?.top ?: -1f, 0.1f)
+        assertEquals(760f, controller.frozenExerciseBounds["p1|off"]?.top ?: -1f, 0.1f)
+    }
+
+    @Test
+    fun collectSessionEditorListGeometry_mapsLazyKeysToDragKeys() {
+        val session = Session(
+            id = "s1",
+            name = "Test",
+            exercises = listOf(Exercise(id = "l1", name = "Loose")),
+            parts = listOf(
+                SessionPart(
+                    id = "p2",
+                    name = "Grupo 2",
+                    exercises = listOf(Exercise(id = "e9", name = "In group")),
+                ),
+            ),
+        )
+        val geometry = collectSessionEditorListGeometry(
+            visibleItems = listOf(
+                SessionEditorVisibleItem("loose-exercise-l1", offset = 0, size = 80),
+                SessionEditorVisibleItem("part-header-p2", offset = 100, size = 40),
+                SessionEditorVisibleItem("part-p2-exercise-e9", offset = 140, size = 80),
+                SessionEditorVisibleItem("part-add-p2", offset = 220, size = 40),
+            ),
+            windowBounds = Rect(0f, 50f, 300f, 800f),
+            session = session,
+        )
+        assertEquals(Rect(0f, 50f, 300f, 130f), geometry["__loose__|l1"])
+        assertEquals(Rect(0f, 150f, 300f, 190f), geometry["header|p2"])
+        assertEquals(Rect(0f, 190f, 300f, 270f), geometry["p2|e9"])
+        assertEquals(Rect(0f, 270f, 300f, 310f), geometry["footer|p2"])
+    }
 }

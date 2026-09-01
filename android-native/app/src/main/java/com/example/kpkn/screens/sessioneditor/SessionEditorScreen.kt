@@ -61,6 +61,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -390,9 +391,8 @@ fun SessionEditorScreen(
         viewModel.clearDragForSessionChange()
     }
     LaunchedEffect(session?.parts, session?.exercises, uiState.collapsedPartIds) {
-        // Tras ediciones, solo se descartan bounds de ítems que ya no existen
-        // (sin vaciar todo: onGloballyPositioned no se re-dispara si nada se movió).
         val active = session ?: return@LaunchedEffect
+        dragController.invalidateLayoutCachesIfIdle()
         dragController.pruneBounds(active, uiState.collapsedPartIds)
     }
     val draggingPartId = dragUi.draggingPartId
@@ -406,61 +406,21 @@ fun SessionEditorScreen(
     val exerciseDropOutOfRange = dragUi.exerciseDropOutOfRange
     var lazyColumnWindowBounds by remember { mutableStateOf<Rect?>(null) }
 
+    fun currentListGeometry(): Map<String, Rect> {
+        val windowBounds = lazyColumnWindowBounds ?: return emptyMap()
+        val visible = listState.layoutInfo.visibleItemsInfo.mapNotNull { itemInfo ->
+            val key = itemInfo.key as? String ?: return@mapNotNull null
+            SessionEditorVisibleItem(key = key, offset = itemInfo.offset, size = itemInfo.size)
+        }
+        return collectSessionEditorListGeometry(visible, windowBounds, session)
+    }
+
     fun beginExerciseDrag(partId: String, exerciseId: String, pointerWindow: Offset) {
-        val windowBounds = lazyColumnWindowBounds
-        val liveBounds = if (windowBounds != null) {
-            val map = mutableMapOf<String, Rect>()
-            listState.layoutInfo.visibleItemsInfo.forEach { itemInfo ->
-                val key = itemInfo.key as? String ?: return@forEach
-                val top = windowBounds.top + itemInfo.offset
-                val bottom = top + itemInfo.size
-                val rect = Rect(windowBounds.left, top.toFloat(), windowBounds.right, bottom.toFloat())
-                when {
-                    key.startsWith("loose-exercise-") -> {
-                        val exId = key.removePrefix("loose-exercise-")
-                        map["__loose__|$exId"] = rect
-                    }
-                    key.startsWith("loose-superset-") -> {
-                        val groupId = key.removePrefix("loose-superset-")
-                        val members = session?.exercises?.filter { it.supersetGroupRefOrLegacyId() == groupId }.orEmpty()
-                        // Superset-as-block: only first member key.
-                        members.firstOrNull()?.let { m -> map["__loose__|${m.id}"] = rect }
-                    }
-                    key.startsWith("part-") && key.contains("-exercise-") -> {
-                        val pid = key.substringAfter("part-").substringBefore("-exercise-")
-                        val exId = key.substringAfter("-exercise-")
-                        map["$pid|$exId"] = rect
-                    }
-                    key.startsWith("part-") && key.contains("-superset-") -> {
-                        val pid = key.substringAfter("part-").substringBefore("-superset-")
-                        val groupId = key.substringAfter("-superset-")
-                        val part = session?.parts?.firstOrNull { it.id == pid }
-                        val members = part?.exercises?.filter { it.supersetGroupRefOrLegacyId() == groupId }.orEmpty()
-                        members.firstOrNull()?.let { m -> map["$pid|${m.id}"] = rect }
-                    }
-                    key.startsWith("part-header-") -> {
-                        val pid = key.removePrefix("part-header-")
-                        map["header|$pid"] = rect
-                    }
-                    key.startsWith("part-add-") -> {
-                        val pid = key.removePrefix("part-add-")
-                        map["footer|$pid"] = rect
-                    }
-                    key == "strength-add-actions" -> {
-                        // Only seed empty-session loose container.
-                        val empty = session?.exercises.isNullOrEmpty() &&
-                            session?.parts?.none { !it.isUncategorizedPart() } == true
-                        if (empty) map["loose_container|__loose__"] = rect
-                    }
-                }
-            }
-            map
-        } else null
         dragController.beginExerciseDrag(
             partId = partId,
             exerciseId = exerciseId,
             grabOffset = Offset(24f, 24f),
-            liveBounds = liveBounds,
+            liveBounds = currentListGeometry().takeIf { it.isNotEmpty() },
             pointerStartWindow = pointerWindow,
             session = session,
             collapsedPartIds = uiState.collapsedPartIds,
@@ -468,23 +428,14 @@ fun SessionEditorScreen(
     }
 
     fun beginPartDrag(partId: String, grabRect: Rect?, pointerWindow: Offset?) {
-        val windowBounds = lazyColumnWindowBounds
-        val liveBounds = if (windowBounds != null) {
-            val map = mutableMapOf<String, Rect>()
-            listState.layoutInfo.visibleItemsInfo.forEach { itemInfo ->
-                val key = itemInfo.key as? String ?: return@forEach
-                if (key.startsWith("part-header-")) {
-                    val pid = key.removePrefix("part-header-")
-                    val top = windowBounds.top + itemInfo.offset
-                    val bottom = top + itemInfo.size
-                    map[pid] = Rect(windowBounds.left, top.toFloat(), windowBounds.right, bottom.toFloat())
-                }
-            }
-            map
-        } else null
+        val geometry = currentListGeometry()
+        val livePartBounds = geometry
+            .filterKeys { it.startsWith("header|") }
+            .mapKeys { it.key.removePrefix("header|") }
+            .takeIf { it.isNotEmpty() }
         dragController.beginPartDrag(
             partId = partId,
-            livePartBounds = liveBounds,
+            livePartBounds = livePartBounds,
             liveStartRect = grabRect,
             pointerStartWindow = pointerWindow,
             groupedParts = session?.parts?.filterNot { it.isUncategorizedPart() },
@@ -674,8 +625,7 @@ fun SessionEditorScreen(
                 var consumed = 0f
                 listState.scroll { consumed = scrollBy(delta) }
                 if (consumed != 0f) {
-                    dragController.applyScrollDelta(consumed)
-                    // F0/A: recompute drop target after auto-scroll with finger held still.
+                    dragController.applyScrollDelta(consumed, currentListGeometry())
                     if (dragController.draggingExerciseId != null) {
                         dragController.recomputeExerciseDropTarget()
                     } else if (dragController.draggingPartId != null) {
@@ -684,6 +634,29 @@ fun SessionEditorScreen(
                 }
             }
             delay(16)
+        }
+    }
+
+    LaunchedEffect(draggingExerciseId, draggingPartId) {
+        if (draggingExerciseId == null && draggingPartId == null) return@LaunchedEffect
+        snapshotFlow {
+            val window = lazyColumnWindowBounds
+            val rows = listState.layoutInfo.visibleItemsInfo.map { item ->
+                Triple(item.key as? String, item.offset, item.size)
+            }
+            window to rows
+        }.collect { (window, rows) ->
+            if (window == null) return@collect
+            val visible = rows.mapNotNull { (key, offset, size) ->
+                key?.let { SessionEditorVisibleItem(it, offset, size) }
+            }
+            val geometry = collectSessionEditorListGeometry(visible, window, session)
+            dragController.refreshVisibleGeometryDuringDrag(geometry)
+            if (dragController.draggingExerciseId != null) {
+                dragController.recomputeExerciseDropTarget()
+            } else if (dragController.draggingPartId != null) {
+                dragController.recomputePartDropTarget()
+            }
         }
     }
 

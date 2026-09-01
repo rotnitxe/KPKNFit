@@ -19,6 +19,7 @@ internal fun SessionEditorViewModel.publishDragUiState() {
             prev.exerciseDropTargetKey != snap.exerciseDropTargetKey ||
             prev.exerciseDropTargetPartId != snap.exerciseDropTargetPartId ||
             prev.exerciseDropTargetIndex != snap.exerciseDropTargetIndex ||
+            prev.exerciseDropTargetGroupId != snap.exerciseDropTargetGroupId ||
             prev.exerciseDropOutOfRange != snap.exerciseDropOutOfRange ||
             prev.draggingPartId != snap.draggingPartId ||
             prev.partDropTargetId != snap.partDropTargetId ||
