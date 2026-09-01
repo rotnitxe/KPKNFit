@@ -303,6 +303,107 @@ class WorkoutSessionRulesTest {
     }
 
     @Test
+    fun bodyweight_positive_kg_becomes_lastre() {
+        assertEquals(
+            LoadModeV2.LASTRE,
+            loadModeAfterEnteredWeight(LoadModeV2.BODYWEIGHT, "2.5"),
+        )
+        assertEquals(
+            LoadModeV2.LASTRE,
+            loadModeAfterEnteredWeight(LoadModeV2.BODYWEIGHT, "10"),
+        )
+        assertEquals(
+            LoadModeV2.BODYWEIGHT,
+            loadModeAfterEnteredWeight(LoadModeV2.BODYWEIGHT, "0"),
+        )
+        assertEquals(
+            LoadModeV2.BODYWEIGHT,
+            loadModeAfterEnteredWeight(LoadModeV2.BODYWEIGHT, ""),
+        )
+        assertEquals(
+            LoadModeV2.LOAD,
+            loadModeAfterEnteredWeight(LoadModeV2.LOAD, "80"),
+        )
+        assertEquals(
+            LoadModeV2.ASSISTED,
+            loadModeAfterEnteredWeight(LoadModeV2.ASSISTED, "20"),
+        )
+        assertEquals(
+            LoadModeV2.BODYWEIGHT,
+            loadModeAfterEnteredWeight(LoadModeV2.LASTRE, ""),
+        )
+    }
+
+    @Test
+    fun bodyweight_spectrum_chips_are_assisted_suggested_plus() {
+        val chips = quickLoadOptionsFor(
+            loadMode = LoadModeV2.BODYWEIGHT,
+            currentWeightText = "",
+            suggestedWeight = 0.0,
+            suggestedLoadMode = LoadModeV2.BODYWEIGHT,
+            previousSessionFirstSetWeight = null,
+            loadIncrementKg = 2.5,
+        )
+        assertEquals(3, chips.size)
+        assertEquals("Asist.", chips[0].label)
+        assertEquals(LoadModeV2.ASSISTED, chips[0].targetLoadMode)
+        assertEquals("Sugerido", chips[1].label)
+        assertEquals(0.0, chips[1].weight, 0.001)
+        assertEquals(LoadModeV2.BODYWEIGHT, chips[1].targetLoadMode)
+        assertEquals("+2.5", chips[2].label)
+        assertEquals(2.5, chips[2].weight, 0.001)
+        assertEquals(LoadModeV2.LASTRE, chips[2].targetLoadMode)
+    }
+
+    @Test
+    fun bodyweight_spectrum_suggested_lastre_when_progressed() {
+        val chips = quickLoadOptionsFor(
+            loadMode = LoadModeV2.BODYWEIGHT,
+            currentWeightText = "",
+            suggestedWeight = 2.5,
+            suggestedLoadMode = LoadModeV2.LASTRE,
+            previousSessionFirstSetWeight = null,
+            loadIncrementKg = 2.5,
+        )
+        assertEquals("Sugerido", chips[1].label)
+        assertEquals(2.5, chips[1].weight, 0.001)
+        assertEquals(LoadModeV2.LASTRE, chips[1].targetLoadMode)
+    }
+
+    @Test
+    fun external_load_chips_are_previous_suggested_plus() {
+        val chips = quickLoadOptionsFor(
+            loadMode = LoadModeV2.LOAD,
+            currentWeightText = "",
+            suggestedWeight = 80.0,
+            suggestedLoadMode = LoadModeV2.LOAD,
+            previousSessionFirstSetWeight = 75.0,
+            loadIncrementKg = 2.5,
+        )
+        assertEquals(3, chips.size)
+        assertEquals("Anterior", chips[0].label)
+        assertEquals(75.0, chips[0].weight, 0.001)
+        assertEquals("Sugerido", chips[1].label)
+        assertEquals(80.0, chips[1].weight, 0.001)
+        assertEquals("+2.5", chips[2].label)
+        assertEquals(82.5, chips[2].weight, 0.001)
+    }
+
+    @Test
+    fun assisted_chip_selection_sets_assisted_mode() {
+        val chip = QuickLoadChipOption("Asist.", 2.5, false, LoadModeV2.ASSISTED)
+        assertEquals(LoadModeV2.ASSISTED, loadModeAfterChipSelection(chip))
+        assertEquals("2.5", weightTextAfterChipSelection(chip))
+    }
+
+    @Test
+    fun bodyweight_chip_selection_clears_input() {
+        val chip = QuickLoadChipOption("Sugerido", 0.0, true, LoadModeV2.BODYWEIGHT)
+        assertEquals(LoadModeV2.BODYWEIGHT, loadModeAfterChipSelection(chip))
+        assertEquals("", weightTextAfterChipSelection(chip))
+    }
+
+    @Test
     fun continuity_state_prioritizes_superset_partner_in_same_round() {
         val press = Exercise(
             id = "press",

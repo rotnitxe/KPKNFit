@@ -3160,6 +3160,124 @@ class WorkoutViewModel(
         persistOngoingState()
     }
 
+    internal fun performRelatorAssist(action: RelatorAssistAction) {
+        when (action.kind) {
+            RelatorAssistActionKind.JUMP_TO_SET -> {
+                restoreSkippedExercise(action.exerciseId)
+                val side = action.side.takeIf { it.isNotBlank() }
+                selectWorkoutStep(WorkoutStepRules.workingStepKey(action.exerciseId, action.setIndex, side))
+            }
+            RelatorAssistActionKind.OMIT_SET -> omitSet(action.exerciseId, action.setIndex)
+            RelatorAssistActionKind.JUMP_TO_EXERCISE -> {
+                restoreSkippedExercise(action.exerciseId)
+                val idx = visibleExercises(_uiState.value).indexOfFirst { it.id == action.exerciseId }
+                if (idx >= 0) selectExercise(idx)
+            }
+            RelatorAssistActionKind.MOVE_EXERCISE_END -> moveExerciseToSessionEnd(action.exerciseId)
+            RelatorAssistActionKind.JUMP_TO_SIDE -> {
+                val side = action.side.takeIf { it.isNotBlank() } ?: return
+                selectWorkoutStep(WorkoutStepRules.workingStepKey(action.exerciseId, action.setIndex, side))
+            }
+            RelatorAssistActionKind.CONVERT_DROPSETS -> convertRemainingIncompleteToDropsets()
+            RelatorAssistActionKind.HALVE_SETS -> halveRemainingIncompleteSets()
+            RelatorAssistActionKind.ADD_MOBILITY -> {
+                val mobility = MobilityExerciseCatalog.findById(action.mobilityId)
+                    ?: MobilityExerciseCatalog.searchMobility(action.clickableSpan()).firstOrNull {
+                        it.id == action.mobilityId ||
+                            it.name.equals(action.clickableSpan(), ignoreCase = true)
+                    }
+                    ?: return
+                val exerciseId = action.exerciseId.ifBlank {
+                    visibleExercises(_uiState.value).getOrNull(_uiState.value.currentExerciseIdx)?.id
+                } ?: return
+                addMobilityToCurrentExercise(exerciseId, mobility)
+            }
+        }
+    }
+
+    private fun restoreSkippedExercise(exerciseId: String) {
+        if (exerciseId.isBlank()) return
+        var restored = false
+        _uiState.update { state ->
+            if (exerciseId !in state.skippedExerciseIds) return@update state
+            restored = true
+            state.copy(skippedExerciseIds = state.skippedExerciseIds - exerciseId)
+        }
+        if (restored) persistOngoingState()
+    }
+
+    private fun moveExerciseToSessionEnd(exerciseId: String) {
+        if (exerciseId.isBlank()) return
+        pushGodModeUndo("Mover ejercicio al final")
+        restoreSkippedExercise(exerciseId)
+        val state = _uiState.value
+        val base = state.session ?: return
+        val modeSession = sessionForActiveMode(base, state.activeMode)
+        val ids = modeSession.allExercises().map { it.id }.toMutableList()
+        if (!ids.remove(exerciseId)) return
+        ids.add(exerciseId)
+        val partMap = buildMap {
+            modeSession.parts.forEach { part ->
+                part.exercises.forEach { exercise -> put(exercise.id, part.name) }
+            }
+        }
+        reorderExercisesGlobally(ids, partMap)
+    }
+
+    private fun convertRemainingIncompleteToDropsets() {
+        pushGodModeUndo("Dropsets en lo que queda")
+        val state = _uiState.value
+        val base = state.session ?: return
+        val visible = visibleExercises(state)
+        val currentIdx = state.currentExerciseIdx
+        val currentSetIdx = state.currentSetIdx
+        val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
+            var next = modeSession
+            visible.forEachIndexed { exIdx, exercise ->
+                if (exIdx < currentIdx) return@forEachIndexed
+                val from = if (exIdx == currentIdx) currentSetIdx else 0
+                next = next.replaceExerciseById(exercise.id) { ex ->
+                    val mapped = ex.sets.mapIndexed { idx, set ->
+                        if (idx < from) set
+                        else if (WorkoutStepRules.isSetOmitted(ex.id, idx, state.omittedSetKeys)) set
+                        else if (isSetDone(state.completedSets, ex.id, idx, ex.isEffectivelyUnilateral())) set
+                        else set.withTechnique(SeriesTechnique.DROPSET)
+                    }
+                    ex.copy(sets = mapped)
+                }
+            }
+            next
+        }
+        if (updatedSession == base) return
+        applySessionMutation(updatedSession, persistToProgram = false)
+        persistOngoingState()
+    }
+
+    private fun halveRemainingIncompleteSets() {
+        pushGodModeUndo("Reducir series a la mitad")
+        val state = _uiState.value
+        val visible = visibleExercises(state)
+        val currentIdx = state.currentExerciseIdx
+        val currentSetIdx = state.currentSetIdx
+        val extraOmits = mutableSetOf<String>()
+        visible.forEachIndexed { exIdx, exercise ->
+            if (exIdx < currentIdx) return@forEachIndexed
+            val from = if (exIdx == currentIdx) currentSetIdx else 0
+            val incomplete = exercise.sets.indices.filter { idx ->
+                idx >= from &&
+                    !WorkoutStepRules.isSetOmitted(exercise.id, idx, state.omittedSetKeys) &&
+                    !isSetDone(state.completedSets, exercise.id, idx, exercise.isEffectivelyUnilateral())
+            }
+            if (incomplete.size <= 1) return@forEachIndexed
+            incomplete.takeLast(incomplete.size / 2).forEach { idx ->
+                extraOmits += WorkoutStepRules.omittedSetKey(exercise.id, idx)
+            }
+        }
+        if (extraOmits.isEmpty()) return
+        _uiState.update { it.copy(omittedSetKeys = it.omittedSetKeys + extraOmits) }
+        persistOngoingState()
+    }
+
     private fun pushGodModeUndo(label: String) {
         val snapshot = captureGodModeUndoSnapshot(label)
         _uiState.update { it.copy(godModeUndoStack = it.godModeUndoStack + snapshot) }
@@ -3403,17 +3521,34 @@ class WorkoutViewModel(
     }
 
     fun addMobilityToCurrentExercise(exerciseId: String, mobility: com.example.kpkn.data.models.MobilityExercise) {
+        val catalog = MobilityExerciseCatalog.findById(mobility.id) ?: return
+        val exercise = visibleExercises(_uiState.value).firstOrNull { it.id == exerciseId } ?: return
+        val already = exercise.mobilitySeries.any { series ->
+            series.id == catalog.id ||
+                series.exerciseDbId == catalog.id ||
+                series.catalogConfigurationId == catalog.id ||
+                series.name.equals(catalog.name, ignoreCase = true)
+        }
+        if (already) return
+        pushGodModeUndo("Añadir movilidad")
         val newSeries = com.example.kpkn.data.models.MobilitySeries(
-            id = java.util.UUID.randomUUID().toString(),
-            name = mobility.name,
+            id = catalog.id,
+            exerciseDbId = catalog.id,
+            name = catalog.name,
             sets = 1,
-            durationSeconds = mobility.durationSeconds,
-            notes = mobility.description,
-            bodyZones = listOf(mobility.bodyRegion),
+            durationSeconds = catalog.durationSeconds,
+            notes = catalog.description,
+            associatedDiscomforts = catalog.discomfortIds,
+            bodyZones = listOf(catalog.bodyRegion),
             unit = com.example.kpkn.data.models.MobilityUnit.SECONDS,
+            catalogConfigurationId = catalog.id,
         )
         updateExerciseDefinition(exerciseId, persistToProgram = false) { ex ->
-            ex.copy(mobilitySeries = ex.mobilitySeries + newSeries)
+            if (ex.mobilitySeries.any { it.id == catalog.id || it.catalogConfigurationId == catalog.id }) {
+                ex
+            } else {
+                ex.copy(mobilitySeries = ex.mobilitySeries + newSeries)
+            }
         }
     }
 
@@ -4488,7 +4623,7 @@ class WorkoutViewModel(
         if (weight <= 0 || reps <= 0) return
         val e1rm = calculateHybrid1RM(weight, reps)
         val state = _uiState.value
-        val historyBest = getExerciseHistory(canonicalExerciseKey(exercise), limit = 20)
+        val historyBest = getExerciseHistory(exercise, limit = 20)
             .mapNotNull { it.e1rm }
             .maxOrNull() ?: 0.0
         val sessionWorkingE1rms = state.completedSets
@@ -5216,22 +5351,44 @@ class WorkoutViewModel(
         limit: Int = 10,
         preferredTag: String? = null,
     ): List<ExerciseHistoryEntry> {
-        val all = historyByExerciseDbId.value[exerciseDbId].orEmpty()
+        return historyEntriesForKeys(setOf(exerciseDbId), limit, preferredTag)
+    }
 
+    fun getExerciseHistory(
+        exercise: Exercise,
+        limit: Int = 10,
+        preferredTag: String? = null,
+    ): List<ExerciseHistoryEntry> = historyEntriesForKeys(identityKeysForExercise(exercise), limit, preferredTag)
+
+    fun bestEstimated1RmForExercise(exercise: Exercise): Double =
+        getExerciseHistory(exercise, limit = 20).mapNotNull { it.e1rm }.maxOrNull() ?: 0.0
+
+    fun latestDiscomfortIdsForExercise(exercise: Exercise): List<String> {
+        val keys = identityKeysForExercise(exercise)
+        return latestDiscomfortIdsFromLogs(
+            logsNewestFirst = mergeWorkoutLogsForKeys(historyByExerciseDbId.value, keys),
+            exerciseKeys = keys,
+            exerciseName = exercise.name,
+        )
+    }
+
+    private fun historyEntriesForKeys(
+        keys: Set<String>,
+        limit: Int,
+        preferredTag: String?,
+    ): List<ExerciseHistoryEntry> {
+        val all = mergeWorkoutLogsForKeys(historyByExerciseDbId.value, keys)
         val tagged = if (preferredTag != null) {
             all.filter { log ->
-                val ex = log.completedExercises.firstOrNull { it.resolvedCanonicalExerciseId() == exerciseDbId }
-                ex != null && log.exerciseTags[ex.exerciseId] == preferredTag
+                val ex = matchingCompletedExercise(log, keys) ?: return@filter false
+                log.exerciseTags[ex.exerciseId] == preferredTag
             }
-        } else emptyList()
-
-        // Tag-matched first, then fill with the rest (no duplicates)
+        } else {
+            emptyList()
+        }
         val ordered = (tagged + all.filter { it !in tagged }).take(limit)
-
         return ordered.mapNotNull { log ->
-            val ex = log.completedExercises.firstOrNull {
-                it.resolvedCanonicalExerciseId() == exerciseDbId
-            } ?: return@mapNotNull null
+            val ex = matchingCompletedExercise(log, keys) ?: return@mapNotNull null
             val best1rm = ex.sets
                 .filter { s -> !s.isWarmup && s.weight > 0 && s.reps > 0 }
                 .maxOfOrNull { s -> calculateHybrid1RM(s.weight, s.reps) }
@@ -5250,6 +5407,33 @@ class WorkoutViewModel(
                 latestMetricValue = latestV2Outcome?.metricValue,
             )
         }
+    }
+
+    private fun matchingCompletedExercise(
+        log: com.example.kpkn.data.models.WorkoutLog,
+        keys: Set<String>,
+    ) = log.completedExercises.firstOrNull { identityKeysOverlap(identityKeysForCompleted(it), keys) }
+
+    /** Logs from the last [maxAgeHours] hours, newest-first, for intra/24h relator hints. */
+    fun recentWorkoutLogs(maxAgeHours: Int = 36): List<com.example.kpkn.data.models.WorkoutLog> {
+        val cutoff = System.currentTimeMillis() - maxAgeHours * 3_600_000L
+        return repository.history.value
+            .filter { com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) >= cutoff }
+            .sortedByDescending { com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) }
+    }
+
+    /** First working-set load (kg) for [exercise] in the most recent past session. */
+    fun getPreviousSessionFirstSetWeight(
+        exercise: Exercise,
+        activeTag: String? = null,
+    ): Double? {
+        val entry = getExerciseHistory(exercise, limit = 1, preferredTag = activeTag).firstOrNull() ?: return null
+        val firstWorking = entry.sets.firstOrNull { set ->
+            !set.isWarmup &&
+                LoadSuggestionEngine.inputLoad(set, LoadSuggestionEngine.resolvedLoadMode(set)) > 0.0
+        } ?: return null
+        val mode = LoadSuggestionEngine.resolvedLoadMode(firstWorking)
+        return LoadSuggestionEngine.inputLoad(firstWorking, mode)
     }
 
     private fun getTagMultiplier(tag: String?): Double =
@@ -5339,7 +5523,7 @@ class WorkoutViewModel(
         val dbId = canonicalExerciseKey(exercise)
         val loadMode = effectiveLoadModeForExercise(exercise, setIdx)
 
-        val history = getExerciseHistory(dbId, limit = 5, preferredTag = activeTag)
+        val history = getExerciseHistory(exercise, limit = 5, preferredTag = activeTag)
         if (history.isEmpty()) {
             if (loadMode == LoadModeV2.BODYWEIGHT) {
                 return WeightSuggestion(

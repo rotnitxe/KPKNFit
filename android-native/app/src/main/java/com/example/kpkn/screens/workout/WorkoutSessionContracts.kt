@@ -37,6 +37,7 @@ data class WorkoutSetDraft(
     val selectedSide: String? = null,
     val partialReps: Int? = null,
     val reachedFailure: Boolean? = null,
+    val dropSetCount: Int? = null,
     val voiceFields: Set<WorkoutVoiceField> = emptySet(),
     val isDirty: Boolean = false,
     val updatedAtMs: Long = System.currentTimeMillis(),
@@ -47,6 +48,7 @@ data class WorkoutSetDraft(
     val amrapMinimumReps: Int? = null,
     val amrapReachFailure: Boolean? = null,
     val amrapReserveReps: Int? = null,
+    val notes: String? = null,
 )
 
 @Serializable
@@ -143,6 +145,100 @@ internal fun resolveEffectiveLoadMode(
     ?: plannedLoadMode
     ?: defaultCatalogMode
     ?: LoadModeV2.LOAD
+
+internal fun isBodyweightLoadSpectrum(loadMode: LoadModeV2): Boolean =
+    loadMode == LoadModeV2.BODYWEIGHT ||
+        loadMode == LoadModeV2.LASTRE ||
+        loadMode == LoadModeV2.ASSISTED
+
+/** Typing while on the bodyweight ↔ assisted ↔ lastre continuum. */
+internal fun loadModeAfterEnteredWeight(current: LoadModeV2, weightText: String): LoadModeV2 {
+    if (weightText.isBlank()) {
+        return if (isBodyweightLoadSpectrum(current)) LoadModeV2.BODYWEIGHT else current
+    }
+    val kg = weightText.replace(',', '.').toDoubleOrNull() ?: return current
+    return when {
+        kg <= 0.0 -> if (isBodyweightLoadSpectrum(current)) LoadModeV2.BODYWEIGHT else current
+        current == LoadModeV2.BODYWEIGHT -> LoadModeV2.LASTRE
+        current == LoadModeV2.ASSISTED -> LoadModeV2.ASSISTED
+        else -> current
+    }
+}
+
+internal data class QuickLoadChipOption(
+    val label: String,
+    val weight: Double,
+    val isAuge: Boolean,
+    val targetLoadMode: LoadModeV2,
+)
+
+internal fun loadModeAfterChipSelection(option: QuickLoadChipOption): LoadModeV2 = option.targetLoadMode
+
+internal fun weightTextAfterChipSelection(option: QuickLoadChipOption): String =
+    when (option.targetLoadMode) {
+        LoadModeV2.BODYWEIGHT -> ""
+        else -> option.weight.toTrimmedNumberString()
+    }
+
+internal fun quickLoadOptionsFor(
+    loadMode: LoadModeV2,
+    currentWeightText: String,
+    suggestedWeight: Double?,
+    suggestedLoadMode: LoadModeV2?,
+    previousSessionFirstSetWeight: Double?,
+    loadIncrementKg: Double,
+): List<QuickLoadChipOption> {
+    val increment = loadIncrementKg.takeIf { it > 0.0 } ?: 2.5
+    return if (isBodyweightLoadSpectrum(loadMode) || isBodyweightLoadSpectrum(suggestedLoadMode ?: loadMode)) {
+        bodyweightSpectrumQuickLoadOptions(suggestedWeight, suggestedLoadMode, increment)
+    } else {
+        externalLoadQuickLoadOptions(currentWeightText, suggestedWeight, previousSessionFirstSetWeight, increment)
+    }
+}
+
+private fun bodyweightSpectrumQuickLoadOptions(
+    suggestedWeight: Double?,
+    suggestedLoadMode: LoadModeV2?,
+    increment: Double,
+): List<QuickLoadChipOption> {
+    val suggested = suggestedWeight?.coerceAtLeast(0.0) ?: 0.0
+    val centerMode = suggestedLoadMode?.takeIf { isBodyweightLoadSpectrum(it) }
+        ?: if (suggested > 0.0) LoadModeV2.LASTRE else LoadModeV2.BODYWEIGHT
+    val rightBase = if (centerMode == LoadModeV2.BODYWEIGHT && suggested <= 0.0) 0.0 else suggested
+    return listOf(
+        QuickLoadChipOption("Asist.", increment, isAuge = false, targetLoadMode = LoadModeV2.ASSISTED),
+        QuickLoadChipOption("Sugerido", suggested, isAuge = true, targetLoadMode = centerMode),
+        QuickLoadChipOption(
+            label = "+${increment.toTrimmedNumberString()}",
+            weight = (rightBase + increment).coerceAtLeast(increment),
+            isAuge = false,
+            targetLoadMode = LoadModeV2.LASTRE,
+        ),
+    )
+}
+
+private fun externalLoadQuickLoadOptions(
+    currentWeightText: String,
+    suggestedWeight: Double?,
+    previousSessionFirstSetWeight: Double?,
+    increment: Double,
+): List<QuickLoadChipOption> {
+    val suggested = suggestedWeight?.takeIf { it > 0.0 }
+        ?: currentWeightText.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0.0 }
+        ?: previousSessionFirstSetWeight?.takeIf { it > 0.0 }
+        ?: 0.0
+    val anterior = previousSessionFirstSetWeight?.takeIf { it > 0.0 } ?: suggested.coerceAtLeast(0.0)
+    return listOf(
+        QuickLoadChipOption("Anterior", anterior, isAuge = false, targetLoadMode = LoadModeV2.LOAD),
+        QuickLoadChipOption("Sugerido", suggested.coerceAtLeast(0.0), isAuge = true, targetLoadMode = LoadModeV2.LOAD),
+        QuickLoadChipOption(
+            label = "+${increment.toTrimmedNumberString()}",
+            weight = suggested + increment,
+            isAuge = false,
+            targetLoadMode = LoadModeV2.LOAD,
+        ),
+    )
+}
 
 internal fun isWorkoutPulseActive(
     pulseToken: Long?,

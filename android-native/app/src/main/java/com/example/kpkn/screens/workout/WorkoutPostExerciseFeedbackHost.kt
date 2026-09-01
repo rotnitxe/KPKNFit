@@ -57,6 +57,7 @@ import com.example.kpkn.data.models.DISCOMFORT_CATALOG_BY_ID
 import com.example.kpkn.data.models.DiscomfortCatalogEntry
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.PostExerciseFeedback
+import com.example.kpkn.data.models.unresolvedDiscomfortIds
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.auge.AugeTtcEngine
 import java.util.Locale
@@ -270,7 +271,7 @@ internal fun WorkoutPostExerciseFeedbackContent(
             postExerciseFeedbackByExerciseId
                 .filter { (eid, _) -> feedbackExercises.none { it.id == eid } }
                 .flatMap { (_, prev) ->
-                    prev.discomfortIds.filter { it != "none" }.mapNotNull { did ->
+                    prev.unresolvedDiscomfortIds().mapNotNull { did ->
                         val entry = DISCOMFORT_CATALOG_BY_ID[did] ?: return@mapNotNull null
                         val shared = entry.relatedArticular.firstOrNull { it in currentArticulations }
                         if (shared != null) Triple(did, entry.label, prev.exerciseName) else null
@@ -470,24 +471,43 @@ internal fun WorkoutPostExerciseFeedbackContent(
 
         Button(
             onClick = {
+                val stillLinkedIds = linkedDiscomforts.map { it.first }.filter { id ->
+                    linkedStillPresent[id] != false
+                }
+                val resolvedIds = linkedDiscomforts.map { it.first }.filter { id ->
+                    linkedStillPresent[id] == false
+                }.toSet()
+                val stillForCurrent = (selectedDiscomfortIds.filter { it != "none" } + stillLinkedIds)
+                    .distinct()
+                    .ifEmpty { listOf("none") }
+                val payloads = mutableListOf<PostExerciseFeedback>()
                 feedbackExercises.forEach { ex ->
                     val tech = technicalValues[ex.id] ?: 8
                     val intensity = intensityValues[ex.id]?.toDouble()
                     val failed = failureValues[ex.id] == true
-                    viewModel.savePostExerciseFeedback(
-                        PostExerciseFeedback(
-                            exerciseId = ex.id,
-                            exerciseDbId = ex.exerciseDbId ?: viewModel.canonicalExerciseKey(ex),
-                            canonicalExerciseId = viewModel.canonicalExerciseKey(ex),
-                            exerciseName = displayWorkoutExerciseName(ex),
-                            technicalQuality = tech,
-                            discomfortIds = selectedDiscomfortIds.toList().ifEmpty { listOf("none") },
-                            perceivedIntensityRpe = intensity,
-                            perceivedFailure = failed,
-                        ),
+                    payloads += PostExerciseFeedback(
+                        exerciseId = ex.id,
+                        exerciseDbId = ex.exerciseDbId ?: viewModel.canonicalExerciseKey(ex),
+                        canonicalExerciseId = viewModel.canonicalExerciseKey(ex),
+                        exerciseName = displayWorkoutExerciseName(ex),
+                        technicalQuality = tech,
+                        discomfortIds = selectedDiscomfortIds.toList().ifEmpty { listOf("none") },
+                        perceivedIntensityRpe = intensity,
+                        perceivedFailure = failed,
+                        stillPresentDiscomfortIds = stillForCurrent,
                     )
                 }
-                viewModel.dismissPostExerciseSheet()
+                val feedbackIds = feedbackExercises.map { it.id }.toSet()
+                postExerciseFeedbackByExerciseId.forEach { (eid, prev) ->
+                    if (eid in feedbackIds) return@forEach
+                    val remaining = prev.unresolvedDiscomfortIds().filter { it !in resolvedIds }
+                    if (remaining != prev.unresolvedDiscomfortIds()) {
+                        payloads += prev.copy(
+                            stillPresentDiscomfortIds = remaining.ifEmpty { listOf("none") },
+                        )
+                    }
+                }
+                viewModel.savePostExerciseFeedbacks(payloads)
             },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = sessionAccentColor),

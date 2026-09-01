@@ -73,7 +73,10 @@ import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.screens.home.AugeRingsCanvas
+import com.example.kpkn.screens.home.AugeRingBloomFar
 import com.example.kpkn.screens.home.RingColors
+import com.example.kpkn.screens.home.augeRingsHostHeightDp
+import com.example.kpkn.screens.home.augeRingsLayout
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -322,29 +325,29 @@ private fun InterlacedRingsBlock(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(196.dp)
-                .onSizeChanged { ringsSize = it },
-        ) {
-            AugeRingsCanvas(
-                mp = muscular / 100f,
-                sp = neural / 100f,
-                cp = spinal / 100f,
-            )
-
-            if (ringsSize != IntSize.Zero) {
-                val radius = min(ringsSize.width / 5f, ringsSize.height * 0.38f)
-                val centerX = ringsSize.width / 2f
-                val centerY = ringsSize.height / 2f
-                val dx = radius * 1.45f
-                val dy = radius * 0.48f
-                val centers = listOf(
-                    Offset(centerX - dx, centerY - dy),
-                    Offset(centerX, centerY + dy),
-                    Offset(centerX + dx, centerY - dy),
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val hostHeight = augeRingsHostHeightDp(maxWidth.value).dp
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(hostHeight)
+                    .onSizeChanged { ringsSize = it },
+            ) {
+                AugeRingsCanvas(
+                    mp = muscular / 100f,
+                    sp = neural / 100f,
+                    cp = spinal / 100f,
                 )
+
+                if (ringsSize != IntSize.Zero) {
+                    val bloomPx = with(density) { AugeRingBloomFar.toPx() }
+                    val layout = augeRingsLayout(
+                        width = ringsSize.width.toFloat(),
+                        height = ringsSize.height.toFloat(),
+                        bloomPx = bloomPx,
+                    )
+                    val radius = layout.radius
+                    val centers = layout.centers
                 val targets = listOf(
                     ReadinessAdjustTarget.MUSCULAR,
                     ReadinessAdjustTarget.ENERGY,
@@ -398,6 +401,7 @@ private fun InterlacedRingsBlock(
                         )
                     }
                 }
+            }
             }
         }
 

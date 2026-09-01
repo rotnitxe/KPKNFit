@@ -41,20 +41,30 @@ fun resolveWorkoutBackAction(flags: WorkoutOverlayFlags): WorkoutBackAction = wh
 
 const val DOCK_ROADMAP_GAP_DP = 8
 
-/** Fallback dock clearance when roadmap height has not been measured yet. */
+/** Fallback dock clearance: compact uses the cockpit token at scale 1; expanded is the sheet. */
 fun dockBottomClearanceDp(roadmapExpanded: Boolean): Int =
-    if (roadmapExpanded) 210 else 118
+    if (roadmapExpanded) {
+        210
+    } else {
+        com.example.kpkn.screens.workout.components.WorkoutUiTokens
+            .liveCockpitCompactHeight(1f).value.toInt()
+    }
 
 /**
- * Prefer measured roadmap height (+ gap) so the dock clears the live bar;
- * fall back to mode constants before first layout.
+ * Compact cockpit height is a token (never the volatile overlay measurement).
+ * Expanded sheet may use a measured height; otherwise the expanded constant.
  */
 fun resolveDockBottomClearanceDp(
     measuredRoadmapHeightDp: Int?,
     roadmapExpanded: Boolean,
     gapDp: Int = DOCK_ROADMAP_GAP_DP,
+    compactHeightDp: Int? = null,
 ): Int {
-    val measured = measuredRoadmapHeightDp?.takeIf { it > 0 } ?: return dockBottomClearanceDp(roadmapExpanded)
+    if (!roadmapExpanded) {
+        val compact = compactHeightDp?.takeIf { it > 0 } ?: dockBottomClearanceDp(false)
+        return compact + gapDp
+    }
+    val measured = measuredRoadmapHeightDp?.takeIf { it > 0 } ?: return dockBottomClearanceDp(true)
     return measured + gapDp
 }
 

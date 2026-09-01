@@ -11,9 +11,9 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
@@ -53,12 +53,14 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.SubcomposeLayout
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -71,6 +73,7 @@ import androidx.compose.ui.unit.Constraints
 import com.example.kpkn.data.models.WarmupSetDefinition
 import com.example.kpkn.screens.sessioneditor.contentOn
 import com.example.kpkn.screens.workout.toTrimmedNumberString
+import com.example.kpkn.ui.adapt.LiveViewportPolicyMath
 import kotlin.math.roundToInt
 
 /**
@@ -99,17 +102,19 @@ internal fun MobilityPhaseLiveCard(
     recordFabHolder: RecordFabHolder? = null,
     isActivePage: Boolean = false,
 ) {
-    val allDone = items.isNotEmpty() && items.all { it.stepKey in completedStepKeys }
     val showExerciseBadge = items.map { it.exerciseId }.distinct().size > 1
     val showInlineRest = inlineRestRemainingSeconds != null && (inlineRestTotalSeconds ?: 0) > 0
-    val targetItem = items.firstOrNull { it.stepKey !in completedStepKeys } ?: items.lastOrNull()
     DisposableEffect(isActivePage, items, completedStepKeys) {
         if (isActivePage && recordActionHolder != null) {
-            recordActionHolder.action = action@{
-                val item = items.firstOrNull { it.stepKey !in completedStepKeys } ?: return@action
-                onToggleComplete(item, true)
+            recordActionHolder.action = {
+                val item = items.firstOrNull { it.stepKey !in completedStepKeys }
+                runPrepLiveCardFabAction(
+                    hasIncomplete = item != null,
+                    completeNext = { item?.let { onToggleComplete(it, true) } },
+                    advance = onContinue,
+                )
             }
-            recordFabHolder?.isUpdateMode = targetItem?.stepKey in completedStepKeys
+            recordFabHolder?.isUpdateMode = false
         }
         onDispose {
             if (isActivePage) {
@@ -144,13 +149,7 @@ internal fun MobilityPhaseLiveCard(
                     onSkip = onSkipInlineRest ?: {},
                 )
             } else {
-                PrepPhaseActionBar(
-                    allDone = allDone || items.isEmpty(),
-                    continueLabel = "Continuar",
-                    sessionAccentColor = sessionAccentColor,
-                    onSkip = onSkip,
-                    onContinue = onContinue,
-                )
+                PrepPhaseSkipBar(onSkip = onSkip)
             }
         },
     ) {
@@ -193,18 +192,25 @@ internal fun WarmupPhaseLiveCard(
     recordActionHolder: RecordActionHolder? = null,
     recordFabHolder: RecordFabHolder? = null,
     isActivePage: Boolean = false,
+    onWeightDraft: ((row: WarmupPhaseRow, text: String) -> Unit)? = null,
 ) {
-    val allDone = rows.isNotEmpty() && rows.all { it.isCompleted }
     val showInlineRest = inlineRestRemainingSeconds != null && (inlineRestTotalSeconds ?: 0) > 0
-    val targetRow = rows.firstOrNull { !it.isCompleted } ?: rows.lastOrNull()
     DisposableEffect(isActivePage, rows) {
         if (isActivePage && recordActionHolder != null) {
-            recordActionHolder.action = action@{
-                val row = rows.firstOrNull { !it.isCompleted } ?: return@action
-                val kg = row.actualWeightKg ?: row.suggestedWeightKg ?: 0.0
-                onToggleComplete(row, true, kg)
+            recordActionHolder.action = {
+                val row = rows.firstOrNull { !it.isCompleted }
+                runPrepLiveCardFabAction(
+                    hasIncomplete = row != null,
+                    completeNext = {
+                        row?.let {
+                            val kg = it.actualWeightKg ?: it.suggestedWeightKg ?: 0.0
+                            onToggleComplete(it, true, kg)
+                        }
+                    },
+                    advance = onContinue,
+                )
             }
-            recordFabHolder?.isUpdateMode = targetRow?.isCompleted == true
+            recordFabHolder?.isUpdateMode = false
         }
         onDispose {
             if (isActivePage) {
@@ -250,13 +256,7 @@ internal fun WarmupPhaseLiveCard(
                             )
                         }
                     }
-                    PrepPhaseActionBar(
-                        allDone = allDone || rows.isEmpty(),
-                        continueLabel = "Comenzar 1ª serie",
-                        sessionAccentColor = sessionAccentColor,
-                        onSkip = onSkip,
-                        onContinue = onContinue,
-                    )
+                    PrepPhaseSkipBar(onSkip = onSkip)
                 }
             }
         },
@@ -279,6 +279,7 @@ internal fun WarmupPhaseLiveCard(
                 isCompleted = row.isCompleted,
                 accent = sessionAccentColor,
                 onToggle = { completed, kg -> onToggleComplete(row, completed, kg) },
+                onWeightDraft = onWeightDraft?.let { callback -> { text -> callback(row, text) } },
             )
         }
     }
@@ -309,6 +310,8 @@ internal data class WarmupPhaseRow(
 internal fun LivePagerCardFrame(
     modifier: Modifier = Modifier,
     allowContentExpansion: Boolean = false,
+    lockToWorkingSetHeight: Boolean = false,
+    publishWorkingSetHeight: Boolean = false,
     godModeActive: Boolean = false,
     content: @Composable BoxScope.() -> Unit,
 ) {
@@ -343,11 +346,18 @@ internal fun LivePagerCardFrame(
     }
 
     val scale = WorkoutUiTokens.effectiveLivePagerCardScale()
-    val slotHeight = WorkoutUiTokens.effectiveLivePagerSlotHeight()
-    val baseHeight = WorkoutUiTokens.LivePagerBaseHeight
-    val topNudge = slotHeight * WorkoutUiTokens.LivePagerCardTopNudgeFraction
+    val policy = LocalLiveViewportPolicy.current
+    val scaleX = LiveViewportPolicyMath.livePagerScaleX(
+        scale * WorkoutUiTokens.LivePagerCardWidthSlimFactor,
+        policy.cardPageFillX,
+    )
+    val scaleY = scale * WorkoutUiTokens.LivePagerCardHeightGrowFactor
+    val slotHeight = WorkoutUiTokens.effectiveLivePagerStableHeight()
+    val baseHeight = WorkoutUiTokens.LivePagerNormalExpandedBaseHeight
+    val topNudgeFraction = policy.topNudgeFraction
+    val topNudge = slotHeight * topNudgeFraction + WorkoutUiTokens.LivePagerRelatorClearance
     if (!allowContentExpansion) {
-        val widthFraction = if (scale >= 1f) (1f / scale).coerceIn(0.01f, 1f) else 1f
+        val widthFraction = if (scaleX >= 1f) (1f / scaleX).coerceIn(0.01f, 1f) else 1f
         Box(
             modifier = modifier
                 .fillMaxWidth()
@@ -359,33 +369,73 @@ internal fun LivePagerCardFrame(
                     .padding(top = topNudge)
                     .fillMaxWidth(widthFraction)
                     .height(baseHeight)
-                    .scale(scale),
+                    .then(
+                        if (kotlin.math.abs(scaleX - scaleY) < 0.001f) {
+                            Modifier.scale(scaleX)
+                        } else {
+                            Modifier.graphicsLayer {
+                                this.scaleX = scaleX
+                                this.scaleY = scaleY
+                                transformOrigin = TransformOrigin(0.5f, 0f)
+                            }
+                        },
+                    ),
                 content = content,
             )
         }
         return
     }
 
+    val density = LocalDensity.current
+    val workingSetHeightHolder = LocalLivePagerWorkingSetVisualHeightPx.current
+    val workingSetHeightPx = workingSetHeightHolder?.intValue ?: 0
+    val lockHeightPx = if (lockToWorkingSetHeight) workingSetHeightPx else 0
     SubcomposeLayout(modifier = modifier.fillMaxWidth().wrapContentHeight()) { constraints ->
         val maxChildWidth = if (constraints.hasBoundedWidth) {
-            if (scale >= 1f) {
-                (constraints.maxWidth / scale).roundToInt().coerceAtLeast(0)
+            if (scaleX >= 1f) {
+                (constraints.maxWidth / scaleX).roundToInt().coerceAtLeast(0)
             } else {
                 constraints.maxWidth
             }
         } else {
             Constraints.Infinity
         }
-        val minChildWidth = if (scale >= 1f) {
-            (constraints.minWidth / scale).roundToInt().coerceAtLeast(0)
+        val minChildWidth = if (scaleX >= 1f) {
+            (constraints.minWidth / scaleX).roundToInt().coerceAtLeast(0)
         } else {
             0
         }
+        val childMaxHeight = if (lockHeightPx > 0) {
+            lockHeightPx
+        } else {
+            Constraints.Infinity
+        }
+        val childMinHeight = if (lockHeightPx > 0) lockHeightPx else 0
         val placeable = subcompose("expandable_live_pager_card") {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight(),
+                    .then(
+                        if (lockHeightPx > 0) {
+                            Modifier
+                                .height(with(density) { lockHeightPx.toDp() })
+                                .clipToBounds()
+                        } else {
+                            Modifier.wrapContentHeight()
+                        },
+                    )
+                    .then(
+                        if (publishWorkingSetHeight) {
+                            Modifier.onSizeChanged { size ->
+                                publishLivePagerWorkingSetVisualHeight(
+                                    workingSetHeightHolder,
+                                    size.height,
+                                )
+                            }
+                        } else {
+                            Modifier
+                        },
+                    ),
                 contentAlignment = Alignment.TopCenter,
                 content = content,
             )
@@ -393,18 +443,20 @@ internal fun LivePagerCardFrame(
             Constraints(
                 minWidth = minChildWidth.coerceAtMost(maxChildWidth),
                 maxWidth = maxChildWidth,
-                minHeight = 0,
-                maxHeight = Constraints.Infinity,
+                minHeight = childMinHeight,
+                maxHeight = childMaxHeight,
             ),
         )
-        val scaledWidth = (placeable.width * scale).roundToInt()
+        val scaledWidth = (placeable.width * scaleX).roundToInt()
         val layoutWidth = if (constraints.hasBoundedWidth) {
             constraints.maxWidth
         } else {
             scaledWidth
         }
-        val scaledHeight = (placeable.height * scale).roundToInt()
-        val topNudgePx = (scaledHeight * WorkoutUiTokens.LivePagerCardTopNudgeFraction).roundToInt()
+        val unscaledHeight = if (lockHeightPx > 0) lockHeightPx else placeable.height
+        val scaledHeight = (unscaledHeight * scaleY).roundToInt()
+        val topNudgePx = (scaledHeight * topNudgeFraction).roundToInt() +
+            WorkoutUiTokens.LivePagerRelatorClearance.roundToPx()
         val layoutHeight = scaledHeight + topNudgePx
 
         layout(layoutWidth, layoutHeight) {
@@ -412,10 +464,10 @@ internal fun LivePagerCardFrame(
                 x = ((layoutWidth - scaledWidth) / 2f).roundToInt(),
                 y = topNudgePx,
             ) {
-                scaleX = scale
-                scaleY = scale
+                this.scaleX = scaleX
+                this.scaleY = scaleY
                 transformOrigin = TransformOrigin(0f, 0f)
-                clip = false
+                clip = lockToWorkingSetHeight
             }
         }
     }
@@ -432,16 +484,11 @@ private fun PrepChecklistShell(
     footer: @Composable () -> Unit,
     content: @Composable () -> Unit,
 ) {
-    val workingSetVisualHeightPx = LocalLivePagerWorkingSetVisualHeightPx.current?.intValue ?: 0
-    val density = LocalDensity.current
-    val floorHeightPx = with(density) { WorkoutUiTokens.LivePagerBaseHeight.roundToPx() }
-    val targetHeightPx = resolveLivePagerPrepCardHeightPx(workingSetVisualHeightPx, floorHeightPx)
-    val targetHeightDp = with(density) { targetHeightPx.toDp() }
     val bodyScrollState = rememberScrollState()
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .height(targetHeightDp),
+            .fillMaxHeight(),
         shape = WorkoutUiTokens.CardShape,
         color = WorkoutUiTokens.setCardColor(),
         tonalElevation = 0.dp,
@@ -450,8 +497,7 @@ private fun PrepChecklistShell(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
+                .fillMaxSize()
                 .padding(horizontal = 12.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
@@ -547,6 +593,7 @@ private fun WarmupChecklistLine(
     isCompleted: Boolean,
     accent: Color,
     onToggle: (completed: Boolean, weightKg: Double) -> Unit,
+    onWeightDraft: ((String) -> Unit)? = null,
 ) {
     var textValue by remember(title, actualWeightKg, suggestedWeightKg) {
         val initial = actualWeightKg ?: suggestedWeightKg
@@ -604,7 +651,10 @@ private fun WarmupChecklistLine(
             ) {
                 BasicTextField(
                     value = textValue,
-                    onValueChange = { textValue = it },
+                    onValueChange = {
+                        textValue = it
+                        onWeightDraft?.invoke(it)
+                    },
                     textStyle = TextStyle(
                         color = Color.White,
                         fontSize = 14.sp,
@@ -747,50 +797,23 @@ private fun PrepInlineRestBar(
 }
 
 @Composable
-internal fun PrepPhaseActionBar(
-    allDone: Boolean,
-    continueLabel: String,
-    sessionAccentColor: Color,
+internal fun PrepPhaseSkipBar(
     onSkip: () -> Unit,
-    onContinue: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    Button(
+        onClick = onSkip,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(40.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color(0xFF1B232E).copy(alpha = 0.90f),
+            contentColor = Color.White,
+        ),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.16f)),
     ) {
-        Button(
-            onClick = onSkip,
-            modifier = Modifier.weight(1f).height(40.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1B232E).copy(alpha = 0.90f),
-                contentColor = Color.White,
-            ),
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.16f)),
-        ) {
-            Text("Omitir", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-        }
-        Button(
-            onClick = onContinue,
-            enabled = allDone,
-            modifier = Modifier.weight(1.35f).height(40.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = sessionAccentColor,
-                contentColor = contentOn(sessionAccentColor),
-                disabledContainerColor = Color(0xFF151B24).copy(alpha = 0.85f),
-                disabledContentColor = Color.White.copy(alpha = 0.38f),
-            ),
-        ) {
-            Text(
-                if (allDone) continueLabel else "Completa los pasos",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Black,
-                maxLines = 1,
-            )
-        }
+        Text("Omitir", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
     }
 }
 

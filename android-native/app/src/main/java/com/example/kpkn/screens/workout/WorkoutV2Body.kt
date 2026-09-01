@@ -2,7 +2,6 @@ package com.example.kpkn.screens.workout
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.expandHorizontally
@@ -35,6 +34,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -54,7 +55,9 @@ import com.example.kpkn.domain.exercises.exerciseDisplayParts
 import com.example.kpkn.screens.workout.components.LocalLivePagerAdaptScale
 import com.example.kpkn.screens.workout.components.LocalLivePagerShouldReflow
 import com.example.kpkn.screens.workout.components.LocalLivePagerWorkingSetVisualHeightPx
+import com.example.kpkn.screens.workout.components.LocalLiveViewportPolicy
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
+import com.example.kpkn.ui.adapt.LiveViewportPolicyMath
 import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.WorkoutMobilityChecklistItem
 import com.example.kpkn.screens.workout.components.WorkoutWarmupDisplaySet
@@ -184,6 +187,13 @@ internal fun WorkoutV2Body(
     var pendingTechnique by remember {
         mutableStateOf<Pair<com.example.kpkn.domain.sessionassistant.SeriesTechnique, Pair<String, Int>>?>(null)
     }
+    var settledRelatorPhase by remember { mutableStateOf<RelatorPhase?>(null) }
+    var warmupWeightDrafts by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+
+    LaunchedEffect(currentExercise?.id) {
+        warmupWeightDrafts = emptyMap()
+        settledRelatorPhase = null
+    }
 
     LaunchedEffect(currentExercise?.id, uiState.currentSetIdx) {
         recordActionHolder.action = null
@@ -210,7 +220,48 @@ internal fun WorkoutV2Body(
             uiState.readinessAdjustments["${ex.id}_${uiState.currentSetIdx}"]
         }
         val sessionTimeRemainingSeconds by viewModel.sessionTimeRemainingSeconds.collectAsStateWithLifecycle()
+        val relatorSnapshot = rememberLiveRelatorSnapshot(
+            uiState = uiState,
+            viewModel = viewModel,
+            currentExercise = currentExercise,
+            currentSet = currentSet,
+            visibleExercises = visibleExercises,
+            headerExerciseName = headerExerciseName,
+            catalogV2 = catalogV2,
+            gender = settings.userVitals.gender,
+            activeSide = activeSide,
+            showingPostExerciseCard = showingPostExerciseCard,
+            isMobilityActive = isMobilityActive,
+            isWarmupActive = isWarmupActive,
+            workingRestActive = workingRestActive,
+            settledRelatorPhase = settledRelatorPhase,
+            warmupWeightDrafts = warmupWeightDrafts,
+            sessionTimeRemainingSeconds = sessionTimeRemainingSeconds,
+        )
+        val relatorResolution = rememberLiveRelatorLine(relatorSnapshot)
+        val density = LocalDensity.current
+        var headerHeightPx by remember { mutableIntStateOf(0) }
+        val windowAdaptForRelator = LocalViewportAdapt.current
+        val relatorBandHeight = remember(
+            windowAdaptForRelator.widthDp,
+            windowAdaptForRelator.heightDp,
+            windowAdaptForRelator.uniformScale,
+        ) {
+            val policy = LiveViewportPolicyMath.compute(
+                widthDp = windowAdaptForRelator.widthDp,
+                heightDp = windowAdaptForRelator.heightDp,
+            )
+            WorkoutUiTokens.liveRelatorBandHeight(
+                topNudgeFraction = policy.topNudgeFraction,
+                uniformScale = windowAdaptForRelator.uniformScale,
+            )
+        }
         Column(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .onSizeChanged { headerHeightPx = it.height }
+                    .zIndex(8f),
+            ) {
             WorkoutHeaderBar(
                 exerciseName = headerExerciseName,
                 exerciseChips = headerExerciseChips,
@@ -282,6 +333,7 @@ internal fun WorkoutV2Body(
                 onCreateSupersetClick = onCreateSuperset,
                 bodyHazeState = cardsHazeState,
             )
+            }
             Spacer(Modifier.height(0.dp))
             BoxWithConstraints(
                 modifier = Modifier
@@ -289,26 +341,30 @@ internal fun WorkoutV2Body(
                     .fillMaxWidth(),
             ) {
                 val effectiveAvailableHeight = maxHeight
-                val windowScale = LocalViewportAdapt.current.uniformScale
+                val windowAdapt = LocalViewportAdapt.current
+                // Window scale only — pager-hole / dock / readiness sheet must not
+                // reshape the card. No animation: that tween was the post-readiness squash.
+                val liveAdaptScale = windowAdapt.uniformScale
                 val pagerAdapt = WorkoutUiTokens.livePagerViewportAdapt(
                     availableWidth = maxWidth,
                     availableHeight = effectiveAvailableHeight,
                     godModeActive = false,
                 )
-                val targetLiveAdaptScale = minOf(windowScale, pagerAdapt.uniformScale)
-                val liveAdaptScale by androidx.compose.animation.core.animateFloatAsState(
-                    targetValue = targetLiveAdaptScale,
-                    animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
-                    label = "liveAdaptScale",
+                val liveViewportPolicy = LiveViewportPolicyMath.compute(
+                    widthDp = windowAdapt.widthDp,
+                    heightDp = windowAdapt.heightDp,
+                    godModeActive = false,
+                ).copy(
+                    // 22:9 leftover must not stretch Y or refill X after the slim.
+                    cardHeightMul = 1f,
+                    cardPageFillX = 0f,
                 )
                 val workingSetVisualHeightPx = remember { mutableIntStateOf(0) }
-                LaunchedEffect(currentExercise?.id) {
-                    workingSetVisualHeightPx.intValue = 0
-                }
                 CompositionLocalProvider(
                     LocalLivePagerAdaptScale provides liveAdaptScale,
                     LocalLivePagerShouldReflow provides pagerAdapt.shouldReflow,
                     LocalLivePagerWorkingSetVisualHeightPx provides workingSetVisualHeightPx,
+                    LocalLiveViewportPolicy provides liveViewportPolicy,
                 ) {
                     Column(
                         modifier = Modifier
@@ -774,6 +830,7 @@ internal fun WorkoutV2Body(
 
                         SideEffect {
                             val settledPage = setPagerPages.getOrNull(pagerState.settledPage)
+                            settledRelatorPhase = settledPage?.type.toRelatorPhase()
                             recordFabHolder.visible = shouldShowWorkoutRecordFab(
                                 pageType = settledPage?.type,
                                 showingPostExerciseCard = showingPostExerciseCard,
@@ -1349,18 +1406,14 @@ internal fun WorkoutV2Body(
                         val availableWidth = maxWidth
                         val cardScale = WorkoutUiTokens.effectiveLivePagerCardScale()
                         val shouldReflow = LocalLivePagerShouldReflow.current
-                        val basePeekFraction = when {
-                            shouldReflow -> 0.26f
-                            availableWidth < 420.dp -> 0.22f
-                            else -> 0.20f
-                        }
-                        // Widen each page by the shared card scale while keeping
-                        // the final card inside the viewport and the peeks
-                        // symmetric. pageWidth' = scale * pageWidth.
-                        val peekFraction = (
-                            basePeekFraction * cardScale -
-                                (cardScale - 1f) / 2f
-                            ).coerceIn(0.14f, 0.26f)
+                        val livePolicy = LocalLiveViewportPolicy.current
+                        val peekFraction = LiveViewportPolicyMath.livePagerPeekFraction(
+                            availableWidthDp = availableWidth.value,
+                            cardScale = cardScale * WorkoutUiTokens.LivePagerCardWidthSlimFactor,
+                            shouldReflow = shouldReflow,
+                            cardWidthMul = livePolicy.cardWidthMul,
+                            minPeekFraction = livePolicy.minPeekFraction,
+                        )
                         val peekPadding = availableWidth * peekFraction
                         val edgeFadeWidth = WorkoutUiTokens.LivePagerEdgeFadeWidth
                         Box(
@@ -1399,6 +1452,7 @@ internal fun WorkoutV2Body(
                                         }
                                     },
                             contentPadding = PaddingValues(horizontal = peekPadding),
+                            verticalAlignment = Alignment.Top,
                             // Keep the side peeks symmetric, with a small extra
                             // breathing gap between cards (~20% over the old 12.dp).
                             pageSpacing = 14.dp,
@@ -1436,15 +1490,15 @@ internal fun WorkoutV2Body(
                                         },
                                 ) {
                         com.example.kpkn.screens.workout.components.LivePagerCardFrame(
-                            allowContentExpansion = pageSpec.type == LivePageType.NORMAL ||
-                                pageSpec.type == LivePageType.MOBILITY ||
-                                pageSpec.type == LivePageType.WARMUP,
+                            allowContentExpansion = livePagerCardAllowsContentExpansion(pageSpec.type),
+                            lockToWorkingSetHeight = livePagerCardLocksToWorkingSetHeight(pageSpec.type),
+                            publishWorkingSetHeight = pageSpec.type == LivePageType.NORMAL,
                             godModeActive = false,
                         ) {
                         val pageExercise = pageSpec.exerciseId?.let { id -> visibleExercises.firstOrNull { it.id == id } } ?: currentExercise
                         val isActivePage = page == pagerState.settledPage
-                        Box(modifier = Modifier.fillMaxWidth()) {
-                        Box(modifier = Modifier.fillMaxWidth()) {
+                        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
+                        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
                         when (pageSpec.type) {
                             LivePageType.MOBILITY -> {
                                 val mobilityItems = prepMobilityMembers.flatMap { member ->
@@ -1517,7 +1571,7 @@ internal fun WorkoutV2Body(
                                     recordActionHolder = recordActionHolder,
                                     recordFabHolder = recordFabHolder,
                                     isActivePage = isActivePage,
-                                    modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                                    modifier = Modifier.fillMaxWidth().fillMaxHeight(),
                                 )
                             }
                             LivePageType.WARMUP -> {
@@ -1601,7 +1655,11 @@ internal fun WorkoutV2Body(
                                     recordActionHolder = recordActionHolder,
                                     recordFabHolder = recordFabHolder,
                                     isActivePage = isActivePage,
-                                    modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                                    onWeightDraft = { row, text ->
+                                        val key = "${row.exerciseId}_${row.warmup.id}"
+                                        warmupWeightDrafts = warmupWeightDrafts + (key to text)
+                                    },
+                                    modifier = Modifier.fillMaxWidth().fillMaxHeight(),
                                 )
                             }
                             LivePageType.CARDIO -> {
@@ -1635,7 +1693,7 @@ internal fun WorkoutV2Body(
                                 )
                             }
                             LivePageType.REST -> {
-                                if (!uiState.isRestMinimized) {
+                                if (shouldRenderRestLiveCard(uiState.isRestMinimized)) {
                                 val restState = uiState.restModalState
                                 val total = (restState?.activeSeconds ?: restState?.plannedSeconds ?: 90).coerceAtLeast(1)
                                 com.example.kpkn.screens.workout.components.RestLiveCard(
@@ -1651,7 +1709,7 @@ internal fun WorkoutV2Body(
                                     onSkip = { viewModel.stopRestTimer() },
                                     onUseAdaptive = { viewModel.resolvePendingRestSuggestion(useAdaptive = true) },
                                     onExpand = { viewModel.toggleRestMinimized() },
-                                    modifier = Modifier.fillMaxSize(),
+                                    modifier = Modifier.fillMaxWidth().fillMaxHeight(),
                                 )
                                 }
                             }
@@ -1761,6 +1819,14 @@ internal fun WorkoutV2Body(
                                     ghostSet = activeGhostSet,
                                     sessionCompletedSet = sessionCompletedSet,
                                     weightSuggestion = activeWeightSuggestion,
+                                    previousSessionFirstSetWeight = if (isActivePage) {
+                                        viewModel.getPreviousSessionFirstSetWeight(
+                                            targetExercise,
+                                            uiState.exerciseTags[targetExercise.id],
+                                        )
+                                    } else {
+                                        null
+                                    },
                                     sessionAccentColor = sessionAccentColor,
                                     persistedLoadModeBySet = uiState.persistedLoadModeBySet,
                                     persistedLoadModeByExercise = uiState.persistedLoadModeByExercise,
@@ -1917,6 +1983,22 @@ internal fun WorkoutV2Body(
             } // BoxWithConstraints body
         } // header + body Column
 
+        if (!relatorResolution.text.isNullOrBlank() && headerHeightPx > 0) {
+            WorkoutLiveRelatorLine(
+                text = relatorResolution.text,
+                phaseKey = relatorResolution.phaseKey,
+                actions = relatorResolution.actions,
+                onAction = { viewModel.performRelatorAssist(it) },
+                accentColor = sessionAccentColor,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .height(relatorBandHeight)
+                    .offset(y = with(density) { headerHeightPx.toDp() })
+                    .zIndex(12f),
+            )
+        }
+
     pendingDeleteSet?.let { (exerciseId, setIndex) ->
         KpknAlertDialog(
             onDismissRequest = { pendingDeleteSet = null },
@@ -2039,6 +2121,14 @@ internal fun WorkoutV2Body(
 
 
 internal enum class LivePageType { CARDIO, NORMAL, WARMUP, MOBILITY, REST }
+
+private fun LivePageType?.toRelatorPhase(): RelatorPhase = when (this) {
+    LivePageType.MOBILITY -> RelatorPhase.MOBILITY
+    LivePageType.WARMUP -> RelatorPhase.WARMUP
+    LivePageType.REST -> RelatorPhase.REST
+    LivePageType.NORMAL -> RelatorPhase.WORKING
+    LivePageType.CARDIO, null -> RelatorPhase.HIDDEN
+}
 
 internal data class WorkoutSetSwipePage(
     val type: LivePageType,

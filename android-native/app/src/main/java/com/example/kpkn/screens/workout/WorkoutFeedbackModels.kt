@@ -45,6 +45,7 @@ data class SetAdvancedFeedback(
     val timerTargetSeconds: Int? = null,
     val rom: Int? = null,
     val assistedReps: Int? = null,
+    val notes: String? = null,
 )
 
 internal fun resolveAmrapActive(
@@ -275,6 +276,7 @@ fun applyAdvancedFeedback(
         actualIntensityValue = advanced.actualIntensityValue ?: base.actualIntensityValue,
         rom = advanced.rom,
         assistedReps = advanced.assistedReps,
+        notes = advanced.notes ?: base.notes,
     )
 }
 

@@ -205,8 +205,8 @@ fun SeriesTypeSheet(
             Text(
                 text = when (selectedTechnique) {
                     SeriesTechnique.NORMAL -> "Serie estándar."
-                    SeriesTechnique.DROPSET -> "Doble bajada de peso (85% y 70%), buscando 3 reps al fallo en cada bajada."
-                    SeriesTechnique.REST_PAUSE -> "2 mini-bloques: 15s + reps (50% y 33% de reps planeadas)."
+                    SeriesTechnique.DROPSET -> "Tras la serie, baja unos 5 kg para poder hacer 3 reps más. La carga sigue siendo similar; no es un dump de peso."
+                    SeriesTechnique.REST_PAUSE -> "Mismo peso. Pausa de 15 s y luego 3 reps. El descanso corto limita el rango, no la carga."
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White.copy(alpha = 0.62f),

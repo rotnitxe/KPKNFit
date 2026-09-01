@@ -9,16 +9,20 @@ import org.junit.Test
 class IntensityCarouselLogicTest {
 
     @Test
-    fun rirCarousel_endsWithFailure_withoutRpe() {
+    fun rirCarousel_failureComesAfterZero_notBesideTen() {
         val items = buildIntensityCarouselItems(
             plannedIntensityMode = IntensityMode.RIR,
             reportedIntensityMode = IntensityMode.RIR,
             targetRir = 2,
             targetRpe = 8.0,
         )
-        assertEquals("0", items.first().display)
-        assertEquals("10", items[items.lastIndex - 1].display)
-        assertTrue(items.last().isFailure)
+        val zeroIndex = items.indexOfFirst { it.mode == IntensityMode.RIR && it.numericValue == 0.0 }
+        val tenIndex = items.indexOfFirst { it.mode == IntensityMode.RIR && it.numericValue == 10.0 }
+        val failureIndex = items.indexOfFirst { it.isFailure }
+        assertEquals("10", items.first().display)
+        assertEquals(items.lastIndex, failureIndex)
+        assertEquals(failureIndex - 1, zeroIndex)
+        assertTrue(kotlin.math.abs(failureIndex - tenIndex) > 1)
         assertFalse(items.any { it.mode == IntensityMode.RPE })
     }
 

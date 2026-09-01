@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
@@ -56,7 +57,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.exercises.displayNameWithSelectedChips
-import com.example.kpkn.screens.sessioneditor.RoadmapCeleste
 import com.example.kpkn.screens.sessioneditor.contentOn
 import com.example.kpkn.screens.sessioneditor.isEditorUncategorized
 import com.example.kpkn.screens.sessioneditor.resolvePartAccent
@@ -166,15 +166,19 @@ fun WorkoutRoadmapBar(
     val dragThresholdPx = with(density) { 12.dp.toPx() }
     val dragStridePx = with(density) { 96.dp.toPx() }
 
-    val accentByPartId = remember(parts) {
+    val accentByPartId = remember(parts, sessionAccentColor) {
         parts.associate { part ->
-            part.id to roadmapAccentForPart(part)
+            part.id to roadmapAccentForPart(part, sessionAccentColor)
         }
     }
 
     val listState = rememberLazyListState(
         initialFirstVisibleItemIndex = (currentIdx - 1).coerceAtLeast(0)
     )
+    val chromeScale = LocalViewportAdapt.current.uniformScale
+    val carouselCardHeight = WorkoutUiTokens.liveRoadmapCarouselCardHeight(chromeScale)
+    val compactCockpitHeight = WorkoutUiTokens.liveCockpitCompactHeight(chromeScale)
+    val stepperSlotHeight = WorkoutUiTokens.liveCockpitStepperHeight(chromeScale)
 
     // The group table is authoritative for sessions loaded from older JSON:
     // some of those records have a valid SupersetGroup.exerciseOrder but one
@@ -227,13 +231,30 @@ fun WorkoutRoadmapBar(
         }
     }
 
-    LaunchedEffect(currentIdx, roadmapEntries.size) {
-        val currentExerciseId = exercises.getOrNull(currentIdx)?.id
+    LaunchedEffect(currentIdx) {
+        val currentExerciseId = exercises.getOrNull(currentIdx)?.id ?: return@LaunchedEffect
         val currentEntryIdx = roadmapEntries.indexOfFirst { entry ->
             entry is RoadmapEntry.Group && entry.group.exercises.any { it.id == currentExerciseId }
         }
-        if (currentEntryIdx >= 0) {
-            listState.scrollToItem((currentEntryIdx - 1).coerceAtLeast(0))
+        if (currentEntryIdx < 0) return@LaunchedEffect
+        val info = listState.layoutInfo
+        val viewport = info.viewportEndOffset - info.viewportStartOffset
+        val visible = info.visibleItemsInfo.firstOrNull { it.index == currentEntryIdx }
+        if (visible != null) {
+            val delta = lazyItemDeltaToCenterPx(visible.offset, visible.size, viewport)
+            if (kotlin.math.abs(delta) > 8) {
+                listState.animateScrollBy(delta.toFloat())
+            }
+            return@LaunchedEffect
+        }
+        listState.scrollToItem(currentEntryIdx)
+        val after = listState.layoutInfo
+        val afterViewport = after.viewportEndOffset - after.viewportStartOffset
+        val afterItem = after.visibleItemsInfo.firstOrNull { it.index == currentEntryIdx }
+            ?: return@LaunchedEffect
+        val delta = lazyItemDeltaToCenterPx(afterItem.offset, afterItem.size, afterViewport)
+        if (kotlin.math.abs(delta) > 8) {
+            listState.animateScrollBy(delta.toFloat())
         }
     }
 
@@ -277,6 +298,13 @@ fun WorkoutRoadmapBar(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .then(
+                        if (activeMode == RoadmapMode.COMPACT) {
+                            Modifier.height(compactCockpitHeight).clipToBounds()
+                        } else {
+                            Modifier.wrapContentHeight()
+                        }
+                    ),
             ) {
             // Drag handle to toggle Compact vs Expanded mode
             Box(
@@ -359,8 +387,11 @@ fun WorkoutRoadmapBar(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 4.dp, bottom = 12.dp)
-                        .heightIn(min = 48.dp),
+                        .padding(
+                            top = WorkoutUiTokens.LiveCockpitStepperSlotTopPadding,
+                            bottom = WorkoutUiTokens.LiveCockpitStepperSlotBottomPadding,
+                        )
+                        .height(stepperSlotHeight),
                 ) {
                     AnimatedContent(
                         targetState = selectionMode,
@@ -400,7 +431,8 @@ fun WorkoutRoadmapBar(
                 userScrollEnabled = draggingEntryIndex == null,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 12.dp)
+                    .padding(bottom = WorkoutUiTokens.LiveCockpitCarouselBottomPadding)
+                    .height(carouselCardHeight)
                     .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
                     .drawWithContent {
                         drawContent()
@@ -463,9 +495,8 @@ fun WorkoutRoadmapBar(
                             val part = parts.firstOrNull { it.exercises.any { e -> e.id == exercise.id } }
                             val isSuperset = group.groupId != null && group.exercises.size > 1
                             val accent = when {
-                                isSuperset -> RoadmapCeleste
-                                part != null -> accentByPartId[part.id] ?: RoadmapCeleste
-                                else -> RoadmapCeleste
+                                part != null -> accentByPartId[part.id] ?: sessionAccentColor
+                                else -> sessionAccentColor
                             }
                             val partName = normalizeWorkoutHeaderLabel(part?.name)
 
@@ -655,7 +686,7 @@ fun WorkoutRoadmapBar(
                                     omittedSetKeys = omittedSetKeys,
                                     isCurrent = isCurrent,
                                     isAllDone = isAllDone,
-                                    accent = RoadmapCeleste,
+                                    accent = accent,
                                     groupName = partName,
                                     currentExerciseId = exercises.getOrNull(currentIdx)?.id,
                                     currentRound = if (isCurrent) currentSetIdx + 1 else null,
@@ -755,10 +786,19 @@ fun WorkoutRoadmapBar(
     }
 }
 
-private fun roadmapAccentForPart(part: SessionPart): Color {
-    if (part.isEditorUncategorized()) return RoadmapCeleste
-    val colorId = part.color?.takeIf { it.isNotBlank() } ?: return RoadmapCeleste
+internal fun roadmapAccentForPart(part: SessionPart, coverAccent: Color): Color {
+    if (part.isEditorUncategorized()) return coverAccent
+    val colorId = part.color?.takeIf { it.isNotBlank() } ?: return coverAccent
     return resolvePartAccent(colorId).primary
+}
+
+internal fun lazyItemDeltaToCenterPx(
+    itemOffsetPx: Int,
+    itemSizePx: Int,
+    viewportSizePx: Int,
+): Int {
+    if (viewportSizePx <= 0 || itemSizePx <= 0) return 0
+    return (itemOffsetPx + itemSizePx / 2) - (viewportSizePx / 2)
 }
 
 private data class ExerciseRoadmapGroup(
@@ -820,7 +860,7 @@ private fun CardioRoadmapDivider() {
     Row(
         modifier = Modifier
             .width(82.dp * chromeScale)
-            .height(WorkoutUiTokens.GodModeRoadmapCardHeight * chromeScale),
+            .height(WorkoutUiTokens.liveRoadmapCarouselCardHeight(chromeScale)),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(5.dp),
     ) {
@@ -893,10 +933,11 @@ private fun CardioRoadmapCard(
         label = "cardioPickup",
     )
 
+    val chromeScale = LocalViewportAdapt.current.uniformScale
     Surface(
         modifier = Modifier
             .widthIn(min = 190.dp, max = 280.dp)
-            .height(WorkoutUiTokens.GodModeRoadmapCardHeight)
+            .height(WorkoutUiTokens.liveRoadmapCarouselCardHeight(chromeScale))
             .scale(pressScale)
             .combinedClickable(
                 interactionSource = interactionSource,
@@ -981,10 +1022,14 @@ private fun ExerciseRoadmapCard(
         else -> 88.dp
     } * chromeScale
     val maxWidth = (if (isMini) 138.dp else 220.dp) * chromeScale
-    val cardHeight = (if (isMini) 48.dp else WorkoutUiTokens.GodModeRoadmapCardHeight) * chromeScale
+    val cardHeight = if (isMini) {
+        WorkoutUiTokens.liveRoadmapCarouselMiniCardHeight(chromeScale)
+    } else {
+        WorkoutUiTokens.liveRoadmapCarouselCardHeight(chromeScale)
+    }
     val containerColor = when {
         isCurrent -> accent.copy(alpha = 0.86f)
-        isAllDone -> Color(0xFF66BB6A).copy(alpha = 0.30f)
+        isAllDone -> accent.copy(alpha = 0.30f)
         else -> accent.copy(alpha = 0.26f)
     }
     val contentColor = if (isCurrent) contentOn(containerColor) else MaterialTheme.colorScheme.onSurface
@@ -1042,7 +1087,7 @@ private fun ExerciseRoadmapCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = displayName,
-                    maxLines = if (isMini) 1 else 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.labelSmall.copy(
                         fontSize = if (isMini) 10.sp else MaterialTheme.typography.labelSmall.fontSize,
@@ -1102,9 +1147,9 @@ private fun SupersetRoadmapCard(
 ) {
     val safeRoundCount = roundCount.coerceAtLeast(1)
     val currentRoundIndex = ((currentRound ?: 1) - 1).coerceIn(0, safeRoundCount - 1)
-    val motherAccent = RoadmapCeleste
+    val motherAccent = accent
     val cardColor = when {
-        isAllDone -> Color(0xFF66BB6A).copy(alpha = 0.30f)
+        isAllDone -> accent.copy(alpha = 0.30f)
         isCurrent -> motherAccent.copy(alpha = 0.86f)
         else -> motherAccent.copy(alpha = 0.26f)
     }
@@ -1119,9 +1164,10 @@ private fun SupersetRoadmapCard(
         if (isPressed || pickedUp) 0.95f else 1.0f,
         label = "supersetPickup",
     )
+    val chromeScale = LocalViewportAdapt.current.uniformScale
     Box(
         modifier = Modifier
-            .height(WorkoutUiTokens.GodModeRoadmapCardHeight)
+            .height(WorkoutUiTokens.liveRoadmapCarouselCardHeight(chromeScale))
             .wrapContentWidth()
             .graphicsLayer { clip = false }
             .scale(pressScale)
@@ -1241,12 +1287,12 @@ private fun SupersetRoadmapCardLegacy(
 
     val containerColor = when {
         isCurrent -> accent.copy(alpha = 0.20f)
-        isAllDone -> Color(0xFF66BB6A).copy(alpha = 0.18f)
+        isAllDone -> accent.copy(alpha = 0.18f)
         else -> Color.White.copy(alpha = 0.08f)
     }
     val borderColor = when {
         isCurrent -> accent
-        isAllDone -> Color(0xFF66BB6A).copy(alpha = 0.62f)
+        isAllDone -> accent.copy(alpha = 0.62f)
         else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)
     }
 
@@ -1350,14 +1396,14 @@ private fun SupersetRoadmapCardLegacy(
                                 },
                             shape = RoundedCornerShape(999.dp),
                             color = when {
-                                roundDone -> Color(0xFF66BB6A)
+                                roundDone -> accent
                                 isRoundCurrent -> accent
                                 else -> Color.White.copy(alpha = 0.10f)
                             },
                             border = BorderStroke(
                                 width = if (isRoundCurrent || roundDone) 0.dp else 1.dp,
                                 color = when {
-                                    roundDone -> Color(0xFF66BB6A)
+                                    roundDone -> accent
                                     isRoundCurrent -> accent
                                     else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
                                 },
@@ -1416,7 +1462,7 @@ private fun SupersetRoadmapCardLegacy(
                                                     .clip(RoundedCornerShape(999.dp))
                                                     .background(
                                                         when {
-                                                            sideDone -> Color(0xFF66BB6A)
+                                                            sideDone -> accent
                                                             isSideCurrent -> accent
                                                             else -> Color.White.copy(alpha = 0.12f)
                                                         }
@@ -1424,7 +1470,7 @@ private fun SupersetRoadmapCardLegacy(
                                                     .border(
                                                         width = 1.dp,
                                                         color = when {
-                                                            sideDone -> Color(0xFF66BB6A)
+                                                            sideDone -> accent
                                                             isSideCurrent -> accent
                                                             else -> Color.White.copy(alpha = 0.35f)
                                                         },
@@ -1449,7 +1495,7 @@ private fun SupersetRoadmapCardLegacy(
                                                 .width(6.dp)
                                                 .height(1.dp)
                                                 .background(
-                                                    if (roundDone) Color(0xFF66BB6A).copy(alpha = 0.7f)
+                                                    if (roundDone) accent.copy(alpha = 0.7f)
                                                     else Color.White.copy(alpha = 0.3f)
                                                 ),
                                         )
@@ -1480,9 +1526,9 @@ private fun MuscleProgressCard(
     )
     val isCompleted = doneSets >= totalSets && totalSets > 0
 
-    val cardColor = if (isCompleted) Color(0xFF66BB6A).copy(alpha = 0.08f) else Color.White.copy(alpha = 0.06f)
-    val borderColor = if (isCompleted) Color(0xFF66BB6A).copy(alpha = 0.25f) else Color.White.copy(alpha = 0.06f)
-    val accentColor = if (isCompleted) Color(0xFF66BB6A) else sessionAccentColor
+    val cardColor = if (isCompleted) sessionAccentColor.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.06f)
+    val borderColor = if (isCompleted) sessionAccentColor.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.06f)
+    val accentColor = sessionAccentColor
 
     Surface(
         modifier = Modifier

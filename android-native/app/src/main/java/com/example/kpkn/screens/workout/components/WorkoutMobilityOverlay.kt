@@ -164,7 +164,7 @@ fun WorkoutMobilityOverlay(
 
                     Surface(
                         shape = RoundedCornerShape(999.dp),
-                        color = if (allDone) Color(0xFF66BB6A).copy(alpha = 0.18f) else Color.White.copy(alpha = 0.08f),
+                        color = if (allDone) sessionAccentColor.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.08f),
                     ) {
                         val completedCount = mobilityItems.count { it.stepKey in completedExerciseIds }
                         Text(
@@ -172,7 +172,7 @@ fun WorkoutMobilityOverlay(
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
                             fontWeight = FontWeight.Black,
-                            color = if (allDone) Color(0xFF66BB6A) else Color.White.copy(alpha = 0.80f),
+                            color = if (allDone) sessionAccentColor else Color.White.copy(alpha = 0.80f),
                         )
                     }
                 }
@@ -319,14 +319,14 @@ fun WorkoutMobilityOverlay(
                                     shape = RoundedCornerShape(14.dp),
                                     color = when {
                                         isActive -> sessionAccentColor.copy(alpha = 0.10f)
-                                        isCompleted -> Color(0xFF38BDF8).copy(alpha = 0.06f)
+                                        isCompleted -> sessionAccentColor.copy(alpha = 0.06f)
                                         else -> Color.White.copy(alpha = 0.04f)
                                     },
                                     border = BorderStroke(
                                         width = if (isActive) 1.5.dp else 1.dp,
                                         color = when {
                                             isActive -> sessionAccentColor.copy(alpha = 0.45f)
-                                            isCompleted -> Color(0xFF38BDF8).copy(alpha = 0.35f)
+                                            isCompleted -> sessionAccentColor.copy(alpha = 0.35f)
                                             else -> Color.White.copy(alpha = 0.08f)
                                         },
                                     ),
@@ -347,7 +347,7 @@ fun WorkoutMobilityOverlay(
                                                 checked = isCompleted,
                                                 onCheckedChange = { onToggleComplete(item, it) },
                                                 colors = CheckboxDefaults.colors(
-                                                    checkedColor = Color(0xFF38BDF8),
+                                                    checkedColor = sessionAccentColor,
                                                     uncheckedColor = Color.White.copy(alpha = 0.30f),
                                                     checkmarkColor = Color.Black,
                                                 ),
@@ -359,7 +359,7 @@ fun WorkoutMobilityOverlay(
                                                     text = mob.name,
                                                     style = MaterialTheme.typography.bodyMedium,
                                                     fontWeight = FontWeight.Bold,
-                                                    color = if (isCompleted) Color(0xFF38BDF8) else Color.White,
+                                                    color = if (isCompleted) sessionAccentColor else Color.White,
                                                 )
                                                 val details = listOfNotNull(
                                                     mob.reps?.takeIf { it.isNotBlank() }?.let { "$it reps" },
@@ -443,14 +443,14 @@ fun WorkoutMobilityOverlay(
                                 shape = RoundedCornerShape(14.dp),
                                 color = when {
                                     isActive -> sessionAccentColor.copy(alpha = 0.10f)
-                                    isCompleted -> Color(0xFF38BDF8).copy(alpha = 0.06f)
+                                    isCompleted -> sessionAccentColor.copy(alpha = 0.06f)
                                     else -> Color.White.copy(alpha = 0.04f)
                                 },
                                 border = BorderStroke(
                                     width = if (isActive) 1.5.dp else 1.dp,
                                     color = when {
                                         isActive -> sessionAccentColor.copy(alpha = 0.45f)
-                                        isCompleted -> Color(0xFF38BDF8).copy(alpha = 0.35f)
+                                        isCompleted -> sessionAccentColor.copy(alpha = 0.35f)
                                         else -> Color.White.copy(alpha = 0.08f)
                                     },
                                 ),
@@ -471,7 +471,7 @@ fun WorkoutMobilityOverlay(
                                             checked = isCompleted,
                                             onCheckedChange = { onToggleComplete(item, it) },
                                             colors = CheckboxDefaults.colors(
-                                                checkedColor = Color(0xFF38BDF8),
+                                                checkedColor = sessionAccentColor,
                                                 uncheckedColor = Color.White.copy(alpha = 0.30f),
                                                 checkmarkColor = Color.Black,
                                             ),
@@ -483,7 +483,7 @@ fun WorkoutMobilityOverlay(
                                                 text = mob.name,
                                                 style = MaterialTheme.typography.bodyMedium,
                                                 fontWeight = FontWeight.Bold,
-                                                color = if (isCompleted) Color(0xFF38BDF8) else Color.White,
+                                                color = if (isCompleted) sessionAccentColor else Color.White,
                                             )
                                             val details = listOfNotNull(
                                                 mob.reps?.takeIf { it.isNotBlank() }?.let { "$it reps" },
@@ -869,24 +869,5 @@ private fun mapJointIdToBodyRegion(jointId: String): String = when (jointId.trim
 private fun resolveJointInvolvementForExercise(
     exercise: Exercise,
     catalog: ExerciseCatalogV2?,
-): List<JointInvolvementV2> {
-    catalog ?: return emptyList()
-    val configurationId = exercise.catalogConfigurationId?.takeIf { it.isNotBlank() }
-    val definitionId = exercise.catalogDefinitionId?.takeIf { it.isNotBlank() }
-
-    val definition = catalog.families
-        .asSequence()
-        .flatMap { it.definitions.asSequence() }
-        .firstOrNull { def ->
-            (definitionId != null && def.id == definitionId) ||
-                def.canonicalName.equals(exercise.name.trim(), ignoreCase = true) ||
-                def.configurations.any { it.id.equals(exercise.exerciseDbId, ignoreCase = true) }
-        } ?: return emptyList()
-
-    val config = definition.configurations.firstOrNull { it.id == configurationId }
-        ?: definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }
-        ?: definition.configurations.firstOrNull()
-        ?: return emptyList()
-
-    return config.profile.jointInvolvement
-}
+): List<JointInvolvementV2> =
+    com.example.kpkn.screens.workout.resolveJointInvolvementForExercise(exercise, catalog)

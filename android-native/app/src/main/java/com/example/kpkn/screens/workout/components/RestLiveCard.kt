@@ -3,15 +3,15 @@ package com.example.kpkn.screens.workout.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -21,18 +21,21 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.CompletedSet
@@ -45,7 +48,7 @@ import java.util.Locale
 
 /**
  * Working-set rest as a live pager card (minimized overlay view).
- * Mirrors key context from [RestTimerOverlay] without full-screen chrome.
+ * Same visual height as series cards: the pager frame locks to the working-set wrap.
  */
 @Composable
 internal fun RestLiveCard(
@@ -75,9 +78,10 @@ internal fun RestLiveCard(
         RestTimerKind.BETWEEN_SIDES -> "ENTRE LADOS"
         RestTimerKind.STANDARD, null -> "DESCANSO"
     }
-
     Surface(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxWidth()
+            .fillMaxHeight(),
         shape = WorkoutUiTokens.CardShape,
         color = Color(0xFF121820),
         border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.35f)),
@@ -87,45 +91,57 @@ internal fun RestLiveCard(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+                .padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (onExpand != null) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                ) {
-                    IconButton(onClick = onExpand, modifier = Modifier.size(36.dp)) {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowUp,
-                            contentDescription = "Expandir descanso",
-                            tint = sessionAccentColor,
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = kindLabel,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Black,
+                        color = sessionAccentColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (!restState?.exerciseName.isNullOrBlank()) {
+                        Text(
+                            text = restState!!.exerciseName,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.72f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
+                    }
+                }
+                if (onExpand != null) {
+                    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+                        Surface(
+                            onClick = onExpand,
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color.White.copy(alpha = 0.08f),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowUp,
+                                contentDescription = "Expandir descanso",
+                                modifier = Modifier
+                                    .padding(6.dp)
+                                    .size(18.dp),
+                                tint = sessionAccentColor,
+                            )
+                        }
                     }
                 }
             }
 
             Text(
-                text = kindLabel,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Black,
-                color = sessionAccentColor,
-            )
-            if (!restState?.exerciseName.isNullOrBlank()) {
-                Text(
-                    text = restState!!.exerciseName,
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.72f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-
-            Text(
                 text = clock,
-                style = MaterialTheme.typography.displaySmall.copy(fontSize = 44.sp),
+                style = MaterialTheme.typography.displaySmall.copy(fontSize = 36.sp),
                 fontWeight = FontWeight.Black,
                 color = Color.White,
                 modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -148,79 +164,125 @@ internal fun RestLiveCard(
                 )
             }
 
-            RestLiveLastSetSummary(
-                lastCompletedSet = lastCompletedSet ?: pendingRestSuggestion?.lastSet,
-                lastSetOutcome = lastSetOutcome,
-                sessionAccentColor = sessionAccentColor,
-            )
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = true)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                RestLiveLastSetSummary(
+                    lastCompletedSet = lastCompletedSet ?: pendingRestSuggestion?.lastSet,
+                    lastSetOutcome = lastSetOutcome,
+                    sessionAccentColor = sessionAccentColor,
+                )
 
-            if (pendingRestSuggestion != null && onUseAdaptive != null) {
-                OutlinedButton(
-                    onClick = onUseAdaptive,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 44.dp),
-                    shape = WorkoutUiTokens.InnerCardShape,
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = sessionAccentColor),
-                    border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.4f)),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                if (pendingRestSuggestion != null && onUseAdaptive != null) {
+                    OutlinedButton(
+                        onClick = onUseAdaptive,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .defaultMinSize(minWidth = 0.dp, minHeight = 36.dp)
+                            .height(40.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                        shape = WorkoutUiTokens.InnerCardShape,
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = sessionAccentColor),
+                        border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.4f)),
                     ) {
                         Row(
+                            modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.AutoAwesome,
-                                contentDescription = null,
-                                modifier = Modifier.size(14.dp),
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AutoAwesome,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(14.dp),
+                                )
+                                Text(
+                                    text = "Descanso sugerido",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Black,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
                             Text(
-                                text = "Descanso sugerido",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Black,
+                                text = formatRestClock(pendingRestSuggestion.adaptiveSeconds),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White.copy(alpha = 0.72f),
+                                maxLines = 1,
                             )
                         }
-                        Text(
-                            text = formatRestClock(pendingRestSuggestion.adaptiveSeconds),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White.copy(alpha = 0.72f),
-                        )
                     }
                 }
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                TextButton(
-                    onClick = onDecrease,
-                    modifier = Modifier.weight(1f),
+            CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("−15s", fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.85f))
-                }
-                Button(
-                    onClick = onSkip,
-                    modifier = Modifier.weight(1.4f).height(44.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = sessionAccentColor,
-                        contentColor = contentOn(sessionAccentColor),
-                    ),
-                ) {
-                    Text("Saltar", fontWeight = FontWeight.Black)
-                }
-                TextButton(
-                    onClick = onIncrease,
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Text("+15s", fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.85f))
+                    TextButton(
+                        onClick = onDecrease,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp)
+                            .defaultMinSize(minWidth = 0.dp, minHeight = 0.dp),
+                        contentPadding = PaddingValues(0.dp),
+                    ) {
+                        Text(
+                            "−15s",
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.85f),
+                            maxLines = 1,
+                            softWrap = false,
+                        )
+                    }
+                    Button(
+                        onClick = onSkip,
+                        modifier = Modifier
+                            .weight(1.35f)
+                            .height(40.dp)
+                            .defaultMinSize(minWidth = 0.dp, minHeight = 0.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = sessionAccentColor,
+                            contentColor = contentOn(sessionAccentColor),
+                        ),
+                    ) {
+                        Text(
+                            "Saltar",
+                            fontWeight = FontWeight.Black,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Clip,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                    TextButton(
+                        onClick = onIncrease,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp)
+                            .defaultMinSize(minWidth = 0.dp, minHeight = 0.dp),
+                        contentPadding = PaddingValues(0.dp),
+                    ) {
+                        Text(
+                            "+15s",
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.85f),
+                            maxLines = 1,
+                            softWrap = false,
+                        )
+                    }
                 }
             }
         }

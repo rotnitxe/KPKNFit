@@ -35,7 +35,7 @@ internal fun buildIntensityCarouselItems(
 
 private fun buildRirCarouselItems(targetRir: Int?): List<IntensityCarouselItem> {
     val maxRir = maxOf(10, (targetRir ?: 2) + 3)
-    return (0..maxRir).map { rir ->
+    return (maxRir downTo 0).map { rir ->
         IntensityCarouselItem(
             display = rir.toString(),
             mode = IntensityMode.RIR,

@@ -202,16 +202,27 @@ class UltraFastEngineTest {
         val set = ExerciseSet(id = "s1", targetReps = 8, weight = 100.0)
         val drop = set.withTechnique(SeriesTechnique.DROPSET)
         assertTrue(drop.isDropSet)
-        assertTrue(drop.dropSets.isNotEmpty())
+        assertTrue(drop.plannedIntensityTechniques.any { it.type == TechniqueType.DROP_SET })
+        val dropParams = drop.plannedIntensityTechniques.first { it.type == TechniqueType.DROP_SET }.params
+        assertEquals("5", dropParams["weightDropKg"])
+        assertEquals("3", dropParams["reps"])
+        assertEquals("1", dropParams["count"])
+        assertTrue(drop.dropSets.isEmpty())
         assertFalse(drop.isRestPause)
         val rp = set.withTechnique(SeriesTechnique.REST_PAUSE)
         assertTrue(rp.isRestPause)
-        assertTrue(rp.restPauses.isNotEmpty())
+        val rpParams = rp.plannedIntensityTechniques.first { it.type == TechniqueType.REST_PAUSE }.params
+        assertEquals("2", rpParams["count"])
+        assertEquals("15", rpParams["pauseSeconds"])
+        assertEquals("3", rpParams["reps"])
+        assertTrue(rp.plannedIntensityTechniques.any { it.type == TechniqueType.REST_PAUSE })
+        assertTrue(rp.restPauses.isEmpty())
         val normal = drop.withTechnique(SeriesTechnique.NORMAL)
         assertFalse(normal.isDropSet)
         assertFalse(normal.isRestPause)
         assertTrue(normal.dropSets.isEmpty())
         assertTrue(normal.restPauses.isEmpty())
+        assertTrue(normal.plannedIntensityTechniques.none { it.type == TechniqueType.DROP_SET || it.type == TechniqueType.REST_PAUSE })
     }
 
     @Test

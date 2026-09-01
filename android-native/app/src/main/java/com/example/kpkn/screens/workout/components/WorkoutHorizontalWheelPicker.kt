@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.workout.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -26,7 +27,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,6 +67,7 @@ fun WorkoutHorizontalWheelPicker(
 
     val safeIndex = selectedIndex.coerceIn(0, items.lastIndex)
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = safeIndex)
+    val scope = rememberCoroutineScope()
     val itemWidth = if (roomier) 52.dp else 48.dp
     val controlHeight = if (roomier) 60.dp else 56.dp
     val density = LocalDensity.current
@@ -220,7 +224,18 @@ fun WorkoutHorizontalWheelPicker(
                     Box(
                         modifier = Modifier
                             .width(itemWidth)
-                            .fillMaxHeight(),
+                            .fillMaxHeight()
+                            .clickable(enabled = enabled && index != centerIndex) {
+                                scope.launch {
+                                    programmaticScrolls += 1
+                                    try {
+                                        listState.animateScrollToItem(index)
+                                        onSelectedIndexChange(index)
+                                    } finally {
+                                        programmaticScrolls -= 1
+                                    }
+                                }
+                            },
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -246,9 +261,9 @@ fun WorkoutHorizontalWheelPicker(
 }
 
 @Composable
-fun carouselGlowForTone(tone: CarouselValueTone): Color? = when (tone) {
-    CarouselValueTone.OnPlan -> WorkoutUiTokens.carouselGlowGreen()
-    CarouselValueTone.BelowPlan -> WorkoutUiTokens.carouselGlowRed()
-    CarouselValueTone.AbovePlan -> WorkoutUiTokens.carouselGlowBlue()
+fun carouselGlowForTone(tone: CarouselValueTone, accent: Color): Color? = when (tone) {
+    CarouselValueTone.OnPlan -> WorkoutUiTokens.carouselGlowOnPlan(accent)
+    CarouselValueTone.BelowPlan -> WorkoutUiTokens.carouselGlowBelowPlan(accent)
+    CarouselValueTone.AbovePlan -> WorkoutUiTokens.carouselGlowAbovePlan(accent)
     CarouselValueTone.Neutral -> null
 }

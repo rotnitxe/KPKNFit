@@ -56,6 +56,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.exercises.GodModeTechniqueScope
 import com.example.kpkn.domain.sessionassistant.SeriesTechnique
+import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknGlassDialog
@@ -158,10 +159,11 @@ internal fun GodModePlusCard(
     modifier: Modifier = Modifier,
     accent: Color = Color.White,
 ) {
+    val chromeScale = LocalViewportAdapt.current.uniformScale
     Box(
         modifier = modifier
             .width(WorkoutUiTokens.GodModePlusCardWidth)
-            .height(WorkoutUiTokens.GodModeRoadmapCardHeight)
+            .height(WorkoutUiTokens.liveRoadmapCarouselCardHeight(chromeScale))
             .clip(WorkoutUiTokens.InnerCardShape)
             .background(accent.copy(alpha = 0.26f))
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f), WorkoutUiTokens.InnerCardShape)
@@ -268,6 +270,18 @@ internal fun GodModeSetActionsOverlay(
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     color = Color.White.copy(alpha = 0.88f),
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = if (isDropSet) {
+                        "Dropset: baja ~5 kg para 3 reps más. No tires la carga."
+                    } else if (isRestPause) {
+                        "Rest-pause: mismo peso, 15 s de pausa, luego 3 reps."
+                    } else {
+                        "Dropset = −5 kg / 3 reps. Rest-pause = mismo peso, 15 s, 3 reps."
+                    },
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.62f),
                     textAlign = TextAlign.Center,
                 )
                 Row(

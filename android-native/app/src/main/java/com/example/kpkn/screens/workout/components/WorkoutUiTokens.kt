@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.ui.adapt.ViewportAdapt
 import com.example.kpkn.ui.adapt.ViewportAdaptMath
+import com.example.kpkn.ui.adapt.LiveViewportPolicy
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.kpknGlassOrFallback
 import dev.chrisbanes.haze.HazeState
@@ -39,23 +40,27 @@ val LocalLivePagerAdaptScale = compositionLocalOf { 1f }
 
 val LocalLivePagerShouldReflow = compositionLocalOf { false }
 
+val LocalLiveViewportPolicy = compositionLocalOf { LiveViewportPolicy.Identity }
+
 /**
  * Wrap height in px of SetInputCardV2 (the visible Reportar serie stack).
- * Prep live cards clamp to this; not [WorkoutUiTokens.LivePagerBaseHeight].
+ * Prep and rest live cards clamp to this; not [WorkoutUiTokens.LivePagerBaseHeight].
  */
 val LocalLivePagerWorkingSetVisualHeightPx = compositionLocalOf<MutableIntState?> { null }
 
-/** Keep the tallest measured working-set card; never shrink on later pages. */
+/** First measured working-set wrap wins so MOV/APR cannot inflate past S1. */
 internal fun publishLivePagerWorkingSetVisualHeight(holder: MutableIntState?, heightPx: Int) {
     if (holder == null || heightPx <= 0) return
-    if (heightPx > holder.intValue) {
+    if (holder.intValue == 0) {
         holder.intValue = heightPx
     }
 }
 
-/** Prep cards share the same unscaled height as working sets (or the design floor). */
-internal fun resolveLivePagerPrepCardHeightPx(measuredWorkingSetHeightPx: Int, floorPx: Int): Int =
-    if (measuredWorkingSetHeightPx > 0) measuredWorkingSetHeightPx else floorPx
+/** Prep / MOV / APR / REST use the exact working-set Surface height. Zero means "not measured yet". */
+internal fun resolveLivePagerPrepCardHeightPx(measuredWorkingSetHeightPx: Int, floorPx: Int): Int {
+    if (measuredWorkingSetHeightPx > 0) return measuredWorkingSetHeightPx
+    return floorPx.coerceAtLeast(0)
+}
 
 object WorkoutUiTokens {
     val ScreenHorizontalPadding = 12.dp
@@ -72,13 +77,16 @@ object WorkoutUiTokens {
     /**
      * Shared proportional scale for every live pager card.
      *
-     * The previous live-card scale was 1.20f. Reducing it to 85% of that
-     * value makes every page (MOV/APR, working sets, cardio and rest) 15%
-     * smaller without changing the content layout independently on either
-     * axis.
-     * Final on-screen scale = [LivePagerCardScale] * [LocalLivePagerAdaptScale].
+     * Compact 1.20 × 0.85, then two +25% uniform XY steps, then independent axes:
+     * Y × [LivePagerCardHeightGrowFactor] (−25%), X × [LivePagerCardWidthSlimFactor]
+     * (prior slim × extra −10% × extra −7%).
+     * Leftover-Y on 22:9 must not stretch height or refill width.
      */
-    val LivePagerCardScale = 1.20f * 0.85f
+    val LivePagerCardScale = 1.20f * 0.85f * 1.25f * 1.25f
+    /** 0.89 slim, then −10%, then −7% on X. */
+    const val LivePagerCardWidthSlimFactor = 0.89f * 0.90f * 0.93f
+    /** −25% on Y versus the uniform XY scale. */
+    const val LivePagerCardHeightGrowFactor = 0.75f
     /**
      * Height budget for the live card contents, including the in-card record
      * action and the plan/technique controls below it.
@@ -88,13 +96,29 @@ object WorkoutUiTokens {
      * Tallest expected NORMAL set card (plan + report + tabs + footer CTA) before adapt.
      */
     val LivePagerNormalExpandedBaseHeight = 520.dp
-    val LivePagerSlotHeight = LivePagerBaseHeight * LivePagerCardScale
+    val LivePagerSlotHeight =
+        LivePagerBaseHeight * LivePagerCardScale * LivePagerCardHeightGrowFactor
     /**
-     * Extra empty space above every live pager card (13% of the card slot).
-     * Lowers the card away from the header without changing card size, and
-     * leaves room for the 3D flip so it is not clipped at the top.
+     * Extra empty space above every live pager card (5% of the card slot).
+     * Keeps a small gap under the header without dropping the card into the cockpit.
      */
-    const val LivePagerCardTopNudgeFraction = 0.13f
+    const val LivePagerCardTopNudgeFraction = 0.05f
+    /**
+     * Extra gap under the live relator so the series card sits in the band
+     * between the message and the cockpit. Does not change the 5% nudge.
+     */
+    val LivePagerRelatorClearance = 48.dp
+
+    fun liveRelatorBandHeight(
+        topNudgeFraction: Float = LivePagerCardTopNudgeFraction,
+        uniformScale: Float = 1f,
+    ): Dp {
+        val slot = LivePagerNormalExpandedBaseHeight *
+            LivePagerCardScale *
+            LivePagerCardHeightGrowFactor *
+            uniformScale
+        return slot * topNudgeFraction + LivePagerRelatorClearance
+    }
     /** Design reference for proportional adapt (typical phone width / card slot). */
     val LivePagerReferenceWidth = ViewportAdaptMath.LIVE_PAGER_REF_WIDTH_DP.dp
     val LivePagerReferenceHeight = ViewportAdaptMath.LIVE_PAGER_REF_HEIGHT_DP.dp
@@ -138,13 +162,21 @@ object WorkoutUiTokens {
         LivePagerCardScale * LocalLivePagerAdaptScale.current
 
     @Composable
+    fun effectiveLivePagerCardScaleX(): Float =
+        effectiveLivePagerCardScale() * LivePagerCardWidthSlimFactor
+
+    @Composable
+    fun effectiveLivePagerCardScaleY(): Float =
+        effectiveLivePagerCardScale() * LivePagerCardHeightGrowFactor
+
+    @Composable
     fun effectiveLivePagerSlotHeight(): Dp =
-        LivePagerBaseHeight * effectiveLivePagerCardScale()
+        LivePagerBaseHeight * effectiveLivePagerCardScaleY()
 
     /** Fixed pager slot shared by every page type (NORMAL, MOV, APR, REST). */
     @Composable
     fun effectiveLivePagerStableHeight(): Dp =
-        LivePagerNormalExpandedBaseHeight * effectiveLivePagerCardScale()
+        LivePagerNormalExpandedBaseHeight * effectiveLivePagerCardScaleY()
 
     const val GodModeEnterMs = 260
     const val GodModeExitMs = 220
@@ -152,18 +184,45 @@ object WorkoutUiTokens {
     const val GodModeCardScale = 0.58f
     val GodModeCardBlur = 18.dp
     val GodModeBadgeVisual = 20.dp
-    val GodModeRoadmapCardHeight = 64.dp
+    val GodModeRoadmapCardHeight = 48.dp
     val GodModePlusCardWidth = 88.dp
+    val LiveRoadmapCarouselMiniInset = 14.dp
+
+    fun liveRoadmapCarouselCardHeight(uniformScale: Float): Dp =
+        GodModeRoadmapCardHeight * uniformScale
+
+    fun liveRoadmapCarouselMiniCardHeight(uniformScale: Float): Dp =
+        (GodModeRoadmapCardHeight - LiveRoadmapCarouselMiniInset)
+            .coerceAtLeast(32.dp) * uniformScale
+
+    /** Clouds (28) + gap (4) + stepper row (40). */
+    val LiveCockpitStepperHeight = 72.dp
+    val LiveCockpitHandleHeight = MinTouchTarget
+    val LiveCockpitStepperSlotTopPadding = 4.dp
+    val LiveCockpitStepperSlotBottomPadding = 12.dp
+    val LiveCockpitCarouselBottomPadding = 12.dp
+
+    fun liveCockpitStepperHeight(uniformScale: Float): Dp =
+        LiveCockpitStepperHeight * uniformScale.coerceAtLeast(0.01f)
+
+    /** Compact cockpit Y: handle + stepper slot + carousel. Does not include the expanded sheet. */
+    fun liveCockpitCompactHeight(uniformScale: Float): Dp {
+        val scale = uniformScale.coerceAtLeast(0.01f)
+        return LiveCockpitHandleHeight +
+            LiveCockpitStepperSlotTopPadding +
+            liveCockpitStepperHeight(scale) +
+            LiveCockpitStepperSlotBottomPadding +
+            liveRoadmapCarouselCardHeight(scale) +
+            LiveCockpitCarouselBottomPadding
+    }
 
     // Semántica de Colores Material 3
-    @Composable
-    fun setCardColor(): Color = MaterialTheme.colorScheme.surfaceContainer
+    /** Serie live: gris ennegrecido para no competir con el acento de sesión. */
+    fun setCardColor(): Color = Color(0xFF121212)
 
-    @Composable
-    fun setInnerColor(): Color = MaterialTheme.colorScheme.surfaceContainerHigh
+    fun setInnerColor(): Color = Color(0xFF1A1A1A)
 
-    @Composable
-    fun setInnerHighestColor(): Color = MaterialTheme.colorScheme.surfaceContainerHighest
+    fun setInnerHighestColor(): Color = Color(0xFF242424)
 
     @Composable
     fun dangerContainerColor(): Color = MaterialTheme.colorScheme.errorContainer
@@ -180,18 +239,14 @@ object WorkoutUiTokens {
     @Composable
     fun infoBlue(): Color = Color(0xFF448AFF)
 
-    /** Subtle carousel center glow alphas for semantic feedback. */
-    fun carouselGlowGreen(): Color = Color(0xFF66BB6A).copy(alpha = 0.52f)
+    /** Live carousel glows: tones of the session accent, not green/red/blue. */
+    fun carouselGlowOnPlan(accent: Color): Color = accent.copy(alpha = 0.52f)
 
-    fun carouselGlowRed(): Color = Color(0xFFFF5252).copy(alpha = 0.50f)
+    fun carouselGlowBelowPlan(accent: Color): Color =
+        androidx.compose.ui.graphics.lerp(accent, Color.Black, 0.32f).copy(alpha = 0.50f)
 
-    fun carouselGlowBlue(): Color = Color(0xFF448AFF).copy(alpha = 0.52f)
-
-    fun carouselTextGreen(): Color = Color(0xFFA5D6A7)
-
-    fun carouselTextRed(): Color = Color(0xFFFF8A80)
-
-    fun carouselTextBlue(): Color = Color(0xFF90CAF9)
+    fun carouselGlowAbovePlan(accent: Color): Color =
+        androidx.compose.ui.graphics.lerp(accent, Color.White, 0.28f).copy(alpha = 0.52f)
 
     /** Readiness / recovery score → green / amber / red. */
     fun readinessColor(score: Int): Color = when {

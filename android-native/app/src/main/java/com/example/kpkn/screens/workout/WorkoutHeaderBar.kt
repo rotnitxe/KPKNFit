@@ -28,6 +28,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.models.ExerciseReadiness
 import com.example.kpkn.data.models.SessionBackground
@@ -52,15 +55,38 @@ import com.example.kpkn.ui.components.kpknCoverGlass
 import com.example.kpkn.services.workout.VoiceSessionState
 import com.example.kpkn.domain.auge.ExerciseReadinessEngine
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
+import com.example.kpkn.ui.adapt.LiveViewportPolicyMath
 import com.example.kpkn.data.models.SetAdjustmentSuggestion
 import dev.chrisbanes.haze.HazeState
 import androidx.compose.ui.graphics.RectangleShape
 
 private const val HeaderCompactScale = 0.80f
 
+/** Visible glyphs in the header title (name + " · " chips). */
+internal fun workoutHeaderTitleGlyphCount(exerciseName: String, chips: List<String>): Int =
+    exerciseName.length + chips.sumOf { 3 + it.length }
+
+/**
+ * Shrinks the header title with length so it stays on one line.
+ * The header slot height never grows with the exercise name.
+ */
+internal fun workoutHeaderTitleFontScale(glyphCount: Int): Float = when {
+    glyphCount <= 22 -> 1.00f
+    glyphCount <= 32 -> 0.88f
+    glyphCount <= 44 -> 0.76f
+    glyphCount <= 58 -> 0.66f
+    else -> 0.58f
+}
+
 @Composable
-private fun headerCompactScale(): Float =
-    HeaderCompactScale * LocalViewportAdapt.current.uniformScale
+private fun headerCompactScale(): Float {
+    val adapt = LocalViewportAdapt.current
+    val policy = LiveViewportPolicyMath.compute(
+        widthDp = adapt.widthDp,
+        heightDp = adapt.heightDp,
+    )
+    return HeaderCompactScale * adapt.uniformScale * policy.headerMul
+}
 
 private val PaceChipGreen = Color(0xFF66BB6A)
 private val PaceChipRed = Color(0xFFFF5252)
@@ -194,7 +220,7 @@ internal fun WorkoutChronometer(
             .clip(RoundedCornerShape(99.dp))
             .background(accent.copy(alpha = 0.16f))
             .clickable { showAdjustDialog = true }
-            .padding(horizontal = 9.dp * headerCompactScale(), vertical = 3.dp * headerCompactScale()),
+            .padding(horizontal = 9.dp * headerCompactScale(), vertical = 5.dp * headerCompactScale()),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(5.dp * headerCompactScale()),
     ) {
@@ -222,12 +248,12 @@ internal fun WorkoutChronometer(
             ),
             color = accent,
             fontWeight = FontWeight.Black,
-            fontSize = 12.sp * headerCompactScale(),
+            fontSize = 13.sp * headerCompactScale(),
         )
         if (!countdownMessage.isNullOrBlank()) {
             Text(
                 text = countdownMessage,
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp * headerCompactScale()),
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp * headerCompactScale()),
                 color = accent,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
@@ -432,9 +458,9 @@ internal fun WorkoutChronometer(
                                     }
                                     Text(
                                         text = if (activeTechniqueTooltip == "dropset") {
-                                            "Consiste en realizar una serie efectiva y, al llegar al fallo o fatiga, reducir el peso de inmediato (un 15-30%) para sacar 3 repeticiones más sin descansar."
+                                            "Tras la serie efectiva, baja unos 5 kg —lo bastante para sacar 3 reps más, no más. Si bajas demasiado, deja de ser un dropset."
                                         } else {
-                                            "Consiste en realizar una serie y pausar sólo 15 a 20 segundos para luego continuar realizando mini-series adicionales con el mismo peso."
+                                            "Mismo peso. Solo cambia el descanso: 15 segundos, y luego 3 repeticiones. El pausa corta restringe el rango, no la carga."
                                         },
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurface,
@@ -560,17 +586,27 @@ internal fun WorkoutHeaderBar(
     fun cs(dp: androidx.compose.ui.unit.Dp): androidx.compose.ui.unit.Dp = dp * headerScale
     val colors = remember(background) { sessionCoverColors(background) }
 
-    Box(modifier = Modifier.fillMaxWidth()) {
+    val density = LocalDensity.current
+    var headerContentHeightPx by remember { mutableIntStateOf(0) }
+
+    Box(modifier = Modifier.fillMaxWidth().zIndex(8f)) {
         Box(
             modifier = Modifier
-                .matchParentSize()
+                .fillMaxWidth()
+                .then(
+                    if (headerContentHeightPx > 0) {
+                        Modifier.height(with(density) { headerContentHeightPx.toDp() })
+                    } else {
+                        Modifier.matchParentSize()
+                    },
+                )
                 .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
                 .drawWithContent {
                     drawContent()
                     drawRect(
                         brush = Brush.verticalGradient(
                             0.00f to Color.White,
-                            0.58f to Color.White,
+                            0.70f to Color.White,
                             1.00f to Color.Transparent,
                         ),
                         blendMode = BlendMode.DstIn,
@@ -583,7 +619,7 @@ internal fun WorkoutHeaderBar(
                     .background(
                         Brush.verticalGradient(
                             0.00f to colors.first(),
-                            0.48f to colors.last().copy(alpha = 0.42f),
+                            0.58f to colors.last().copy(alpha = 0.42f),
                             1.00f to Color.Transparent,
                         ),
                     ),
@@ -600,8 +636,9 @@ internal fun WorkoutHeaderBar(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .onSizeChanged { headerContentHeightPx = it.height }
                 .statusBarsPadding()
-                .padding(start = cs(16.dp), end = cs(16.dp), top = cs(12.dp), bottom = cs(20.dp)),
+                .padding(start = cs(16.dp), end = cs(16.dp), top = cs(13.dp), bottom = cs(9.dp)),
             verticalArrangement = Arrangement.spacedBy(cs(4.dp)),
         ) {
             Row(
@@ -610,7 +647,14 @@ internal fun WorkoutHeaderBar(
                 verticalAlignment = Alignment.Top,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
+                    val titleGlyphs = workoutHeaderTitleGlyphCount(exerciseName, exerciseChips)
+                    val titleLengthScale = workoutHeaderTitleFontScale(titleGlyphs)
+                    val titleBase = MaterialTheme.typography.headlineSmall
+                    val titleSlotHeight = with(density) {
+                        (titleBase.lineHeight * headerScale).toDp()
+                    }
                     Row(
+                        modifier = Modifier.height(titleSlotHeight),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(cs(8.dp)),
                     ) {
@@ -626,13 +670,16 @@ internal fun WorkoutHeaderBar(
                                     }
                                 }
                             },
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.headlineSmall.copy(
-                                fontSize = MaterialTheme.typography.headlineSmall.fontSize * headerCompactScale(),
-                                lineHeight = MaterialTheme.typography.headlineSmall.lineHeight * headerCompactScale(),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(titleSlotHeight),
+                            style = titleBase.copy(
+                                fontSize = titleBase.fontSize * headerScale * titleLengthScale,
+                                lineHeight = titleBase.lineHeight * headerScale,
                             ),
                             fontWeight = FontWeight.Black,
-                            maxLines = 2,
+                            maxLines = 1,
+                            softWrap = false,
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
@@ -645,7 +692,9 @@ internal fun WorkoutHeaderBar(
                             fontSize = MaterialTheme.typography.labelMedium.fontSize * headerCompactScale(),
                         ),
                         color = Color.White.copy(alpha = 0.72f),
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                     Spacer(Modifier.height(cs(6.dp)))
                     Row(
@@ -695,7 +744,7 @@ internal fun WorkoutHeaderBar(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(99.dp))
                                     .background(chipColor.copy(alpha = 0.18f))
-                                    .padding(horizontal = cs(9.dp), vertical = cs(3.dp)),
+                                    .padding(horizontal = cs(9.dp), vertical = cs(5.dp)),
                             ) {
                                 Box(
                                     modifier = Modifier
@@ -706,7 +755,7 @@ internal fun WorkoutHeaderBar(
                                 Spacer(Modifier.width(cs(5.dp)))
                                 Text(
                                     text = "${score}%",
-                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp * headerCompactScale()),
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 13.sp * headerCompactScale()),
                                     color = Color.White.copy(alpha = 0.85f),
                                     fontWeight = FontWeight.Black,
                                 )
@@ -723,8 +772,8 @@ internal fun WorkoutHeaderBar(
                                 ) {
                                     Text(
                                         text = if (readinessAdjustment != null) "Adaptado" else "Adaptar",
-                                        modifier = Modifier.padding(horizontal = cs(9.dp), vertical = cs(3.dp)),
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp * headerCompactScale()),
+                                        modifier = Modifier.padding(horizontal = cs(9.dp), vertical = cs(5.dp)),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 13.sp * headerCompactScale()),
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFFFF8A80),
                                     )
@@ -740,7 +789,7 @@ internal fun WorkoutHeaderBar(
                                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f)),
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = cs(7.dp), vertical = cs(3.dp)),
+                                    modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(cs(3.dp)),
                                 ) {
@@ -748,11 +797,11 @@ internal fun WorkoutHeaderBar(
                                         Icons.Default.SwapHoriz,
                                         contentDescription = null,
                                         tint = Color.White,
-                                        modifier = Modifier.size(cs(10.dp)),
+                                        modifier = Modifier.size(cs(12.dp)),
                                     )
                                     Text(
                                         "Superserie",
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp * headerCompactScale()),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp * headerCompactScale()),
                                         fontWeight = FontWeight.ExtraBold,
                                         color = Color.White,
                                         maxLines = 1,
@@ -769,13 +818,13 @@ internal fun WorkoutHeaderBar(
                                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f)),
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = cs(6.dp), vertical = cs(3.dp)),
+                                    modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(cs(3.dp)),
                                 ) {
                                     Text(
                                         text = activeMainTagLabels[tag.id] ?: tag.name,
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp * headerCompactScale()),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp * headerCompactScale()),
                                         color = Color.White.copy(alpha = 0.9f),
                                         fontWeight = FontWeight.Black,
                                         maxLines = 1,
@@ -798,13 +847,13 @@ internal fun WorkoutHeaderBar(
                                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)),
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = cs(6.dp), vertical = cs(3.dp)),
+                                    modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(cs(3.dp)),
                                 ) {
                                     Text(
                                         text = subTag.name,
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp * headerCompactScale()),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp * headerCompactScale()),
                                         color = Color.White.copy(alpha = 0.7f),
                                         maxLines = 1,
                                     )
@@ -827,7 +876,7 @@ internal fun WorkoutHeaderBar(
                             Icon(
                                 Icons.Default.Add,
                                 contentDescription = "Crear etiqueta",
-                                modifier = Modifier.padding(horizontal = cs(5.dp), vertical = cs(3.dp)).size(cs(12.dp)),
+                                modifier = Modifier.padding(horizontal = cs(6.dp), vertical = cs(5.dp)).size(cs(14.dp)),
                                 tint = Color.White.copy(alpha = 0.8f),
                             )
                         }
@@ -840,8 +889,8 @@ internal fun WorkoutHeaderBar(
                             ) {
                                 Text(
                                     text = exerciseTag,
-                                    modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(3.dp)),
-                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp * headerCompactScale()),
+                                    modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp * headerCompactScale()),
                                     color = Color.White.copy(alpha = 0.9f),
                                     fontWeight = FontWeight.Black,
                                     maxLines = 1,

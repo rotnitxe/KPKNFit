@@ -116,16 +116,34 @@ class WorkoutBackNavigationTest {
 
     @Test
     fun dockClearanceExpandsWithRoadmap() {
-        assertEquals(118, dockBottomClearanceDp(roadmapExpanded = false))
+        val compact = com.example.kpkn.screens.workout.components.WorkoutUiTokens
+            .liveCockpitCompactHeight(1f).value.toInt()
+        assertEquals(compact, dockBottomClearanceDp(roadmapExpanded = false))
         assertEquals(210, dockBottomClearanceDp(roadmapExpanded = true))
     }
 
     @Test
     fun dockClearancePrefersMeasuredHeight() {
-        assertEquals(126, resolveDockBottomClearanceDp(measuredRoadmapHeightDp = 118, roadmapExpanded = false))
+        val compact = 204
+        assertEquals(212, resolveDockBottomClearanceDp(measuredRoadmapHeightDp = 118, roadmapExpanded = false, compactHeightDp = compact))
         assertEquals(218, resolveDockBottomClearanceDp(measuredRoadmapHeightDp = 210, roadmapExpanded = true))
-        assertEquals(118, resolveDockBottomClearanceDp(measuredRoadmapHeightDp = null, roadmapExpanded = false))
+        assertEquals(
+            dockBottomClearanceDp(false) + DOCK_ROADMAP_GAP_DP,
+            resolveDockBottomClearanceDp(measuredRoadmapHeightDp = null, roadmapExpanded = false),
+        )
         assertEquals(210, resolveDockBottomClearanceDp(measuredRoadmapHeightDp = 0, roadmapExpanded = true))
+    }
+
+    @Test
+    fun compactDockClearanceIgnoresVolatileMeasurement() {
+        assertEquals(
+            212,
+            resolveDockBottomClearanceDp(
+                measuredRoadmapHeightDp = 999,
+                roadmapExpanded = false,
+                compactHeightDp = 204,
+            ),
+        )
     }
 
     @Test

@@ -69,9 +69,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import com.example.kpkn.data.models.SessionBackground
@@ -134,6 +132,7 @@ import com.example.kpkn.data.models.SubTagCategory
 import com.example.kpkn.data.models.WorkoutHeaderWidgets
 import com.example.kpkn.screens.workout.ExerciseHistoryEntry
 import com.example.kpkn.data.models.PostExerciseFeedback
+import com.example.kpkn.data.models.unresolvedDiscomfortIdsFrom
 import com.example.kpkn.data.models.PostSessionPreview
 import com.example.kpkn.domain.auge.AugeTtcEngine
 import com.example.kpkn.domain.auge.DiscomfortAggregationEngine
@@ -165,6 +164,8 @@ import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.VoiceCaptureModeDialog
 import com.example.kpkn.screens.workout.components.WorkoutRoadmapBar
+import com.example.kpkn.screens.workout.components.WorkoutUiTokens
+import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.screens.workout.components.RoadmapMode
 import com.example.kpkn.screens.workout.components.RestTimerOverlay
 import com.example.kpkn.screens.workout.components.RestTimerPill
@@ -276,11 +277,12 @@ fun WorkoutScreen(
     var showExitDialog by remember { mutableStateOf(false) }
     var roadmapMode by rememberSaveable(programId, sessionId) { mutableStateOf(RoadmapMode.COMPACT) }
     var roadmapSelecting by remember { mutableStateOf(false) }
-    val density = LocalDensity.current
-    var measuredRoadmapHeightDp by remember { mutableIntStateOf(0) }
+    val chromeScale = LocalViewportAdapt.current.uniformScale
+    val compactCockpitHeightDp = WorkoutUiTokens.liveCockpitCompactHeight(chromeScale).value.roundToInt()
     val dockBottomClearance = resolveDockBottomClearanceDp(
-        measuredRoadmapHeightDp = measuredRoadmapHeightDp.takeIf { it > 0 },
-        roadmapExpanded = roadmapMode == RoadmapMode.EXPANDED,
+        measuredRoadmapHeightDp = null,
+        roadmapExpanded = false,
+        compactHeightDp = compactCockpitHeightDp,
     ).dp
     var selectionClearNonce by remember { mutableIntStateOf(0) }
 
@@ -318,10 +320,7 @@ fun WorkoutScreen(
     // Calcular readiness por ejercicio cuando los datos AUGE están listos
     val unresolvedDiscomfortIds by remember(uiState.postExerciseFeedbackByExerciseId) {
         derivedStateOf {
-            uiState.postExerciseFeedbackByExerciseId.values
-                .flatMap { it.discomfortIds }
-                .filter { it.isNotBlank() }
-                .distinct()
+            unresolvedDiscomfortIdsFrom(uiState.postExerciseFeedbackByExerciseId.values)
         }
     }
     LaunchedEffect(augeSnapshot.batteries, perMuscle, augeSnapshot.articular, unresolvedDiscomfortIds) {
@@ -1006,10 +1005,7 @@ fun WorkoutScreen(
                         .navigationBarsPadding()
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                         .zIndex(5f)
-                        .background(Color.Transparent)
-                        .onSizeChanged { size ->
-                            measuredRoadmapHeightDp = with(density) { size.height.toDp().value.toInt() }
-                        },
+                        .background(Color.Transparent),
                 ) {
                     WorkoutRoadmapBar(
                         exercises = visibleExercises,

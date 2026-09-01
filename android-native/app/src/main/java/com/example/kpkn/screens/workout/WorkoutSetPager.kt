@@ -1,7 +1,14 @@
 package com.example.kpkn.screens.workout
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -45,6 +52,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
@@ -62,8 +70,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 
 internal sealed class TimelineElement {
@@ -231,14 +241,159 @@ internal fun restPageInsertIndex(
     }.takeIf { it >= 0 } ?: pages.size
 }
 
-/** Visited rounds stay expanded to the right; extras can peek independently. */
+/**
+ * The REST pager page always hosts [com.example.kpkn.screens.workout.components.RestLiveCard].
+ * The full overlay covers it when expanded; minimizing must not leave an empty slot.
+ */
+internal fun shouldRenderRestLiveCard(@Suppress("UNUSED_PARAMETER") isOverlayMinimized: Boolean): Boolean = true
+
+/** NORMAL, MOV, APR and REST share the same wrap-measured Y as the working-set card. */
+internal fun livePagerCardAllowsContentExpansion(type: LivePageType): Boolean =
+    type == LivePageType.NORMAL ||
+        type == LivePageType.MOBILITY ||
+        type == LivePageType.WARMUP ||
+        type == LivePageType.REST
+
+internal fun livePagerCardLocksToWorkingSetHeight(type: LivePageType): Boolean =
+    type == LivePageType.MOBILITY ||
+        type == LivePageType.WARMUP ||
+        type == LivePageType.REST
+
+/** Exactly one round is expanded: peeked extra, else rest's round, else the natural active round. */
 internal fun stepperExpandedRounds(
     naturalActiveRound: Int,
     extraExpandedRounds: Set<Int> = emptySet(),
     restExpandedRound: Int? = null,
 ): Set<Int> {
-    val current = naturalActiveRound.coerceAtLeast(0)
-    return (0..current).toSet() + extraExpandedRounds + setOfNotNull(restExpandedRound)
+    val exclusive = extraExpandedRounds.maxOrNull()
+        ?: restExpandedRound
+        ?: naturalActiveRound.coerceAtLeast(0)
+    return setOf(exclusive)
+}
+
+internal sealed class StepperRailSlot {
+    data class RoundCluster(
+        val badge: TimelineElement.RoundBadge,
+        val sets: List<TimelineElement>,
+    ) : StepperRailSlot()
+
+    data class Loose(val element: TimelineElement) : StepperRailSlot()
+}
+
+/**
+ * Groups a round badge with its sets into one rail slot (rest stays a sibling, not inside the pill).
+ * Rest pills that interrupt a round are emitted after that round's cluster.
+ */
+internal fun stepperRailSlots(elements: List<TimelineElement>): List<StepperRailSlot> {
+    if (elements.isEmpty()) return emptyList()
+    val slots = mutableListOf<StepperRailSlot>()
+    var index = 0
+    while (index < elements.size) {
+        when (val element = elements[index]) {
+            is TimelineElement.RoundBadge -> {
+                val sets = mutableListOf<TimelineElement>()
+                val trailingRests = mutableListOf<TimelineElement.RestPill>()
+                var cursor = index + 1
+                roundLoop@ while (cursor < elements.size) {
+                    when (val next = elements[cursor]) {
+                        is TimelineElement.BilateralSet -> {
+                            if (next.roundIndex != element.roundIndex) break@roundLoop
+                            sets += next
+                            cursor++
+                        }
+                        is TimelineElement.UnilateralSet -> {
+                            if (next.roundIndex != element.roundIndex) break@roundLoop
+                            sets += next
+                            cursor++
+                        }
+                        is TimelineElement.RestPill -> {
+                            trailingRests += next
+                            cursor++
+                        }
+                        else -> break@roundLoop
+                    }
+                }
+                slots += StepperRailSlot.RoundCluster(element, sets)
+                trailingRests.forEach { slots += StepperRailSlot.Loose(it) }
+                index = cursor
+            }
+            else -> {
+                slots += StepperRailSlot.Loose(element)
+                index++
+            }
+        }
+    }
+    return slots
+}
+
+internal fun pillSetWidthDp(element: TimelineElement): Float = when (element) {
+    is TimelineElement.UnilateralSet -> STEPPER_UNI_IN_PILL_DP
+    else -> STEPPER_SET_IN_PILL_DP
+}
+
+internal fun roundClusterWidthDp(sets: List<TimelineElement>): Float {
+    if (sets.isEmpty()) return STEPPER_CHROME_SIZE_DP
+    val setsWidth = sets.sumOf { pillSetWidthDp(it).toDouble() }.toFloat()
+    val intraGaps = (sets.size - 1).coerceAtLeast(0) * STEPPER_PILL_INTRA_GAP_DP
+    return STEPPER_CHROME_SIZE_DP + STEPPER_PILL_H_PAD_DP + setsWidth + intraGaps + STEPPER_PILL_H_PAD_DP
+}
+
+internal fun stepperRailSlotWidthDp(slot: StepperRailSlot): Float = when (slot) {
+    is StepperRailSlot.RoundCluster -> roundClusterWidthDp(slot.sets)
+    is StepperRailSlot.Loose -> timelineStepperItemWidthDp(slot.element)
+}
+
+internal fun stepperCloudAreaForSlot(slot: StepperRailSlot): ActivityCloudArea? = when (slot) {
+    is StepperRailSlot.RoundCluster -> ActivityCloudArea.SUPERSERIE
+    is StepperRailSlot.Loose -> when (slot.element) {
+        is TimelineElement.MobilityPill,
+        is TimelineElement.WarmupPill,
+        -> ActivityCloudArea.PREPARATION
+        is TimelineElement.RestPill -> ActivityCloudArea.DESCANSO
+        is TimelineElement.BilateralSet,
+        is TimelineElement.UnilateralSet,
+        -> ActivityCloudArea.EFFECTIVE_SERIES
+        is TimelineElement.RoundBadge -> null
+    }
+}
+
+internal data class CloudPiece(
+    val area: ActivityCloudArea?,
+    val width: Dp,
+)
+
+/**
+ * One cloud per contiguous area: 3 series → 1 nube, 3 rondas → 1 nube.
+ * Rest breaks the merge. Width includes internal gaps so the strip stays aligned
+ * with the rail nodes.
+ */
+internal fun mergeStepperCloudPieces(
+    slots: List<StepperRailSlot>,
+    slotWidthsDp: List<Float>,
+    gapDp: Float,
+): List<CloudPiece> {
+    if (slots.isEmpty()) return emptyList()
+    val widths = if (slotWidthsDp.size == slots.size) {
+        slotWidthsDp
+    } else {
+        slots.map { stepperRailSlotWidthDp(it) }
+    }
+    val pieces = mutableListOf<CloudPiece>()
+    var index = 0
+    while (index < slots.size) {
+        val area = stepperCloudAreaForSlot(slots[index])
+        var width = widths[index].coerceAtLeast(0f)
+        var end = index + 1
+        if (area != null) {
+            while (end < slots.size && stepperCloudAreaForSlot(slots[end]) == area) {
+                width += gapDp.coerceAtLeast(0f) + widths[end].coerceAtLeast(0f)
+                end++
+            }
+        }
+        pieces += CloudPiece(area = area, width = width.dp)
+        index = end
+    }
+    return pieces
 }
 
 /** Row/cloud layout order for supersets — keeps RestPill between sets in the active round. */
@@ -293,12 +448,53 @@ internal fun activityCloudSegmentWidthDp(
     val end = segment.endIndexExclusive.coerceIn(start, elements.size)
     if (start >= end) return 0f
 
-    val elementWidth = (start until end)
-        .sumOf { timelineStepperItemWidthDp(elements[it]).toDouble() }
-        .toFloat()
-    val internalGapCount = (end - start - 1).coerceAtLeast(0)
+    val slice = elements.subList(start, end)
+    val slots = stepperRailSlots(slice)
+    if (slots.isNotEmpty()) {
+        val slotWidth = slots.sumOf { stepperRailSlotWidthDp(it).toDouble() }.toFloat()
+        val internalGapCount = (slots.size - 1).coerceAtLeast(0)
+        return slotWidth + internalGapCount * interElementGapDp.coerceAtLeast(0f)
+    }
+
+    val elementWidth = slice.sumOf { timelineStepperItemWidthDp(it).toDouble() }.toFloat()
+    val internalGapCount = (slice.size - 1).coerceAtLeast(0)
     return elementWidth + internalGapCount * interElementGapDp.coerceAtLeast(0f)
 }
+
+private const val ACTIVITY_CLOUD_LABEL_GUTTER_DP = 6f
+
+/** Label width is always ≤ segment width so adjacent clouds cannot paint over each other. */
+internal fun activityCloudLabelWidthDp(
+    segmentWidthDp: Float,
+    area: ActivityCloudArea,
+): Float {
+    val cap = when (area) {
+        ActivityCloudArea.PREPARATION -> 148f
+        ActivityCloudArea.EFFECTIVE_SERIES -> 168f
+        ActivityCloudArea.SUPERSERIE -> 156f
+        ActivityCloudArea.DESCANSO -> 140f
+    }
+    return (segmentWidthDp - ACTIVITY_CLOUD_LABEL_GUTTER_DP)
+        .coerceAtMost(cap)
+        .coerceAtLeast(0f)
+}
+
+/** True when centered labels in neighboring segments collide across [gapDp]. */
+internal fun activityCloudLabelsOverlap(
+    leftSegmentWidthDp: Float,
+    leftLabelWidthDp: Float,
+    gapDp: Float,
+    rightSegmentWidthDp: Float,
+    rightLabelWidthDp: Float,
+): Boolean {
+    val leftRightEdge = (leftSegmentWidthDp - leftLabelWidthDp).coerceAtLeast(0f) / 2f + leftLabelWidthDp
+    val rightLeftEdge = leftSegmentWidthDp + gapDp +
+        (rightSegmentWidthDp - rightLabelWidthDp).coerceAtLeast(0f) / 2f
+    return leftRightEdge > rightLeftEdge + 0.01f
+}
+
+internal const val STEPPER_REST_PILL_ANIM_MS = 280
+internal const val STEPPER_ROUND_EXPAND_MS = 300
 
 /**
  * Inter-node gap for the live series stepper.
@@ -432,11 +628,13 @@ private fun timelineRailElementPartial(element: TimelineElement): Float = when (
 private const val STEPPER_NODE_GAP_MIN_DP = 10f
 private const val STEPPER_NODE_GAP_MAX_DP = 21f
 private const val STEPPER_CHROME_SIZE_DP = 32f
+private const val STEPPER_SET_IN_PILL_DP = 20f
+private const val STEPPER_UNI_IN_PILL_DP = 64f
+private const val STEPPER_PILL_INTRA_GAP_DP = 5f
+private const val STEPPER_PILL_H_PAD_DP = 6f
 
 private val STEPPER_ROW_HEIGHT = 40.dp
 private val STEPPER_CLOUD_HEIGHT = 28.dp
-private val STEPPER_CLOUD_GAP = 4.dp
-private val STEPPER_TOTAL_HEIGHT = STEPPER_CLOUD_HEIGHT + STEPPER_CLOUD_GAP + STEPPER_ROW_HEIGHT
 private val STEPPER_CLUSTER_ESTIMATED_WIDTH = 20.dp
 private val STEPPER_CHROME_SIZE = STEPPER_CHROME_SIZE_DP.dp
 /** Overlay slot for counter / +; overflow content may scroll underneath with edge fade. */
@@ -445,6 +643,9 @@ private val STEPPER_RAIL_HEIGHT = 3.dp
 /** Dynamic inter-dot gap: expands with few series, compresses with many, never 0. */
 private val STEPPER_NODE_GAP_MIN = STEPPER_NODE_GAP_MIN_DP.dp
 private val STEPPER_NODE_GAP_MAX = STEPPER_NODE_GAP_MAX_DP.dp
+private val STEPPER_SET_IN_PILL = STEPPER_SET_IN_PILL_DP.dp
+private val STEPPER_PILL_INTRA_GAP = STEPPER_PILL_INTRA_GAP_DP.dp
+private val STEPPER_PILL_H_PAD = STEPPER_PILL_H_PAD_DP.dp
 
 /** Target scroll so [nodeLeft, nodeLeft+nodeWidth] stays inside the clear band between chrome. */
 internal fun workoutStepperScrollToKeepActiveVisible(
@@ -488,11 +689,11 @@ internal fun WorkoutSetPager(
     if (elements.isEmpty()) return
 
     val chromeScale = com.example.kpkn.ui.adapt.LocalViewportAdapt.current.uniformScale
-    val stepperHeight = STEPPER_TOTAL_HEIGHT * chromeScale
+    val stepperHeight = WorkoutUiTokens.liveCockpitStepperHeight(chromeScale)
     val stepperRowHeight = STEPPER_ROW_HEIGHT * chromeScale
     val stepperEndSlot = STEPPER_END_SLOT * chromeScale
     val accent = sessionAccentColor ?: MaterialTheme.colorScheme.primary
-    val timelineProgressColor = Color(0xFF38BDF8) // Soft azure / cyan-blue
+    val timelineProgressColor = accent
     val timelineFillTarget = timelineRailCursorProgress(elements, activeElementIndex)
     val timelineFillProgress by animateFloatAsState(
         targetValue = timelineFillTarget,
@@ -511,6 +712,9 @@ internal fun WorkoutSetPager(
     } ?: elements.filterIsInstance<TimelineElement.RoundBadge>().firstOrNull { it.isCurrentRound }?.roundIndex ?: 0
 
     var extraExpandedRounds by remember { mutableStateOf(emptySet<Int>()) }
+    LaunchedEffect(naturalActiveRound) {
+        extraExpandedRounds = extraExpandedRounds.filter { it != naturalActiveRound }.toSet()
+    }
     val restExpandedRound = remember(elements) { restPillExpandedRound(elements) }
     val expandedRounds = remember(
         naturalActiveRound,
@@ -523,12 +727,30 @@ internal fun WorkoutSetPager(
             restExpandedRound = restExpandedRound,
         )
     }
-    val layoutElements = remember(elements, expandedRounds, restExpandedRound) {
-        stepperLayoutElements(
-            elements = elements,
-            expandedRounds = expandedRounds,
-            forceExpandedRound = restExpandedRound,
-        )
+    val incomingRest = elements.filterIsInstance<TimelineElement.RestPill>().firstOrNull()
+    var heldRestPill by remember { mutableStateOf<TimelineElement.RestPill?>(null) }
+    var restPillVisible by remember { mutableStateOf(false) }
+    if (incomingRest != null) {
+        heldRestPill = incomingRest
+    }
+    LaunchedEffect(incomingRest != null) {
+        if (incomingRest != null) {
+            restPillVisible = true
+        } else {
+            restPillVisible = false
+            delay(STEPPER_REST_PILL_ANIM_MS.toLong())
+            if (elements.none { it is TimelineElement.RestPill }) {
+                heldRestPill = null
+            }
+        }
+    }
+    val layoutElementsWithRest = remember(elements, heldRestPill) {
+        val held = heldRestPill ?: return@remember elements
+        if (elements.any { it is TimelineElement.RestPill }) elements
+        else {
+            val insertAt = timelineRestInsertIndex(elements, held.pageIndex)
+            elements.toMutableList().apply { add(insertAt, held) }
+        }
     }
 
     // Check if this timeline contains round badges (supersets)
@@ -550,14 +772,21 @@ internal fun WorkoutSetPager(
         val clearWidth = (maxWidth - leadingChrome - trailingChrome).coerceAtLeast(0.dp)
         val viewportWidthPx = constraints.maxWidth.toFloat()
 
-        val visibleElements: List<TimelineElement> = layoutElements
+        val visibleElements: List<TimelineElement> = layoutElementsWithRest
+        val railSlots = stepperRailSlots(visibleElements)
+        fun railSlotLayoutWidthDp(slot: StepperRailSlot): Float = when (slot) {
+            is StepperRailSlot.RoundCluster -> roundClusterWidthDp(
+                if (slot.badge.roundIndex in expandedRounds) slot.sets else emptyList(),
+            )
+            is StepperRailSlot.Loose -> timelineStepperItemWidthDp(slot.element)
+        }
         val estimatedTotalContentWidth = (
-            visibleElements.sumOf { timelineStepperItemWidthDp(it).toDouble() } +
+            railSlots.sumOf { railSlotLayoutWidthDp(it).toDouble() } +
                 (if (completedPreviousSets > 0) STEPPER_CLUSTER_ESTIMATED_WIDTH.value.toDouble() else 0.0) +
                 (if (nextExerciseSetCount > 0) STEPPER_CLUSTER_ESTIMATED_WIDTH.value.toDouble() else 0.0)
             ).dp
 
-        val gapCount = (visibleElements.size - 1).coerceAtLeast(0)
+        val gapCount = (railSlots.size - 1).coerceAtLeast(0)
         val dynamicNormalSpacing = if (gapCount > 0) {
             workoutStepperGapDp(
                 availableWidthDp = clearWidth.value,
@@ -577,14 +806,11 @@ internal fun WorkoutSetPager(
         } else {
             Arrangement.spacedBy(dynamicNormalSpacing, Alignment.CenterHorizontally)
         }
-        val cloudSegments = activityCloudSegments(visibleElements)
-        val cloudSegmentWidths = cloudSegments.map { segment ->
-            activityCloudSegmentWidthDp(
-                elements = visibleElements,
-                segment = segment,
-                interElementGapDp = dynamicNormalSpacing.value,
-            ).dp
-        }
+        val cloudPieces = mergeStepperCloudPieces(
+            slots = railSlots,
+            slotWidthsDp = railSlots.map { railSlotLayoutWidthDp(it) },
+            gapDp = dynamicNormalSpacing.value,
+        )
 
         fun isElementActive(element: TimelineElement): Boolean = when (element) {
             is TimelineElement.BilateralSet ->
@@ -601,7 +827,9 @@ internal fun WorkoutSetPager(
                     element.firstPageIndex == activeElementIndex
             is TimelineElement.MobilityPill -> element.isCurrent
             is TimelineElement.WarmupPill -> element.isCurrent
-            is TimelineElement.RestPill -> elements.indexOf(element) == activeElementIndex
+            is TimelineElement.RestPill ->
+                elements.indexOfFirst { it is TimelineElement.RestPill && it.pageIndex == element.pageIndex } == activeElementIndex ||
+                    (restPillVisible && incomingRest?.pageIndex == element.pageIndex)
         }
 
         fun Modifier.keepActiveVisible(active: Boolean): Modifier {
@@ -712,8 +940,7 @@ internal fun WorkoutSetPager(
                 ),
         ) {
             ActivityCloudStrip(
-                segments = cloudSegments,
-                segmentWidths = cloudSegmentWidths,
+                pieces = cloudPieces,
                 gap = dynamicNormalSpacing,
                 overflows = overflows,
                 leadingChrome = leadingChrome,
@@ -782,8 +1009,31 @@ internal fun WorkoutSetPager(
                         )
                     }
 
-                    layoutElements.forEach { element ->
-                        when (element) {
+                    railSlots.forEach { slot ->
+                        when (slot) {
+                            is StepperRailSlot.RoundCluster -> {
+                                val badge = slot.badge
+                                val isExpanded = badge.roundIndex in expandedRounds
+                                key(badge.roundIndex) {
+                                    RoundSetCapsule(
+                                        badge = badge,
+                                        sets = slot.sets,
+                                        isExpanded = isExpanded,
+                                        accent = accent,
+                                        onSelectPage = onSelectPage,
+                                        onLongPressPage = onLongPressPage,
+                                        onRoundClick = {
+                                            extraExpandedRounds = setOf(badge.roundIndex)
+                                            onSelectPage(badge.firstPageIndex)
+                                        },
+                                        isElementActive = { isElementActive(it) },
+                                        keepActiveVisible = { active, modifier ->
+                                            modifier.keepActiveVisible(active)
+                                        },
+                                    )
+                                }
+                            }
+                            is StepperRailSlot.Loose -> when (val element = slot.element) {
                             is TimelineElement.RoundBadge -> {
                                 val isExpanded = element.roundIndex in expandedRounds
                                 RoundBadgeNode(
@@ -793,10 +1043,7 @@ internal fun WorkoutSetPager(
                                     isAllDone = element.isAllDone,
                                     accent = accent,
                                     onClick = {
-                                        val round = element.roundIndex
-                                        if (round !in expandedRounds) {
-                                            extraExpandedRounds = extraExpandedRounds + round
-                                        }
+                                        extraExpandedRounds = setOf(element.roundIndex)
                                         onSelectPage(element.firstPageIndex)
                                     },
                                     modifier = Modifier.keepActiveVisible(isElementActive(element)),
@@ -867,16 +1114,39 @@ internal fun WorkoutSetPager(
                                 )
                             }
                             is TimelineElement.RestPill -> {
-                                StepperProgressPillNode(
-                                    label = element.remainingLabel,
-                                    isActive = elements.indexOf(element) == activeElementIndex,
-                                    isCompleted = false,
-                                    progress = element.progress,
-                                    accent = accent,
-                                    onClick = { onSelectPage(element.pageIndex) },
-                                    modifier = Modifier.keepActiveVisible(isElementActive(element)),
-                                    widthDp = 108.dp,
-                                )
+                                AnimatedVisibility(
+                                    visible = restPillVisible,
+                                    enter = fadeIn(
+                                        animationSpec = tween(STEPPER_REST_PILL_ANIM_MS, easing = FastOutSlowInEasing),
+                                    ) + expandHorizontally(
+                                        expandFrom = Alignment.CenterHorizontally,
+                                        animationSpec = tween(STEPPER_REST_PILL_ANIM_MS, easing = FastOutSlowInEasing),
+                                    ) + scaleIn(
+                                        initialScale = 0.72f,
+                                        animationSpec = tween(STEPPER_REST_PILL_ANIM_MS, easing = FastOutSlowInEasing),
+                                    ),
+                                    exit = fadeOut(
+                                        animationSpec = tween(STEPPER_REST_PILL_ANIM_MS, easing = FastOutSlowInEasing),
+                                    ) + shrinkHorizontally(
+                                        shrinkTowards = Alignment.CenterHorizontally,
+                                        animationSpec = tween(STEPPER_REST_PILL_ANIM_MS, easing = FastOutSlowInEasing),
+                                    ) + scaleOut(
+                                        targetScale = 0.72f,
+                                        animationSpec = tween(STEPPER_REST_PILL_ANIM_MS, easing = FastOutSlowInEasing),
+                                    ),
+                                ) {
+                                    StepperProgressPillNode(
+                                        label = element.remainingLabel,
+                                        isActive = isElementActive(element),
+                                        isCompleted = false,
+                                        progress = element.progress,
+                                        accent = accent,
+                                        onClick = { onSelectPage(element.pageIndex) },
+                                        modifier = Modifier.keepActiveVisible(isElementActive(element)),
+                                        widthDp = 108.dp,
+                                    )
+                                }
+                            }
                             }
                         }
                     }
@@ -957,8 +1227,7 @@ private fun Modifier.stepperOverflowFade(
 
 @Composable
 private fun ActivityCloudStrip(
-    segments: List<ActivityCloudSegment>,
-    segmentWidths: List<Dp>,
+    pieces: List<CloudPiece>,
     gap: Dp,
     overflows: Boolean,
     leadingChrome: Dp,
@@ -969,7 +1238,7 @@ private fun ActivityCloudStrip(
     accent: Color,
     modifier: Modifier = Modifier,
 ) {
-    if (segments.isEmpty()) return
+    if (pieces.isEmpty()) return
 
     Box(
         modifier = modifier
@@ -1014,12 +1283,21 @@ private fun ActivityCloudStrip(
                 Spacer(modifier = Modifier.width(STEPPER_CLUSTER_ESTIMATED_WIDTH))
             }
 
-            segments.forEachIndexed { index, segment ->
-                ActivityCloudPill(
-                    area = segment.area,
-                    segmentWidth = segmentWidths[index],
-                    accent = accent,
-                )
+            pieces.forEach { piece ->
+                val area = piece.area
+                if (area == null) {
+                    Spacer(
+                        modifier = Modifier
+                            .width(piece.width)
+                            .height(STEPPER_CLOUD_HEIGHT),
+                    )
+                } else {
+                    ActivityCloudPill(
+                        area = area,
+                        segmentWidth = piece.width,
+                        accent = accent,
+                    )
+                }
             }
 
             if (nextExerciseSetCount > 0) {
@@ -1040,25 +1318,13 @@ private fun ActivityCloudPill(
     accent: Color,
 ) {
     val connectorColor = accent.copy(alpha = 0.30f)
-    val cloudLabelWidth = when (area) {
-        ActivityCloudArea.PREPARATION -> (segmentWidth - 8.dp)
-            .coerceAtLeast(72.dp)
-            .coerceAtMost(148.dp)
-        ActivityCloudArea.EFFECTIVE_SERIES -> (segmentWidth - 8.dp)
-            .coerceAtLeast(100.dp)
-            .coerceAtMost(168.dp)
-        ActivityCloudArea.SUPERSERIE -> (segmentWidth - 8.dp)
-            .coerceAtLeast(88.dp)
-            .coerceAtMost(156.dp)
-        ActivityCloudArea.DESCANSO -> (segmentWidth - 8.dp)
-            .coerceAtLeast(88.dp)
-            .coerceAtMost(140.dp)
-    }
+    val cloudLabelWidth = activityCloudLabelWidthDp(segmentWidth.value, area).dp
     val cloudLabelFontSize = if (segmentWidth < 100.dp) 8.5.sp else 10.sp
     Box(
         modifier = Modifier
             .width(segmentWidth)
-            .height(STEPPER_CLOUD_HEIGHT),
+            .height(STEPPER_CLOUD_HEIGHT)
+            .clipToBounds(),
         contentAlignment = Alignment.BottomCenter,
     ) {
         Box(
@@ -1074,7 +1340,7 @@ private fun ActivityCloudPill(
             verticalArrangement = Arrangement.Bottom,
         ) {
             Surface(
-                modifier = Modifier.requiredWidth(cloudLabelWidth),
+                modifier = Modifier.width(cloudLabelWidth),
                 shape = WorkoutUiTokens.ChipShape,
                 color = accent.copy(alpha = 0.12f),
                 border = BorderStroke(1.dp, accent.copy(alpha = 0.30f)),
@@ -1206,7 +1472,7 @@ private fun StepperProgressPillNode(
     modifier: Modifier = Modifier,
     widthDp: Dp = 40.dp,
 ) {
-    val progressColor = Color(0xFF38BDF8)
+    val progressColor = accent
     val animatedProgress by animateFloatAsState(
         targetValue = progress.coerceIn(0f, 1f),
         animationSpec = tween(520, easing = FastOutSlowInEasing),
@@ -1225,7 +1491,7 @@ private fun StepperProgressPillNode(
 
     val bgColor by animateColorAsState(
         targetValue = when {
-            isCompleted -> Color(0xFF0C4A6E).copy(alpha = 0.85f)
+            isCompleted -> accent.copy(alpha = 0.42f).compositeOver(TIMELINE_NODE_SOLID_BG)
             isActive -> accent.copy(alpha = 0.18f).compositeOver(TIMELINE_NODE_SOLID_BG)
             else -> TIMELINE_NODE_SOLID_BG
         },
@@ -1291,6 +1557,120 @@ private fun StepperProgressPillNode(
 }
 
 @Composable
+private fun RoundSetCapsule(
+    badge: TimelineElement.RoundBadge,
+    sets: List<TimelineElement>,
+    isExpanded: Boolean,
+    accent: Color,
+    onSelectPage: (Int) -> Unit,
+    onLongPressPage: ((Int) -> Unit)?,
+    onRoundClick: () -> Unit,
+    isElementActive: (TimelineElement) -> Boolean,
+    keepActiveVisible: (Boolean, Modifier) -> Modifier,
+) {
+    val showSets = isExpanded && sets.isNotEmpty()
+    val capsuleActive = isElementActive(badge) || sets.any(isElementActive)
+    Box(
+        modifier = keepActiveVisible(capsuleActive, Modifier).height(STEPPER_CHROME_SIZE),
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        Row(
+            modifier = Modifier.align(Alignment.CenterStart),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            AnimatedVisibility(
+                visible = showSets,
+                enter = expandHorizontally(
+                    expandFrom = Alignment.Start,
+                    animationSpec = tween(STEPPER_ROUND_EXPAND_MS, easing = FastOutSlowInEasing),
+                    clip = true,
+                ),
+                exit = shrinkHorizontally(
+                    shrinkTowards = Alignment.Start,
+                    animationSpec = tween(STEPPER_ROUND_EXPAND_MS, easing = FastOutSlowInEasing),
+                    clip = true,
+                ),
+            ) {
+                Surface(
+                    modifier = Modifier.height(STEPPER_CHROME_SIZE),
+                    shape = RoundedCornerShape(percent = 50),
+                    color = accent,
+                ) {
+                    Row(
+                        modifier = Modifier.padding(
+                            start = STEPPER_CHROME_SIZE + STEPPER_PILL_H_PAD,
+                            end = STEPPER_PILL_H_PAD,
+                        ),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(STEPPER_PILL_INTRA_GAP),
+                    ) {
+                        sets.forEach { setElement ->
+                            when (setElement) {
+                                is TimelineElement.BilateralSet -> {
+                                    val isActive = setElement.state == WorkoutSetCardVisualState.ACTIVE
+                                    val isComplete = setElement.state == WorkoutSetCardVisualState.COMPLETED
+                                    val isSkipped = setElement.state == WorkoutSetCardVisualState.SKIPPED
+                                    TimelineDot(
+                                        accent = accent,
+                                        active = isActive || setElement.isEditing,
+                                        complete = isComplete,
+                                        skipped = isSkipped,
+                                        label = setElement.label,
+                                        nodeSize = STEPPER_SET_IN_PILL,
+                                        emphasizeScale = 1f,
+                                        onAccentTrack = true,
+                                        modifier = keepActiveVisible(
+                                            isElementActive(setElement),
+                                            Modifier.combinedClickable(
+                                                interactionSource = remember { MutableInteractionSource() },
+                                                indication = null,
+                                                onClick = { onSelectPage(setElement.pageIndex) },
+                                                onLongClick = if (onLongPressPage != null) {
+                                                    { onLongPressPage(setElement.pageIndex) }
+                                                } else {
+                                                    null
+                                                },
+                                            ),
+                                        ),
+                                    )
+                                }
+                                is TimelineElement.UnilateralSet -> {
+                                    UnilateralSetStackNode(
+                                        setLabel = setElement.setLabel,
+                                        leftPageIndex = setElement.leftPageIndex,
+                                        leftState = setElement.leftState,
+                                        rightPageIndex = setElement.rightPageIndex,
+                                        rightState = setElement.rightState,
+                                        accent = accent,
+                                        onSelectPage = onSelectPage,
+                                        compact = true,
+                                        onAccentTrack = true,
+                                        modifier = keepActiveVisible(isElementActive(setElement), Modifier),
+                                    )
+                                }
+                                else -> Unit
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        RoundBadgeNode(
+            roundIndex = badge.roundIndex,
+            isCurrentRound = badge.isCurrentRound,
+            isExpanded = showSets,
+            isAllDone = badge.isAllDone,
+            accent = accent,
+            lockSize = true,
+            onClick = onRoundClick,
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .zIndex(1f),
+        )
+    }
+}
+
+@Composable
 private fun RoundBadgeNode(
     roundIndex: Int,
     isCurrentRound: Boolean,
@@ -1299,11 +1679,12 @@ private fun RoundBadgeNode(
     accent: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    lockSize: Boolean = false,
 ) {
-    val progressColor = Color(0xFF38BDF8)
+    val progressColor = accent
     val isHighlighted = isCurrentRound || isExpanded
     val activeScale by animateFloatAsState(
-        targetValue = if (isHighlighted) 1.08f else 1f,
+        targetValue = if (lockSize || !isHighlighted) 1f else 1.08f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioNoBouncy,
             stiffness = Spring.StiffnessMediumLow,
@@ -1312,7 +1693,7 @@ private fun RoundBadgeNode(
     )
     val fillColor by animateColorAsState(
         targetValue = when {
-            isAllDone -> Color(0xFF0C4A6E).copy(alpha = 0.85f)
+            isAllDone -> accent.copy(alpha = 0.42f).compositeOver(TIMELINE_NODE_SOLID_BG)
             isHighlighted -> accent.copy(alpha = 0.22f).compositeOver(TIMELINE_NODE_SOLID_BG)
             else -> TIMELINE_NODE_SOLID_BG
         },
@@ -1382,8 +1763,10 @@ private fun UnilateralSetStackNode(
     accent: Color,
     onSelectPage: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
+    onAccentTrack: Boolean = false,
 ) {
-    val progressColor = Color(0xFF38BDF8)
+    val progressColor = accent
     val hasActive = leftState == WorkoutSetCardVisualState.ACTIVE || rightState == WorkoutSetCardVisualState.ACTIVE
     val isAllComplete = leftState == WorkoutSetCardVisualState.COMPLETED && rightState == WorkoutSetCardVisualState.COMPLETED
     val activeScale by animateFloatAsState(
@@ -1396,7 +1779,9 @@ private fun UnilateralSetStackNode(
     )
     val fillColor by animateColorAsState(
         targetValue = when {
-            isAllComplete -> Color(0xFF0C4A6E).copy(alpha = 0.85f)
+            onAccentTrack && hasActive -> Color.White.copy(alpha = 0.42f)
+            onAccentTrack -> Color.White
+            isAllComplete -> accent.copy(alpha = 0.42f).compositeOver(TIMELINE_NODE_SOLID_BG)
             hasActive -> accent.copy(alpha = 0.22f).compositeOver(TIMELINE_NODE_SOLID_BG)
             else -> TIMELINE_NODE_SOLID_BG
         },
@@ -1419,20 +1804,23 @@ private fun UnilateralSetStackNode(
     )
     Surface(
         modifier = modifier
-            .height(STEPPER_CHROME_SIZE)
+            .height(if (compact) STEPPER_SET_IN_PILL else STEPPER_CHROME_SIZE)
             .graphicsLayer {
-                scaleX = activeScale
-                scaleY = activeScale
+                scaleX = if (compact) 1f else activeScale
+                scaleY = if (compact) 1f else activeScale
             },
         shape = RoundedCornerShape(999.dp),
         color = fillColor,
         border = BorderStroke(
-            width = borderWidth,
-            color = borderColor,
+            width = if (onAccentTrack) 0.dp else if (compact) 1.dp else borderWidth,
+            color = if (onAccentTrack) Color.Transparent else borderColor,
         ),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
+            modifier = Modifier.padding(
+                horizontal = if (compact) 5.dp else 7.dp,
+                vertical = if (compact) 1.dp else 2.dp,
+            ),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
@@ -1442,6 +1830,7 @@ private fun UnilateralSetStackNode(
                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
                 fontWeight = FontWeight.Black,
                 color = when {
+                    onAccentTrack -> accent
                     hasActive -> accent
                     isAllComplete -> progressColor
                     else -> Color.White.copy(alpha = 0.65f)
@@ -1454,6 +1843,7 @@ private fun UnilateralSetStackNode(
                 label = "L",
                 state = leftState,
                 accent = accent,
+                compact = compact,
                 onClick = { leftPageIndex?.let { onSelectPage(it) } },
             )
 
@@ -1462,6 +1852,7 @@ private fun UnilateralSetStackNode(
                 label = "R",
                 state = rightState,
                 accent = accent,
+                compact = compact,
                 onClick = { rightPageIndex?.let { onSelectPage(it) } },
             )
         }
@@ -1474,11 +1865,17 @@ private fun UnilateralDotNode(
     state: WorkoutSetCardVisualState,
     accent: Color,
     onClick: () -> Unit,
+    compact: Boolean = false,
 ) {
     val isActive = state == WorkoutSetCardVisualState.ACTIVE
     val isComplete = state == WorkoutSetCardVisualState.COMPLETED
     val size by animateDpAsState(
-        targetValue = if (isActive) 22.dp else 19.dp,
+        targetValue = when {
+            compact && isActive -> 16.dp
+            compact -> 14.dp
+            isActive -> 22.dp
+            else -> 19.dp
+        },
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioNoBouncy,
             stiffness = Spring.StiffnessMediumLow,
@@ -1488,7 +1885,7 @@ private fun UnilateralDotNode(
     val fillColor by animateColorAsState(
         targetValue = when {
             isActive -> accent
-            isComplete -> Color(0xFF38BDF8)
+            isComplete -> accent
             else -> Color(0xFF26252C)
         },
         animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
@@ -1497,7 +1894,7 @@ private fun UnilateralDotNode(
     val borderColor by animateColorAsState(
         targetValue = when {
             isActive -> accent
-            isComplete -> Color(0xFF38BDF8)
+            isComplete -> accent
             else -> Color.White.copy(alpha = 0.35f)
         },
         animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
@@ -1527,10 +1924,17 @@ private fun UnilateralDotNode(
         Box(contentAlignment = Alignment.Center) {
             Text(
                 text = label,
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = if (isActive) 10.5.sp else 9.5.sp),
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = when {
+                        compact && isActive -> 8.sp
+                        compact -> 7.5.sp
+                        isActive -> 10.5.sp
+                        else -> 9.5.sp
+                    },
+                ),
                 fontWeight = FontWeight.Black,
                 color = if (isActive || isComplete) {
-                    com.example.kpkn.screens.sessioneditor.contentOn(if (isActive) accent else Color(0xFF38BDF8))
+                    com.example.kpkn.screens.sessioneditor.contentOn(if (isActive) accent else accent)
                 } else {
                     Color.White.copy(alpha = 0.85f)
                 },
@@ -1598,9 +2002,12 @@ private fun TimelineDot(
     skipped: Boolean,
     label: String,
     modifier: Modifier = Modifier,
+    nodeSize: Dp = STEPPER_CHROME_SIZE,
+    emphasizeScale: Float = 1.08f,
+    onAccentTrack: Boolean = false,
 ) {
     val size by animateDpAsState(
-        targetValue = STEPPER_CHROME_SIZE,
+        targetValue = nodeSize,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioNoBouncy,
             stiffness = Spring.StiffnessMediumLow,
@@ -1608,7 +2015,7 @@ private fun TimelineDot(
         label = "setTimelineDotSize",
     )
     val activeScale by animateFloatAsState(
-        targetValue = if (active) 1.08f else 1f,
+        targetValue = if (onAccentTrack) 1f else if (active) emphasizeScale else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioNoBouncy,
             stiffness = Spring.StiffnessMediumLow,
@@ -1616,8 +2023,10 @@ private fun TimelineDot(
         label = "setTimelineDotActiveScale",
     )
     val fillTarget = when {
+        onAccentTrack && active -> Color.White.copy(alpha = 0.42f)
+        onAccentTrack -> Color.White
         active -> accent
-        complete -> Color(0xFF38BDF8)
+        complete -> accent
         skipped -> accent.copy(alpha = 0.26f).compositeOver(TIMELINE_NODE_SOLID_BG)
         else -> Color(0xFF26252C)
     }
@@ -1628,7 +2037,8 @@ private fun TimelineDot(
     )
     val borderColor by animateColorAsState(
         targetValue = when {
-            complete -> Color(0xFF38BDF8)
+            onAccentTrack -> Color.Transparent
+            complete -> accent
             active -> accent
             skipped -> accent.copy(alpha = 0.24f)
             else -> Color.White.copy(alpha = 0.35f)
@@ -1637,7 +2047,11 @@ private fun TimelineDot(
         label = "setTimelineDotBorder",
     )
     val borderWidth by animateDpAsState(
-        targetValue = if (active || complete) 0.dp else 1.2.dp,
+        targetValue = when {
+            onAccentTrack -> 0.dp
+            active || complete -> 0.dp
+            else -> 1.2.dp
+        },
         animationSpec = tween(durationMillis = 440, easing = FastOutSlowInEasing),
         label = "setTimelineDotBorderWidth",
     )
@@ -1658,9 +2072,14 @@ private fun TimelineDot(
         Box(contentAlignment = Alignment.Center) {
             Text(
                 text = label,
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = if (active) 11.sp else 10.sp),
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = if (onAccentTrack) 8.5.sp else if (nodeSize <= STEPPER_SET_IN_PILL) {
+                        if (active) 9.5.sp else 8.5.sp
+                    } else if (active) 11.sp else 10.sp,
+                ),
                 fontWeight = FontWeight.Black,
                 color = when {
+                    onAccentTrack -> accent
                     active || complete -> com.example.kpkn.screens.sessioneditor.contentOn(fillColor)
                     skipped -> Color.White.copy(alpha = 0.5f)
                     else -> Color.White.copy(alpha = 0.9f)
@@ -1671,7 +2090,6 @@ private fun TimelineDot(
     }
 }
 
-private val WORKOUT_COMPLETED_GREEN = Color(0xFF66BB6A)
 private val TIMELINE_NODE_SLOT_HEIGHT = STEPPER_CHROME_SIZE
 private val TIMELINE_TOTAL_SLOT_HEIGHT = TIMELINE_NODE_SLOT_HEIGHT
 

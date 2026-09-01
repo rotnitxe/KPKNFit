@@ -192,7 +192,7 @@ fun WorkoutWarmupOverlay(
 
                     Surface(
                         shape = RoundedCornerShape(999.dp),
-                        color = if (allDone) Color(0xFF38BDF8).copy(alpha = 0.18f) else Color.White.copy(alpha = 0.08f),
+                        color = if (allDone) sessionAccentColor.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.08f),
                     ) {
                         val completedCount = allFlattenedItems.count { item ->
                             val key = "${item.exercise.id}_warmup_${item.warmup.id}"
@@ -203,7 +203,7 @@ fun WorkoutWarmupOverlay(
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
                             fontWeight = FontWeight.Black,
-                            color = if (allDone) Color(0xFF38BDF8) else Color.White.copy(alpha = 0.80f),
+                            color = if (allDone) sessionAccentColor else Color.White.copy(alpha = 0.80f),
                         )
                     }
                 }
@@ -270,14 +270,14 @@ fun WorkoutWarmupOverlay(
                                     shape = RoundedCornerShape(999.dp),
                                     color = when {
                                         isCurrent -> sessionAccentColor.copy(alpha = 0.18f)
-                                        isCompleted -> Color(0xFF0C4A6E).copy(alpha = 0.85f)
+                                        isCompleted -> sessionAccentColor.copy(alpha = 0.42f)
                                         else -> Color.White.copy(alpha = 0.04f)
                                     },
                                     border = BorderStroke(
                                         width = if (isCurrent) 1.5.dp else 1.dp,
                                         color = when {
                                             isCurrent -> sessionAccentColor
-                                            isCompleted -> Color(0xFF38BDF8)
+                                            isCompleted -> sessionAccentColor
                                             else -> Color.White.copy(alpha = 0.10f)
                                         },
                                     ),
@@ -292,7 +292,7 @@ fun WorkoutWarmupOverlay(
                                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.5.sp),
                                             fontWeight = if (isCurrent || isCompleted) FontWeight.Black else FontWeight.Bold,
                                             color = when {
-                                                isCompleted -> Color(0xFF38BDF8)
+                                                isCompleted -> sessionAccentColor
                                                 isCurrent -> Color.White
                                                 else -> Color.White.copy(alpha = 0.65f)
                                             },
@@ -545,10 +545,10 @@ private fun WarmupSetDetailedCard(
 
     Surface(
         shape = RoundedCornerShape(18.dp),
-        color = if (isCompleted) Color(0xFF38BDF8).copy(alpha = 0.08f) else Color.White.copy(alpha = 0.04f),
+        color = if (isCompleted) sessionAccentColor.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.04f),
         border = BorderStroke(
             1.dp,
-            if (isCompleted) Color(0xFF38BDF8).copy(alpha = 0.40f) else Color.White.copy(alpha = 0.08f),
+            if (isCompleted) sessionAccentColor.copy(alpha = 0.40f) else Color.White.copy(alpha = 0.08f),
         ),
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -585,7 +585,7 @@ private fun WarmupSetDetailedCard(
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = if (isCompleted) Color(0xFF38BDF8).copy(alpha = 0.18f) else sessionAccentColor.copy(alpha = 0.15f),
+                        color = if (isCompleted) sessionAccentColor.copy(alpha = 0.18f) else sessionAccentColor.copy(alpha = 0.15f),
                         modifier = Modifier.size(32.dp),
                     ) {
                         Box(contentAlignment = Alignment.Center) {
@@ -593,7 +593,7 @@ private fun WarmupSetDetailedCard(
                                 "A${index + 1}",
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Black,
-                                color = if (isCompleted) Color(0xFF38BDF8) else sessionAccentColor,
+                                color = if (isCompleted) sessionAccentColor else sessionAccentColor,
                             )
                         }
                     }
@@ -847,7 +847,7 @@ private fun WarmupSetDetailedCard(
                 modifier = Modifier.fillMaxWidth().height(42.dp),
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isCompleted) Color(0xFF66BB6A) else sessionAccentColor,
+                    containerColor = sessionAccentColor,
                     contentColor = com.example.kpkn.screens.sessioneditor.contentOn(sessionAccentColor),
                 ),
             ) {

@@ -1,9 +1,29 @@
 package com.example.kpkn.screens.workout
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WorkoutVisualModelsTest {
+
+    @Test
+    fun header_title_font_scale_shrinks_with_length_never_grows_slot() {
+        assertEquals(1.00f, workoutHeaderTitleFontScale(12), 0.001f)
+        assertEquals(1.00f, workoutHeaderTitleFontScale(22), 0.001f)
+        assertEquals(0.88f, workoutHeaderTitleFontScale(28), 0.001f)
+        assertEquals(0.76f, workoutHeaderTitleFontScale(40), 0.001f)
+        assertEquals(0.66f, workoutHeaderTitleFontScale(50), 0.001f)
+        assertEquals(0.58f, workoutHeaderTitleFontScale(80), 0.001f)
+        assertTrue(workoutHeaderTitleFontScale(80) < workoutHeaderTitleFontScale(12))
+        assertEquals(
+            "Press banca".length,
+            workoutHeaderTitleGlyphCount("Press banca", emptyList()),
+        )
+        assertEquals(
+            "Press".length + 3 + "Barra".length,
+            workoutHeaderTitleGlyphCount("Press", listOf("Barra")),
+        )
+    }
 
     @Test
     fun stepper_gap_caps_when_few_series_leave_empty_width() {
@@ -123,37 +143,154 @@ class WorkoutVisualModelsTest {
     }
 
     @Test
-    fun live_pager_card_scale_is_fifteen_percent_below_previous_scale() {
+    fun live_pager_card_scale_grows_twenty_five_percent_from_compact() {
         assertEquals(
-            1.20f * 0.85f,
+            1.20f * 0.85f * 1.25f * 1.25f,
             com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardScale,
             0.001f,
         )
         val compactSlot = com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerSlotHeight
         val expected = com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerBaseHeight *
-            com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardScale
+            com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardScale *
+            com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardHeightGrowFactor
         assertEquals(expected, compactSlot)
     }
 
     @Test
-    fun live_pager_card_top_nudge_is_thirteen_percent_of_slot() {
+    fun live_pager_card_is_eleven_percent_thinner_on_x() {
+        val xy = com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardScale
+        val slim = com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardWidthSlimFactor
+        assertEquals(0.89f * 0.90f * 0.93f, slim, 0.001f)
+        assertEquals(xy * slim, xy * 0.89f * 0.90f * 0.93f, 0.001f)
+        assertTrue(xy * slim < xy * 0.89f * 0.90f)
+    }
+
+    @Test
+    fun live_pager_card_is_shorter_on_y_and_slimmer_on_x() {
+        val xy = com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardScale
+        val slim = com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardWidthSlimFactor
+        val growY = com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardHeightGrowFactor
+        assertEquals(0.75f, growY, 0.001f)
+        val scaleX = xy * slim
+        val scaleY = xy * growY
+        assertEquals(xy * 0.89f * 0.90f * 0.93f, scaleX, 0.001f)
+        assertEquals(xy * 0.75f, scaleY, 0.001f)
+        assertTrue(scaleY < xy)
+        assertTrue(scaleX < xy * 0.89f * 0.90f)
+        assertEquals(slim / growY, scaleX / scaleY, 0.001f)
+    }
+
+    @Test
+    fun live_pager_uniform_xy_growth_keeps_aspect_ratio() {
+        val xy = com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardScale
+        val slim = com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardWidthSlimFactor
+        val growY = com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardHeightGrowFactor
+        assertEquals(0.89f * 0.90f * 0.93f, slim, 0.001f)
+        assertEquals(0.75f, growY, 0.001f)
+        assertEquals(slim / growY, (xy * slim) / (xy * growY), 0.0001f)
+    }
+
+    @Test
+    fun live_pager_22_9_leftover_must_not_stretch_card_height() {
+        val tallNarrow = com.example.kpkn.ui.adapt.LiveViewportPolicyMath.compute(
+            widthDp = 360f,
+            heightDp = 880f,
+        )
+        assertTrue(tallNarrow.leftoverY > 0f)
+        assertTrue(tallNarrow.cardHeightMul > 1f)
+        val liveMul = 1f
+        val xy = com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardScale
+        val scaleY = xy *
+            com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardHeightGrowFactor *
+            liveMul
+        assertEquals(xy * 0.75f, scaleY, 0.001f)
+        assertTrue(scaleY < xy)
+    }
+
+    @Test
+    fun roadmap_carousel_delta_centers_item_in_viewport() {
         assertEquals(
-            0.13f,
+            0,
+            com.example.kpkn.screens.workout.components.lazyItemDeltaToCenterPx(
+                itemOffsetPx = 100,
+                itemSizePx = 80,
+                viewportSizePx = 280,
+            ),
+        )
+        assertTrue(
+            com.example.kpkn.screens.workout.components.lazyItemDeltaToCenterPx(
+                itemOffsetPx = 0,
+                itemSizePx = 80,
+                viewportSizePx = 280,
+            ) < 0,
+        )
+        assertTrue(
+            com.example.kpkn.screens.workout.components.lazyItemDeltaToCenterPx(
+                itemOffsetPx = 200,
+                itemSizePx = 80,
+                viewportSizePx = 280,
+            ) > 0,
+        )
+    }
+
+    @Test
+    fun live_pager_card_top_nudge_is_five_percent_of_slot() {
+        assertEquals(
+            0.05f,
             com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardTopNudgeFraction,
             0.001f,
         )
+        val identity = com.example.kpkn.ui.adapt.LiveViewportPolicy.Identity
+        assertEquals(0.05f, identity.topNudgeFraction, 0.001f)
+        assertEquals(1f, identity.headerMul, 0.001f)
+        assertEquals(1f, identity.cardWidthMul, 0.001f)
+        assertEquals(1f, identity.cardHeightMul, 0.001f)
+        assertEquals(0f, identity.cardPageFillX, 0.001f)
+    }
+
+    @Test
+    fun live_pager_peek_on_canvas_is_unchanged() {
+        val cardScale = com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardScale
+        val peek = com.example.kpkn.ui.adapt.LiveViewportPolicyMath.livePagerPeekFraction(
+            availableWidthDp = 411f,
+            cardScale = cardScale,
+            shouldReflow = false,
+            cardWidthMul = 1f,
+            minPeekFraction = 0.12f,
+        )
+        val legacy = (0.22f * cardScale - (cardScale - 1f) / 2f).coerceIn(0.14f, 0.26f)
+        assertEquals(legacy, peek, 0.001f)
+    }
+
+    @Test
+    fun live_pager_peek_cover_stays_inside_viewport() {
+        val policy = com.example.kpkn.ui.adapt.LiveViewportPolicyMath.compute(
+            widthDp = 280f,
+            heightDp = 520f,
+        )
+        assertEquals(1f, policy.cardHeightMul, 0.01f)
+        val peek = com.example.kpkn.ui.adapt.LiveViewportPolicyMath.livePagerPeekFraction(
+            availableWidthDp = 280f,
+            cardScale = 1.20f * 0.85f * 0.72f,
+            shouldReflow = true,
+            cardWidthMul = policy.cardWidthMul,
+            minPeekFraction = policy.minPeekFraction,
+        )
+        assertTrue(1f - 2f * peek in 0f..1f)
+        assertTrue(peek >= policy.minPeekFraction - 0.001f)
     }
 
     @Test
     fun live_pager_stable_height_covers_expanded_normal_slot() {
         val stable = com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerNormalExpandedBaseHeight *
-            com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardScale
+            com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardScale *
+            com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerCardHeightGrowFactor
         val compactSlot = com.example.kpkn.screens.workout.components.WorkoutUiTokens.LivePagerSlotHeight
         assert(stable > compactSlot)
     }
 
     @Test
-    fun stepper_layout_expands_rounds_to_the_right_independently() {
+    fun stepper_layout_expands_only_the_active_round() {
         val r0 = TimelineElement.RoundBadge(0, true, false, 0)
         val a = TimelineElement.BilateralSet(
             roundIndex = 0,
@@ -179,15 +316,66 @@ class WorkoutVisualModelsTest {
         val onlyCurrent = stepperLayoutElements(elements, expandedRounds = setOf(1))
         assertEquals(listOf(r0, r1, b, r2), onlyCurrent)
 
-        val visited = stepperExpandedRounds(naturalActiveRound = 1)
-        assertEquals(setOf(0, 1), visited)
-        val currentPlusPast = stepperLayoutElements(elements, expandedRounds = visited)
-        assertEquals(listOf(r0, a, r1, b, r2), currentPlusPast)
+        val exclusive = stepperExpandedRounds(naturalActiveRound = 1)
+        assertEquals(setOf(1), exclusive)
+        val onlyNatural = stepperLayoutElements(elements, expandedRounds = exclusive)
+        assertEquals(listOf(r0, r1, b, r2), onlyNatural)
 
         val peekedFuture = stepperExpandedRounds(naturalActiveRound = 0, extraExpandedRounds = setOf(2))
-        assertEquals(setOf(0, 2), peekedFuture)
-        val independent = stepperLayoutElements(elements, expandedRounds = peekedFuture)
-        assertEquals(listOf(r0, a, r1, r2, c), independent)
+        assertEquals(setOf(2), peekedFuture)
+        val peekedLayout = stepperLayoutElements(elements, expandedRounds = peekedFuture)
+        assertEquals(listOf(r0, r1, r2, c), peekedLayout)
+
+        val restWins = stepperExpandedRounds(
+            naturalActiveRound = 0,
+            restExpandedRound = 1,
+        )
+        assertEquals(setOf(1), restWins)
+    }
+
+    @Test
+    fun stepper_rail_slots_group_round_sets_and_keep_rest_outside() {
+        val r0 = TimelineElement.RoundBadge(0, true, false, 0)
+        val s0 = TimelineElement.BilateralSet(
+            roundIndex = 0,
+            pageIndex = 0,
+            label = "S1",
+            state = WorkoutSetCardVisualState.ACTIVE,
+        )
+        val rest = TimelineElement.RestPill(pageIndex = 1, progress = 0.5f, remainingLabel = "0:30")
+        val s1 = TimelineElement.BilateralSet(
+            roundIndex = 0,
+            pageIndex = 2,
+            label = "S2",
+            state = WorkoutSetCardVisualState.FUTURE,
+        )
+        val r1 = TimelineElement.RoundBadge(1, false, false, 3)
+        val slots = stepperRailSlots(listOf(r0, s0, rest, s1, r1))
+        assertEquals(3, slots.size)
+        val cluster = slots[0] as StepperRailSlot.RoundCluster
+        assertEquals(r0, cluster.badge)
+        assertEquals(listOf(s0, s1), cluster.sets)
+        assertEquals(StepperRailSlot.Loose(rest), slots[1])
+        val collapsed = slots[2] as StepperRailSlot.RoundCluster
+        assertEquals(r1, collapsed.badge)
+        assertTrue(collapsed.sets.isEmpty())
+
+        val expandedWidth = roundClusterWidthDp(listOf(s0, s1))
+        val collapsedWidth = roundClusterWidthDp(emptyList())
+        assertTrue(expandedWidth > collapsedWidth)
+        assertEquals(collapsedWidth, roundClusterWidthDp(emptyList()), 0.01f)
+        assertEquals(ActivityCloudArea.SUPERSERIE, stepperCloudAreaForSlot(cluster))
+        assertEquals(ActivityCloudArea.SUPERSERIE, stepperCloudAreaForSlot(collapsed))
+        val merged = mergeStepperCloudPieces(
+            slots = listOf(cluster, StepperRailSlot.Loose(rest), collapsed),
+            slotWidthsDp = listOf(expandedWidth, 108f, collapsedWidth),
+            gapDp = 10f,
+        )
+        assertEquals(
+            listOf(ActivityCloudArea.SUPERSERIE, ActivityCloudArea.DESCANSO, ActivityCloudArea.SUPERSERIE),
+            merged.map { it.area },
+        )
+        assertEquals(89f, expandedWidth, 0.01f)
     }
 
     @Test
@@ -363,6 +551,94 @@ class WorkoutVisualModelsTest {
     }
 
     @Test
+    fun merge_cloud_pieces_one_nube_for_three_bilateral_series() {
+        val elements = listOf(
+            TimelineElement.BilateralSet(pageIndex = 0, label = "S1", state = WorkoutSetCardVisualState.ACTIVE),
+            TimelineElement.BilateralSet(pageIndex = 1, label = "S2", state = WorkoutSetCardVisualState.FUTURE),
+            TimelineElement.BilateralSet(pageIndex = 2, label = "S3", state = WorkoutSetCardVisualState.FUTURE),
+        )
+        val slots = stepperRailSlots(elements)
+        val pieces = mergeStepperCloudPieces(slots, slots.map { stepperRailSlotWidthDp(it) }, gapDp = 10f)
+        assertEquals(1, pieces.size)
+        assertEquals(ActivityCloudArea.EFFECTIVE_SERIES, pieces.single().area)
+        assertEquals(
+            stepperRailSlotWidthDp(slots[0]) + 10f + stepperRailSlotWidthDp(slots[1]) + 10f + stepperRailSlotWidthDp(slots[2]),
+            pieces.single().width.value,
+            0.01f,
+        )
+    }
+
+    @Test
+    fun merge_cloud_pieces_one_nube_for_three_unilateral_series() {
+        fun uni(set: Int, left: Int, right: Int) = TimelineElement.UnilateralSet(
+            setLabel = "S$set",
+            leftPageIndex = left,
+            leftState = WorkoutSetCardVisualState.FUTURE,
+            rightPageIndex = right,
+            rightState = WorkoutSetCardVisualState.FUTURE,
+        )
+        val elements = listOf(uni(1, 0, 1), uni(2, 2, 3), uni(3, 4, 5))
+        val slots = stepperRailSlots(elements)
+        val pieces = mergeStepperCloudPieces(slots, slots.map { stepperRailSlotWidthDp(it) }, gapDp = 12f)
+        assertEquals(1, pieces.size)
+        assertEquals(ActivityCloudArea.EFFECTIVE_SERIES, pieces.single().area)
+    }
+
+    @Test
+    fun merge_cloud_pieces_one_nube_for_three_rounds() {
+        fun round(index: Int) = TimelineElement.RoundBadge(
+            roundIndex = index,
+            isCurrentRound = index == 0,
+            isAllDone = false,
+            firstPageIndex = index,
+        )
+        fun set(index: Int, roundIndex: Int) = TimelineElement.BilateralSet(
+            roundIndex = roundIndex,
+            pageIndex = index,
+            label = "S1",
+            state = WorkoutSetCardVisualState.FUTURE,
+        )
+        val elements = listOf(
+            round(0), set(0, 0),
+            round(1), set(1, 1),
+            round(2), set(2, 2),
+        )
+        val slots = stepperRailSlots(elements)
+        assertEquals(3, slots.size)
+        val collapsedWidths = slots.map { slot ->
+            when (slot) {
+                is StepperRailSlot.RoundCluster -> roundClusterWidthDp(emptyList())
+                is StepperRailSlot.Loose -> stepperRailSlotWidthDp(slot)
+            }
+        }
+        val pieces = mergeStepperCloudPieces(slots, collapsedWidths, gapDp = 10f)
+        assertEquals(1, pieces.size)
+        assertEquals(ActivityCloudArea.SUPERSERIE, pieces.single().area)
+    }
+
+    @Test
+    fun merge_cloud_pieces_prep_then_effective_and_rest_splits() {
+        val elements = listOf(
+            TimelineElement.MobilityPill(false, false, 0f, {}),
+            TimelineElement.WarmupPill(false, false, 0f, {}),
+            TimelineElement.BilateralSet(pageIndex = 0, label = "S1", state = WorkoutSetCardVisualState.COMPLETED),
+            TimelineElement.RestPill(pageIndex = 1, progress = 0.2f, remainingLabel = "1:00"),
+            TimelineElement.BilateralSet(pageIndex = 2, label = "S2", state = WorkoutSetCardVisualState.FUTURE),
+        )
+        val slots = stepperRailSlots(elements)
+        val pieces = mergeStepperCloudPieces(slots, slots.map { stepperRailSlotWidthDp(it) }, gapDp = 10f)
+        assertEquals(
+            listOf(
+                ActivityCloudArea.PREPARATION,
+                ActivityCloudArea.EFFECTIVE_SERIES,
+                ActivityCloudArea.DESCANSO,
+                ActivityCloudArea.EFFECTIVE_SERIES,
+            ),
+            pieces.map { it.area },
+        )
+    }
+
+    @Test
     fun stepper_scroll_pulls_active_out_from_under_leading_chrome() {
         val target = workoutStepperScrollToKeepActiveVisible(
             nodeLeftPx = 80f,
@@ -503,5 +779,60 @@ class WorkoutVisualModelsTest {
             "Principales",
             resolveWorkoutHeaderGroupLabel(partName = "principales", type = null, category = null),
         )
+    }
+
+    @Test
+    fun pager_accent_uses_cover_emphasis_instead_of_celeste_or_green() {
+        val accent = androidx.compose.ui.graphics.Color(0xFFE08E45)
+        val scheme = androidx.compose.material3.darkColorScheme()
+        assertEquals(
+            accent,
+            workoutSetPagerAccent(
+                WorkoutSetCardVisualState.ACTIVE,
+                scheme,
+                sessionAccentColor = accent,
+            ),
+        )
+        val completed = workoutSetPagerAccent(
+            WorkoutSetCardVisualState.COMPLETED,
+            scheme,
+            sessionAccentColor = accent,
+        )
+        val warmup = workoutSetPagerAccent(
+            WorkoutSetCardVisualState.FUTURE,
+            scheme,
+            isWarmupOrFeedback = true,
+            sessionAccentColor = accent,
+        )
+        assertTrue(completed != androidx.compose.ui.graphics.Color(0xFF66BB6A))
+        assertTrue(completed != androidx.compose.ui.graphics.Color(0xFF38BDF8))
+        assertTrue(warmup != androidx.compose.ui.graphics.Color(0xFF448AFF))
+        assertTrue(warmup != androidx.compose.ui.graphics.Color(0xFF38BDF8))
+    }
+
+    @Test
+    fun roadmap_uncategorized_uses_cover_accent_not_celeste() {
+        val cover = androidx.compose.ui.graphics.Color(0xFFE08E45)
+        val uncategorized = com.example.kpkn.data.models.SessionPart(
+            id = "loose",
+            name = "Sin categoría",
+        )
+        val grouped = com.example.kpkn.data.models.SessionPart(
+            id = "g1",
+            name = "Empuje",
+            color = "gradient://violet",
+        )
+        val looseAccent = com.example.kpkn.screens.workout.components.roadmapAccentForPart(
+            uncategorized,
+            cover,
+        )
+        val groupAccent = com.example.kpkn.screens.workout.components.roadmapAccentForPart(
+            grouped,
+            cover,
+        )
+        assertEquals(cover, looseAccent)
+        assertTrue(looseAccent != androidx.compose.ui.graphics.Color(0xFF38BDF8))
+        assertTrue(groupAccent != cover)
+        assertTrue(groupAccent != androidx.compose.ui.graphics.Color(0xFF38BDF8))
     }
 }

@@ -54,7 +54,6 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.SupersetGroup
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
-import com.example.kpkn.screens.sessioneditor.RoadmapCeleste
 import com.example.kpkn.screens.sessioneditor.isEditorUncategorized
 import com.example.kpkn.screens.sessioneditor.resolvePartAccent
 import com.example.kpkn.ui.components.KpknGlass
@@ -162,7 +161,7 @@ internal fun GodModeSessionBoard(
                 userScrollEnabled = draggingId == null,
             ) {
                 sections.forEach { (part, exercises) ->
-                    val partAccent = part?.let { boardAccentForPart(it) } ?: sessionAccentColor
+                    val partAccent = part?.let { boardAccentForPart(it, sessionAccentColor) } ?: sessionAccentColor
                     val sectionKey = part?.id ?: "loose"
                     item(key = "section-$sectionKey") {
                         Text(
@@ -182,7 +181,7 @@ internal fun GodModeSessionBoard(
                                     groupId = cluster.groupId,
                                     currentExerciseId = currentExerciseId,
                                     selectedIds = selectedIds,
-                                    accent = RoadmapCeleste,
+                                    accent = partAccent,
                                     canDelete = canDelete,
                                     orderedIds = orderedIds,
                                     parts = parts,
@@ -574,8 +573,8 @@ private fun MutableList<String>.swap(a: Int, b: Int) {
     this[b] = tmp
 }
 
-private fun boardAccentForPart(part: SessionPart): Color {
-    if (part.isEditorUncategorized()) return RoadmapCeleste
-    val colorId = part.color?.takeIf { it.isNotBlank() } ?: return RoadmapCeleste
+private fun boardAccentForPart(part: SessionPart, coverAccent: Color): Color {
+    if (part.isEditorUncategorized()) return coverAccent
+    val colorId = part.color?.takeIf { it.isNotBlank() } ?: return coverAccent
     return resolvePartAccent(colorId).primary
 }

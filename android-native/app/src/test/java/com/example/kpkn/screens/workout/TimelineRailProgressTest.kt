@@ -1,6 +1,8 @@
 package com.example.kpkn.screens.workout
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TimelineRailProgressTest {
@@ -85,6 +87,26 @@ class TimelineRailProgressTest {
     }
 
     @Test
+    fun restLiveCardStaysVisibleWhenOverlayIsMinimized() {
+        assertTrue(shouldRenderRestLiveCard(isOverlayMinimized = false))
+        assertTrue(shouldRenderRestLiveCard(isOverlayMinimized = true))
+    }
+
+    @Test
+    fun restLiveCardUsesSameWrapSlotAsSeriesCards() {
+        assertTrue(livePagerCardAllowsContentExpansion(LivePageType.REST))
+        assertTrue(livePagerCardAllowsContentExpansion(LivePageType.NORMAL))
+        assertTrue(livePagerCardAllowsContentExpansion(LivePageType.WARMUP))
+        assertTrue(livePagerCardAllowsContentExpansion(LivePageType.MOBILITY))
+        assertFalse(livePagerCardAllowsContentExpansion(LivePageType.CARDIO))
+        assertTrue(livePagerCardLocksToWorkingSetHeight(LivePageType.REST))
+        assertTrue(livePagerCardLocksToWorkingSetHeight(LivePageType.WARMUP))
+        assertTrue(livePagerCardLocksToWorkingSetHeight(LivePageType.MOBILITY))
+        assertFalse(livePagerCardLocksToWorkingSetHeight(LivePageType.NORMAL))
+        assertFalse(livePagerCardLocksToWorkingSetHeight(LivePageType.CARDIO))
+    }
+
+    @Test
     fun timelineRestInsertIndex_afterCompletedSetNode() {
         val elements = listOf(
             TimelineElement.BilateralSet(pageIndex = 0, label = "S1", state = WorkoutSetCardVisualState.COMPLETED),
@@ -105,5 +127,31 @@ class TimelineRailProgressTest {
         assertEquals(ActivityCloudArea.EFFECTIVE_SERIES, segments[0].area)
         assertEquals(ActivityCloudArea.DESCANSO, segments[1].area)
         assertEquals(ActivityCloudArea.EFFECTIVE_SERIES, segments[2].area)
+        val gap = 10f
+        val widths = segments.map { activityCloudSegmentWidthDp(elements, it, gap) }
+        val labels = segments.mapIndexed { i, seg ->
+            activityCloudLabelWidthDp(widths[i], seg.area)
+        }
+        labels.forEachIndexed { i, label ->
+            assertTrue(label <= widths[i] + 0.01f)
+        }
+        assertFalse(
+            activityCloudLabelsOverlap(
+                leftSegmentWidthDp = widths[1],
+                leftLabelWidthDp = labels[1],
+                gapDp = gap,
+                rightSegmentWidthDp = widths[2],
+                rightLabelWidthDp = labels[2],
+            ),
+        )
+        assertFalse(
+            activityCloudLabelsOverlap(
+                leftSegmentWidthDp = widths[0],
+                leftLabelWidthDp = labels[0],
+                gapDp = gap,
+                rightSegmentWidthDp = widths[1],
+                rightLabelWidthDp = labels[1],
+            ),
+        )
     }
 }

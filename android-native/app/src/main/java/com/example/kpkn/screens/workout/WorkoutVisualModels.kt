@@ -43,19 +43,20 @@ internal data class WorkoutSetPagerItem(
     val isWarmupOrFeedback: Boolean = false,
 )
 
-internal val WORKOUT_WARMUP_BLUE: Color = Color(0xFF448AFF)
-
 internal fun workoutSetPagerAccent(
     state: WorkoutSetCardVisualState,
     colorScheme: androidx.compose.material3.ColorScheme,
     isWarmupOrFeedback: Boolean = false,
     sessionAccentColor: Color? = null,
-): Color = when {
-    isWarmupOrFeedback -> WORKOUT_WARMUP_BLUE
-    state == WorkoutSetCardVisualState.ACTIVE -> sessionAccentColor ?: colorScheme.primary
-    state == WorkoutSetCardVisualState.COMPLETED -> Color(0xFF66BB6A)
-    state == WorkoutSetCardVisualState.SKIPPED -> colorScheme.outline
-    else -> colorScheme.onSurfaceVariant
+): Color {
+    val accent = sessionAccentColor ?: colorScheme.primary
+    return when {
+        isWarmupOrFeedback -> androidx.compose.ui.graphics.lerp(accent, Color.White, 0.22f)
+        state == WorkoutSetCardVisualState.ACTIVE -> accent
+        state == WorkoutSetCardVisualState.COMPLETED -> androidx.compose.ui.graphics.lerp(accent, Color.White, 0.18f)
+        state == WorkoutSetCardVisualState.SKIPPED -> colorScheme.outline
+        else -> colorScheme.onSurfaceVariant
+    }
 }
 
 internal fun resolveWorkoutHeaderGroupLabel(

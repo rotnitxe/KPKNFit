@@ -618,9 +618,12 @@ class WorkoutSetRecorder(
                 val adjustedPlanned = ports.adjustRestTimeForPace(plannedRest)
                 val adjustedAdaptive = ports.adjustRestTimeForPace(adaptiveRest)
 
-                // Drop/rest-pause pauses run inside the guided card flow.
-                // After the final record, always use the normal between-set rest.
-                val effectivePlanned = adjustedPlanned
+                // Drop/rest-pause pauses run inside the card. Do not start the
+                // originally planned between-set rest until those techniques
+                // have actually been recorded.
+                val techniqueStillOpen = (plannedSet?.isDropSet == true && advanced.dropSets.isEmpty()) ||
+                    (plannedSet?.isRestPause == true && advanced.restPauses.isEmpty())
+                val effectivePlanned = if (techniqueStillOpen) 0 else adjustedPlanned
 
                 val pendingSuggestion = PendingRestSuggestion(
                     plannedSeconds = effectivePlanned,

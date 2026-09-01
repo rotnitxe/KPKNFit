@@ -309,6 +309,8 @@ object MobilityExerciseCatalog {
 
     fun getAllMobilityExercises(): List<MobilityExercise> = exercises
 
+    fun findById(id: String): MobilityExercise? = exercises.firstOrNull { it.id == id }
+
     /** Search by Spanish copy, anatomy, objective, discomfort or known alias. */
     fun searchMobility(query: String): List<MobilityExercise> {
         val normalized = normalizeMobilitySearch(query)

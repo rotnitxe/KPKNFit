@@ -26,6 +26,32 @@ class WorkoutHistoryIndexTest {
         assertEquals(listOf("new", "old"), index["bench_press"]?.map { it.id })
         assertEquals(listOf("new"), index["squat"]?.map { it.id })
         assertTrue(index["missing"].isNullOrEmpty())
+        assertTrue(index.keys.any { it.startsWith("custom:") })
+    }
+
+    @Test
+    fun nameAliasFindsLogAfterProgramRebuild() {
+        val old = log(
+            id = "old",
+            date = "2025-01-01T10:00:00.000Z",
+            exercises = listOf(
+                CompletedExercise(
+                    exerciseId = "uuid-old",
+                    exerciseName = "Press banca",
+                    sets = emptyList(),
+                ),
+            ),
+        )
+        val index = buildWorkoutHistoryIndexByExerciseDbId(listOf(old))
+        val keys = identityKeysFor(
+            canonicalId = "bench_press",
+            exerciseDbId = "bench_press",
+            catalogDefinitionId = "def_bench",
+            exerciseId = "uuid-new",
+            name = "Press banca",
+        )
+        val merged = mergeWorkoutLogsForKeys(index, keys)
+        assertEquals(listOf("old"), merged.map { it.id })
     }
 
     private fun log(

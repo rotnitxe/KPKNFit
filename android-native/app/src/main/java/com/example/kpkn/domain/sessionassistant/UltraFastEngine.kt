@@ -4,9 +4,11 @@ import com.example.kpkn.data.models.DropSetData
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.PlannedTechnique
 import com.example.kpkn.data.models.RestPauseData
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SupersetGroup
+import com.example.kpkn.data.models.TechniqueType
 import com.example.kpkn.data.models.plannedRepAnchor
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
@@ -397,29 +399,46 @@ fun ExerciseSet.withTechnique(technique: SeriesTechnique): ExerciseSet = when (t
         isRestPause = false,
         dropSets = emptyList(),
         restPauses = emptyList(),
+        plannedIntensityTechniques = plannedIntensityTechniques.filter {
+            it.type != TechniqueType.DROP_SET && it.type != TechniqueType.REST_PAUSE
+        },
     )
     SeriesTechnique.DROPSET -> {
-        val anchor = plannedRepAnchor() ?: 8
-        val w = weight ?: 0.0
+        val dropCount = 1
         copy(
             isDropSet = true,
             isRestPause = false,
             restPauses = emptyList(),
-            dropSets = if (dropSets.isNotEmpty()) dropSets else listOf(
-                DropSetData(weight = (w * 0.85).let { if (it <= 0) 0.0 else it }, reps = (anchor / 2).coerceAtLeast(4)),
-                DropSetData(weight = (w * 0.70).let { if (it <= 0) 0.0 else it }, reps = (anchor / 2).coerceAtLeast(4)),
+            dropSets = emptyList(),
+            plannedIntensityTechniques = plannedIntensityTechniques.filter {
+                it.type != TechniqueType.REST_PAUSE && it.type != TechniqueType.DROP_SET
+            } + PlannedTechnique(
+                id = UUID.randomUUID().toString(),
+                type = TechniqueType.DROP_SET,
+                params = mapOf(
+                    "weightDropKg" to "5",
+                    "reps" to "3",
+                    "count" to dropCount.toString(),
+                ),
             ),
         )
     }
     SeriesTechnique.REST_PAUSE -> {
-        val anchor = plannedRepAnchor() ?: 8
         copy(
             isRestPause = true,
             isDropSet = false,
             dropSets = emptyList(),
-            restPauses = if (restPauses.isNotEmpty()) restPauses else listOf(
-                RestPauseData(restTime = 15, reps = (anchor / 2).coerceAtLeast(3)),
-                RestPauseData(restTime = 15, reps = (anchor / 3).coerceAtLeast(2)),
+            restPauses = emptyList(),
+            plannedIntensityTechniques = plannedIntensityTechniques.filter {
+                it.type != TechniqueType.DROP_SET && it.type != TechniqueType.REST_PAUSE
+            } + PlannedTechnique(
+                id = UUID.randomUUID().toString(),
+                type = TechniqueType.REST_PAUSE,
+                params = mapOf(
+                    "count" to "2",
+                    "pauseSeconds" to "15",
+                    "reps" to "3",
+                ),
             ),
         )
     }

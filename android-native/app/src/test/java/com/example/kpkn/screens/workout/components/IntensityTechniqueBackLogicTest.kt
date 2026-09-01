@@ -23,9 +23,11 @@ class IntensityTechniqueBackLogicTest {
     }
 
     @Test
-    fun suggestedDrops_areLighterThanMainSet() {
+    fun suggestedDrops_areAboutFiveKgLighter() {
         val loads = suggestedDropLoadsForMainSet(mainWeight = 100.0, mainReps = 8, count = 2)
         assertEquals(2, loads.size)
+        assertEquals(95.0, loads[0], 0.51)
+        assertEquals(90.0, loads[1], 0.51)
         assertTrue(loads.all { it < 100.0 })
         assertTrue(loads[1] <= loads[0])
     }

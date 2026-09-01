@@ -165,6 +165,7 @@ data class CompletedSet(
     val distanceKm: Double? = null,
     val avgHeartRate: Int? = null,
     val calories: Double? = null,
+    val notes: String? = null,
 )
 
 fun CompletedSet.effectiveRepEquivalent(): Double =
@@ -185,6 +186,23 @@ data class PostExerciseFeedback(
     /** Discomforts the athlete marked as still present (linked/previous). */
     val stillPresentDiscomfortIds: List<String> = emptyList(),
 )
+
+/** Discomforts that should still affect later series. `"none"` means all resolved. */
+fun PostExerciseFeedback.unresolvedDiscomfortIds(): List<String> {
+    val reported = discomfortIds.filter { it.isNotBlank() && it != "none" }
+    val stillRaw = stillPresentDiscomfortIds
+    val still = stillRaw.filter { it.isNotBlank() && it != "none" }
+    return when {
+        stillRaw.any { it == "none" } -> emptyList()
+        still.isNotEmpty() -> still
+        stillRaw.isNotEmpty() -> emptyList()
+        else -> reported
+    }
+}
+
+fun unresolvedDiscomfortIdsFrom(
+    feedbacks: Collection<PostExerciseFeedback>,
+): List<String> = feedbacks.flatMap { it.unresolvedDiscomfortIds() }.distinct()
 
 @Serializable
 data class OngoingWorkoutState(

@@ -3,8 +3,6 @@ package com.example.kpkn.screens.workout.components
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.PlannedTechnique
 import com.example.kpkn.data.models.TechniqueType
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
-import com.example.kpkn.domain.calculations.calculateWeightFrom1RM
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
 import com.example.kpkn.screens.sessioneditor.components.DropSetPlanDefaults
 import com.example.kpkn.screens.sessioneditor.components.RestPausePlanDefaults
@@ -74,16 +72,19 @@ internal fun ExerciseSet.resolvePlannedTechniqueGuide(): PlannedTechniqueGuide? 
 }
 
 private fun parseDropPcts(technique: PlannedTechnique?): List<Double> {
+    if (technique?.params?.get("weightDropKg")?.toDoubleOrNull() != null) {
+        return emptyList()
+    }
     val raw = technique?.params?.get("weightPcts")
         ?: DropSetPlanDefaults.weightPctsFor(DropSetPlanDefaults.DefaultDrops)
     return raw.split(",")
         .mapNotNull { it.trim().toDoubleOrNull() }
-        .ifEmpty { listOf(-20.0) }
+        .ifEmpty { emptyList() }
 }
 
 /**
- * Suggests drop weight for ~3 reps from the main set performance,
- * progressive with planned % reductions, never heavier than the main set.
+ * Suggests drop weight for ~3 reps from the main set: about 5 kg less
+ * per drop so the load stays close to the working set.
  */
 internal fun suggestedDropLoadsForMainSet(
     mainWeight: Double,
@@ -91,12 +92,8 @@ internal fun suggestedDropLoadsForMainSet(
     count: Int = DropSetPlanDefaults.DefaultDrops,
 ): List<Double> {
     val clamped = count.coerceIn(DropSetPlanDefaults.MinDrops, DropSetPlanDefaults.MaxDrops)
-    val pcts = DropSetPlanDefaults.weightPctsFor(clamped)
-        .split(",")
-        .mapNotNull { it.trim().toDoubleOrNull() }
-        .ifEmpty { listOf(-20.0) }
     return (0 until clamped).map { index ->
-        suggestDropWeightForThreeReps(mainWeight, mainReps, index, pcts)
+        suggestDropWeightForThreeReps(mainWeight, mainReps, index, emptyList())
     }
 }
 
@@ -110,13 +107,15 @@ internal fun suggestDropWeightForThreeReps(
     dropPcts: List<Double>,
 ): Double {
     if (mainWeight <= 0.0) return 0.0
-    val reps = mainReps.coerceAtLeast(1)
-    val e1rm = calculateHybrid1RM(mainWeight, reps)
-    val capacityFor3 = calculateWeightFrom1RM(e1rm, RestPausePlanDefaults.Reps)
-    val pct = dropPcts.getOrNull(dropIndex) ?: dropPcts.lastOrNull() ?: -20.0
-    val fromWorking = mainWeight * (1.0 + pct / 100.0)
-    val candidate = min(capacityFor3.takeIf { it > 0.0 } ?: fromWorking, fromWorking)
-        .coerceAtMost(mainWeight * 0.95)
+    val fromKg = mainWeight - DropSetPlanDefaults.DropKg * (dropIndex + 1)
+    val pct = dropPcts.getOrNull(dropIndex)
+    val fromPct = if (pct != null && pct > -15.0) {
+        mainWeight * (1.0 + pct / 100.0)
+    } else {
+        fromKg
+    }
+    val candidate = min(fromKg, fromPct)
+        .coerceAtMost(mainWeight - 0.5)
         .coerceAtLeast(0.5)
     return LoadSuggestionEngine.roundLoad(candidate)
 }
