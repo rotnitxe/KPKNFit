@@ -40,7 +40,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
@@ -160,7 +159,6 @@ private fun KpknSheetBody(
             .fillMaxSize()
             .zIndex(350f),
     ) {
-        var sheetHeightPx by remember { mutableFloatStateOf(0f) }
         val maxHeightPx = constraints.maxHeight.toFloat().coerceAtLeast(1f)
         val sheetCapPx = maxHeightPx * maxHeightFraction
         val sheetCapDp = with(density) { sheetCapPx.toDp() }
@@ -170,7 +168,6 @@ private fun KpknSheetBody(
         val dismissThresholdPx = with(density) {
             minOf(150.dp.toPx(), sheetCapPx * 0.25f)
         }
-        val dragProgress = (dragOffsetPx / sheetCapPx).coerceIn(0f, 1f)
         val totalOffsetPx = dragOffsetPx + (enterOffset.value * sheetCapPx)
 
         fun settle() {
@@ -260,12 +257,8 @@ private fun KpknSheetBody(
             Modifier
         }
 
-        val measuredSheetHeightDp = with(density) { sheetHeightPx.toDp() }
-
-        // Keep the interaction layer full-screen so a tap above the sheet can
-        // dismiss it, but scope the visual veil to the sheet's actual footprint.
-        // A full-screen scrim made the hero/header look broken and was the
-        // source of the "everything is blurred" visual regression.
+        // Tap-outside lives on a full-screen layer; the sheet itself is clipped
+        // to rounded corners so no rectangular scrim peeks above the handle.
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -282,17 +275,6 @@ private fun KpknSheetBody(
                 ),
         )
 
-        if (sheetHeightPx > 0f) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .height(measuredSheetHeightDp)
-                    .graphicsLayer { alpha = (1f - enterOffset.value).coerceIn(0f, 1f) }
-                    .background(Color.Black.copy(alpha = 0.72f * (1f - dragProgress))),
-            )
-        }
-
         Box(
             modifier = modifier
                 .align(Alignment.BottomCenter)
@@ -301,8 +283,11 @@ private fun KpknSheetBody(
                     if (stableHeightDp != null) Modifier.height(stableHeightDp)
                     else Modifier.wrapContentHeight().heightIn(max = sheetCapDp),
                 )
-                .onSizeChanged { sheetHeightPx = it.height.toFloat() }
                 .offset { IntOffset(0, totalOffsetPx.roundToInt()) }
+                .graphicsLayer {
+                    clip = true
+                    shape = sheetShape
+                }
                 .kpknGlassOrFallback(
                     hazeState = hazeState,
                     shape = sheetShape,
