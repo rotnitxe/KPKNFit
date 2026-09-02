@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.sessionassistant
 
 import com.example.kpkn.data.models.*
+import com.example.kpkn.domain.workout.techniqueScope
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -122,6 +123,7 @@ class UltraFastEngineTest {
         val transformed = result.transformedExercises.first()
         assertEquals(1, transformed.sets.size)
         assertTrue(transformed.sets.first().isDropSet)
+        assertEquals(com.example.kpkn.domain.workout.SetTechniqueScope.VOLUME_REPLACED, transformed.sets.first().techniqueScope())
     }
 
     @Test
@@ -242,5 +244,142 @@ class UltraFastEngineTest {
         assertTrue(changed.sets[1].isDropSet)
         assertTrue(changed.sets[2].isDropSet)
         assertFalse(changed.sets[3].isDropSet)
+    }
+
+    @Test
+    fun applyMarked_dropset_s1_s2_rest_zero_and_minus_five_kg() {
+        val sets = listOf(
+            ExerciseSet(id = "s1", targetReps = 8, weight = 80.0),
+            ExerciseSet(id = "s2", targetReps = 8, weight = 80.0),
+            ExerciseSet(id = "s3", targetReps = 8, weight = 80.0),
+        )
+        val out = applyMarkedSeriesTechnique(sets, setOf(0, 1), SeriesTechnique.DROPSET)
+        assertTrue(out[0].isDropSet)
+        assertTrue(out[1].isDropSet)
+        assertFalse(out[2].isDropSet)
+        assertEquals(0, out[0].restAfterSeconds)
+        assertEquals(null, out[1].restAfterSeconds)
+        assertEquals(80.0, out[0].weight!!, 0.01)
+        assertEquals(75.0, out[1].weight!!, 0.01)
+        assertEquals(80.0, out[2].weight!!, 0.01)
+        assertEquals("true", out[0].plannedIntensityTechniques.first { it.type == TechniqueType.DROP_SET }.params["betweenMarked"])
+        assertEquals("true", out[1].plannedIntensityTechniques.first { it.type == TechniqueType.DROP_SET }.params["betweenMarked"])
+    }
+
+    @Test
+    fun applyMarked_rest_pause_keeps_weight_and_sets_15s() {
+        val sets = listOf(
+            ExerciseSet(id = "s1", targetReps = 8, weight = 80.0),
+            ExerciseSet(id = "s2", targetReps = 8, weight = 80.0),
+        )
+        val out = applyMarkedSeriesTechnique(sets, setOf(0, 1), SeriesTechnique.REST_PAUSE)
+        assertTrue(out[0].isRestPause)
+        assertTrue(out[1].isRestPause)
+        assertEquals(15, out[0].restAfterSeconds)
+        assertEquals(15, out[1].restAfterSeconds)
+        assertEquals(80.0, out[0].weight!!, 0.01)
+        assertEquals(80.0, out[1].weight!!, 0.01)
+    }
+
+    @Test
+    fun applyMarked_normal_clears_technique_and_rest_override() {
+        val sets = listOf(
+            ExerciseSet(id = "s1", targetReps = 8, weight = 80.0, isDropSet = true, restAfterSeconds = 0),
+            ExerciseSet(id = "s2", targetReps = 8, weight = 75.0, isDropSet = true, restAfterSeconds = 0),
+        )
+        val out = applyMarkedSeriesTechnique(sets, setOf(0, 1), SeriesTechnique.NORMAL)
+        assertFalse(out[0].isDropSet)
+        assertFalse(out[1].isDropSet)
+        assertEquals(null, out[0].restAfterSeconds)
+        assertEquals(null, out[1].restAfterSeconds)
+        assertEquals(80.0, out[0].weight!!, 0.01)
+        assertEquals(75.0, out[1].weight!!, 0.01)
+    }
+
+    @Test
+    fun isolation_halves_rest_and_keeps_technique() {
+        val ex = exercise("ex1", "Curl polea baja", 4).copy(restTime = 90)
+        val idx = mapOf("curl polea baja" to info("curl polea baja", "Curl polea baja", equipment = "polea", type = "Aislamiento", primaryMuscles = listOf("Bíceps")))
+        val result = UltraFastEngine.apply(Session(id = "s", name = "test", exercises = listOf(ex)), idx)
+        val transformed = result.transformedExercises.first()
+        assertEquals(1, transformed.sets.size)
+        assertTrue(transformed.sets.first().isRestPause)
+        assertEquals(45, transformed.restTime)
+    }
+
+    @Test
+    fun isolation_null_rest_defaults_then_halves() {
+        val ex = exercise("ex1", "Aperturas pec deck", 4)
+        val idx = mapOf("aperturas pec deck" to info("aperturas pec deck", "Aperturas pec deck", equipment = "machine", type = "Aislamiento", primaryMuscles = listOf("Pectorales")))
+        val result = UltraFastEngine.apply(Session(id = "s", name = "test", exercises = listOf(ex)), idx)
+        assertEquals(45, result.transformedExercises.first().restTime)
+        assertTrue(result.transformedExercises.first().sets.first().isDropSet)
+    }
+
+    @Test
+    fun protected_halves_rest() {
+        val ex = exercise("ex1", "Sentadilla barra alta", 4).copy(restTime = 120)
+        val idx = mapOf("sentadilla barra alta" to info("sentadilla barra alta", "Sentadilla barra alta", equipment = "barra", type = "Básico"))
+        val result = UltraFastEngine.apply(Session(id = "s", name = "test", exercises = listOf(ex)), idx)
+        val transformed = result.transformedExercises.first()
+        assertEquals(2, transformed.sets.size)
+        assertEquals(60, transformed.restTime)
+    }
+
+    @Test
+    fun compound_else_reduces_volume_and_rest_without_densify() {
+        val ex = exercise("ex1", "Press inclinado mancuernas", 4).copy(restTime = 90)
+        val idx = mapOf(
+            "press inclinado mancuernas" to info(
+                "press inclinado mancuernas",
+                "Press inclinado mancuernas",
+                equipment = "mancuerna",
+                type = "Básico",
+                primaryMuscles = listOf("Pectorales"),
+            ),
+        )
+        val result = UltraFastEngine.apply(Session(id = "s", name = "test", exercises = listOf(ex)), idx)
+        val transformed = result.transformedExercises.first()
+        val ch = result.preview.perExercise.first()
+        assertEquals(2, transformed.sets.size)
+        assertEquals(45, transformed.restTime)
+        assertFalse(transformed.sets.first().isDropSet)
+        assertFalse(transformed.sets.first().isRestPause)
+        assertEquals(UltraFastReason.COMPOUND_REDUCED, ch.reason)
+        assertTrue(ch.wasReduced)
+        assertEquals("Normal", ch.afterTechnique)
+    }
+
+    @Test
+    fun existing_superset_rest_is_halved() {
+        val ex1 = exercise("ex1", "Curl polea", 3)
+        val ex2 = exercise("ex2", "Extension triceps polea", 3)
+        val group = SupersetGroup(
+            id = "ss1",
+            exerciseOrder = listOf("ex1", "ex2"),
+            restBetweenExercises = 40,
+            restAfterSuperset = 100,
+            roundRestBetweenExercises = mapOf(0 to 40),
+            roundRestAfterSuperset = mapOf(0 to 100),
+        )
+        val session = Session(
+            id = "s",
+            name = "test",
+            exercises = listOf(
+                ex1.copy(supersetId = "ss1", supersetGroupRef = "ss1"),
+                ex2.copy(supersetId = "ss1", supersetGroupRef = "ss1"),
+            ),
+            supersetGroups = listOf(group),
+        )
+        val idx = mapOf(
+            "curl polea" to info("curl polea", "Curl polea", equipment = "polea", type = "Aislamiento", force = "Tirón", primaryMuscles = listOf("Bíceps")),
+            "extension triceps polea" to info("extension triceps polea", "Extension triceps polea", equipment = "polea", type = "Aislamiento", force = "Empuje", primaryMuscles = listOf("Tríceps")),
+        )
+        val result = UltraFastEngine.apply(session, idx)
+        val halved = result.supersetGroups.first { it.id == "ss1" }
+        assertEquals(20, halved.restBetweenExercises)
+        assertEquals(50, halved.restAfterSuperset)
+        assertEquals(20, halved.roundRestBetweenExercises[0])
+        assertEquals(50, halved.roundRestAfterSuperset[0])
     }
 }

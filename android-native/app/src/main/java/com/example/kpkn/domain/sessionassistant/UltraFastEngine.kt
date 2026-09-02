@@ -189,10 +189,16 @@ object UltraFastEngine {
                     reason = UltraFastReason.ISOLATION_DENSIFIED
                 }
                 else -> {
-                    reason = UltraFastReason.ISOLATION_DENSIFIED
+                    val target = reduceTarget(beforeSets)
+                    if (target < beforeSets) {
+                        afterExercise = ex.copy(sets = ex.sets.take(target))
+                        wasReduced = true
+                    }
+                    reason = UltraFastReason.COMPOUND_REDUCED
                 }
             }
 
+            afterExercise = halveRest(afterExercise)
             transformed += afterExercise
             perExerciseChanges += UltraFastExerciseChange(
                 exerciseId = ex.id,
@@ -243,11 +249,11 @@ object UltraFastEngine {
                 val group = SupersetGroup(
                     id = groupId,
                     exerciseOrder = listOf(a.id, b.id),
-                    restBetweenExercises = 30,
-                    restAfterSuperset = 90,
+                    restBetweenExercises = 15,
+                    restAfterSuperset = 45,
                     rounds = rounds,
-                    roundRestBetweenExercises = (0 until rounds).associateWith { 30 },
-                    roundRestAfterSuperset = (0 until rounds).associateWith { 90 },
+                    roundRestBetweenExercises = (0 until rounds).associateWith { 15 },
+                    roundRestAfterSuperset = (0 until rounds).associateWith { 45 },
                 )
                 supersetGroupsToAdd += group
                 supersetChanges += UltraFastSupersetChange(
@@ -260,7 +266,8 @@ object UltraFastEngine {
             }
         }
 
-        val finalSupersets = session.allSupersetGroups().toMutableList()
+        val existingIds = session.allSupersetGroups().map { it.id }.toSet()
+        val finalSupersets = session.allSupersetGroups().map { halveSupersetRest(it) }.toMutableList()
         val exerciseById = transformed.associateBy { it.id }.toMutableMap()
         for (group in supersetGroupsToAdd) {
             for (exId in group.exerciseOrder) {
@@ -272,7 +279,9 @@ object UltraFastEngine {
                     supersetRestAfter = group.restAfterSuperset,
                 )
             }
-            finalSupersets += group
+            if (group.id !in existingIds) {
+                finalSupersets += group
+            }
         }
         val finalFlat = all.map { orig -> exerciseById[orig.id] ?: orig }
 
@@ -298,6 +307,27 @@ object UltraFastEngine {
             else -> n.coerceAtMost(2)
         }
     }
+
+    private fun defaultRestSeconds(): Int = 90
+
+    private fun halvedRestSeconds(value: Int): Int = (value / 2).coerceAtLeast(1)
+
+    private fun halveRest(exercise: Exercise): Exercise {
+        val rest = exercise.restTime ?: defaultRestSeconds()
+        return exercise.copy(
+            restTime = halvedRestSeconds(rest),
+            restBetweenSidesSeconds = exercise.restBetweenSidesSeconds?.let { halvedRestSeconds(it) },
+            supersetRestBetween = exercise.supersetRestBetween?.let { halvedRestSeconds(it) },
+            supersetRestAfter = exercise.supersetRestAfter?.let { halvedRestSeconds(it) },
+        )
+    }
+
+    private fun halveSupersetRest(group: SupersetGroup): SupersetGroup = group.copy(
+        restBetweenExercises = halvedRestSeconds(group.restBetweenExercises),
+        restAfterSuperset = halvedRestSeconds(group.restAfterSuperset),
+        roundRestBetweenExercises = group.roundRestBetweenExercises.mapValues { halvedRestSeconds(it.value) },
+        roundRestAfterSuperset = group.roundRestAfterSuperset.mapValues { halvedRestSeconds(it.value) },
+    )
 
     private fun densifyExercise(exercise: Exercise, info: ExerciseMuscleInfo?): Exercise {
         if (exercise.sets.isEmpty()) return exercise
@@ -399,6 +429,7 @@ fun ExerciseSet.withTechnique(technique: SeriesTechnique): ExerciseSet = when (t
         isRestPause = false,
         dropSets = emptyList(),
         restPauses = emptyList(),
+        restAfterSeconds = null,
         plannedIntensityTechniques = plannedIntensityTechniques.filter {
             it.type != TechniqueType.DROP_SET && it.type != TechniqueType.REST_PAUSE
         },
@@ -442,6 +473,72 @@ fun ExerciseSet.withTechnique(technique: SeriesTechnique): ExerciseSet = when (t
             ),
         )
     }
+}
+
+const val MARKED_DROPSET_WEIGHT_DROP_KG = 5.0
+const val MARKED_REST_PAUSE_SECONDS = 15
+
+/**
+ * Dropset / rest-pause between marked incomplete sets.
+ * Dropset: rest 0 after each marked set that has a later marked follow-up; next marked weight −5 kg.
+ * Rest-pause: 15 s rest override, same weight. Normal: clear technique and rest override.
+ */
+fun applyMarkedSeriesTechnique(
+    sets: List<ExerciseSet>,
+    selectedIndices: Set<Int>,
+    technique: SeriesTechnique,
+    skipIndex: (Int) -> Boolean = { false },
+): List<ExerciseSet> {
+    if (sets.isEmpty() || selectedIndices.isEmpty()) return sets
+    val eligible = selectedIndices
+        .filter { it in sets.indices && !skipIndex(it) }
+        .sorted()
+    if (eligible.isEmpty()) return sets
+    val eligibleSet = eligible.toSet()
+    val dropWeights = mutableMapOf<Int, Double>()
+    if (technique == SeriesTechnique.DROPSET) {
+        var lastWeight = sets[eligible.first()].weight ?: 0.0
+        dropWeights[eligible.first()] = lastWeight
+        for (followIdx in eligible.drop(1)) {
+            lastWeight = (lastWeight - MARKED_DROPSET_WEIGHT_DROP_KG).coerceAtLeast(0.0)
+            dropWeights[followIdx] = lastWeight
+        }
+    }
+    return sets.mapIndexed { idx, set ->
+        if (idx !in eligibleSet) set
+        else {
+            val withFlags = stampBetweenMarkedTechnique(set.withTechnique(technique))
+            when (technique) {
+                SeriesTechnique.NORMAL -> withFlags
+                SeriesTechnique.REST_PAUSE -> withFlags.copy(restAfterSeconds = MARKED_REST_PAUSE_SECONDS)
+                SeriesTechnique.DROPSET -> {
+                    val hasFollowUp = eligible.any { it > idx }
+                    withFlags.copy(
+                        restAfterSeconds = if (hasFollowUp) 0 else null,
+                        weight = dropWeights[idx] ?: withFlags.weight,
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun stampBetweenMarkedTechnique(set: ExerciseSet): ExerciseSet {
+    if (set.plannedIntensityTechniques.none {
+            it.type == TechniqueType.DROP_SET || it.type == TechniqueType.REST_PAUSE
+        }
+    ) {
+        return set
+    }
+    return set.copy(
+        plannedIntensityTechniques = set.plannedIntensityTechniques.map { technique ->
+            if (technique.type == TechniqueType.DROP_SET || technique.type == TechniqueType.REST_PAUSE) {
+                technique.copy(params = technique.params + ("betweenMarked" to "true"))
+            } else {
+                technique
+            }
+        },
+    )
 }
 
 fun Exercise.withSeriesTechniqueRange(

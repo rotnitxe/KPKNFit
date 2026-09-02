@@ -1207,6 +1207,7 @@ object SessionAssistantEngine {
         targetMuscles: List<String>,
         completedSets: Map<String, com.example.kpkn.data.models.CompletedSet>,
         exerciseIndex: Map<String, com.example.kpkn.data.models.ExerciseMuscleInfo>,
+        liveSession: com.example.kpkn.data.models.Session = currentSession,
     ): List<com.example.kpkn.data.models.MuscleAdvance> {
         val muscleAdvances = mutableListOf<com.example.kpkn.data.models.MuscleAdvance>()
         val completedByExercise = mutableMapOf<String, Int>()
@@ -1232,7 +1233,7 @@ object SessionAssistantEngine {
             }
 
             var actualSets = 0.0
-            for (ex in currentSession.allExercises()) {
+            for (ex in liveSession.allExercises()) {
                 val sets = completedByExercise[ex.id] ?: 0
                 if (sets == 0) continue
                 val muscles = ExerciseMuscleResolver.effectiveMusclesForVolume(ex, exerciseIndex)
@@ -1282,10 +1283,11 @@ object SessionAssistantEngine {
             }
 
             if (proposals.isNotEmpty()) {
+                val readableName = VolumeCalculator.normalizeCanonicalMuscleGroup(muscleId).ifBlank { muscleId }
                 muscleAdvances.add(
                     com.example.kpkn.data.models.MuscleAdvance(
                         muscleId = muscleId,
-                        muscleName = muscleId,
+                        muscleName = readableName,
                         currentSets = actualSets,
                         targetSets = plannedSets,
                         deficitSets = delta,

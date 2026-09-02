@@ -414,6 +414,7 @@ object SessionTemplateEngine {
             leftTarget = source.leftTarget?.copy(weight = null),
             rightTarget = source.rightTarget?.copy(weight = null),
             plannedIntensityTechniques = source.plannedIntensityTechniques.map(::cloneTechnique),
+            restAfterSeconds = source.restAfterSeconds,
         )
 
         private fun cloneTechnique(source: PlannedTechnique): PlannedTechnique = source.copy(id = fresh())

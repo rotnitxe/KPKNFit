@@ -587,6 +587,8 @@ data class ExerciseSet(
     @Deprecated("Usa Exercise.restBetweenSidesSeconds", level = DeprecationLevel.WARNING)
     val restBetweenSides: Int? = null,
     val plannedIntensityTechniques: List<PlannedTechnique> = emptyList(),
+    /** Session JSON override for rest after this set. Null = use exercise/session default. */
+    val restAfterSeconds: Int? = null,
 )
 
 enum class IntensityMode { RPE, RIR, FAILURE, AMRAP, LOAD, SOLO_RM }
