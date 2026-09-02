@@ -123,6 +123,32 @@ class ProgramActiveStateEngineTest {
         assertEquals("run-done", repaired?.programRunId)
     }
 
+    @Test
+    fun repair_complex_keeps_paused_active_row_when_run_is_still_active() {
+        val program = advancedProgramWithTwoWeeks(
+            runState = ProgramRunState(
+                runId = "run-1",
+                weekId = "w2",
+                weekInstanceId = "w2",
+                macrocycleId = "mc1",
+                blockId = "b1",
+                mesocycleId = "m1",
+                status = ProgramRunStatus.ACTIVE,
+            ),
+        )
+        val paused = ActiveProgramState(
+            programId = program.id,
+            status = ProgramStatus.PAUSED,
+            currentWeekId = "w2",
+            currentWeekInstanceId = "w2",
+        )
+
+        val repaired = ProgramActiveStateEngine.repairForProgram(program, paused)
+
+        assertEquals(ProgramStatus.PAUSED, repaired?.status)
+        assertEquals("w2", repaired?.currentWeekId)
+    }
+
     private fun advancedProgram(): Program = Program(
         id = "prog",
         name = "Avanzado",

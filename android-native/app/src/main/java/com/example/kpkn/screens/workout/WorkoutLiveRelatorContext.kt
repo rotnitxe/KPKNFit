@@ -11,6 +11,7 @@ internal data class RelatorExerciseContext(
     val family: RelatorFamily,
     val compound: RelatorCompound = RelatorCompound.NONE,
     val axialLoadFactor: Double? = null,
+    val equipmentId: String? = null,
 )
 
 internal fun resolveRelatorExerciseContext(
@@ -37,6 +38,7 @@ internal fun resolveRelatorExerciseContext(
         family = family,
         compound = compound,
         axialLoadFactor = axial,
+        equipmentId = profile?.equipmentId,
     )
 }
 

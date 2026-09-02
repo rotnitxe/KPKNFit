@@ -469,4 +469,44 @@ class ProgramKeyDateEngineTest {
         assertNotNull(located)
         assertTrue(located!!.first.isNotBlank())
     }
+
+    @Test
+    fun addWeeksToBlock_appends_to_last_mesocycle() {
+        val program = Program(
+            id = "p",
+            name = "P",
+            structure = ProgramStructure.COMPLEX,
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "m",
+                    name = "M",
+                    blocks = listOf(
+                        Block(
+                            id = "b",
+                            name = "B",
+                            mesocycles = listOf(
+                                Mesocycle(
+                                    id = "meso1",
+                                    name = "Meso 1",
+                                    weeks = listOf(ProgramWeek(id = "w1", name = "W1")),
+                                ),
+                                Mesocycle(
+                                    id = "meso2",
+                                    name = "Meso 2",
+                                    weeks = listOf(ProgramWeek(id = "w2", name = "W2")),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val updated = ProgramKeyDateEngine.addWeeksToBlock(program, "b", 1)
+        val mesos = updated.macrocycles[0].blocks[0].mesocycles
+
+        assertEquals(1, mesos[0].weeks.size)
+        assertEquals(2, mesos[1].weeks.size)
+        assertEquals("Semana 3", mesos[1].weeks.last().name)
+    }
 }

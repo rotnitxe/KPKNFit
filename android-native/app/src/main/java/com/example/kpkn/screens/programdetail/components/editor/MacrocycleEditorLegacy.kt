@@ -65,7 +65,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.Block
-import com.example.kpkn.data.models.CalendarBreak
 import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
@@ -86,6 +85,8 @@ import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.domain.training.ProgramKeyDateEngine
 import com.example.kpkn.domain.training.ProgramTemplateEngine
 import com.example.kpkn.data.models.alignTemporalMetadata
+import com.example.kpkn.data.models.convertSimpleCalendarizedToAdvanced
+import com.example.kpkn.data.models.validateTemporalStructure
 import com.example.kpkn.data.models.primaryLoopCadenceCycles
 import com.example.kpkn.data.models.primaryLoopLengthWeeks
 import com.example.kpkn.data.models.simpleCycleWeeks
@@ -287,6 +288,29 @@ fun MacrocycleEditorLegacy(
             onOpenLoops = { setLoopsSheetOpen(true) },
             onOpenSimpleCalendarization = { onShowSimpleCalendarizationSheetChange(true) },
         )
+        val temporalIssues = remember(program) { program.validateTemporalStructure() }
+        if (temporalIssues.isNotEmpty()) {
+            Surface(
+                color = MaterialTheme.colorScheme.errorContainer,
+                shape = RoundedCornerShape(12.dp),
+            ) {
+                Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        "Revisa la estructura temporal",
+                        fontWeight = FontWeight.Black,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                    )
+                    temporalIssues.take(3).forEach { issue ->
+                        Text(
+                            issue.message,
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                        )
+                    }
+                }
+            }
+        }
         if (!temporalInsight.isSimple && showAdvancedRoadmap) {
             MacrocycleRoadmapSection(
                 program = program,
@@ -2466,50 +2490,6 @@ private fun defaultWeek(name: String): ProgramWeek {
     return ProgramWeek(id = "week_${System.nanoTime()}", name = name)
 }
 
-/**
- * Convierte un programa Simple (posiblemente calendarizado) a Avanzado.
- * SIMPLE_DATED nunca es una calendarización válida para un programa Avanzado: si el break estaba
- * activo, la calendarización se migra a ADVANCED_COMPETITION (o se limpia si no hay fechas) y el
- * snapshot cíclico pausado se archiva como CalendarBreak en vez de perderse silenciosamente.
- */
-private fun Program.convertSimpleCalendarizedToAdvanced(): Program {
-    val wasCalendarized = simpleProgramKind == SimpleProgramKind.CALENDARIZED &&
-        calendarization?.mode == ProgramCalendarizationMode.SIMPLE_DATED
-    val hasCompetitionKeyDate = keyDates.any { it.type == KeyDateType.COMPETITION }
-
-    val nextCalendarization = when {
-        !wasCalendarized -> calendarization
-        keyDates.isNotEmpty() || !timelineStartDate.isNullOrBlank() -> {
-            val base = if (hasCompetitionKeyDate) {
-                ProgramCalendarEngine.defaultCompetitionCalendarization()
-            } else {
-                ProgramCalendarEngine.defaultAdvancedDatedCalendarization()
-            }
-            base.copy(manualEndDate = calendarization?.manualEndDate)
-        }
-        else -> null
-    }
-
-    val archivedBreak = if (wasCalendarized && pausedCyclicSnapshot != null) {
-        CalendarBreak(
-            id = "break_${id}_to_advanced_${System.currentTimeMillis()}",
-            title = "Ciclo pausado al convertir a Avanzado",
-            startDate = timelineStartDate ?: LocalDate.now().toString(),
-            endDate = calendarization?.manualEndDate ?: timelineStartDate ?: LocalDate.now().toString(),
-            weeks = macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks },
-            pausedRunState = runState,
-            pausedCyclicSnapshot = pausedCyclicSnapshot,
-        )
-    } else null
-
-    return copy(
-        structure = ProgramStructure.COMPLEX,
-        calendarization = nextCalendarization,
-        pausedCyclicSnapshot = null,
-        calendarBreaks = if (archivedBreak != null) calendarBreaks + archivedBreak else calendarBreaks,
-    )
-}
-
 private fun Program.addBlockToMacro(macroIndex: Int, blockName: String): Program {
     return copy(
         macrocycles = macrocycles.mapIndexed { index, macro ->
@@ -2592,12 +2572,19 @@ private fun Program.addWeekToBlock(macroIndex: Int, blockIndex: Int, name: Strin
             else macro.copy(
                 blocks = macro.blocks.mapIndexed { currentBlockIndex, block ->
                     if (currentBlockIndex != blockIndex) block
-                    else block.copy(
-                        mesocycles = block.mesocycles.mapIndexed { currentMesoIndex, meso ->
-                            if (currentMesoIndex != 0) meso
-                            else meso.copy(weeks = meso.weeks + week)
+                    else {
+                        val lastMesoIndex = block.mesocycles.lastIndex
+                        if (lastMesoIndex < 0) {
+                            block.copy(mesocycles = listOf(defaultMesocycle().copy(weeks = listOf(week))))
+                        } else {
+                            block.copy(
+                                mesocycles = block.mesocycles.mapIndexed { currentMesoIndex, meso ->
+                                    if (currentMesoIndex != lastMesoIndex) meso
+                                    else meso.copy(weeks = meso.weeks + week)
+                                }
+                            )
                         }
-                    )
+                    }
                 }
             )
         }

@@ -42,7 +42,9 @@ object ProgramActiveStateEngine {
                 val mappedStatus = when (run.status) {
                     ProgramRunStatus.COMPLETED -> ProgramStatus.COMPLETED
                     ProgramRunStatus.PAUSED, ProgramRunStatus.BREAK -> ProgramStatus.PAUSED
-                    ProgramRunStatus.ACTIVE -> ProgramStatus.ACTIVE
+                    ProgramRunStatus.ACTIVE ->
+                        if (state.status == ProgramStatus.PAUSED) ProgramStatus.PAUSED
+                        else ProgramStatus.ACTIVE
                 }
                 return state.copy(
                     status = mappedStatus,

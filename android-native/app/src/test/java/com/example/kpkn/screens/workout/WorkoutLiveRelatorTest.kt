@@ -254,6 +254,7 @@ class WorkoutLiveRelatorTest {
                 setCount = 3,
                 isSuperset = true,
                 lastLiftedWeight = 70.0,
+                sessionLastSet = RelatorSessionSetMemory(setNumber = 1, weightKg = 70.0, reps = 8),
             ),
         ).text
         assertNotNull(line)
@@ -769,6 +770,7 @@ class WorkoutLiveRelatorTest {
             parentContextKey = "ex:squat",
             setKey = "squat_1",
             lastLiftedWeight = 80.0,
+            sessionLastSet = RelatorSessionSetMemory(setNumber = 1, weightKg = 80.0, reps = 8),
         )
         val second = baseSnapshot(
             setIndex = 2,
@@ -776,6 +778,7 @@ class WorkoutLiveRelatorTest {
             parentContextKey = "ex:squat",
             setKey = "squat_2",
             lastLiftedWeight = 80.0,
+            sessionLastSet = RelatorSessionSetMemory(setNumber = 2, weightKg = 80.0, reps = 7),
         )
         assertEquals(RelatorSpeechBucket.IDLE_MID, first.speechBucket())
         assertEquals(RelatorSpeechBucket.IDLE_MID, second.speechBucket())
@@ -785,6 +788,19 @@ class WorkoutLiveRelatorTest {
         assertTrue(secondLine.lowercase().contains("serie 3"))
         assertTrue(firstLine.lowercase().contains("80"))
         assertTrue(secondLine.lowercase().contains("80"))
+    }
+
+    @Test
+    fun dropsetFollowUp_tellsToCutRestAndDropFiveKg() {
+        val snapshot = baseSnapshot(
+            setIndex = 1,
+            setCount = 3,
+            lastLiftedWeight = 80.0,
+        ).copy(isDropsetFollowUp = true)
+        assertEquals(RelatorSpeechBucket.DROPSET_FOLLOWUP, snapshot.speechBucket())
+        val line = WorkoutLiveRelator.resolve(snapshot).text!!
+        assertTrue(line.lowercase().contains("sin descanso"))
+        assertTrue(line.contains("5"))
     }
 
     @Test
@@ -950,10 +966,40 @@ class WorkoutLiveRelatorTest {
         )
         assertNotNull(offer)
         assertEquals(RelatorAssistKind.TIME, offer!!.kind)
+        assertTrue(offer.actions.any { it.kind == RelatorAssistActionKind.PREVIEW_ULTRAFAST })
         assertTrue(offer.actions.any { it.kind == RelatorAssistActionKind.CONVERT_DROPSETS })
         assertTrue(offer.actions.any { it.kind == RelatorAssistActionKind.HALVE_SETS })
+        assertTrue(offer.text.contains("modo Ultrarrápido"))
         assertTrue(offer.text.contains("Convierte a dropsets"))
         assertTrue(offer.text.contains("reduce series a la mitad"))
+        assertEquals(3, relatorActionSpans(offer.text, offer.actions).size)
+    }
+
+    @Test
+    fun timeCrunchOfferHidesUltraFastWhenAlreadyApplied() {
+        val squat = RelatorAssistExercise("squat", "Sentadilla", 4, null, false, false)
+        val row = RelatorAssistExercise("row", "Remo", 4, null, false, false)
+        val offer = pickRelatorAssistOffer(
+            RelatorAssistContext(
+                phase = RelatorPhase.WORKING,
+                family = RelatorFamily.SQUAT,
+                currentExerciseId = "squat",
+                currentExerciseName = "Sentadilla",
+                currentSetIndex = 0,
+                currentExerciseIndex = 0,
+                activeSide = null,
+                sessionExercises = listOf(squat, row),
+                completedSetKeys = emptySet(),
+                omittedSetKeys = emptySet(),
+                skippedExerciseIds = emptySet(),
+                remainingSeconds = 180,
+                ultraFastApplied = true,
+            ),
+        )
+        assertNotNull(offer)
+        assertEquals(RelatorAssistKind.TIME, offer!!.kind)
+        assertTrue(offer.actions.none { it.kind == RelatorAssistActionKind.PREVIEW_ULTRAFAST })
+        assertTrue(offer.actions.any { it.kind == RelatorAssistActionKind.CONVERT_DROPSETS })
         assertEquals(2, relatorActionSpans(offer.text, offer.actions).size)
     }
 
@@ -1052,7 +1098,7 @@ class WorkoutLiveRelatorTest {
     }
 
     @Test
-    fun firstMessageSituatesEvenIfAssistIsReady() {
+    fun assistShowsImmediatelyWhenReady() {
         val offer = RelatorAssistOffer(
             kind = RelatorAssistKind.GAP_SET,
             text = "No has registrado la serie anterior. Vuelve y complétala, o márcala omitida.",
@@ -1061,7 +1107,7 @@ class WorkoutLiveRelatorTest {
             ),
             stickyKey = "gap-set:squat:0",
         )
-        val line = WorkoutLiveRelator.resolve(
+        val resolution = WorkoutLiveRelator.resolve(
             baseSnapshot(
                 setIndex = 1,
                 setCount = 3,
@@ -1069,12 +1115,10 @@ class WorkoutLiveRelatorTest {
                 parentContextKey = "ex:squat",
                 lastLiftedWeight = 80.0,
             ),
-        ).text
-        assertNotNull(line)
-        val lower = line!!.lowercase()
-        assertTrue(lower.contains("serie 2"))
-        assertTrue(lower.contains("80"))
-        assertFalse(lower.contains("omitida"))
+        )
+        assertEquals(RelatorSpeechBucket.ASSIST_GAP_SET.phaseKey(), resolution.phaseKey)
+        assertTrue(resolution.text!!.lowercase().contains("omitida") || resolution.text!!.lowercase().contains("serie"))
+        assertEquals(1, resolution.actions.size)
     }
 
     @Test
@@ -1169,13 +1213,160 @@ class WorkoutLiveRelatorTest {
         )
     }
 
+    @Test
+    fun firstSetUsesPreviousSessionMarkAndMidSetUsesTodayOnly() {
+        val history = RelatorSessionSetMemory(setNumber = 1, weightKg = 100.0, reps = 5)
+        val today = RelatorSessionSetMemory(setNumber = 1, weightKg = 80.0, reps = 8)
+        val first = WorkoutLiveRelator.resolve(
+            baseSnapshot(setIndex = 0, historyLastSet = history, lastLiftedWeight = 100.0),
+        ).text!!.lowercase()
+        assertTrue(first.contains("última vez") || first.contains("ultima vez"))
+        assertTrue(first.contains("100"))
+        assertFalse(first.contains("80×8") || first.contains("80x8"))
+
+        val second = WorkoutLiveRelator.resolve(
+            baseSnapshot(
+                setIndex = 1,
+                setCount = 4,
+                sessionLastSet = today,
+                historyLastSet = history,
+                lastLiftedWeight = 80.0,
+            ),
+        ).text!!.lowercase()
+        assertTrue(second.contains("en la 1"))
+        assertTrue(second.contains("80"))
+        assertFalse(second.contains("100"))
+        assertFalse(second.contains("antes moviste"))
+    }
+
+    @Test
+    fun failedSetCautionSpeaksBeforeNextSet() {
+        val line = WorkoutLiveRelator.resolve(
+            baseSnapshot(setIndex = 1, setCount = 4).copy(
+                failedSetCaution = RelatorFailedSetCaution(
+                    sourceExerciseId = "press",
+                    sourceSetNumber = 1,
+                    sameExercise = true,
+                    stickyKey = "failed:press:0",
+                ),
+            ),
+        ).text!!.lowercase()
+        assertTrue(line.contains("fallida"))
+        assertTrue(line.contains("articul") || line.contains("carga"))
+    }
+
+    @Test
+    fun assistConfirmDropsetsSpeaksInFirstPerson() {
+        val line = WorkoutLiveRelator.resolve(
+            baseSnapshot().copy(
+                assistAck = RelatorAssistAck(
+                    kind = RelatorAssistActionKind.CONVERT_DROPSETS,
+                    applied = true,
+                ),
+            ),
+        ).text!!.lowercase()
+        assertTrue(line.contains("dropset"))
+        assertTrue(line.contains("ok") || line.contains("aplico"))
+        assertTrue(line.contains("articul") || line.contains("recupera"))
+    }
+
+    @Test
+    fun assistConfirmReportsWhenNothingChanged() {
+        val line = WorkoutLiveRelator.resolve(
+            baseSnapshot().copy(
+                assistAck = RelatorAssistAck(
+                    kind = RelatorAssistActionKind.PREVIEW_ULTRAFAST,
+                    applied = false,
+                ),
+            ),
+        ).text!!.lowercase()
+        assertTrue(line.contains("ultrarrápido") || line.contains("ultrarrapido") || line.contains("aplicado"))
+    }
+
+    @Test
+    fun axialConceptWaitsForIdleCycle() {
+        val snap = baseSnapshot(
+            family = RelatorFamily.SQUAT,
+            exerciseDisplayName = "Sentadilla trasera",
+            axialLoadFactor = 1.0,
+        )
+        val first = WorkoutLiveRelator.resolve(snap).text!!.lowercase()
+        assertTrue(first.contains("serie 1"))
+        assertFalse(first.contains("carga axial"))
+        val later = WorkoutLiveRelator.resolve(snap.copy(idleCycle = 1)).text!!.lowercase()
+        assertTrue(later.contains("carga axial"))
+        assertEquals(RelatorSpeechBucket.CONCEPT_CUE.phaseKey(), WorkoutLiveRelator.resolve(snap.copy(idleCycle = 1)).phaseKey)
+    }
+
+    @Test
+    fun axialConceptDoesNotBeatWeightReaction() {
+        val line = WorkoutLiveRelator.resolve(
+            weightSnapshot(entered = 70.0, lastLifted = 80.0, suggested = 80.0, feminine = false).copy(
+                axialLoadFactor = 1.0,
+                idleCycle = 1,
+                family = RelatorFamily.SQUAT,
+            ),
+        ).text!!.lowercase()
+        assertTrue(isWeightBelowCopy(line))
+        assertFalse(line.contains("carga axial"))
+    }
+
+    @Test
+    fun discomfortBeatsConceptCue() {
+        val line = WorkoutLiveRelator.resolve(
+            baseSnapshot(
+                idleCycle = 1,
+                axialLoadFactor = 1.0,
+                discomfortHint = RelatorDiscomfortHint(label = "Lumbar", fromThisSession = false),
+            ),
+        ).text!!.lowercase()
+        assertTrue(line.contains("lumbar"))
+        assertFalse(line.contains("carga axial"))
+    }
+
+    @Test
+    fun shownConceptIdDoesNotRepeatCargaAxial() {
+        val line = WorkoutLiveRelator.resolve(
+            baseSnapshot(
+                idleCycle = 1,
+                axialLoadFactor = 1.0,
+                intensityMode = IntensityMode.RPE,
+                plannedIntensity = 8.0,
+                shownConceptIds = setOf("carga-axial"),
+            ),
+        ).text!!.lowercase()
+        assertTrue(line.contains("rpe"))
+        assertFalse(line.contains("carga axial"))
+    }
+
+    @Test
+    fun assistActionsStayAttachedOnConfirm() {
+        val offer = RelatorAssistOffer(
+            kind = RelatorAssistKind.TIME,
+            text = "Quedan 4 minutos. Convierte a dropsets.",
+            actions = listOf(
+                RelatorAssistAction(RelatorAssistActionKind.CONVERT_DROPSETS, "Convierte a dropsets"),
+            ),
+            stickyKey = "time",
+        )
+        val resolution = WorkoutLiveRelator.resolve(
+            baseSnapshot(assistOffer = offer).copy(
+                assistAck = RelatorAssistAck(RelatorAssistActionKind.CONVERT_DROPSETS, applied = true),
+            ),
+        )
+        assertEquals(RelatorSpeechBucket.ASSIST_CONFIRM.phaseKey(), resolution.phaseKey)
+        assertEquals(1, resolution.actions.size)
+    }
+
     private fun isWeightBelowCopy(lower: String): Boolean =
         lower.contains("kg") && (
             lower.contains("última") ||
                 lower.contains("ultima") ||
                 lower.contains("debajo") ||
                 lower.contains("menos") ||
-                lower.contains("bajaste")
+                lower.contains("bajaste") ||
+                lower.contains("bajas") ||
+                lower.contains("liviano")
             )
 
     private fun isWeightAboveCopy(lower: String): Boolean =
@@ -1260,6 +1451,10 @@ class WorkoutLiveRelatorTest {
         historyLastSet: RelatorSessionSetMemory? = null,
         discomfortHint: RelatorDiscomfortHint? = null,
         prHint: RelatorPrHint? = null,
+        axialLoadFactor: Double? = null,
+        equipmentId: String? = null,
+        movementPatternId: String? = null,
+        shownConceptIds: Set<String> = emptySet(),
     ): LiveRelatorSnapshot = LiveRelatorSnapshot(
         visible = true,
         phase = phase,
@@ -1302,5 +1497,9 @@ class WorkoutLiveRelatorTest {
         historyLastSet = historyLastSet,
         discomfortHint = discomfortHint,
         prHint = prHint,
+        axialLoadFactor = axialLoadFactor,
+        equipmentId = equipmentId,
+        movementPatternId = movementPatternId,
+        shownConceptIds = shownConceptIds,
     )
 }

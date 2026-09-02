@@ -447,6 +447,49 @@ fun Program.alignTemporalMetadata(): Program {
 /** @deprecated Usar alignTemporalMetadata() — nunca cambia structure automáticamente. */
 fun Program.normalizedTemporalStructure(): Program = alignTemporalMetadata()
 
+/**
+ * Convierte un programa Simple (posiblemente calendarizado) a Avanzado.
+ * SIMPLE_DATED nunca es una calendarización válida para un programa Avanzado: si el break estaba
+ * activo, la calendarización se migra a ADVANCED_COMPETITION (o se limpia si no hay fechas) y el
+ * snapshot cíclico pausado se archiva como CalendarBreak en vez de perderse silenciosamente.
+ */
+fun Program.convertSimpleCalendarizedToAdvanced(): Program {
+    val wasCalendarized = calendarization?.mode == ProgramCalendarizationMode.SIMPLE_DATED
+    val hasCompetitionKeyDate = keyDates.any { it.type == KeyDateType.COMPETITION }
+
+    val nextCalendarization = when {
+        !wasCalendarized -> calendarization
+        keyDates.isNotEmpty() || !timelineStartDate.isNullOrBlank() -> {
+            val base = if (hasCompetitionKeyDate) {
+                ProgramCalendarEngine.defaultCompetitionCalendarization()
+            } else {
+                ProgramCalendarEngine.defaultAdvancedDatedCalendarization()
+            }
+            base.copy(manualEndDate = calendarization?.manualEndDate)
+        }
+        else -> null
+    }
+
+    val archivedBreak = if (wasCalendarized && pausedCyclicSnapshot != null) {
+        CalendarBreak(
+            id = "break_${id}_to_advanced_${System.currentTimeMillis()}",
+            title = "Ciclo pausado al convertir a Avanzado",
+            startDate = timelineStartDate ?: LocalDate.now().toString(),
+            endDate = calendarization?.manualEndDate ?: timelineStartDate ?: LocalDate.now().toString(),
+            weeks = macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks },
+            pausedRunState = runState,
+            pausedCyclicSnapshot = pausedCyclicSnapshot,
+        )
+    } else null
+
+    return copy(
+        structure = ProgramStructure.COMPLEX,
+        calendarization = nextCalendarization,
+        pausedCyclicSnapshot = null,
+        calendarBreaks = if (archivedBreak != null) calendarBreaks + archivedBreak else calendarBreaks,
+    )
+}
+
 fun Program.toSimpleProgramSnapshot(
     clock: AppClock = SystemAppClock,
     activeState: ActiveProgramState? = null,

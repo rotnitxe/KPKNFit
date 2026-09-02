@@ -29,6 +29,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,7 +44,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -70,12 +70,15 @@ internal fun rememberLiveRelatorLine(snapshot: LiveRelatorSnapshot): RelatorReso
             idleCycle++
         }
     }
+    val speechSession = remember(snapshot.sessionSpeechKey.ifBlank { "session" }) {
+        RelatorSpeechSession()
+    }
     val live = snapshot.copy(idleCycle = idleCycle)
-    var shown by remember {
-        mutableStateOf(WorkoutLiveRelator.resolve(live.copy(lastChangedField = RelatorChangedField.NONE)))
+    var shown by remember(snapshot.sessionSpeechKey.ifBlank { "session" }) {
+        mutableStateOf(speechSession.resolve(live.copy(lastChangedField = RelatorChangedField.NONE)))
     }
     if (!live.lastChangedField.isReaction) {
-        val idle = WorkoutLiveRelator.resolve(live)
+        val idle = speechSession.resolve(live)
         SideEffect { shown = idle }
         return idle
     }
@@ -93,9 +96,11 @@ internal fun rememberLiveRelatorLine(snapshot: LiveRelatorSnapshot): RelatorReso
         live.visible,
         live.idleCycle,
         live.assistOffer?.stickyKey,
+        live.assistAck?.kind,
+        live.failedSetCaution?.stickyKey,
     ) {
         delay(RELATOR_DEBOUNCE_MS)
-        shown = WorkoutLiveRelator.resolve(live, previousText = shown.text)
+        shown = speechSession.resolve(live, previousText = shown.text)
     }
     return shown
 }
@@ -179,58 +184,56 @@ private fun ShimmerRelatorText(
     onAction: (RelatorAssistAction) -> Unit,
 ) {
     var textWidth by remember { mutableFloatStateOf(0f) }
-    val muted = Color.White.copy(alpha = 0.40f)
-    val highlight = Color.White
+    val copyMuted = Color.White.copy(alpha = 0.40f)
+    val copyHighlight = Color.White
+    val actionMuted = accentColor.copy(alpha = 0.40f)
+    val actionHighlight = accentColor
     val travel = textWidth.coerceAtLeast(1f)
     val startX = travel * (shift * 1.85f - 0.55f)
-    val brush = Brush.linearGradient(
-        colorStops = arrayOf(
-            0.00f to muted,
-            0.38f to muted,
-            0.50f to highlight,
-            0.62f to muted,
-            1.00f to muted,
-        ),
-        start = Offset(startX, 0f),
-        end = Offset(startX + travel * 0.46f, 0f),
-    )
-    val actionMuted = accentColor.copy(alpha = 0.55f)
-    val actionBrush = Brush.linearGradient(
-        colorStops = arrayOf(
-            0.00f to actionMuted,
-            0.38f to actionMuted,
-            0.50f to accentColor,
-            0.62f to actionMuted,
-            1.00f to actionMuted,
-        ),
-        start = Offset(startX, 0f),
-        end = Offset(startX + travel * 0.46f, 0f),
-    )
-    val annotated = remember(pieces, accentColor, onAction, brush, actionBrush) {
+    val end = Offset(startX + travel * 0.46f, 0f)
+    val start = Offset(startX, 0f)
+    val copyBrush = relatorShimmerBrush(copyMuted, copyHighlight, start, end)
+    val actionBrush = relatorShimmerBrush(actionMuted, actionHighlight, start, end)
+    val onActionState = rememberUpdatedState(onAction)
+    val actionLinks = remember(pieces) {
+        var actionIndex = 0
+        pieces.mapNotNull { piece ->
+            when (piece) {
+                is RelatorInlinePiece.Copy -> null
+                is RelatorInlinePiece.Action -> {
+                    val action = piece.action
+                    val link = LinkAnnotation.Clickable(
+                        tag = "relator_action_$actionIndex",
+                        styles = TextLinkStyles(
+                            style = SpanStyle(fontWeight = FontWeight.SemiBold),
+                        ),
+                        linkInteractionListener = { onActionState.value(action) },
+                    )
+                    actionIndex++
+                    piece to link
+                }
+            }
+        }.toMap()
+    }
+    val annotated = remember(pieces, copyBrush, actionBrush, actionLinks) {
         buildAnnotatedString {
-            var actionIndex = 0
-            pieces.forEach { piece ->
-                when (piece) {
-                    is RelatorInlinePiece.Copy -> withStyle(SpanStyle(brush = brush)) {
-                        append(piece.text)
-                    }
-                    is RelatorInlinePiece.Action -> {
-                        val action = piece.action
-                        withLink(
-                            LinkAnnotation.Clickable(
-                                tag = "relator_action_$actionIndex",
-                                styles = TextLinkStyles(
-                                    style = SpanStyle(
+            withStyle(SpanStyle(brush = copyBrush)) {
+                pieces.forEach { piece ->
+                    when (piece) {
+                        is RelatorInlinePiece.Copy -> append(piece.text)
+                        is RelatorInlinePiece.Action -> {
+                            val link = actionLinks[piece] ?: return@forEach
+                            withLink(link) {
+                                withStyle(
+                                    SpanStyle(
                                         brush = actionBrush,
                                         fontWeight = FontWeight.SemiBold,
                                     ),
-                                ),
-                                linkInteractionListener = { onAction(action) },
-                            ),
-                        ) {
-                            append(piece.label)
+                                ) {
+                                    append(piece.label)
+                                }
+                            }
                         }
-                        actionIndex++
                     }
                 }
             }
@@ -238,14 +241,14 @@ private fun ShimmerRelatorText(
     }
     Text(
         text = annotated,
+        color = Color.Unspecified,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp),
-        style = MaterialTheme.typography.labelSmall.merge(
-            TextStyle(
-                fontSize = WorkoutLiveRelatorFontSp,
-                lineHeight = RelatorLineHeightSp,
-            ),
+        style = MaterialTheme.typography.labelSmall.copy(
+            brush = copyBrush,
+            fontSize = WorkoutLiveRelatorFontSp,
+            lineHeight = RelatorLineHeightSp,
         ),
         maxLines = WorkoutLiveRelatorMaxLines,
         softWrap = true,
@@ -257,3 +260,19 @@ private fun ShimmerRelatorText(
     )
 }
 
+private fun relatorShimmerBrush(
+    muted: Color,
+    highlight: Color,
+    start: Offset,
+    end: Offset,
+): Brush = Brush.linearGradient(
+    colorStops = arrayOf(
+        0.00f to muted,
+        0.38f to muted,
+        0.50f to highlight,
+        0.62f to muted,
+        1.00f to muted,
+    ),
+    start = start,
+    end = end,
+)

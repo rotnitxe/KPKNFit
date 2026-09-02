@@ -357,6 +357,18 @@ class ProgramDetailHelpersTest {
         assertEquals(0, result)
     }
 
+    @Test
+    fun computeCurrentWeekIndex_resolves_cyclic_instance_id() {
+        val program = makeProgram()
+        val state = ActiveProgramState(
+            programId = "prog1",
+            currentWeekId = ProgramProgressEngine.instanceIdFor(2, "w4"),
+            currentWeekInstanceId = ProgramProgressEngine.instanceIdFor(2, "w4"),
+        )
+        val result = ProgramDetailHelpers.computeCurrentWeekIndex(state, program)
+        assertEquals(3, result)
+    }
+
     // ─── getTotalWeeks ───
 
     @Test

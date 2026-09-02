@@ -8,6 +8,7 @@ import com.example.kpkn.domain.exercises.ExerciseNicknameResolver
 import com.example.kpkn.domain.training.ProgramActiveStateEngine
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ProgramMigrationEngine
+import com.example.kpkn.domain.training.ProgramPersistNormalizer
 import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.training.BlockTransitionEngine
 import kotlinx.coroutines.CoroutineScope
@@ -67,14 +68,14 @@ class ProgramRepository private constructor(
     val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
 
     fun addProgram(program: Program) {
-        val normalized = program.normalizedIdentityFields()
+        val normalized = ProgramPersistNormalizer.normalize(program).normalizedIdentityFields()
         val version = reserveProgramWrite(normalized.id)
         _programs.update { it + normalized }
         scope.launch { persistProgramIfNewest(normalized, version) }
     }
 
     fun updateProgram(program: Program) {
-        val normalized = program.normalizedIdentityFields()
+        val normalized = ProgramPersistNormalizer.normalize(program).normalizedIdentityFields()
         val version = reserveProgramWrite(normalized.id)
         _programs.update { list -> list.map { if (it.id == normalized.id) normalized else it } }
         repairActiveStateIfNeeded(normalized)
@@ -82,7 +83,7 @@ class ProgramRepository private constructor(
     }
 
     suspend fun updateProgramNow(program: Program) {
-        val normalized = program.normalizedIdentityFields()
+        val normalized = ProgramPersistNormalizer.normalize(program).normalizedIdentityFields()
         val version = reserveProgramWrite(normalized.id)
         _programs.update { list -> list.map { if (it.id == normalized.id) normalized else it } }
         repairActiveStateIfNeeded(normalized)
@@ -326,19 +327,54 @@ class ProgramRepository private constructor(
         val program = _programs.value.find { it.id == programId }
         val resolved = program?.let { buildDefaultActiveProgramState(it, programId) }
             ?.let { state -> ProgramActiveStateEngine.repairForProgram(program, state) }
-        val state = resolved ?: ActiveProgramState(programId = programId, status = ProgramStatus.ACTIVE)
+        val state = (resolved ?: ActiveProgramState(programId = programId, status = ProgramStatus.ACTIVE))
+            .copy(status = ProgramStatus.ACTIVE)
         _activeProgramState.value = state
         persistActiveProgramStateAsync(state)
+        syncRunLifecycle(ProgramRunStatus.ACTIVE)
     }
 
     fun pauseProgram() {
-        _activeProgramState.update { it?.copy(status = ProgramStatus.PAUSED) }
-        _activeProgramState.value?.let(::persistActiveProgramStateAsync)
+        val current = _activeProgramState.value ?: return
+        if (current.status == ProgramStatus.COMPLETED) return
+        val paused = current.copy(status = ProgramStatus.PAUSED)
+        _activeProgramState.value = paused
+        persistActiveProgramStateAsync(paused)
+        syncRunLifecycle(ProgramRunStatus.PAUSED)
     }
 
     fun resumeProgram() {
-        _activeProgramState.update { it?.copy(status = ProgramStatus.ACTIVE) }
-        _activeProgramState.value?.let(::persistActiveProgramStateAsync)
+        val current = _activeProgramState.value ?: return
+        if (current.status == ProgramStatus.COMPLETED) return
+        val resumed = current.copy(status = ProgramStatus.ACTIVE)
+        _activeProgramState.value = resumed
+        persistActiveProgramStateAsync(resumed)
+        syncRunLifecycle(ProgramRunStatus.ACTIVE)
+    }
+
+    private fun syncRunLifecycle(target: ProgramRunStatus) {
+        val active = _activeProgramState.value ?: return
+        val program = _programs.value.find { it.id == active.programId } ?: return
+        val run = program.runState
+        val nextStatus = when (run?.status) {
+            ProgramRunStatus.COMPLETED -> ProgramRunStatus.COMPLETED
+            ProgramRunStatus.BREAK -> ProgramRunStatus.BREAK
+            else -> target
+        }
+        val nextRun = (run ?: ProgramRunState(
+            runId = active.programRunId ?: ProgramProgressEngine.newRunId(),
+            cycleNumber = active.currentCycleNumber ?: 1,
+            weekId = active.currentWeekId.takeIf { it.isNotBlank() }
+                ?.let { ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it },
+            weekInstanceId = active.currentWeekInstanceId
+                ?: active.currentWeekId.takeIf { it.isNotBlank() },
+            macrocycleId = active.currentMacrocycleId,
+            blockId = active.currentBlockId,
+            mesocycleId = active.currentMesocycleId,
+            status = nextStatus,
+        )).copy(status = nextStatus)
+        if (run == nextRun) return
+        updateProgram(program.copy(runState = nextRun))
     }
 
     fun advanceWeek(nextWeekId: String) {

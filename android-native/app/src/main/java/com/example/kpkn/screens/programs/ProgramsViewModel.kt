@@ -11,8 +11,6 @@ import com.example.kpkn.data.programs.resolveProgramTemplate
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.SessionTemplateRepository
 import com.example.kpkn.data.sessions.SessionTemplate
-import com.example.kpkn.domain.calculations.getTotalWeeks
-import com.example.kpkn.domain.calculations.getSessionExerciseCount
 import com.example.kpkn.domain.training.ProgramTemplateEngine
 import java.util.UUID
 import kotlinx.coroutines.flow.StateFlow
@@ -73,32 +71,34 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         repository.activeProgramState
 
     /**
-     * ID of the currently active program, only when the stored state is truly ACTIVE.
-     * Paused/completed programs stay in the regular list.
+     * ID of the currently featured program (ACTIVE or PAUSED).
+     * Completed programs stay in the regular list.
      */
-    private val activeProgramId: StateFlow<String?> = combine(activeProgramState, programs) { active, _ ->
-        if (active?.status == ProgramStatus.ACTIVE) active.programId else null
+    private val featuredProgramId: StateFlow<String?> = combine(activeProgramState, programs) { active, _ ->
+        if (active?.status == ProgramStatus.ACTIVE || active?.status == ProgramStatus.PAUSED) {
+            active.programId
+        } else {
+            null
+        }
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
+    val isFeaturedPaused: StateFlow<Boolean> = activeProgramState
+        .combine(featuredProgramId) { active, featuredId ->
+            active?.programId == featuredId && active?.status == ProgramStatus.PAUSED
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, false)
+
     /**
-     * Currently active Program object (derived from activeProgramState + programs).
-     * Null if no active program found or activeProgramState is null.
-     *
-     * Combines: activeProgramState + programs.
-     * Updates whenever either changes.
+     * Currently featured Program object (derived from activeProgramState + programs).
      */
-    val activeProgram: StateFlow<Program?> = combine(programs, activeProgramId) { all, activeId ->
+    val activeProgram: StateFlow<Program?> = combine(programs, featuredProgramId) { all, activeId ->
         activeId?.let { id -> all.find { it.id == id } }
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     /**
-     * All programs that are NOT currently active (for display in list).
-     * Derived: filters programs where id != activeProgramId.
-     *
-     * Combines: programs + activeProgramId.
-     * Updates whenever either changes.
+     * All programs that are NOT currently featured (for display in list).
      */
-    val inactivePrograms: StateFlow<List<Program>> = combine(programs, activeProgramId) { all, activeId ->
+    val inactivePrograms: StateFlow<List<Program>> = combine(programs, featuredProgramId) { all, activeId ->
         all.filter { it.id != activeId }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -116,14 +116,14 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
      * @return ProgramStats with total weeks and session count.
      */
     fun getProgramStats(program: Program): ProgramStats {
-        val weeks = getTotalWeeks(program)
+        var weeks = 0
         var sessions = 0
 
-        // Count all sessions across all macrocycles → blocks → mesocycles → weeks
         for (macro in program.macrocycles) {
             for (block in macro.blocks) {
                 for (meso in block.mesocycles) {
                     for (week in meso.weeks) {
+                        if (!week.isLoopWeek) weeks++
                         sessions += week.sessions.size
                     }
                 }
@@ -167,11 +167,11 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
                 macrocycles = listOf(
                     com.example.kpkn.data.models.Macrocycle(
                         id = UUID.randomUUID().toString(),
-                        name = "Macrociclo base",
+                        name = "Macrociclo 1",
                         blocks = listOf(
                             com.example.kpkn.data.models.Block(
                                 id = UUID.randomUUID().toString(),
-                                name = "Ciclo base",
+                                name = "Bloque 1",
                                 mesocycles = listOf(
                                     com.example.kpkn.data.models.Mesocycle(
                                         id = UUID.randomUUID().toString(),
@@ -231,6 +231,10 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
 
     fun moveQueuedProgram(programId: String, direction: Int) {
         repository.moveQueuedProgram(programId, direction)
+    }
+
+    fun resumeProgram() {
+        repository.resumeProgram()
     }
 
     /**

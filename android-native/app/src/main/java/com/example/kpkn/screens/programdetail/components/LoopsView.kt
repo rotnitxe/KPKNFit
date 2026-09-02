@@ -75,6 +75,15 @@ fun LoopsView(
     val actionableOccurrences = remember(normalizedProgram, currentCycle) {
         buildLoopOccurrences(normalizedProgram, currentCycle)
     }
+    val loopCollisions = remember(normalizedProgram, currentCycle) {
+        LoopEngine.detectLoopCollisions(
+            LoopEngine.projectLoops(
+                normalizedProgram,
+                fromCycle = currentCycle.coerceAtLeast(0),
+                lookAheadCycles = 24,
+            ),
+        )
+    }
 
     var showAddModal by remember { mutableStateOf(false) }
     var editingLoop by remember { mutableStateOf<Loop?>(null) }
@@ -94,6 +103,36 @@ fun LoopsView(
                         val updated = LoopEngine.migrateEventsToLoops(program)
                         onUpdateProgram(updated)
                     }) { Text("Migrar", fontSize = 10.sp) }
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+        }
+
+        if (loopCollisions.isNotEmpty()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF97316).copy(alpha = 0.18f)),
+            ) {
+                Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        "Loops en el mismo ciclo",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Black,
+                        color = Color(0xFF9A3412),
+                    )
+                    Text(
+                        loopCollisions.entries.sortedBy { it.key }.take(4).joinToString(" · ") { (cycle, items) ->
+                            "C$cycle: ${items.joinToString(" + ") { it.loop.title.ifBlank { it.loop.type.name } }}"
+                        },
+                        fontSize = 9.sp,
+                        color = Color(0xFF9A3412).copy(alpha = 0.85f),
+                    )
+                    Text(
+                        "Posponé o cancelá uno para que no coincidan.",
+                        fontSize = 9.sp,
+                        color = Color(0xFF9A3412).copy(alpha = 0.75f),
+                    )
                 }
             }
             Spacer(Modifier.height(12.dp))

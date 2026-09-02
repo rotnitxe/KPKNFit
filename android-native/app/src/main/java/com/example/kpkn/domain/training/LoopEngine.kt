@@ -135,7 +135,7 @@ object LoopEngine {
 
     fun getDaysIntoCycle(program: Program, daysSinceStart: Int): Int {
         val cycleLength = getCycleLength(program)
-        val cycleDays = cycleLength * (program.weekDays ?: 7)
+        val cycleDays = cycleLength * 7
         return if (cycleDays > 0) daysSinceStart % cycleDays else 0
     }
 
@@ -149,7 +149,7 @@ object LoopEngine {
         if (loops.isEmpty()) return emptyList()
 
         val cycleLength = getCycleLength(program)
-        val cycleDays = cycleLength * (program.weekDays ?: 7)
+        val cycleDays = cycleLength * 7
         val postponed = program.loopState?.postponed ?: emptyList()
         val cancelled = (program.loopState?.cancelled ?: emptyList()).toSet()
         val cancelledOccurrences = (program.loopState?.cancelledOccurrences ?: emptyList()).toSet()

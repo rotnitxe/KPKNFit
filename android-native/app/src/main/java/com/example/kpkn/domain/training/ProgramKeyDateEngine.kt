@@ -113,7 +113,7 @@ object ProgramKeyDateEngine {
                 weeksGap = -currentTotalWeeks,
             )
         }
-        val requiredWeeks = (daysBetween / 7 + 1).toInt()
+        val requiredWeeks = requiredWeeksFromAnchor(program, startDate, eventDate)
         val gap = requiredWeeks - currentTotalWeeks
         val status = when {
             gap > 0 -> KeyDateFitStatus.NEEDS_MORE_WEEKS
@@ -132,6 +132,32 @@ object ProgramKeyDateEngine {
     /** Atajo para el caso más común: calzar contra la fecha de competición del programa. */
     fun fitBlocksToCompetitionKeyDate(program: Program): KeyDateFitReport? =
         competitionKeyDate(program)?.let { fitBlocksToKeyDate(program, it) }
+
+    /**
+     * Cuenta ventanas de 7 días desde el ancla, igual que [ProgramCalendarEngine.project].
+     * Si el programa está calendarizado, usa la proyección real (salta semanas loop).
+     */
+    private fun requiredWeeksFromAnchor(program: Program, startDate: LocalDate, eventDate: LocalDate): Int {
+        val projection = ProgramCalendarEngine.project(program)
+        if (projection.enabled && projection.weeks.isNotEmpty()) {
+            val containing = projection.weeks.indexOfFirst { it.contains(eventDate) }
+            if (containing >= 0) return containing + 1
+            val lastEnd = projection.weeks.last().endDate
+            if (eventDate.isAfter(lastEnd)) {
+                val extraDays = ChronoUnit.DAYS.between(lastEnd.plusDays(1), eventDate).coerceAtLeast(0)
+                return projection.weeks.size + ((extraDays / 7) + 1).toInt()
+            }
+        }
+        var cursor = startDate
+        var count = 0
+        while (count < 520) {
+            count++
+            val end = cursor.plusDays(6)
+            if (!eventDate.isBefore(cursor) && !eventDate.isAfter(end)) return count
+            cursor = end.plusDays(1)
+        }
+        return count
+    }
 
     /** Agrega [count] semanas nuevas al final del bloque [blockId]. No-op si el bloque no existe. */
     fun addWeeksToBlock(program: Program, blockId: String, count: Int, idProvider: IdProvider = UuidIdProvider): Program {

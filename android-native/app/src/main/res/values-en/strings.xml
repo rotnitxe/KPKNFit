@@ -327,7 +327,7 @@
     <string name="macro_editor_set_start_date_first">Save the start date first.</string>
     <string name="macro_editor_special_week">Special week</string>
     <string name="macro_editor_special_session">Special session</string>
-    <string name="macro_editor_competition_week_note">This week contains a competition. We\'ll later enable creating a competition session here.</string>
+    <string name="macro_editor_competition_week_note">This week contains a competition. Create the competition session from the Week view.</string>
     <string name="keydate_type_competition">Competition</string>
     <string name="keydate_type_exams">Exams</string>
     <string name="keydate_type_vacation">Vacation</string>

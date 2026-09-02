@@ -53,14 +53,16 @@ fun ProgramsScreen(
     val activeProgram by viewModel.activeProgram.collectAsState()
     val inactivePrograms by viewModel.inactivePrograms.collectAsState()
     val programQueue by viewModel.programQueue.collectAsState()
+    val isFeaturedPaused by viewModel.isFeaturedPaused.collectAsState()
     var menuProgram by remember { mutableStateOf<Program?>(null) }
+    var showCreateSheet by remember { mutableStateOf(false) }
 
     if (programs.isEmpty()) {
         EmptyStateView(
             title = "Comienza Hoy",
             subtitle = "Aún no tienes programas configurados",
             actionLabel = "Crear primer programa",
-            onAction = { onCreateProgram() },
+            onAction = { showCreateSheet = true },
             modifier = Modifier.fillMaxSize().statusBarsPadding(),
         )
     } else {
@@ -91,7 +93,7 @@ fun ProgramsScreen(
                         )
                     }
                     Button(
-                        onClick = { onCreateProgram() },
+                        onClick = { showCreateSheet = true },
                         modifier = Modifier.wrapContentWidth(),
                         shape = MaterialTheme.shapes.extraLarge,
                         colors = ButtonDefaults.buttonColors(
@@ -113,9 +115,11 @@ fun ProgramsScreen(
                 item {
                     ActiveProgramCard(
                         program = activeProgram!!,
+                        isPaused = isFeaturedPaused,
                         viewModel = viewModel,
                         onNavigate = onNavigateToProgram,
                         onLongPress = { menuProgram = activeProgram },
+                        onResume = { viewModel.resumeProgram() },
                     )
                 }
             }
@@ -188,14 +192,32 @@ fun ProgramsScreen(
             },
         )
     }
+
+    if (showCreateSheet) {
+        CreateProgramTemplateSheet(
+            onDismiss = { showCreateSheet = false },
+            onCreateBlank = {
+                val id = viewModel.createBlankProgram()
+                showCreateSheet = false
+                onNavigateToProgram(id)
+            },
+            onCreateFromTemplate = { template ->
+                val id = viewModel.createProgramFromTemplate(template.id)
+                showCreateSheet = false
+                onNavigateToProgram(id)
+            },
+        )
+    }
 }
 
 @Composable
 private fun ActiveProgramCard(
     program: Program,
+    isPaused: Boolean,
     viewModel: ProgramsViewModel,
     onNavigate: (String) -> Unit,
     onLongPress: () -> Unit,
+    onResume: () -> Unit,
 ) {
     val stats = viewModel.getProgramStats(program)
 
@@ -243,10 +265,10 @@ private fun ActiveProgramCard(
                             ),
                     )
                     Text(
-                        text = "EJECUTANDO AHORA",
+                        text = if (isPaused) "PAUSADO" else "EJECUTANDO AHORA",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.tertiary,
+                        color = if (isPaused) Color(0xFFFBBF24) else MaterialTheme.colorScheme.tertiary,
                         letterSpacing = 1.sp,
                     )
                 }
@@ -265,8 +287,9 @@ private fun ActiveProgramCard(
                     )
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
-                        contentDescription = "Continuar",
+                        contentDescription = if (isPaused) "Reanudar" else "Continuar",
                         tint = MaterialTheme.colorScheme.primary,
+                        modifier = if (isPaused) Modifier.clickable(onClick = onResume) else Modifier,
                     )
                 }
 

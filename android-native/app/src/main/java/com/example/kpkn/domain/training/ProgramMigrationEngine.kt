@@ -13,6 +13,7 @@ import com.example.kpkn.data.models.ScheduleMode
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.TemporalStructureIssue
 import com.example.kpkn.data.models.alignTemporalMetadata
+import com.example.kpkn.data.models.convertSimpleCalendarizedToAdvanced
 import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.data.models.restorePausedCyclicProgram
 import com.example.kpkn.data.models.resolvedSchedulePlan
@@ -55,9 +56,17 @@ object ProgramMigrationEngine {
 
         if (shouldPromoteToComplex(current)) {
             if (current.structure != ProgramStructure.COMPLEX) {
-                current = current.copy(structure = ProgramStructure.COMPLEX)
+                current = current.convertSimpleCalendarizedToAdvanced()
                 migrated = true
             }
+        }
+
+        if (
+            current.structure == ProgramStructure.COMPLEX &&
+            current.calendarization?.mode == ProgramCalendarizationMode.SIMPLE_DATED
+        ) {
+            current = current.convertSimpleCalendarizedToAdvanced()
+            migrated = true
         }
 
         if (current.structure == ProgramStructure.COMPLEX && current.macrocycles.size > 1) {

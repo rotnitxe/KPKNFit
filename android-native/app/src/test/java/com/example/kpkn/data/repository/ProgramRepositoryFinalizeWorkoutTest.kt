@@ -456,6 +456,44 @@ class ProgramRepositoryFinalizeWorkoutTest {
         assertNull(room.stateDao().getOngoingWorkout())
     }
 
+    @Test
+    fun pauseProgram_survives_updateProgram_and_resume_keeps_week() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val repository = ProgramRepository.initForTests(context)
+        withTimeout(10_000) { repository.isReady.first { it } }
+        repository.resetAllStateSync()
+
+        val week = ProgramWeek(id = "week-pause", name = "Semana 1")
+        val meso = Mesocycle(id = "meso-pause", name = "Meso 1", weeks = listOf(week))
+        val block = Block(id = "block-pause", name = "Base", mesocycles = listOf(meso))
+        val macro = Macrocycle(id = "macro-pause", name = "Macro", blocks = listOf(block))
+        val program = Program(
+            id = "complex-pause",
+            name = "Pause resume",
+            structure = ProgramStructure.COMPLEX,
+            macrocycles = listOf(macro),
+        )
+        repository.addProgram(program)
+        withTimeout(5_000) { repository.programs.first { it.any { item -> item.id == program.id } } }
+        repository.startProgram(program.id)
+        val weekId = repository.activeProgramState.value?.currentWeekId
+        assertTrue(!weekId.isNullOrBlank())
+
+        repository.pauseProgram()
+        assertEquals(ProgramStatus.PAUSED, repository.activeProgramState.value?.status)
+        assertEquals(ProgramRunStatus.PAUSED, repository.getProgramById(program.id)?.runState?.status)
+
+        repository.updateProgram(repository.getProgramById(program.id)!!.copy(name = "Still paused"))
+        assertEquals(ProgramStatus.PAUSED, repository.activeProgramState.value?.status)
+        assertEquals(ProgramRunStatus.PAUSED, repository.getProgramById(program.id)?.runState?.status)
+        assertEquals(weekId, repository.activeProgramState.value?.currentWeekId)
+
+        repository.resumeProgram()
+        assertEquals(ProgramStatus.ACTIVE, repository.activeProgramState.value?.status)
+        assertEquals(ProgramRunStatus.ACTIVE, repository.getProgramById(program.id)?.runState?.status)
+        assertEquals(weekId, repository.activeProgramState.value?.currentWeekId)
+    }
+
     private fun log(
         programId: String,
         sessionId: String,

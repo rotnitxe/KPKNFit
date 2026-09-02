@@ -3,6 +3,9 @@ package com.example.kpkn.screens.workout
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.UnitModeV2
+import com.example.kpkn.domain.concepts.RelatorConceptCue
+import com.example.kpkn.domain.concepts.RelatorConceptSignals
+import com.example.kpkn.domain.concepts.pickRelatorConceptCue
 
 internal const val RELATOR_MAX_LINE_CHARS = 140 // two-line visual budget; UI wraps, copy keeps the name
 internal const val RELATOR_DEBOUNCE_MS = 400L
@@ -99,6 +102,7 @@ internal enum class RelatorSpeechBucket {
     EFFORT_FAILURE,
     DROPSET_ONE,
     DROPSET_MANY,
+    DROPSET_FOLLOWUP,
     PR,
     PR_STAR,
     IDLE_DISCOMFORT,
@@ -108,6 +112,9 @@ internal enum class RelatorSpeechBucket {
     ASSIST_GAP_EXERCISE,
     ASSIST_TIME,
     ASSIST_MOBILITY,
+    ASSIST_CONFIRM,
+    CAUTION_FAILED_SET,
+    CONCEPT_CUE,
 }
 
 internal data class LiveRelatorSnapshot(
@@ -155,6 +162,19 @@ internal data class LiveRelatorSnapshot(
     val historyLastSet: RelatorSessionSetMemory? = null,
     val discomfortHint: RelatorDiscomfortHint? = null,
     val prHint: RelatorPrHint? = null,
+    val isDropsetFollowUp: Boolean = false,
+    val failedSetCaution: RelatorFailedSetCaution? = null,
+    val assistAck: RelatorAssistAck? = null,
+    val ultraFastApplied: Boolean = false,
+    val loadFromPreviousSession: Boolean = false,
+    val axialLoadFactor: Double? = null,
+    val equipmentId: String? = null,
+    val movementPatternId: String? = null,
+    val plannedIsoHold: Boolean = false,
+    val plannedNegatives: Boolean = false,
+    val shownConceptIds: Set<String> = emptySet(),
+    val speechMemory: RelatorSpeechMemory = RelatorSpeechMemory(),
+    val sessionSpeechKey: String = "",
 )
 
 internal data class RelatorResolution(
@@ -162,6 +182,8 @@ internal data class RelatorResolution(
     val holdPrevious: Boolean,
     val phaseKey: String,
     val actions: List<RelatorAssistAction> = emptyList(),
+    val fingerprint: String? = null,
+    val spokenConceptId: String? = null,
 )
 
 internal object WorkoutLiveRelator {
@@ -189,9 +211,57 @@ internal object WorkoutLiveRelator {
         }
 
         val bucket = snapshot.speechBucket()
-        val copy = WorkoutLiveRelatorCatalog.copyFor(bucket, snapshot)
-        val actions = if (bucket.isAssist) snapshot.assistOffer?.actions.orEmpty() else emptyList()
-        return line(copy, snapshot, voice, actions)
+        val extra = if (bucket == RelatorSpeechBucket.CONCEPT_CUE) {
+            snapshot.conceptCueOrNull()?.id
+        } else {
+            null
+        }
+        val variants = WorkoutLiveRelatorCatalog.variantsFor(bucket, snapshot)
+        val pick = pickRelatorVariant(bucket, variants, snapshot.speechMemory, extra)
+        if (pick.suppressed && bucket.silencesWhenExhausted) {
+            if (!bucket.isSituateFamily) {
+                val fallbackBucket = snapshot.situateWorkingBucket()
+                val fallbackPick = pickRelatorVariant(
+                    fallbackBucket,
+                    WorkoutLiveRelatorCatalog.variantsFor(fallbackBucket, snapshot),
+                    snapshot.speechMemory,
+                )
+                val template = if (fallbackPick.suppressed) {
+                    WorkoutLiveRelatorCatalog.situateShort(snapshot)
+                } else {
+                    fallbackPick.text
+                }
+                val actions = emptyList<RelatorAssistAction>()
+                return line(
+                    template = template,
+                    snapshot = snapshot,
+                    voice = voice,
+                    actions = actions,
+                    fingerprint = fallbackPick.fingerprint.takeUnless { fallbackPick.suppressed },
+                    spokenConceptId = null,
+                    phaseKey = fallbackBucket.phaseKey(),
+                )
+            }
+            return line(
+                template = WorkoutLiveRelatorCatalog.situateShort(snapshot),
+                snapshot = snapshot,
+                voice = voice,
+                actions = emptyList(),
+                fingerprint = null,
+                spokenConceptId = null,
+                phaseKey = bucket.phaseKey(),
+            )
+        }
+        val actions = snapshot.assistOffer?.actions.orEmpty()
+        return line(
+            template = pick.text,
+            snapshot = snapshot,
+            voice = voice,
+            actions = actions,
+            fingerprint = pick.fingerprint,
+            spokenConceptId = extra.takeIf { bucket == RelatorSpeechBucket.CONCEPT_CUE },
+            phaseKey = bucket.phaseKey(),
+        )
     }
 
     fun allResolvedSamples(longExerciseName: String): List<String> =
@@ -205,26 +275,35 @@ internal fun RelatorSpeechBucket.phaseKey(): String = name.lowercase()
 internal fun LiveRelatorSnapshot.speechBucket(): RelatorSpeechBucket {
     if (!visible || phase == RelatorPhase.HIDDEN) return RelatorSpeechBucket.HIDDEN
 
+    if (assistAck != null && lastChangedField == RelatorChangedField.NONE && idleCycle == 0) {
+        return RelatorSpeechBucket.ASSIST_CONFIRM
+    }
+
     if (phase == RelatorPhase.WARMUP && warmupIsLastIncomplete) {
         if (lastChangedField == RelatorChangedField.WARMUP_WEIGHT && isPlausibleWeight()) {
             val anchor = suggestedWeight ?: referenceWeight
             if (isClearWeightBelow(enteredWeight, anchor)) return RelatorSpeechBucket.WARMUP_WEIGHT_BELOW
             if (isClearWeightAboveSuggested(enteredWeight, anchor)) return RelatorSpeechBucket.WARMUP_WEIGHT_ABOVE
         }
+        if (shouldSpeakConcept()) return RelatorSpeechBucket.CONCEPT_CUE
         return RelatorSpeechBucket.IDLE_WARMUP_LAST
     }
     if (phase == RelatorPhase.MOBILITY) {
         if (assistOffer?.kind == RelatorAssistKind.MOBILITY) return RelatorSpeechBucket.ASSIST_MOBILITY
         return RelatorSpeechBucket.IDLE_MOBILITY
     }
-    if (phase == RelatorPhase.WARMUP) return RelatorSpeechBucket.IDLE_WARMUP
+    if (phase == RelatorPhase.WARMUP) {
+        if (shouldSpeakConcept()) return RelatorSpeechBucket.CONCEPT_CUE
+        return RelatorSpeechBucket.IDLE_WARMUP
+    }
+    if (failedSetCaution != null && lastChangedField == RelatorChangedField.NONE && idleCycle == 0) {
+        return RelatorSpeechBucket.CAUTION_FAILED_SET
+    }
     if (phase == RelatorPhase.REST) {
         if (shouldSpeakPr()) {
             return if (prHint?.isStar == true) RelatorSpeechBucket.PR_STAR else RelatorSpeechBucket.PR
         }
-        if (idleCycle > 0) {
-            assistOffer?.takeIf { it.kind != RelatorAssistKind.MOBILITY }?.let { return it.kind.speechBucket }
-        }
+        assistOffer?.takeIf { it.kind != RelatorAssistKind.MOBILITY }?.let { return it.kind.speechBucket }
         if (idleCycle > 0 && discomfortHint != null) return RelatorSpeechBucket.IDLE_DISCOMFORT
         return RelatorSpeechBucket.IDLE_REST
     }
@@ -276,9 +355,7 @@ internal fun LiveRelatorSnapshot.speechBucket(): RelatorSpeechBucket {
         else -> Unit
     }
 
-    if (idleCycle > 0) {
-        assistOffer?.takeIf { it.kind != RelatorAssistKind.MOBILITY }?.let { return it.kind.speechBucket }
-    }
+    assistOffer?.takeIf { it.kind != RelatorAssistKind.MOBILITY }?.let { return it.kind.speechBucket }
 
     if (idleCycle > 0 && discomfortHint != null) return RelatorSpeechBucket.IDLE_DISCOMFORT
 
@@ -289,6 +366,7 @@ internal fun LiveRelatorSnapshot.speechBucket(): RelatorSpeechBucket {
             RelatorSpeechBucket.TISSUE_DAY
         }
     }
+    if (shouldSpeakConcept()) return RelatorSpeechBucket.CONCEPT_CUE
     return situateWorkingBucket()
 }
 
@@ -299,7 +377,36 @@ private fun LiveRelatorSnapshot.shouldSpeakPr(): Boolean {
         lastChangedField == RelatorChangedField.REPS
 }
 
-private fun LiveRelatorSnapshot.situateWorkingBucket(): RelatorSpeechBucket = when {
+internal fun LiveRelatorSnapshot.conceptCueOrNull(): RelatorConceptCue? =
+    pickRelatorConceptCue(toConceptSignals())
+
+internal fun LiveRelatorSnapshot.toConceptSignals(): RelatorConceptSignals = RelatorConceptSignals(
+    axialLoadFactor = axialLoadFactor,
+    equipmentId = equipmentId,
+    movementPatternId = movementPatternId,
+    exerciseName = exerciseDisplayName,
+    intensityMode = intensityMode,
+    plannedIntensity = plannedIntensity,
+    plannedFailure = plannedFailure,
+    plannedReps = plannedReps,
+    plannedDropCount = plannedDropCount,
+    hasIsoHold = plannedIsoHold,
+    hasNegatives = plannedNegatives,
+    isCompound = compound != RelatorCompound.NONE,
+    shownConceptIds = shownConceptIds,
+)
+
+private fun LiveRelatorSnapshot.shouldSpeakConcept(): Boolean {
+    if (idleCycle <= 0) return false
+    if (lastChangedField.isReaction) return false
+    if (phase == RelatorPhase.REST || phase == RelatorPhase.MOBILITY || phase == RelatorPhase.HIDDEN) {
+        return false
+    }
+    return conceptCueOrNull() != null
+}
+
+internal fun LiveRelatorSnapshot.situateWorkingBucket(): RelatorSpeechBucket = when {
+    isDropsetFollowUp -> RelatorSpeechBucket.DROPSET_FOLLOWUP
     setIndex <= 0 && hasHistory -> RelatorSpeechBucket.IDLE_FIRST_HIST
     setIndex <= 0 -> RelatorSpeechBucket.IDLE_FIRST_NEW
     setCount > 1 && setIndex >= setCount - 1 -> RelatorSpeechBucket.IDLE_LAST
@@ -319,6 +426,9 @@ private fun line(
     snapshot: LiveRelatorSnapshot,
     voice: RelatorVoice,
     actions: List<RelatorAssistAction> = emptyList(),
+    fingerprint: String? = null,
+    spokenConceptId: String? = null,
+    phaseKey: String = snapshot.speechBucket().phaseKey(),
 ): RelatorResolution {
     val rendered = renderRelatorTemplate(
         template,
@@ -329,8 +439,10 @@ private fun line(
     return RelatorResolution(
         text = rendered,
         holdPrevious = false,
-        phaseKey = snapshot.speechBucket().phaseKey(),
+        phaseKey = phaseKey,
         actions = actions,
+        fingerprint = fingerprint,
+        spokenConceptId = spokenConceptId,
     )
 }
 

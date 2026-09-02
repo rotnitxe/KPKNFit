@@ -409,12 +409,20 @@ object ProgramDetailHelpers {
         program: Program,
     ): Int {
         if (activeProgramState == null || activeProgramState.programId != program.id) return 0
+        val wanted = listOfNotNull(
+            activeProgramState.currentWeekId.takeIf { it.isNotBlank() },
+            activeProgramState.currentWeekInstanceId?.takeIf { it.isNotBlank() },
+            activeProgramState.currentWeekId.takeIf { it.isNotBlank() }
+                ?.let { ProgramProgressEngine.templateWeekIdFromInstance(it) },
+            activeProgramState.currentWeekInstanceId?.takeIf { it.isNotBlank() }
+                ?.let { ProgramProgressEngine.templateWeekIdFromInstance(it) },
+        ).toSet()
         var weekIdx = 0
         for (m in program.macrocycles) {
             for (b in m.blocks) {
                 for (meso in b.mesocycles) {
                     for (w in meso.weeks) {
-                        if (w.id == activeProgramState.currentWeekId) return weekIdx
+                        if (w.id in wanted) return weekIdx
                         weekIdx++
                     }
                 }

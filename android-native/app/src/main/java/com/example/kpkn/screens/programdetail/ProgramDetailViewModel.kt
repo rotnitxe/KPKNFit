@@ -454,7 +454,8 @@ class ProgramDetailViewModel(
     // ─── Actions ──────────────────────────────────────────────────────────
 
     fun setStructureSubTab(tab: StructureSubTab) {
-        _uiState.update { it.copy(structureSubTab = tab) }
+        val resolved = if (tab == StructureSubTab.LOOPS) StructureSubTab.MACROCICLO else tab
+        _uiState.update { it.copy(structureSubTab = resolved) }
     }
 
     fun setMacrocycleRoadmapExpanded(expanded: Boolean) {
@@ -505,8 +506,20 @@ class ProgramDetailViewModel(
         repository.resumeProgram()
     }
 
+    fun toggleStartPause() {
+        when {
+            isActiveProgram.value -> pauseProgram()
+            isPausedProgram.value -> resumeProgram()
+            else -> startProgram()
+        }
+    }
+
+    fun activateOrResume() {
+        if (isPausedProgram.value) resumeProgram() else if (!isActiveProgram.value) startProgram()
+    }
+
     fun updateProgram(updated: Program) {
-        repository.updateProgram(ProgramCalendarEngine.materializeWeekDates(updated))
+        repository.updateProgram(updated)
     }
 
     fun clearCompetitionKeyDate() {
@@ -814,6 +827,33 @@ class ProgramDetailViewModel(
                     }
                 )
             }
+        )
+        repository.updateProgram(updated)
+    }
+
+    fun replaceWeekSessions(weekId: String, sessions: List<Session>) {
+        val current = program.value ?: return
+        if (weekId.isBlank()) return
+        val updated = current.copy(
+            macrocycles = current.macrocycles.map { macro ->
+                macro.copy(
+                    blocks = macro.blocks.map { block ->
+                        block.copy(
+                            mesocycles = block.mesocycles.map { meso ->
+                                meso.copy(
+                                    weeks = meso.weeks.map { week ->
+                                        if (week.id == weekId) {
+                                            week.copy(sessions = normalizeMainSessions(sessions))
+                                        } else {
+                                            week
+                                        }
+                                    },
+                                )
+                            },
+                        )
+                    },
+                )
+            },
         )
         repository.updateProgram(updated)
     }
@@ -1216,7 +1256,7 @@ class ProgramDetailViewModel(
         repository.updateProgram(updated)
     }
 
-    fun replaceWeekSessions(weekId: String, sessions: List<Session>) {
+    fun reorderSessions(weekId: String, sessions: List<Session>) {
         val current = program.value ?: return
         val normalized = normalizeMainSessions(sessions)
         val updated = current.copy(
@@ -1294,110 +1334,8 @@ class ProgramDetailViewModel(
             }
         ).normalizedTemporalStructure()
 
-        repository.updateProgram(updated)
+        updateProgram(updated)
         return true
-    }
-
-    fun createCalendarWeeks(startDateIso: String, weekCount: Int, trainingDays: Set<Int>) {
-        val current = program.value ?: return
-        val startDate = parseIsoDate(startDateIso) ?: return
-        val safeCount = weekCount.coerceIn(1, 52)
-        val safeDays = trainingDays.filter { it in 1..7 }.toSet()
-        if (current.isSimpleTemporalProgram) {
-            appendCalendarWeeksToSimple(current, startDate, safeCount, safeDays)
-        } else {
-            appendCalendarWeeksToSelectedBlock(current, startDate, safeCount, safeDays)
-        }
-    }
-
-    private fun appendCalendarWeeksToSimple(current: Program, startDate: LocalDate, weekCount: Int, trainingDays: Set<Int>) {
-        val macroIndex = current.macrocycles.indexOfFirst { it.blocks.isNotEmpty() }.takeIf { it >= 0 } ?: return
-        val block = current.macrocycles[macroIndex].blocks.firstOrNull() ?: return
-        val mesoIndex = block.mesocycles.indexOfLast { true }.takeIf { it >= 0 } ?: return
-        val offset = ProgramDetailHelpers.getTotalWeeks(current)
-        val newWeeks = buildCalendarWeeks(startDate, weekCount, trainingDays, offset, current.startDay ?: 1)
-        val anchorDate = current.resolvedSchedulePlan().anchorDate
-            ?: current.timelineStartDate
-            ?: startDate.toString()
-        val targetEndDate = newWeeks.lastOrNull()?.endDate
-            ?: current.resolvedSchedulePlan().targetEndDate
-        val schedulePlan = current.resolvedSchedulePlan().copy(
-            anchorDate = anchorDate,
-            weekStartDay = current.resolvedSchedulePlan().weekStartDay ?: current.startDay ?: 1,
-            trainingDays = trainingDays,
-            targetEndDate = targetEndDate,
-            mode = com.example.kpkn.data.models.ScheduleMode.DATED,
-        )
-        val updated = current.copy(
-            timelineStartDate = schedulePlan.anchorDate,
-            calendarization = (current.calendarization ?: ProgramCalendarEngine.defaultSimpleDatedCalendarization()).copy(
-                manualEndDate = schedulePlan.targetEndDate,
-            ),
-            simpleProgramKind = SimpleProgramKind.CALENDARIZED,
-            pausedCyclicSnapshot = current.pausedCyclicSnapshot ?: current.toSimpleProgramSnapshot(appClock),
-            schedulePlan = schedulePlan,
-            macrocycles = current.macrocycles.mapIndexed { currentMacroIndex, macro ->
-                if (currentMacroIndex != macroIndex) macro else macro.copy(
-                    blocks = macro.blocks.mapIndexed { blockIndex, currentBlock ->
-                        if (blockIndex != 0) currentBlock else currentBlock.copy(
-                            mesocycles = currentBlock.mesocycles.mapIndexed { currentMesoIndex, meso ->
-                                if (currentMesoIndex != mesoIndex) meso else meso.copy(weeks = meso.weeks + newWeeks)
-                            }
-                        )
-                    }
-                )
-            }
-        ).normalizedTemporalStructure()
-        updateProgram(updated)
-        _uiState.update { it.copy(selectedBlockId = block.id, selectedWeekId = newWeeks.lastOrNull()?.id) }
-    }
-
-    private fun appendCalendarWeeksToSelectedBlock(current: Program, startDate: LocalDate, weekCount: Int, trainingDays: Set<Int>) {
-        val blocks = ProgramDetailHelpers.buildRoadmapBlocks(current)
-        val target = blocks.find { it.id == _uiState.value.selectedBlockId } ?: blocks.firstOrNull() ?: return
-        val macro = current.macrocycles.getOrNull(target.macroIndex) ?: return
-        val block = macro.blocks.getOrNull(target.blockIndex) ?: return
-        val offset = countWeeksBeforeAppendingToBlock(current, target.macroIndex, target.blockIndex) + block.mesocycles.sumOf { it.weeks.size }
-        val newWeeks = buildCalendarWeeks(startDate, weekCount, trainingDays, offset, current.startDay ?: 1)
-        val lastMesoIndex = block.mesocycles.lastIndex
-        val updated = current.copy(
-            timelineStartDate = current.timelineStartDate ?: startDate.toString(),
-            macrocycles = current.macrocycles.mapIndexed { macroIndex, currentMacro ->
-                if (macroIndex != target.macroIndex) currentMacro else currentMacro.copy(
-                    blocks = currentMacro.blocks.mapIndexed { blockIndex, currentBlock ->
-                        if (blockIndex != target.blockIndex) currentBlock
-                        else if (lastMesoIndex < 0) currentBlock.copy(mesocycles = listOf(defaultRoadmapMesocycle(newWeeks.first()).copy(weeks = newWeeks)))
-                        else currentBlock.copy(
-                            mesocycles = currentBlock.mesocycles.mapIndexed { mesoIndex, meso ->
-                                if (mesoIndex == lastMesoIndex) meso.copy(weeks = meso.weeks + newWeeks) else meso
-                            }
-                        )
-                    }
-                )
-            }
-        ).normalizedTemporalStructure()
-        updateProgram(updated)
-        _uiState.update { it.copy(selectedBlockId = target.id, selectedWeekId = newWeeks.lastOrNull()?.id, structureSubTab = StructureSubTab.SEMANA) }
-    }
-
-    private fun buildCalendarWeeks(startDate: LocalDate, weekCount: Int, trainingDays: Set<Int>, weekOffset: Int, startDayOfWeek: Int = 1): List<ProgramWeek> {
-        val startDayIsoValue = startDayOfWeek.coerceIn(1, 7)
-        return (0 until weekCount).map { index ->
-            val weekStart = startDate.plusWeeks(index.toLong())
-            val weekEnd = weekStart.plusDays(6)
-            ProgramWeek(
-                id = idProvider.newId(),
-                name = calendarWeekTitle(weekStart),
-                startDate = weekStart.toString(),
-                endDate = weekEnd.toString(),
-                trainingDayDates = trainingDays.associate { dayOfWeek ->
-                    val targetDayIsoValue = dayOfWeekToJava(dayOfWeek).value
-                    val offset = ((targetDayIsoValue - startDayIsoValue + 7) % 7).toLong()
-                    val actualDate = weekStart.plusDays(offset)
-                    dayOfWeek to actualDate.toString()
-                },
-            )
-        }
     }
 
     private fun normalizeMainSessions(sessions: List<Session>): List<Session> {

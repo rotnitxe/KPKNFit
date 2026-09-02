@@ -9,6 +9,7 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.SimpleProgramKind
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -86,5 +87,19 @@ class LoopEngineTest {
 
         assertFalse(updated.loops.any { it.id == "loop1" })
         assertFalse(updated.macrocycles[0].blocks[0].mesocycles[0].weeks.any { it.loopId == "loop1" })
+    }
+
+    @Test
+    fun projectLoops_counts_cycle_weeks_not_program_weekDays() {
+        val loop = Loop(id = "loop1", title = "Comp", type = LoopType.COMPETITION, repeatEveryXLoops = 2)
+        val program = simpleProgram(loop).copy(
+            simpleProgramKind = SimpleProgramKind.CYCLIC,
+            weekDays = 14,
+        )
+
+        val next = LoopEngine.projectLoops(program, fromCycle = 1).first { it.cycle == 2 }
+
+        assertEquals(7, next.daysUntil)
+        assertEquals(1, next.weekInCycle)
     }
 }

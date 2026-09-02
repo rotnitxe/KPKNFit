@@ -7,6 +7,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.ProgramCalendarEngine
+import kotlinx.coroutines.async
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -29,7 +30,7 @@ import java.time.LocalDate
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
-@Config(manifest = Config.NONE, sdk = [28])
+@Config(manifest = Config.NONE, sdk = [34])
 class ProgramDetailViewModelTest {
 
     private val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()
@@ -175,6 +176,46 @@ class ProgramDetailViewModelTest {
 
         vm.pauseProgram()
         assertEquals(ProgramStatus.PAUSED, repository.activeProgramState.value?.status)
+        assertEquals(ProgramRunStatus.PAUSED, repository.getProgramById(id)?.runState?.status)
+    }
+
+    @Test
+    fun pauseProgram_survives_update_and_resume_keeps_week() {
+        val id = nextId()
+        repository.addProgram(makeProgram(id))
+        val vm = ProgramDetailViewModel(id)
+
+        vm.startProgram()
+        val weekId = repository.activeProgramState.value?.currentWeekId
+        assertFalse(weekId.isNullOrBlank())
+
+        vm.pauseProgram()
+        assertEquals(ProgramStatus.PAUSED, repository.activeProgramState.value?.status)
+        assertEquals(ProgramRunStatus.PAUSED, repository.getProgramById(id)?.runState?.status)
+
+        vm.updateProgram(repository.getProgramById(id)!!.copy(name = "Renamed $id"))
+        assertEquals(ProgramStatus.PAUSED, repository.activeProgramState.value?.status)
+        assertEquals(ProgramRunStatus.PAUSED, repository.getProgramById(id)?.runState?.status)
+        assertEquals(weekId, repository.activeProgramState.value?.currentWeekId)
+
+        vm.resumeProgram()
+        assertEquals(ProgramStatus.ACTIVE, repository.activeProgramState.value?.status)
+        assertEquals(ProgramRunStatus.ACTIVE, repository.getProgramById(id)?.runState?.status)
+        assertEquals(weekId, repository.activeProgramState.value?.currentWeekId)
+    }
+
+    @Test
+    fun toggleStartPause_resumes_paused_program() = runBlocking {
+        val id = nextId()
+        repository.addProgram(makeProgram(id))
+        val vm = ProgramDetailViewModel(id)
+        vm.startProgram()
+        vm.pauseProgram()
+        val pausedCollector = async { vm.isPausedProgram.first { it } }
+        withTimeout(5_000) { pausedCollector.await() }
+        vm.toggleStartPause()
+        assertEquals(ProgramStatus.ACTIVE, repository.activeProgramState.value?.status)
+        assertEquals(ProgramRunStatus.ACTIVE, repository.getProgramById(id)?.runState?.status)
     }
 
     // ─── Derived State ────────────────────────────────────────────────────
@@ -538,6 +579,89 @@ class ProgramDetailViewModelTest {
         assertEquals("2026-05-25", target.startDate)
         assertEquals(2, target.sessions.size)
         assertTrue(target.sessions.none { it.id in listOf("${id}_s1", "${id}_s2") })
+    }
+
+    @Test
+    fun updateWeekMetadata_does_not_drop_calendar_dates() {
+        val id = nextId()
+        val program = makeProgram(id)
+        repository.addProgram(
+            program.copy(
+                structure = ProgramStructure.COMPLEX,
+                timelineStartDate = "2026-05-18",
+                calendarization = ProgramCalendarEngine.defaultCompetitionCalendarization(),
+                schedulePlan = ProgramSchedulePlan(
+                    anchorDate = "2026-05-18",
+                    weekStartDay = 1,
+                    trainingDays = setOf(1, 3, 5),
+                    mode = ScheduleMode.DATED,
+                ),
+                macrocycles = program.macrocycles.map { macro ->
+                    macro.copy(
+                        blocks = macro.blocks.map { block ->
+                            block.copy(
+                                mesocycles = block.mesocycles.map { meso ->
+                                    meso.copy(
+                                        weeks = meso.weeks.map { week ->
+                                            if (week.id == "${id}_w1") {
+                                                week.copy(
+                                                    startDate = "2026-05-18",
+                                                    endDate = "2026-05-24",
+                                                    trainingDayDates = mapOf(1 to "2026-05-18"),
+                                                )
+                                            } else week
+                                        }
+                                    )
+                                }
+                            )
+                        }
+                    )
+                },
+            )
+        )
+        val vm = ProgramDetailViewModel(id)
+
+        vm.updateWeekMetadata("${id}_w1", "Semana ancla", "Notas")
+
+        val week = repository.getProgramById(id)!!
+            .macrocycles[0].blocks[0].mesocycles[0].weeks[0]
+        assertEquals("Semana ancla", week.name)
+        assertEquals("Notas", week.description)
+        assertEquals("2026-05-18", week.startDate)
+        assertEquals("2026-05-24", week.endDate)
+        assertEquals("2026-05-18", week.trainingDayDates[1])
+    }
+
+    @Test
+    fun addWeekToSelectedAdvancedBlock_appends_to_last_mesocycle() {
+        val id = nextId()
+        val program = makeProgram(id)
+        val firstBlock = program.macrocycles[0].blocks[0]
+        val withTwoMesos = program.copy(
+            macrocycles = program.macrocycles.map { macro ->
+                macro.copy(
+                    blocks = listOf(
+                        firstBlock.copy(
+                            mesocycles = firstBlock.mesocycles + Mesocycle(
+                                id = "${id}_m_last",
+                                name = "Meso last",
+                                weeks = listOf(ProgramWeek(id = "${id}_w_last", name = "W last")),
+                            ),
+                        ),
+                    )
+                )
+            }
+        )
+        repository.addProgram(withTwoMesos)
+        val vm = ProgramDetailViewModel(id)
+        vm.selectBlock("${id}_b1")
+
+        vm.addWeekToSelectedAdvancedBlock("Semana extra")
+
+        val block = repository.getProgramById(id)!!.macrocycles[0].blocks[0]
+        assertEquals(2, block.mesocycles[0].weeks.size)
+        assertEquals(2, block.mesocycles[1].weeks.size)
+        assertEquals("Semana extra", block.mesocycles[1].weeks.last().name)
     }
 
     @Test

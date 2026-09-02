@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
@@ -42,6 +43,7 @@ internal fun rememberLiveRelatorSnapshot(
     warmupWeightDrafts: Map<String, String>,
     sessionTimeRemainingSeconds: Int? = null,
 ): LiveRelatorSnapshot {
+    val assistAck by viewModel.relatorAssistAck.collectAsStateWithLifecycle()
     val setIdx = uiState.currentSetIdx
     val setIdentity = currentExercise?.let { workoutSetKey(it.id, setIdx, activeSide) }.orEmpty()
     var primed by remember(setIdentity) { mutableStateOf(false) }
@@ -141,9 +143,38 @@ internal fun rememberLiveRelatorSnapshot(
     val previousWeight = currentExercise?.let {
         viewModel.getPreviousSessionFirstSetWeight(it, uiState.exerciseTags[it.id])
     }
-    val lastToday = currentExercise?.let {
-        lastLiftedWeightToday(uiState, it.id, setIdx, activeSide)
+    val restPhase = inferredPhase == RelatorPhase.REST
+    val sessionLastSet = currentExercise?.let {
+        previousWorkingSetToday(
+            completedSets = uiState.completedSets,
+            exerciseId = it.id,
+            currentSetIdx = setIdx,
+            side = activeSide,
+            restPhase = restPhase,
+        )
     }
+    val historyLastSet = remember(
+        currentExercise?.id,
+        currentExercise?.canonicalExerciseId,
+        currentExercise?.name,
+        uiState.exerciseTags[currentExercise?.id],
+    ) {
+        currentExercise
+            ?.let { exercise ->
+                viewModel.getExerciseHistory(
+                    exercise,
+                    limit = 1,
+                    preferredTag = uiState.exerciseTags[exercise.id],
+                ).firstOrNull()?.sets
+            }
+            ?.let(::firstWorkingSetMemory)
+    }
+    val loadAnchor = resolveRelatorLoadAnchor(
+        currentSetIdx = setIdx,
+        restPhase = restPhase,
+        sessionPrevious = sessionLastSet,
+        historyFirst = historyLastSet,
+    )
     val enteredWeightRaw = when (detected) {
         RelatorChangedField.WARMUP_WEIGHT -> warmupRaw
         else -> weightText.orEmpty()
@@ -155,7 +186,7 @@ internal fun rememberLiveRelatorSnapshot(
     }
     val lastLiftedWeight = when (detected) {
         RelatorChangedField.WARMUP_WEIGHT -> suggestedWarmupKg
-        else -> lastToday ?: previousWeight
+        else -> loadAnchor.compareWeightKg
     }
     val referenceWeight = suggestedWeight ?: lastLiftedWeight
     val loadKind = relatorLoadKind(draft?.loadMode ?: currentSet?.loadModeV2)
@@ -185,26 +216,18 @@ internal fun rememberLiveRelatorSnapshot(
             )
         }
     }
-    val sessionLastSet = currentExercise?.let {
-        lastCompletedWorkingSetToday(uiState, it.id, setIdx, activeSide)
-    }
-    val historyLastSet = remember(currentExercise?.id, currentExercise?.canonicalExerciseId, currentExercise?.name) {
-        currentExercise
-            ?.let { viewModel.getExerciseHistory(it, limit = 1).firstOrNull()?.sets }
-            ?.let(::firstWorkingSetMemory)
-    }
-    val historyBestE1rm = remember(currentExercise?.id, currentExercise?.canonicalExerciseId, currentExercise?.name) {
-        currentExercise?.let { viewModel.bestEstimated1RmForExercise(it) } ?: 0.0
-    }
     val sessionBestPrevious = currentExercise?.let {
         sessionBestPreviousE1rm(
             uiState = uiState,
             exerciseId = it.id,
             currentSetIdx = setIdx,
             side = activeSide,
-            restPhase = inferredPhase == RelatorPhase.REST,
+            restPhase = restPhase,
         )
     } ?: 0.0
+    val historyBestE1rm = remember(currentExercise?.id, currentExercise?.canonicalExerciseId, currentExercise?.name) {
+        currentExercise?.let { viewModel.bestEstimated1RmForExercise(it) } ?: 0.0
+    }
     val enteredRepsValue = repsText?.replace(',', '.')?.toDoubleOrNull()
     val prProbeWeight = if (inferredPhase == RelatorPhase.REST) sessionLastSet?.weightKg else enteredWeight
     val prProbeReps = if (inferredPhase == RelatorPhase.REST) {
@@ -266,7 +289,8 @@ internal fun rememberLiveRelatorSnapshot(
         exerciseDisplayName = headerExerciseName,
         setIndex = setIdx,
         setCount = currentExercise?.sets?.size?.coerceAtLeast(1) ?: 1,
-        hasHistory = previousWeight != null && previousWeight > 0.0,
+        hasHistory = (loadAnchor.historyFirst?.weightKg ?: 0.0) > 0.0 ||
+            (previousWeight != null && previousWeight > 0.0),
         warmupIncompleteIndex = firstIncompleteWarmup?.index,
         warmupCount = warmupRows.size,
         warmupIsLastIncomplete = warmupIsLast,
@@ -313,9 +337,31 @@ internal fun rememberLiveRelatorSnapshot(
             null
         },
         sessionLastSet = sessionLastSet,
-        historyLastSet = historyLastSet,
+        historyLastSet = loadAnchor.historyFirst,
         discomfortHint = discomfortHint,
         prHint = prHint,
+        isDropsetFollowUp = currentSet?.isDropSet == true &&
+            currentExercise?.sets?.getOrNull(setIdx - 1)?.restAfterSeconds == 0,
+        failedSetCaution = currentExercise?.let {
+            resolveFailedSetCaution(
+                completedSets = uiState.completedSets,
+                exerciseIds = visibleExercises.map { ex -> ex.id },
+                currentExerciseId = it.id,
+                currentSetIdx = setIdx,
+                restPhase = restPhase,
+            )
+        },
+        assistAck = assistAck,
+        ultraFastApplied = uiState.ultraFastApplied,
+        loadFromPreviousSession = loadAnchor.fromPreviousSession,
+        axialLoadFactor = exerciseContext.axialLoadFactor,
+        equipmentId = exerciseContext.equipmentId,
+        movementPatternId = exerciseContext.movementPatternId,
+        plannedIsoHold = currentSet?.plannedIntensityTechniques.orEmpty()
+            .any { it.type == TechniqueType.ISO_HOLD },
+        plannedNegatives = currentSet?.plannedIntensityTechniques.orEmpty()
+            .any { it.type == TechniqueType.NEGATIVES },
+        sessionSpeechKey = uiState.session?.id.orEmpty(),
         assistOffer = rememberAssistOffer(
             uiState = uiState,
             currentExercise = currentExercise,
@@ -388,6 +434,7 @@ private fun rememberAssistOffer(
         skippedIds,
         sessionTimeRemainingSeconds,
         sessionExercises,
+        uiState.ultraFastApplied,
     ) {
         pickRelatorAssistOffer(
             RelatorAssistContext(
@@ -403,6 +450,7 @@ private fun rememberAssistOffer(
                 omittedSetKeys = omittedKeys,
                 skippedExerciseIds = skippedIds,
                 remainingSeconds = sessionTimeRemainingSeconds,
+                ultraFastApplied = uiState.ultraFastApplied,
             ),
         )
     }
@@ -421,32 +469,26 @@ internal fun lastLiftedWeightToday(
     exerciseId: String,
     currentSetIdx: Int,
     side: String?,
-): Double? = lastCompletedWorkingSetToday(uiState, exerciseId, currentSetIdx, side)?.weightKg
+): Double? = previousWorkingSetToday(
+    completedSets = uiState.completedSets,
+    exerciseId = exerciseId,
+    currentSetIdx = currentSetIdx,
+    side = side,
+    restPhase = false,
+)?.weightKg
 
 internal fun lastCompletedWorkingSetToday(
     uiState: WorkoutUiState,
     exerciseId: String,
     currentSetIdx: Int,
     side: String?,
-): RelatorSessionSetMemory? {
-    val candidates = uiState.completedSets.mapNotNull { (key, set) ->
-        val parsed = parseCompletedSetKey(key) ?: return@mapNotNull null
-        if (parsed.exerciseId != exerciseId) return@mapNotNull null
-        if (set.isWarmup || set.skipped) return@mapNotNull null
-        val isPrior = parsed.setIdx < currentSetIdx
-        val isCurrentDone = parsed.setIdx == currentSetIdx
-        if (!isPrior && !isCurrentDone) return@mapNotNull null
-        if (side != null && parsed.side != null && parsed.side != side) return@mapNotNull null
-        if (set.weight <= 0.0) return@mapNotNull null
-        Triple(parsed.setIdx, set.weight, set.reps)
-    }
-    val best = candidates.maxByOrNull { it.first } ?: return null
-    return RelatorSessionSetMemory(
-        setNumber = best.first + 1,
-        weightKg = best.second,
-        reps = best.third,
-    )
-}
+): RelatorSessionSetMemory? = previousWorkingSetToday(
+    completedSets = uiState.completedSets,
+    exerciseId = exerciseId,
+    currentSetIdx = currentSetIdx,
+    side = side,
+    restPhase = false,
+)
 
 internal fun sessionBestPreviousE1rm(
     uiState: WorkoutUiState,

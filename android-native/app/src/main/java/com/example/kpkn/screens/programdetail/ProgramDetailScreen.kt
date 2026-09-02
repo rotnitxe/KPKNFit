@@ -45,6 +45,8 @@ import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.LoopEngine
 import com.example.kpkn.domain.training.ProgramAnalyticsEngine
+import com.example.kpkn.domain.training.ProgramCalendarEngine
+import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.training.CompetitionSessionSync
 import com.example.kpkn.domain.training.BlockTransitionEngine
 import com.example.kpkn.screens.auge.AugeViewModel
@@ -131,7 +133,6 @@ fun ProgramDetailScreen(
 
     LaunchedEffect(p.id, p.volumeSetupPromptSeen) {
         if (!p.volumeSetupPromptSeen) {
-            viewModel.markVolumeSetupPromptSeen()
             showVolumeSetupNotice = true
         }
     }
@@ -180,10 +181,7 @@ fun ProgramDetailScreen(
                 isVolumeCalibrated = p.volumeRecommendations.isNotEmpty() && p.athleteProfileScore != null,
                 blockProgressLabel = viewModel.blockProgressLabel(),
                 onBack = onBack,
-                onStartPause = {
-                    if (isActive) viewModel.pauseProgram()
-                    else viewModel.startProgram()
-                },
+                onStartPause = { viewModel.toggleStartPause() },
                 onTitleDescriptionChange = { name, description ->
                     viewModel.updateProgram(p.copy(name = name, description = description))
                 },
@@ -291,9 +289,13 @@ fun ProgramDetailScreen(
         }
     }
 
-    LaunchedEffect(p.id, activeProgramState?.currentWeekId, currentWeeks) {
+    LaunchedEffect(p.id, activeProgramState?.currentWeekId, activeProgramState?.currentWeekInstanceId, currentWeeks) {
         val activeWeekId = activeProgramState?.takeIf { it.programId == p.id }?.currentWeekId ?: return@LaunchedEffect
-        val loopWeek = currentWeeks.firstOrNull { it.id == activeWeekId && it.isLoopWeek } ?: return@LaunchedEffect
+        val templateId = ProgramProgressEngine.templateWeekIdFromInstance(activeWeekId) ?: activeWeekId
+        val instanceId = activeProgramState?.currentWeekInstanceId
+        val loopWeek = currentWeeks.firstOrNull { week ->
+            week.isLoopWeek && (week.id == activeWeekId || week.id == templateId || week.id == instanceId)
+        } ?: return@LaunchedEffect
         if (notifiedLoopWeekId == loopWeek.id) return@LaunchedEffect
         notifiedLoopWeekId = loopWeek.id
         snackbarHostState.showKpknSnackbar("Loop activo: ${loopWeek.name}. Ya puedes programar sus sesiones.", SnackbarType.SUGGESTION)
@@ -302,7 +304,10 @@ fun ProgramDetailScreen(
 
     if (showVolumeSetupNotice) {
         KpknAlertDialog(
-            onDismissRequest = { showVolumeSetupNotice = false },
+            onDismissRequest = {
+                viewModel.markVolumeSetupPromptSeen()
+                showVolumeSetupNotice = false
+            },
             title = { Text("Calibrar volumen del programa", fontWeight = FontWeight.Black) },
             text = {
                 Text(
@@ -311,6 +316,7 @@ fun ProgramDetailScreen(
             },
             confirmButton = {
                 Button(onClick = {
+                    viewModel.markVolumeSetupPromptSeen()
                     showVolumeSetupNotice = false
                     openVolumeSheetToken++
                 }) {
@@ -318,7 +324,10 @@ fun ProgramDetailScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showVolumeSetupNotice = false }) {
+                TextButton(onClick = {
+                    viewModel.markVolumeSetupPromptSeen()
+                    showVolumeSetupNotice = false
+                }) {
                     Text("Más tarde")
                 }
             },
@@ -468,6 +477,7 @@ private fun TrainingPanel(
         }
     }
     var copiedRoadmapWeekId by remember(program.id) { mutableStateOf<String?>(null) }
+    var showCopyWeekDialog by remember { mutableStateOf(false) }
     var pendingCompetitionCreation by remember { mutableStateOf<PendingCompetitionSessionCreation?>(null) }
     var pendingCompetitionModeSelection by remember { mutableStateOf<PendingCompetitionModeSelection?>(null) }
     var showCompetitionEligibilityNotice by remember { mutableStateOf(false) }
@@ -612,11 +622,16 @@ private fun TrainingPanel(
                 onCopyWeek = { copiedRoadmapWeekId = it },
                 onPasteWeek = { targetWeekId ->
                     copiedRoadmapWeekId?.let { sourceWeekId ->
-                        viewModel.copyWeekSessions(
-                            sourceWeekId = sourceWeekId,
-                            targetWeekIds = setOf(targetWeekId),
-                            replaceWeekIds = setOf(targetWeekId),
-                        )
+                        val conflicts = viewModel.previewWeekCopyConflicts(sourceWeekId, setOf(targetWeekId))
+                        if (conflicts.isEmpty()) {
+                            viewModel.copyWeekSessions(
+                                sourceWeekId = sourceWeekId,
+                                targetWeekIds = setOf(targetWeekId),
+                                replaceWeekIds = emptySet(),
+                            )
+                        } else {
+                            showCopyWeekDialog = true
+                        }
                     }
                 },
             )
@@ -660,7 +675,13 @@ private fun TrainingPanel(
                                 }
                             }
                             TextButton(onClick = { viewModel.dismissBlockTransitionBanner() }) {
-                                Text(if (banner.requiresExplicitConfirmation) "MÁS TARDE" else "OK")
+                                Text(
+                                    if (banner.requiresExplicitConfirmation) {
+                                        "Más tarde: el programa espera tu decisión"
+                                    } else {
+                                        "OK"
+                                    },
+                                )
                             }
                         }
                     }
@@ -685,7 +706,7 @@ private fun TrainingPanel(
                 DayView(
                     program = program,
                     isSimpleProgram = program.isSimpleTemporalProgram,
-                    isCalendarized = program.simpleProgramKind == SimpleProgramKind.CALENDARIZED,
+                    isCalendarized = ProgramCalendarEngine.isCalendarized(program),
                     selectedWeek = selectedWeekMeta,
                     sessions = displayedSessions,
                     onEditSession = onEditSession,
@@ -749,46 +770,7 @@ private fun TrainingPanel(
                     },
                 )
             }
-            StructureSubTab.MACROCICLO -> MacrocycleEditor(
-                program = program,
-                onUpdateProgram = { viewModel.updateProgram(it) },
-                onCompetitionKeyDateSaved = ::handleCompetitionKeyDateSaved,
-                onFocusWeek = ::focusWeek,
-                onCreateSessionForWeek = ::createSessionForWeek,
-                showSimpleCalendarizationSheet = showSimpleCalendarizationSheet,
-                onShowSimpleCalendarizationSheetChange = { viewModel.setShowSimpleCalendarizationSheet(it) },
-                calendarizationStartDate = calendarizationStartDate,
-                onCalendarizationStartDateChange = { viewModel.setCalendarizationStartDate(it) },
-                calendarizationEndDate = calendarizationEndDate,
-                onCalendarizationEndDateChange = { viewModel.setCalendarizationEndDate(it) },
-                calendarizationStartDayOfWeek = calendarizationStartDayOfWeek,
-                onCalendarizationStartDayOfWeekChange = { viewModel.setCalendarizationStartDayOfWeek(it) },
-                calendarizationTrainingDays = calendarizationTrainingDays,
-                onCalendarizationTrainingDaysChange = { viewModel.setCalendarizationTrainingDays(it) },
-                onApplySimpleCalendarizedBreak = { viewModel.applySimpleCalendarizedBreak() },
-                onCalendarizeSimpleCycle = { viewModel.calendarizeSimpleCycle() },
-                onRecoverCyclicProgram = { viewModel.recoverCyclicProgram() },
-                onStartFreshCyclicProgram = { viewModel.startFreshCyclicProgram() },
-                macrocycleRoadmapExpanded = editorUiState.macrocycleRoadmapExpanded,
-                onMacrocycleRoadmapExpandedChange = { viewModel.setMacrocycleRoadmapExpanded(it) },
-                macrocycleKeyDatesSheetOpen = editorUiState.macrocycleKeyDatesSheetOpen,
-                onMacrocycleKeyDatesSheetOpenChange = { viewModel.setMacrocycleKeyDatesSheetOpen(it) },
-                macrocycleLibrarySheetOpen = editorUiState.macrocycleLibrarySheetOpen,
-                onMacrocycleLibrarySheetOpenChange = { viewModel.setMacrocycleLibrarySheetOpen(it) },
-                macrocycleLoopsSheetOpen = editorUiState.macrocycleLoopsSheetOpen,
-                onMacrocycleLoopsSheetOpenChange = { viewModel.setMacrocycleLoopsSheetOpen(it) },
-                macrocycleTimelineStartDate = editorUiState.macrocycleTimelineStartDate,
-                onMacrocycleTimelineStartDateChange = { viewModel.setMacrocycleTimelineStartDate(it) },
-                macrocycleManualEndDate = editorUiState.macrocycleManualEndDate,
-                onMacrocycleManualEndDateChange = { viewModel.setMacrocycleManualEndDate(it) },
-                macrocycleCompetitionDate = editorUiState.macrocycleCompetitionDate,
-                onMacrocycleCompetitionDateChange = { viewModel.setMacrocycleCompetitionDate(it) },
-                onAddProgramCopy = { copy ->
-                    viewModel.addProgramCopy(copy)
-                    onOpenProgram(copy.id)
-                },
-            )
-            StructureSubTab.LOOPS -> MacrocycleEditor(
+            StructureSubTab.MACROCICLO, StructureSubTab.LOOPS -> MacrocycleEditor(
                 program = program,
                 onUpdateProgram = { viewModel.updateProgram(it) },
                 onCompetitionKeyDateSaved = ::handleCompetitionKeyDateSaved,
@@ -851,7 +833,7 @@ private fun TrainingPanel(
                     program = program,
                     isProgramActive = isActiveProg,
                     hasCreatedSessions = hasCreatedSessions,
-                    onActivateProgram = { viewModel.startProgram() },
+                    onActivateProgram = { viewModel.activateOrResume() },
                     onGoCreateSession = {
                         val firstBlock = program.macrocycles.firstOrNull()?.blocks?.firstOrNull()
                         val firstWeek = firstBlock?.mesocycles?.firstOrNull()?.weeks?.firstOrNull()
@@ -884,6 +866,16 @@ private fun TrainingPanel(
         }
 
         Spacer(modifier = Modifier.height(120.dp))
+    }
+
+    if (showCopyWeekDialog) {
+        CopyWeekDialog(
+            weeks = currentWeeks,
+            selectedWeekId = copiedRoadmapWeekId ?: selectedWeekId,
+            selectedBlockId = selectedBlockId,
+            viewModel = viewModel,
+            onDismiss = { showCopyWeekDialog = false },
+        )
     }
 
     pendingCompetitionCreation?.let { pending ->

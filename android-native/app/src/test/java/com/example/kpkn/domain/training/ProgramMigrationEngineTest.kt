@@ -194,4 +194,51 @@ class ProgramMigrationEngineTest {
         assertEquals(null, afterEnd.program.calendarization)
         assertEquals(3, afterEnd.program.runState?.cycleNumber)
     }
+
+    @Test
+    fun migrate_promotes_simple_dated_with_two_blocks_to_advanced_calendar() {
+        val calendarized = cyclicBase().calendarizeSimpleCycle(
+            startDate = LocalDate.of(2026, 7, 13),
+            startDayOfWeek = 1,
+            trainingDays = setOf(1, 3, 5),
+        )
+        val twoBlocks = calendarized.copy(
+            macrocycles = calendarized.macrocycles.map { macro ->
+                macro.copy(
+                    blocks = macro.blocks + Block(
+                        id = "block-2",
+                        name = "Bloque 2",
+                        mesocycles = listOf(
+                            Mesocycle(
+                                id = "meso-2",
+                                name = "Meso 2",
+                                weeks = listOf(ProgramWeek(id = "w2", name = "Semana 2")),
+                            ),
+                        ),
+                    ),
+                )
+            },
+        )
+
+        val migrated = ProgramMigrationEngine.migrateIfNeeded(twoBlocks)
+
+        assertEquals(ProgramStructure.COMPLEX, migrated.program.structure)
+        assertEquals(ProgramCalendarizationMode.ADVANCED_COMPETITION, migrated.program.calendarization?.mode)
+        assertTrue(migrated.migrated)
+    }
+
+    @Test
+    fun migrate_converts_leftover_simple_dated_on_already_complex_program() {
+        val leftover = cyclicBase().calendarizeSimpleCycle(
+            startDate = LocalDate.of(2026, 7, 13),
+            startDayOfWeek = 1,
+            trainingDays = setOf(1, 3, 5),
+        ).copy(structure = ProgramStructure.COMPLEX)
+
+        val migrated = ProgramMigrationEngine.migrateIfNeeded(leftover)
+
+        assertEquals(ProgramStructure.COMPLEX, migrated.program.structure)
+        assertEquals(ProgramCalendarizationMode.ADVANCED_COMPETITION, migrated.program.calendarization?.mode)
+        assertTrue(migrated.migrated)
+    }
 }
