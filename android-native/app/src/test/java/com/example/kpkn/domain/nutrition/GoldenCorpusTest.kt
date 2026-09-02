@@ -35,7 +35,7 @@ class GoldenCorpusTest {
         GoldenCase(
             "2 huevos y 100g de avena con leche",
             listOf(
-                Expectation("huevo", quantity = 2.0, intent = AmountIntent.UNSPECIFIED),
+                Expectation("huevo", quantity = 2.0, grams = 100.0, intent = AmountIntent.RESOLVED_SUBJECTIVE),
                 Expectation("avena", grams = 100.0, intent = AmountIntent.EXPLICIT_MASS),
                 Expectation("leche", intent = AmountIntent.UNSPECIFIED),
             ),
@@ -68,7 +68,7 @@ class GoldenCorpusTest {
         ),
 
         // ─── Cantidades ────────────────────────────────────────────────────
-        GoldenCase("2 huevos", listOf(Expectation("huevo", quantity = 2.0, grams = null))),
+        GoldenCase("2 huevos", listOf(Expectation("huevo", quantity = 2.0, grams = 100.0))),
         GoldenCase("huevos x2", listOf(Expectation("huevos", quantity = 2.0))),
         GoldenCase("3 huevos x2", listOf(Expectation("huevo", quantity = 6.0))),
         GoldenCase("1-2 huevos", listOf(Expectation("huevo", quantity = 1.5))),
@@ -355,7 +355,7 @@ class GoldenCorpusTest {
         GoldenCase("arroz integral", listOf(Expectation("arroz integral"))),
         GoldenCase("arroz con lentejas", listOf(Expectation("arroz"), Expectation("lenteja"))),
         GoldenCase("lentejas con arroz", listOf(Expectation("lenteja"), Expectation("arroz"))),
-        GoldenCase("porotos granados", listOf(Expectation("poroto granados"))),
+        GoldenCase("porotos granados", listOf(Expectation("porotos granados"))),
         GoldenCase("cazuela de ave", listOf(Expectation("cazuela de ave"))),
         GoldenCase("pastel de choclo", listOf(Expectation("pastel de choclo"))),
         GoldenCase("pastel de papa", listOf(Expectation("pastel de papa"))),
@@ -390,7 +390,7 @@ class GoldenCorpusTest {
         GoldenCase("quinua con verduras", listOf(Expectation("quinua"), Expectation("verduras"))),
         GoldenCase("salmón a la plancha", listOf(Expectation("salmon", cooking = CookingMethod.PLANCHA))),
         GoldenCase("atún con palta", listOf(Expectation("atún"), Expectation("palta"))),
-        GoldenCase("merluza frita", listOf(Expectation("merluza", cooking = CookingMethod.FRITO))),
+        GoldenCase("merluza frita", listOf(Expectation("merluza frita", cooking = CookingMethod.FRITO))),
         GoldenCase("pescado al horno", listOf(Expectation("pescado", cooking = CookingMethod.HORNO))),
         GoldenCase("pescado al vapor", listOf(Expectation("pescado", cooking = CookingMethod.VAPOR))),
         GoldenCase("camarones al ajo", listOf(Expectation("camarones al ajo"))),
@@ -398,7 +398,7 @@ class GoldenCorpusTest {
 
         // ─── E15 · Once y colaciones ────────────────────────────────────────
         GoldenCase("once", listOf(Expectation("once"))),
-        GoldenCase("pan con palta", listOf(Expectation("pan"), Expectation("palta"))),
+        GoldenCase("pan con palta", listOf(Expectation("pan con palta"))),
         GoldenCase("marraqueta con mantequilla", listOf(Expectation("marraqueta"), Expectation("mantequilla"))),
         GoldenCase("hallulla con queso", listOf(Expectation("hallulla"), Expectation("queso"))),
         GoldenCase("galletas de avena", listOf(Expectation("galletas de avena"))),
@@ -506,7 +506,7 @@ class GoldenCorpusTest {
         GoldenCase("una hallulla con mantequilla", listOf(Expectation("hallulla", gramsPositive = true, intent = AmountIntent.RESOLVED_SUBJECTIVE), Expectation("mantequilla"))),
         GoldenCase("cafecito", listOf(Expectation("cafe"))),
         GoldenCase("juguito de naranja", listOf(Expectation("juguito de naranja"))),
-        GoldenCase("pan con queso y tomate", listOf(Expectation("pan"), Expectation("queso"), Expectation("tomate"))),
+        GoldenCase("pan con queso y tomate", listOf(Expectation("pan con queso"), Expectation("tomate"))),
         GoldenCase("mil hojas", listOf(Expectation("mil hojas"))),
         GoldenCase("cuatro quesos", listOf(Expectation("quesos", quantity = 4.0))),
         GoldenCase("dos quesos", listOf(Expectation("quesos", quantity = 2.0))),
@@ -531,7 +531,7 @@ class GoldenCorpusTest {
         GoldenCase("yogurt con granola y frutas", listOf(Expectation("yogurt"), Expectation("granola"), Expectation("frutas"))),
         GoldenCase("avena con leche, manzana y canela", listOf(Expectation("avena"), Expectation("leche"), Expectation("manzana"), Expectation("canela"))),
         GoldenCase("huevos revueltos con tomate y pan", listOf(Expectation("huevos", cooking = CookingMethod.FRITO), Expectation("tomate"), Expectation("pan"))),
-        GoldenCase("pan con palta y huevo", listOf(Expectation("pan"), Expectation("palta"), Expectation("huevo"))),
+        GoldenCase("pan con palta y huevo", listOf(Expectation("pan con palta"), Expectation("huevo"))),
         GoldenCase("sopa de pollo con arroz", listOf(Expectation("sopa de pollo"), Expectation("arroz"))),
         GoldenCase("pescado con papas y verduras", listOf(Expectation("pescado"), Expectation("papa"), Expectation("verduras"))),
         GoldenCase("tallarines con carne y salsa", listOf(Expectation("tallarines"), Expectation("carne"), Expectation("salsa"))),
@@ -587,9 +587,9 @@ class GoldenCorpusTest {
         // ─── E15 · Más cocción y sustituciones ──────────────────────────────
         GoldenCase("huevo frito", listOf(Expectation("huevo", cooking = CookingMethod.FRITO))),
         GoldenCase("huevo revuelto", listOf(Expectation("huevo", cooking = CookingMethod.FRITO))),
-        GoldenCase("pescado frito", listOf(Expectation("pescado", cooking = CookingMethod.FRITO))),
+        GoldenCase("pescado frito", listOf(Expectation("pescado frito", cooking = CookingMethod.FRITO))),
         GoldenCase("chorizo a la parrilla", listOf(Expectation("chorizo", cooking = CookingMethod.ASADO_PARRILLA))),
-        GoldenCase("2 marraquetas", listOf(Expectation("marraqueta", quantity = 2.0))),
+        GoldenCase("2 marraquetas", listOf(Expectation("marraqueta", quantity = 2.0, grams = 200.0))),
         GoldenCase("un completo", listOf(Expectation("completo"))),
         GoldenCase("2 completos", listOf(Expectation("completo", quantity = 2.0))),
         GoldenCase("una empanada", listOf(Expectation("empanada"))),
@@ -615,6 +615,7 @@ class GoldenCorpusTest {
     @Test
     fun `golden corpus full coverage`() {
         var failures = 0
+        val allFailures = StringBuilder()
         for ((index, case) in corpus.withIndex()) {
             val failuresForCase = StringBuilder()
             val result = parseMealDescription(case.description)
@@ -656,11 +657,11 @@ class GoldenCorpusTest {
 
             if (failuresForCase.isNotEmpty()) {
                 failures++
-                System.err.println("CORPUS CASE ${index + 1} [${case.description}]:")
-                System.err.print(failuresForCase)
+                allFailures.appendLine("CORPUS CASE ${index + 1} [${case.description}]:")
+                allFailures.append(failuresForCase)
             }
         }
-        assertTrue("$failures/${corpus.size} casos del corpus dorado fallaron", failures == 0)
+        assertTrue("$failures/${corpus.size} casos del corpus dorado fallaron\n$allFailures", failures == 0)
     }
 
     @Test
@@ -671,7 +672,7 @@ class GoldenCorpusTest {
     }
 
     @Test
-    fun `dataset prior multiplies by quantity`() {
+    fun `household unit beats dataset prior on countable foods`() {
         val original = SemanticPortionRetriever.currentSnapshot()
         try {
             SemanticPortionRetriever.install(DatasetTestHarness.snapshotFor("huevo", 60.0, "2 huevos", queryToken = "huevos"))
@@ -682,14 +683,14 @@ class GoldenCorpusTest {
             val result = parseMealDescription("2 huevos", dummy)
             assertEquals(1, result.items.size)
             assertEquals(2.0, result.items[0].quantity, 0.01)
-            assertEquals(120.0, result.items[0].amountGrams!!, 0.01)
+            assertEquals(100.0, result.items[0].amountGrams!!, 0.01)
         } finally {
             DatasetTestHarness.restore(original)
         }
     }
 
     @Test
-    fun `dataset prior half quantity halves grams`() {
+    fun `household unit beats dataset prior on half fruit`() {
         val original = SemanticPortionRetriever.currentSnapshot()
         try {
             SemanticPortionRetriever.install(DatasetTestHarness.snapshotFor("manzana", 120.0, "una manzana"))
@@ -700,7 +701,7 @@ class GoldenCorpusTest {
             val result = parseMealDescription("media manzana", dummy)
             assertEquals(1, result.items.size)
             assertEquals(0.5, result.items[0].quantity, 0.01)
-            assertEquals(60.0, result.items[0].amountGrams!!, 0.01)
+            assertEquals(50.0, result.items[0].amountGrams!!, 0.01)
         } finally {
             DatasetTestHarness.restore(original)
         }

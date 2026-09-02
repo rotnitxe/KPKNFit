@@ -231,6 +231,9 @@ object CookingStateResolver {
         val family = FoodIdentity.familyFor(tag)
         if (family in setOf("salsa_de_tomate", "ketchup", "pizza", "sopa", "jugo")) return null
         val blob = FoodIdentity.normalize(tag + " " + (food?.name ?: ""))
+        if ((blob.contains("bowl") || blob.contains("bol") || blob.contains("tazon")) && blob.contains("avena")) {
+            return FoodState.RAW
+        }
         val produceFamily = family in setOf(
             "tomate", "lechuga", "zanahoria", "brocoli", "palta", "manzana", "platano",
         ) || PRODUCE_KEYWORDS.any { FoodIdentity.normalize(it) == FoodIdentity.normalize(tag) }

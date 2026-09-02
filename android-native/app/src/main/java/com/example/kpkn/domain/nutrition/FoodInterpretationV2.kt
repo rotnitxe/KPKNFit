@@ -458,7 +458,9 @@ class FoodInterpretationV2Engine(
                 ?.takeIf { it.isFinite() && it > 0.0 }
         }
         val observed = explicitGrams ?: calibratedGrams ?: defaultGrams
-        val portionIsVague = item == null || item.amountIntent == AmountIntent.UNSPECIFIED
+        val portionIsVague = item == null ||
+            item.amountIntent == AmountIntent.UNSPECIFIED ||
+            item.amountIntent == AmountIntent.INFERRED_CONTEXT
         val portionOptions = if (food != null && calibratedGrams == null) portionOptions(food, observed, calibration) else emptyList()
         val pending = buildList {
             if (food == null) add(

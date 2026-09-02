@@ -2,7 +2,6 @@ package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.food.FOOD_ALIASES
 import com.example.kpkn.data.food.buildFoodDatabase
-import com.example.kpkn.data.food.findFoodByNormalized
 import com.example.kpkn.data.food.findFoodExactByNormalized
 import com.example.kpkn.data.models.FoodItem
 import kotlinx.coroutines.runBlocking
@@ -34,7 +33,7 @@ class ResolutionGoldenCorpusTest {
             foods.firstOrNull { it.id == id }
 
         override suspend fun staticFood(tag: String): FoodItem? =
-            findFoodByNormalized(tag)
+            HouseholdPortions.householdStaticFood(tag)
 
         override fun staticIsExact(tag: String): Boolean =
             findFoodExactByNormalized(tag) != null
@@ -67,9 +66,11 @@ class ResolutionGoldenCorpusTest {
         assertEquals("gen021f", tags.single().foodItem?.id)
         assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
         assertTrue(tags.single().isResolved)
-        // Nota: los gramos de un ítem sin cantidad vienen del dataset de porciones
-        // (estado global del singleton), así que aquí solo se valida identidad.
         assertNotNull(tags.single().loggedFood)
+        val grams = tags.single().amountGrams ?: 0.0
+        assertTrue("papas fritas grams $grams", grams in 80.0..180.0)
+        val kcal = tags.single().loggedFood!!.calories
+        assertTrue("papas fritas kcal $kcal", kcal in 150.0..600.0)
     }
 
     @Test
@@ -80,33 +81,49 @@ class ResolutionGoldenCorpusTest {
     }
 
     @Test
-    fun `torta nunca se autoconfirma como pan blanco`() = runBlocking {
+    fun `torta se guarda como pan blanco generico`() = runBlocking {
         val tags = resolve("torta")
-        assertEquals(FoodResolutionStatus.NEEDS_CONFIRMATION, tags.single().resolutionStatus)
-        assertFalse(tags.single().isResolved)
+        assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
+        assertTrue(tags.single().isResolved)
         assertEquals("gen019", tags.single().foodItem?.id)
-        assertTrue(tags.single().statusText.contains("parecido"))
+        assertFalse(tags.single().hasMaterialQuestion())
+        val grams = tags.single().amountGrams ?: 0.0
+        assertTrue("torta grams $grams", grams in 80.0..120.0)
     }
 
     @Test
-    fun `cafe con leche requiere confirmacion`() = runBlocking {
+    fun `cafe con leche se guarda sin preguntar`() = runBlocking {
         val tags = resolve("café con leche")
-        assertEquals(FoodResolutionStatus.NEEDS_CONFIRMATION, tags.single().resolutionStatus)
+        assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
         assertEquals("gen016", tags.single().foodItem?.id)
+        assertTrue(tags.single().isResolved)
+        val grams = tags.single().amountGrams ?: 0.0
+        assertTrue("café con leche grams $grams", grams in 180.0..260.0)
+        val kcal = tags.single().loggedFood?.calories ?: 0.0
+        assertTrue("café con leche kcal $kcal", kcal in 90.0..170.0)
     }
 
     @Test
-    fun `quesadilla requiere confirmacion`() = runBlocking {
+    fun `quesadilla se guarda con ficha generica`() = runBlocking {
         val tags = resolve("quesadilla")
-        assertEquals(FoodResolutionStatus.NEEDS_CONFIRMATION, tags.single().resolutionStatus)
+        assertEquals("gen047", tags.single().foodItem?.id)
+        assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
+        assertTrue(tags.single().isResolved)
+        val grams = tags.single().amountGrams ?: 0.0
+        assertTrue("quesadilla grams $grams", grams in 25.0..40.0)
     }
 
     @Test
     fun `fideos asume cocido y expone macros`() = runBlocking {
         val tags = resolve("fideos")
+        assertTrue("fideos id ${tags.single().foodItem?.id}", tags.single().foodItem?.id in setOf("gen040", "gen040h"))
         assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
         assertNotNull(tags.single().loggedFood)
         assertTrue(tags.single().isResolved)
+        val grams = tags.single().amountGrams ?: 0.0
+        assertTrue("fideos grams $grams", grams in 140.0..180.0)
+        val kcal = tags.single().loggedFood!!.calories
+        assertTrue("fideos kcal $kcal", kcal in 170.0..250.0)
     }
 
     @Test
@@ -139,6 +156,9 @@ class ResolutionGoldenCorpusTest {
         assertTrue("atún debe resolver a algo", ids.all { it != null })
         assertEquals("todas las ejecuciones dan el mismo alimento", 1, ids.distinct().size)
         assertEquals("gen029", ids.first())
+        val tuna = resolve("atún").single()
+        val grams = tuna.amountGrams ?: 0.0
+        assertTrue("atún grams $grams", grams in 100.0..140.0)
     }
 
     @Test
@@ -163,7 +183,7 @@ class ResolutionGoldenCorpusTest {
     @Test
     fun `atun a secas resuelve a la variante al agua y no a la del aceite`() = runBlocking {
         val tags = resolve("atún")
-        assertEquals(FoodResolutionStatus.NEEDS_CONFIRMATION, tags.single().resolutionStatus)
+        assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
         assertEquals("gen029", tags.single().foodItem?.id)
         assertTrue(tags.single().foodItem?.name?.contains("agua", ignoreCase = true) == true)
     }

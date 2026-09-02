@@ -130,7 +130,16 @@ object SemanticPortionRetriever {
     fun contextProfiles(): Collection<DatasetContextProfile> =
         knowledge?.contextProfiles?.values.orEmpty()
 
+    @Volatile
+    var retrieveCount: Int = 0
+        private set
+
+    fun resetRetrieveCount() {
+        retrieveCount = 0
+    }
+
     fun retrieve(query: String, topK: Int = 8): RetrievalResult {
+        retrieveCount++
         val startedAt = System.nanoTime()
         val snapshot = knowledge ?: return emptyResult(query, startedAt)
         val normalized = normalize(query)

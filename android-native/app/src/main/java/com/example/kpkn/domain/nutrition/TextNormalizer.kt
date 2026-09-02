@@ -118,8 +118,8 @@ object TextNormalizer {
         "pimenton" to "pimenton", "pimentón" to "pimenton",
         "betarraga" to "betarraga", "remolacha" to "betarraga",
         "zapallo" to "zapallo", "calabaza" to "zapallo",
-        "marraqueta" to "marraqueta", "marraqueta" to "marraqueta",
-        "hallulla" to "hallulla",
+        "marraqueta" to "marraqueta",
+        "hallulla" to "hallulla", "hallula" to "hallulla", "halulla" to "hallulla", "allulla" to "hallulla",
         "empanada" to "empanada", "empanada" to "empanada",
         "cazuela" to "cazuela",
         "charquican" to "charquicán", "charquicán" to "charquicán",
@@ -231,9 +231,11 @@ object TextNormalizer {
     )
 
     private val TYPO_REGEX_LIST: List<Pair<Regex, String>> by lazy {
-        TYPO_MAP.map { (typo, correction) ->
-            Regex("""\b${Regex.escape(typo)}\b""", RegexOption.IGNORE_CASE) to correction
-        }
+        TYPO_MAP.entries
+            .sortedByDescending { it.key.length }
+            .map { (typo, correction) ->
+                Regex("""\b${Regex.escape(typo)}\b""", RegexOption.IGNORE_CASE) to correction
+            }
     }
 
     private val EN_ES_REGEX_LIST: List<Pair<Regex, String>> by lazy {
@@ -522,16 +524,28 @@ object TextNormalizer {
 
     private fun applyTypos(text: String): String {
         var result = text
+        val placeholders = mutableListOf<String>()
+        for ((typo, correction) in TYPO_MAP.entries.sortedByDescending { it.key.length }) {
+            if (!typo.contains(' ')) continue
+            val regex = Regex("""\b${Regex.escape(typo)}\b""", RegexOption.IGNORE_CASE)
+            result = regex.replace(result) { match ->
+                val token = "\u0001PH${placeholders.size}\u0001"
+                placeholders.add(if (correction.equals(match.value, ignoreCase = true)) match.value else correction)
+                token
+            }
+        }
         for ((regex, correction) in TYPO_REGEX_LIST) {
+            if (regex.pattern.contains(" ")) continue
             result = result.replace(regex, correction)
         }
-        // Typos flexionados: "uebos" no matchea \buebo\b, así que se intenta con el
-        // lema sin sufijo plural ("uebo" → "huevo" → "huevos").
         result = PLURAL_WORD_PATTERN.replace(result) { match ->
             val word = match.value.lowercase()
             val stem = if (word.endsWith("es")) word.dropLast(2) else word.dropLast(1)
             val corrected = TYPO_MAP[stem] ?: return@replace match.value
             corrected + if (word.endsWith("es")) "es" else "s"
+        }
+        placeholders.forEachIndexed { index, phrase ->
+            result = result.replace("\u0001PH$index\u0001", phrase)
         }
         return result
     }

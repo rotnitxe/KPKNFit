@@ -9,6 +9,8 @@ import com.example.kpkn.data.models.*
 
 // ─── Portion Scaling ─────────────────────────────────────────────────────────
 
+private val CHEESE_NAME = listOf("queso", "gouda", "gauda", "cheddar", "mantecoso", "cottage")
+
 fun getContextualDefaultServingSize(food: FoodItem): Double {
     val lowerName = food.name.lowercase()
     val densityCategory = SubjectivePortionEngine.detectDensityCategory(food.name)
@@ -54,7 +56,11 @@ fun getContextualDefaultServingSize(food: FoodItem): Double {
             if (food.servingSize >= 100.0) 100.0 else food.servingSize
         }
         SubjectivePortionEngine.FoodDensityCategory.DAIRY -> {
-            if (food.servingSize >= 100.0) 200.0 else food.servingSize
+            if (CHEESE_NAME.any { lowerName.contains(it) }) {
+                if (food.servingSize >= 100.0) 30.0 else food.servingSize
+            } else {
+                if (food.servingSize >= 100.0) 200.0 else food.servingSize
+            }
         }
         else -> food.servingSize
     }

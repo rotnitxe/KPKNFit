@@ -86,7 +86,11 @@ object FoodIdentity {
 
     // FIX NUT-01: hallulla/marraqueta are regional names for same Chilean bread.
     // Grouping them collapses duplicate OFF rows before SAFE_GAP check and allows AUTO.
-    private val BREAD_CHILENO_WORDS = setOf("hallulla", "hallullas", "marraqueta", "marraquetas", "pan batido", "pan frances")
+    private val BREAD_CHILENO_WORDS = setOf(
+        "hallulla", "hallullas", "hallula", "hallulas", "halulla", "halullas",
+        "allulla", "allullas",
+        "marraqueta", "marraquetas", "pan batido", "pan frances",
+    )
 
     private val SIMPLE_FAMILY_BY_TOKEN = mapOf(
         "tomate" to "tomate",
@@ -116,6 +120,10 @@ object FoodIdentity {
         "atun" to "atun",
         "tuna" to "atun",
         "salmon" to "salmon",
+        "queso" to "queso",
+        "cheddar" to "queso",
+        "gouda" to "queso",
+        "gauda" to "queso",
     )
 
     private val COMPOUND_PRODUCT_MARKERS = listOf(
@@ -166,6 +174,16 @@ object FoodIdentity {
         return extra.isEmpty() && foodTokens.any { it in queryTokens || queryFamily != null }
     }
 
+    private val STOP_TOKENS = setOf(
+        "de", "con", "y", "e", "la", "el", "los", "las", "un", "una", "a", "al", "del",
+        "and", "with", "the",
+    )
+
+    fun contentTokens(value: String): List<String> =
+        normalize(value).split(" ").filter { it.length > 1 && it !in STOP_TOKENS }
+
+    fun headToken(value: String): String? = contentTokens(value).firstOrNull()
+
     fun familyFor(value: String): String? {
         val normalized = normalize(value)
         val tokens = normalized.split(" ").filter { it.isNotBlank() }
@@ -181,7 +199,15 @@ object FoodIdentity {
                 normalized.contains("pan de") || normalized.contains("bread") -> "pan_compuesto"
                 else -> null
             }
-            else -> tokens.firstNotNullOfOrNull { SIMPLE_FAMILY_BY_TOKEN[it] }
+            else -> {
+                val content = contentTokens(normalized)
+                val headFamily = content.firstOrNull()?.let { SIMPLE_FAMILY_BY_TOKEN[it] }
+                when {
+                    headFamily != null -> headFamily
+                    content.size >= 2 -> null
+                    else -> content.firstNotNullOfOrNull { SIMPLE_FAMILY_BY_TOKEN[it] }
+                }
+            }
         }
     }
 

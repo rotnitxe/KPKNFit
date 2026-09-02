@@ -4,7 +4,6 @@ import com.example.kpkn.data.db.GlobalFoodEntity
 import com.example.kpkn.data.db.toFoodItem
 import com.example.kpkn.data.food.FOOD_ALIASES
 import com.example.kpkn.data.food.buildFoodDatabase
-import com.example.kpkn.data.food.findFoodByNormalized
 import com.example.kpkn.data.food.findFoodExactByNormalized
 import com.example.kpkn.data.models.CookingMethod
 import com.example.kpkn.data.models.FoodItem
@@ -30,7 +29,7 @@ class FluencyGoldenCorpusTest {
         override suspend fun resolveSmart(tag: String, brandHint: String?, contextHint: String?, stateHint: FoodState?) =
             resolver.resolve(tag, brandHint, contextHint, stateHint)
         override suspend fun getFoodById(id: String): FoodItem? = foods.firstOrNull { it.id == id }
-        override suspend fun staticFood(tag: String): FoodItem? = findFoodByNormalized(tag)
+        override suspend fun staticFood(tag: String): FoodItem? = HouseholdPortions.householdStaticFood(tag)
         override fun staticIsExact(tag: String): Boolean = findFoodExactByNormalized(tag) != null
         override fun recordLearned(query: String, brandHint: String?, foodId: String, portionGrams: Double?, cookingMethod: String?) = Unit
     }
@@ -102,10 +101,14 @@ class FluencyGoldenCorpusTest {
     @Test
     fun `pollo no se resuelve a caldo de pollo`() = runBlocking {
         val tags = resolve("pollo")
-        val id = tags.single().foodItem?.id
-        assertTrue("pollo debe ser pechuga, fue $id ${tags.single().foodItem?.name}", id in setOf("gen003", "gen004"))
+        assertEquals("gen004", tags.single().foodItem?.id)
         assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
         assertNotNull(tags.single().loggedFood)
+        val grams = tags.single().amountGrams ?: 0.0
+        assertTrue("pollo grams $grams", grams in 140.0..160.0)
+        val kcal = tags.single().loggedFood!!.calories
+        assertTrue("pollo kcal $kcal", kcal in 230.0..280.0)
+        assertTrue("pollo protein", tags.single().loggedFood!!.protein in 40.0..55.0)
         assertFalse(tags.single().foodItem!!.name.contains("caldo", ignoreCase = true))
         assertFalse(tags.single().hasMaterialQuestion())
     }
@@ -113,9 +116,14 @@ class FluencyGoldenCorpusTest {
     @Test
     fun `arroz asume cocido y se puede guardar`() = runBlocking {
         val tags = resolve("arroz")
+        assertEquals("gen005", tags.single().foodItem?.id)
         assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
         assertTrue(tags.single().isResolved)
         assertNotNull(tags.single().loggedFood)
+        val grams = tags.single().amountGrams ?: 0.0
+        assertTrue("arroz grams $grams", grams in 100.0..140.0)
+        val kcal = tags.single().loggedFood!!.calories
+        assertTrue("arroz kcal $kcal", kcal in 130.0..190.0)
         assertTrue(tags.single().statusText.contains("Asumí", ignoreCase = true))
         assertFalse(tags.single().hasMaterialQuestion())
         assertTrue(
@@ -125,17 +133,26 @@ class FluencyGoldenCorpusTest {
     }
 
     @Test
-    fun `atun desnudo sigue pidiendo confirmacion`() = runBlocking {
+    fun `atun desnudo se guarda con la variante al agua`() = runBlocking {
         val tags = resolve("atún")
-        assertEquals(FoodResolutionStatus.NEEDS_CONFIRMATION, tags.single().resolutionStatus)
-        assertTrue(tags.single().hasMaterialQuestion())
+        assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
+        assertFalse(tags.single().hasMaterialQuestion())
+        assertEquals("gen029", tags.single().foodItem?.id)
+        val grams = tags.single().amountGrams ?: 0.0
+        assertTrue("atún grams $grams", grams in 100.0..140.0)
+        val kcal = tags.single().loggedFood?.calories ?: 0.0
+        assertTrue("atún kcal $kcal", kcal in 110.0..180.0)
     }
 
     @Test
-    fun `torta sigue siendo alias de aproximacion`() = runBlocking {
+    fun `torta se guarda como ficha generica de pan`() = runBlocking {
         val tags = resolve("torta")
-        assertEquals(FoodResolutionStatus.NEEDS_CONFIRMATION, tags.single().resolutionStatus)
-        assertFalse(tags.single().isResolved)
+        assertEquals("gen019", tags.single().foodItem?.id)
+        assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
+        assertTrue(tags.single().isResolved)
+        assertFalse(tags.single().hasMaterialQuestion())
+        val grams = tags.single().amountGrams ?: 0.0
+        assertTrue("torta grams $grams", grams in 80.0..120.0)
     }
 
     @Test
@@ -152,8 +169,16 @@ class FluencyGoldenCorpusTest {
         assertEquals(listOf("arroz", "pollo"), parsed.items.map { it.tag })
         val tags = resolve("arroz con pollo")
         assertEquals(2, tags.size)
-        assertTrue(tags.any { it.tag == "arroz" })
-        assertTrue(tags.any { it.tag == "pollo" })
+        val arroz = tags.single { it.tag == "arroz" }
+        val pollo = tags.single { it.tag == "pollo" }
+        assertEquals("gen005", arroz.foodItem?.id)
+        assertEquals("gen004", pollo.foodItem?.id)
+        assertTrue((arroz.amountGrams ?: 0.0) in 180.0..280.0)
+        assertTrue((pollo.amountGrams ?: 0.0) in 120.0..180.0)
+        assertTrue((arroz.loggedFood?.calories ?: 0.0) in 230.0..380.0)
+        assertTrue((pollo.loggedFood?.calories ?: 0.0) in 200.0..320.0)
+        assertEquals(FoodResolutionStatus.AUTO, arroz.resolutionStatus)
+        assertEquals(FoodResolutionStatus.AUTO, pollo.resolutionStatus)
     }
 
     @Test

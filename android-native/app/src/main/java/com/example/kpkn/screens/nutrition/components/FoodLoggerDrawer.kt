@@ -37,8 +37,9 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.NutritionCalibrationRepository
 import com.example.kpkn.data.models.*
-import com.example.kpkn.data.food.findFoodByNormalized
 import com.example.kpkn.data.food.findFoodExactByNormalized
+import com.example.kpkn.domain.nutrition.HouseholdPortions
+import com.example.kpkn.domain.nutrition.FoodLoggerPrimaryAction
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
 import com.example.kpkn.domain.nutrition.SmartFoodResolver
@@ -258,8 +259,7 @@ fun FoodLoggerDrawer(
             override suspend fun getFoodById(id: String) = nutritionRepo.getFoodById(id)
 
             override suspend fun staticFood(tag: String): FoodItem? =
-                findFoodByNormalized(tag)
-                    ?: nutritionRepo.searchFoodCandidates(tag, limit = 1).firstOrNull()?.food
+                HouseholdPortions.householdStaticFood(tag)
 
             override fun staticIsExact(tag: String): Boolean =
                 findFoodExactByNormalized(tag) != null
@@ -275,7 +275,7 @@ fun FoodLoggerDrawer(
             }
         }, calibrationProfile = calibrationProfile)
 
-        val result = resolver.resolveAll(parsed, detectedContext)
+        val result = resolver.resolveAll(parsed, detectedContext, mealType)
 
         detectedContext = result.second
         val newTags = result.first
@@ -293,15 +293,7 @@ fun FoodLoggerDrawer(
             }
         }
         tags = mergedTags
-        // El rango del dataset es una referencia de ejemplos, no una objeción
-        // contra macros ya autoritativos. Si todos los alimentos quedaron
-        // resueltos desde filas locales, no lo mostramos en el total.
-        if (mergedTags.isNotEmpty() && mergedTags.all {
-                it.isResolved && it.nutritionSource == NutritionSourceKind.CURATED_LOCAL
-            }
-        ) {
-            analysisKcalRange = null
-        }
+        analysisKcalRange = null
         reviewRequired = mergedTags.any { it.hasMaterialQuestion() }
     }
 
@@ -393,13 +385,13 @@ fun FoodLoggerDrawer(
                 loggedFood = logged,
                 analysisSource = AnalysisSource.LOCAL_HEURISTIC,
                 statusText = if (logged != null) {
-                    "Estimación local: revisa los macros antes de guardar."
+                    "Estimación local. Tocá la tarjeta para editar."
                 } else {
-                    "Análisis automático falló: selecciona el alimento y ajusta la cantidad."
+                    "No pude identificar el alimento."
                 },
-                isResolved = false,
+                isResolved = logged != null,
                 isFuzzyMatch = true,
-                resolutionStatus = FoodResolutionStatus.NEEDS_REVIEW,
+                resolutionStatus = if (logged != null) FoodResolutionStatus.AUTO else FoodResolutionStatus.NO_RESOLVED,
                 nutritionSource = NutritionSourceKind.HEURISTIC_ESTIMATE,
                 resolutionConfidence = 0.35,
                 resolutionMargin = 0.0,
@@ -456,7 +448,7 @@ fun FoodLoggerDrawer(
             }
             try {
                 detectedContext = analysisTrace.stage("context_detect") {
-                    ContextDetector.detect(descriptionSnapshot)
+                    ContextDetector.detect(descriptionSnapshot, mealType)
                 }
                 NutritionTelemetry.markInFlight(analysisTrace.traceId, "template_match")
                 // CRASH-FIX: el match de templates ejecuta regex costosos; antes corría
@@ -466,28 +458,47 @@ fun FoodLoggerDrawer(
                 }
                 if (templateMatch != null) {
                     tags = templateMatch.foods.map { food ->
-                        val foodItem = findFoodByNormalized(food.foodName)
+                        val (foodItem, grams) = HouseholdPortions.eatenGramsForTemplateFood(
+                            food,
+                            descriptionSnapshot,
+                        )
+                        val logged = if (foodItem != null) {
+                            scaleFoodByPortion(
+                                food = foodItem,
+                                quantity = food.quantity.coerceAtLeast(1.0),
+                                portion = food.portionPreset ?: PortionPreset.MEDIUM,
+                                amountGrams = grams,
+                                cookingMethod = food.cookingMethod,
+                            ).copy(analysisSource = AnalysisSource.USER_MEMORY)
+                        } else {
+                            food.copy(amount = grams, analysisSource = AnalysisSource.USER_MEMORY)
+                        }
+                        val status = HouseholdPortions.operationalAutoStatus(
+                            food = foodItem,
+                            grams = grams,
+                            brandHint = null,
+                            explicitKilogram = HouseholdPortions.isExplicitKilogram(descriptionSnapshot),
+                            amountIntent = AmountIntent.RESOLVED_SUBJECTIVE,
+                        )
                         ResolvedTag(
                             tag = food.foodName,
                             portion = food.portionPreset ?: PortionPreset.MEDIUM,
                             quantity = food.quantity,
-                            amountGrams = food.amount.takeIf { it > 0 },
+                            amountGrams = grams,
                             cookingMethod = food.cookingMethod,
                             foodItem = foodItem,
-                            loggedFood = food.copy(analysisSource = AnalysisSource.USER_MEMORY),
-                            // A3: la memoria del usuario es una SUGERENCIA, nunca una
-                            // autoconfirmación: un log erróneo no puede propagarse en silencio.
-                            isResolved = false,
-                            isFuzzyMatch = true,
+                            loggedFood = logged,
+                            isResolved = status == FoodResolutionStatus.AUTO && logged.calories.isFinite(),
+                            isFuzzyMatch = false,
                             analysisSource = AnalysisSource.USER_MEMORY,
-                            statusText = "Coincide con tu comida habitual: revisa los alimentos y cantidades antes de guardar.",
-                            resolutionStatus = FoodResolutionStatus.NEEDS_CONFIRMATION,
+                            statusText = "Usé tu comida habitual. Tocá la tarjeta para editar.",
+                            resolutionStatus = status,
                         )
                     }
                     lastAnalyzedDescription = descriptionSnapshot
                     analysisStage = null
                     analysisStartedAtMs = 0L
-                    reviewRequired = true
+                    reviewRequired = false
                     endTraceOnce("template_match", mapOf("templateFoods" to templateMatch.foods.size))
                     return@launch
                 }
@@ -507,7 +518,7 @@ fun FoodLoggerDrawer(
                     ?.takeIf { descriptionRetrieval.confidence >= 0.35 }
                     ?.let { kotlin.math.round(it.kcalMin).toInt() to kotlin.math.round(it.kcalMax).toInt() }
                     ?.takeIf { it.second - it.first >= 30 }
-                detectedContext = ContextDetector.detect(descriptionSnapshot)
+                detectedContext = ContextDetector.detect(descriptionSnapshot, mealType)
                 NutritionTelemetry.markInFlight(analysisTrace.traceId, "parse")
                 val parseStartedAtMs = System.currentTimeMillis()
                 val parsed = withContext(Dispatchers.Default) {
@@ -761,8 +772,8 @@ fun FoodLoggerDrawer(
                     // Never derive the next value from the previous selection.
                     // The immutable anchor makes Grande → Pequeña → Grande exact.
                     val baseGrams = tag.baseAmountGrams
-                        ?: (food.servingSize * tag.quantity).takeIf { it > 0.0 }
-                        ?: 100.0
+                        ?: tag.amountGrams?.takeIf { it > 0.0 }
+                        ?: HouseholdPortions.defaultGrams(food, tag.tag)
                     val newGrams = baseGrams * multiplier
                     val usePrepared = CookingStateResolver.isAlreadyPreparedForMethod(food, tag.cookingMethod)
                     val scaleMethod = if (usePrepared) null else tag.cookingMethod
@@ -862,17 +873,13 @@ fun FoodLoggerDrawer(
             )
             tag.copy(
                 loggedFood = centralWithRange,
-                // “No estoy seguro” keeps the central estimate and its range
-                // visible, but it is deliberately not a guardable decision.
-                // The user must press “Confirmar estimación” (or choose a
-                // curated candidate) before the log can be persisted.
-                isResolved = false,
+                isResolved = centralWithRange != null,
                 isUncertain = true,
-                explicitDecision = false,
+                explicitDecision = true,
                 needsCookingClarification = false,
                 clarificationKind = CookingStateResolver.ClarificationKind.NONE,
-                resolutionStatus = FoodResolutionStatus.NEEDS_REVIEW,
-                statusText = "≈ Estimación visible; confirma antes de guardar. No se aprendió este valor.",
+                resolutionStatus = if (centralWithRange != null) FoodResolutionStatus.AUTO else FoodResolutionStatus.NO_RESOLVED,
+                statusText = "Estimación visible. Tocá la tarjeta para editar.",
                 hasManualEdits = true,
             )
         }
@@ -1116,31 +1123,12 @@ fun FoodLoggerDrawer(
 
     fun saveLog() {
         val activeTags = tags.filterNot { it.isExcluded }
-        if (activeTags.any { !it.isResolved && !it.explicitDecision }) {
-            NutritionTelemetry.event("save_rejected", mapOf("reason" to "unresolved_tags", "tags" to activeTags.size))
-            reviewRequired = true
-            // CRI-AUDIT (P6): aviso explícito que nombra el alimento que bloquea el guardado,
-            // en vez de solo la franja genérica.
-            val blocking = activeTags.firstOrNull { !it.isResolved }?.tag
-            analysisNotice = AnalysisNotice(
-                title = "Falta confirmar: \"$blocking\"",
-                message = "Selecciona el alimento correcto y confirma su cantidad antes de guardar.",
-                tone = AnalysisNoticeTone.WARNING,
-            )
-            return
+        val resolvedFoods = activeTags.mapNotNull { tag ->
+            tag.loggedFood?.takeIf { food ->
+                food.calories.isFinite() && food.protein.isFinite() &&
+                    food.carbs.isFinite() && food.fats.isFinite()
+            }
         }
-        val materiallyUncertain = activeTags.any { it.hasMaterialQuestion() }
-        if (materiallyUncertain) {
-            NutritionTelemetry.event("save_rejected", mapOf("reason" to "material_uncertainty", "tags" to activeTags.size))
-            reviewRequired = true
-            analysisNotice = AnalysisNotice(
-                title = "Revisa las alternativas",
-                message = "La confianza o la diferencia entre opciones es insuficiente. Elige una ficha o confirma la estimación.",
-                tone = AnalysisNoticeTone.WARNING,
-            )
-            return
-        }
-        val resolvedFoods = activeTags.mapNotNull { it.loggedFood }
         if (resolvedFoods.isEmpty()) {
             NutritionTelemetry.event("save_rejected", mapOf("reason" to "no_resolved_foods", "tags" to activeTags.size))
             reviewRequired = true
@@ -1314,8 +1302,10 @@ fun FoodLoggerDrawer(
     }
 
     val activeTagsForSave = tags.filterNot { it.isExcluded }
-    val saveBlocked = activeTagsForSave.any { tag ->
-        (!tag.isResolved && !tag.explicitDecision) || tag.hasMaterialQuestion()
+    val saveBlocked = activeTagsForSave.isEmpty() || activeTagsForSave.any { tag ->
+        val food = tag.loggedFood
+        food == null || !food.calories.isFinite() || !food.protein.isFinite() ||
+            !food.carbs.isFinite() || !food.fats.isFinite()
     }
 
     // ─── Sheet ───────────────────────────────────────────────────────────────
@@ -1532,24 +1522,40 @@ fun FoodLoggerDrawer(
                     FoodSearchResultCard(candidate = food, onClick = {
                         val selectedFood = food.food
                         val queryUsed = searchQuery.ifBlank { selectedFood.name }
-                        val logged = scaleFoodByPortion(selectedFood)
+                        val identity = HouseholdPortions.identityForSearchPick(selectedFood, queryUsed)
+                            ?: return@FoodSearchResultCard
+                        val grams = HouseholdPortions.eatenGramsForSearchPick(
+                            identity,
+                            queryUsed,
+                            selectedFood,
+                        )
+                        val logged = scaleFoodByPortion(identity, amountGrams = grams)
+                        val status = HouseholdPortions.operationalAutoStatus(
+                            food = identity,
+                            grams = grams,
+                            brandHint = null,
+                            explicitKilogram = HouseholdPortions.isExplicitKilogram(queryUsed),
+                            amountIntent = AmountIntent.UNSPECIFIED,
+                        )
                         val tag = ResolvedTag(
-                            tag = selectedFood.name,
+                            tag = identity.name,
                             portion = PortionPreset.MEDIUM,
                             quantity = 1.0,
-                            amountGrams = selectedFood.servingSize,
-                            foodItem = selectedFood,
+                            amountGrams = grams,
+                            foodItem = identity,
                             loggedFood = logged,
-                            isResolved = true,
+                            isResolved = status == FoodResolutionStatus.AUTO,
                             statusText = "",
                             hasManualEdits = true,
-                            // Selección manual explícita del usuario: misma autoridad
-                            // que una corrección manual, no un fallback silencioso.
-                            resolutionStatus = FoodResolutionStatus.AUTO,
-                            nutritionSource = NutritionSourceKind.CURATED_LOCAL,
+                            resolutionStatus = status,
+                            nutritionSource = if (HouseholdPortions.isGlobalSku(identity)) {
+                                NutritionSourceKind.VERIFIED_GLOBAL
+                            } else {
+                                NutritionSourceKind.CURATED_LOCAL
+                            },
                             resolutionConfidence = 1.0,
                         )
-                        nutritionRepo.recordFoodSelection(queryUsed, selectedFood)
+                        nutritionRepo.recordFoodSelection(queryUsed, identity)
                         tags = tags + tag
                         searchQuery = ""
                         searchResults = emptyList()
@@ -1559,30 +1565,6 @@ fun FoodLoggerDrawer(
 
             // ── Tag List ────────────────────────────────────────────────────
             if (tags.isNotEmpty()) {
-                val pendingClarifications = tags.filter { tag ->
-                    !tag.isExcluded && tag.hasMaterialQuestion()
-                }
-                if (pendingClarifications.isNotEmpty()) {
-                    item {
-                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Text(
-                                "Antes de guardar",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            pendingClarifications.forEach { pending ->
-                                FoodClarificationPanel(
-                                    tag = pending,
-                                    onPortionChange = { updateTagPortion(pending.id, it) },
-                                    onGramsChange = { updateTagGrams(pending.id, it) },
-                                    onCookingClarification = { updateTagCookingClarification(pending.id, it) },
-                                    onUnsure = { useEstimate(pending.id) },
-                                )
-                            }
-                        }
-                    }
-                }
                 item {
                     Text(
                         text = "Resumen de la comida",
@@ -1661,7 +1643,12 @@ fun FoodLoggerDrawer(
             // ── Save & Action Row ────────────────────────────────────────────
             item {
                 val hasTags = tags.isNotEmpty()
-                val descriptionEdited = activeTab == 0 && hasTags && description.trim() != lastAnalyzedDescription.trim()
+                val descriptionEdited = FoodLoggerPrimaryAction.isDescriptionEdited(
+                    current = description,
+                    lastAnalyzed = lastAnalyzedDescription,
+                    hasTags = hasTags,
+                    describeTab = activeTab == 0,
+                )
                 val isSearchMode = activeTab == 1
 
                 Row(
@@ -1709,10 +1696,11 @@ fun FoodLoggerDrawer(
                                        else if (hasTags) Icons.Default.Check
                                        else if (isSearchMode && !hasTags) Icons.Default.Search
                                        else Icons.Default.Check
-                            val label = if (descriptionEdited) "ACTUALIZAR Y BUSCAR"
-                                        else if (hasTags) "GUARDAR"
-                                        else if (isSearchMode && !hasTags) "BUSCAR"
-                                        else "REGISTRAR"
+                            val label = FoodLoggerPrimaryAction.label(
+                                hasTags = hasTags,
+                                descriptionEdited = descriptionEdited,
+                                isSearchMode = isSearchMode,
+                            )
                             Icon(icon, null, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(label, fontWeight = FontWeight.Black)
@@ -2357,16 +2345,6 @@ private fun TagCard(
                         )
                     }
 
-                    if (tag.resolutionStatus in setOf(FoodResolutionStatus.NEEDS_CONFIRMATION, FoodResolutionStatus.NEEDS_REVIEW) && logged != null) {
-                        Text(
-                            "Macros estimados: confirma antes de guardar.",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                        Button(onClick = onConfirmEstimate, modifier = Modifier.fillMaxWidth()) {
-                            Text("Confirmar estimación")
-                        }
-                    }
                     if (tag.needsCookingClarification) {
                         Surface(
                             shape = RoundedCornerShape(12.dp),
@@ -2483,40 +2461,7 @@ private fun TagCard(
                         }
                     }
 
-                    if (!tag.needsCookingClarification && tag.reviewCandidates.isNotEmpty()) {
-                        // R1: candidatos del resolver con su scoring ("¿Cuál de estos?")
-                        Text("¿Cuál de estos?", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            tag.reviewCandidates.forEach { candidate ->
-                                Surface(
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = MaterialTheme.colorScheme.surfaceVariant,
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clickable {
-                                            nutritionRepo.recordFoodSelection(tag.tag, candidate)
-                                            onResolve(candidate)
-                                        },
-                                ) {
-                                    Column(modifier = Modifier.padding(8.dp)) {
-                                        Text(
-                                            candidate.name.trim().replaceFirstChar { it.uppercase() },
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                        )
-                                        Text(
-                                            "${kotlin.math.round(candidate.calories).toInt()} kcal / ${candidate.servingSize.toInt()}${candidate.unit}",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    } else if (!tag.needsCookingClarification && !tag.isResolved) {
+                    if (!tag.isResolved) {
                         Text("Resoluciones sugeridas:", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
                         val unresolvedQuery = tag.tag
                         var suggestions by remember(unresolvedQuery, foodDatabase.size) { mutableStateOf<List<FoodCandidate>>(emptyList()) }

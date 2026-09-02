@@ -96,6 +96,22 @@ class FoodIndex {
             return localExact.map { it.foodId }.toSet()
         }
 
+        val family = FoodIdentity.familyFor(query)
+        val familyLocal = if (family != null) {
+            foods.values.filter { it.source == "LOCAL" && it.canonicalFamily == family }
+                .map { it.foodId }
+                .toSet()
+        } else {
+            emptySet()
+        }
+        val aliasLocal = FoodIdentity.queryAliases(query).flatMap { alias ->
+            exactMatches(alias).filter { it.source == "LOCAL" }.map { it.foodId }
+        }.toSet()
+        val householdHits = familyLocal + aliasLocal
+        if (householdHits.isNotEmpty() && family != null) {
+            return householdHits
+        }
+
         val candidates = mutableSetOf<String>()
 
         for (token in queryTokens) {
@@ -104,6 +120,10 @@ class FoodIndex {
 
         val shortHeadNoun = queryTokens.size == 1 && queryTokens[0].length >= 5
         if (shortHeadNoun && candidates.isNotEmpty()) {
+            val localOnly = localSubset(candidates)
+            if (localOnly.isNotEmpty()) return localOnly
+            if (householdHits.isNotEmpty()) return householdHits
+            if (family != null) return emptySet()
             return candidates
         }
 
@@ -121,8 +141,15 @@ class FoodIndex {
             }
         }
 
+        val localFuzzy = localSubset(candidates)
+        if (localFuzzy.isNotEmpty()) return localFuzzy
+        if (householdHits.isNotEmpty()) return householdHits
+        if (family != null) return emptySet()
         return candidates
     }
+
+    private fun localSubset(ids: Set<String>): Set<String> =
+        ids.mapNotNull { foods[it] }.filter { it.source == "LOCAL" }.map { it.foodId }.toSet()
 
     fun getFood(foodId: String): IndexedFood? = foods[foodId]
 

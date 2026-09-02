@@ -103,6 +103,35 @@ class FoodIndexTest {
     }
 
     @Test
+    fun `search arroz does not open an OFF pack when local family exists`() {
+        val rice = FoodItem(
+            id = "gen005", name = "Arroz Blanco (cocido)", brand = "Genérico",
+            servingSize = 100.0, unit = "g", calories = 130.0, protein = 2.7, carbs = 28.0, fats = 0.3,
+        )
+        val index = FoodIndex()
+        index.build(
+            globalFoods = listOf(
+                com.example.kpkn.data.db.GlobalFoodEntity(
+                    foodId = "off_arroz_kg",
+                    name = "Arroz Grado 1kg",
+                    normalizedName = "arroz grado 1kg",
+                    calories = 360.0,
+                    protein = 7.0,
+                    carbs = 78.0,
+                    fats = 1.0,
+                    source = "OFF Chile",
+                    portionGrams = 1000.0,
+                ),
+            ),
+            staticFoods = listOf(rice),
+            staticAliases = emptyMap(),
+        )
+        val hits = index.search("arroz")
+        assertTrue(hits.contains("gen005"))
+        assertFalse("query sin marca no debe abrir pack OFF", hits.contains("off_arroz_kg"))
+    }
+
+    @Test
     fun `search with exact local name does not require fuzzy expansion`() {
         val tomato = FoodItem(
             id = "gen026", name = "Tomate", brand = "Genérico", servingSize = 100.0, unit = "g",

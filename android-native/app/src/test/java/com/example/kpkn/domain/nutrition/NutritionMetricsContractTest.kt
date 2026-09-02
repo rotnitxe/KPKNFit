@@ -3,7 +3,6 @@ package com.example.kpkn.domain.nutrition
 import com.example.kpkn.data.food.FOOD_ALIASES
 import com.example.kpkn.data.food.FOOD_ALIASES_APPROXIMATION
 import com.example.kpkn.data.food.buildFoodDatabase
-import com.example.kpkn.data.food.findFoodByNormalized
 import com.example.kpkn.data.food.findFoodExactByNormalized
 import com.example.kpkn.data.models.FoodItem
 import kotlinx.coroutines.runBlocking
@@ -18,7 +17,7 @@ import kotlin.system.measureTimeMillis
  *
  * Umbrales del plan (medidos en CI sobre el pipeline real, sin Room):
  *  - precision@1 de identidad ≥ 95%
- *  - sustituciones auto-confirmadas = 0 (ningún alias aproximado con status AUTO)
+ *  - alias cotidianos de aproximación quedan AUTO con ficha genérica
  *  - error mediano de gramos ≤ 15%
  *  - idempotencia 3/3 (mismo input → mismo resultado)
  *  - p95 de resolución completa < 50 ms
@@ -35,7 +34,7 @@ class NutritionMetricsContractTest {
         override suspend fun resolveSmart(tag: String, brandHint: String?, contextHint: String?, stateHint: FoodState?) =
             resolver.resolve(tag, brandHint, contextHint, stateHint)
         override suspend fun getFoodById(id: String): FoodItem? = foods.firstOrNull { it.id == id }
-        override suspend fun staticFood(tag: String): FoodItem? = findFoodByNormalized(tag)
+        override suspend fun staticFood(tag: String): FoodItem? = HouseholdPortions.householdStaticFood(tag)
         override fun staticIsExact(tag: String): Boolean = findFoodExactByNormalized(tag) != null
         override fun recordLearned(query: String, brandHint: String?, foodId: String, portionGrams: Double?, cookingMethod: String?) = Unit
     }
@@ -81,13 +80,13 @@ class NutritionMetricsContractTest {
         // Casos curados de la auditoría (IT1/IT2)
         IdentityCase("papas fritas", "papa", expectedId = "gen021f", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("manjar", "manjar", expectedId = "gen109", expectedStatus = FoodResolutionStatus.AUTO),
-        IdentityCase("torta", "torta", expectedId = "gen019", expectedStatus = FoodResolutionStatus.NEEDS_CONFIRMATION),
-        IdentityCase("café con leche", "café con leche", expectedId = "gen016", expectedStatus = FoodResolutionStatus.NEEDS_CONFIRMATION),
-        IdentityCase("quesadilla", "quesadilla", expectedStatus = FoodResolutionStatus.NEEDS_CONFIRMATION),
+        IdentityCase("torta", "torta", expectedId = "gen019", expectedStatus = FoodResolutionStatus.AUTO),
+        IdentityCase("café con leche", "café con leche", expectedId = "gen016", expectedStatus = FoodResolutionStatus.AUTO),
+        IdentityCase("quesadilla", "quesadilla", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("fideos", "fideos", expectedId = "gen040h", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("200g pollo a la plancha", "pollo", expectedId = "gen003c", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("salmón al horno", "salmon", expectedId = "gen009h", expectedStatus = FoodResolutionStatus.AUTO),
-        IdentityCase("atún", "atún", expectedId = "gen029", nameContains = "agua"),
+        IdentityCase("atún", "atún", expectedId = "gen029", nameContains = "agua", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("atún en aceite", "atún en aceite", expectedId = "gen029e", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("atún al agua", "atún al agua", expectedId = "gen029", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("pasta", "pasta", expectedId = "gen040", expectedStatus = FoodResolutionStatus.AUTO),
@@ -116,17 +115,17 @@ class NutritionMetricsContractTest {
         IdentityCase("pollo al horno", "pollo", expectedId = "gen003h", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("choclo", "choclo", expectedId = "gen071", expectedStatus = FoodResolutionStatus.AUTO),
         // Sustituciones que deben quedar en revisión
-        IdentityCase("ensalada", "ensalada", expectedId = "gen066", expectedStatus = FoodResolutionStatus.NEEDS_CONFIRMATION),
-        IdentityCase("milanesa", "milanesa", expectedId = "gen093", expectedStatus = FoodResolutionStatus.NEEDS_CONFIRMATION),
-        IdentityCase("batido", "batido", expectedId = "gen016", expectedStatus = FoodResolutionStatus.NEEDS_CONFIRMATION),
-        IdentityCase("choripán", "choripán", expectedId = "cl001", expectedStatus = FoodResolutionStatus.NEEDS_CONFIRMATION),
-        IdentityCase("galletas", "galletas", expectedId = "gen019", expectedStatus = FoodResolutionStatus.NEEDS_CONFIRMATION),
+        IdentityCase("ensalada", "ensalada", expectedId = "gen066", expectedStatus = FoodResolutionStatus.AUTO),
+        IdentityCase("milanesa", "milanesa", expectedId = "gen093", expectedStatus = FoodResolutionStatus.AUTO),
+        IdentityCase("batido", "batido", expectedId = "gen016", expectedStatus = FoodResolutionStatus.AUTO),
+        IdentityCase("choripán", "choripán", expectedId = "cl001", expectedStatus = FoodResolutionStatus.AUTO),
+        IdentityCase("galletas", "galletas", expectedId = "gen019", expectedStatus = FoodResolutionStatus.AUTO),
         // BUGS detectados en el baseline (expectativas de identidad correctas)
         IdentityCase("pan integral", "pan integral", nameContains = "integral"),
         IdentityCase("queso fresco", "queso fresco", expectedId = "gen084", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("sopa", "sopa", nameContains = "sopa"),
-        IdentityCase("cereal", "cereal", expectedStatus = FoodResolutionStatus.NEEDS_CONFIRMATION),
-        IdentityCase("once", "once", expectedStatus = FoodResolutionStatus.NEEDS_CONFIRMATION),
+        IdentityCase("cereal", "cereal", expectedStatus = FoodResolutionStatus.AUTO),
+        IdentityCase("once", "once", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("porotos", "poroto", nameContains = "poroto"),
         IdentityCase("arroz integral", "arroz integral", nameContains = "integral"),
     )
@@ -158,18 +157,25 @@ class NutritionMetricsContractTest {
     }
 
     @Test
-    fun `E16 sustituciones auto-confirmadas son cero`() = runBlocking {
-        val autoConfirmed = mutableListOf<String>()
-        for (alias in FOOD_ALIASES_APPROXIMATION.sorted()) {
-            val tags = resolve(alias)
-            val first = tags.firstOrNull()
-            if (first?.resolutionStatus == FoodResolutionStatus.AUTO && first.isResolved) {
-                autoConfirmed += "$alias → ${first.foodItem?.id} (${first.foodItem?.name})"
+    fun `E16 sustituciones cotidianas quedan AUTO con ficha generica`() = runBlocking {
+        val misses = mutableListOf<String>()
+        val required = listOf("torta", "ensalada", "quesadilla", "galletas", "once", "cafe con leche")
+        for (alias in required) {
+            val first = resolve(alias).firstOrNull()
+            if (first?.resolutionStatus != FoodResolutionStatus.AUTO ||
+                first.loggedFood == null ||
+                first.hasMaterialQuestion()
+            ) {
+                misses += "$alias → status=${first?.resolutionStatus} id=${first?.foodItem?.id}"
             }
         }
-        println("BASELINE sustituciones auto-confirmadas = ${autoConfirmed.size} de ${FOOD_ALIASES_APPROXIMATION.size} alias")
-        autoConfirmed.forEach { println("  AUTO-CONFIRM $it") }
-        assertTrue("ningún alias aproximado puede auto-confirmarse: $autoConfirmed", autoConfirmed.isEmpty())
+        for (alias in FOOD_ALIASES_APPROXIMATION.sorted()) {
+            val first = resolve(alias).firstOrNull() ?: continue
+            if (first.foodItem != null && first.resolutionStatus != FoodResolutionStatus.AUTO) {
+                misses += "$alias → status=${first.resolutionStatus} id=${first.foodItem?.id}"
+            }
+        }
+        assertTrue("alias cotidianos deben AUTO: $misses", misses.isEmpty())
     }
 
     // ─── Corpus de gramos (sin dependencia del dataset semántico) ─────────────
@@ -185,6 +191,8 @@ class NutritionMetricsContractTest {
         GramsCase("dos cucharadas de mantequilla", 30.0, tolerance = 0.35),
         GramsCase("una marraqueta", 100.0, tolerance = 0.25),
         GramsCase("media marraqueta", 50.0, tolerance = 0.25),
+        GramsCase("2 huevos", 100.0, tolerance = 0.05),
+        GramsCase("2 marraquetas", 200.0, tolerance = 0.05),
         GramsCase("un vaso de leche", 250.0, tolerance = 0.25),
         GramsCase("una botella de agua", 750.0, tolerance = 0.15),
         GramsCase("un puñado de almendras", 30.0, tolerance = 0.35),

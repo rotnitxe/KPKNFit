@@ -334,6 +334,8 @@ enum class AmountIntent {
     EXPLICIT_MASS,
     /** Utensil/gesture resolved once (taza, cucharada, puñado…). */
     RESOLVED_SUBJECTIVE,
+    /** Structural meal context inferred; grams come from occasion/shape, not 100 g of the row. */
+    INFERRED_CONTEXT,
     /** Name-only or portion preset; context/priors may apply. */
     UNSPECIFIED,
 }

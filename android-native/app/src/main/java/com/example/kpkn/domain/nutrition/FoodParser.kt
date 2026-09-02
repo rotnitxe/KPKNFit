@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.food.findFoodByNormalized
+import com.example.kpkn.data.food.findFoodExactByNormalized
 import com.example.kpkn.data.food.getGramsForReference
 import com.example.kpkn.data.food.staticFoodPhrases
 import com.example.kpkn.data.models.*
@@ -114,8 +115,9 @@ private val REFERENCE_PATTERNS = listOf(
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(cucharaditas?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "teaspoon"),
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(tazas?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "cup"),
     Pair(Regex("""\b(un|una|1)\s+(taza)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "cup"),
+    Pair(Regex("""\b(un|una|1)\s+(bowl|bol|tazon|tazón)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "bowl"),
     Pair(Regex("""\b(media|medio|1/2)\s+(taza)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "cup"),
-    Pair(Regex("""\b(un|una|1)\s+(puñado)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "handful"),
+    Pair(Regex("""\b(un|una|1)\s+(puñado|punado|puñados|punados)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "handful"),
     Pair(Regex("""\b(un|1)\s+(puño)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "fist"),
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(vasos?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "glass"),
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(rebanadas?|tajadas?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "slice"),
@@ -159,12 +161,6 @@ private val TRAILING_DE_PATTERN = Regex("\\s+de\\s+$")
 
 private val PROTECTED_ENTITY_PHRASES = (PROTECTED_ENTITIES + staticFoodPhrases() + listOf("salsa de tomate"))
     .distinct()
-    .filter { phrase ->
-        val n = phrase.lowercase()
-        if (n == "salsa de tomate" || n.endsWith(" salsa de tomate")) return@filter true
-        if (PROTECTED_ENTITIES.any { it.equals(phrase, ignoreCase = true) }) return@filter true
-        !Regex("""\s+con\s+""", RegexOption.IGNORE_CASE).containsMatchIn(n)
-    }
     .sortedByDescending { it.length }
 
 private val PROTECTED_ENTITIES_REGEX = Regex(
@@ -173,9 +169,9 @@ private val PROTECTED_ENTITIES_REGEX = Regex(
 )
 
 private val REFERENCE_KEYWORDS_FAST = listOf(
-    "cucharad", "taza", "puñ", "vaso", "rebanad", "tajad", "lata",
+    "cucharad", "taza", "puñ", "punad", "vaso", "rebanad", "tajad", "lata",
     "scoop", "medida", "porcion", "porción", "trozo", "pedazo",
-    "poco", "poquit", "pizca", "chorrit"
+    "poco", "poquit", "pizca", "chorrit", "bowl", "bol", "tazon",
 )
 
 private val COOKING_KEYWORDS_FAST = listOf(
@@ -221,13 +217,7 @@ fun parseMealDescription(
         // descripción completa diluye la confianza entre varios alimentos y bloquea
         // priors buenos por el gate global; cada fragmento recibe el suyo.
         // Si el snapshot no está instalado (tests), se cae al retrieval provisto.
-        val fragRetrieval = if (retrievalResult == null) {
-            null
-        } else {
-            SemanticPortionRetriever.retrieve(frag)
-                .takeIf { it.confidence > 0.0 || it.portionPriors.isNotEmpty() }
-                ?: retrievalResult
-        }
+        val fragRetrieval = retrievalResult
         val parsed = parseFragment(frag, fragRetrieval) ?: continue
         val key = canonicalTagKey(parsed.tag)
         if (key !in seen) {
@@ -306,19 +296,27 @@ private fun parseFragment(
         }
     }
 
-    // Extract cooking method
+    val catalogPhrase = isNamedDishPhrase(working)
+
+    // Extract cooking method. Catalog dish names keep the words ("leche asada").
     val cookingMethod = extractCookingMethod(working)
-    working = cookingMethod.second
+    if (!catalogPhrase) {
+        working = cookingMethod.second
+    }
 
     // Extract anatomical/preparation modifiers (colmada/rasa scale subjective grams)
     val modifierResult = extractModifiers(working, grams, amountIntent)
-    working = modifierResult.third
-    val modifierMacros = modifierResult.first
+    if (!catalogPhrase) {
+        working = modifierResult.third
+    }
+    val modifierMacros = if (catalogPhrase) null else modifierResult.first
     grams = modifierResult.second
 
     // Extract portion preset
     val portionResult = extractPortionFromFragment(working)
-    working = portionResult.second
+    if (!catalogPhrase) {
+        working = portionResult.second
+    }
 
     // Extract quantity multiplier ("2 panes", "3 huevos")
     val quantityResult = parseQuantityMultiplier(working)
@@ -328,32 +326,56 @@ private fun parseFragment(
     if (foodName.length < 2) return null
 
     // Canonical resolution
-    val shouldSingularize = STARTS_WITH_DIGIT.containsMatchIn(working.trim())
+    val shouldSingularize = !catalogPhrase && STARTS_WITH_DIGIT.containsMatchIn(working.trim())
     val canonical = normalizeFoodName(foodName, singularize = shouldSingularize)
-    // Dataset priors only fill when the user gave no measure at all.
-    // El prior del dataset es POR UNIDAD: se multiplica por la cantidad para no
-    // perderla ("2 huevos" + prior 60g → 120g, "media manzana" → 60g).
-    val resolvedGrams = when (amountIntent) {
-        AmountIntent.EXPLICIT_MASS, AmountIntent.RESOLVED_SUBJECTIVE -> grams
-        AmountIntent.UNSPECIFIED -> grams ?: retrievalResult
-            ?.takeIf { it.confidence >= DATASET_PORTION_MIN_CONFIDENCE }
-            ?.let { SemanticPortionRetriever.getGramsForFood(canonical, it) }
-            ?.let { prior -> prior * quantity }
+    val catalogFood = findFoodExactByNormalized(canonical) ?: findFoodByNormalized(canonical)
+    val countable = HouseholdPortions.isCountable(catalogFood, canonical) ||
+        (quantity != 1.0 && HouseholdPortions.isCountable(null, canonical))
+    val expressedCount = quantity != 1.0 ||
+        HouseholdPortions.looksLikeCountExpression(frag) ||
+        HouseholdPortions.looksLikeCountExpression(working.trim())
+    val householdCountGrams = if (
+        amountIntent != AmountIntent.EXPLICIT_MASS &&
+        countable &&
+        expressedCount
+    ) {
+        HouseholdPortions.unitGrams(catalogFood, canonical) * quantity
+    } else {
+        null
     }
+    val datasetHint = retrievalResult
+        ?.takeIf { it.confidence >= DATASET_PORTION_MIN_CONFIDENCE }
+        ?.let { SemanticPortionRetriever.getGramsForFood(canonical, it) }
+        ?.takeIf { HouseholdPortions.isHouseholdHint(it, catalogFood, canonical) }
+    val lockedIntent = when {
+        amountIntent == AmountIntent.EXPLICIT_MASS -> AmountIntent.EXPLICIT_MASS
+        householdCountGrams != null || amountIntent == AmountIntent.RESOLVED_SUBJECTIVE ->
+            AmountIntent.RESOLVED_SUBJECTIVE
+        else -> amountIntent
+    }
+    val resolvedGrams = HouseholdPortions.resolveEatenGrams(
+        intent = lockedIntent,
+        quantity = quantity,
+        food = catalogFood,
+        parsedGrams = householdCountGrams ?: grams,
+        datasetHint = datasetHint,
+        query = canonical,
+        explicitKilogram = HouseholdPortions.isExplicitKilogram(frag),
+    )
 
     return ParsedMealItem(
         tag = canonical,
         quantity = quantity,
-        amountGrams = resolvedGrams,
+        amountGrams = if (lockedIntent == AmountIntent.UNSPECIFIED) null else resolvedGrams,
         cookingMethod = cookingMethod.first,
-        portion = portionResult.first,
+        portion = if (catalogPhrase) PortionPreset.MEDIUM else portionResult.first,
         isFuzzyMatch = false,
         appliedCookingFactor = COOKING_FACTORS[cookingMethod.first]?.kcal ?: 1.0,
         modifierScale = modifierMacros?.let {
             MacroOverrides(calories = it.kcal, protein = it.protein, carbs = it.carbs, fats = it.fats)
         },
         isExcluded = isExcluded,
-        amountIntent = amountIntent,
+        amountIntent = lockedIntent,
     )
 }
 
@@ -521,11 +543,14 @@ private fun extractReferenceFromFragment(
             val gramsPerUnit = getGramsForReference(refType, food)
             kotlin.math.round(gramsPerUnit * qty * 10) / 10.0
         }
+        val dryBreakfast = FoodIdentity.normalize(foodPart).contains("avena") &&
+            refType in setOf("bowl", "cup", "fist")
+        val eaten = if (dryBreakfast) 40.0 * qty else grams
 
         // Return foodPart as the working text so parseFragment can use it as the food name.
         // Using `cleaned` (text with match removed) was wrong: when the reference covers the full
         // fragment (e.g. "una taza de avena") cleaned becomes "" → foodName.length < 2 → null item.
-        return ReferenceResult(grams, qty, foodPart)
+        return ReferenceResult(eaten, qty, foodPart)
     }
     return resolveViaSubjectiveEngine(text, retrievalResult)
 }
@@ -558,7 +583,9 @@ private fun resolveViaSubjectiveEngine(
         expression = text,
         foodCategory = densityCategory,
         standardPortion = food?.servingSize,
-        retrievalResult = retrievalResult,
+        retrievalResult = retrievalResult.takeUnless {
+            HouseholdPortions.looksLikeCountExpression(text)
+        },
     ) ?: return ReferenceResult(null, 1.0, text)
 
     // Quitar la frase subjetiva ("un montón de") conservando el alimento. Si no hay
@@ -699,6 +726,16 @@ private fun extractGlobalPortion(description: String): PortionPreset {
         if (pattern.containsMatchIn(description)) return preset
     }
     return PortionPreset.MEDIUM
+}
+
+private fun isNamedDishPhrase(text: String): Boolean {
+    val trimmed = text.trim()
+    if (trimmed.length < 4) return false
+    if (PROTECTED_ENTITIES.any { it.equals(trimmed, ignoreCase = true) }) return true
+    val exact = findFoodExactByNormalized(trimmed) ?: return false
+    if (exact.tags.any { it.equals("preparacion", ignoreCase = true) }) return true
+    if (exact.name.contains('(')) return false
+    return exact.name.contains(' ')
 }
 
 private fun normalizeFoodName(name: String, singularize: Boolean = false): String {

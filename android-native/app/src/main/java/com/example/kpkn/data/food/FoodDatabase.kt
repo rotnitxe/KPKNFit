@@ -244,7 +244,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     // F4.4: alimentos referenciados por emojis que antes caían a MIXED_DISH subestimado
     FoodItem(id = "gen127", name = "Pizza", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 266.0, protein = 11.0, carbs = 33.0, fats = 10.0, searchAliases = listOf("pizza")),
     FoodItem(id = "gen128", name = "Hamburguesa", brand = "Genérico", servingSize = 150.0, unit = "u", calories = 380.0, protein = 18.0, carbs = 30.0, fats = 19.0, searchAliases = listOf("hamburguesa", "burger", "burguer")),
-    FoodItem(id = "gen129", name = "Taco", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 220.0, protein = 8.0, carbs = 22.0, fats = 11.0, searchAliases = listOf("taco", "tacos")),
+    FoodItem(id = "gen129", name = "Taco", brand = "Genérico", servingSize = 100.0, unit = "u", calories = 220.0, protein = 8.0, carbs = 22.0, fats = 11.0, searchAliases = listOf("taco", "tacos")),
     FoodItem(id = "gen130", name = "Burrito", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 200.0, protein = 8.0, carbs = 26.0, fats = 7.0, searchAliases = listOf("burrito", "burritos")),
     FoodItem(id = "gen131", name = "Sushi", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 150.0, protein = 6.0, carbs = 25.0, fats = 3.0, searchAliases = listOf("sushi")),
     FoodItem(id = "gen132", name = "Donut", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 420.0, protein = 5.0, carbs = 51.0, fats = 22.0, searchAliases = listOf("donut", "dona", "donuts", "donas")),
@@ -258,19 +258,19 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
 // ─── Chilean Foods ───────────────────────────────────────────────────────────
 
 val CHILEAN_FOODS: List<FoodItem> = listOf(
-    FoodItem(id = "cl001", name = "Empanada de Pino", servingSize = 180.0, unit = "u", calories = 450.0, protein = 18.0, carbs = 35.0, fats = 26.0, tags = listOf("preparacion", "chileno")),
+    FoodItem(id = "cl001", name = "Empanada de Pino", servingSize = 180.0, unit = "u", calories = 450.0, protein = 18.0, carbs = 35.0, fats = 26.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("empanada", "empanadas", "empanada de pino")),
     FoodItem(id = "cl002", name = "Completo Italiano", servingSize = 200.0, unit = "u", calories = 380.0, protein = 12.0, carbs = 32.0, fats = 22.0, tags = listOf("preparacion", "chileno")),
     FoodItem(id = "cl003", name = "Pastel de Choclo", servingSize = 250.0, unit = "g", calories = 420.0, protein = 22.0, carbs = 40.0, fats = 18.0, tags = listOf("preparacion", "chileno")),
     FoodItem(id = "cl004", name = "Cazuela", servingSize = 400.0, unit = "ml", calories = 350.0, protein = 25.0, carbs = 30.0, fats = 12.0, tags = listOf("preparacion", "chileno")),
     FoodItem(id = "cl005", name = "Mote con Huesillo", servingSize = 300.0, unit = "ml", calories = 220.0, protein = 2.0, carbs = 55.0, fats = 0.5, tags = listOf("preparacion", "chileno")),
-    FoodItem(id = "cl006", name = "Sopaipillas", servingSize = 60.0, unit = "u", calories = 150.0, protein = 3.0, carbs = 20.0, fats = 7.0, tags = listOf("preparacion", "chileno")),
+    FoodItem(id = "cl006", name = "Sopaipillas", servingSize = 60.0, unit = "u", calories = 150.0, protein = 3.0, carbs = 20.0, fats = 7.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("sopaipilla", "sopaipillas")),
     FoodItem(id = "cl007", name = "Porotos Granados", servingSize = 300.0, unit = "ml", calories = 380.0, protein = 16.0, carbs = 50.0, fats = 12.0, tags = listOf("preparacion", "chileno")),
     FoodItem(id = "cl008", name = "Curanto", servingSize = 400.0, unit = "g", calories = 550.0, protein = 35.0, carbs = 45.0, fats = 22.0, tags = listOf("preparacion", "chileno")),
     FoodItem(id = "cl009", name = "Chorrillana", servingSize = 400.0, unit = "g", calories = 750.0, protein = 30.0, carbs = 55.0, fats = 42.0, tags = listOf("preparacion", "chileno")),
-    FoodItem(id = "cl010", name = "Marraqueta", servingSize = 100.0, unit = "g", calories = 260.0, protein = 9.0, carbs = 50.0, fats = 2.5, tags = listOf("chileno"), searchAliases = listOf("marraqueta", "pan francés", "pan frances")),
+    FoodItem(id = "cl010", name = "Marraqueta", servingSize = 100.0, unit = "g", calories = 260.0, protein = 9.0, carbs = 50.0, fats = 2.5, tags = listOf("chileno"), searchAliases = listOf("marraqueta", "marraquetas", "pan francés", "pan frances")),
     FoodItem(id = "cl011", name = "Pisco Sour", servingSize = 150.0, unit = "ml", calories = 220.0, protein = 0.5, carbs = 18.0, fats = 0.0, tags = listOf("chileno")),
     FoodItem(id = "cl012", name = "Terremoto", servingSize = 300.0, unit = "ml", calories = 350.0, protein = 1.0, carbs = 45.0, fats = 0.0, tags = listOf("chileno")),
-    FoodItem(id = "cl013", name = "Hallulla", servingSize = 80.0, unit = "u", calories = 210.0, protein = 7.0, carbs = 40.0, fats = 3.0, tags = listOf("chileno"), searchAliases = listOf("hallulla", "pan de hallulla")),
+    FoodItem(id = "cl013", name = "Hallulla", servingSize = 80.0, unit = "u", calories = 210.0, protein = 7.0, carbs = 40.0, fats = 3.0, tags = listOf("chileno"), searchAliases = listOf("hallulla", "hallullas", "hallula", "hallulas", "pan de hallulla")),
     FoodItem(id = "cl014", name = "Pan Amasado", servingSize = 80.0, unit = "u", calories = 230.0, protein = 6.0, carbs = 45.0, fats = 4.0, tags = listOf("chileno"), searchAliases = listOf("pan amasado", "amaso")),
     FoodItem(id = "cl015", name = "Charquicán", servingSize = 350.0, unit = "g", calories = 380.0, protein = 20.0, carbs = 35.0, fats = 16.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("charquicán", "charquican")),
     FoodItem(id = "cl016", name = "Longaniza Asada", servingSize = 100.0, unit = "g", calories = 310.0, protein = 16.0, carbs = 2.0, fats = 27.0, tags = listOf("chileno"), searchAliases = listOf("longaniza", "longacha", "chorizo chileno")),
@@ -289,10 +289,7 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "pollo" to "pechuga de pollo", "pechuga" to "pechuga de pollo",
     "arroz" to "arroz blanco", "arroz blanco" to "arroz blanco",
     "huevo" to "huevo entero", "huevos" to "huevo entero", "huevo cocido" to "huevo entero",
-    // El atún sin medio de conservación mantiene la variante al agua como
-    // candidato visible, pero no debe autoconfirmarse (TagResolver marca la
-    // consulta desnuda como NEEDS_CONFIRMATION). Las formas explícitas sí son
-    // identidades deterministas.
+    // Atún desnudo → variante al agua (default silencioso).
     "atún" to "atún en lata",
     "atún al agua" to "atún en lata",
     "atun al agua" to "atún en lata",
@@ -331,13 +328,18 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "salchicha" to "salchicha tipo viena", "vienesa" to "salchicha tipo viena",
     "whey" to "proteína en polvo (whey)", "proteína" to "proteína en polvo (whey)",
     "creatina" to "creatina monohidrato",
-    "marraqueta" to "marraqueta", "hallulla" to "hallulla",
+    "marraqueta" to "marraqueta", "marraquetas" to "marraqueta",
+    "hallulla" to "hallulla", "hallullas" to "hallulla",
+    "hallula" to "hallulla", "hallulas" to "hallulla",
+    "gouda" to "queso cheddar", "gauda" to "queso cheddar", "queso gouda" to "queso cheddar",
+    "panes" to "pan blanco",
     "longaniza" to "longaniza asada",
     "filete" to "filete de vacuno", "lomo" to "filete de vacuno",
     "merluza" to "merluza (cocida)",
     "camarón" to "camarón (cocido)", "camaron" to "camarón (cocido)",
     // ── Jerga Latinoamericana ──
     // Chile
+    "empanada" to "empanada de pino", "empanadas" to "empanada de pino",
     "choripán" to "empanada de pino", "choripan" to "empanada de pino",
     "chorrillana" to "chorrillana",
     "completo" to "completo italiano", "completo italiano" to "completo italiano",
@@ -375,7 +377,7 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "causa" to "papa",
     "anticucho" to "filete de vacuno",
     // Colombia / Venezuela
-    "arepa" to "pan blanco", "arepa reina pepiada" to "pan blanco",
+    "arepa reina pepiada" to "arepa",
     "cachapa" to "choclo desgranado",
     "pabellón" to "arroz blanco", "pabellon" to "arroz blanco",
     "tequeños" to "queso cheddar",
@@ -440,7 +442,8 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
  * Alias que NO son el mismo alimento que la consulta (aproximación): el destino
  * es lo "más parecido" del catálogo, no la identidad del plato escrito
  * ("torta" ≈ pan blanco, "ensalada" ≈ lechuga, "ceviche" ≈ merluza cocida).
- * Estos NUNCA se auto-confirman: pasan a revisión con aviso visible.
+ * Siguen siendo aproximaciones (el plato escrito no es la ficha), pero el
+ * sistema elige el genérico y guarda sin preguntar.
  * Las claves se normalizan sin tildes y en minúsculas.
  */
 val FOOD_ALIASES_APPROXIMATION: Set<String> = setOf(
@@ -565,27 +568,57 @@ fun findFoodByNormalized(text: String): FoodItem? {
     // O(1) exact lookup
     foodByExactName[alias]?.let { return it }
     foodByExactName[normalized]?.let { return it }
-    // Fallback con coincidencia de palabras completas (evita que "pan" coincida con "empanada" o "pollo" con "repollo")
+    val stripped = stripAccents(normalized)
+    if (stripped != normalized) foodByExactName[stripped]?.let { return it }
+
     val allFoods = ALL_FOODS
     val aliasWords = alias.split("[\\s(),/]+".toRegex()).filter { it.length > 1 }
+    val contentWords = aliasWords.filter { it !in setOf("de", "con", "y", "e", "la", "el") }
     if (aliasWords.isNotEmpty()) {
-        allFoods.find { food ->
-            val foodWords = food.name.lowercase().split("[\\s(),/]+".toRegex())
-            aliasWords.all { aw -> foodWords.any { fw -> fw == aw } }
-        }?.let { return it }
+        val matches = allFoods.filter { food ->
+            val foodWords = food.name.lowercase().split("[\\s(),/]+".toRegex()).filter { it.length > 1 }
+            aliasWords.all { aw -> foodWords.any { fw -> fw == aw } } &&
+                !queryStealsChild(contentWords, food.name)
+        }
+        val chosen = if (contentWords.size >= 2) {
+            val head = contentWords.first()
+            matches.minByOrNull { food ->
+                val foodWords = food.name.lowercase()
+                    .split("[\\s(),/]+".toRegex())
+                    .filter { it.length > 1 && it !in setOf("de", "con", "y", "e", "la", "el") }
+                val extra = (foodWords.size - contentWords.size).coerceAtLeast(0)
+                val foodHead = foodWords.firstOrNull()
+                val headPenalty = if (foodHead == head || foodHead?.startsWith(head) == true || head.startsWith(foodHead ?: "")) 0 else 80
+                extra + headPenalty
+            }
+        } else {
+            matches.firstOrNull()
+        }
+        chosen?.let { return it }
     }
 
-    // Segundo fallback inverso: que todas las palabras de la comida estén en el alias
+    // Segundo fallback inverso: que todas las palabras de la comida estén en el alias.
+    // Queries de 2+ tokens no pueden elegir un hijo (taco de pollo ≠ Pollo).
     allFoods.find { food ->
         val foodNameLower = food.name.lowercase()
         if (foodNameLower.length <= 3) return@find false
         val foodWords = foodNameLower.split("[\\s(),/]+".toRegex()).filter { it.length > 2 }
         if (foodWords.isEmpty()) return@find false
         val aliasWordsAll = alias.split("[\\s(),/]+".toRegex())
-        foodWords.all { fw -> aliasWordsAll.any { aw -> aw == fw || aw.startsWith(fw) } }
+        foodWords.all { fw -> aliasWordsAll.any { aw -> aw == fw || aw.startsWith(fw) } } &&
+            !queryStealsChild(contentWords, food.name)
     }?.let { return it }
 
     return null
+}
+
+private fun queryStealsChild(queryContent: List<String>, foodName: String): Boolean {
+    if (queryContent.size < 2) return false
+    val head = queryContent.first()
+    val foodTokens = foodName.lowercase().split("[\\s(),/]+".toRegex()).filter { it.length > 1 }
+    val foodHasHead = foodTokens.any { it == head || it.startsWith(head) || head.startsWith(it) }
+    if (foodHasHead) return false
+    return foodTokens.isNotEmpty() && foodTokens.all { ft -> queryContent.any { it == ft || it.contains(ft) } }
 }
 
 fun getGramsForReference(refType: String, foodItem: FoodItem? = null): Double {
@@ -596,8 +629,12 @@ fun getGramsForReference(refType: String, foodItem: FoodItem? = null): Double {
             else -> 100.0
         }
         "handful" -> when {
-            foodItem != null && foodItem.fats > 30 -> 30.0 // nuts
+            foodItem != null && foodItem.fats > 30 -> 30.0
             else -> 30.0
+        }
+        "bowl" -> when {
+            foodItem != null && foodItem.name.lowercase().contains("avena") -> 40.0
+            else -> 250.0
         }
         "little" -> when {
             foodItem != null && foodItem.calories > 500 -> 10.0 // alta densidad calórica (aceite, mantequilla)

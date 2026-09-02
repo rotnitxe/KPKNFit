@@ -217,21 +217,12 @@ class SmartFoodResolver(
         return scoreAndRank(query, normalizedQuery, queryTokens, candidateIds, brandHint, learned, coTokens, stateHint)
     }
 
-    /** D6: tokens (≥4 letras) de los documentos más similares a la descripción completa. */
+    /** D6: tokens (≥4 letras) del contexto escrito, sin un retrieve extra de 19K docs. */
     private fun datasetCoOccurrenceTokens(contextHint: String): Set<String> {
-        val snapshot = SemanticPortionRetriever.currentSnapshot() ?: return emptySet()
-        val retrieval = SemanticPortionRetriever.retrieve(contextHint)
-        val tokens = mutableSetOf<String>()
-        for (match in retrieval.matches.take(3)) {
-            snapshot.document(match.docId)?.instruction?.let { instruction ->
-                tokens.addAll(
-                    instruction.lowercase()
-                        .split(Regex("\\s+"))
-                        .filter { it.length >= 4 },
-                )
-            }
-        }
-        return tokens
+        return contextHint.lowercase()
+            .split(Regex("[^\\p{L}\\p{Nd}]+"))
+            .filter { it.length >= 4 }
+            .toSet()
     }
 
     /**
@@ -398,11 +389,16 @@ class SmartFoodResolver(
         val plainLocalWinner = winner.source == "LOCAL" &&
             FoodIdentity.isPlainSimpleFood(originalQuery, winner.name) &&
             baseTopScore >= 0.70
+        val localWinner = winner.source == "LOCAL"
 
         val decision = when {
-            FoodIdentity.isAmbiguousStateQuery(originalQuery) && !plainLocalWinner -> Decision.NEEDS_REVIEW
+            FoodIdentity.isAmbiguousStateQuery(originalQuery) && stateHint == null ->
+                Decision.NEEDS_REVIEW
             learned != null && baseTopScore >= LEARNED_AUTO_THRESHOLD -> Decision.AUTO_SELECT
             plainLocalWinner -> Decision.AUTO_SELECT
+            localWinner && baseTopScore >= 0.70 && gapOk -> Decision.AUTO_SELECT
+            localWinner && HouseholdPortions.looksLikePackName(winner.name).not() &&
+                FoodIdentity.isPlainSimpleFood(originalQuery, winner.name) -> Decision.AUTO_SELECT
             baseTopScore >= HIGH_THRESHOLD && gapOk -> Decision.AUTO_SELECT
             top.first().score >= MEDIUM_THRESHOLD -> Decision.NEEDS_REVIEW
             else -> Decision.NEEDS_REVIEW
@@ -424,47 +420,6 @@ class SmartFoodResolver(
         query: String,
         normalizedQuery: String,
     ): ResolutionResult {
-        val semantic = SemanticPortionRetriever.retrieve(query)
-        val macroRange = semantic.macroRange
-        val topSemanticScore = semantic.matches.firstOrNull()?.score ?: 0.0
-        if (
-            FoodIdentity.familyFor(query) == null &&
-            macroRange != null &&
-            macroRange.sampleCount > 0 &&
-            semantic.confidence >= DATASET_MIN_CONFIDENCE &&
-            topSemanticScore >= DATASET_MIN_MATCH_SCORE
-        ) {
-            val candidateScore = (semantic.confidence * 0.9).coerceIn(0.0, 0.85)
-            // A4: el candidato sintético NO debe parecer un alimento real de la base:
-            // su nombre lleva la marca "≈ (aprox.)" para que el usuario no lo confunda.
-            val candidate = ResolutionCandidate(
-                foodId = "dataset_${normalizedQuery.replace(" ", "_")}",
-                name = "${query.trim()} (aprox. del dataset)",
-                brand = "Dataset KPKN (19.4K)",
-                score = candidateScore,
-                confidence = if (candidateScore >= MEDIUM_THRESHOLD) Confidence.MEDIUM else Confidence.LOW,
-                source = "DATASET_SEMANTIC",
-                calories = macroRange.kcalMedian,
-                protein = macroRange.proteinMedian,
-                carbs = macroRange.carbsMedian,
-                fats = macroRange.fatsMedian,
-                fiber = 0.0,
-                trace = listOf(
-                    "Dataset Semantic Match",
-                    "Confidence ${"%.3f".format(semantic.confidence)}",
-                    "Samples ${macroRange.sampleCount}",
-                    "Docs ${macroRange.sourceDocumentIds.joinToString(",")}",
-                ),
-            )
-            return ResolutionResult(
-                query = query,
-                candidates = listOf(candidate),
-                decision = Decision.NEEDS_REVIEW,
-                resolvedFoodId = candidate.foodId,
-                semanticRetrieval = semantic,
-            )
-        }
-
         val profile = NutritionHeuristicEstimator.estimatePer100g(query)
         val fallbackCandidate = ResolutionCandidate(
             foodId = "heuristic_${normalizedQuery.replace(" ", "_")}",
@@ -485,7 +440,6 @@ class SmartFoodResolver(
             candidates = listOf(fallbackCandidate),
             decision = Decision.NEEDS_REVIEW,
             resolvedFoodId = fallbackCandidate.foodId,
-            semanticRetrieval = semantic,
         )
     }
 
@@ -573,6 +527,17 @@ class SmartFoodResolver(
         }
         score -= uncovered * 0.14
 
+        val head = FoodIdentity.headToken(normalizedQuery)
+        val content = FoodIdentity.contentTokens(normalizedQuery)
+        if (head != null && content.size >= 2) {
+            val foodHasHead = foodTokens.any { it == head || it.startsWith(head) || head.startsWith(it) } ||
+                food.normalizedName.split(" ").contains(head) ||
+                food.normalizedAliases.any { it.split(" ").contains(head) }
+            if (!foodHasHead) {
+                score -= 0.85
+            }
+        }
+
         // 5b. Penalty for excess food tokens (unmatched by query): -0.15 each
         // Evita que buscar "arroz" sugiera "arroz con huevo" por tener palabras extras
         val excess = foodTokens.count { ft ->
@@ -589,8 +554,19 @@ class SmartFoodResolver(
             }
         }
 
-        // 7. Source priority: +0.00 to +0.06
-        score += (food.sourcePriority - 50) / 100.0 * 0.12
+        // 7. Household identity beats supermarket SKUs on unbranded queries.
+        if (brandHint.isNullOrBlank()) {
+            if (food.source == "LOCAL") {
+                score += 0.16
+            } else {
+                score -= 0.12
+            }
+            if (HouseholdPortions.looksLikePackName(food.name)) {
+                score -= 0.50
+            }
+        } else {
+            score += (food.sourcePriority - 50) / 100.0 * 0.12
+        }
 
         // 8. Learned resolution boost: +0.32 + min(count,3)×0.02
         if (learned != null && learned.foodId == food.foodId) {

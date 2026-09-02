@@ -103,7 +103,7 @@ object SubjectivePortionEngine {
 
         // Otros utensilios
         Triple(Regex("""\b(un|una|1)\s+pocillos?\b""", RegexOption.IGNORE_CASE), 60.0, "pocillo"),
-        Triple(Regex("""\b(un|una|1)\s+bols?\b""", RegexOption.IGNORE_CASE), 300.0, "bol"),
+        Triple(Regex("""\b(un|una|1)\s+(?:bols?|bowls?)\b""", RegexOption.IGNORE_CASE), 300.0, "bol"),
         Triple(Regex("""\b(un|una|1)\s+platos?\s+hondos?\b""", RegexOption.IGNORE_CASE), 400.0, "plato_hondo"),
         Triple(Regex("""\b(un|una|1)\s+platos?\s+grandes?\b""", RegexOption.IGNORE_CASE), 350.0, "plato_grande"),
         Triple(Regex("""\b(un|una|1)\s+platos?\b""", RegexOption.IGNORE_CASE), 250.0, "plato"),
@@ -118,7 +118,7 @@ object SubjectivePortionEngine {
         Triple(Regex("""\bun\s+puñadito\b""", RegexOption.IGNORE_CASE), 20.0, "puñadito"),
         Triple(Regex("""\bun\s+puñado\s+gigante\b""", RegexOption.IGNORE_CASE), 50.0, "puñado_gigante"),
         Triple(Regex("""\bun\s+puñado\s+generoso\b""", RegexOption.IGNORE_CASE), 45.0, "puñado_generoso"),
-        Triple(Regex("""\bun\s+puñado\b""", RegexOption.IGNORE_CASE), 30.0, "puñado"),
+        Triple(Regex("""\bun\s+(?:puñado|punado)\b""", RegexOption.IGNORE_CASE), 30.0, "puñado"),
         Triple(Regex("""\b(lo\s+que\s+agarr[óo]\s+la\s+mano|un\s+puñado\s+de)\b""", RegexOption.IGNORE_CASE), 40.0, "mano"),
 
         // Pizca / Pellizco
@@ -258,7 +258,9 @@ object SubjectivePortionEngine {
         Triple(Regex("""\bmedia\s+marraqueta\b""", RegexOption.IGNORE_CASE), 50.0, "media_marraqueta"),
         Triple(Regex("""\buna\s+marraqueta\b""", RegexOption.IGNORE_CASE), 100.0, "marraqueta"),
         Triple(Regex("""\bdiente\s+de\s+marraqueta\b""", RegexOption.IGNORE_CASE), 25.0, "diente_marraqueta"),
-        Triple(Regex("""\buna\s+hallulla\b""", RegexOption.IGNORE_CASE), 80.0, "hallulla"),
+        Triple(Regex("""\b(\d+(?:[.,]\d+)?)\s+hallull?as?\b""", RegexOption.IGNORE_CASE), 80.0, "hallulla_n"),
+        Triple(Regex("""\buna\s+hallull?a\b""", RegexOption.IGNORE_CASE), 80.0, "hallulla"),
+        Triple(Regex("""\b(\d+(?:[.,]\d+)?)\s+marraquetas?\b""", RegexOption.IGNORE_CASE), 100.0, "marraqueta_n"),
         Triple(Regex("""\bpan\s+amasado\b""", RegexOption.IGNORE_CASE), 100.0, "pan_amasado"),
         Triple(Regex("""\buna\s+rebanada\b""", RegexOption.IGNORE_CASE), 30.0, "rebanada"),
         Triple(Regex("""\buna\s+rebanadita\b""", RegexOption.IGNORE_CASE), 15.0, "rebanadita"),
@@ -269,7 +271,10 @@ object SubjectivePortionEngine {
         Triple(Regex("""\bun\s+mollete\b""", RegexOption.IGNORE_CASE), 60.0, "mollete"),
         Triple(Regex("""\buna\s+arepa\b""", RegexOption.IGNORE_CASE), 80.0, "arepa"),
         Triple(Regex("""\buna\s+tortilla\b""", RegexOption.IGNORE_CASE), 40.0, "tortilla"),
-        Triple(Regex("""\buna\s+empanada\b""", RegexOption.IGNORE_CASE), 120.0, "empanada"),
+        Triple(Regex("""\buna\s+empanada\b""", RegexOption.IGNORE_CASE), 180.0, "empanada"),
+        Triple(Regex("""\b(\d+(?:[.,]\d+)?)\s+empanadas?\b""", RegexOption.IGNORE_CASE), 180.0, "empanada_n"),
+        Triple(Regex("""\b(\d+(?:[.,]\d+)?)\s+sopaipillas?\b""", RegexOption.IGNORE_CASE), 60.0, "sopaipilla_n"),
+        Triple(Regex("""\buna\s+sopaipilla\b""", RegexOption.IGNORE_CASE), 60.0, "sopaipilla"),
         Triple(Regex("""\bun\s+tamal\b""", RegexOption.IGNORE_CASE), 150.0, "tamal"),
         Triple(Regex("""\bun\s+pastel\b""", RegexOption.IGNORE_CASE), 120.0, "pastel"),
         Triple(Regex("""\bun\s+trozo\s+de\s+pastel\b""", RegexOption.IGNORE_CASE), 100.0, "trozo_pastel"),
@@ -404,12 +409,13 @@ object SubjectivePortionEngine {
         // Bread / containers before vague relative factors
         for ((pattern, baseGrams, source) in BREAD_PATTERNS) {
             val match = pattern.find(lower) ?: continue
+            val qty = match.groupValues.getOrNull(1)?.replace(",", ".")?.toDoubleOrNull() ?: 1.0
             return PortionResult(
-                grams = baseGrams,
+                grams = baseGrams * qty,
                 confidence = 0.80,
                 source = "bread:$source",
                 expression = expression,
-                relativeFactor = 1.0,
+                relativeFactor = qty,
             )
         }
 
@@ -424,8 +430,12 @@ object SubjectivePortionEngine {
             )
         }
 
-        // Dataset priors only when no utensil/gesture/container matched
-        if (retrievalResult != null && retrievalResult.portionPriors.isNotEmpty()) {
+        // Dataset priors never override a countable N×unidad or utensil match.
+        if (
+            retrievalResult != null &&
+            retrievalResult.portionPriors.isNotEmpty() &&
+            !HouseholdPortions.looksLikeCountExpression(expression)
+        ) {
             val foodName = extractFoodName(expression)
             if (foodName != null) {
                 val priorGrams = SemanticPortionRetriever.getGramsForFood(foodName, retrievalResult)

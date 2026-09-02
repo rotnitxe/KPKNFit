@@ -277,7 +277,7 @@ class NutritionResolutionConsistencyTest {
     }
 
     @Test
-    fun `unknown macro estimate remains blocked until confirmation`() = runBlocking {
+    fun `unknown macro estimate is saveable`() = runBlocking {
         val candidate = SmartFoodResolver.ResolutionCandidate(
             foodId = "dataset_unknown_food",
             name = "Alimento desconocido",
@@ -317,10 +317,10 @@ class NutritionResolutionConsistencyTest {
             ),
         )
 
-        assertFalse(tags.single().isResolved)
-        assertEquals(FoodResolutionStatus.NEEDS_CONFIRMATION, tags.single().resolutionStatus)
+        assertTrue(tags.single().isResolved)
+        assertEquals(FoodResolutionStatus.NO_RESOLVED, tags.single().resolutionStatus)
         assertNotNull(tags.single().loggedFood)
-        assertTrue(tags.single().statusText.contains("confirma", ignoreCase = true))
+        assertFalse(tags.single().hasMaterialQuestion())
     }
 
     @Test
@@ -417,7 +417,7 @@ class NutritionResolutionConsistencyTest {
     }
 
     @Test
-    fun `A1 approximation alias torta never autoconfirms to pan blanco`() = runBlocking {
+    fun `A1 approximation alias torta autoconfirms generic bread`() = runBlocking {
         val panBlanco = findFoodExactByNormalized("pan blanco")
         assertNotNull(panBlanco)
         val port = RecordingPort(staticFood = panBlanco, staticExact = true)
@@ -436,11 +436,10 @@ class NutritionResolutionConsistencyTest {
         )
 
         val tag = tags.single()
-        assertFalse("la aproximación nunca se auto-confirma", tag.isResolved)
-        assertEquals(FoodResolutionStatus.NEEDS_CONFIRMATION, tag.resolutionStatus)
-        assertTrue(tag.isFuzzyMatch)
+        assertTrue("la aproximación cotidiana se auto-guarda", tag.isResolved)
+        assertEquals(FoodResolutionStatus.AUTO, tag.resolutionStatus)
         assertNotNull(tag.foodItem)
-        assertTrue(tag.statusText.contains("parecido", ignoreCase = true))
+        assertFalse(tag.hasMaterialQuestion())
     }
 
     @Test

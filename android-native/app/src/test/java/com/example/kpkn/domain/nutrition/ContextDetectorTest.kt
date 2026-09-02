@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.nutrition
 
+import com.example.kpkn.data.models.MealType
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -37,8 +38,18 @@ class ContextDetectorTest {
     }
 
     @Test
-    fun `sin contexto devuelve GENERAL`() {
-        val result = ContextDetector.detect("200g de pollo a la plancha")
-        assertEquals(ContextDetector.MealContext.GENERAL, result.primaryContext)
+    fun `sin contexto lexico infiere forma de comida`() {
+        val mass = ContextDetector.detect("200g de pollo a la plancha")
+        assertEquals(ContextDetector.MealContext.GENERAL, mass.primaryContext)
+        val plate = ContextDetector.detect("arroz con huevo")
+        assertEquals(ContextDetector.MealContext.ALMUERZO, plate.primaryContext)
+        assertEquals(InferredMealContext.Shape.MAIN_PLATE, plate.shape)
+        assertEquals("comida", plate.assumedLabel)
+        val breakfast = ContextDetector.detect("yogurt con granola")
+        assertEquals(InferredMealContext.Shape.BREAKFAST_BOWL, breakfast.shape)
+        val drink = ContextDetector.detect("café con leche", mealType = MealType.LUNCH)
+        assertEquals(InferredMealContext.Shape.BEVERAGE, drink.shape)
+        val cheese = ContextDetector.detect("queso", mealType = MealType.LUNCH)
+        assertTrue(cheese.shape == InferredMealContext.Shape.SNACK_ITEM || cheese.primaryContext == ContextDetector.MealContext.GENERAL)
     }
 }

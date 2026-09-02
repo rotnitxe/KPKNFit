@@ -1,5 +1,7 @@
 package com.example.kpkn.domain.nutrition
 
+import com.example.kpkn.data.models.MealType
+
 /**
  * ContextDetector — Detecta contexto implícito en la descripción del usuario.
  *
@@ -41,6 +43,8 @@ object ContextDetector {
         val confidence: Double,
         val portionAdjustment: Double,
         val proteinAdjustment: Double,
+        val shape: InferredMealContext.Shape = InferredMealContext.Shape.UNKNOWN,
+        val assumedLabel: String? = null,
     )
 
     private val CONTEXT_PATTERNS = mapOf(
@@ -102,7 +106,11 @@ object ContextDetector {
     /**
      * Detect meal context from user description.
      */
-    fun detect(description: String): ContextResult {
+    fun detect(
+        description: String,
+        mealType: MealType? = null,
+        foodTags: List<String> = emptyList(),
+    ): ContextResult {
         val lower = description.lowercase()
         val detected = mutableListOf<MealContext>()
 
@@ -112,8 +120,14 @@ object ContextDetector {
             }
         }
 
-        val primary = detected.firstOrNull() ?: MealContext.GENERAL
-        val confidence = if (detected.isEmpty()) 0.5 else 0.8
+        val shape = InferredMealContext.inferShape(description, foodTags)
+        val decision = InferredMealContext.combine(detected, mealType, shape)
+        val primary = decision.context
+        val confidence = when {
+            detected.isNotEmpty() -> 0.8
+            decision.assumedLabel != null -> 0.62
+            else -> 0.5
+        }
         val profile = getContextProfile(primary)
         val stableProfiles = SemanticPortionRetriever.contextProfiles()
             .filter { it.sampleCount >= MIN_CONTEXT_SAMPLES }
@@ -145,6 +159,8 @@ object ContextDetector {
             confidence = confidence,
             portionAdjustment = datasetPortionAdjustment,
             proteinAdjustment = datasetProteinAdjustment,
+            shape = decision.shape,
+            assumedLabel = decision.assumedLabel,
         )
     }
 
