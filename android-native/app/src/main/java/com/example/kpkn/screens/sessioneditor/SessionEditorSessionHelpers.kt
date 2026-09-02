@@ -239,6 +239,42 @@ internal fun createDraftSession(sessionId: String, dayOfWeek: Int?): Session = S
     isMainSession = true,
 )
 
+internal fun sessionEditorDraftStorageKey(
+    programId: String,
+    weekId: String,
+    macroIndex: Int,
+    mesoIndex: Int,
+    sessionId: String,
+): String {
+    val safeWeekId = weekId.ifBlank { "__unspecified_week__" }
+    return "program=$programId|week=$safeWeekId|macro=$macroIndex|meso=$mesoIndex|editor=$sessionId"
+}
+
+fun clearSessionEditorDraft(
+    context: android.content.Context,
+    programId: String,
+    weekId: String,
+    macroIndex: Int,
+    mesoIndex: Int,
+    sessionId: String,
+) {
+    val prefs = context.applicationContext.getSharedPreferences(
+        SESSION_EDITOR_DRAFT_PREFS,
+        android.content.Context.MODE_PRIVATE,
+    )
+    prefs.edit()
+        .remove(
+            sessionEditorDraftStorageKey(
+                programId = programId,
+                weekId = weekId,
+                macroIndex = macroIndex,
+                mesoIndex = mesoIndex,
+                sessionId = sessionId,
+            ),
+        )
+        .apply()
+}
+
 internal fun resolveNewestSession(
     existing: Session?,
     fallback: Session,
@@ -246,8 +282,14 @@ internal fun resolveNewestSession(
 ): Session {
     val persisted = persistedDraft?.session
     if (persisted == null) return existing ?: fallback
-    val existingTimestamp = (existing ?: fallback).lastModifiedAtMs
-    return if (persistedDraft.savedAtMs >= existingTimestamp) persisted else (existing ?: fallback)
+    val programSession = existing ?: fallback
+    val programTs = programSession.lastModifiedAtMs
+    val draftFileTs = persistedDraft.savedAtMs
+    val draftSessionTs = persisted.lastModifiedAtMs
+    if (programTs > 0L && programTs >= draftFileTs && programTs >= draftSessionTs) {
+        return programSession
+    }
+    return if (draftFileTs >= programTs) persisted else programSession
 }
 
 internal fun ensureSessionInList(sessions: List<Session>, session: Session): List<Session> {

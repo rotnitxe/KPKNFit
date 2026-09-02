@@ -212,10 +212,13 @@ class SessionEditorViewModel(
         macroIndex: Int,
         mesoIndex: Int,
         sessionId: String,
-    ): String {
-        val safeWeekId = weekId.ifBlank { "__unspecified_week__" }
-        return "program=$programId|week=$safeWeekId|macro=$macroIndex|meso=$mesoIndex|editor=$sessionId"
-    }
+    ): String = sessionEditorDraftStorageKey(
+        programId = programId,
+        weekId = weekId,
+        macroIndex = macroIndex,
+        mesoIndex = mesoIndex,
+        sessionId = sessionId,
+    )
 
     internal fun persistedDraftFor(
         weekId: String,
