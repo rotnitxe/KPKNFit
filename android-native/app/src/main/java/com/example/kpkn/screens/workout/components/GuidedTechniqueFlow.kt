@@ -4,6 +4,8 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.PlannedTechnique
 import com.example.kpkn.data.models.TechniqueType
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
+import com.example.kpkn.domain.workout.SetTechniqueScope
+import com.example.kpkn.domain.workout.techniqueScope
 import com.example.kpkn.screens.sessioneditor.components.DropSetPlanDefaults
 import com.example.kpkn.screens.sessioneditor.components.RestPausePlanDefaults
 import kotlin.math.min
@@ -45,7 +47,9 @@ internal data class PlannedTechniqueGuide(
 )
 
 internal fun ExerciseSet.resolvePlannedTechniqueGuide(): PlannedTechniqueGuide? {
+    if (techniqueScope() != SetTechniqueScope.STACKED_ON_SET) return null
     val drop = plannedIntensityTechniques.firstOrNull { it.type == TechniqueType.DROP_SET }
+    val rest = plannedIntensityTechniques.firstOrNull { it.type == TechniqueType.REST_PAUSE }
     if (drop != null || isDropSet) {
         val count = (drop?.params?.get("count")?.toIntOrNull()
             ?: drop?.params?.get("weightPcts")?.split(",")?.size
@@ -58,7 +62,6 @@ internal fun ExerciseSet.resolvePlannedTechniqueGuide(): PlannedTechniqueGuide? 
             dropPcts = pcts,
         )
     }
-    val rest = plannedIntensityTechniques.firstOrNull { it.type == TechniqueType.REST_PAUSE }
     if (rest != null || isRestPause) {
         val count = (rest?.params?.get("count")?.toIntOrNull() ?: RestPausePlanDefaults.DefaultCount)
             .coerceIn(RestPausePlanDefaults.MinCount, RestPausePlanDefaults.MaxCount)

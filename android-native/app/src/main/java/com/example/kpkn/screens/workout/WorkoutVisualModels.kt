@@ -43,13 +43,20 @@ internal data class WorkoutSetPagerItem(
     val isWarmupOrFeedback: Boolean = false,
 )
 
+internal val VolumeReplacedStepperTint = Color(0xFFE53935)
+
 internal fun workoutSetPagerAccent(
     state: WorkoutSetCardVisualState,
     colorScheme: androidx.compose.material3.ColorScheme,
     isWarmupOrFeedback: Boolean = false,
     sessionAccentColor: Color? = null,
+    volumeReplaced: Boolean = false,
 ): Color {
-    val accent = sessionAccentColor ?: colorScheme.primary
+    val accent = if (volumeReplaced) {
+        VolumeReplacedStepperTint
+    } else {
+        sessionAccentColor ?: colorScheme.primary
+    }
     return when {
         isWarmupOrFeedback -> androidx.compose.ui.graphics.lerp(accent, Color.White, 0.22f)
         state == WorkoutSetCardVisualState.ACTIVE -> accent

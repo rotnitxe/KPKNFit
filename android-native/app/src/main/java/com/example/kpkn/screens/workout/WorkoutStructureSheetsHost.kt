@@ -118,6 +118,7 @@ internal class WorkoutStructureSheetsState {
     var replaceCardioTargetExerciseId by mutableStateOf<String?>(null)
     var setupSheetExerciseId by mutableStateOf<String?>(null)
     var tagSheetExerciseId by mutableStateOf<String?>(null)
+    var requestLiveTagList by mutableStateOf(false)
     var selectedExerciseContextTab by mutableStateOf<WorkoutExerciseContextTab?>(null)
     var editSheetExerciseId by mutableStateOf<String?>(null)
     var showWorkoutSupersetCreator by mutableStateOf(false)
@@ -142,6 +143,7 @@ internal class WorkoutStructureSheetsState {
             showReplaceCardioPicker ||
             setupSheetExerciseId != null ||
             tagSheetExerciseId != null ||
+            requestLiveTagList ||
             editSheetExerciseId != null ||
             showWorkoutSupersetCreator ||
             supersetSettingsGroupId != null ||
@@ -415,14 +417,17 @@ internal fun WorkoutStructureSheetsHost(
                     }, Modifier.fillMaxWidth())
                 } else {
                     val exercise = contextExercise
-                    val dbId = exercise?.exerciseDbId ?: exercise?.exerciseId
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                         ContextActionButton("Historial", {
-                            if (dbId != null) viewModel.showHistoryFor(dbId)
+                            exercise?.let { viewModel.showHistoryForExercise(it) }
                             state.exerciseContextExerciseId = null
                         }, Modifier.weight(1f))
                         ContextActionButton("Etiquetas", {
-                            state.tagSheetExerciseId = exercise?.id
+                            if (exercise != null && exercise.id == currentExercise?.id) {
+                                state.requestLiveTagList = true
+                            } else {
+                                state.tagSheetExerciseId = exercise?.id
+                            }
                             state.exerciseContextExerciseId = null
                         }, Modifier.weight(1f))
                     }

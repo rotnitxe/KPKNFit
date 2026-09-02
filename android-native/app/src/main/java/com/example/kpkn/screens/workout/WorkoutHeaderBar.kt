@@ -9,12 +9,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
@@ -111,6 +112,7 @@ internal fun resolveSessionAccentColor(background: SessionBackground?): Color {
     return sessionCoverAccentColor(background)
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun WorkoutChronometer(
     startTimeMs: Long,
@@ -132,6 +134,7 @@ internal fun WorkoutChronometer(
     ultraFastSavedSeconds: Int = 0,
     onRevertUltraFast: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    openSessionTimeRequest: Int = 0,
 ) {
     var elapsedSeconds by remember(startTimeMs) { androidx.compose.runtime.mutableIntStateOf(0) }
     var showAdjustDialog by remember { mutableStateOf(false) }
@@ -149,6 +152,10 @@ internal fun WorkoutChronometer(
 
     LaunchedEffect(showAdjustDialog) {
         if (!showAdjustDialog) pendingChange = null
+    }
+
+    LaunchedEffect(openSessionTimeRequest) {
+        if (openSessionTimeRequest > 0) showAdjustDialog = true
     }
 
     val hasLimit = sessionTimeRemainingSeconds != null
@@ -284,7 +291,7 @@ internal fun WorkoutChronometer(
                             FilterChip(
                                 selected = selectedPreset == mins,
                                 onClick = { proposeMinutes(mins) },
-                                label = { Text("$mins") },
+                                label = { Text("$mins min") },
                                 modifier = Modifier.weight(1f),
                                 colors = kpknSheetWhiteFilterChipColors(),
                             )
@@ -316,7 +323,7 @@ internal fun WorkoutChronometer(
                                     onClick = {
                                         proposeMinutes((pendingMinutes ?: resolvedTargetMinutes) + delta)
                                     },
-                                    label = { Text(if (delta > 0) "+$delta" else "$delta") },
+                                    label = { Text(if (delta > 0) "+$delta min" else "$delta min") },
                                     colors = kpknSheetWhiteFilterChipColors(),
                                 )
                             }
@@ -360,7 +367,10 @@ internal fun WorkoutChronometer(
                         }
                     }
                     Text("Avisos", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
                         listOf(
                             PacingAlertMode.OFF to "Nada",
                             PacingAlertMode.FINAL to "15 y 5 min",
@@ -371,22 +381,37 @@ internal fun WorkoutChronometer(
                                 selected = pacingAlertMode == mode,
                                 onClick = { onPacingAlertModeChange(mode) },
                                 label = { Text(label) },
-                                modifier = Modifier.fillMaxWidth(),
                                 colors = kpknSheetWhiteFilterChipColors(),
                             )
                         }
                     }
 
                     HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                    var ultraFastExpanded by remember { mutableStateOf(false) }
                     var activeTechniqueTooltip by remember { mutableStateOf<String?>(null) }
 
-                    Text(
-                        "¿Tienes poco tiempo hoy? Prueba el modo Ultrarrápido",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { ultraFastExpanded = !ultraFastExpanded },
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(
+                            "¿Tienes poco tiempo hoy? Prueba el modo Ultrarrápido",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Icon(
+                            imageVector = if (ultraFastExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = if (ultraFastExpanded) "Ocultar" else "Mostrar",
+                            tint = Color.White.copy(alpha = 0.8f),
+                        )
+                    }
 
+                    if (ultraFastExpanded) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(
                             text = "El modo ultrarrápido automáticamente comprime tu sesión para terminarla mucho más rápido aplicando drop-sets o rest-pauses y otras técnicas para ahorrar tiempo. Sin embargo, debes considerar que esto tiene un costo mayor en fatiga y carga a tus articulaciones, así que procura recuperarte bien.",
@@ -504,6 +529,7 @@ internal fun WorkoutChronometer(
                             Text("Modo Ultrarrápido", fontWeight = FontWeight.Black)
                         }
                     }
+                    }
                 }
             },
             confirmButton = {
@@ -558,9 +584,10 @@ internal fun WorkoutHeaderBar(
     activeMainTags: List<WorkoutTag> = emptyList(),
     activeMainTagLabels: Map<String, String> = emptyMap(),
     activeSubTags: List<WorkoutSubTag> = emptyList(),
+    hasCreatedTags: Boolean = false,
     onTagClick: (String) -> Unit = {},
     onRemoveSubTag: (String) -> Unit = {},
-    onCreateTagClick: () -> Unit = {},
+    onOpenTagList: () -> Unit = {},
     voiceCaptureMode: com.example.kpkn.data.models.VoiceCaptureMode? = null,
     onVoiceCaptureModeChange: ((com.example.kpkn.data.models.VoiceCaptureMode) -> Unit)? = null,
     voiceSessionEnabled: Boolean = false,
@@ -697,6 +724,7 @@ internal fun WorkoutHeaderBar(
                         overflow = TextOverflow.Ellipsis,
                     )
                     Spacer(Modifier.height(cs(6.dp)))
+                    var openSessionTimeRequest by remember { mutableIntStateOf(0) }
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -724,6 +752,7 @@ internal fun WorkoutHeaderBar(
                                 ultraFastApplied = ultraFastApplied,
                                 ultraFastSavedSeconds = ultraFastSavedSeconds,
                                 onRevertUltraFast = onRevertUltraFast,
+                                openSessionTimeRequest = openSessionTimeRequest,
                             )
                         }
 
@@ -779,6 +808,24 @@ internal fun WorkoutHeaderBar(
                                     )
                                 }
                             }
+                            }
+                        }
+
+                        if (ultraFastApplied) {
+                            Surface(
+                                onClick = { openSessionTimeRequest++ },
+                                shape = RoundedCornerShape(99.dp),
+                                color = Color(0xFF66BB6A).copy(alpha = 0.82f),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f)),
+                            ) {
+                                Text(
+                                    "ULTRARRÁPIDO",
+                                    modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp * headerCompactScale()),
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color.White,
+                                    maxLines = 1,
+                                )
                             }
                         }
 
@@ -866,35 +913,20 @@ internal fun WorkoutHeaderBar(
                                 }
                             }
                         }
-                        // Create tag button
-                        Surface(
-                            onClick = onCreateTagClick,
-                            color = Color.Transparent,
-                            shape = RoundedCornerShape(99.dp),
-                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.20f)),
-                        ) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = "Crear etiqueta",
-                                modifier = Modifier.padding(horizontal = cs(6.dp), vertical = cs(5.dp)).size(cs(14.dp)),
-                                tint = Color.White.copy(alpha = 0.8f),
-                            )
-                        }
-                        // Legacy fallback: show exerciseTag if no active main tags
-                        if (activeMainTags.isEmpty() && !exerciseTag.isNullOrBlank()) {
+                        if (activeMainTags.isEmpty()) {
                             Surface(
-                                color = Color.White.copy(alpha = 0.16f),
+                                onClick = onOpenTagList,
+                                color = Color.Transparent,
                                 shape = RoundedCornerShape(99.dp),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.28f)),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.20f)),
                             ) {
                                 Text(
-                                    text = exerciseTag,
+                                    text = if (hasCreatedTags) "Etiquetas" else "Sin etiquetas",
                                     modifier = Modifier.padding(horizontal = cs(8.dp), vertical = cs(5.dp)),
                                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp * headerCompactScale()),
-                                    color = Color.White.copy(alpha = 0.9f),
-                                    fontWeight = FontWeight.Black,
+                                    color = Color.White.copy(alpha = 0.85f),
+                                    fontWeight = FontWeight.Bold,
                                     maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
                                 )
                             }
                         }

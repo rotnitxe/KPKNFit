@@ -259,6 +259,7 @@ data class WorkoutUiState(
     val localBudgetStartedAtMs: Map<String, Long> = emptyMap(),
     val pendingVolumeAdvances: List<MuscleAdvance> = emptyList(),
     val showVolumeAdvanceModal: Boolean = false,
+    val volumeAdvanceHandled: Boolean = false,
     val isRestMinimized: Boolean = false,
     val pendingEditSheetExerciseId: String? = null,
     val voiceTimedSet: VoiceTimedSetState? = null,
@@ -281,6 +282,7 @@ data class SeriesTypeTarget(
     val exerciseId: String,
     val fromSetIdx: Int,
     val toSetIdx: Int,
+    val selectedSetIndices: Set<Int> = emptySet(),
 )
 
 data class GodModeUndoSnapshot(

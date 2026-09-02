@@ -476,7 +476,10 @@ class WorkoutFinishController(
 
                 val currentState = getState()
                 val currentSession = currentState.session
-                if (currentSession != null && currentState.programId.isNotEmpty()) {
+                if (currentSession != null &&
+                    currentState.programId.isNotEmpty() &&
+                    !currentState.volumeAdvanceHandled
+                ) {
                     val deltas = computeVolumeDelta(
                         plannedSession = currentSession,
                         completedSets = currentState.completedSets,
@@ -532,16 +535,33 @@ class WorkoutFinishController(
         completedSets: Map<String, CompletedSet>,
     ): List<MuscleAdvance> {
         val state = getState()
+        val baseline = state.plannedSessionBaseline ?: plannedSession
+        val live = state.session ?: plannedSession
         return computeWorkoutVolumeDelta(
             programId = state.programId,
             macroIndex = state.macroIndex,
             mesoIndex = state.mesoIndex,
             weekId = state.weekId,
-            plannedSession = plannedSession,
+            plannedSession = baseline,
             completedSets = completedSets,
             exerciseIndex = exerciseIndex(),
             repository = repository,
+            liveSession = live,
         )
+    }
+
+    fun offerLiveVolumeAdvance() {
+        val state = getState()
+        if (state.showVolumeAdvanceModal || state.volumeAdvanceHandled) return
+        val live = state.session ?: return
+        val deltas = computeVolumeDelta(live, state.completedSets)
+        if (deltas.isEmpty()) return
+        updateState {
+            it.copy(
+                pendingVolumeAdvances = deltas,
+                showVolumeAdvanceModal = true,
+            )
+        }
     }
 
     private fun scheduledDateForSession(weekId: String?, session: Session): String? {
@@ -564,6 +584,57 @@ class WorkoutFinishController(
     }
 }
 
+internal fun computeMuscleSetSurplus(
+    plannedSession: Session,
+    liveSession: Session,
+    completedSets: Map<String, CompletedSet>,
+    exerciseIndex: Map<String, ExerciseMuscleInfo>,
+): Map<String, Double> {
+    fun primaryMuscleIds(exercise: Exercise): List<String> {
+        resolveCatalogExerciseInfoInIndex(
+            index = exerciseIndex,
+            catalogConfigurationId = exercise.catalogConfigurationId,
+            exerciseDbId = exercise.exerciseDbId,
+            exerciseId = exercise.exerciseId,
+            exerciseName = exercise.name,
+        ) ?: return emptyList()
+        return ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, exerciseIndex)
+            .filter { it.role == MuscleRole.PRIMARY }
+            .map { VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle, it.emphasis) }
+            .filter { it.isNotBlank() }
+    }
+
+    val plannedPerMuscle = mutableMapOf<String, Double>()
+    for (exercise in plannedSession.allExercises()) {
+        for (muscleId in primaryMuscleIds(exercise)) {
+            plannedPerMuscle[muscleId] = (plannedPerMuscle[muscleId] ?: 0.0) + exercise.sets.size
+        }
+    }
+
+    val completedByExercise = mutableMapOf<String, Int>()
+    for ((key, _) in completedSets) {
+        val parsed = parseCompletedSetKey(key) ?: continue
+        completedByExercise[parsed.exerciseId] =
+            (completedByExercise[parsed.exerciseId] ?: 0) + 1
+    }
+
+    val actualPerMuscle = mutableMapOf<String, Double>()
+    for (exercise in liveSession.allExercises()) {
+        val sets = completedByExercise[exercise.id] ?: 0
+        if (sets == 0) continue
+        for (muscleId in primaryMuscleIds(exercise)) {
+            actualPerMuscle[muscleId] = (actualPerMuscle[muscleId] ?: 0.0) + sets
+        }
+    }
+
+    val surplus = mutableMapOf<String, Double>()
+    (plannedPerMuscle.keys + actualPerMuscle.keys).forEach { muscleId ->
+        val delta = (actualPerMuscle[muscleId] ?: 0.0) - (plannedPerMuscle[muscleId] ?: 0.0)
+        if (delta > 0) surplus[muscleId] = delta
+    }
+    return surplus
+}
+
 internal fun computeWorkoutVolumeDelta(
     programId: String,
     macroIndex: Int,
@@ -573,55 +644,16 @@ internal fun computeWorkoutVolumeDelta(
     completedSets: Map<String, CompletedSet>,
     exerciseIndex: Map<String, ExerciseMuscleInfo>,
     repository: ProgramRepository,
+    liveSession: Session = plannedSession,
 ): List<MuscleAdvance> {
     if (programId.isEmpty()) return emptyList()
 
-    val plannedPerMuscle = mutableMapOf<String, Double>()
-    for (ex in plannedSession.allExercises()) {
-        resolveCatalogExerciseInfoInIndex(
-            index = exerciseIndex,
-            catalogConfigurationId = ex.catalogConfigurationId,
-            exerciseDbId = ex.exerciseDbId,
-            exerciseId = ex.exerciseId,
-            exerciseName = ex.name,
-        ) ?: continue
-        for (muscle in ExerciseMuscleResolver.effectiveMusclesForVolume(ex, exerciseIndex)) {
-            if (muscle.role != MuscleRole.PRIMARY) continue
-            val muscleId = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
-            plannedPerMuscle[muscleId] = (plannedPerMuscle[muscleId] ?: 0.0) + ex.sets.size
-        }
-    }
-
-    val actualPerMuscle = mutableMapOf<String, Double>()
-    val completedByExercise = mutableMapOf<String, Int>()
-    for ((key, _) in completedSets) {
-        val parsed = parseCompletedSetKey(key) ?: continue
-        completedByExercise[parsed.exerciseId] =
-            (completedByExercise[parsed.exerciseId] ?: 0) + 1
-    }
-    for (ex in plannedSession.allExercises()) {
-        val sets = completedByExercise[ex.id] ?: 0
-        if (sets == 0) continue
-        resolveCatalogExerciseInfoInIndex(
-            index = exerciseIndex,
-            catalogConfigurationId = ex.catalogConfigurationId,
-            exerciseDbId = ex.exerciseDbId,
-            exerciseId = ex.exerciseId,
-            exerciseName = ex.name,
-        ) ?: continue
-        for (muscle in ExerciseMuscleResolver.effectiveMusclesForVolume(ex, exerciseIndex)) {
-            if (muscle.role != MuscleRole.PRIMARY) continue
-            val muscleId = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
-            actualPerMuscle[muscleId] = (actualPerMuscle[muscleId] ?: 0.0) + sets
-        }
-    }
-
-    val surplusMuscles = mutableListOf<String>()
-    for ((muscle, planned) in plannedPerMuscle) {
-        val actual = actualPerMuscle[muscle] ?: 0.0
-        val delta = actual - planned
-        if (delta > 0) surplusMuscles.add(muscle)
-    }
+    val surplusMuscles = computeMuscleSetSurplus(
+        plannedSession = plannedSession,
+        liveSession = liveSession,
+        completedSets = completedSets,
+        exerciseIndex = exerciseIndex,
+    )
     if (surplusMuscles.isEmpty()) return emptyList()
 
     val program = repository.getProgramById(programId) ?: return emptyList()
@@ -633,17 +665,23 @@ internal fun computeWorkoutVolumeDelta(
     val weekSessions = week.sessions
 
     val nextSession = com.example.kpkn.domain.sessionassistant.SessionAssistantEngine.findNextSessionWithMuscles(
-        currentSessionId = plannedSession.id,
+        currentSessionId = liveSession.id.ifBlank { plannedSession.id },
         weekSessions = weekSessions,
-        muscleIds = surplusMuscles,
+        muscleIds = surplusMuscles.keys.toList(),
         exerciseIndex = exerciseIndex,
     ) ?: return emptyList()
 
     return com.example.kpkn.domain.sessionassistant.SessionAssistantEngine.computeProposedDiscounts(
         currentSession = plannedSession,
         nextSession = nextSession,
-        targetMuscles = surplusMuscles,
+        targetMuscles = surplusMuscles.keys.toList(),
         completedSets = completedSets,
         exerciseIndex = exerciseIndex,
-    )
+        liveSession = liveSession,
+    ).map { advance ->
+        advance.copy(
+            muscleName = VolumeCalculator.normalizeCanonicalMuscleGroup(advance.muscleId)
+                .ifBlank { advance.muscleName.ifBlank { advance.muscleId } },
+        )
+    }
 }

@@ -79,12 +79,10 @@ internal fun SetCardTechniqueBack(
 ) {
     val plannedGuide = remember(currentSet) { currentSet.resolvePlannedTechniqueGuide() }
     var dropEnabled by remember(currentSet.id) {
-        mutableStateOf(plannedGuide?.kind == TechniqueType.DROP_SET || currentSet.isDropSet)
+        mutableStateOf(plannedGuide?.kind == TechniqueType.DROP_SET)
     }
     var restPauseEnabled by remember(currentSet.id) {
-        mutableStateOf(
-            !dropEnabled && (plannedGuide?.kind == TechniqueType.REST_PAUSE || currentSet.isRestPause),
-        )
+        mutableStateOf(plannedGuide?.kind == TechniqueType.REST_PAUSE)
     }
     var dropRows by remember(currentSet.id, mainWeight, mainReps) {
         val count = plannedGuide?.count?.takeIf { plannedGuide.kind == TechniqueType.DROP_SET }

@@ -39,6 +39,7 @@ import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.domain.workout.expectedSidesForSet
 import com.example.kpkn.domain.sessionassistant.SeriesTechnique
 import com.example.kpkn.domain.sessionassistant.UltraFastEngine
+import com.example.kpkn.domain.sessionassistant.applyMarkedSeriesTechnique
 import com.example.kpkn.domain.sessionassistant.withSeriesTechniqueRange
 import com.example.kpkn.domain.sessionassistant.withTechnique
 import com.example.kpkn.domain.sessionassistant.transformExercisesFlat
@@ -149,6 +150,8 @@ class WorkoutViewModel(
 
     private val _uiState = MutableStateFlow(WorkoutUiState(programId = programId))
     val uiState: StateFlow<WorkoutUiState> = _uiState.asStateFlow()
+    private val _relatorAssistAck = MutableStateFlow<RelatorAssistAck?>(null)
+    val relatorAssistAck: StateFlow<RelatorAssistAck?> = _relatorAssistAck.asStateFlow()
     val cardioGpsState: StateFlow<CardioGpsState> = CardioGpsTracker.state
     val cardioHealthState: StateFlow<com.example.kpkn.services.cardio.CardioHealthState> = cardioHealthProvider.state
 
@@ -287,6 +290,7 @@ class WorkoutViewModel(
             override fun checkPaceCoachAlert() = this@WorkoutViewModel.checkPaceCoachAlert()
             override fun onSetRecordedMilestone(exercise: Exercise, weight: Double, reps: Int) {
                 this@WorkoutViewModel.considerSessionMilestoneForSet(exercise, weight, reps)
+                this@WorkoutViewModel.offerLiveVolumeAdvanceAfterSet()
             }
             override fun onRecordingRejected(message: String) = showWorkoutToast(message)
         },
@@ -330,6 +334,17 @@ class WorkoutViewModel(
             override fun defaultContextProfileForExercise(exercise: Exercise) = this@WorkoutViewModel.defaultContextProfileForExercise(exercise)
             override fun refreshLoadSuggestions(state: WorkoutUiState) = this@WorkoutViewModel.refreshLoadSuggestions(state)
             override fun persistOngoingState() = this@WorkoutViewModel.persistOngoingState()
+            override fun invalidateEditorDraft() {
+                val state = _uiState.value
+                com.example.kpkn.screens.sessioneditor.clearSessionEditorDraft(
+                    context = appContext,
+                    programId = programId,
+                    weekId = state.weekId,
+                    macroIndex = state.macroIndex,
+                    mesoIndex = state.mesoIndex,
+                    sessionId = sessionId,
+                )
+            }
         },
     )
 
@@ -1146,6 +1161,69 @@ class WorkoutViewModel(
 
     fun toggleMainTagActive(exerciseId: String, tagId: String) = tagsContextController.toggleMainTagActive(exerciseId, tagId)
 
+    fun selectMainTag(exerciseId: String, tagId: String) = tagsContextController.selectMainTag(exerciseId, tagId)
+
+    fun lastLoadLabelForTag(exercise: Exercise, tag: WorkoutTag): String {
+        val keys = identityKeysForExercise(exercise)
+        val logs = mergeWorkoutLogsForKeys(historyByExerciseDbId.value, keys)
+        val currentSets = _uiState.value.completedSets
+            .filterKeys { it.startsWith("${exercise.id}_") }
+            .values
+            .toList()
+        return WorkoutTagLastLoad.label(
+            tagId = tag.id,
+            tagName = tag.name,
+            currentSessionSetsNewestLast = currentSets,
+            historicalLogsNewestFirst = logs,
+            matchingExercise = { log -> matchingCompletedExercise(log, keys) },
+        )
+    }
+
+    fun historyForTag(exercise: Exercise, tag: WorkoutTag, limit: Int = 8): List<ExerciseHistoryEntry> {
+        val keys = identityKeysForExercise(exercise)
+        val logs = mergeWorkoutLogsForKeys(historyByExerciseDbId.value, keys)
+        val currentSets = _uiState.value.completedSets
+            .filterKeys { it.startsWith("${exercise.id}_") }
+            .values
+            .filter { set ->
+                val id = set.tagId?.trim().orEmpty()
+                !set.isWarmup && (id == tag.id || id.equals(tag.name, ignoreCase = true))
+            }
+        val today = if (currentSets.isNotEmpty()) {
+            listOf(
+                ExerciseHistoryEntry(
+                    date = java.time.LocalDate.now().toString(),
+                    sets = currentSets.toList(),
+                    e1rm = null,
+                    tag = tag.name,
+                ),
+            )
+        } else {
+            emptyList()
+        }
+        val historical = logs.mapNotNull { log ->
+            val ex = matchingCompletedExercise(log, keys) ?: return@mapNotNull null
+            val logTag = log.exerciseTags[ex.exerciseId]
+            val taggedSets = ex.sets.filter { set ->
+                val id = set.tagId?.trim().orEmpty()
+                when {
+                    id.isNotBlank() -> id == tag.id || id.equals(tag.name, ignoreCase = true)
+                    else -> logTag == tag.id || logTag.equals(tag.name, ignoreCase = true)
+                }
+            }
+            if (taggedSets.isEmpty()) return@mapNotNull null
+            val best1rm = taggedSets
+                .filter { s -> !s.isWarmup && s.weight > 0 && s.reps > 0 }
+                .maxOfOrNull { s -> calculateHybrid1RM(s.weight, s.reps) }
+            ExerciseHistoryEntry(
+                date = log.date,
+                sets = taggedSets,
+                e1rm = best1rm,
+                tag = tag.name,
+            )
+        }.take(limit)
+        return today + historical
+    }
 
     fun addSubTag(exerciseId: String, tagId: String, name: String, category: SubTagCategory) = tagsContextController.addSubTag(exerciseId, tagId, name, category)
 
@@ -2623,11 +2701,15 @@ class WorkoutViewModel(
         fromIdx: Int,
         toIdx: Int,
         technique: SeriesTechnique,
+        selectedIndices: Set<Int>? = null,
     ) {
-        pushGodModeUndo(if (technique == SeriesTechnique.DROPSET) "Convertir a dropset" else "Convertir a rest-pause")
+        val undoLabel = when (technique) {
+            SeriesTechnique.DROPSET -> "Convertir a dropset"
+            SeriesTechnique.REST_PAUSE -> "Convertir a rest-pause"
+            SeriesTechnique.NORMAL -> "Quitar técnica de serie"
+        }
         val state = _uiState.value
         val base = state.session ?: return
-        // No tocar series ya completadas (cualquier ejercicio del lote, no solo el actual).
         val currentExId = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id
         val isSameExercise = currentExId == exerciseId
         val currentSetIdx = state.currentSetIdx
@@ -2640,19 +2722,26 @@ class WorkoutViewModel(
             val keys = exercise.completionKeysForSet(idx)
             return keys.isNotEmpty() && keys.all { state.completedSets.containsKey(it) }
         }
-        val hasFuture = (safeFrom..safeTo).any { idx ->
+        val rangeIndices = (safeFrom..safeTo).toSet()
+        val requested = (selectedIndices?.takeIf { it.isNotEmpty() } ?: rangeIndices)
+            .filter { it in exercise.sets.indices }
+            .toSet()
+        val hasFuture = requested.any { idx ->
             if (isSameExercise && idx < currentSetIdx) false
             else !setFullyCompleted(idx)
         }
         if (!hasFuture) return
+        pushGodModeUndo(undoLabel)
         val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
             modeSession.replaceExerciseById(exerciseId) { ex ->
-                val mapped = ex.sets.mapIndexed { idx, set ->
-                    if (idx < safeFrom || idx > safeTo) set
-                    else if (isSameExercise && idx < currentSetIdx) set
-                    else if (setFullyCompleted(idx)) set
-                    else set.withTechnique(technique)
-                }
+                val mapped = applyMarkedSeriesTechnique(
+                    sets = ex.sets,
+                    selectedIndices = requested,
+                    technique = technique,
+                    skipIndex = { idx ->
+                        (isSameExercise && idx < currentSetIdx) || setFullyCompleted(idx)
+                    },
+                )
                 ex.copy(sets = mapped)
             }
         }
@@ -2901,6 +2990,7 @@ class WorkoutViewModel(
                 exerciseCanonicalKey = visibleExercises(_uiState.value).firstOrNull { it.id == currentExerciseId }?.resolvedCanonicalExerciseId(),
             )
         )}
+        offerLiveVolumeAdvanceAfterSet()
     }
 
     fun addExerciseAfter(exerciseId: String, info: ExerciseMuscleInfo) {
@@ -3161,38 +3251,89 @@ class WorkoutViewModel(
     }
 
     internal fun performRelatorAssist(action: RelatorAssistAction) {
-        when (action.kind) {
+        val applied = when (action.kind) {
             RelatorAssistActionKind.JUMP_TO_SET -> {
-                restoreSkippedExercise(action.exerciseId)
-                val side = action.side.takeIf { it.isNotBlank() }
-                selectWorkoutStep(WorkoutStepRules.workingStepKey(action.exerciseId, action.setIndex, side))
+                if (action.exerciseId.isBlank() || action.setIndex < 0) {
+                    false
+                } else {
+                    restoreSkippedExercise(action.exerciseId)
+                    val side = action.side.takeIf { it.isNotBlank() }
+                    selectWorkoutStep(WorkoutStepRules.workingStepKey(action.exerciseId, action.setIndex, side))
+                    true
+                }
             }
-            RelatorAssistActionKind.OMIT_SET -> omitSet(action.exerciseId, action.setIndex)
+            RelatorAssistActionKind.OMIT_SET -> {
+                if (action.exerciseId.isBlank() || action.setIndex < 0) {
+                    false
+                } else {
+                    val key = WorkoutStepRules.omittedSetKey(action.exerciseId, action.setIndex)
+                    val already = key in _uiState.value.omittedSetKeys
+                    omitSet(action.exerciseId, action.setIndex)
+                    !already && key in _uiState.value.omittedSetKeys
+                }
+            }
             RelatorAssistActionKind.JUMP_TO_EXERCISE -> {
                 restoreSkippedExercise(action.exerciseId)
                 val idx = visibleExercises(_uiState.value).indexOfFirst { it.id == action.exerciseId }
-                if (idx >= 0) selectExercise(idx)
+                if (idx >= 0) {
+                    selectExercise(idx)
+                    true
+                } else {
+                    false
+                }
             }
             RelatorAssistActionKind.MOVE_EXERCISE_END -> moveExerciseToSessionEnd(action.exerciseId)
             RelatorAssistActionKind.JUMP_TO_SIDE -> {
-                val side = action.side.takeIf { it.isNotBlank() } ?: return
-                selectWorkoutStep(WorkoutStepRules.workingStepKey(action.exerciseId, action.setIndex, side))
+                val side = action.side.takeIf { it.isNotBlank() }
+                if (side == null || action.exerciseId.isBlank() || action.setIndex < 0) {
+                    false
+                } else {
+                    selectWorkoutStep(WorkoutStepRules.workingStepKey(action.exerciseId, action.setIndex, side))
+                    true
+                }
             }
             RelatorAssistActionKind.CONVERT_DROPSETS -> convertRemainingIncompleteToDropsets()
             RelatorAssistActionKind.HALVE_SETS -> halveRemainingIncompleteSets()
+            RelatorAssistActionKind.PREVIEW_ULTRAFAST -> {
+                if (_uiState.value.ultraFastApplied) {
+                    false
+                } else {
+                    applyUltraFast()
+                    _uiState.value.ultraFastApplied
+                }
+            }
             RelatorAssistActionKind.ADD_MOBILITY -> {
                 val mobility = MobilityExerciseCatalog.findById(action.mobilityId)
                     ?: MobilityExerciseCatalog.searchMobility(action.clickableSpan()).firstOrNull {
                         it.id == action.mobilityId ||
                             it.name.equals(action.clickableSpan(), ignoreCase = true)
                     }
-                    ?: return
                 val exerciseId = action.exerciseId.ifBlank {
                     visibleExercises(_uiState.value).getOrNull(_uiState.value.currentExerciseIdx)?.id
-                } ?: return
-                addMobilityToCurrentExercise(exerciseId, mobility)
+                }
+                if (mobility == null || exerciseId == null) {
+                    false
+                } else {
+                    val before = visibleExercises(_uiState.value)
+                        .firstOrNull { it.id == exerciseId }
+                        ?.mobilitySeries
+                        ?.size
+                        ?: 0
+                    addMobilityToCurrentExercise(exerciseId, mobility)
+                    val after = visibleExercises(_uiState.value)
+                        .firstOrNull { it.id == exerciseId }
+                        ?.mobilitySeries
+                        ?.size
+                        ?: 0
+                    after > before
+                }
             }
         }
+        _relatorAssistAck.value = RelatorAssistAck(
+            kind = action.kind,
+            applied = applied,
+            detail = action.label,
+        )
     }
 
     private fun restoreSkippedExercise(exerciseId: String) {
@@ -3206,15 +3347,15 @@ class WorkoutViewModel(
         if (restored) persistOngoingState()
     }
 
-    private fun moveExerciseToSessionEnd(exerciseId: String) {
-        if (exerciseId.isBlank()) return
+    private fun moveExerciseToSessionEnd(exerciseId: String): Boolean {
+        if (exerciseId.isBlank()) return false
         pushGodModeUndo("Mover ejercicio al final")
         restoreSkippedExercise(exerciseId)
         val state = _uiState.value
-        val base = state.session ?: return
+        val base = state.session ?: return false
         val modeSession = sessionForActiveMode(base, state.activeMode)
         val ids = modeSession.allExercises().map { it.id }.toMutableList()
-        if (!ids.remove(exerciseId)) return
+        if (!ids.remove(exerciseId)) return false
         ids.add(exerciseId)
         val partMap = buildMap {
             modeSession.parts.forEach { part ->
@@ -3222,12 +3363,13 @@ class WorkoutViewModel(
             }
         }
         reorderExercisesGlobally(ids, partMap)
+        return true
     }
 
-    private fun convertRemainingIncompleteToDropsets() {
+    private fun convertRemainingIncompleteToDropsets(): Boolean {
         pushGodModeUndo("Dropsets en lo que queda")
         val state = _uiState.value
-        val base = state.session ?: return
+        val base = state.session ?: return false
         val visible = visibleExercises(state)
         val currentIdx = state.currentExerciseIdx
         val currentSetIdx = state.currentSetIdx
@@ -3237,23 +3379,24 @@ class WorkoutViewModel(
                 if (exIdx < currentIdx) return@forEachIndexed
                 val from = if (exIdx == currentIdx) currentSetIdx else 0
                 next = next.replaceExerciseById(exercise.id) { ex ->
-                    val mapped = ex.sets.mapIndexed { idx, set ->
-                        if (idx < from) set
-                        else if (WorkoutStepRules.isSetOmitted(ex.id, idx, state.omittedSetKeys)) set
-                        else if (isSetDone(state.completedSets, ex.id, idx, ex.isEffectivelyUnilateral())) set
-                        else set.withTechnique(SeriesTechnique.DROPSET)
-                    }
-                    ex.copy(sets = mapped)
+                    val indices = ex.sets.indices.filter { idx ->
+                        idx >= from &&
+                            !WorkoutStepRules.isSetOmitted(ex.id, idx, state.omittedSetKeys) &&
+                            !isSetDone(state.completedSets, ex.id, idx, ex.isEffectivelyUnilateral())
+                    }.toSet()
+                    if (indices.isEmpty()) ex
+                    else ex.copy(sets = applyMarkedSeriesTechnique(ex.sets, indices, SeriesTechnique.DROPSET))
                 }
             }
             next
         }
-        if (updatedSession == base) return
+        if (updatedSession == base) return false
         applySessionMutation(updatedSession, persistToProgram = false)
         persistOngoingState()
+        return true
     }
 
-    private fun halveRemainingIncompleteSets() {
+    private fun halveRemainingIncompleteSets(): Boolean {
         pushGodModeUndo("Reducir series a la mitad")
         val state = _uiState.value
         val visible = visibleExercises(state)
@@ -3273,9 +3416,10 @@ class WorkoutViewModel(
                 extraOmits += WorkoutStepRules.omittedSetKey(exercise.id, idx)
             }
         }
-        if (extraOmits.isEmpty()) return
+        if (extraOmits.isEmpty()) return false
         _uiState.update { it.copy(omittedSetKeys = it.omittedSetKeys + extraOmits) }
         persistOngoingState()
+        return true
     }
 
     private fun pushGodModeUndo(label: String) {
@@ -5025,6 +5169,15 @@ class WorkoutViewModel(
         _uiState.update { it.copy(showHistorySheet = true, historySheetExerciseDbId = exerciseDbId) }
     }
 
+    fun showHistoryForExercise(exercise: Exercise) {
+        val key = exercise.exerciseDbId
+            ?: exercise.exerciseId
+            ?: exercise.canonicalExerciseId
+            ?: identityKeysForExercise(exercise).firstOrNull()
+            ?: return
+        showHistoryFor(key)
+    }
+
     fun hideHistorySheet() {
         _uiState.update { it.copy(showHistorySheet = false, historySheetExerciseDbId = null) }
     }
@@ -5230,6 +5383,10 @@ class WorkoutViewModel(
         _uiState.update { it.copy(workoutToastNotice = null) }
     }
 
+    private fun offerLiveVolumeAdvanceAfterSet() {
+        finishController.offerLiveVolumeAdvance()
+    }
+
     fun acceptVolumeAdvance() {
         val state = _uiState.value
         val advances = state.pendingVolumeAdvances
@@ -5274,14 +5431,18 @@ class WorkoutViewModel(
             withContext(Dispatchers.Main) {
                 val cb = deferredOnComplete
                 deferredOnComplete = null
-                prepareVoiceDiagnosticExport()
+                val finishAfter = cb != null
+                if (finishAfter) prepareVoiceDiagnosticExport()
                 _uiState.update { it.copy(
                     pendingVolumeAdvances = emptyList(),
                     showVolumeAdvanceModal = false,
-                    isComplete = true,
+                    volumeAdvanceHandled = true,
+                    isComplete = if (finishAfter) true else it.isComplete,
                 )}
-                ActiveWorkoutHolder.clear()
-                cb?.invoke()
+                if (finishAfter) {
+                    ActiveWorkoutHolder.clear()
+                    cb.invoke()
+                }
             }
         }
     }
@@ -5289,14 +5450,18 @@ class WorkoutViewModel(
     fun dismissVolumeAdvance() {
         val cb = deferredOnComplete
         deferredOnComplete = null
-        prepareVoiceDiagnosticExport()
+        val finishAfter = cb != null
+        if (finishAfter) prepareVoiceDiagnosticExport()
         _uiState.update { it.copy(
             pendingVolumeAdvances = emptyList(),
             showVolumeAdvanceModal = false,
-            isComplete = true,
+            volumeAdvanceHandled = true,
+            isComplete = if (finishAfter) true else it.isComplete,
         )}
-        ActiveWorkoutHolder.clear()
-        cb?.invoke()
+        if (finishAfter) {
+            ActiveWorkoutHolder.clear()
+            cb.invoke()
+        }
     }
 
     fun toggleRestMinimized() {

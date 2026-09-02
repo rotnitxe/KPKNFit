@@ -50,6 +50,9 @@ import kotlin.math.roundToInt
 
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.ExerciseReadinessEngine
+import com.example.kpkn.domain.workout.SetTechniqueScope
+import com.example.kpkn.domain.workout.techniqueScope
+import com.example.kpkn.domain.workout.volumeReplacedLabel
 import com.example.kpkn.screens.sessioneditor.components.DropSetPlanDefaults
 import com.example.kpkn.screens.sessioneditor.components.RestPausePlanDefaults
 import com.example.kpkn.screens.workout.*
@@ -60,6 +63,39 @@ private data class DropSetEntry(
     val weight: Double,
     val reps: Int,
 )
+
+@Composable
+private fun VolumeReplacedTechniqueBand(label: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(1.dp)
+                .background(Color(0xFFE53935).copy(alpha = 0.85f)),
+        )
+        Text(
+            text = label,
+            modifier = Modifier.padding(horizontal = 8.dp),
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontSize = 9.sp,
+                letterSpacing = 0.8.sp,
+            ),
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFFE53935),
+            maxLines = 1,
+        )
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(1.dp)
+                .background(Color(0xFFE53935).copy(alpha = 0.85f)),
+        )
+    }
+}
 
 private fun activeRepRange(set: ExerciseSet, side: String?): RepRange? = when (side) {
     "left" -> set.leftTarget?.targetRepsRange ?: set.targetRepsRange ?: set.effectiveRepRange()
@@ -1192,12 +1228,15 @@ internal fun SetInputCardV2(
         val plannedRestPause = currentSet?.plannedIntensityTechniques?.firstOrNull {
             it.type == TechniqueType.REST_PAUSE
         }
-        dropSetEnabled = plannedDrop != null ||
-            currentSet?.isDropSet == true ||
-            currentSet?.dropSets?.isNotEmpty() == true
-        restPauseEnabled = plannedRestPause != null ||
-            currentSet?.isRestPause == true ||
-            currentSet?.restPauses?.isNotEmpty() == true
+        val stacked = currentSet?.techniqueScope() == SetTechniqueScope.STACKED_ON_SET
+        dropSetEnabled = stacked && (
+            plannedDrop != null ||
+                currentSet?.isDropSet == true
+            )
+        restPauseEnabled = stacked && (
+            plannedRestPause != null ||
+                currentSet?.isRestPause == true
+            )
         if (dropSetEnabled) {
             val existing = currentSet?.dropSets?.takeIf { it.isNotEmpty() }?.map {
                 DropSetEntry(weight = it.weight, reps = it.reps)
@@ -1676,7 +1715,12 @@ internal fun SetInputCardV2(
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Spacer(Modifier.height(10.dp))
+                    val volumeReplacedLabel = currentSet.volumeReplacedLabel()
+                    if (volumeReplacedLabel != null) {
+                        VolumeReplacedTechniqueBand(label = volumeReplacedLabel)
+                    } else {
+                        Spacer(Modifier.height(10.dp))
+                    }
 
                     Box(
                         modifier = Modifier.fillMaxWidth(),

@@ -50,6 +50,7 @@ import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.nicknameKey
 import com.example.kpkn.domain.sessionassistant.SeriesTechnique
+import com.example.kpkn.domain.workout.isVolumeReplacedTechnique
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.domain.exercises.exerciseDisplayParts
 import com.example.kpkn.screens.workout.components.LocalLivePagerAdaptScale
@@ -129,6 +130,8 @@ internal fun WorkoutV2Body(
     dockBottomClearance: Dp = 140.dp,
     onCreateSuperset: () -> Unit = {},
     onReplaceExercise: (String) -> Unit = {},
+    requestLiveTagList: Boolean = false,
+    onRequestLiveTagListConsumed: () -> Unit = {},
 ) {
     val allUserTags by viewModel.allUserTags.collectAsStateWithLifecycle()
     val cardioGpsState by viewModel.cardioGpsState.collectAsStateWithLifecycle()
@@ -149,7 +152,14 @@ internal fun WorkoutV2Body(
     val coroutineScope = rememberCoroutineScope()
     var pendingUpdateAction by remember { mutableStateOf<(() -> Unit)?>(null) }
     var tagManagerTagId by remember { mutableStateOf<String?>(null) }
+    var showTagListOverlay by remember { mutableStateOf(false) }
     var showCreateTagDialog by remember { mutableStateOf(false) }
+    LaunchedEffect(requestLiveTagList) {
+        if (requestLiveTagList) {
+            showTagListOverlay = true
+            onRequestLiveTagListConsumed()
+        }
+    }
     val currentExerciseKey = remember(currentExercise?.id) {
         currentExercise?.let { viewModel.canonicalExerciseKey(it) } ?: ""
     }
@@ -294,11 +304,12 @@ internal fun WorkoutV2Body(
                 activeMainTags = currentExerciseActiveMainTags,
                 activeMainTagLabels = currentExerciseActiveTagLabels,
                 activeSubTags = currentExerciseActiveSubTags,
+                hasCreatedTags = currentExerciseTags.isNotEmpty(),
                 onTagClick = { tagId -> tagManagerTagId = tagId },
                 onRemoveSubTag = { subTagId ->
                     viewModel.toggleSubTagActive(currentExercise?.id ?: "", subTagId)
                 },
-                onCreateTagClick = { showCreateTagDialog = true },
+                onOpenTagList = { showTagListOverlay = true },
                 voiceCaptureMode = settings.voiceCaptureMode.takeIf { uiState.voiceSessionEnabled },
                 onVoiceCaptureModeChange = { mode -> viewModel.setVoiceCaptureMode(mode) },
                 voiceSessionEnabled = uiState.voiceSessionEnabled,
@@ -374,7 +385,9 @@ internal fun WorkoutV2Body(
             // ─── Tag manager modal ────────────────────────────────────────────
             if (tagManagerTagId != null && currentExercise != null) {
                 val tag = currentExerciseActiveMainTags.firstOrNull { it.id == tagManagerTagId }
+                    ?: currentExerciseTags.firstOrNull { it.id == tagManagerTagId }
                 if (tag != null) {
+                    val tagProfile = viewModel.profileForTag(currentExercise.id, tag.id)
                     WorkoutTagManagerModal(
                         tag = tag,
                         exerciseId = currentExercise.id,
@@ -397,81 +410,66 @@ internal fun WorkoutV2Body(
                         },
                         activeSubTagIds = uiState.activeSubTagsByExercise[currentExercise.id].orEmpty(),
                         onDismiss = { tagManagerTagId = null },
+                        onViewAll = {
+                            tagManagerTagId = null
+                            showTagListOverlay = true
+                        },
+                        history = viewModel.historyForTag(currentExercise, tag),
+                        machineBrand = tagProfile?.machineBrand.orEmpty(),
+                        baseLoadKg = (tagProfile?.baseLoadKg ?: tagProfile?.setupDetails?.baseLoadKg)
+                            ?.takeIf { it > 0 }
+                            ?.toString()
+                            .orEmpty(),
+                        setupNotes = (tagProfile?.notes ?: tagProfile?.setupDetails?.equipmentNotes).orEmpty(),
+                        onSaveSetup = { setup ->
+                            viewModel.upsertTagSetup(currentExercise.id, tag.id, setup)
+                        },
                     )
                 } else {
                     tagManagerTagId = null
                 }
             }
 
+            if (showTagListOverlay && currentExercise != null) {
+                val activeIds = uiState.activeTagsByExercise[currentExercise.id].orEmpty()
+                WorkoutTagListOverlay(
+                    rows = currentExerciseTags.map { tag ->
+                        WorkoutTagListRow(
+                            tag = tag,
+                            title = workoutTagDisplayTitle(
+                                tagName = tag.name,
+                                machineBrand = currentExerciseProfiles.firstOrNull { profile ->
+                                    profile.tagId == tag.id || profile.tagId == tag.name
+                                }?.machineBrand,
+                            ),
+                            lastLoadLabel = viewModel.lastLoadLabelForTag(currentExercise, tag),
+                            isActive = tag.id in activeIds,
+                        )
+                    },
+                    onSelectTag = { tagId ->
+                        viewModel.selectMainTag(currentExercise.id, tagId)
+                        showTagListOverlay = false
+                    },
+                    onCreateTag = {
+                        showTagListOverlay = false
+                        showCreateTagDialog = true
+                    },
+                    onDismiss = { showTagListOverlay = false },
+                )
+            }
+
             // ─── Create tag dialog ────────────────────────────────────────────
             if (showCreateTagDialog && currentExercise != null) {
-                var newTagName by remember { mutableStateOf("") }
-                var newMachineBrand by remember { mutableStateOf("") }
-                var newBaseLoad by remember { mutableStateOf("") }
-                var newSetupNotes by remember { mutableStateOf("") }
-                KpknAlertDialog(
-                    onDismissRequest = { showCreateTagDialog = false },
-                    title = { Text("Nueva etiqueta", fontWeight = FontWeight.Black) },
-                    text = {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedTextField(
-                                value = newTagName,
-                                onValueChange = { newTagName = it },
-                                label = { Text("Nombre de la etiqueta") },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                            Text(
-                                "Set-up de máquina (opcional)",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                            )
-                            OutlinedTextField(
-                                value = newMachineBrand,
-                                onValueChange = { newMachineBrand = it },
-                                label = { Text("Marca / máquina") },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                            OutlinedTextField(
-                                value = newBaseLoad,
-                                onValueChange = { newBaseLoad = it.filter { ch -> ch.isDigit() || ch == '.' || ch == ',' } },
-                                label = { Text("Carga base (kg)") },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                            OutlinedTextField(
-                                value = newSetupNotes,
-                                onValueChange = { newSetupNotes = it },
-                                label = { Text("Notas de set-up") },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                        }
+                WorkoutCreateTagOverlay(
+                    onCreate = { name, setup ->
+                        viewModel.createTag(currentExercise.id, name, setup)
+                        showCreateTagDialog = false
+                        showTagListOverlay = true
                     },
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                if (newTagName.isNotBlank() || newMachineBrand.isNotBlank()) {
-                                    val setup = TagSetupInput(
-                                        machineBrand = newMachineBrand,
-                                        baseLoadKg = newBaseLoad.replace(',', '.').toDoubleOrNull(),
-                                        setupNotes = newSetupNotes,
-                                    )
-                                    viewModel.createTag(
-                                        currentExercise.id,
-                                        newTagName,
-                                        setup.takeIf { it.hasContent },
-                                    )
-                                }
-                                showCreateTagDialog = false
-                            },
-                            enabled = newTagName.isNotBlank() || newMachineBrand.isNotBlank()
-                        ) { Text("Crear") }
+                    onDismiss = {
+                        showCreateTagDialog = false
+                        showTagListOverlay = true
                     },
-                    dismissButton = {
-                        TextButton(onClick = { showCreateTagDialog = false }) { Text("Cancelar") }
-                    }
                 )
             }
 
@@ -1123,6 +1121,7 @@ internal fun WorkoutV2Body(
                                                     leftState = if (leftActive) WorkoutSetCardVisualState.ACTIVE else if (leftDone) WorkoutSetCardVisualState.COMPLETED else WorkoutSetCardVisualState.FUTURE,
                                                     rightPageIndex = rightPageIdx,
                                                     rightState = if (rightActive) WorkoutSetCardVisualState.ACTIVE else if (rightDone) WorkoutSetCardVisualState.COMPLETED else WorkoutSetCardVisualState.FUTURE,
+                                                    volumeReplaced = member.sets.getOrNull(roundIdx)?.isVolumeReplacedTechnique() == true,
                                                 )
                                             )
                                         } else {
@@ -1143,6 +1142,7 @@ internal fun WorkoutV2Body(
                                                     pageIndex = pageIdx,
                                                     label = "S${exIdx + 1}",
                                                     state = if (isActive) WorkoutSetCardVisualState.ACTIVE else if (isDone) WorkoutSetCardVisualState.COMPLETED else WorkoutSetCardVisualState.FUTURE,
+                                                    volumeReplaced = member.sets.getOrNull(roundIdx)?.isVolumeReplacedTechnique() == true,
                                                 )
                                             )
                                         }
@@ -1194,6 +1194,7 @@ internal fun WorkoutV2Body(
                                                 leftState = if (leftActive) WorkoutSetCardVisualState.ACTIVE else if (leftDone) WorkoutSetCardVisualState.COMPLETED else WorkoutSetCardVisualState.FUTURE,
                                                 rightPageIndex = rightPageIdx,
                                                 rightState = if (rightActive) WorkoutSetCardVisualState.ACTIVE else if (rightDone) WorkoutSetCardVisualState.COMPLETED else WorkoutSetCardVisualState.FUTURE,
+                                                volumeReplaced = pagerExercise.sets.getOrNull(setIdx)?.isVolumeReplacedTechnique() == true,
                                             )
                                         )
                                     } else {
@@ -1211,6 +1212,7 @@ internal fun WorkoutV2Body(
                                                 pageIndex = pageIdx,
                                                 label = "S${setIdx + 1}",
                                                 state = if (isActive) WorkoutSetCardVisualState.ACTIVE else if (isDone) WorkoutSetCardVisualState.COMPLETED else WorkoutSetCardVisualState.FUTURE,
+                                                volumeReplaced = pagerExercise.sets.getOrNull(setIdx)?.isVolumeReplacedTechnique() == true,
                                             )
                                         )
                                     }
@@ -1841,8 +1843,7 @@ internal fun WorkoutV2Body(
                                     rmSuggestedWeight = rmSelectedWeight,
                                     onRmWeightConsumed = onRmWeightConsumed,
                                     onShowHistory = {
-                                        val dbId = targetExercise.exerciseDbId ?: targetExercise.exerciseId ?: return@SetInputCardV2
-                                        viewModel.showHistoryFor(dbId)
+                                        viewModel.showHistoryForExercise(targetExercise)
                                     },
                                     onSetBodyWeight = { bw: Double -> viewModel.setCurrentBodyWeight(bw) },
                                     initialBodyWeight = viewModel.currentBodyWeight(),
@@ -2043,7 +2044,13 @@ internal fun WorkoutV2Body(
                 completedSetIndices = completedIdx,
                 onDismiss = { viewModel.hideSeriesTypeSheet() },
                 onApply = { t, technique ->
-                    viewModel.updatePlannedSeriesTechnique(t.exerciseId, t.fromSetIdx, t.toSetIdx, technique)
+                    viewModel.updatePlannedSeriesTechnique(
+                        exerciseId = t.exerciseId,
+                        fromIdx = t.fromSetIdx,
+                        toIdx = t.toSetIdx,
+                        technique = technique,
+                        selectedIndices = t.selectedSetIndices,
+                    )
                     viewModel.hideSeriesTypeSheet()
                 },
             )

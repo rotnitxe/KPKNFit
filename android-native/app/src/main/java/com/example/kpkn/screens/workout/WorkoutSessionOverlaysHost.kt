@@ -134,11 +134,19 @@ internal fun WorkoutSessionOverlaysHost(
 
     if (uiState.showHistorySheet && uiState.historySheetExerciseDbId != null) {
         val historyDbId = uiState.historySheetExerciseDbId!!
-        val historyTag = visibleExercises
-            .firstOrNull { (it.exerciseDbId ?: it.exerciseId) == historyDbId }
-            ?.let { uiState.exerciseTags[it.id] }
-        val history = remember(historyDbId, historyTag) {
-            viewModel.getExerciseHistory(historyDbId, preferredTag = historyTag)
+        val historyExercise = visibleExercises.firstOrNull { exercise ->
+            historyDbId in identityKeysForExercise(exercise) ||
+                exercise.exerciseDbId == historyDbId ||
+                exercise.exerciseId == historyDbId ||
+                exercise.canonicalExerciseId == historyDbId
+        }
+        val historyTag = historyExercise?.let { uiState.exerciseTags[it.id] }
+        val history = remember(historyDbId, historyTag, historyExercise?.id) {
+            if (historyExercise != null) {
+                viewModel.getExerciseHistory(historyExercise, preferredTag = historyTag)
+            } else {
+                viewModel.getExerciseHistory(historyDbId, preferredTag = historyTag)
+            }
         }
         WorkoutDrawer(title = "Historial", onDismiss = { viewModel.hideHistorySheet() }, hazeState = bottomHazeState) {
             if (historyTag != null) {

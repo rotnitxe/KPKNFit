@@ -41,18 +41,18 @@ fun resolveWorkoutBackAction(flags: WorkoutOverlayFlags): WorkoutBackAction = wh
 
 const val DOCK_ROADMAP_GAP_DP = 8
 
-/** Fallback dock clearance: compact uses the cockpit token at scale 1; expanded is the sheet. */
-fun dockBottomClearanceDp(roadmapExpanded: Boolean): Int =
-    if (roadmapExpanded) {
-        210
-    } else {
-        com.example.kpkn.screens.workout.components.WorkoutUiTokens
-            .liveCockpitCompactHeight(1f).value.toInt()
-    }
+/** Kept for callers that still pass an expanded-sheet fallback; overlay no longer reserves it. */
+const val DOCK_EXPANDED_SHEET_FALLBACK_DP = 210
+
+/** Body/FAB clearance is always the compact chrome (handle + stepper + carousel). */
+fun dockBottomClearanceDp(@Suppress("UNUSED_PARAMETER") roadmapExpanded: Boolean): Int {
+    return com.example.kpkn.screens.workout.components.WorkoutUiTokens
+        .liveCockpitCompactHeight(1f).value.toInt()
+}
 
 /**
- * Compact cockpit height is a token (never the volatile overlay measurement).
- * Expanded sheet may use a measured height; otherwise the expanded constant.
+ * Compact chrome is a token. The expanded cockpit is an overlay and must not
+ * pad the pager — [measuredRoadmapHeightDp] and [roadmapExpanded] are ignored.
  */
 fun resolveDockBottomClearanceDp(
     measuredRoadmapHeightDp: Int?,
@@ -60,12 +60,12 @@ fun resolveDockBottomClearanceDp(
     gapDp: Int = DOCK_ROADMAP_GAP_DP,
     compactHeightDp: Int? = null,
 ): Int {
-    if (!roadmapExpanded) {
-        val compact = compactHeightDp?.takeIf { it > 0 } ?: dockBottomClearanceDp(false)
-        return compact + gapDp
-    }
-    val measured = measuredRoadmapHeightDp?.takeIf { it > 0 } ?: return dockBottomClearanceDp(true)
-    return measured + gapDp
+    @Suppress("UNUSED_VARIABLE")
+    val ignoredSheet = measuredRoadmapHeightDp
+    @Suppress("UNUSED_VARIABLE")
+    val ignoredExpanded = roadmapExpanded
+    val compact = compactHeightDp?.takeIf { it > 0 } ?: dockBottomClearanceDp(false)
+    return compact + gapDp
 }
 
 fun onRecordAudioPermissionResult(granted: Boolean): MicPermissionOutcome =

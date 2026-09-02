@@ -90,6 +90,7 @@ internal sealed class TimelineElement {
         val label: String,
         val state: WorkoutSetCardVisualState,
         val isEditing: Boolean = false,
+        val volumeReplaced: Boolean = false,
     ) : TimelineElement()
 
     data class UnilateralSet(
@@ -99,6 +100,7 @@ internal sealed class TimelineElement {
         val leftState: WorkoutSetCardVisualState,
         val rightPageIndex: Int?,
         val rightState: WorkoutSetCardVisualState,
+        val volumeReplaced: Boolean = false,
     ) : TimelineElement()
 
     data class MobilityPill(
@@ -462,8 +464,61 @@ internal fun activityCloudSegmentWidthDp(
 }
 
 private const val ACTIVITY_CLOUD_LABEL_GUTTER_DP = 6f
+internal const val STEPPER_AREA_GAP_EXTRA_DP = 12f
 
-/** Label width is always ≤ segment width so adjacent clouds cannot paint over each other. */
+/** Minimum pill width so PREPARACIÓN / SERIES EFECTIVAS fit at 10 sp on one line. */
+internal fun activityCloudMinLabelWidthDp(area: ActivityCloudArea): Float = when (area) {
+    ActivityCloudArea.PREPARATION -> 108f
+    ActivityCloudArea.EFFECTIVE_SERIES -> 132f
+    ActivityCloudArea.SUPERSERIE -> 108f
+    ActivityCloudArea.DESCANSO -> 88f
+}
+
+/**
+ * Widen singleton (or short) area slots until each cloud can hold its min label.
+ * Extra width between adjacent areas (last APR → first S1) so pills don't collide.
+ */
+internal fun inflateStepperSlotWidthsForClouds(
+    slots: List<StepperRailSlot>,
+    naturalWidths: List<Float>,
+    gapDp: Float,
+): List<Float> {
+    if (slots.isEmpty()) return emptyList()
+    val widths = if (naturalWidths.size == slots.size) {
+        naturalWidths.toMutableList()
+    } else {
+        slots.map { stepperRailSlotWidthDp(it) }.toMutableList()
+    }
+    var index = 0
+    while (index < slots.size) {
+        val area = stepperCloudAreaForSlot(slots[index])
+        var end = index + 1
+        if (area != null) {
+            while (end < slots.size && stepperCloudAreaForSlot(slots[end]) == area) end++
+            val count = end - index
+            var natural = 0f
+            for (slotIndex in index until end) {
+                if (slotIndex > index) natural += gapDp.coerceAtLeast(0f)
+                natural += widths[slotIndex].coerceAtLeast(0f)
+            }
+            val minWidth = activityCloudMinLabelWidthDp(area) + ACTIVITY_CLOUD_LABEL_GUTTER_DP
+            if (natural < minWidth && count > 0) {
+                val extra = (minWidth - natural) / count
+                for (slotIndex in index until end) widths[slotIndex] += extra
+            }
+            if (end < slots.size) {
+                val nextArea = stepperCloudAreaForSlot(slots[end])
+                if (nextArea != null && nextArea != area) {
+                    widths[end - 1] += STEPPER_AREA_GAP_EXTRA_DP
+                }
+            }
+        }
+        index = end
+    }
+    return widths
+}
+
+/** Label width is ≤ segment after slots are inflated; ellipsis only if the viewport still clips. */
 internal fun activityCloudLabelWidthDp(
     segmentWidthDp: Float,
     area: ActivityCloudArea,
@@ -474,9 +529,9 @@ internal fun activityCloudLabelWidthDp(
         ActivityCloudArea.SUPERSERIE -> 156f
         ActivityCloudArea.DESCANSO -> 140f
     }
-    return (segmentWidthDp - ACTIVITY_CLOUD_LABEL_GUTTER_DP)
-        .coerceAtMost(cap)
-        .coerceAtLeast(0f)
+    val min = activityCloudMinLabelWidthDp(area)
+    val fromSegment = (segmentWidthDp - ACTIVITY_CLOUD_LABEL_GUTTER_DP).coerceAtLeast(0f)
+    return fromSegment.coerceAtLeast(min).coerceAtMost(maxOf(cap, min))
 }
 
 /** True when centered labels in neighboring segments collide across [gapDp]. */
@@ -626,8 +681,8 @@ private fun timelineRailElementPartial(element: TimelineElement): Float = when (
 }
 
 private const val STEPPER_NODE_GAP_MIN_DP = 10f
-private const val STEPPER_NODE_GAP_MAX_DP = 21f
-private const val STEPPER_CHROME_SIZE_DP = 32f
+private const val STEPPER_NODE_GAP_MAX_DP = 36f
+internal const val STEPPER_CHROME_SIZE_DP = 32f
 private const val STEPPER_SET_IN_PILL_DP = 20f
 private const val STEPPER_UNI_IN_PILL_DP = 64f
 private const val STEPPER_PILL_INTRA_GAP_DP = 5f
@@ -780,11 +835,16 @@ internal fun WorkoutSetPager(
             )
             is StepperRailSlot.Loose -> timelineStepperItemWidthDp(slot.element)
         }
-        val estimatedTotalContentWidth = (
-            railSlots.sumOf { railSlotLayoutWidthDp(it).toDouble() } +
-                (if (completedPreviousSets > 0) STEPPER_CLUSTER_ESTIMATED_WIDTH.value.toDouble() else 0.0) +
-                (if (nextExerciseSetCount > 0) STEPPER_CLUSTER_ESTIMATED_WIDTH.value.toDouble() else 0.0)
-            ).dp
+        val naturalSlotWidths = railSlots.map { railSlotLayoutWidthDp(it) }
+        val clusterExtrasDp =
+            (if (completedPreviousSets > 0) STEPPER_CLUSTER_ESTIMATED_WIDTH.value else 0f) +
+                (if (nextExerciseSetCount > 0) STEPPER_CLUSTER_ESTIMATED_WIDTH.value else 0f)
+        val inflatedSlotWidths = inflateStepperSlotWidthsForClouds(
+            slots = railSlots,
+            naturalWidths = naturalSlotWidths,
+            gapDp = STEPPER_NODE_GAP_MIN.value,
+        )
+        val estimatedTotalContentWidth = (inflatedSlotWidths.sum() + clusterExtrasDp).dp
 
         val gapCount = (railSlots.size - 1).coerceAtLeast(0)
         val dynamicNormalSpacing = if (gapCount > 0) {
@@ -808,7 +868,7 @@ internal fun WorkoutSetPager(
         }
         val cloudPieces = mergeStepperCloudPieces(
             slots = railSlots,
-            slotWidthsDp = railSlots.map { railSlotLayoutWidthDp(it) },
+            slotWidthsDp = inflatedSlotWidths,
             gapDp = dynamicNormalSpacing.value,
         )
 
@@ -1009,7 +1069,15 @@ internal fun WorkoutSetPager(
                         )
                     }
 
-                    railSlots.forEach { slot ->
+                    railSlots.forEachIndexed { slotIndex, slot ->
+                        val slotFrameWidth = inflatedSlotWidths.getOrNull(slotIndex)
+                            ?: railSlotLayoutWidthDp(slot)
+                        Box(
+                            modifier = Modifier
+                                .width(slotFrameWidth.dp)
+                                .height(stepperRowHeight),
+                            contentAlignment = Alignment.Center,
+                        ) {
                         when (slot) {
                             is StepperRailSlot.RoundCluster -> {
                                 val badge = slot.badge
@@ -1058,6 +1126,7 @@ internal fun WorkoutSetPager(
                                     MaterialTheme.colorScheme,
                                     false,
                                     sessionAccentColor,
+                                    volumeReplaced = element.volumeReplaced,
                                 )
                                 TimelineDot(
                                     accent = accentColor,
@@ -1086,7 +1155,7 @@ internal fun WorkoutSetPager(
                                     leftState = element.leftState,
                                     rightPageIndex = element.rightPageIndex,
                                     rightState = element.rightState,
-                                    accent = accent,
+                                    accent = if (element.volumeReplaced) VolumeReplacedStepperTint else accent,
                                     onSelectPage = onSelectPage,
                                     modifier = Modifier.keepActiveVisible(isElementActive(element)),
                                 )
@@ -1114,7 +1183,7 @@ internal fun WorkoutSetPager(
                                 )
                             }
                             is TimelineElement.RestPill -> {
-                                AnimatedVisibility(
+                                androidx.compose.animation.AnimatedVisibility(
                                     visible = restPillVisible,
                                     enter = fadeIn(
                                         animationSpec = tween(STEPPER_REST_PILL_ANIM_MS, easing = FastOutSlowInEasing),
@@ -1148,6 +1217,7 @@ internal fun WorkoutSetPager(
                                 }
                             }
                             }
+                        }
                         }
                     }
 
@@ -1319,7 +1389,8 @@ private fun ActivityCloudPill(
 ) {
     val connectorColor = accent.copy(alpha = 0.30f)
     val cloudLabelWidth = activityCloudLabelWidthDp(segmentWidth.value, area).dp
-    val cloudLabelFontSize = if (segmentWidth < 100.dp) 8.5.sp else 10.sp
+    val minLabelWidth = activityCloudMinLabelWidthDp(area).dp
+    val cloudLabelFontSize = if (cloudLabelWidth < minLabelWidth) 8.5.sp else 10.sp
     Box(
         modifier = Modifier
             .width(segmentWidth)
@@ -1611,14 +1682,14 @@ private fun RoundSetCapsule(
                                     val isComplete = setElement.state == WorkoutSetCardVisualState.COMPLETED
                                     val isSkipped = setElement.state == WorkoutSetCardVisualState.SKIPPED
                                     TimelineDot(
-                                        accent = accent,
+                                        accent = if (setElement.volumeReplaced) VolumeReplacedStepperTint else accent,
                                         active = isActive || setElement.isEditing,
                                         complete = isComplete,
                                         skipped = isSkipped,
                                         label = setElement.label,
                                         nodeSize = STEPPER_SET_IN_PILL,
                                         emphasizeScale = 1f,
-                                        onAccentTrack = true,
+                                        onAccentTrack = !setElement.volumeReplaced,
                                         modifier = keepActiveVisible(
                                             isElementActive(setElement),
                                             Modifier.combinedClickable(
@@ -1641,10 +1712,10 @@ private fun RoundSetCapsule(
                                         leftState = setElement.leftState,
                                         rightPageIndex = setElement.rightPageIndex,
                                         rightState = setElement.rightState,
-                                        accent = accent,
+                                        accent = if (setElement.volumeReplaced) VolumeReplacedStepperTint else accent,
                                         onSelectPage = onSelectPage,
                                         compact = true,
-                                        onAccentTrack = true,
+                                        onAccentTrack = !setElement.volumeReplaced,
                                         modifier = keepActiveVisible(isElementActive(setElement), Modifier),
                                     )
                                 }

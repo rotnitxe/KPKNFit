@@ -15,6 +15,7 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -164,7 +165,9 @@ import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.VoiceCaptureModeDialog
 import com.example.kpkn.screens.workout.components.WorkoutRoadmapBar
+import com.example.kpkn.screens.workout.components.WorkoutSessionCockpit
 import com.example.kpkn.screens.workout.components.WorkoutUiTokens
+import com.example.kpkn.ui.components.kpknGlassOrFallback
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.screens.workout.components.RoadmapMode
 import com.example.kpkn.screens.workout.components.RestTimerOverlay
@@ -279,11 +282,17 @@ fun WorkoutScreen(
     var roadmapSelecting by remember { mutableStateOf(false) }
     val chromeScale = LocalViewportAdapt.current.uniformScale
     val compactCockpitHeightDp = WorkoutUiTokens.liveCockpitCompactHeight(chromeScale).value.roundToInt()
-    val dockBottomClearance = resolveDockBottomClearanceDp(
-        measuredRoadmapHeightDp = null,
-        roadmapExpanded = false,
+    var measuredRoadmapHeightDp by remember { mutableIntStateOf(0) }
+    val targetDockBottomClearance = resolveDockBottomClearanceDp(
+        measuredRoadmapHeightDp = measuredRoadmapHeightDp.takeIf { it > 0 },
+        roadmapExpanded = roadmapMode == RoadmapMode.EXPANDED,
         compactHeightDp = compactCockpitHeightDp,
     ).dp
+    val dockBottomClearance by animateDpAsState(
+        targetValue = targetDockBottomClearance,
+        animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
+        label = "dockBottomClearance",
+    )
     var selectionClearNonce by remember { mutableIntStateOf(0) }
 
     // ─── Readiness sheet state ─────────────────────────────────────────────────
@@ -932,11 +941,10 @@ fun WorkoutScreen(
             activeSide = activeDockSide,
             showingPostExerciseCard = showingPostExerciseCardDock,
             onExpandHistory = {
-                val dbId = currentExercise?.exerciseDbId ?: currentExercise?.exerciseId
-                if (dbId != null) viewModel.showHistoryFor(dbId)
+                currentExercise?.let { viewModel.showHistoryForExercise(it) }
             },
             onExpandTags = {
-                currentExercise?.id?.let { structureSheets.tagSheetExerciseId = it }
+                structureSheets.requestLiveTagList = true
             },
             onExpandSetup = {
                 currentExercise?.id?.let { structureSheets.setupSheetExerciseId = it }
@@ -987,6 +995,8 @@ fun WorkoutScreen(
                 }
                 structureSheets.showReplaceExercisePicker = true
             },
+            requestLiveTagList = structureSheets.requestLiveTagList,
+            onRequestLiveTagListConsumed = { structureSheets.requestLiveTagList = false },
             )
             if (roadmapSelecting) {
                 Box(
@@ -1066,31 +1076,9 @@ fun WorkoutScreen(
                         clearSelectionNonce = selectionClearNonce,
                         godModeUndoStack = uiState.godModeUndoStack,
                         onRevertGodModeAction = { index -> viewModel.revertGodModeChange(index) },
-                        planAspects = remember(
-                            uiState.plannedSessionBaseline,
-                            uiState.session,
-                            uiState.skippedExerciseIds,
-                            uiState.omittedSetKeys,
-                            uiState.activeMode,
-                        ) {
-                            val current = uiState.session?.let { session ->
-                                when (uiState.activeMode) {
-                                    com.example.kpkn.data.models.WeekVariant.A -> session
-                                    com.example.kpkn.data.models.WeekVariant.B -> session.sessionB ?: session
-                                    com.example.kpkn.data.models.WeekVariant.C -> session.sessionC ?: session
-                                    com.example.kpkn.data.models.WeekVariant.D -> session.sessionD ?: session
-                                }
-                            }
-                            diffSessionPlan(
-                                baseline = uiState.plannedSessionBaseline,
-                                current = current,
-                                skippedExerciseIds = uiState.skippedExerciseIds,
-                                omittedSetKeys = uiState.omittedSetKeys,
-                            )
-                        },
-                        onRevertPlanAspect = { viewModel.revertPlanAspect(it) },
+                        onRoadmapHeightChanged = { measuredRoadmapHeightDp = it },
                         sessionAccentColor = sessionAccentColor,
-                        hazeState = cardsHazeStateDock,
+                        hazeState = overlayHazeState,
                         mode = roadmapMode,
                         onModeChange = { roadmapMode = it },
                         milestones = uiState.sessionMilestones,
@@ -1142,6 +1130,70 @@ fun WorkoutScreen(
                         .zIndex(12f),
                 )
             }
+        }
+    }
+
+    val cockpitSheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+    AnimatedVisibility(
+        visible = roadmapMode == RoadmapMode.EXPANDED,
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(bottom = 8.dp)
+            .offset(y = -(compactCockpitHeightDp.dp))
+            .zIndex(6f),
+        enter = expandVertically(
+            expandFrom = Alignment.Bottom,
+            animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
+        ),
+        exit = shrinkVertically(
+            shrinkTowards = Alignment.Bottom,
+            animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+        ),
+        label = "cockpitOverlay",
+    ) {
+        val totalCompletedCount = WorkoutStepRules.completedRoadmapSlotsForExercises(
+            exercises = visibleExercises,
+            completedSets = uiState.completedSets,
+            omittedSetKeys = uiState.omittedSetKeys,
+        )
+        val totalSetsCount = WorkoutStepRules.totalRoadmapSlotsForExercises(
+            exercises = visibleExercises,
+            omittedSetKeys = uiState.omittedSetKeys,
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .graphicsLayer {
+                    clip = true
+                    shape = cockpitSheetShape
+                }
+                .kpknGlassOrFallback(
+                    hazeState = overlayHazeState,
+                    shape = cockpitSheetShape,
+                ),
+        ) {
+            WorkoutSessionCockpit(
+                exercises = visibleExercises,
+                completedSets = uiState.completedSets,
+                milestones = uiState.sessionMilestones,
+                sessionProgressLabel = "Progreso: $totalCompletedCount/$totalSetsCount",
+                liveEnergySummary = uiState.liveEnergySummary,
+                sessionNotes = uiState.sessionNotes,
+                sessionSavedNotes = uiState.sessionSavedNotes,
+                sessionPhotos = uiState.sessionPhotos,
+                sessionChecklist = uiState.sessionChecklist,
+                onSessionNotesChange = { viewModel.setSessionNotes(it) },
+                onSaveSessionNote = { viewModel.saveSessionNote(it) },
+                onAddSessionPhoto = { viewModel.addSessionPhoto(it) },
+                onRemoveSessionPhoto = { viewModel.removeSessionPhoto(it) },
+                onAddChecklistItem = { viewModel.addSessionChecklistItem(it) },
+                onToggleChecklistItem = { viewModel.toggleSessionChecklistItem(it) },
+                onRemoveChecklistItem = { viewModel.removeSessionChecklistItem(it) },
+                sessionAccentColor = sessionAccentColor,
+                bodyWeight = viewModel.currentBodyWeight(),
+            )
         }
     }
 

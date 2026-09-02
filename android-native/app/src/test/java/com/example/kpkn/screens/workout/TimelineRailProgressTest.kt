@@ -128,12 +128,22 @@ class TimelineRailProgressTest {
         assertEquals(ActivityCloudArea.DESCANSO, segments[1].area)
         assertEquals(ActivityCloudArea.EFFECTIVE_SERIES, segments[2].area)
         val gap = 10f
-        val widths = segments.map { activityCloudSegmentWidthDp(elements, it, gap) }
-        val labels = segments.mapIndexed { i, seg ->
-            activityCloudLabelWidthDp(widths[i], seg.area)
+        val slots = stepperRailSlots(elements)
+        val inflated = inflateStepperSlotWidthsForClouds(
+            slots,
+            slots.map { stepperRailSlotWidthDp(it) },
+            gap,
+        )
+        val pieces = mergeStepperCloudPieces(slots, inflated, gap)
+        pieces.forEach { piece ->
+            val area = piece.area ?: return@forEach
+            val label = activityCloudLabelWidthDp(piece.width.value, area)
+            assertTrue(label + 0.01f >= activityCloudMinLabelWidthDp(area))
+            assertTrue(label <= piece.width.value + 0.01f)
         }
-        labels.forEachIndexed { i, label ->
-            assertTrue(label <= widths[i] + 0.01f)
+        val widths = pieces.map { it.width.value }
+        val labels = pieces.map { piece ->
+            piece.area?.let { activityCloudLabelWidthDp(piece.width.value, it) } ?: 0f
         }
         assertFalse(
             activityCloudLabelsOverlap(

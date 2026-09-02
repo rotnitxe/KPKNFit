@@ -41,7 +41,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
@@ -50,12 +49,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.*
+import kotlin.math.roundToInt
 import com.example.kpkn.data.exercises.displayNameWithSelectedChips
 import com.example.kpkn.screens.sessioneditor.contentOn
 import com.example.kpkn.screens.sessioneditor.isEditorUncategorized
@@ -128,8 +128,7 @@ fun WorkoutRoadmapBar(
     clearSelectionNonce: Int = 0,
     godModeUndoStack: List<GodModeUndoSnapshot> = emptyList(),
     onRevertGodModeAction: (Int) -> Unit = {},
-    planAspects: List<com.example.kpkn.screens.workout.SessionPlanAspect> = emptyList(),
-    onRevertPlanAspect: (String) -> Unit = {},
+    onRoadmapHeightChanged: (Int) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val activeMode = mode
@@ -177,7 +176,6 @@ fun WorkoutRoadmapBar(
     )
     val chromeScale = LocalViewportAdapt.current.uniformScale
     val carouselCardHeight = WorkoutUiTokens.liveRoadmapCarouselCardHeight(chromeScale)
-    val compactCockpitHeight = WorkoutUiTokens.liveCockpitCompactHeight(chromeScale)
     val stepperSlotHeight = WorkoutUiTokens.liveCockpitStepperHeight(chromeScale)
 
     // The group table is authoritative for sessions loaded from older JSON:
@@ -296,17 +294,8 @@ fun WorkoutRoadmapBar(
                 }
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .then(
-                        if (activeMode == RoadmapMode.COMPACT) {
-                            Modifier.height(compactCockpitHeight).clipToBounds()
-                        } else {
-                            Modifier.wrapContentHeight()
-                        }
-                    ),
+                modifier = Modifier.fillMaxWidth(),
             ) {
-            // Drag handle to toggle Compact vs Expanded mode
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -335,52 +324,6 @@ fun WorkoutRoadmapBar(
                         modifier = Modifier.size(16.dp)
                     )
                 }
-            }
-
-            AnimatedVisibility(
-                visible = activeMode == RoadmapMode.EXPANDED,
-                enter = expandVertically(
-                    expandFrom = Alignment.Bottom,
-                    animationSpec = tween(durationMillis = 260),
-                ) + fadeIn(animationSpec = tween(durationMillis = 160)),
-                exit = shrinkVertically(
-                    shrinkTowards = Alignment.Bottom,
-                    animationSpec = tween(durationMillis = 220),
-                ) + fadeOut(animationSpec = tween(durationMillis = 140)),
-            ) {
-                val totalCompletedCount = WorkoutStepRules.completedRoadmapSlotsForExercises(
-                    exercises = exercises,
-                    completedSets = completedSets,
-                    omittedSetKeys = omittedSetKeys,
-                )
-                val totalSetsCount = WorkoutStepRules.totalRoadmapSlotsForExercises(
-                    exercises = exercises,
-                    omittedSetKeys = omittedSetKeys,
-                )
-                WorkoutSessionCockpit(
-                    exercises = exercises,
-                    completedSets = completedSets,
-                    milestones = milestones,
-                    sessionProgressLabel = "Progreso: $totalCompletedCount/$totalSetsCount",
-                    liveEnergySummary = liveEnergySummary,
-                    sessionNotes = sessionNotes,
-                    sessionSavedNotes = sessionSavedNotes,
-                    sessionPhotos = sessionPhotos,
-                    sessionChecklist = sessionChecklist,
-                    onSessionNotesChange = onSessionNotesChange,
-                    onSaveSessionNote = onSaveSessionNote,
-                    onAddSessionPhoto = onAddSessionPhoto,
-                    onRemoveSessionPhoto = onRemoveSessionPhoto,
-                    onAddChecklistItem = onAddChecklistItem,
-                    onToggleChecklistItem = onToggleChecklistItem,
-                    onRemoveChecklistItem = onRemoveChecklistItem,
-                    sessionAccentColor = sessionAccentColor,
-                    bodyWeight = bodyWeight,
-                    planAspects = planAspects,
-                    onRevertPlanAspect = onRevertPlanAspect,
-                    godModeActions = godModeUndoStack,
-                    onRevertGodModeAction = onRevertGodModeAction,
-                )
             }
 
             if (aboveCarousel != null || selectionMode) {

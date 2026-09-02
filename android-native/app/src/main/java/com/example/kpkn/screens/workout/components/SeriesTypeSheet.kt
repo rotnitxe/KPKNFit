@@ -1,27 +1,28 @@
 package com.example.kpkn.screens.workout.components
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.domain.sessionassistant.SeriesTechnique
+import com.example.kpkn.screens.workout.STEPPER_CHROME_SIZE_DP
 import com.example.kpkn.screens.workout.SeriesTypeTarget
 import com.example.kpkn.ui.components.KpknSheet
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SeriesTypeSheet(
     exercise: Exercise,
@@ -31,18 +32,47 @@ fun SeriesTypeSheet(
     onApply: (SeriesTypeTarget, SeriesTechnique) -> Unit,
 ) {
     var selectedTechnique by remember(target) { mutableStateOf(SeriesTechnique.NORMAL) }
-    var fromIdx by remember(target) { mutableStateOf(target.fromSetIdx) }
-    var toIdx by remember(target) { mutableStateOf(target.toSetIdx) }
-    var includeAllFollowing by remember(target) { mutableStateOf(true) }
+    val initialIndices = remember(target, exercise.sets.size) {
+        val fromTarget = target.selectedSetIndices.filter { it in exercise.sets.indices }.toSet()
+        if (fromTarget.isNotEmpty()) fromTarget
+        else (target.fromSetIdx..target.toSetIdx).filter { it in exercise.sets.indices }.toSet()
+            .ifEmpty { setOf(target.fromSetIdx.coerceIn(0, (exercise.sets.size - 1).coerceAtLeast(0))) }
+    }
+    var selectedIndices by remember(target) { mutableStateOf(initialIndices) }
+    var multiMarkStarted by remember(target) { mutableStateOf(initialIndices.size > 1) }
+    var anchorIdx by remember(target) {
+        mutableStateOf(target.fromSetIdx.coerceIn(0, (exercise.sets.size - 1).coerceAtLeast(0)))
+    }
+    var includeAllFollowing by remember(target) {
+        mutableStateOf(target.toSetIdx >= exercise.sets.lastIndex && selectedIndices.size > 1)
+    }
 
-    // Detect current technique for the first selected set to preselect chip
     LaunchedEffect(target, exercise.id) {
-        val first = exercise.sets.getOrNull(target.fromSetIdx)
+        val first = exercise.sets.getOrNull(anchorIdx) ?: exercise.sets.getOrNull(target.fromSetIdx)
         selectedTechnique = when {
             first?.isDropSet == true -> SeriesTechnique.DROPSET
             first?.isRestPause == true -> SeriesTechnique.REST_PAUSE
             else -> SeriesTechnique.NORMAL
         }
+    }
+
+    val lastIndex = exercise.sets.lastIndex
+    val fromEndSet = if (lastIndex >= 0) (anchorIdx..lastIndex).toSet() else emptySet()
+    val rangeChipSelected = includeAllFollowing && selectedIndices.containsAll(fromEndSet)
+    val soloChipSelected = !multiMarkStarted && selectedIndices == setOf(anchorIdx)
+
+    fun toggleIndex(idx: Int) {
+        if (idx in completedSetIndices) return
+        val next = if (idx in selectedIndices) {
+            val remaining = selectedIndices - idx
+            if (remaining.isEmpty()) selectedIndices else remaining
+        } else {
+            selectedIndices + idx
+        }
+        selectedIndices = next
+        multiMarkStarted = next.size > 1
+        includeAllFollowing = false
+        anchorIdx = idx
     }
 
     KpknSheet(onDismissRequest = onDismiss) {
@@ -60,119 +90,100 @@ fun SeriesTypeSheet(
                 maxLines = 2,
             )
             Text(
-                text = "Elige qué series cambiar. Las completadas no se tocan.",
+                text = "Elige qué series cambiar. Las completadas no se tocan. Mantén pulsado un nodo para marcar varias.",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White.copy(alpha = 0.7f),
             )
 
-            // Mini stepper
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 exercise.sets.forEachIndexed { idx, set ->
                     val isCompleted = idx in completedSetIndices
-                    val isSelected = idx in fromIdx..toIdx
+                    val isSelected = idx in selectedIndices
                     val label = "S${idx + 1}"
-                    val isDrop = set.isDropSet
-                    val isRp = set.isRestPause
-                    val bg = when {
-                        isCompleted -> Color(0xFF1E3A24)
-                        isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.22f)
-                        else -> Color(0xFF1D1E20)
+                    val fill = when {
+                        isCompleted -> Color(0xFF66BB6A)
+                        isSelected -> MaterialTheme.colorScheme.primary
+                        else -> Color(0xFF26252C)
                     }
                     val border = when {
-                        isCompleted -> BorderStroke(1.dp, Color(0xFF66BB6A))
-                        isSelected -> BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
-                        isDrop || isRp -> BorderStroke(1.dp, Color.White.copy(alpha = 0.45f))
-                        else -> BorderStroke(1.dp, Color.White.copy(alpha = 0.18f))
-                    }
-                    val techniqueBadge = when {
-                        isDrop -> "D"
-                        isRp -> "RP"
-                        else -> ""
+                        isCompleted -> BorderStroke(0.dp, Color.Transparent)
+                        isSelected -> BorderStroke(0.dp, Color.Transparent)
+                        set.isDropSet || set.isRestPause -> BorderStroke(1.2.dp, Color.White.copy(alpha = 0.45f))
+                        else -> BorderStroke(1.2.dp, Color.White.copy(alpha = 0.35f))
                     }
                     Surface(
                         modifier = Modifier
-                            .height(44.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable(enabled = !isCompleted) {
-                                fromIdx = idx
-                                toIdx = idx
-                                includeAllFollowing = false
-                            },
-                        shape = RoundedCornerShape(12.dp),
-                        color = bg,
+                            .size(STEPPER_CHROME_SIZE_DP.dp)
+                            .combinedClickable(
+                                enabled = !isCompleted,
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = {
+                                    if (multiMarkStarted) {
+                                        toggleIndex(idx)
+                                    } else {
+                                        selectedIndices = setOf(idx)
+                                        anchorIdx = idx
+                                        includeAllFollowing = false
+                                    }
+                                },
+                                onLongClick = { toggleIndex(idx) },
+                            ),
+                        shape = CircleShape,
+                        color = fill,
                         border = border,
                     ) {
-                        Box(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = label,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Black,
-                                    color = when {
-                                        isCompleted -> Color(0xFF66BB6A)
-                                        isSelected -> MaterialTheme.colorScheme.primary
-                                        else -> Color.White
-                                    },
-                                )
-                                if (techniqueBadge.isNotBlank()) {
-                                    Text(
-                                        text = techniqueBadge,
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White.copy(alpha = 0.85f),
-                                    )
-                                }
-                                if (isCompleted) {
-                                    Text(
-                                        text = "✓",
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
-                                        color = Color(0xFF66BB6A),
-                                    )
-                                }
-                            }
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = if (isCompleted) "✓" else label,
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontSize = if (isSelected && !isCompleted) 11.sp else 10.sp,
+                                ),
+                                fontWeight = FontWeight.Black,
+                                color = when {
+                                    isCompleted -> Color.White
+                                    isSelected -> Color.Black
+                                    else -> Color.White.copy(alpha = 0.9f)
+                                },
+                                maxLines = 1,
+                            )
                         }
                     }
                 }
             }
 
-            // Range switches
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 FilterChip(
-                    selected = includeAllFollowing,
+                    selected = rangeChipSelected,
                     onClick = {
                         includeAllFollowing = true
-                        toIdx = exercise.sets.lastIndex
+                        multiMarkStarted = true
+                        selectedIndices = fromEndSet
                     },
-                    label = { Text("Desde S${fromIdx + 1} hasta el final") },
+                    label = { Text("Desde S${anchorIdx + 1} hasta el final") },
                     modifier = Modifier.weight(1f),
                 )
                 FilterChip(
-                    selected = !includeAllFollowing,
-                    onClick = { includeAllFollowing = false },
-                    label = { Text("Solo S${fromIdx + 1}") },
+                    selected = soloChipSelected,
+                    onClick = {
+                        includeAllFollowing = false
+                        multiMarkStarted = false
+                        selectedIndices = setOf(anchorIdx)
+                    },
+                    label = { Text("Solo S${anchorIdx + 1}") },
                     modifier = Modifier.weight(1f),
                 )
             }
-            if (!includeAllFollowing && fromIdx != toIdx) {
-                // Reset to single when toggled
-                LaunchedEffect(includeAllFollowing) {
-                    if (!includeAllFollowing) toIdx = fromIdx
-                }
-            }
 
-            // Technique selector
             Text(
                 text = "Tipo de serie",
                 style = MaterialTheme.typography.labelMedium,
@@ -204,9 +215,9 @@ fun SeriesTypeSheet(
             }
             Text(
                 text = when (selectedTechnique) {
-                    SeriesTechnique.NORMAL -> "Serie estándar."
-                    SeriesTechnique.DROPSET -> "Tras la serie, baja unos 5 kg para poder hacer 3 reps más. La carga sigue siendo similar; no es un dump de peso."
-                    SeriesTechnique.REST_PAUSE -> "Mismo peso. Pausa de 15 s y luego 3 reps. El descanso corto limita el rango, no la carga."
+                    SeriesTechnique.NORMAL -> "Serie estándar. Quita dropset o rest-pause y el descanso especial."
+                    SeriesTechnique.DROPSET -> "Entre las series marcadas: sin descanso y −5 kg en la siguiente."
+                    SeriesTechnique.REST_PAUSE -> "Entre las series marcadas: 15 s de descanso y el mismo peso."
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White.copy(alpha = 0.62f),
@@ -222,9 +233,16 @@ fun SeriesTypeSheet(
                 ) { Text("Cancelar") }
                 Button(
                     onClick = {
-                        val finalTo = if (includeAllFollowing) exercise.sets.lastIndex else fromIdx
+                        val indices = selectedIndices.filter { it in exercise.sets.indices }.toSet()
+                        val from = indices.minOrNull() ?: anchorIdx
+                        val to = indices.maxOrNull() ?: from
                         onApply(
-                            SeriesTypeTarget(exercise.id, fromIdx, finalTo),
+                            SeriesTypeTarget(
+                                exerciseId = exercise.id,
+                                fromSetIdx = from,
+                                toSetIdx = to,
+                                selectedSetIndices = indices,
+                            ),
                             selectedTechnique,
                         )
                     },

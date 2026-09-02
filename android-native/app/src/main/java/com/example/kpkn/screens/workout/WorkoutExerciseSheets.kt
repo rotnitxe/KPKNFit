@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -7,10 +8,13 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -18,6 +22,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -30,6 +35,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,6 +58,7 @@ import com.example.kpkn.data.models.SubTagCategory
 import com.example.kpkn.data.models.WorkoutContextProfile
 import com.example.kpkn.data.models.WorkoutTag
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.kpknSheetWhiteTonalButtonColors
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -239,6 +247,170 @@ internal fun ExerciseTagSheetContent(
     }
 }
 
+private val TagFilledFieldShape = RoundedCornerShape(16.dp)
+
+@Composable
+internal fun WorkoutTagFilledTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+    singleLine: Boolean = true,
+) {
+    TextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        singleLine = singleLine,
+        modifier = modifier.fillMaxWidth(),
+        shape = TagFilledFieldShape,
+        colors = TextFieldDefaults.colors(
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            focusedContainerColor = Color.White.copy(alpha = 0.12f),
+            unfocusedContainerColor = Color.White.copy(alpha = 0.08f),
+            disabledContainerColor = Color.White.copy(alpha = 0.06f),
+        ),
+    )
+}
+
+internal data class WorkoutTagListRow(
+    val tag: WorkoutTag,
+    val title: String,
+    val lastLoadLabel: String,
+    val isActive: Boolean,
+)
+
+@Composable
+internal fun WorkoutTagListOverlay(
+    rows: List<WorkoutTagListRow>,
+    onSelectTag: (String) -> Unit,
+    onCreateTag: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    KpknAlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Etiquetas", fontWeight = FontWeight.Black) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 420.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                if (rows.isEmpty()) {
+                    Text(
+                        "Un ejercicio lo puedes llevar a cabo con distintas técnicas o máquinas diferentes. " +
+                            "Eso puede cambiar bastante las cargas que puedes mover. Para esos casos y más, " +
+                            "puedes asignar etiquetas; guardan su propio historial y sobrecarga progresiva, " +
+                            "y para cambiar entre etiquetas, adaptamos las cargas a una u otra para que tu " +
+                            "progreso sea fluído.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                } else {
+                    rows.forEach { row ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onSelectTag(row.tag.id) }
+                                .padding(vertical = 6.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(
+                                    row.title,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = if (row.isActive) FontWeight.Black else FontWeight.Bold,
+                                )
+                                Text(
+                                    row.lastLoadLabel,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White.copy(alpha = 0.65f),
+                                )
+                            }
+                        }
+                    }
+                }
+                Button(
+                    onClick = onCreateTag,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                ) {
+                    Text("Crear etiqueta nueva")
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("Cerrar") }
+        },
+    )
+}
+
+@Composable
+internal fun WorkoutCreateTagOverlay(
+    onCreate: (name: String, setup: TagSetupInput?) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var newTagName by remember { mutableStateOf("") }
+    var newMachineBrand by remember { mutableStateOf("") }
+    var newBaseLoad by remember { mutableStateOf("") }
+    var newSetupNotes by remember { mutableStateOf("") }
+    KpknAlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Nueva etiqueta", fontWeight = FontWeight.Black) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                WorkoutTagFilledTextField(
+                    value = newTagName,
+                    onValueChange = { newTagName = it },
+                    label = "Nombre de la etiqueta",
+                )
+                Text(
+                    "Set-up de máquina (opcional)",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+                WorkoutTagFilledTextField(
+                    value = newMachineBrand,
+                    onValueChange = { newMachineBrand = it },
+                    label = "Marca / máquina",
+                )
+                WorkoutTagFilledTextField(
+                    value = newBaseLoad,
+                    onValueChange = { newBaseLoad = it.filter { ch -> ch.isDigit() || ch == '.' || ch == ',' } },
+                    label = "Carga base (kg)",
+                )
+                WorkoutTagFilledTextField(
+                    value = newSetupNotes,
+                    onValueChange = { newSetupNotes = it },
+                    label = "Notas de set-up",
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (newTagName.isNotBlank() || newMachineBrand.isNotBlank()) {
+                        val setup = TagSetupInput(
+                            machineBrand = newMachineBrand,
+                            baseLoadKg = newBaseLoad.replace(',', '.').toDoubleOrNull(),
+                            setupNotes = newSetupNotes,
+                        )
+                        onCreate(newTagName, setup.takeIf { it.hasContent })
+                    }
+                },
+                enabled = newTagName.isNotBlank() || newMachineBrand.isNotBlank(),
+            ) { Text("Crear") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancelar") }
+        },
+    )
+}
+
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 internal fun WorkoutTagManagerModal(
@@ -251,23 +423,36 @@ internal fun WorkoutTagManagerModal(
     onToggleSubTagActive: (String) -> Unit,
     activeSubTagIds: List<String>,
     onDismiss: () -> Unit,
+    onViewAll: () -> Unit = {},
+    history: List<ExerciseHistoryEntry> = emptyList(),
+    machineBrand: String = "",
+    baseLoadKg: String = "",
+    setupNotes: String = "",
+    onSaveSetup: (TagSetupInput) -> Unit = {},
 ) {
     var editName by remember { mutableStateOf(tag.name) }
     var showAddSubTag by remember { mutableStateOf(false) }
     var newSubTagName by remember { mutableStateOf("") }
     var newSubTagCategory by remember { mutableStateOf(SubTagCategory.LIBRE) }
+    var brand by remember(tag.id, machineBrand) { mutableStateOf(machineBrand) }
+    var baseLoad by remember(tag.id, baseLoadKg) { mutableStateOf(baseLoadKg) }
+    var notes by remember(tag.id, setupNotes) { mutableStateOf(setupNotes) }
 
     KpknAlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Editar etiqueta", fontWeight = FontWeight.Black) },
+        title = { Text(tag.name.ifBlank { "Etiqueta" }, fontWeight = FontWeight.Black) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 460.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                WorkoutTagFilledTextField(
                     value = editName,
                     onValueChange = { editName = it },
-                    label = { Text("Nombre") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    label = "Nombre",
                 )
 
                 if (editName != tag.name) {
@@ -275,6 +460,48 @@ internal fun WorkoutTagManagerModal(
                         Text("Guardar nombre")
                     }
                 }
+
+                HorizontalDivider()
+
+                Text("Set-up", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                WorkoutTagFilledTextField(
+                    value = brand,
+                    onValueChange = { brand = it },
+                    label = "Marca / máquina",
+                )
+                WorkoutTagFilledTextField(
+                    value = baseLoad,
+                    onValueChange = { baseLoad = it.filter { ch -> ch.isDigit() || ch == '.' || ch == ',' } },
+                    label = "Carga base (kg)",
+                )
+                WorkoutTagFilledTextField(
+                    value = notes,
+                    onValueChange = { notes = it },
+                    label = "Notas de set-up",
+                )
+                TextButton(
+                    onClick = {
+                        onSaveSetup(
+                            TagSetupInput(
+                                machineBrand = brand,
+                                baseLoadKg = baseLoad.replace(',', '.').toDoubleOrNull(),
+                                setupNotes = notes,
+                            ),
+                        )
+                    },
+                ) {
+                    Text("Guardar set-up")
+                }
+
+                HorizontalDivider()
+
+                Text("Historial", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                WorkoutExerciseHistoryContent(
+                    history = history,
+                    activeTag = tag.name,
+                    maxEntries = 4,
+                    maxSetsPerEntry = 3,
+                )
 
                 HorizontalDivider()
 
@@ -311,12 +538,10 @@ internal fun WorkoutTagManagerModal(
 
                 if (showAddSubTag) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
+                        WorkoutTagFilledTextField(
                             value = newSubTagName,
                             onValueChange = { newSubTagName = it },
-                            label = { Text("Nombre de sub-etiqueta") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
+                            label = "Nombre de sub-etiqueta",
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             SubTagCategory.entries.forEach { cat ->
@@ -362,6 +587,14 @@ internal fun WorkoutTagManagerModal(
                     Spacer(Modifier.width(4.dp))
                     Text("Eliminar etiqueta")
                 }
+            }
+        },
+        dismissButton = {
+            FilledTonalButton(
+                onClick = onViewAll,
+                colors = kpknSheetWhiteTonalButtonColors(),
+            ) {
+                Text("Ver más", fontWeight = FontWeight.Bold)
             }
         },
         confirmButton = {

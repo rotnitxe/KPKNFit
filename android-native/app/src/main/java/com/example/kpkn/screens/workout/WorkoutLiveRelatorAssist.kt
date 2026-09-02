@@ -15,7 +15,7 @@ internal enum class RelatorAssistKind {
     MOBILITY,
 }
 
-internal enum class RelatorAssistActionKind {
+enum class RelatorAssistActionKind {
     JUMP_TO_SET,
     OMIT_SET,
     JUMP_TO_EXERCISE,
@@ -23,6 +23,7 @@ internal enum class RelatorAssistActionKind {
     JUMP_TO_SIDE,
     CONVERT_DROPSETS,
     HALVE_SETS,
+    PREVIEW_ULTRAFAST,
     ADD_MOBILITY,
 }
 
@@ -34,6 +35,12 @@ internal data class RelatorAssistAction(
     val side: String = "",
     val mobilityId: String = "",
     val span: String = "",
+)
+
+data class RelatorAssistAck(
+    val kind: RelatorAssistActionKind,
+    val applied: Boolean,
+    val detail: String = "",
 )
 
 internal data class RelatorAssistOffer(
@@ -66,6 +73,7 @@ internal data class RelatorAssistContext(
     val omittedSetKeys: Set<String>,
     val skippedExerciseIds: Set<String>,
     val remainingSeconds: Int?,
+    val ultraFastApplied: Boolean = false,
 )
 
 internal fun relatorParentContextKey(
@@ -97,6 +105,7 @@ internal val RelatorSpeechBucket.isAssist: Boolean
         RelatorSpeechBucket.ASSIST_GAP_EXERCISE,
         RelatorSpeechBucket.ASSIST_TIME,
         RelatorSpeechBucket.ASSIST_MOBILITY,
+        RelatorSpeechBucket.ASSIST_CONFIRM,
         -> true
         else -> false
     }
@@ -391,21 +400,40 @@ private fun timeCrunchOffer(ctx: RelatorAssistContext): RelatorAssistOffer? {
     val leftover = remainingIncompleteSetsFromHere(ctx)
     if (leftover < RELATOR_TIME_CRUNCH_MIN_SETS) return null
     val minutes = (remaining / 60).coerceAtLeast(1)
-    return RelatorAssistOffer(
-        kind = RelatorAssistKind.TIME,
-        text = "Te quedan $minutes min. Convierte a dropsets, o reduce series a la mitad.",
-        actions = listOf(
+    val actions = buildList {
+        if (!ctx.ultraFastApplied) {
+            add(
+                RelatorAssistAction(
+                    kind = RelatorAssistActionKind.PREVIEW_ULTRAFAST,
+                    label = "modo Ultrarrápido",
+                    span = "modo Ultrarrápido",
+                ),
+            )
+        }
+        add(
             RelatorAssistAction(
                 kind = RelatorAssistActionKind.CONVERT_DROPSETS,
                 label = "Convierte a dropsets",
                 span = "Convierte a dropsets",
             ),
+        )
+        add(
             RelatorAssistAction(
                 kind = RelatorAssistActionKind.HALVE_SETS,
                 label = "reduce series a la mitad",
                 span = "reduce series a la mitad",
             ),
-        ),
+        )
+    }
+    val text = if (ctx.ultraFastApplied) {
+        "Te quedan $minutes min. Convierte a dropsets, o reduce series a la mitad."
+    } else {
+        "Te quedan $minutes min. Prueba el modo Ultrarrápido, o Convierte a dropsets / reduce series a la mitad."
+    }
+    return RelatorAssistOffer(
+        kind = RelatorAssistKind.TIME,
+        text = text,
+        actions = actions,
         stickyKey = "time:$leftover",
     )
 }

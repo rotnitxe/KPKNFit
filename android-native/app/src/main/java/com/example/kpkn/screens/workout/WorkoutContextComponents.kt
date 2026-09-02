@@ -309,15 +309,18 @@ internal fun WorkoutExerciseHistoryContent(
     maxEntries: Int? = null,
     maxSetsPerEntry: Int = 6,
 ) {
-    if (history.isEmpty()) {
+    val visibleHistory = remember(history, maxEntries) {
+        maxEntries?.let { history.take(it) } ?: history
+    }
+    if (visibleHistory.isEmpty()) {
         Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
             Text("Sin historial registrado", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         return
     }
 
-    val groupedHistory = remember(history) {
-        history.groupBy { entry ->
+    val groupedHistory = remember(visibleHistory) {
+        visibleHistory.groupBy { entry ->
             val date = try {
                 java.time.LocalDate.parse(entry.date.take(10))
             } catch (e: Exception) {

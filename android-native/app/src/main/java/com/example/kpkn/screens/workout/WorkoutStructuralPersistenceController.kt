@@ -45,6 +45,7 @@ class WorkoutStructuralPersistenceController(
         fun defaultContextProfileForExercise(exercise: Exercise): WorkoutContextProfile
         fun refreshLoadSuggestions(state: WorkoutUiState)
         fun persistOngoingState()
+        fun invalidateEditorDraft()
     }
 
     private var deferredReplacementPrompt: PendingReplacementPersistencePrompt? = null
@@ -66,6 +67,16 @@ class WorkoutStructuralPersistenceController(
         if (program != null && location != null &&
             effectiveScope != ReplacementPersistenceScopeV2.SESSION_ONLY &&
             effectiveScope != ReplacementPersistenceScopeV2.BLOCK_MATCHING) {
+            val permanent = effectiveScope == ReplacementPersistenceScopeV2.PERMANENT
+            fun persist(session: Session) {
+                upsertEditedProgramSession(
+                    weekId = state.weekId,
+                    macroIndex = location.macroIndex,
+                    mesoIndex = location.mesoIndex,
+                    session = session,
+                    permanent = permanent,
+                )
+            }
             when (change) {
                 is PendingStructuralChange.AddSet -> {
                     val week = program.macrocycles
@@ -96,7 +107,7 @@ class WorkoutStructuralPersistenceController(
                                 WorkoutEditingRules.normalizeLiveEditedExercise(ex.copy(sets = ex.sets + newSet))
                             }
                         }
-                        repository.upsertSessionInProgram(programId, state.weekId, location.macroIndex, location.mesoIndex, updatedSession)
+                        persist(updatedSession)
                     }
                 }
                 is PendingStructuralChange.AddExercise -> {
@@ -112,7 +123,7 @@ class WorkoutStructuralPersistenceController(
                             val targetSession = targetWeek.sessions.firstOrNull { it.id == sessionId }
                             if (targetSession == null) return@let
                             val updatedSession = insertExerciseAfter(targetSession, change.afterExerciseId, liveExercise)
-                            repository.upsertSessionInProgram(programId, state.weekId, location.macroIndex, location.mesoIndex, updatedSession)
+                            persist(updatedSession)
                         }
                     }
                 }
@@ -141,7 +152,7 @@ class WorkoutStructuralPersistenceController(
                                 }
                                 afterId = liveEx.id
                             }
-                            repository.upsertSessionInProgram(programId, state.weekId, location.macroIndex, location.mesoIndex, updatedSession)
+                            persist(updatedSession)
                         }
                     }
                 }
@@ -152,24 +163,12 @@ class WorkoutStructuralPersistenceController(
                             state = state,
                             change = change,
                         )
-                        repository.upsertSessionInProgram(
-                            programId,
-                            state.weekId,
-                            location.macroIndex,
-                            location.mesoIndex,
-                            updatedSession,
-                        )
+                        persist(updatedSession)
                     }
                 }
                 is PendingStructuralChange.DissolveSuperset -> {
                     state.session?.let { liveSession ->
-                        repository.upsertSessionInProgram(
-                            programId,
-                            state.weekId,
-                            location.macroIndex,
-                            location.mesoIndex,
-                            liveSession,
-                        )
+                        persist(liveSession)
                     }
                 }
                 is PendingStructuralChange.ReorderExercises -> {
@@ -203,7 +202,7 @@ class WorkoutStructuralPersistenceController(
                                     }
                                 }
                             }
-                            repository.upsertSessionInProgram(programId, state.weekId, location.macroIndex, location.mesoIndex, updatedSession)
+                            persist(updatedSession)
                         }
                     }
                 }
@@ -218,10 +217,11 @@ class WorkoutStructuralPersistenceController(
                     week?.let { targetWeek ->
                         val targetSession = targetWeek.sessions.firstOrNull { it.id == sessionId } ?: return@let
                         val updatedSession = applyPendingStructuralChangeToSession(targetSession, change, state)
-                        repository.upsertSessionInProgram(programId, state.weekId, location.macroIndex, location.mesoIndex, updatedSession)
+                        persist(updatedSession)
                     }
                 }
             }
+            if (permanent) ports.invalidateEditorDraft()
         }
 
         updateState { it.copy(pendingStructuralPersistence = null) }
@@ -1151,8 +1151,16 @@ class WorkoutStructuralPersistenceController(
                                     replacement = replacement,
                                     slotStrict = scope == ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING || scope == ReplacementPersistenceScopeV2.BLOCK_MATCHING,
                                 )
-                                if (updated != session) changed = true
-                                updated
+                                if (updated != session) {
+                                    changed = true
+                                    if (scope == ReplacementPersistenceScopeV2.PERMANENT) {
+                                        updated.copy(lastModifiedAtMs = System.currentTimeMillis())
+                                    } else {
+                                        updated
+                                    }
+                                } else {
+                                    session
+                                }
                             }
                         }
 
@@ -1170,6 +1178,21 @@ class WorkoutStructuralPersistenceController(
         }
 
         return if (changed) program.copy(macrocycles = newMacros) else program
+    }
+
+    private fun upsertEditedProgramSession(
+        weekId: String,
+        macroIndex: Int,
+        mesoIndex: Int,
+        session: Session,
+        permanent: Boolean,
+    ) {
+        val stamped = if (permanent) {
+            session.copy(lastModifiedAtMs = System.currentTimeMillis())
+        } else {
+            session
+        }
+        repository.upsertSessionInProgram(programId, weekId, macroIndex, mesoIndex, stamped)
     }
 
     private fun sanitizeLiveEditPersistenceScope(

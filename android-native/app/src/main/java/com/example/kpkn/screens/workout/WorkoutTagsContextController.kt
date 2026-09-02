@@ -314,6 +314,20 @@ class WorkoutTagsContextController(
         persistOngoingState()
     }
 
+    fun selectMainTag(exerciseId: String, tagId: String) {
+        val tag = tagsForExercise(exerciseId).firstOrNull { it.id == tagId } ?: return
+        updateState { state ->
+            state.copy(
+                activeTagsByExercise = state.activeTagsByExercise + (exerciseId to listOf(tagId)),
+                exerciseTags = state.exerciseTags + (exerciseId to tag.name),
+            )
+        }
+        profileForTag(exerciseId, tagId)?.let { profile ->
+            setActiveContextProfile(exerciseId, profile.id)
+        }
+        persistOngoingState()
+    }
+
     fun addSubTag(exerciseId: String, tagId: String, name: String, category: SubTagCategory) {
         val state = getState()
         val exercise = ports.visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return

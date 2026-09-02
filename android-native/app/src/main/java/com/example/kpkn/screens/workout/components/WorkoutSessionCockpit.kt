@@ -39,9 +39,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -79,7 +84,6 @@ import kotlinx.coroutines.launch
 
 private enum class CockpitPage(val title: String) {
     Overview("Resumen"),
-    Actions("Acciones"),
     Photos("Fotos"),
     Tools("Herramientas"),
     Notes("Notas"),
@@ -106,10 +110,6 @@ fun WorkoutSessionCockpit(
     onRemoveChecklistItem: (String) -> Unit,
     sessionAccentColor: Color,
     bodyWeight: Double? = null,
-    planAspects: List<com.example.kpkn.screens.workout.SessionPlanAspect> = emptyList(),
-    onRevertPlanAspect: (String) -> Unit = {},
-    godModeActions: List<com.example.kpkn.screens.workout.GodModeUndoSnapshot> = emptyList(),
-    onRevertGodModeAction: (Int) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val pages = CockpitPage.entries
@@ -119,6 +119,9 @@ fun WorkoutSessionCockpit(
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .animateContentSize(
+                animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+            )
             .heightIn(max = 460.dp)
             .padding(bottom = 8.dp),
     ) {
@@ -154,16 +157,27 @@ fun WorkoutSessionCockpit(
             edgePadding = 12.dp,
             containerColor = Color.Transparent,
             divider = {},
+            indicator = { tabPositions ->
+                if (pagerState.currentPage < tabPositions.size) {
+                    TabRowDefaults.SecondaryIndicator(
+                        modifier = Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage]),
+                        color = sessionAccentColor,
+                    )
+                }
+            },
         ) {
             pages.forEachIndexed { index, page ->
+                val selected = pagerState.currentPage == index
                 Tab(
-                    selected = pagerState.currentPage == index,
+                    selected = selected,
                     onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
+                    selectedContentColor = sessionAccentColor,
+                    unselectedContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
                     text = {
                         Text(
                             page.title,
                             style = MaterialTheme.typography.labelMedium,
-                            fontWeight = if (pagerState.currentPage == index) FontWeight.Bold else FontWeight.Medium,
+                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                         )
                     },
                 )
@@ -183,10 +197,6 @@ fun WorkoutSessionCockpit(
                     completedSets = completedSets,
                     milestones = milestones,
                     sessionAccentColor = sessionAccentColor,
-                )
-                CockpitPage.Actions -> CockpitActionsPage(
-                    aspects = planAspects,
-                    onRevert = onRevertPlanAspect,
                 )
                 CockpitPage.Photos -> CockpitPhotosPage(
                     sessionPhotos = sessionPhotos,
@@ -210,63 +220,6 @@ fun WorkoutSessionCockpit(
                     onRemoveChecklistItem = onRemoveChecklistItem,
                     sessionAccentColor = sessionAccentColor,
                 )
-            }
-        }
-    }
-}
-
-@Composable
-private fun CockpitActionsPage(
-    aspects: List<com.example.kpkn.screens.workout.SessionPlanAspect>,
-    onRevert: (String) -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        if (aspects.isEmpty()) {
-            Text(
-                "Sin cambios respecto al plan.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-            )
-        } else {
-            Text(
-                "Cada acción deshace solo ese cambio. El resto se mantiene.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-            )
-            aspects.forEach { aspect ->
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = Color.White.copy(alpha = 0.06f),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Text(
-                            aspect.label,
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
-                            maxLines = 2,
-                        )
-                        TextButton(onClick = { onRevert(aspect.id) }) {
-                            Text(
-                                "Deshacer",
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
-                    }
-                }
             }
         }
     }
@@ -496,6 +449,9 @@ private fun CockpitToolsPage(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .animateContentSize(
+                animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+            )
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -633,9 +589,6 @@ private fun CockpitNotesPage(
 ) {
     val lastSaved = sessionSavedNotes.lastOrNull()?.text
     var draftItem by remember { mutableStateOf("") }
-    var localNotes by remember(lastSaved, sessionNotes) {
-        mutableStateOf(lastSaved ?: sessionNotes)
-    }
 
     Column(
         modifier = Modifier
@@ -646,16 +599,16 @@ private fun CockpitNotesPage(
     ) {
         CockpitSectionTitle(icon = Icons.AutoMirrored.Filled.Notes, title = "Notas de sesión")
         WorkoutSoftField(
-            value = localNotes,
-            onValueChange = { localNotes = it },
+            value = sessionNotes,
+            onValueChange = onSessionNotesChange,
             placeholder = "Anotaciones generales de la sesión…",
             singleLine = false,
             minLines = 3,
             maxLines = 6,
         )
         TextButton(
-            onClick = { onSaveSessionNote(localNotes) },
-            enabled = localNotes.isNotBlank(),
+            onClick = { onSaveSessionNote(sessionNotes) },
+            enabled = sessionNotes.isNotBlank(),
         ) {
             Text("Guardar nota", color = MaterialTheme.colorScheme.onSurface)
         }

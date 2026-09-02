@@ -109,6 +109,13 @@ class WorkoutSessionHydrator(
         val session = foundSession ?: return false
         val resumedState = repository.ongoingWorkout.value
             ?.takeIf { it.programId == programId && it.session.id == sessionId }
+        val priorSessionLog = if (resumedState == null) {
+            repository.getLogsForSession(sessionId)
+                .filter { it.programId == programId }
+                .maxByOrNull { it.date }
+        } else {
+            null
+        }
 
         val active = repository.activeProgramState.value?.takeIf { it.programId == programId }
         val resolvedWeekId = resolveWorkoutWeekId(
@@ -322,8 +329,8 @@ class WorkoutSessionHydrator(
                 exerciseNotes = resumedState?.exerciseNotes.orEmpty(),
                 exercisePhotos = resumedState?.exercisePhotos.orEmpty(),
                 sessionMilestones = resumedState?.sessionMilestones.orEmpty(),
-                sessionNotes = resumedState?.sessionNotes.orEmpty(),
-                sessionSavedNotes = resumedState?.sessionSavedNotes.orEmpty(),
+                sessionNotes = resumedState?.sessionNotes ?: priorSessionLog?.sessionNotes.orEmpty(),
+                sessionSavedNotes = resumedState?.sessionSavedNotes ?: priorSessionLog?.sessionSavedNotes.orEmpty(),
                 plannedSessionBaseline = resumedState?.plannedSessionBaseline
                     ?: ports.sessionForActiveMode(
                         session.normalizeMobilityCompatibility()
@@ -332,7 +339,7 @@ class WorkoutSessionHydrator(
                         restoredMode,
                     ),
                 sessionPhotos = resumedState?.sessionPhotos.orEmpty(),
-                sessionChecklist = resumedState?.sessionChecklist.orEmpty(),
+                sessionChecklist = resumedState?.sessionChecklist ?: priorSessionLog?.sessionChecklist.orEmpty(),
                 voiceTimedSet = resumedState?.voiceTimedSet?.copy(isRunning = false),
                 voiceExerciseQueue = resumedState?.voiceExerciseQueue.orEmpty(),
                 voicePendingFeedbackExerciseIds = resumedState?.voicePendingFeedbackExerciseIds.orEmpty(),
@@ -409,6 +416,9 @@ class WorkoutSessionHydrator(
                     manualLoadOverrides = getState().manualLoadOverrides,
                     editingSetKey = getState().editingState?.setKey,
                     restModalState = getState().restModalState,
+                    sessionNotes = getState().sessionNotes,
+                    sessionSavedNotes = getState().sessionSavedNotes,
+                    sessionChecklist = getState().sessionChecklist,
                 )
             )
         }

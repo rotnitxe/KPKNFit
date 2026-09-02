@@ -32,7 +32,7 @@ class WorkoutVisualModelsTest {
             contentWidthWithoutGapsDp = 78f,
             gapCount = 2,
         )
-        assertEquals(21f, gap, 0.01f)
+        assertEquals(36f, gap, 0.01f)
     }
 
     @Test
@@ -79,7 +79,7 @@ class WorkoutVisualModelsTest {
             contentWidthWithoutGapsDp = 288f, // 9 * 32
             gapCount = 8,
         )
-        assertEquals(21f, few, 0.01f)
+        assertEquals(36f, few, 0.01f)
         assertEquals(10f, many, 0.01f)
         assert(few > many)
     }
@@ -834,5 +834,53 @@ class WorkoutVisualModelsTest {
         assertTrue(looseAccent != androidx.compose.ui.graphics.Color(0xFF38BDF8))
         assertTrue(groupAccent != cover)
         assertTrue(groupAccent != androidx.compose.ui.graphics.Color(0xFF38BDF8))
+    }
+
+    @Test
+    fun inflate_single_s1_makes_effective_cloud_readable() {
+        val elements = listOf(
+            TimelineElement.BilateralSet(
+                pageIndex = 0,
+                label = "S1",
+                state = WorkoutSetCardVisualState.ACTIVE,
+            ),
+        )
+        val slots = stepperRailSlots(elements)
+        val natural = slots.map { stepperRailSlotWidthDp(it) }
+        assertEquals(32f, natural.single(), 0.01f)
+        val inflated = inflateStepperSlotWidthsForClouds(slots, natural, gapDp = 10f)
+        val pieces = mergeStepperCloudPieces(slots, inflated, gapDp = 10f)
+        val piece = pieces.single()
+        assertEquals(ActivityCloudArea.EFFECTIVE_SERIES, piece.area)
+        val min = activityCloudMinLabelWidthDp(ActivityCloudArea.EFFECTIVE_SERIES)
+        assertTrue(piece.width.value + 0.01f >= min)
+        val label = activityCloudLabelWidthDp(piece.width.value, ActivityCloudArea.EFFECTIVE_SERIES)
+        assertTrue(label + 0.01f >= min)
+        assertTrue(label <= piece.width.value + 0.01f)
+    }
+
+    @Test
+    fun inflate_single_apr_makes_preparation_cloud_readable() {
+        val elements = listOf(
+            TimelineElement.WarmupPill(
+                isCurrent = true,
+                isCompleted = false,
+                progress = 0.4f,
+                onSelect = {},
+            ),
+        )
+        val slots = stepperRailSlots(elements)
+        val inflated = inflateStepperSlotWidthsForClouds(
+            slots,
+            slots.map { stepperRailSlotWidthDp(it) },
+            gapDp = 10f,
+        )
+        val pieces = mergeStepperCloudPieces(slots, inflated, gapDp = 10f)
+        val piece = pieces.single()
+        assertEquals(ActivityCloudArea.PREPARATION, piece.area)
+        val min = activityCloudMinLabelWidthDp(ActivityCloudArea.PREPARATION)
+        assertTrue(piece.width.value + 0.01f >= min)
+        val label = activityCloudLabelWidthDp(piece.width.value, ActivityCloudArea.PREPARATION)
+        assertTrue(label + 0.01f >= min)
     }
 }

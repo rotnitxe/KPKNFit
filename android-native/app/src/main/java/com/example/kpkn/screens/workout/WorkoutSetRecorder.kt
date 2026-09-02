@@ -26,6 +26,8 @@ import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngine
+import com.example.kpkn.domain.workout.isStackedIntensityTechnique
+import com.example.kpkn.domain.workout.isVolumeReplacedTechnique
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.data.models.SessionEnergySummary
 import com.example.kpkn.data.models.SetDrain
@@ -382,7 +384,7 @@ class WorkoutSetRecorder(
             val amrapBelowMinimum = amrapActive &&
                 amrapMinimumReps != null &&
                 actualReps < amrapMinimumReps
-            val completedSet = applyAdvancedFeedback(
+            val recordedAfterAdvanced = applyAdvancedFeedback(
                 base = CompletedSet(
                     id = UUID.randomUUID().toString(),
                     weight = outcome.augeEquivalentLoad,
@@ -410,6 +412,14 @@ class WorkoutSetRecorder(
                 ),
                 advanced = advanced,
             )
+            val completedSet = if (plannedSet?.isVolumeReplacedTechnique() == true) {
+                recordedAfterAdvanced.copy(
+                    dropSets = recordedAfterAdvanced.dropSets.ifEmpty { plannedSet.dropSets },
+                    restPauses = recordedAfterAdvanced.restPauses.ifEmpty { plannedSet.restPauses },
+                )
+            } else {
+                recordedAfterAdvanced
+            }
 
             val key = buildCompletedSetKey(exercise.id, targetSetIdx, resolvedSide)
             val wasExistingSet = state.completedSets.containsKey(key)
@@ -549,7 +559,8 @@ class WorkoutSetRecorder(
                     ?: supersetGroup?.restAfterSuperset
                     ?: baseRest
                 RestTimerKind.WARMUP -> exercise.warmupSets.getOrNull(targetSetIdx)?.restBetween ?: baseRest
-                RestTimerKind.STANDARD -> baseRest
+                RestTimerKind.STANDARD ->
+                    exercise.sets.getOrNull(targetSetIdx)?.restAfterSeconds?.takeIf { it >= 0 } ?: baseRest
             }
             val dbInfo = resolveCatalogExerciseInfo(
                 catalogConfigurationId = exercise.catalogConfigurationId,
@@ -621,8 +632,10 @@ class WorkoutSetRecorder(
                 // Drop/rest-pause pauses run inside the card. Do not start the
                 // originally planned between-set rest until those techniques
                 // have actually been recorded.
-                val techniqueStillOpen = (plannedSet?.isDropSet == true && advanced.dropSets.isEmpty()) ||
-                    (plannedSet?.isRestPause == true && advanced.restPauses.isEmpty())
+                val techniqueStillOpen = plannedSet?.isStackedIntensityTechnique() == true && (
+                    (plannedSet.isDropSet && advanced.dropSets.isEmpty()) ||
+                        (plannedSet.isRestPause && advanced.restPauses.isEmpty())
+                    )
                 val effectivePlanned = if (techniqueStillOpen) 0 else adjustedPlanned
 
                 val pendingSuggestion = PendingRestSuggestion(

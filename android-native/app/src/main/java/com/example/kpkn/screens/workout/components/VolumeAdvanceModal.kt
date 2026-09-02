@@ -34,13 +34,14 @@ fun VolumeAdvanceModal(
         showCloseButton = false,
     ) {
         Text(
-            text = "Completaste más series de las planificadas. Puedes descontar ese volumen en la próxima sesión de la semana que use los mismos músculos.",
+            text = "Realizaste más series de las planificadas.",
             style = MaterialTheme.typography.bodyMedium,
             color = Color.White.copy(alpha = 0.78f),
         )
 
         advances.forEach { advance ->
             val surplusSets = advance.deficitSets.roundToInt().coerceAtLeast(1)
+            val muscle = advance.muscleName.ifBlank { advance.muscleId }
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -51,16 +52,15 @@ fun VolumeAdvanceModal(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
-                        text = advance.muscleName.ifBlank { advance.muscleId },
+                        text = muscle,
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Black,
                         color = Color.White,
                     )
                     Text(
-                        text = "+$surplusSets series extra en esta sesión",
+                        text = "Si sumamos estas a las programadas para la siguiente sesión que involucra $muscle, superas el volumen. ¿Compensas restando de esa sesión las $surplusSets series extra?",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF7DD3FC),
-                        fontWeight = FontWeight.Bold,
+                        color = Color.White.copy(alpha = 0.82f),
                     )
                     Text(
                         text = "Próxima sesión: ${advance.targetSessionName}",
