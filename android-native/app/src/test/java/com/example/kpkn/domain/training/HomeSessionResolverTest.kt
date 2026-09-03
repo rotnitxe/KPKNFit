@@ -208,4 +208,83 @@ class HomeSessionResolverTest {
         assertNotNull(items.first { it.session.id == "mon" }.log)
         assertTrue(items.first { it.session.id == "mon" }.isCompleted)
     }
+
+    @Test
+    fun `calendarized competition day is today and preferred over earlier weekday`() {
+        val monday = Session(
+            id = "mon",
+            name = "Sesión Lunes",
+            dayOfWeek = 1,
+            exercises = listOf(
+                com.example.kpkn.data.models.Exercise(
+                    id = "sq",
+                    name = "Sentadilla",
+                    sets = listOf(com.example.kpkn.data.models.ExerciseSet(id = "s1", targetReps = 5, weight = 100.0)),
+                ),
+            ),
+        )
+        val meet = Session(
+            id = "meet",
+            name = "Técnica",
+            dayOfWeek = 3,
+            isMeetDay = true,
+            isCompetitionSession = true,
+            competitionKeyDateId = "meet",
+            competitionDetails = com.example.kpkn.data.models.CompetitionDetails(competitionDate = "2026-09-02"),
+        )
+        val program = Program(
+            id = "p-comp",
+            name = "Plan",
+            structure = com.example.kpkn.data.models.ProgramStructure.COMPLEX,
+            startDay = 1,
+            timelineStartDate = "2026-08-31",
+            calendarization = ProgramCalendarEngine.defaultCompetitionCalendarization(),
+            keyDates = listOf(
+                com.example.kpkn.data.models.ProgramKeyDate(
+                    id = "meet",
+                    title = "Meet",
+                    type = com.example.kpkn.data.models.KeyDateType.COMPETITION,
+                    startDate = "2026-09-02",
+                    eventDate = "2026-09-02",
+                ),
+            ),
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "macro",
+                    name = "Macro",
+                    blocks = listOf(
+                        Block(
+                            id = "block",
+                            name = "Bloque",
+                            mesocycles = listOf(
+                                Mesocycle(
+                                    id = "meso",
+                                    name = "Meso",
+                                    weeks = listOf(ProgramWeek(id = "w1", name = "Semana 1", sessions = listOf(monday, meet))),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val active = ActiveProgramState(
+            programId = program.id,
+            status = ProgramStatus.ACTIVE,
+            currentWeekId = "w1",
+        )
+        val items = HomeSessionResolver.resolveTodaySessions(
+            program = program,
+            active = active,
+            currentDayOfWeek = 3,
+            history = emptyList(),
+            ongoing = null,
+            today = LocalDate.of(2026, 9, 2),
+        )
+        val meetItem = items.first { it.session.id == "meet" }
+        val mondayItem = items.first { it.session.id == "mon" }
+        assertTrue(meetItem.isToday)
+        assertFalse(mondayItem.isToday)
+        assertEquals("meet", HomeSessionResolver.selectPrimarySession(items)?.session?.id)
+    }
 }

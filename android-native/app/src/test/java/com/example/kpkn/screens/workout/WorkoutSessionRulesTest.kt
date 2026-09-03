@@ -390,6 +390,23 @@ class WorkoutSessionRulesTest {
     }
 
     @Test
+    fun external_load_chips_do_not_copy_typed_weight() {
+        val chips = quickLoadOptionsFor(
+            loadMode = LoadModeV2.LOAD,
+            currentWeightText = "10",
+            suggestedWeight = null,
+            suggestedLoadMode = LoadModeV2.LOAD,
+            previousSessionFirstSetWeight = 50.0,
+            loadIncrementKg = 2.5,
+        )
+        assertEquals("Anterior", chips[0].label)
+        assertEquals(50.0, chips[0].weight, 0.001)
+        assertEquals("Sugerido", chips[1].label)
+        assertEquals(0.0, chips[1].weight, 0.001)
+        assertEquals(52.5, chips[2].weight, 0.001)
+    }
+
+    @Test
     fun assisted_chip_selection_sets_assisted_mode() {
         val chip = QuickLoadChipOption("Asist.", 2.5, false, LoadModeV2.ASSISTED)
         assertEquals(LoadModeV2.ASSISTED, loadModeAfterChipSelection(chip))

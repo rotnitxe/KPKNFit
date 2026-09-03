@@ -911,6 +911,52 @@ class WorkoutLiveRelatorTest {
     }
 
     @Test
+    fun gapSupersetOfferSilentUntilCurrentRoundIsResolved() {
+        val pull = RelatorAssistExercise("pull", "Band Pull-Apart", 3, "ss1", false, false)
+        val hinge = RelatorAssistExercise("hinge", "Buenos Días Zercher", 3, "ss1", false, false)
+        val offer = pickRelatorAssistOffer(
+            RelatorAssistContext(
+                phase = RelatorPhase.WORKING,
+                family = RelatorFamily.PULL,
+                currentExerciseId = "pull",
+                currentExerciseName = "Band Pull-Apart",
+                currentSetIndex = 0,
+                currentExerciseIndex = 0,
+                activeSide = null,
+                sessionExercises = listOf(pull, hinge),
+                completedSetKeys = emptySet(),
+                omittedSetKeys = emptySet(),
+                skippedExerciseIds = emptySet(),
+                remainingSeconds = null,
+            ),
+        )
+        assertTrue(offer == null || offer.kind != RelatorAssistKind.GAP_SUPERSET)
+    }
+
+    @Test
+    fun gapExerciseOfferSilentForSameSupersetPartner() {
+        val pull = RelatorAssistExercise("pull", "Band Pull-Apart", 3, "ss1", false, false)
+        val hinge = RelatorAssistExercise("hinge", "Buenos Días Zercher", 3, "ss1", false, false)
+        val offer = pickRelatorAssistOffer(
+            RelatorAssistContext(
+                phase = RelatorPhase.WORKING,
+                family = RelatorFamily.HINGE,
+                currentExerciseId = "hinge",
+                currentExerciseName = "Buenos Días Zercher",
+                currentSetIndex = 0,
+                currentExerciseIndex = 1,
+                activeSide = null,
+                sessionExercises = listOf(pull, hinge),
+                completedSetKeys = setOf("pull_0"),
+                omittedSetKeys = emptySet(),
+                skippedExerciseIds = emptySet(),
+                remainingSeconds = null,
+            ),
+        )
+        assertTrue(offer == null || offer.kind != RelatorAssistKind.GAP_EXERCISE)
+    }
+
+    @Test
     fun relatorInlinePiecesSplitCopyAndActions() {
         val jump = RelatorAssistAction(
             kind = RelatorAssistActionKind.JUMP_TO_EXERCISE,

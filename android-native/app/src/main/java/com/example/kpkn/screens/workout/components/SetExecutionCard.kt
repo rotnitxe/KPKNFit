@@ -824,6 +824,7 @@ internal fun SetInputCardV2(
     sessionCompletedSet: CompletedSet? = null,
     weightSuggestion: WeightSuggestion? = null,
     previousSessionFirstSetWeight: Double? = null,
+    thisSessionPreviousWorkingWeight: Double? = null,
     sessionAccentColor: Color = MaterialTheme.colorScheme.primary,
     isJustLogged: Boolean = false,
     lastOutcomeV2: SetOutcomeV2? = null,
@@ -1167,7 +1168,6 @@ internal fun SetInputCardV2(
     var setNoteText by remember(exercise.id, setIndex, sideKey) {
         mutableStateOf(initialDraft?.notes.orEmpty())
     }
-    var pendingTechniqueCommit by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
     var loadModeMenuExpanded by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
     var dropSets by remember(exercise.id, setIndex, sideKey) {
         mutableStateOf(listOf(DropSetEntry(weight = 0.0, reps = 0)))
@@ -1580,12 +1580,6 @@ internal fun SetInputCardV2(
         animationSpec = tween(durationMillis = 420),
         label = "setCardFlip",
     )
-    LaunchedEffect(pendingTechniqueCommit, cardFace) {
-        if (pendingTechniqueCommit && cardFace == SetCardFace.Front) {
-            pendingTechniqueCommit = false
-            recordActionHolder.action?.invoke()
-        }
-    }
 
     Box(
         modifier = Modifier
@@ -1643,6 +1637,20 @@ internal fun SetInputCardV2(
                     .wrapContentHeight(),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
+            val activeGuidedPhase = guidedPhase
+            if (activeGuidedPhase != null) {
+                GuidedTechniquePanel(
+                    phase = activeGuidedPhase,
+                    accentColor = sessionAccentColor,
+                    dropWeightText = guidedDropWeightText,
+                    dropRepsText = guidedDropRepsText,
+                    restPauseRepsText = guidedRestPauseRepsText,
+                    onDropWeightChange = { guidedDropWeightText = it },
+                    onDropRepsChange = { guidedDropRepsText = it },
+                    onRestPauseRepsChange = { guidedRestPauseRepsText = it },
+                    onSkipTechnique = { guidedSkipAction[0]?.invoke() },
+                )
+            }
 
             if (supportsIndependentSides && !sideLocked && guidedPhase == null) {
                 Surface(
@@ -1759,7 +1767,8 @@ internal fun SetInputCardV2(
                                     }
                                     ?.suggestedWeight,
                                 suggestedLoadMode = resolvedWeightSuggestion?.suggestedLoadMode,
-                                previousSessionFirstSetWeight = previousSessionFirstSetWeight,
+                                previousSessionFirstSetWeight = thisSessionPreviousWorkingWeight?.takeIf { it > 0.0 }
+                                    ?: previousSessionFirstSetWeight,
                                 loadIncrementKg = quickLoadIncrementFor(exercise, currentSet),
                             ),
                             onChipSelected = { option ->
@@ -2645,6 +2654,32 @@ internal fun SetInputCardV2(
                         // minimum is surfaced as feedback, never as a silent clamp.
                         val value = typedValue
 
+                        if (dropSetEnabled || restPauseEnabled) {
+                            val capture = GuidedMainCapture(
+                                loadMode = loadMode,
+                                unitMode = resolvedUnitMode,
+                                weight = weight,
+                                value = value,
+                                intensity = intensity,
+                                amrapOverride = isAmrap,
+                                bodyWeight = resolvedBodyWeight,
+                                side = reportingSide,
+                            )
+                            guidedMainCapture = capture
+                            if (dropSetEnabled) {
+                                val guide = currentSet.resolvePlannedTechniqueGuide()
+                                    ?: PlannedTechniqueGuide(
+                                        kind = TechniqueType.DROP_SET,
+                                        count = dropSets.size.coerceIn(1, 5),
+                                        dropPcts = listOf(-DropSetPlanDefaults.DropKg),
+                                    )
+                                beginDropPhase(0, dropSets.size.coerceIn(1, 5), capture, guide)
+                            } else {
+                                beginRestPauseCountdown(0, restPauseSets.size.coerceIn(1, 5))
+                            }
+                            return@label
+                        }
+
                         onRecordV2(
                             loadMode,
                             resolvedUnitMode,
@@ -2717,15 +2752,24 @@ internal fun SetInputCardV2(
                     onFlipBack = { cardFace = SetCardFace.Front },
                     noteText = setNoteText,
                     onNoteChange = { setNoteText = it },
+                    initialDropEnabled = dropSetEnabled,
+                    initialRestPauseEnabled = restPauseEnabled,
+                    onDropEnabledChange = { enabled ->
+                        dropSetEnabled = enabled
+                        if (enabled) restPauseEnabled = false
+                    },
+                    onRestPauseEnabledChange = { enabled ->
+                        restPauseEnabled = enabled
+                        if (enabled) dropSetEnabled = false
+                    },
                     onCompleteTechniques = { drops, pauses ->
-                        dropSetEnabled = drops.isNotEmpty()
+                        dropSetEnabled = drops.isNotEmpty() || dropSetEnabled
                         dropSets = drops.map { DropSetEntry(weight = it.weight, reps = it.reps) }.ifEmpty {
                             listOf(DropSetEntry(0.0, 0))
                         }
-                        restPauseEnabled = pauses.isNotEmpty()
+                        restPauseEnabled = pauses.isNotEmpty() || restPauseEnabled
                         restPauseSets = pauses.ifEmpty { listOf(RestPauseData(restTime = 20, reps = 0)) }
                         cardFace = SetCardFace.Front
-                        pendingTechniqueCommit = true
                     },
                 )
                 }

@@ -191,6 +191,7 @@ internal fun FinishWorkoutSheet(
     sessionMuscleVolumeByRoleSets: Map<String, Double> = emptyMap(),
     postExerciseFeedbackByExerciseId: Map<String, PostExerciseFeedback> = emptyMap(),
     sessionDiscomfortSummary: List<SessionDiscomfortSummary> = emptyList(),
+    initialSessionNotes: String = "",
     voiceFinalNotes: String? = null,
     voiceFinalDiscomforts: List<String> = emptyList(),
     voiceFinalAdditionalDiscomfortNote: String? = null,
@@ -261,7 +262,7 @@ internal fun FinishWorkoutSheet(
 
     var showMuscleSetsBreakdown by remember { mutableStateOf(false) }
     var additionalDiscomfortNote by remember { mutableStateOf("") }
-    var notes by remember { mutableStateOf("") }
+    var notes by remember(initialSessionNotes) { mutableStateOf(initialSessionNotes) }
     var selectedDiscomforts by remember {
         mutableStateOf(
             postExerciseFeedbackByExerciseId
@@ -306,8 +307,8 @@ internal fun FinishWorkoutSheet(
         }
     }
 
-    val totalSets = completedSets.size
-    val totalVolume = completedSets.values.sumOf { it.weight * it.reps }
+    val totalSets = completedSets.values.count { !it.isWarmup }
+    val totalVolume = completedSets.values.filter { !it.isWarmup }.sumOf { it.weight * it.reps }
     val allSets = remember(completedSets) {
         completedSets.values
             .filter { !it.isWarmup }
@@ -653,6 +654,39 @@ internal fun FinishWorkoutSheet(
                                 verticalArrangement = Arrangement.spacedBy(4.dp),
                                 modifier = Modifier.padding(top = 8.dp)
                             ) {
+                                val setLines = remember(completedSets, session) {
+                                    val names = session.allExercises().associateBy { it.id }
+                                    completedSets.entries
+                                        .filter { !it.value.isWarmup }
+                                        .sortedBy { it.key }
+                                        .map { (key, set) ->
+                                            val parsed = parseCompletedSetKey(key)
+                                            val name = parsed?.exerciseId?.let { id -> names[id]?.name } ?: "Serie"
+                                            val load = if (set.weight % 1.0 == 0.0) {
+                                                set.weight.toInt().toString()
+                                            } else {
+                                                "%.1f".format(set.weight)
+                                            }
+                                            "$name · $load kg × ${set.reps}"
+                                        }
+                                }
+                                if (setLines.isEmpty() && weightedSetByMuscleSorted.isEmpty()) {
+                                    Text(
+                                        text = "Sin series registradas",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                setLines.forEach { line ->
+                                    Text(
+                                        text = line,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.White,
+                                    )
+                                }
+                                if (setLines.isNotEmpty() && weightedSetByMuscleSorted.isNotEmpty()) {
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                }
                                 weightedSetByMuscleSorted.forEach { (muscle, weightedSets) ->
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),

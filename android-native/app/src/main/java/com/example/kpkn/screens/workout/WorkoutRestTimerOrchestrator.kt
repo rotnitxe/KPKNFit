@@ -52,7 +52,7 @@ class WorkoutRestTimerOrchestrator(
         val warmupSetId = lastSet?.id
             ?.substringAfter("_warmup_", "")
             ?.takeIf { kind == RestTimerKind.WARMUP && it.isNotBlank() }
-        val exerciseName = ports.visibleExercises(state)
+        val nextExerciseName = ports.visibleExercises(state)
             .getOrNull(state.currentExerciseIdx)
             ?.let(::displayWorkoutExerciseName)
             ?: "Siguiente serie"
@@ -72,17 +72,39 @@ class WorkoutRestTimerOrchestrator(
         val alertCapability = restTimer.capability(soundsEnabled = repository.settings.value.soundsEnabled)
 
         updateState {
-            val anchorExerciseId = it.setJustLoggedKey?.let(::parseCompletedSetKey)?.exerciseId
-            val anchorExercise = anchorExerciseId?.let { id ->
-                ports.visibleExercises(it).firstOrNull { exercise -> exercise.id == id }
-            } ?: ports.visibleExercises(it).getOrNull(it.currentExerciseIdx)
+            val nextVisible = ports.visibleExercises(it).getOrNull(it.currentExerciseIdx)
+            val overlayName = when (kind) {
+                RestTimerKind.SUPERSET_INTRA,
+                RestTimerKind.SUPERSET_ROUND,
+                RestTimerKind.STANDARD,
+                -> nextVisible?.let(::displayWorkoutExerciseName) ?: nextExerciseName
+                else -> {
+                    val anchorExerciseId = it.setJustLoggedKey?.let(::parseCompletedSetKey)?.exerciseId
+                    val anchorExercise = anchorExerciseId?.let { id ->
+                        ports.visibleExercises(it).firstOrNull { exercise -> exercise.id == id }
+                    } ?: nextVisible
+                    anchorExercise?.let(::displayWorkoutExerciseName) ?: nextExerciseName
+                }
+            }
+            val overlayExercise = when (kind) {
+                RestTimerKind.SUPERSET_INTRA,
+                RestTimerKind.SUPERSET_ROUND,
+                RestTimerKind.STANDARD,
+                -> nextVisible
+                else -> {
+                    val anchorExerciseId = it.setJustLoggedKey?.let(::parseCompletedSetKey)?.exerciseId
+                    anchorExerciseId?.let { id ->
+                        ports.visibleExercises(it).firstOrNull { exercise -> exercise.id == id }
+                    } ?: nextVisible
+                }
+            }
             it.copy(
                 restTimerTotal = seconds,
                 isRestTimerRunning = true,
                 isRestMinimized = false,
                 restModalState = it.restModalState?.copy(
-                    exerciseId = anchorExercise?.id,
-                    exerciseName = anchorExercise?.let(::displayWorkoutExerciseName) ?: exerciseName,
+                    exerciseId = overlayExercise?.id,
+                    exerciseName = overlayName,
                     kind = kind,
                     warmupSetId = if (kind == RestTimerKind.WARMUP) {
                         warmupSetId ?: it.restModalState?.warmupSetId
@@ -94,8 +116,8 @@ class WorkoutRestTimerOrchestrator(
                     exactAlarmGranted = alertCapability.exactAlarmGranted,
                     soundReady = alertCapability.soundReady,
                 ) ?: WorkoutRestModalState(
-                    exerciseId = anchorExercise?.id,
-                    exerciseName = anchorExercise?.let(::displayWorkoutExerciseName) ?: exerciseName,
+                    exerciseId = overlayExercise?.id,
+                    exerciseName = overlayName,
                     kind = kind,
                     warmupSetId = warmupSetId,
                     plannedSeconds = seconds,
@@ -114,7 +136,7 @@ class WorkoutRestTimerOrchestrator(
             namespace = "workout",
             name = "rest_timer_started",
             fields = mapOf(
-                "exerciseName" to exerciseName,
+                "exerciseName" to nextExerciseName,
                 "seconds" to seconds,
                 "kind" to kind.name,
             ),
@@ -147,7 +169,7 @@ class WorkoutRestTimerOrchestrator(
             endMs = endMs,
             restStartMs = restStartMs,
             sessionName = sessionName,
-            exerciseName = exerciseName,
+            exerciseName = nextExerciseName,
             preserveElapsed = preserveElapsed,
             onNaturalFinish = { handleNaturalFinish(advanceOnFinish) },
         )

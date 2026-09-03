@@ -553,7 +553,7 @@ class WorkoutSetRecorder(
                 RestTimerKind.SUPERSET_INTRA -> exercise.supersetRestBetween
                     ?: supersetGroup?.roundRestBetweenExercises?.get(targetSetIdx)
                     ?: supersetGroup?.restBetweenExercises
-                    ?: baseRest
+                    ?: 0
                 RestTimerKind.SUPERSET_ROUND -> exercise.supersetRestAfter
                     ?: supersetGroup?.roundRestAfterSuperset?.get(targetSetIdx)
                     ?: supersetGroup?.restAfterSuperset
@@ -627,7 +627,11 @@ class WorkoutSetRecorder(
                     RestTimerKind.STANDARD -> plannedRestForKind.coerceAtLeast(10)
                 }.let { if (wasLastSet && it <= 0) 10 else it }
                 val adjustedPlanned = ports.adjustRestTimeForPace(plannedRest)
-                val adjustedAdaptive = ports.adjustRestTimeForPace(adaptiveRest)
+                val adjustedAdaptive = if (restKind == RestTimerKind.SUPERSET_INTRA) {
+                    ports.adjustRestTimeForPace(plannedRestForKind.coerceAtLeast(0))
+                } else {
+                    ports.adjustRestTimeForPace(adaptiveRest)
+                }
 
                 // Drop/rest-pause pauses run inside the card. Do not start the
                 // originally planned between-set rest until those techniques
@@ -640,7 +644,11 @@ class WorkoutSetRecorder(
 
                 val pendingSuggestion = PendingRestSuggestion(
                     plannedSeconds = effectivePlanned,
-                    adaptiveSeconds = adjustedAdaptive.coerceAtLeast(10),
+                    adaptiveSeconds = if (restKind == RestTimerKind.SUPERSET_INTRA) {
+                        adjustedAdaptive.coerceAtLeast(0)
+                    } else {
+                        adjustedAdaptive.coerceAtLeast(10)
+                    },
                     exerciseName = displayWorkoutExerciseName(exercise),
                     exerciseId = exercise.id,
                     lastSet = completedSet,

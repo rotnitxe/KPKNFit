@@ -719,8 +719,7 @@ fun WorkoutScreen(
                                 replacement = replacement,
                                 deferPersistencePrompt = true,
                             )
-                            structureSheets.editSheetExerciseId = targetExerciseId
-                            structureSheets.selectedExerciseContextTab = null
+                            viewModel.revealReplacementPersistencePrompt(targetExerciseId)
                         }
                         structureSheets.showReplaceExercisePicker = false
                         structureSheets.replaceTargetExerciseId = null
@@ -1482,6 +1481,7 @@ fun WorkoutScreen(
             sessionMuscleVolumeByRoleSets = sessionMuscleVolumeByRoleSets,
             postExerciseFeedbackByExerciseId = uiState.postExerciseFeedbackByExerciseId,
             sessionDiscomfortSummary = sessionDiscomfortSummary,
+            initialSessionNotes = uiState.sessionNotes,
             voiceFinalNotes = uiState.voiceFinalNotes,
             voiceFinalDiscomforts = uiState.voiceFinalDiscomforts,
             voiceFinalAdditionalDiscomfortNote = uiState.voiceFinalAdditionalDiscomfortNote,

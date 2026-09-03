@@ -30,6 +30,10 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -757,7 +761,7 @@ private fun IntegratedCatalogAddButton(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class, FlowPreview::class)
+@OptIn(ExperimentalLayoutApi::class, FlowPreview::class, ExperimentalFoundationApi::class)
 @Composable
 private fun ColumnScope.CatalogReadyContent(
     catalog: ExerciseCatalogV2,
@@ -1085,6 +1089,14 @@ private fun ColumnScope.CatalogReadyContent(
                 effectiveExerciseInfo?.id?.let { it in selectedExercisesIds } == true
             val isExpanded = expandedDefinitionId == definition.id
             val hasOptions = definition.optionAxes.isNotEmpty()
+            val selectBringIntoView = remember(definition.id) { BringIntoViewRequester() }
+            val imeVisible = WindowInsets.isImeVisible
+            LaunchedEffect(isExpanded, imeVisible) {
+                if (isExpanded) {
+                    kotlinx.coroutines.delay(80)
+                    selectBringIntoView.bringIntoView()
+                }
+            }
             val defaultMuscles = remember(default) { default?.profile?.primaryMuscles.orEmpty() }
             val imageVariants = remember(definition) { exerciseCatalogImageVariants(definition.id) }
             val selectedImplementation = effectiveSelectedOptions["implement"]
@@ -1395,7 +1407,9 @@ private fun ColumnScope.CatalogReadyContent(
                                 expandedDefinitionId = null
                             },
                             enabled = resolvedConfigurationId != null || !hasOptions,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .bringIntoViewRequester(selectBringIntoView),
                         ) {
                             Text(if (isSelected) "Deseleccionar ejercicio" else "Seleccionar ejercicio")
                         }

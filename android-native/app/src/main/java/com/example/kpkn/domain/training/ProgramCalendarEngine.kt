@@ -3,11 +3,13 @@ package com.example.kpkn.domain.training
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramCalendarization
 import com.example.kpkn.data.models.ProgramCalendarizationMode
+import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.ProgramKeyDate
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SimpleProgramKind
+import com.example.kpkn.data.models.isCompetitionMeet
 import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.data.models.resolvedSchedulePlan
 import com.example.kpkn.data.models.suggestCalendarTrainingDays
@@ -143,7 +145,8 @@ object ProgramCalendarEngine {
                         if (week.isLoopWeek) return@forEach
                         val weekStart = cursor
                         val weekEnd = weekStart.plusDays(6)
-                        val trainingDays = resolveTrainingDays(program, week)
+                        val trainingDays = resolveTrainingDays(program, week) +
+                            keyDateDaysInWeek(program, week, weekStart, weekEnd)
                         val dayDates = trainingDatesFor(
                             weekStart = weekStart,
                             weekEnd = weekEnd,
@@ -229,6 +232,9 @@ object ProgramCalendarEngine {
     fun scheduleIssueFor(program: Program, weekId: String?, session: Session, actualDate: LocalDate = SystemAppClock.today(java.time.ZoneId.systemDefault())): ScheduleIssue? {
         val projection = project(program)
         if (!projection.enabled) return null
+        if (session.isCompetitionMeet && competitionEventDate(program, session) == actualDate) {
+            return null
+        }
         val planned = weekId?.let { projection.scheduledDateFor(session, it) }
         val actualWeek = projection.weekForDate(actualDate)
         return when {
@@ -245,11 +251,17 @@ object ProgramCalendarEngine {
         // Prefer the executable sessions owned by this week whenever they
         // declare days; the plan below remains the program-wide contract for
         // empty/legacy weeks.
+        val fromCompetition = week.sessions
+            .filter { it.isCompetitionMeet }
+            .mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
+            .toSet()
         val fromExecutableSessions = week.sessions
             .filter(SessionTemplateEngine::sessionHasExecutableContent)
             .mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
             .toSet()
-        if (fromExecutableSessions.isNotEmpty()) return fromExecutableSessions
+        if (fromExecutableSessions.isNotEmpty() || fromCompetition.isNotEmpty()) {
+            return fromExecutableSessions + fromCompetition
+        }
 
         val fromWeek = week.trainingDayDates.keys.filter { it in 1..7 }
         if (fromWeek.isNotEmpty()) return fromWeek.toSet()
@@ -291,6 +303,31 @@ object ProgramCalendarEngine {
             cursor = cursor.plusDays(1)
         }
         return null
+    }
+
+    private fun keyDateDaysInWeek(
+        program: Program,
+        week: ProgramWeek,
+        weekStart: LocalDate,
+        weekEnd: LocalDate,
+    ): Set<Int> {
+        val fromLinkedSessions = week.sessions
+            .filter { it.isCompetitionMeet }
+            .mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
+        val fromKeyDates = program.keyDates.mapNotNull { keyDate ->
+            if (!keyDateIntersects(keyDate, weekStart, weekEnd)) return@mapNotNull null
+            val event = parseIsoDate(keyDate.eventDate) ?: parseIsoDate(keyDate.startDate) ?: return@mapNotNull null
+            if (event.isBefore(weekStart) || event.isAfter(weekEnd)) return@mapNotNull null
+            event.dayOfWeek.value
+        }
+        return (fromLinkedSessions + fromKeyDates).toSet()
+    }
+
+    private fun competitionEventDate(program: Program, session: Session): LocalDate? {
+        parseIsoDate(session.competitionDetails?.competitionDate)?.let { return it }
+        val keyDate = program.keyDates.firstOrNull { it.id == session.competitionKeyDateId }
+            ?: program.keyDates.firstOrNull { it.type == KeyDateType.COMPETITION }
+        return parseIsoDate(keyDate?.eventDate) ?: parseIsoDate(keyDate?.startDate)
     }
 
     private fun keyDateIntersects(keyDate: ProgramKeyDate, weekStart: LocalDate, weekEnd: LocalDate): Boolean {

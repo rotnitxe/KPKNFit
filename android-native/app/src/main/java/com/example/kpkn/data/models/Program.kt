@@ -425,7 +425,8 @@ fun Program.alignTemporalMetadata(): Program {
                     mesocycles = block.mesocycles.map { meso ->
                         meso.copy(
                             weeks = meso.weeks.map { week ->
-                                if (week.isLoopWeek && !isSimple) week.copy(isLoopWeek = false, loopId = null)
+                                val keepLoopWeek = isSimple && normalizedSimpleKind == SimpleProgramKind.CYCLIC
+                                if (week.isLoopWeek && !keepLoopWeek) week.copy(isLoopWeek = false, loopId = null)
                                 else week
                             }
                         )
@@ -606,7 +607,6 @@ fun Program.calendarizeSimpleCycle(
         .flatMap { it.blocks }
         .flatMap { it.mesocycles }
         .flatMap { it.weeks }
-        .filter { !it.isLoopWeek }
     if (weeks.isEmpty()) {
         return startSimpleCalendarizedBreak(startDate, null, startDayOfWeek, safeDays, idProvider)
     }
@@ -620,21 +620,20 @@ fun Program.calendarizeSimpleCycle(
                     mesocycles = block.mesocycles.map { meso ->
                         meso.copy(
                             weeks = meso.weeks.map { week ->
-                                if (week.isLoopWeek) week
-                                else {
-                                    val weekStart = cursor
-                                    val weekEnd = weekStart.plusDays(6)
-                                    val trainingDayDates = safeDays.associateWith { day ->
-                                        val delta = ((day - startDayOfWeek) + 7) % 7
-                                        weekStart.plusDays(delta.toLong()).toString()
-                                    }
-                                    cursor = weekEnd.plusDays(1)
-                                    week.copy(
-                                        startDate = weekStart.toString(),
-                                        endDate = weekEnd.toString(),
-                                        trainingDayDates = trainingDayDates,
-                                    )
+                                val weekStart = cursor
+                                val weekEnd = weekStart.plusDays(6)
+                                val trainingDayDates = safeDays.associateWith { day ->
+                                    val delta = ((day - startDayOfWeek) + 7) % 7
+                                    weekStart.plusDays(delta.toLong()).toString()
                                 }
+                                cursor = weekEnd.plusDays(1)
+                                week.copy(
+                                    startDate = weekStart.toString(),
+                                    endDate = weekEnd.toString(),
+                                    trainingDayDates = trainingDayDates,
+                                    isLoopWeek = false,
+                                    loopId = null,
+                                )
                             },
                         )
                     },

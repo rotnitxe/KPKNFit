@@ -1094,6 +1094,9 @@ internal fun WorkoutSetPager(
                                             extraExpandedRounds = setOf(badge.roundIndex)
                                             onSelectPage(badge.firstPageIndex)
                                         },
+                                        onRoundLongPress = onLongPressPage?.let { longPress ->
+                                            { longPress(badge.firstPageIndex) }
+                                        },
                                         isElementActive = { isElementActive(it) },
                                         keepActiveVisible = { active, modifier ->
                                             modifier.keepActiveVisible(active)
@@ -1113,6 +1116,9 @@ internal fun WorkoutSetPager(
                                     onClick = {
                                         extraExpandedRounds = setOf(element.roundIndex)
                                         onSelectPage(element.firstPageIndex)
+                                    },
+                                    onLongClick = onLongPressPage?.let { longPress ->
+                                        { longPress(element.firstPageIndex) }
                                     },
                                     modifier = Modifier.keepActiveVisible(isElementActive(element)),
                                 )
@@ -1636,6 +1642,7 @@ private fun RoundSetCapsule(
     onSelectPage: (Int) -> Unit,
     onLongPressPage: ((Int) -> Unit)?,
     onRoundClick: () -> Unit,
+    onRoundLongPress: (() -> Unit)? = null,
     isElementActive: (TimelineElement) -> Boolean,
     keepActiveVisible: (Boolean, Modifier) -> Modifier,
 ) {
@@ -1734,6 +1741,7 @@ private fun RoundSetCapsule(
             accent = accent,
             lockSize = true,
             onClick = onRoundClick,
+            onLongClick = onRoundLongPress,
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .zIndex(1f),
@@ -1749,6 +1757,7 @@ private fun RoundBadgeNode(
     isAllDone: Boolean,
     accent: Color,
     onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     lockSize: Boolean = false,
 ) {
@@ -1793,10 +1802,11 @@ private fun RoundBadgeNode(
                 scaleY = activeScale
             }
             .clip(CircleShape)
-            .clickable(
+            .combinedClickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = onClick,
+                onLongClick = onLongClick,
             ),
         shape = CircleShape,
         color = fillColor,

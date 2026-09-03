@@ -478,6 +478,9 @@ private fun TrainingPanel(
     }
     var copiedRoadmapWeekId by remember(program.id) { mutableStateOf<String?>(null) }
     var showCopyWeekDialog by remember { mutableStateOf(false) }
+    val allProgramWeeks = remember(program, roadmapBlocks) {
+        com.example.kpkn.domain.training.ProgramDetailHelpers.getAllWeeks(roadmapBlocks, program)
+    }
     var pendingCompetitionCreation by remember { mutableStateOf<PendingCompetitionSessionCreation?>(null) }
     var pendingCompetitionModeSelection by remember { mutableStateOf<PendingCompetitionModeSelection?>(null) }
     var showCompetitionEligibilityNotice by remember { mutableStateOf(false) }
@@ -619,6 +622,7 @@ private fun TrainingPanel(
                 blockProgressionPreview = { blockId -> viewModel.previewBlockProgression(blockId) },
                 onDeleteBlock = { blockId -> viewModel.deleteBlockFromRoadmap(blockId) },
                 copiedWeekId = copiedRoadmapWeekId,
+                copiedWeekLookup = allProgramWeeks,
                 onCopyWeek = { copiedRoadmapWeekId = it },
                 onPasteWeek = { targetWeekId ->
                     copiedRoadmapWeekId?.let { sourceWeekId ->
@@ -870,7 +874,8 @@ private fun TrainingPanel(
 
     if (showCopyWeekDialog) {
         CopyWeekDialog(
-            weeks = currentWeeks,
+            weeks = allProgramWeeks,
+            currentBlockWeekIds = currentWeeks.map { it.id }.toSet(),
             selectedWeekId = copiedRoadmapWeekId ?: selectedWeekId,
             selectedBlockId = selectedBlockId,
             viewModel = viewModel,
@@ -1008,6 +1013,7 @@ private fun TrainingPanel(
 @Composable
 private fun CopyWeekDialog(
     weeks: List<com.example.kpkn.domain.training.WeekWithMeta>,
+    currentBlockWeekIds: Set<String>,
     selectedWeekId: String?,
     selectedBlockId: String?,
     viewModel: ProgramDetailViewModel,
@@ -1045,7 +1051,14 @@ private fun CopyWeekDialog(
                         RadioButton(selected = sourceWeekId == week.id, onClick = { sourceWeekId = week.id })
                         Column {
                             Text(week.name, fontWeight = FontWeight.SemiBold)
-                            Text("${week.sessions.size} sesiones", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                listOfNotNull(
+                                    week.dateRangeLabel,
+                                    "${week.sessions.size} sesiones",
+                                ).joinToString(" · "),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
                 }
@@ -1054,7 +1067,7 @@ private fun CopyWeekDialog(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     AssistChip(
                         onClick = {
-                            targetWeekIds = weeks.filter { it.id != sourceWeekId }.map { it.id }.toSet()
+                            targetWeekIds = weeks.filter { it.id != sourceWeekId && it.id in currentBlockWeekIds }.map { it.id }.toSet()
                             replaceWeekIds = emptySet()
                         },
                         label = { Text("Bloque actual") },

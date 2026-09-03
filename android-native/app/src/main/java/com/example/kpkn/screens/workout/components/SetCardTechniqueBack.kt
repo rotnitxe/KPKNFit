@@ -75,14 +75,18 @@ internal fun SetCardTechniqueBack(
     onCompleteTechniques: (dropSets: List<DropSetData>, restPauses: List<RestPauseData>) -> Unit,
     noteText: String = "",
     onNoteChange: (String) -> Unit = {},
+    initialDropEnabled: Boolean = false,
+    initialRestPauseEnabled: Boolean = false,
+    onDropEnabledChange: (Boolean) -> Unit = {},
+    onRestPauseEnabledChange: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val plannedGuide = remember(currentSet) { currentSet.resolvePlannedTechniqueGuide() }
     var dropEnabled by remember(currentSet.id) {
-        mutableStateOf(plannedGuide?.kind == TechniqueType.DROP_SET)
+        mutableStateOf(initialDropEnabled || plannedGuide?.kind == TechniqueType.DROP_SET)
     }
     var restPauseEnabled by remember(currentSet.id) {
-        mutableStateOf(plannedGuide?.kind == TechniqueType.REST_PAUSE)
+        mutableStateOf(initialRestPauseEnabled || plannedGuide?.kind == TechniqueType.REST_PAUSE)
     }
     var dropRows by remember(currentSet.id, mainWeight, mainReps) {
         val count = plannedGuide?.count?.takeIf { plannedGuide.kind == TechniqueType.DROP_SET }
@@ -110,18 +114,8 @@ internal fun SetCardTechniqueBack(
     }
     var committed by remember(currentSet.id) { mutableStateOf(false) }
 
-    LaunchedEffect(dropEnabled, restPauseEnabled, dropRows, restPauseRows, committed) {
-        if (committed) return@LaunchedEffect
-        val dropsReady = !dropEnabled || shouldAutoCommitTechniqueRows(dropRows.map { it.done })
-        val pausesReady = !restPauseEnabled || shouldAutoCommitTechniqueRows(restPauseRows.map { it.done })
-        val hasTechnique = dropEnabled || restPauseEnabled
-        if (hasTechnique && dropsReady && pausesReady &&
-            ((dropEnabled && dropRows.isNotEmpty()) || (restPauseEnabled && restPauseRows.isNotEmpty()))
-        ) {
-            val submitted = commit(dropRows, restPauseRows, dropEnabled, restPauseEnabled, onCompleteTechniques)
-            if (submitted) committed = true
-        }
-    }
+    LaunchedEffect(dropEnabled) { onDropEnabledChange(dropEnabled) }
+    LaunchedEffect(restPauseEnabled) { onRestPauseEnabledChange(restPauseEnabled) }
 
     Surface(
         modifier = modifier.fillMaxSize(),

@@ -614,9 +614,9 @@ private fun CockpitNotesPage(
         }
         if (lastSaved != null) {
             Text(
-                "Última nota guardada",
+                lastSaved,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
             )
         }
 

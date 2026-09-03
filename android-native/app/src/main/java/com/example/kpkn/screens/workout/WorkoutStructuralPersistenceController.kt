@@ -649,6 +649,9 @@ class WorkoutStructuralPersistenceController(
         val sourceExercise = modeSession.allExercises().firstOrNull { it.id == exerciseId } ?: return
         val sourceExerciseDbId = sourceExercise.resolvedCanonicalExerciseId()
         val sourceExerciseSlot = modeSession.allExercises().indexOfFirst { it.id == exerciseId }.takeIf { it >= 0 }
+        if (replacementIsSameCatalogIdentity(sourceExercise, replacement)) {
+            return
+        }
 
         val updatedSession = withModeSession(base, state.activeMode) { activeSession ->
             activeSession.replaceExerciseById(exerciseId) { old ->
@@ -693,26 +696,25 @@ class WorkoutStructuralPersistenceController(
 
         val activeVisible = ports.visibleExercises(state)
         val replacingCurrent = activeVisible.getOrNull(state.currentExerciseIdx)?.id == exerciseId
-        val clampedSetIdx = if (replacingCurrent) 0 else state.currentSetIdx
 
         val normalizedUpdatedSession = ports.normalizeSupersetsForWorkout(updatedSession)
         val newVisible = ports.visibleExercises(state.copy(session = normalizedUpdatedSession))
         val replacementModeSession = ports.sessionForActiveMode(normalizedUpdatedSession, state.activeMode)
-        val replacementFirstStep = WorkoutStepRules.buildSteps(
-            session = replacementModeSession,
-            visibleExercises = newVisible,
-        ).firstOrNull { step -> step.exerciseId == exerciseId }
+        val replacementExercise = replacementModeSession.allExercises().firstOrNull { it.id == exerciseId }
+        val keptSetIdx = state.currentSetIdx.coerceIn(
+            0,
+            (replacementExercise?.sets?.lastIndex ?: 0).coerceAtLeast(0),
+        )
+        val replacementStepKey = WorkoutStepRules.workingStepKey(exerciseId, keptSetIdx)
         val newExerciseIdx = if (replacingCurrent) {
             state.currentExerciseIdx.coerceIn(0, (newVisible.size - 1).coerceAtLeast(0))
         } else {
             newVisible.indexOfFirst { it.id == exerciseId }.takeIf { it >= 0 } ?: state.currentExerciseIdx
         }
-        val replacementStepKey = replacementFirstStep?.stepKey
-            ?: WorkoutStepRules.workingStepKey(exerciseId, 0)
         val newActiveStepKey = if (
             replacingCurrent || state.activeStepKey?.startsWith("${exerciseId}_") == true
         ) replacementStepKey else state.activeStepKey
-        val newSetIdx = if (replacingCurrent) replacementFirstStep?.setIndex ?: 0 else clampedSetIdx
+        val newSetIdx = if (replacingCurrent) keptSetIdx else state.currentSetIdx
 
         updateState {
             it.copy(
@@ -877,6 +879,15 @@ class WorkoutStructuralPersistenceController(
             variantGroupName = cached?.variantGroupName,
         )
         val defaultLoadMode = replaced.sets.firstOrNull()?.loadModeV2 ?: LoadModeV2.LOAD
+        val preservedSets = replaced.sets.ifEmpty {
+            listOf(
+                ExerciseSet(
+                    id = UUID.randomUUID().toString(),
+                    loadModeV2 = defaultLoadMode,
+                    unitModeV2 = UnitModeV2.REPS,
+                ),
+            )
+        }
         return replaced.copy(
             trainingMode = TrainingMode.REPS,
             reference1RM = null,
@@ -885,14 +896,23 @@ class WorkoutStructuralPersistenceController(
             isUnilateral = false,
             unilateralMode = UnilateralMode.BILATERAL,
             restBetweenSidesSeconds = null,
-            sets = listOf(
-                ExerciseSet(
-                    id = UUID.randomUUID().toString(),
-                    loadModeV2 = defaultLoadMode,
-                    unitModeV2 = UnitModeV2.REPS,
-                ),
-            ),
+            sets = preservedSets,
         )
+    }
+
+    private fun replacementIsSameCatalogIdentity(
+        old: Exercise,
+        replacement: ExerciseMuscleInfo,
+    ): Boolean {
+        val sameId = replacement.id == old.exerciseDbId ||
+            replacement.id == old.exerciseId ||
+            replacement.id == old.canonicalExerciseId
+        val sameDefinition = replacement.catalogDefinitionId == null ||
+            replacement.catalogDefinitionId == old.catalogDefinitionId
+        val sameConfiguration = replacement.catalogConfigurationId == null ||
+            replacement.catalogConfigurationId == old.catalogConfigurationId
+        val sameName = replacement.name.equals(old.name, ignoreCase = true)
+        return sameId && sameDefinition && sameConfiguration && sameName
     }
 
     fun insertExerciseAfter(session: Session, currentExerciseId: String, newExercise: Exercise): Session {

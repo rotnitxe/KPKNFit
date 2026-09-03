@@ -65,6 +65,7 @@ fun BlockRoadmap(
     onDeleteBlock: (String) -> Unit = {},
 
     copiedWeekId: String? = null,
+    copiedWeekLookup: List<WeekWithMeta> = emptyList(),
     onCopyWeek: (String) -> Unit = {},
     onPasteWeek: (String) -> Unit = {},
     modifier: Modifier = Modifier,
@@ -276,7 +277,8 @@ fun BlockRoadmap(
             week = week,
             canPaste = copiedWeekId != null && copiedWeekId != week.id,
             copiedWeekName = copiedWeekId?.let { copiedId ->
-                currentWeeks.firstOrNull { it.id == copiedId }?.name
+                copiedWeekLookup.firstOrNull { it.id == copiedId }?.name
+                    ?: currentWeeks.firstOrNull { it.id == copiedId }?.name
             },
             onCopy = {
                 onCopyWeek(week.id)

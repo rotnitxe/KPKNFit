@@ -299,7 +299,10 @@ internal fun WorkoutV2Body(
                 pacingAlertMessage = uiState.pacingAlertMessage,
                 coachPaceAlert = uiState.coachPaceAlert,
                 exerciseTag = headerExerciseTag,
-                isSuperset = currentExercise?.isInSuperset() == true,
+                isSuperset = currentExercise?.supersetGroupRefOrLegacyId()
+                    ?.let { groupId ->
+                        visibleExercises.count { it.supersetGroupRefOrLegacyId() == groupId } > 1
+                    } == true,
                 exerciseReadiness = currentExerciseReadiness,
                 activeMainTags = currentExerciseActiveMainTags,
                 activeMainTagLabels = currentExerciseActiveTagLabels,
@@ -1372,7 +1375,7 @@ internal fun WorkoutV2Body(
                             val page = setPagerPages.getOrNull(pageIndex)
                             if (page != null && page.type == LivePageType.NORMAL) {
                                 val exId = page.exerciseId ?: currentExercise.id
-                                viewModel.showSeriesTypeSheet(exId, page.setIndex, null)
+                                viewModel.showSeriesTypeSheet(exId, page.setIndex, page.setIndex)
                             }
                         }
                         liveSetStepperHolder.onNavigateAdjacentExercise = { forward ->
@@ -1826,6 +1829,20 @@ internal fun WorkoutV2Body(
                                             targetExercise,
                                             uiState.exerciseTags[targetExercise.id],
                                         )
+                                    } else {
+                                        null
+                                    },
+                                    thisSessionPreviousWorkingWeight = if (isActivePage) {
+                                        uiState.completedSets.entries
+                                            .mapNotNull { (key, set) ->
+                                                val parsed = parseCompletedSetKey(key) ?: return@mapNotNull null
+                                                if (parsed.exerciseId != targetExercise.id) return@mapNotNull null
+                                                if (parsed.setIdx >= activeSetIndex) return@mapNotNull null
+                                                if (set.isWarmup || set.weight <= 0.0) return@mapNotNull null
+                                                parsed.setIdx to set.weight
+                                            }
+                                            .maxByOrNull { it.first }
+                                            ?.second
                                     } else {
                                         null
                                     },

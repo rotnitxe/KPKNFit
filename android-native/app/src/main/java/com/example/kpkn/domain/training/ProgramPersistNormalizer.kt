@@ -13,7 +13,9 @@ object ProgramPersistNormalizer {
         val aligned = program.alignTemporalMetadata()
         val synced = LoopEngine.syncOccurrences(aligned)
         val repaired = repairStaleRunCursor(synced)
-        return ProgramCalendarEngine.materializeWeekDates(repaired)
+        val dated = ProgramCalendarEngine.materializeWeekDates(repaired)
+        val competition = ProgramKeyDateEngine.competitionKeyDate(dated) ?: return dated
+        return ProgramKeyDateEngine.syncCompetitionLinkedEntities(dated, competition, null)
     }
 
     fun repairStaleRunCursor(program: Program): Program {

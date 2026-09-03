@@ -184,7 +184,7 @@ internal fun WorkoutSessionOverlaysHost(
                         textAlign = TextAlign.Center,
                     )
                     Text(
-                        "Tu entrenamiento en curso se perderá si abandonas sin guardar.",
+                        "Puedes pausar y continuar más tarde, terminar hasta acá, o abandonar sin guardar.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,

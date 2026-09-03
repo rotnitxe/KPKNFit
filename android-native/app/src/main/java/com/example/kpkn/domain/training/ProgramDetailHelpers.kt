@@ -115,6 +115,12 @@ object ProgramDetailHelpers {
         }?.id
     }
 
+    fun getAllWeeks(
+        roadmapBlocks: List<RoadmapBlock>,
+        program: Program,
+    ): List<WeekWithMeta> =
+        roadmapBlocks.flatMap { block -> getWeeksForBlock(block.id, roadmapBlocks, program) }
+
     fun getWeeksForBlock(
         selectedBlockId: String?,
         roadmapBlocks: List<RoadmapBlock>,

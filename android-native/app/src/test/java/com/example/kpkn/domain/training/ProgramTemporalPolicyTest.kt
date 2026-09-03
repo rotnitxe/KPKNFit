@@ -11,6 +11,7 @@ import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.ScheduleMode
 import com.example.kpkn.data.models.SimpleProgramKind
+import com.example.kpkn.data.models.calendarizeSimpleCycle
 import com.example.kpkn.data.models.restorePausedCyclicProgram
 import com.example.kpkn.data.models.resolvedSchedulePlan
 import com.example.kpkn.data.models.startSimpleCalendarizedBreak
@@ -81,6 +82,25 @@ class ProgramTemporalPolicyTest {
         assertTrue(
             ProgramProgressEngine.resolveCurrentWeekInstances(restored, 4)
                 .any { it.week.isLoopWeek && it.templateWeekId == "loop_week_deload" },
+        )
+    }
+
+    @Test
+    fun `calendarizeSimpleCycle demotes loop weeks so they are not orphaned`() {
+        val cyclic = cyclicProgram()
+        val calendarized = cyclic.calendarizeSimpleCycle(
+            startDate = LocalDate.of(2026, 8, 3),
+            startDayOfWeek = 1,
+            trainingDays = setOf(1, 3, 5),
+        )
+        val weeks = calendarized.macrocycles
+            .flatMap { it.blocks }
+            .flatMap { it.mesocycles }
+            .flatMap { it.weeks }
+        assertTrue(weeks.none { it.isLoopWeek })
+        assertTrue(weeks.all { !it.startDate.isNullOrBlank() })
+        assertTrue(
+            LoopEngine.validate(calendarized).none { it.type == LoopIssueType.ORPHAN_MATERIALIZED_WEEK },
         )
     }
 

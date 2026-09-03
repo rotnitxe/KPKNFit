@@ -16,6 +16,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -41,15 +45,9 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withLink
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -176,6 +174,7 @@ internal fun WorkoutLiveRelatorLine(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ShimmerRelatorText(
     pieces: List<RelatorInlinePiece>,
@@ -186,78 +185,60 @@ private fun ShimmerRelatorText(
     var textWidth by remember { mutableFloatStateOf(0f) }
     val copyMuted = Color.White.copy(alpha = 0.40f)
     val copyHighlight = Color.White
-    val actionMuted = accentColor.copy(alpha = 0.40f)
-    val actionHighlight = accentColor
     val travel = textWidth.coerceAtLeast(1f)
     val startX = travel * (shift * 1.85f - 0.55f)
     val end = Offset(startX + travel * 0.46f, 0f)
     val start = Offset(startX, 0f)
     val copyBrush = relatorShimmerBrush(copyMuted, copyHighlight, start, end)
-    val actionBrush = relatorShimmerBrush(actionMuted, actionHighlight, start, end)
     val onActionState = rememberUpdatedState(onAction)
-    val actionLinks = remember(pieces) {
-        var actionIndex = 0
-        pieces.mapNotNull { piece ->
+    FlowRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        pieces.forEach { piece ->
             when (piece) {
-                is RelatorInlinePiece.Copy -> null
+                is RelatorInlinePiece.Copy -> Text(
+                    text = piece.text,
+                    color = Color.Unspecified,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        brush = copyBrush,
+                        fontSize = WorkoutLiveRelatorFontSp,
+                        lineHeight = RelatorLineHeightSp,
+                    ),
+                    maxLines = WorkoutLiveRelatorMaxLines,
+                    softWrap = true,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                    onTextLayout = { layout ->
+                        textWidth = layout.size.width.toFloat().coerceAtLeast(textWidth)
+                    },
+                )
                 is RelatorInlinePiece.Action -> {
                     val action = piece.action
-                    val link = LinkAnnotation.Clickable(
-                        tag = "relator_action_$actionIndex",
-                        styles = TextLinkStyles(
-                            style = SpanStyle(fontWeight = FontWeight.SemiBold),
+                    Text(
+                        text = piece.label,
+                        modifier = Modifier
+                            .clickable(
+                                onClickLabel = piece.label,
+                            ) { onActionState.value(action) }
+                            .padding(horizontal = 2.dp),
+                        color = accentColor,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontSize = WorkoutLiveRelatorFontSp,
+                            lineHeight = RelatorLineHeightSp,
+                            fontWeight = FontWeight.SemiBold,
                         ),
-                        linkInteractionListener = { onActionState.value(action) },
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis,
                     )
-                    actionIndex++
-                    piece to link
-                }
-            }
-        }.toMap()
-    }
-    val annotated = remember(pieces, copyBrush, actionBrush, actionLinks) {
-        buildAnnotatedString {
-            withStyle(SpanStyle(brush = copyBrush)) {
-                pieces.forEach { piece ->
-                    when (piece) {
-                        is RelatorInlinePiece.Copy -> append(piece.text)
-                        is RelatorInlinePiece.Action -> {
-                            val link = actionLinks[piece] ?: return@forEach
-                            withLink(link) {
-                                withStyle(
-                                    SpanStyle(
-                                        brush = actionBrush,
-                                        fontWeight = FontWeight.SemiBold,
-                                    ),
-                                ) {
-                                    append(piece.label)
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }
     }
-    Text(
-        text = annotated,
-        color = Color.Unspecified,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp),
-        style = MaterialTheme.typography.labelSmall.copy(
-            brush = copyBrush,
-            fontSize = WorkoutLiveRelatorFontSp,
-            lineHeight = RelatorLineHeightSp,
-        ),
-        maxLines = WorkoutLiveRelatorMaxLines,
-        softWrap = true,
-        overflow = TextOverflow.Ellipsis,
-        textAlign = TextAlign.Center,
-        onTextLayout = { layout ->
-            textWidth = layout.size.width.toFloat()
-        },
-    )
 }
 
 private fun relatorShimmerBrush(

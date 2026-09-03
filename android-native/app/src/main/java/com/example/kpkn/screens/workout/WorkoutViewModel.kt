@@ -3171,6 +3171,9 @@ class WorkoutViewModel(
         deferPersistencePrompt: Boolean = false,
     ) = structuralPersistence.replaceExercise(exerciseId, replacement, deferPersistencePrompt)
 
+    fun revealReplacementPersistencePrompt(exerciseId: String) =
+        structuralPersistence.showDeferredReplacementPromptIfNeeded(exerciseId)
+
     fun replaceCardioExercise(
         exerciseId: String,
         replacement: com.example.kpkn.data.models.CardioCatalogItem,

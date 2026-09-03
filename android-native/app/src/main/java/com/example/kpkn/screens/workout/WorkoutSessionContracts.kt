@@ -223,17 +223,19 @@ private fun externalLoadQuickLoadOptions(
     previousSessionFirstSetWeight: Double?,
     increment: Double,
 ): List<QuickLoadChipOption> {
-    val suggested = suggestedWeight?.takeIf { it > 0.0 }
-        ?: currentWeightText.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0.0 }
-        ?: previousSessionFirstSetWeight?.takeIf { it > 0.0 }
-        ?: 0.0
-    val anterior = previousSessionFirstSetWeight?.takeIf { it > 0.0 } ?: suggested.coerceAtLeast(0.0)
+    val anterior = previousSessionFirstSetWeight?.takeIf { it > 0.0 } ?: 0.0
+    val suggested = suggestedWeight?.takeIf { it > 0.0 } ?: 0.0
+    val plusBase = when {
+        suggested > 0.0 -> suggested
+        anterior > 0.0 -> anterior
+        else -> 0.0
+    }
     return listOf(
         QuickLoadChipOption("Anterior", anterior, isAuge = false, targetLoadMode = LoadModeV2.LOAD),
-        QuickLoadChipOption("Sugerido", suggested.coerceAtLeast(0.0), isAuge = true, targetLoadMode = LoadModeV2.LOAD),
+        QuickLoadChipOption("Sugerido", suggested, isAuge = true, targetLoadMode = LoadModeV2.LOAD),
         QuickLoadChipOption(
             label = "+${increment.toTrimmedNumberString()}",
-            weight = suggested + increment,
+            weight = plusBase + increment,
             isAuge = false,
             targetLoadMode = LoadModeV2.LOAD,
         ),

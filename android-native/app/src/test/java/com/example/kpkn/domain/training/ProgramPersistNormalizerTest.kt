@@ -10,6 +10,7 @@ import com.example.kpkn.data.models.ProgramRunState
 import com.example.kpkn.data.models.ProgramRunStatus
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
+import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SimpleProgramKind
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -94,5 +95,90 @@ class ProgramPersistNormalizerTest {
 
         assertTrue(normalized.loopOccurrences.isNotEmpty())
         assertEquals("l1", normalized.loopOccurrences.first().loopId)
+    }
+
+    @Test
+    fun normalize_moves_competition_session_to_week_that_contains_event_date() {
+        val monday = Session(
+            id = "mon",
+            name = "Sesión Lunes",
+            dayOfWeek = 1,
+            exercises = listOf(
+                com.example.kpkn.data.models.Exercise(
+                    id = "sq",
+                    name = "Sentadilla",
+                    sets = listOf(com.example.kpkn.data.models.ExerciseSet(id = "s1", targetReps = 5, weight = 100.0)),
+                ),
+            ),
+        )
+        val meet = Session(
+            id = "meet",
+            name = "Técnica",
+            dayOfWeek = 3,
+            isMeetDay = true,
+            isCompetitionSession = true,
+            competitionKeyDateId = "comp",
+            competitionDetails = com.example.kpkn.data.models.CompetitionDetails(competitionDate = "2026-09-02"),
+        )
+        val program = Program(
+            id = "p",
+            name = "P",
+            structure = ProgramStructure.COMPLEX,
+            startDay = 1,
+            timelineStartDate = "2026-08-24",
+            calendarization = ProgramCalendarEngine.defaultCompetitionCalendarization(),
+            keyDates = listOf(
+                com.example.kpkn.data.models.ProgramKeyDate(
+                    id = "comp",
+                    title = "Meet",
+                    type = com.example.kpkn.data.models.KeyDateType.COMPETITION,
+                    startDate = "2026-09-02",
+                    eventDate = "2026-09-02",
+                ),
+            ),
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "mc",
+                    name = "M",
+                    blocks = listOf(
+                        Block(
+                            id = "b1",
+                            name = "Bloque 1",
+                            mesocycles = listOf(
+                                Mesocycle(
+                                    id = "m1",
+                                    name = "Meso 1",
+                                    weeks = listOf(
+                                        ProgramWeek(id = "w1", name = "Semana 1", sessions = listOf(monday)),
+                                        ProgramWeek(id = "w-new", name = "Semana extra"),
+                                    ),
+                                ),
+                            ),
+                        ),
+                        Block(
+                            id = "b2",
+                            name = "Bloque 2",
+                            mesocycles = listOf(
+                                Mesocycle(
+                                    id = "m2",
+                                    name = "Meso 2",
+                                    weeks = listOf(
+                                        ProgramWeek(id = "w-meet", name = "Semana meet", sessions = listOf(meet)),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val normalized = ProgramPersistNormalizer.normalize(program)
+        val weeks = normalized.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
+        val host = weeks.first { week -> week.sessions.any { it.id == "meet" } }
+        assertEquals("w-new", host.id)
+        assertEquals("2026-08-31", host.startDate)
+        assertEquals("2026-09-06", host.endDate)
+        assertTrue(weeks.first { it.id == "w-meet" }.sessions.none { it.id == "meet" })
     }
 }

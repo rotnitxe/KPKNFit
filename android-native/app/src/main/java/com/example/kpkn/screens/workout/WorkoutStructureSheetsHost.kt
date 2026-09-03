@@ -1393,8 +1393,7 @@ internal fun WorkoutStructureSheetsHost(
                         replacement = info,
                         deferPersistencePrompt = true,
                     )
-                    state.editSheetExerciseId = target
-                    state.selectedExerciseContextTab = null
+                    viewModel.revealReplacementPersistencePrompt(target)
                 },
                 onMultiSelect = { emptyList() },
                 onOpenExerciseDetail = { dbId -> onNavigateToWikiLab(dbId) },

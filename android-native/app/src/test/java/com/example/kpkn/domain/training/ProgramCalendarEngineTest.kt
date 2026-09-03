@@ -139,6 +139,62 @@ class ProgramCalendarEngineTest {
         assertEquals(LocalDate.parse("2026-05-20"), projection.scheduledDateFor(program.macrocycles[0].blocks[0].mesocycles[0].weeks[0].sessions[1], "w1"))
     }
 
+    @Test
+    fun `competition meet day is a training day and not outside program`() {
+        val meet = Session(
+            id = "meet",
+            name = "Técnica",
+            dayOfWeek = 3,
+            isMeetDay = true,
+            isCompetitionSession = true,
+            competitionKeyDateId = "meet",
+            competitionDetails = com.example.kpkn.data.models.CompetitionDetails(competitionDate = "2026-09-02"),
+        )
+        val monday = Session(
+            id = "mon",
+            name = "Sesión Lunes",
+            dayOfWeek = 1,
+            exercises = listOf(
+                com.example.kpkn.data.models.Exercise(
+                    id = "sq",
+                    name = "Sentadilla",
+                    sets = listOf(com.example.kpkn.data.models.ExerciseSet(id = "s1", targetReps = 5, weight = 100.0)),
+                ),
+            ),
+        )
+        val program = programWithWeeks(
+            startDate = "2026-08-31",
+            calendarization = ProgramCalendarEngine.defaultCompetitionCalendarization(),
+            weekCount = 1,
+            sessions = listOf(monday, meet),
+            startDay = 1,
+            keyDates = listOf(
+                ProgramKeyDate(
+                    id = "meet",
+                    title = "Meet",
+                    type = KeyDateType.COMPETITION,
+                    startDate = "2026-09-02",
+                    eventDate = "2026-09-02",
+                ),
+            ),
+        )
+
+        val projection = ProgramCalendarEngine.project(program)
+        val week = projection.weeks.first()
+
+        assertEquals(LocalDate.parse("2026-09-02"), week.trainingDayDates[3])
+        assertFalse(week.outsideProgramDays.contains(3))
+        assertEquals(LocalDate.parse("2026-09-02"), projection.scheduledDateFor(meet, "w1"))
+        assertNull(
+            ProgramCalendarEngine.scheduleIssueFor(
+                program = program,
+                weekId = "w1",
+                session = meet,
+                actualDate = LocalDate.parse("2026-09-02"),
+            ),
+        )
+    }
+
     private fun programWithWeeks(
         startDate: String,
         calendarization: ProgramCalendarization,

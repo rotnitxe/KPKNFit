@@ -233,7 +233,9 @@ private fun parentMembers(ctx: RelatorAssistContext): List<RelatorAssistExercise
     val current = ctx.sessionExercises.firstOrNull { it.id == ctx.currentExerciseId } ?: return emptyList()
     val groupId = current.groupId
     return if (!groupId.isNullOrBlank()) {
-        val members = ctx.sessionExercises.filter { it.groupId == groupId && !it.isCardio }
+        val members = ctx.sessionExercises.filter {
+            it.groupId == groupId && !it.isCardio && it.id !in ctx.skippedExerciseIds
+        }
         if (members.size > 1) members else listOf(current)
     } else {
         listOf(current)
@@ -327,6 +329,7 @@ private fun gapSupersetOffer(ctx: RelatorAssistContext): RelatorAssistOffer? {
     val members = parentMembers(ctx)
     if (members.size < 2) return null
     val round = ctx.currentSetIndex
+    if (!relatorSetResolved(current, round, ctx.completedSetKeys, ctx.omittedSetKeys)) return null
     val partner = members.firstOrNull { member ->
         member.id != current.id &&
             !relatorSetResolved(member, round, ctx.completedSetKeys, ctx.omittedSetKeys)
@@ -362,6 +365,13 @@ private fun gapExerciseOffer(ctx: RelatorAssistContext): RelatorAssistOffer? {
         .firstOrNull { !it.isCardio }
         ?: return null
     val skipped = previous.id in ctx.skippedExerciseIds
+    val current = ctx.sessionExercises.firstOrNull { it.id == ctx.currentExerciseId }
+    if (!skipped &&
+        !previous.groupId.isNullOrBlank() &&
+        previous.groupId == current?.groupId
+    ) {
+        return null
+    }
     val hasIncomplete = previous.setCount > 0 &&
         (0 until previous.setCount).any { setIdx ->
             !relatorSetResolved(previous, setIdx, ctx.completedSetKeys, ctx.omittedSetKeys)

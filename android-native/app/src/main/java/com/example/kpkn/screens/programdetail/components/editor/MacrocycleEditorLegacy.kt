@@ -976,6 +976,8 @@ internal fun LegacySimpleCalendarizationSheet(
         val sheetGlass = Color.White.copy(alpha = 0.11f)
         val sheetGlassStrong = Color.White.copy(alpha = 0.16f)
         if (isCalendarized) {
+            val latestBreakTitle = program.calendarBreaks.lastOrNull()?.title
+            val isCycleCalendarization = latestBreakTitle == "Ciclo calendarizado"
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -983,13 +985,17 @@ internal fun LegacySimpleCalendarizationSheet(
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Text(
-                    "Programa Simple Calendarizado",
+                    if (isCycleCalendarization) "Programa Simple Calendarizado" else "Programa Simple Calendarizado",
                     fontWeight = FontWeight.Black,
                     fontSize = 20.sp,
                     color = sheetPrimary,
                 )
                 Text(
-                    "Esto sirve cuando tu semana real cambia: turnos rotativos, viajes, exámenes, semanas con pocos días libres o una etapa donde no puedes repetir el ciclo normal. Tu rutina cíclica queda pausada; mientras dura este break, los loops y eventos cíclicos no se aplican.",
+                    if (isCycleCalendarization) {
+                        "Tu ciclo quedó anclado a fechas reales. Los loops y eventos cíclicos quedan pausados hasta que recuperes el ciclo cíclico."
+                    } else {
+                        "Esto sirve cuando tu semana real cambia: turnos rotativos, viajes, exámenes, semanas con pocos días libres o una etapa donde no puedes repetir el ciclo normal. Tu rutina cíclica queda pausada; mientras dura este break, los loops y eventos cíclicos no se aplican."
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = sheetSecondary,
                     lineHeight = 17.sp,
@@ -1001,9 +1007,17 @@ internal fun LegacySimpleCalendarizationSheet(
                     colors = CardDefaults.cardColors(containerColor = sheetGlassStrong),
                 ) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Break calendarizado activo", fontWeight = FontWeight.Black, color = sheetPrimary)
                         Text(
-                            "Cuando termines estas semanas, puedes recuperar la rutina cíclica anterior o empezar una nueva desde cero.",
+                            if (isCycleCalendarization) "Calendarización activa" else "Break calendarizado activo",
+                            fontWeight = FontWeight.Black,
+                            color = sheetPrimary,
+                        )
+                        Text(
+                            if (isCycleCalendarization) {
+                                "Cuando termines estas semanas, puedes recuperar la rutina cíclica anterior o empezar una nueva desde cero."
+                            } else {
+                                "Cuando termines estas semanas, puedes recuperar la rutina cíclica anterior o empezar una nueva desde cero."
+                            },
                             style = MaterialTheme.typography.bodySmall,
                             color = sheetSecondary,
                         )
