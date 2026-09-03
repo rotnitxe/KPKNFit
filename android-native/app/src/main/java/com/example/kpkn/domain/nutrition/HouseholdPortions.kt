@@ -2,6 +2,7 @@ package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.food.findFoodByNormalized
 import com.example.kpkn.data.food.findFoodExactByNormalized
+import com.example.kpkn.data.food.findStaticFoodById
 import com.example.kpkn.data.models.AmountIntent
 import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.data.models.LoggedFood
@@ -106,6 +107,7 @@ object HouseholdPortions {
 
     fun defaultGrams(food: FoodItem?, query: String? = null): Double {
         if (isCountable(food, query)) return unitGrams(food, query)
+        FoodStapleOntology.householdDefaultGrams(query ?: "", food)?.let { return it }
         val blob = FoodIdentity.normalize(
             listOfNotNull(query, food?.name, food?.searchAliases?.joinToString(" ")).joinToString(" "),
         )
@@ -125,6 +127,7 @@ object HouseholdPortions {
             "avena" -> 40.0
             "pasta" -> 160.0
             "pollo" -> 150.0
+            "papa" -> 100.0
             "tomate" -> 80.0
             "palta" -> 80.0
             else -> {
@@ -134,7 +137,8 @@ object HouseholdPortions {
         }
     }
 
-    private fun hasClassDefault(food: FoodItem?, query: String?): Boolean {
+    internal fun hasClassDefault(food: FoodItem?, query: String?): Boolean {
+        if (FoodStapleOntology.hasAnchoredPortion(query ?: "", food)) return true
         if (isCountable(food, query)) return true
         val blob = FoodIdentity.normalize(
             listOfNotNull(query, food?.name, food?.searchAliases?.joinToString(" ")).joinToString(" "),
@@ -143,7 +147,7 @@ object HouseholdPortions {
         if (CHEESE_MARKERS.any { blob.contains(it) }) return true
         if (blob.contains("granola") || blob.contains("avena")) return true
         val family = food?.let(FoodIdentity::familyFor) ?: query?.let(FoodIdentity::familyFor)
-        return family in setOf("huevo", "pan", "pan_chileno", "leche", "yogurt", "arroz", "avena", "pasta", "pollo", "queso")
+        return family in setOf("huevo", "pan", "pan_chileno", "leche", "yogurt", "arroz", "avena", "pasta", "pollo", "queso", "papa")
     }
 
     /**
@@ -177,7 +181,7 @@ object HouseholdPortions {
                     ) {
                         return defaultGrams(food, query)
                     }
-                    return parsed
+                    return remapGenericContainerGrams(food, query, parsed)
                 }
             }
             AmountIntent.INFERRED_CONTEXT -> {
@@ -218,7 +222,8 @@ object HouseholdPortions {
                 blob.contains("avena") -> 40.0
                 blob.contains("granola") || blob.contains("nuez") || blob.contains("almendra") -> 30.0
                 blob.contains("yogurt") || blob.contains("leche") -> 200.0
-                blob.contains("platano") || blob.contains("fruta") || blob.contains("banana") -> 120.0
+                blob.contains("platano") || blob.contains("fruta") || blob.contains("banana") ||
+                    blob.contains("frutilla") || blob.contains("arandano") -> 100.0
                 else -> defaultGrams(food, query)
             }
             InferredMealContext.Shape.SANDWICH -> when {
@@ -229,7 +234,13 @@ object HouseholdPortions {
                 else -> 40.0
             }
             InferredMealContext.Shape.BEVERAGE -> 220.0
-            InferredMealContext.Shape.WRAP -> unitGrams(food, query)
+            InferredMealContext.Shape.WRAP -> when {
+                blob.contains("quesadilla") ||
+                    CHEESE_MARKERS.any { blob.contains(it) } ||
+                    food?.let { FoodIdentity.familyFor(it) == "queso" } == true ->
+                    30.0
+                else -> unitGrams(food, query)
+            }
             InferredMealContext.Shape.UNKNOWN -> heuristicDishGrams(query, context)
             else -> defaultGrams(food, query)
         }
@@ -237,17 +248,43 @@ object HouseholdPortions {
     }
 
     fun heuristicDishGrams(query: String, context: ContextDetector.ContextResult? = null): Double {
+        val blob = FoodIdentity.normalize(query)
+        if (isNoodleDish(blob)) return 320.0
         return when (context?.shape) {
             InferredMealContext.Shape.WRAP -> 120.0
             InferredMealContext.Shape.BEVERAGE -> 220.0
-            InferredMealContext.Shape.BREAKFAST_BOWL -> 250.0
+            InferredMealContext.Shape.BREAKFAST_BOWL -> inferredItemGrams(null, query, context)
             InferredMealContext.Shape.SNACK_ITEM -> defaultGrams(null, query)
             else -> HEURISTIC_DISH_GRAMS
         }
     }
 
+    fun isNoodleDish(query: String): Boolean {
+        val blob = FoodIdentity.normalize(query)
+        return listOf(
+            "pad thai", "padthai", "ramen", "pho",
+            "fideos salteados", "fideo salteado", "chow mein", "yakisoba",
+        ).any { blob.contains(FoodIdentity.normalize(it)) }
+    }
+
+    /**
+     * A generic plate/bowl volume (200–400 g) of dry cereal is a serving, not a
+     * cooked plate. Yogurt in a bowl is a cup, not 300 ml of density math.
+     */
+    internal fun remapGenericContainerGrams(food: FoodItem?, query: String?, parsed: Double): Double {
+        val blob = FoodIdentity.normalize("$query ${food?.name.orEmpty()}")
+        val isDryCereal = listOf("avena", "granola", "muesli", "cereal").any { blob.contains(it) } &&
+            !blob.contains("cocid") && !blob.contains("hidrat")
+        if (isDryCereal && parsed in 150.0..450.0) {
+            return if (blob.contains("granola")) 30.0 else defaultGrams(food, query)
+        }
+        val isYogurt = blob.contains("yogurt") || blob.contains("yogur")
+        if (isYogurt && parsed in 240.0..400.0) return 180.0
+        return parsed
+    }
+
     private fun inferredRole(blob: String): String = when {
-        listOf("arroz", "pasta", "papa", "fideo", "quinoa", "couscous", "ramen", "noodle").any { blob.contains(it) } -> "starch"
+        listOf("arroz", "pasta", "papa", "fideo", "quinoa", "couscous", "ramen", "noodle", "pho", "pad thai").any { blob.contains(it) } -> "starch"
         listOf("pollo", "huevo", "carne", "pescado", "atun", "salmon", "cerdo", "vacuno", "pechuga").any { blob.contains(it) } -> "protein"
         else -> "side"
     }
@@ -309,9 +346,16 @@ object HouseholdPortions {
     fun catalogFoodFor(query: String): FoodItem? = householdStaticFood(query)
 
     /** Static catalog only. Never an OFF/USDA supermarket SKU. Exact phrase beats a longer dish. */
-    fun householdStaticFood(tag: String): FoodItem? =
-        (findFoodExactByNormalized(tag) ?: findFoodByNormalized(tag))
+    fun householdStaticFood(tag: String): FoodItem? {
+        FoodStapleOntology.defaultFoodIdForFamily(tag)?.let { id ->
+            findStaticFoodById(id)?.let { return it }
+        }
+        FoodStapleOntology.resolveFoodId(tag)?.let { id ->
+            findStaticFoodById(id)?.let { return it }
+        }
+        return (findFoodExactByNormalized(tag) ?: findFoodByNormalized(tag))
             ?.takeUnless { isGlobalSku(it) }
+    }
 
     fun isGlobalSku(food: FoodItem): Boolean {
         val src = food.source.orEmpty().uppercase()

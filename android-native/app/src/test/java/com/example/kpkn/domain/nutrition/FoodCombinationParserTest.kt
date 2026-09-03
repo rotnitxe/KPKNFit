@@ -116,6 +116,26 @@ class FoodCombinationParserTest {
     }
 
     @Test
+    fun `sandwich de jamon y queso sin tilde es receta con pan`() {
+        val result = FoodCombinationParser.parse("sandwich de jamon y queso")
+        assertTrue(result.isKnownDish)
+        assertEquals("pan", result.baseFood)
+        val foods = listOf(result.baseFood) + result.accompaniments.map { it.food }
+        assertTrue(foods.any { it.contains("jam", ignoreCase = true) })
+        assertTrue(foods.any { it.contains("queso", ignoreCase = true) })
+    }
+
+    @Test
+    fun `sandwich de atun y tomate generico incluye pan`() {
+        val result = FoodCombinationParser.parse("sandwich de atun y tomate")
+        assertTrue(result.isKnownDish)
+        assertEquals("pan", result.baseFood)
+        val foods = listOf(result.baseFood) + result.accompaniments.map { it.food }
+        assertTrue(foods.any { it.contains("atun", ignoreCase = true) })
+        assertTrue(foods.any { it.contains("tomate", ignoreCase = true) })
+    }
+
+    @Test
     fun `pan con palta sola matches single dish`() {
         val result = FoodCombinationParser.parse("pan con palta")
         assertTrue(result.isKnownDish)

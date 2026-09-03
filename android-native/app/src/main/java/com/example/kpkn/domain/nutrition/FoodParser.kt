@@ -34,6 +34,8 @@ private val PROTECTED_ENTITIES = listOf(
     "leche con platano", "leche con plátano",
     "sandwich de pollo con mayonesa", "sandwich de jamon con mayonesa",
     "sándwich de pollo con mayonesa", "sándwich de jamón con mayonesa",
+    "sandwich de jamon y queso", "sandwich de jamón y queso",
+    "sándwich de jamon y queso", "sándwich de jamón y queso",
     "hamburguesa con queso", "hamburguesas con queso",
     "papas fritas con mayonesa", "papa fritas con mayonesa",
     "papas con mayo",
@@ -238,7 +240,11 @@ fun parseMealDescription(
         parseFragment(trimmed, retrievalResult)?.let { items.add(it) }
     }
 
-    return ParsedMealDescription(items = items, rawDescription = trimmed)
+    return ParsedMealDescription(
+        items = items,
+        rawDescription = trimmed,
+        verbatimDescription = description.trim(),
+    )
 }
 
 private fun isKnownNegationModifier(text: String, negMatch: MatchResult): Boolean {
@@ -328,7 +334,11 @@ private fun parseFragment(
     // Canonical resolution
     val shouldSingularize = !catalogPhrase && STARTS_WITH_DIGIT.containsMatchIn(working.trim())
     val canonical = normalizeFoodName(foodName, singularize = shouldSingularize)
-    val catalogFood = findFoodExactByNormalized(canonical) ?: findFoodByNormalized(canonical)
+    val knownFood = findFoodExactByNormalized(canonical) ?: findFoodByNormalized(canonical)
+    val repaired = if (knownFood == null) SemanticPortionRetriever.repairQuery(canonical) else canonical
+    val catalogFood = knownFood
+        ?: findFoodExactByNormalized(repaired)
+        ?: findFoodByNormalized(repaired)
     val countable = HouseholdPortions.isCountable(catalogFood, canonical) ||
         (quantity != 1.0 && HouseholdPortions.isCountable(null, canonical))
     val expressedCount = quantity != 1.0 ||
@@ -345,6 +355,7 @@ private fun parseFragment(
     }
     val datasetHint = retrievalResult
         ?.takeIf { it.confidence >= DATASET_PORTION_MIN_CONFIDENCE }
+        ?.takeIf { !FoodStapleOntology.hasAnchoredPortion(canonical) }
         ?.let { SemanticPortionRetriever.getGramsForFood(canonical, it) }
         ?.takeIf { HouseholdPortions.isHouseholdHint(it, catalogFood, canonical) }
     val lockedIntent = when {

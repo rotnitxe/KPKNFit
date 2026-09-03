@@ -102,7 +102,7 @@ class FluencyGoldenCorpusTest {
     fun `pollo no se resuelve a caldo de pollo`() = runBlocking {
         val tags = resolve("pollo")
         assertEquals("gen004", tags.single().foodItem?.id)
-        assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
+        assertEquals(FoodResolutionStatus.NEEDS_CONFIRMATION, tags.single().resolutionStatus)
         assertNotNull(tags.single().loggedFood)
         val grams = tags.single().amountGrams ?: 0.0
         assertTrue("pollo grams $grams", grams in 140.0..160.0)
@@ -110,7 +110,8 @@ class FluencyGoldenCorpusTest {
         assertTrue("pollo kcal $kcal", kcal in 230.0..280.0)
         assertTrue("pollo protein", tags.single().loggedFood!!.protein in 40.0..55.0)
         assertFalse(tags.single().foodItem!!.name.contains("caldo", ignoreCase = true))
-        assertFalse(tags.single().hasMaterialQuestion())
+        assertTrue(tags.single().needsCutClarification)
+        assertTrue(tags.single().hasMaterialQuestion())
     }
 
     @Test

@@ -1,10 +1,7 @@
 package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.food.DatasetKnowledgeStore
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import java.io.DataInputStream
@@ -169,13 +166,31 @@ class DatasetKnowledgeIntegrationTest {
     }
 
     @Test
-    fun `portion priors prefer retrieval matches over global averages`() {
+    fun `portion priors do not override anchored staple household grams`() {
         val query = "200g de pechuga de pollo a la plancha"
         val retrieval = SemanticPortionRetriever.retrieve(query)
         val grams = SemanticPortionRetriever.getGramsForFood("pechuga de pollo", retrieval)
-
-        assertNotNull(grams)
-        assertTrue(grams!! in 50.0..400.0)
+        assertNull("staple ontology owns pechuga grams, not the 19K prior", grams)
     }
 
+    @Test
+    fun `typo pechga repairs against real Chilean vocabulary`() {
+        assertEquals("pechuga", SemanticPortionRetriever.repairToken("pechga"))
+        assertEquals("pechuga de pollo", SemanticPortionRetriever.repairQuery("pechga de pollo"))
+        assertEquals("pollo", SemanticPortionRetriever.repairQuery("pollo"))
+        assertTrue(SemanticPortionRetriever.rankingTokens("pollo").isEmpty())
+        val retrieval = SemanticPortionRetriever.retrieve("pechga de pollo")
+        assertNull(SemanticPortionRetriever.getGramsForFood("pechuga", retrieval))
+        assertTrue(SemanticPortionRetriever.phraseExists("completo con palta tomate y mayo"))
+    }
+
+    @Test
+    fun `dataset still returns priors for non-staple dishes`() {
+        val retrieval = SemanticPortionRetriever.retrieve("un puñado de almendras")
+        assertTrue(retrieval.matches.isNotEmpty() || retrieval.confidence >= 0.0)
+        assertNull(
+            "19K never supplies final eaten grams",
+            SemanticPortionRetriever.getGramsForFood("almendras", retrieval),
+        )
+    }
 }

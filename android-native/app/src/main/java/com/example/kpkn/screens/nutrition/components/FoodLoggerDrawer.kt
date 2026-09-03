@@ -56,12 +56,12 @@ import com.example.kpkn.domain.nutrition.FoodState
 import com.example.kpkn.domain.nutrition.FoodIdentity
 import com.example.kpkn.domain.nutrition.FoodResolutionStatus
 import com.example.kpkn.domain.nutrition.NutritionSourceKind
-import com.example.kpkn.domain.nutrition.getContextualDefaultServingSize
 import com.example.kpkn.domain.nutrition.COOKING_FACTORS
 import com.example.kpkn.domain.nutrition.SemanticPortionRetriever
 import com.example.kpkn.domain.nutrition.LastResortSplitter
 import com.example.kpkn.domain.nutrition.NutritionHeuristicEstimator
 import com.example.kpkn.domain.nutrition.MacroValidator
+import com.example.kpkn.domain.nutrition.NutritionInterpretationBridge
 import com.example.kpkn.domain.nutrition.TagResolver
 import com.example.kpkn.domain.nutrition.NutritionCalibrationWizardEngine
 import com.example.kpkn.domain.nutrition.FoodResolutionPort
@@ -292,9 +292,9 @@ fun FoodLoggerDrawer(
                 oldByTag[FoodIdentity.normalize(newTag.tag)] ?: newTag
             }
         }
-        tags = mergedTags
+        tags = mergedTags.map { NutritionInterpretationBridge.enrich(it, parsed) }
         analysisKcalRange = null
-        reviewRequired = mergedTags.any { it.hasMaterialQuestion() }
+        reviewRequired = tags.any { it.hasMaterialQuestion() }
     }
 
     fun buildAnalysisNotice(parsed: ParsedMealDescription): AnalysisNotice? {        val engine = parsed.analysisEngine
@@ -877,6 +877,9 @@ fun FoodLoggerDrawer(
                 isUncertain = true,
                 explicitDecision = true,
                 needsCookingClarification = false,
+                needsCutClarification = false,
+                stapleCutOptions = emptyList(),
+                needsOilClarification = false,
                 clarificationKind = CookingStateResolver.ClarificationKind.NONE,
                 resolutionStatus = if (centralWithRange != null) FoodResolutionStatus.AUTO else FoodResolutionStatus.NO_RESOLVED,
                 statusText = "Estimación visible. Tocá la tarjeta para editar.",
@@ -962,6 +965,10 @@ fun FoodLoggerDrawer(
                     loggedFood = adjustedLogged,
                     hasManualEdits = true,
                     oilApplied = true,
+                    needsOilClarification = false,
+                    explicitDecision = true,
+                    isResolved = true,
+                    resolutionStatus = FoodResolutionStatus.AUTO,
                 )
             } else if (tag.loggedFood != null) {
                 val stripped = stripOilFromLoggedFood(tag.loggedFood, tag.cookingMethod, tag.oilLevel, foodName = tag.foodItem?.name)
@@ -971,6 +978,10 @@ fun FoodLoggerDrawer(
                     loggedFood = adjusted,
                     hasManualEdits = true,
                     oilApplied = true,
+                    needsOilClarification = false,
+                    explicitDecision = true,
+                    isResolved = true,
+                    resolutionStatus = FoodResolutionStatus.AUTO,
                 )
             } else {
                 tag.copy(oilLevel = oilLevel, hasManualEdits = true)
@@ -982,6 +993,25 @@ fun FoodLoggerDrawer(
             val gramsPer100 = oilGramsForLevel(oilLevel) * 100.0 / portion
             updateCalibrationProfile { profile -> NutritionCalibrationWizardEngine.recordConfirmedOil(profile, key, gramsPer100) }
         }
+    }
+
+    fun updateTagCutClarification(tagId: String, foodId: String) {
+        NutritionTelemetry.event("clarification_answered", mapOf("kind" to "staple_cut", "foodId" to foodId))
+        val target = tags.firstOrNull { it.id == tagId }
+        tags = tags.map { tag ->
+            if (tag.id != tagId) tag else NutritionInterpretationBridge.applyCutOption(tag, foodId)
+        }
+        val updated = tags.firstOrNull { it.id == tagId }
+        if (target != null && updated?.foodItem != null) {
+            nutritionRepo.recordLearnedResolution(
+                query = target.tag,
+                brandHint = null,
+                foodId = foodId,
+                portionGrams = updated.amountGrams,
+                cookingMethod = updated.cookingMethod?.name,
+            )
+        }
+        reviewRequired = tags.any { it.hasMaterialQuestion() }
     }
 
     fun updateTagCookingClarification(tagId: String, wantCooked: Boolean) {
@@ -1033,6 +1063,15 @@ fun FoodLoggerDrawer(
                 resolutionConfidence = 1.0,
                 explicitDecision = true,
                 isUncertain = false,
+            )
+        }
+        tags.firstOrNull { it.id == tagId && it.foodItem != null }?.let { tag ->
+            nutritionRepo.recordLearnedResolution(
+                query = tag.tag,
+                brandHint = null,
+                foodId = tag.foodItem!!.id,
+                portionGrams = tag.amountGrams,
+                cookingMethod = tag.cookingMethod?.name,
             )
         }
         reviewRequired = tags.any { it.hasMaterialQuestion() }
@@ -1595,6 +1634,9 @@ fun FoodLoggerDrawer(
                             onOilLevelChange = { level -> updateTagOilLevel(tag.id, level) },
                             onCookingClarification = { wantCooked ->
                                 updateTagCookingClarification(tag.id, wantCooked)
+                            },
+                            onCutClarification = { foodId ->
+                                updateTagCutClarification(tag.id, foodId)
                             },
                             onConfirmEstimate = { confirmEstimate(tag.id) },
                             onUnsure = { useEstimate(tag.id) },
@@ -2198,6 +2240,7 @@ private fun TagCard(
     onResolve: (FoodItem) -> Unit,
     onOilLevelChange: (String) -> Unit,
     onCookingClarification: (Boolean) -> Unit,
+    onCutClarification: (String) -> Unit,
     onConfirmEstimate: () -> Unit,
     onUnsure: () -> Unit,
 ) {
@@ -2345,6 +2388,45 @@ private fun TagCard(
                         )
                     }
 
+                    if (tag.needsCutClarification && tag.stapleCutOptions.isNotEmpty()) {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Column(modifier = Modifier.padding(10.dp)) {
+                                Text(
+                                    "¿Qué corte fue?",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    tag.stapleCutOptions.forEach { option ->
+                                        Surface(
+                                            shape = RoundedCornerShape(8.dp),
+                                            color = MaterialTheme.colorScheme.surfaceVariant,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .clickable { onCutClarification(option.foodId) },
+                                        ) {
+                                            Text(
+                                                text = option.label,
+                                                modifier = Modifier.padding(vertical = 6.dp, horizontal = 4.dp),
+                                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Bold,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     if (tag.needsCookingClarification) {
                         Surface(
                             shape = RoundedCornerShape(12.dp),
@@ -2405,7 +2487,7 @@ private fun TagCard(
                         }
                     }
 
-                    if (tag.oilApplied && (tag.cookingMethod == CookingMethod.FRITO || tag.cookingMethod == CookingMethod.EMPANIZADO_FRITO)) {
+                    if (tag.needsOilClarification || (tag.oilApplied && (tag.cookingMethod == CookingMethod.FRITO || tag.cookingMethod == CookingMethod.EMPANIZADO_FRITO))) {
                         Surface(
                             shape = RoundedCornerShape(12.dp),
                             color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),

@@ -46,11 +46,19 @@ private val SUGAR_SWEET     = NutritionProfile(380.0,  0.5, 90.0,  0.2)
 private val PROCESSED_MEAT  = NutritionProfile(240.0, 16.0,  2.0, 19.0)
 private val SAUCE_DRESSING  = NutritionProfile(250.0,  1.5, 15.0, 20.0)
 private val MIXED_DISH      = NutritionProfile(160.0, 10.0, 16.0,  6.0)  // generic fallback
+private val NOODLE_DISH     = NutritionProfile(165.0,  7.0, 22.0,  6.0)
 
 // ─── Keyword → Profile mapping ───────────────────────────────────────────────
 // Rules are checked in order — more specific rules first.
 
 private val KEYWORD_PROFILES: List<Pair<List<String>, NutritionProfile>> = listOf(
+
+    // ── Platos de fideos (antes que "pan"/"thai" residuales y MIXED_DISH) ──
+    listOf(
+        "pad thai", "padthai", "pad-thai",
+        "ramen", "pho", "fideos salteados", "fideo salteado",
+        "chow mein", "yakisoba",
+    ) to NOODLE_DISH,
 
     // ── Suplementos (antes que cualquier otro match) ──────────────────────────
     listOf(

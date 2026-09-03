@@ -363,13 +363,23 @@ object SubjectivePortionEngine {
     ): PortionResult? {
         val lower = expression.lowercase().trim()
 
+        val foodName = extractFoodName(lower)
+
         // Utensils first — never let dataset priors override a cup/spoon match.
         for ((pattern, baseMl, source) in UTENSIL_PATTERNS) {
             val match = pattern.find(lower) ?: continue
             val qty = match.groupValues.getOrNull(1)?.replace(",", ".")?.toDoubleOrNull() ?: 1.0
             val category = foodCategory ?: FoodDensityCategory.MIXED
             val effectiveMl = utensilOverrides[source] ?: baseMl
-            val grams = effectiveMl * qty * category.densityGPerMl
+            val volumeGrams = effectiveMl * qty * category.densityGPerMl
+            val grams = remapUtensilGrams(
+                source = source,
+                baseMl = baseMl,
+                effectiveMl = effectiveMl,
+                qty = qty,
+                volumeGrams = volumeGrams,
+                foodHint = foodName ?: lower,
+            )
             return PortionResult(
                 grams = grams,
                 confidence = 0.75,
@@ -456,7 +466,11 @@ object SubjectivePortionEngine {
             val match = pattern.find(lower) ?: continue
             val category = foodCategory ?: FoodDensityCategory.MIXED
             val stdPortion = standardPortion ?: STANDARD_PORTIONS[category] ?: 100.0
-            val grams = stdPortion * factor
+            val grams = remapColloquialGrams(
+                source = source,
+                factorGrams = stdPortion * factor,
+                foodHint = foodName ?: lower,
+            )
             return PortionResult(
                 grams = grams,
                 confidence = 0.60,
@@ -524,5 +538,65 @@ object SubjectivePortionEngine {
             return deMatch.groupValues[1].trim()
         }
         return null
+    }
+
+    private val PLATE_BOWL_SOURCES = setOf(
+        "plato", "plato_grande", "plato_hondo", "bol", "tazon",
+    )
+    private val DRY_CEREAL_MARKERS = listOf("avena", "granola", "muesli", "cereal")
+    private val COOKED_GRAIN_MARKERS = listOf("arroz", "pasta", "fideo", "quinoa")
+    private val DAIRY_MARKERS = listOf("yogurt", "yogur", "leche")
+    private val FAT_MARKERS = listOf(
+        "aceite", "mantequilla", "manteca", "ghee", "margarina", "mayonesa", "mayo",
+    )
+    private val PALTA_MARKERS = listOf("palta", "aguacate", "avocado")
+
+    /**
+     * Plato/bowl/taza leave the utensil, but grams follow the food family:
+     * dry oats are a serving, cooked rice stays a plate, yogurt a bowl.
+     */
+    private fun remapUtensilGrams(
+        source: String,
+        baseMl: Double,
+        effectiveMl: Double,
+        qty: Double,
+        volumeGrams: Double,
+        foodHint: String,
+    ): Double {
+        val blob = FoodIdentity.normalize(foodHint)
+        val volumeScale = if (baseMl > 0.0) (effectiveMl / baseMl) else 1.0
+        val isTaza = source.contains("taza")
+        val isPlateOrBowl = source in PLATE_BOWL_SOURCES
+        if (!isTaza && !isPlateOrBowl) return volumeGrams
+
+        val isDryCereal = DRY_CEREAL_MARKERS.any { blob.contains(it) } &&
+            !blob.contains("cocid") &&
+            !blob.contains("hidrat")
+        if (isDryCereal) {
+            val serving = when {
+                blob.contains("granola") -> 30.0
+                isTaza -> 40.0
+                else -> 50.0
+            }
+            return (serving * qty * volumeScale).coerceIn(8.0, 80.0)
+        }
+        val isDairy = DAIRY_MARKERS.any { blob.contains(it) }
+        if (isDairy && (source == "bol" || source == "tazon" || isTaza)) {
+            return (180.0 * qty * volumeScale).coerceIn(120.0, 220.0)
+        }
+        val isCookedGrain = COOKED_GRAIN_MARKERS.any { blob.contains(it) }
+        if (isCookedGrain && isPlateOrBowl) {
+            return volumeGrams.coerceIn(180.0, 280.0)
+        }
+        return volumeGrams
+    }
+
+    private fun remapColloquialGrams(source: String, factorGrams: Double, foodHint: String): Double {
+        val blob = FoodIdentity.normalize(foodHint)
+        val isLittle = source == "poco" || source == "poquito"
+        if (!isLittle) return factorGrams
+        if (PALTA_MARKERS.any { blob.contains(it) }) return 35.0
+        if (FAT_MARKERS.any { blob.contains(it) }) return factorGrams.coerceIn(8.0, 15.0)
+        return factorGrams
     }
 }

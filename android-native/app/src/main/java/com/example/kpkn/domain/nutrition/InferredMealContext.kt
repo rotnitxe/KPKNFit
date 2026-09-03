@@ -29,7 +29,8 @@ object InferredMealContext {
     private val STARCH = listOf(
         "arroz", "pasta", "fideo", "fideos", "papa", "papas", "patata", "pure", "puré",
         "quinoa", "couscous", "cuscus", "poroto", "porotos", "lenteja", "garbanzo",
-        "frijol", "choclo", "ramen", "noodle", "udon", "pho",
+        "frijol", "choclo", "ramen", "noodle", "udon", "pho", "pad thai", "padthai",
+        "fideos salteados",
     )
     private val PROTEIN = listOf(
         "pollo", "huevo", "huevos", "carne", "vacuno", "cerdo", "pavo", "pescado",
@@ -151,6 +152,9 @@ object InferredMealContext {
     }
 
     fun shouldInferPortions(shape: Shape, itemCount: Int, allUnspecified: Boolean, description: String = ""): Boolean {
+        // A breakfast bowl with a measured base still needs topping grams
+        // (fruta/granola/miel), not heuristicDishGrams of a full plate.
+        if (shape == Shape.BREAKFAST_BOWL && itemCount >= 2) return true
         if (!allUnspecified) return false
         return when (shape) {
             Shape.MAIN_PLATE, Shape.BREAKFAST_BOWL, Shape.SANDWICH, Shape.BEVERAGE -> itemCount >= 1

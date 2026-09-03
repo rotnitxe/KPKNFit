@@ -145,7 +145,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen103", name = "Jugo de Naranja Natural", brand = "Genérico", servingSize = 100.0, unit = "ml", calories = 45.0, protein = 0.7, carbs = 10.0, fats = 0.2, searchAliases = listOf("jugo de naranja", "jugo naranja", "orange juice")),
     FoodItem(id = "gen104", name = "Leche de Almendras", brand = "Genérico", servingSize = 100.0, unit = "ml", calories = 17.0, protein = 0.6, carbs = 0.6, fats = 1.5, searchAliases = listOf("leche de almendras", "leche vegetal")),
     // ─── Suplementos ─────────────────────────────────────────────────────────
-    FoodItem(id = "gen105", name = "Proteína en Polvo (Whey)", brand = "Genérico", servingSize = 30.0, unit = "g", calories = 120.0, protein = 24.0, carbs = 3.0, fats = 2.0, searchAliases = listOf("whey", "proteína en polvo", "proteina", "suero de leche", "proteína whey", "whey protein")),
+    FoodItem(id = "gen105", name = "Proteína en Polvo (Whey)", brand = "Genérico", servingSize = 30.0, unit = "g", calories = 120.0, protein = 24.0, carbs = 3.0, fats = 2.0, searchAliases = listOf("whey", "proteína en polvo", "suero de leche", "proteína whey", "whey protein")),
     FoodItem(id = "gen106", name = "Creatina Monohidrato", brand = "Genérico", servingSize = 5.0, unit = "g", calories = 0.0, protein = 0.0, carbs = 0.0, fats = 0.0, searchAliases = listOf("creatina", "creatine")),
     // ─── Variantes de cocción (top 30 alimentos) ─────────────────────────────
     // Pollo
@@ -154,6 +154,11 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen003h", name = "Pechuga de Pollo (horno)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 168.0, protein = 31.0, carbs = 0.0, fats = 3.5, searchAliases = listOf("pollo al horno", "pechuga al horno")),
     FoodItem(id = "gen003v", name = "Pechuga de Pollo (vapor)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 160.0, protein = 31.0, carbs = 0.0, fats = 3.2, searchAliases = listOf("pollo al vapor", "pechuga vapor")),
     FoodItem(id = "gen003p", name = "Pechuga de Pollo (parrilla)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 170.0, protein = 31.0, carbs = 0.0, fats = 3.3, searchAliases = listOf("pollo a la parrilla", "pechuga parrilla")),
+    // Trutro/muslo — FDC 171077 (crudo) / 172385 (asado sin piel, cocido)
+    FoodItem(id = "gen003t", name = "Trutro de Pollo (crudo)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 177.0, protein = 19.7, carbs = 0.0, fats = 10.9, cookingWeightFactor = 0.75, searchAliases = listOf("trutro de pollo", "trutro", "muslo de pollo", "muslo", "pierna de pollo")),
+    FoodItem(id = "gen003tc", name = "Trutro de Pollo (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 195.0, protein = 24.0, carbs = 0.0, fats = 10.2, searchAliases = listOf("trutro cocido", "muslo cocido", "pierna cocida")),
+    FoodItem(id = "gen003a", name = "Ala de Pollo (cocida)", brand = "Genérico", servingSize = 80.0, unit = "u", calories = 203.0, protein = 18.0, carbs = 0.0, fats = 14.0, searchAliases = listOf("ala de pollo", "alitas", "alita", "ala")),
+    FoodItem(id = "gen003e", name = "Pollo Entero (asado)", brand = "Genérico", servingSize = 200.0, unit = "g", calories = 165.0, protein = 27.0, carbs = 0.0, fats = 6.0, searchAliases = listOf("pollo entero", "pollo asado entero")),
     // Vacuno
     FoodItem(id = "gen010p", name = "Carne Molida (plancha)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 228.0, protein = 26.0, carbs = 0.0, fats = 10.5, searchAliases = listOf("carne a la plancha")),
     FoodItem(id = "gen010f", name = "Carne Molida (frita)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 293.0, protein = 25.0, carbs = 0.0, fats = 15.4, searchAliases = listOf("carne frita")),
@@ -286,7 +291,10 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     // Sinónimos comunes
     "manzana" to "manzana",
     "plátano" to "plátano", "banana" to "plátano", "cambur" to "plátano", "platano" to "plátano",
-    "pollo" to "pechuga de pollo", "pechuga" to "pechuga de pollo",
+    "pechuga" to "pechuga de pollo", "pechuga de pollo" to "pechuga de pollo",
+    "poyo" to "pechuga de pollo",
+    "trutro" to "trutro de pollo", "muslo" to "trutro de pollo", "muslo de pollo" to "trutro de pollo",
+    "ala de pollo" to "ala de pollo", "alitas" to "ala de pollo",
     "arroz" to "arroz blanco", "arroz blanco" to "arroz blanco",
     "huevo" to "huevo entero", "huevos" to "huevo entero", "huevo cocido" to "huevo entero",
     // Atún desnudo → variante al agua (default silencioso).
@@ -296,7 +304,6 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "leche" to "leche entera",
     "pan" to "pan blanco",
     "salmon" to "salmón", "salmón" to "salmón",
-    "carne" to "carne molida",
     "papa" to "papa", "papas" to "papa",
     "palta" to "palta", "aguacate" to "palta",
     "almonds" to "almendras", "almendra" to "almendras",
@@ -326,7 +333,7 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "pera" to "pera", "durazno" to "durazno", "ciruela" to "ciruela",
     "jamón" to "jamón cocido", "jamon" to "jamón cocido",
     "salchicha" to "salchicha tipo viena", "vienesa" to "salchicha tipo viena",
-    "whey" to "proteína en polvo (whey)", "proteína" to "proteína en polvo (whey)",
+    "whey" to "proteína en polvo (whey)", "proteina en polvo" to "proteína en polvo (whey)",
     "creatina" to "creatina monohidrato",
     "marraqueta" to "marraqueta", "marraquetas" to "marraqueta",
     "hallulla" to "hallulla", "hallullas" to "hallulla",
@@ -501,6 +508,10 @@ val PORTION_REFERENCES: List<PortionRef> = listOf(
 
 // Cacheado estático para evitar la concatenación repetida de miles de elementos
 private val ALL_FOODS: List<FoodItem> by lazy { GENERIC_FOODS + CHILEAN_FOODS }
+
+private val foodById: Map<String, FoodItem> by lazy { ALL_FOODS.associateBy { it.id } }
+
+fun findStaticFoodById(id: String): FoodItem? = foodById[id]
 
 /** Multi-word catalog phrases used by the deterministic parser before connectors split them. */
 fun staticFoodPhrases(): List<String> = ALL_FOODS

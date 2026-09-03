@@ -50,6 +50,8 @@ class SmartFoodResolver(
         val semanticRetrieval: SemanticPortionRetriever.RetrievalResult? = null,
         val canonicalFamily: String? = null,
         val state: FoodState = FoodState.UNKNOWN,
+        val learnedPortionGrams: Double? = null,
+        val learnedFoodId: String? = null,
     )
 
     enum class Decision { AUTO_SELECT, NEEDS_REVIEW, UNRESOLVED }
@@ -68,6 +70,8 @@ class SmartFoodResolver(
         val portionGrams: Double?,
         val cookingMethod: String?,
         val count: Int,
+        val weightBasis: String? = null,
+        val preparation: String? = null,
     )
 
     /**
@@ -85,6 +89,8 @@ class SmartFoodResolver(
                         portionGrams = entity.portionGrams,
                         cookingMethod = entity.cookingMethod,
                         count = entity.count,
+                        weightBasis = entity.weightBasis,
+                        preparation = entity.preparation,
                     )
                 }
             } catch (e: Exception) {
@@ -144,10 +150,59 @@ class SmartFoodResolver(
             )
         }
 
+        val repairedQuery = SemanticPortionRetriever.repairQuery(query)
+        val repairedNormalized = FoodIndex.normalizeSearch(repairedQuery)
+        val repairedTokens = FoodIndex.tokenize(repairedNormalized)
+
         // Check learned resolutions first
         val learnedKey = buildLearnedKey(normalizedQuery, brandHint)
         val learned = learnedCache[learnedKey]
+        val ontologyId = FoodStapleOntology.resolveFoodId(query)
+            ?: FoodStapleOntology.resolveFoodId(repairedQuery).takeIf { repairedQuery != query }
+        val stapleId = when {
+            FoodStapleOntology.isFamilyDefault(query) &&
+                learned?.foodId != null &&
+                FoodStapleOntology.isKnownCutForFamily(query, learned.foodId) -> learned.foodId
+            else -> ontologyId
+        }
+        stapleId?.let { id ->
+            foodIndex.getFood(id)?.let { indexed ->
+                val candidate = ResolutionCandidate(
+                    foodId = indexed.foodId,
+                    name = indexed.name,
+                    brand = indexed.brand,
+                    score = 1.0,
+                    confidence = Confidence.HIGH,
+                    source = indexed.source,
+                    calories = indexed.calories,
+                    protein = indexed.protein,
+                    carbs = indexed.carbs,
+                    fats = indexed.fats,
+                    fiber = indexed.fiber,
+                    trace = listOf(if (id == learned?.foodId) "learned-staple" else "staple-ontology"),
+                    canonicalFamily = indexed.canonicalFamily,
+                    state = indexed.state,
+                )
+                return ResolutionResult(
+                    query = query,
+                    candidates = listOf(candidate),
+                    decision = Decision.AUTO_SELECT,
+                    resolvedFoodId = id,
+                    canonicalFamily = indexed.canonicalFamily,
+                    state = indexed.state,
+                    learnedPortionGrams = learned?.portionGrams?.takeIf { it.isFinite() && it > 0.0 },
+                    learnedFoodId = learned?.foodId,
+                )
+            }
+        }
         val exactLocalMatches = foodIndex.exactMatches(normalizedQuery)
+            .ifEmpty {
+                if (repairedNormalized != normalizedQuery) {
+                    foodIndex.exactMatches(repairedNormalized)
+                } else {
+                    emptyList()
+                }
+            }
             .filter { it.source == "LOCAL" }
         if (exactLocalMatches.isNotEmpty() && !FoodIdentity.isAmbiguousStateQuery(query)) {
             val exactCandidates = exactLocalMatches.take(4).map { food ->
@@ -193,36 +248,31 @@ class SmartFoodResolver(
                 return scoreAndRank(query, normalizedQuery, queryTokens, stateCandidateIds, brandHint, learned, coTokens = null, stateHint = stateHint)
             }
         }
-        val coTokens = contextHint?.takeIf { it.isNotBlank() }?.let { datasetCoOccurrenceTokens(it) }
+        val coTokens = SemanticPortionRetriever.rankingTokens(query, contextHint)
 
         // Get candidate food IDs from index
-        val queryAliases = FoodIdentity.queryAliases(query)
+        val queryAliases = FoodIdentity.queryAliases(query) +
+            FoodIdentity.queryAliases(repairedQuery).filter { it != repairedQuery }
+        val searchTokens = (queryTokens + repairedTokens).distinct()
         val candidateIds = mutableSetOf<String>().apply {
             addAll(foodIndex.search(normalizedQuery))
+            if (repairedNormalized != normalizedQuery) addAll(foodIndex.search(repairedNormalized))
             queryAliases.forEach { addAll(foodIndex.search(it)) }
+            repairedTokens.forEach { addAll(foodIndex.search(it)) }
         }
         if (candidateIds.isEmpty()) {
-            // Try searching by each token individually
             val expandedIds = mutableSetOf<String>()
-            for (token in queryTokens) {
+            for (token in searchTokens) {
                 foodIndex.search(token).let { expandedIds.addAll(it) }
             }
             queryAliases.forEach { foodIndex.search(it).let { expandedIds.addAll(it) } }
             if (expandedIds.isEmpty()) {
                 return resolveDatasetOrHeuristicFallback(query, normalizedQuery)
             }
-            return scoreAndRank(query, normalizedQuery, queryTokens, expandedIds, brandHint, learned, coTokens, stateHint)
+            return scoreAndRank(query, repairedNormalized, searchTokens, expandedIds, brandHint, learned, coTokens, stateHint)
         }
 
-        return scoreAndRank(query, normalizedQuery, queryTokens, candidateIds, brandHint, learned, coTokens, stateHint)
-    }
-
-    /** D6: tokens (≥4 letras) del contexto escrito, sin un retrieve extra de 19K docs. */
-    private fun datasetCoOccurrenceTokens(contextHint: String): Set<String> {
-        return contextHint.lowercase()
-            .split(Regex("[^\\p{L}\\p{Nd}]+"))
-            .filter { it.length >= 4 }
-            .toSet()
+        return scoreAndRank(query, repairedNormalized, searchTokens, candidateIds, brandHint, learned, coTokens, stateHint)
     }
 
     /**
@@ -268,6 +318,12 @@ class SmartFoodResolver(
             portionGrams = portionGrams ?: existing?.portionGrams,
             cookingMethod = cookingMethod ?: existing?.cookingMethod,
             count = newCount,
+            weightBasis = existing?.weightBasis ?: when (cookingMethod?.uppercase()) {
+                "CRUDO" -> "RAW"
+                null -> null
+                else -> "COOKED"
+            },
+            preparation = cookingMethod ?: existing?.preparation,
         )
         // Persist to DB in background
         kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
@@ -281,6 +337,12 @@ class SmartFoodResolver(
                         cookingMethod = cookingMethod,
                         count = newCount,
                         lastUsedAt = System.currentTimeMillis(),
+                        createdAt = existing?.let { 0L } ?: System.currentTimeMillis(),
+                        weightBasis = cookingMethod?.let {
+                            if (it.equals("CRUDO", ignoreCase = true)) "RAW" else "COOKED"
+                        },
+                        preparation = cookingMethod,
+                        lastConfirmedAt = System.currentTimeMillis(),
                     )
                 )
                 // E16/IT2: expiración — la memoria crece sin límite sin esto. Al
@@ -377,13 +439,21 @@ class SmartFoodResolver(
         // Anti-auto-refuerzo (IT2): el boost aprendido NO cuenta para su propio
         // umbral. Sin esto, una corrección aprendida inflaba el score a ≥0.74 y
         // se auto-seleccionaba "para siempre", consolidando errores.
+        val winner = top.first()
         val learnedBoostApplied = learned?.let { learnedEntry ->
-            if (learnedEntry.foodId == top.first().foodId) {
-                learnedBoostFor(learnedEntry, normalizedQuery, FoodIdentity.normalize(top.first().name))
+            if (learnedEntry.foodId == winner.foodId) {
+                learnedBoostFor(learnedEntry, normalizedQuery, FoodIdentity.normalize(winner.name))
             } else 0.0
         } ?: 0.0
-        val baseTopScore = top.first().score - learnedBoostApplied
-        val winner = top.first()
+        val datasetBoostApplied =
+            if (!coTokens.isNullOrEmpty() &&
+                FoodIndex.tokenize(FoodIndex.normalizeSearch(winner.name)).any { it in coTokens }
+            ) {
+                SemanticPortionRetriever.RANKING_BOOST
+            } else {
+                0.0
+            }
+        val baseTopScore = winner.score - learnedBoostApplied - datasetBoostApplied
         val firstRealRival = top.drop(1).firstOrNull { rival -> isRealIdentityRival(originalQuery, winner, rival) }
         val gapOk = firstRealRival == null || winner.score - firstRealRival.score >= SAFE_GAP
         val plainLocalWinner = winner.source == "LOCAL" &&
@@ -413,6 +483,8 @@ class SmartFoodResolver(
             resolvedFoodId = resolvedId,
             canonicalFamily = top.firstOrNull()?.canonicalFamily,
             state = top.firstOrNull()?.state ?: FoodState.UNKNOWN,
+            learnedPortionGrams = learned?.portionGrams?.takeIf { it.isFinite() && it > 0.0 },
+            learnedFoodId = learned?.foodId,
         )
     }
 
@@ -476,9 +548,9 @@ class SmartFoodResolver(
         if (queryState != FoodState.UNKNOWN && food.state != FoodState.UNKNOWN && food.state != queryState) {
             score -= 0.35
         }
-        // D6: boost si el candidato co-ocurre con el contexto de la descripción en el dataset
+        // D6: boost if the candidate co-occurs as a labeled food in similar 19K examples.
         if (coTokens != null && foodTokens.any { it in coTokens }) {
-            score += 0.06
+            score += SemanticPortionRetriever.RANKING_BOOST
         }
 
         // 1. Exact name match: +0.54

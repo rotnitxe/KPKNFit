@@ -60,6 +60,12 @@ data class ResolvedTag(
     val calibrationUsed: Boolean = false,
     /** True when dry/raw vs cooked was assumed as eaten, not asked. */
     val stateAssumed: Boolean = false,
+    /** Staple cut options when family is ambiguous (pollo, carne…). */
+    val stapleCutOptions: List<FoodStapleOntology.StapleCutOption> = emptyList(),
+    val needsCutClarification: Boolean = false,
+    val needsOilClarification: Boolean = false,
+    /** Learned identity for this query; suppresses family-cut chips. */
+    val learnedFoodId: String? = null,
 )
 
 /** Acceso a datos del resolver — implementado por el drawer con NutritionRepository. */
@@ -167,7 +173,12 @@ class TagResolver(
             val smartIsQualifiedDish = smartCandidate != null &&
                 !FoodIdentity.isPlainSimpleFood(item.tag, smartCandidate.name) &&
                 FoodIdentity.normalize(smartCandidate.name) != FoodIdentity.normalize(item.tag)
+            val learnedStaple = smartResult.learnedFoodId
+                ?.takeIf { id ->
+                    smartAccepted?.id == id && FoodStapleOntology.isKnownCutForFamily(item.tag, id)
+                }
             val food = when {
+                learnedStaple != null && smartAccepted != null -> smartAccepted
                 staticIsExact && staticLocal != null -> staticLocal
                 staticLocal != null && item.brandHint.isNullOrBlank() && smartIsQualifiedDish -> staticLocal
                 smartAccepted != null &&
@@ -186,8 +197,21 @@ class TagResolver(
             val assumedState = if (item.cookingMethod == null) {
                 CookingStateResolver.assumedDefault(item.tag, food)
             } else null
-            val assumedVariant = if (assumedState != null) {
+            val skipCookedAssumption = learnedStaple != null ||
+                (
+                    item.amountIntent == AmountIntent.EXPLICIT_MASS &&
+                        food != null &&
+                        CookingStateResolver.isDbFoodRaw(food)
+                    )
+            val assumedVariant = if (assumedState != null && !skipCookedAssumption) {
                 CookingStateResolver.resolveAssumedVariant(item.tag, food, assumedState)
+                    ?.takeUnless { variant ->
+                        food != null &&
+                            FoodStapleOntology.isFamilyDefault(item.tag) &&
+                            FoodStapleOntology.cutOf(food.id) != null &&
+                            FoodStapleOntology.cutOf(variant.id) != null &&
+                            FoodStapleOntology.cutOf(food.id) != FoodStapleOntology.cutOf(variant.id)
+                    }
             } else null
             val usingPreparedVariant = preparedVariant != null ||
                 (assumedVariant != null && assumedVariant.id != food?.id &&
@@ -259,16 +283,36 @@ class TagResolver(
                 .let { candidates ->
                     if (candidates.size < 2) 1.0 else (candidates[0].score - candidates[1].score).coerceAtLeast(0.0)
                 }
-            val itemIntent = if (inferPortions && item.amountIntent == AmountIntent.UNSPECIFIED) {
+            val rawItemIntent = if (inferPortions && item.amountIntent == AmountIntent.UNSPECIFIED) {
                 AmountIntent.INFERRED_CONTEXT
             } else {
                 item.amountIntent
             }
-            val inferredGrams = if (itemIntent == AmountIntent.INFERRED_CONTEXT) {
+            val inferredPreview = if (rawItemIntent == AmountIntent.INFERRED_CONTEXT) {
                 HouseholdPortions.inferredItemGrams(effectiveFood, item.tag, contextResult)
             } else {
                 null
             }
+            val itemIntent = if (
+                rawItemIntent == AmountIntent.INFERRED_CONTEXT &&
+                parsed.items.size == 1 &&
+                HouseholdPortions.hasClassDefault(effectiveFood, item.tag) &&
+                (
+                    inferredPreview == null ||
+                        inferredPreview >= HouseholdPortions.HEURISTIC_DISH_GRAMS - 1.0 ||
+                        contextResult.shape == InferredMealContext.Shape.UNKNOWN
+                    )
+            ) {
+                AmountIntent.UNSPECIFIED
+            } else {
+                rawItemIntent
+            }
+            val inferredGrams = if (itemIntent == AmountIntent.INFERRED_CONTEXT) {
+                inferredPreview
+            } else {
+                null
+            }
+            val learnedFoodId = smartResult.learnedFoodId
             val explicitKilogramPreview = HouseholdPortions.isExplicitKilogram(parsed.rawDescription) ||
                 HouseholdPortions.isExplicitKilogram(item.tag)
             val previewGrams = HouseholdPortions.resolveEatenGrams(
@@ -335,16 +379,19 @@ class TagResolver(
                             ?.takeIf { it.isFinite() && it > 0.0 && HouseholdPortions.isHouseholdHint(it, effectiveFood, item.tag) }
                     }
                 } else null
-                val datasetHint = SemanticPortionRetriever.getGramsForFood(item.tag, retrievalResult)
-                    ?.takeIf { HouseholdPortions.isHouseholdHint(it, effectiveFood, item.tag) }
+                val learnedGrams = smartResult.learnedPortionGrams
+                    ?.takeIf { it.isFinite() && it > 0.0 && HouseholdPortions.isHouseholdHint(it, effectiveFood, item.tag) }
+                val datasetHint: Double? = null
+                val stapleGrams = FoodStapleOntology.householdDefaultGrams(item.tag, effectiveFood)
+                    ?.takeIf { item.amountIntent == AmountIntent.UNSPECIFIED }
                 val explicitKilogram = HouseholdPortions.isExplicitKilogram(parsed.rawDescription) ||
                     HouseholdPortions.isExplicitKilogram(item.tag)
                 val effectiveGrams = HouseholdPortions.resolveEatenGrams(
                     intent = itemIntent,
                     quantity = item.quantity,
                     food = effectiveFood,
-                    parsedGrams = inferredGrams ?: item.amountGrams,
-                    datasetHint = calibratedGrams ?: datasetHint,
+                    parsedGrams = inferredGrams ?: item.amountGrams ?: stapleGrams,
+                    datasetHint = calibratedGrams ?: learnedGrams ?: datasetHint,
                     query = item.tag,
                     explicitKilogram = explicitKilogram,
                 )
@@ -449,9 +496,10 @@ class TagResolver(
                     resolutionConfidence = resolutionConfidence,
                     resolutionMargin = resolutionMargin,
                     stateAssumed = stateAssumed,
+                    learnedFoodId = learnedFoodId,
                 )
             } else {
-                val dishGrams = when {
+                val dishGramsRaw = when {
                     itemIntent == AmountIntent.INFERRED_CONTEXT && inferredGrams != null -> inferredGrams
                     item.amountIntent == AmountIntent.EXPLICIT_MASS ||
                         item.amountIntent == AmountIntent.RESOLVED_SUBJECTIVE ->
@@ -462,15 +510,15 @@ class TagResolver(
                         ?: HouseholdPortions.heuristicDishGrams(item.tag, contextResult)
                 }
                 val profile = NutritionHeuristicEstimator.estimatePer100g(item.tag)
-                val scale = dishGrams / 100.0
+                var dishGrams = dishGramsRaw
                 val mac = item.macroOverrides
                 var logged = createLoggedFood(
                     foodName = "${item.tag} (estimado)",
                     amount = dishGrams,
-                    calories = (mac?.calories ?: profile.calories) * if (mac?.calories != null) 1.0 else scale,
-                    protein = (mac?.protein ?: profile.protein) * if (mac?.protein != null) 1.0 else scale,
-                    carbs = (mac?.carbs ?: profile.carbs) * if (mac?.carbs != null) 1.0 else scale,
-                    fats = (mac?.fats ?: profile.fats) * if (mac?.fats != null) 1.0 else scale,
+                    calories = mac?.calories ?: profile.calories,
+                    protein = mac?.protein ?: profile.protein,
+                    carbs = mac?.carbs ?: profile.carbs,
+                    fats = mac?.fats ?: profile.fats,
                     fiber = 0.0,
                     sugar = 0.0,
                     sodiumMg = 0.0,
@@ -480,6 +528,23 @@ class TagResolver(
                     cookingMethod = item.cookingMethod,
                 )
                 logged = applyModifierScale(logged, item.modifierScale)
+                val explicitKgHeuristic = HouseholdPortions.isExplicitKilogram(parsed.rawDescription) ||
+                    HouseholdPortions.isExplicitKilogram(item.tag)
+                if (!explicitKgHeuristic &&
+                    logged.calories > HouseholdPortions.MAX_ITEM_KCAL_WITHOUT_KG &&
+                    logged.calories.isFinite() &&
+                    logged.calories > 0.0
+                ) {
+                    val factor = HouseholdPortions.MAX_ITEM_KCAL_WITHOUT_KG / logged.calories
+                    dishGrams *= factor
+                    logged = logged.copy(
+                        amount = dishGrams,
+                        calories = HouseholdPortions.MAX_ITEM_KCAL_WITHOUT_KG,
+                        protein = logged.protein * factor,
+                        carbs = logged.carbs * factor,
+                        fats = logged.fats * factor,
+                    )
+                }
                 val fallbackStatus = listOfNotNull(
                     contextResult.assumedLabel?.let { "Asumí $it." },
                     "Estimación de plato (${dishGrams.toInt()} g). Tocá la tarjeta para editar.",
@@ -521,10 +586,16 @@ class TagResolver(
         }
 
         val combination = FoodCombinationParser.parse(parsed.rawDescription)
+        val sandwichExpanded = expandSandwichComponents(combination, parsed.rawDescription, resolvedTags)
+        if (sandwichExpanded != null) {
+            resolvedTags.clear()
+            resolvedTags.addAll(sandwichExpanded)
+        }
+
         val isSingleTagPlate = resolvedTags.size == 1
         val exactPlate = findFoodExactByNormalized(parsed.rawDescription) != null
 
-        if (!isSingleTagPlate && !exactPlate && combination.confidence >= 0.70) {
+        if (sandwichExpanded == null && !isSingleTagPlate && !exactPlate && combination.confidence >= 0.70) {
             val totalGrams = resolvedTags.sumOf { it.loggedFood?.amount ?: 0.0 }
             val comboParts = buildList {
                 add(Triple(combination.baseFood, combination.baseProportion, FoodCombinationParser.Role.STARCH))
@@ -602,7 +673,94 @@ class TagResolver(
                 }
             }
         }
-        Pair(resolvedTags, contextResult)
+        val clarified = resolvedTags.map { NutritionInterpretationBridge.enrich(it, parsed) }
+        Pair(clarified, contextResult)
+    }
+
+    private suspend fun expandSandwichComponents(
+        combination: FoodCombinationParser.ParsedCombination,
+        rawDescription: String,
+        existing: List<ResolvedTag>,
+    ): List<ResolvedTag>? {
+        val blob = FoodIdentity.normalize(rawDescription)
+        if (!blob.contains("sandwich")) return null
+        if (combination.baseFood != "pan" || combination.confidence < 0.70) return null
+        val hasBread = existing.any { tag ->
+            val n = FoodIdentity.normalize("${tag.foodItem?.name.orEmpty()} ${tag.tag}")
+            n.contains("pan") || n.contains("hallulla") || n.contains("marraqueta")
+        }
+        if (hasBread) return null
+        val parts = buildList {
+            add(combination.baseFood)
+            combination.accompaniments.forEach { add(it.food) }
+        }
+        if (parts.size < 2) return null
+        val tags = parts.map { name ->
+            val food = HouseholdPortions.householdStaticFood(name) ?: port.staticFood(name)
+            val grams = HouseholdPortions.defaultGrams(food, name)
+            if (food != null) {
+                val logged = scaleFoodByPortion(
+                    food = food,
+                    quantity = 1.0,
+                    portion = PortionPreset.MEDIUM,
+                    amountGrams = grams,
+                    cookingMethod = null,
+                    portionAdjustment = 1.0,
+                )
+                val status = HouseholdPortions.operationalAutoStatus(
+                    food = food,
+                    grams = grams,
+                    brandHint = null,
+                    explicitKilogram = false,
+                    amountIntent = AmountIntent.INFERRED_CONTEXT,
+                )
+                ResolvedTag(
+                    tag = name,
+                    amountGrams = grams,
+                    baseAmountGrams = grams,
+                    portionMinGrams = grams,
+                    portionMaxGrams = grams,
+                    foodItem = food,
+                    loggedFood = logged.copy(analysisSource = AnalysisSource.DATABASE),
+                    isResolved = status == FoodResolutionStatus.AUTO,
+                    analysisSource = AnalysisSource.DATABASE,
+                    statusText = "Asumí ${grams.toInt()} g.",
+                    amountIntent = AmountIntent.INFERRED_CONTEXT,
+                    canonicalFamily = FoodIdentity.familyFor(food),
+                    foodState = FoodIdentity.stateFor(food),
+                    resolutionStatus = status,
+                    nutritionSource = NutritionSourceKind.CURATED_LOCAL,
+                    resolutionConfidence = combination.confidence,
+                )
+            } else {
+                val profile = NutritionHeuristicEstimator.estimatePer100g(name)
+                val scale = grams / 100.0
+                val logged = createLoggedFood(
+                    foodName = "$name (estimado)",
+                    amount = grams,
+                    calories = profile.calories * scale,
+                    protein = profile.protein * scale,
+                    carbs = profile.carbs * scale,
+                    fats = profile.fats * scale,
+                )
+                ResolvedTag(
+                    tag = name,
+                    amountGrams = grams,
+                    baseAmountGrams = grams,
+                    portionMinGrams = grams,
+                    portionMaxGrams = grams,
+                    loggedFood = logged.copy(analysisSource = AnalysisSource.LOCAL_HEURISTIC),
+                    isResolved = logged.calories.isFinite(),
+                    isFuzzyMatch = true,
+                    analysisSource = AnalysisSource.LOCAL_HEURISTIC,
+                    statusText = "Asumí ${grams.toInt()} g.",
+                    amountIntent = AmountIntent.INFERRED_CONTEXT,
+                    nutritionSource = NutritionSourceKind.HEURISTIC_ESTIMATE,
+                    resolutionConfidence = combination.confidence,
+                )
+            }
+        }
+        return tags.takeIf { it.size >= 2 }
     }
 }
 
@@ -713,6 +871,9 @@ private fun roundPortionGrams(value: Double): Double =
 /** Material uncertainty used by both the UI gate and JVM tests. */
 fun ResolvedTag.hasMaterialQuestion(): Boolean {
     if (isExcluded || explicitDecision) return false
+    if (needsCutClarification && stapleCutOptions.isNotEmpty()) return true
+    if (needsCookingClarification) return true
+    if (needsOilClarification) return true
     if (loggedFood != null &&
         loggedFood.calories.isFinite() &&
         loggedFood.calories >= 0.0 &&
@@ -723,7 +884,6 @@ fun ResolvedTag.hasMaterialQuestion(): Boolean {
         return false
     }
     if (resolutionStatus == FoodResolutionStatus.AUTO && isResolved) return false
-    if (needsCookingClarification && !stateAssumed) return true
     if (!isResolved && !isUncertain) return true
     return resolutionStatus == FoodResolutionStatus.NEEDS_CONFIRMATION ||
         resolutionStatus == FoodResolutionStatus.NO_RESOLVED

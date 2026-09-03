@@ -126,7 +126,9 @@ class EverydayMealCorpusTest {
         val rice = resolve("medio kilo de arroz").single()
         assertEquals("gen005", rice.foodItem?.id)
         assertEquals(500.0, rice.amountGrams ?: 0.0, 1.0)
-        assertTrue(rice.isResolved)
+        assertTrue(rice.needsCookingClarification)
+        assertTrue(rice.hasMaterialQuestion())
+        assertFalse(rice.isResolved)
     }
 
     @Test
@@ -243,6 +245,104 @@ class EverydayMealCorpusTest {
         assertEquals("cl013", hallulla.foodItem?.id)
         assertEquals(FoodResolutionStatus.AUTO, hallulla.resolutionStatus)
         assertTrue((hallulla.amountGrams ?: 0.0) in 70.0..90.0)
+    }
+
+    @Test
+    fun `porciones mixtas subjetivas exactas e inferidas`() = runBlocking {
+        val mixed = resolve("200 g de pollo a la plancha con un plato de arroz y ensalada")
+        assertTrue("mixed size ${mixed.size}", mixed.size >= 2)
+        val pollo = mixed.first { it.tag.contains("pollo", ignoreCase = true) }
+        assertEquals("exact grams", 200.0, pollo.amountGrams ?: 0.0, 1.0)
+        assertNotNull(pollo.loggedFood)
+        mixed.filterNot { it.tag.contains("pollo", ignoreCase = true) }.forEach { tag ->
+            val grams = tag.amountGrams ?: tag.loggedFood?.amount ?: 0.0
+            assertTrue("${tag.tag} inferred/subjective grams $grams", grams > 0.0)
+            assertNotNull(tag.loggedFood)
+        }
+
+        val subjective = resolve("un plato de avena con un poco de miel")
+        assertTrue("subjective size ${subjective.size}", subjective.size >= 2)
+        subjective.forEach { tag ->
+            val grams = tag.amountGrams ?: tag.loggedFood?.amount ?: 0.0
+            assertTrue("${tag.tag} subjective grams $grams", grams > 0.0)
+            assertNotNull("${tag.tag} loggedFood", tag.loggedFood)
+        }
+
+        val inferred = resolve("pollo a la plancha con arroz")
+        assertEquals(2, inferred.size)
+        inferred.forEach { tag ->
+            val grams = tag.amountGrams ?: tag.loggedFood?.amount ?: 0.0
+            assertTrue("${tag.tag} inferred grams $grams", grams > 20.0)
+            assertTrue(tag.isResolved)
+            assertNotNull(tag.loggedFood)
+        }
+
+        val countAndHandful = resolve("2 huevos con un punado de almendras")
+        assertTrue("count+handful size ${countAndHandful.size}", countAndHandful.size >= 2)
+        val eggs = countAndHandful.first { it.tag.contains("huevo", ignoreCase = true) }
+        assertTrue("2 huevos grams ${eggs.amountGrams}", (eggs.amountGrams ?: 0.0) in 90.0..160.0)
+        val almonds = countAndHandful.first { it.tag.contains("almend", ignoreCase = true) }
+        assertTrue("punado almendras ${(almonds.amountGrams ?: 0.0)}", (almonds.amountGrams ?: 0.0) in 10.0..50.0)
+    }
+
+    @Test
+    fun `corpus emulador recipientes recetas y heuristica`() = runBlocking {
+        val avenaMeal = resolve("un plato de avena con un poco de miel")
+        assertTrue("avena+miel items ${avenaMeal.size}", avenaMeal.size >= 2)
+        val avena = avenaMeal.first { it.tag.contains("avena", ignoreCase = true) }
+        val avenaKcal = avena.loggedFood?.calories ?: 0.0
+        val avenaGrams = avena.amountGrams ?: 0.0
+        assertTrue("plato avena $avenaGrams g no es 250 g secos", avenaGrams in 30.0..80.0)
+        assertTrue("plato avena $avenaKcal kcal (era ~827)", avenaKcal in 100.0..350.0)
+        val avenaTotal = avenaMeal.sumOf { it.loggedFood?.calories ?: 0.0 }
+        assertTrue("plato avena+miel total $avenaTotal", avenaTotal in 180.0..450.0)
+
+        val mixedExact = resolve("200 g de pollo a la plancha con un plato de arroz")
+        val pollo200 = mixedExact.first { it.tag.contains("pollo", ignoreCase = true) }
+        assertEquals(200.0, pollo200.amountGrams ?: 0.0, 1.0)
+        val arrozPlato = mixedExact.first { it.tag.contains("arroz", ignoreCase = true) }
+        val arrozG = arrozPlato.amountGrams ?: 0.0
+        assertTrue("plato arroz $arrozG", arrozG in 180.0..280.0)
+
+        val inferredPlate = resolve("arroz con pollo y ensalada")
+        assertTrue("arroz+pollo+ensalada ${inferredPlate.size}", inferredPlate.size >= 3)
+        inferredPlate.forEach { tag ->
+            val grams = tag.amountGrams ?: tag.loggedFood?.amount ?: 0.0
+            assertTrue("${tag.tag} grams $grams", grams > 0.0)
+            assertNotNull(tag.loggedFood)
+        }
+
+        val sandwich = resolve("sandwich de jamon y queso")
+        val hasBread = sandwich.any { tag ->
+            val blob = "${tag.foodItem?.name.orEmpty()} ${tag.tag}".lowercase()
+            blob.contains("pan") || blob.contains("hallulla") || blob.contains("marraqueta")
+        }
+        assertTrue("sandwich debe incluir pan, tags=${sandwich.map { it.tag }}", hasBread)
+        val sandwichKcal = sandwich.sumOf { it.loggedFood?.calories ?: 0.0 }
+        assertTrue("sandwich kcal $sandwichKcal (era 196 sin pan)", sandwichKcal in 250.0..500.0)
+
+        val palta = resolve("150 g de salmon con un poco de palta")
+        val paltaTag = palta.first { it.tag.contains("palta", ignoreCase = true) }
+        val paltaG = paltaTag.amountGrams ?: 0.0
+        assertTrue("un poco de palta $paltaG g", paltaG in 28.0..45.0)
+
+        val pad = resolve("pad thai")
+        val padKcal = pad.sumOf { it.loggedFood?.calories ?: 0.0 }
+        val padP = pad.sumOf { it.loggedFood?.protein ?: 0.0 }
+        assertTrue("pad thai kcal $padKcal (era 1960)", padKcal in 400.0..800.0)
+        assertTrue("pad thai protein $padP g (era 122)", padP < 50.0)
+        assertTrue(
+            "pad thai kcal clamp",
+            padKcal <= HouseholdPortions.MAX_ITEM_KCAL_WITHOUT_KG,
+        )
+
+        val bowl = resolve("un bowl de yogurt con granola y fruta")
+        val fruta = bowl.first { tag ->
+            val blob = "${tag.foodItem?.name.orEmpty()} ${tag.tag}".lowercase()
+            blob.contains("fruta") || blob.contains("platano") || blob.contains("manzana")
+        }
+        val frutaG = fruta.amountGrams ?: 0.0
+        assertTrue("fruta topping $frutaG g no es plato 250", frutaG in 40.0..180.0)
     }
 
     @Test

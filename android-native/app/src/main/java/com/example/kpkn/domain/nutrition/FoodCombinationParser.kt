@@ -13,6 +13,10 @@ object FoodCombinationParser {
 
     private val CON_Y_COMMA_LEADING_PATTERN = Regex("""^\s*(?:con|y|,)\s*""")
     private val COMBO_SPLIT_PATTERN = Regex("""\s+(?:con|y|,)\s+""")
+    private val SANDWICH_DE_Y = Regex(
+        """(?:s[aá]ndwich|sandwich)\s+de\s+(.+?)\s+y\s+(.+)$""",
+        RegexOption.IGNORE_CASE,
+    )
 
     private val dishRegexCache = mutableMapOf<String, Regex>()
 
@@ -305,6 +309,8 @@ object FoodCombinationParser {
 
         "sándwich de jamon y queso" to listOf(DishComponent("pan", 0.4, Role.STARCH), DishComponent("jamón", 0.3, Role.TOPPING), DishComponent("queso", 0.3, Role.TOPPING)),
         "sándwich de jamón y queso" to listOf(DishComponent("pan", 0.4, Role.STARCH), DishComponent("jamón", 0.3, Role.TOPPING), DishComponent("queso", 0.3, Role.TOPPING)),
+        "sandwich de jamon y queso" to listOf(DishComponent("pan", 0.4, Role.STARCH), DishComponent("jamón", 0.3, Role.TOPPING), DishComponent("queso", 0.3, Role.TOPPING)),
+        "sandwich de jamón y queso" to listOf(DishComponent("pan", 0.4, Role.STARCH), DishComponent("jamón", 0.3, Role.TOPPING), DishComponent("queso", 0.3, Role.TOPPING)),
         "sándwich de pavo" to listOf(DishComponent("pan", 0.5, Role.STARCH), DishComponent("pavo", 0.5, Role.TOPPING)),
         "sándwich de pollo" to listOf(DishComponent("pan", 0.4, Role.STARCH), DishComponent("pollo", 0.6, Role.TOPPING)),
         "sándwich de atun" to listOf(DishComponent("pan", 0.4, Role.STARCH), DishComponent("atún", 0.6, Role.TOPPING)),
@@ -427,6 +433,28 @@ object FoodCombinationParser {
                 dishName = bestDishName,
                 confidence = 0.95,
             )
+        }
+
+        val sandwichGeneric = SANDWICH_DE_Y.find(lower)
+        if (sandwichGeneric != null) {
+            val fillingA = sandwichGeneric.groupValues[1].trim()
+            val fillingB = sandwichGeneric.groupValues[2].trim()
+            if (fillingA.isNotBlank() && fillingB.isNotBlank() &&
+                !fillingA.contains(" con ") && !fillingB.contains(" con ")
+            ) {
+                return ParsedCombination(
+                    baseFood = "pan",
+                    baseProportion = 0.4,
+                    accompaniments = listOf(
+                        Accompaniment(fillingA, 0.3, inferRole(fillingA)),
+                        Accompaniment(fillingB, 0.3, inferRole(fillingB)),
+                    ),
+                    cookingMethod = null,
+                    isKnownDish = true,
+                    dishName = "sandwich de $fillingA y $fillingB",
+                    confidence = 0.85,
+                )
+            }
         }
 
         // 2. Try generic patterns

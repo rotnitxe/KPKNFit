@@ -373,11 +373,11 @@ class NutritionResolutionConsistencyTest {
 
         val result = SmartFoodResolver(noOpNutritionDao(), index).resolve("fideos")
 
-        assertEquals(SmartFoodResolver.Decision.NEEDS_REVIEW, result.decision)
+        assertEquals(SmartFoodResolver.Decision.AUTO_SELECT, result.decision)
+        assertEquals("gen040", result.resolvedFoodId)
         assertTrue(result.candidates.isNotEmpty())
         assertTrue(result.candidates.all { it.source == "LOCAL" })
-        assertTrue(result.candidates.any { it.state == FoodState.RAW })
-        assertTrue(result.candidates.any { it.state == FoodState.COOKED || it.state == FoodState.HYDRATED })
+        assertFalse(result.candidates.any { it.foodId.startsWith("global") })
     }
 
     @Test

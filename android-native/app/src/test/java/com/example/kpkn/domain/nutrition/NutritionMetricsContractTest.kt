@@ -101,7 +101,7 @@ class NutritionMetricsContractTest {
         IdentityCase("palta", "palta", expectedId = "gen014", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("pan", "pan", expectedId = "gen019", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("pechuga de pollo", "pechuga de pollo", expectedId = "gen004", expectedStatus = FoodResolutionStatus.AUTO),
-        IdentityCase("pollo", "pollo", expectedId = "gen004", expectedStatus = FoodResolutionStatus.AUTO),
+        IdentityCase("pollo", "pollo", expectedId = "gen004", expectedStatus = FoodResolutionStatus.NEEDS_CONFIRMATION),
         IdentityCase("lentejas", "lenteja", expectedId = "gen012", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("garbanzos", "garbanzo", expectedId = "gen013", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("plátano", "platano", expectedId = "gen002", expectedStatus = FoodResolutionStatus.AUTO),

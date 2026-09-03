@@ -58,4 +58,15 @@ class NutritionHeuristicEstimatorTest {
         assertEquals(165.0, pollo!!.calories, 1.0)
         assertEquals(31.0, pollo.protein, 1.0)
     }
+
+    @Test
+    fun `pad thai ramen y pho son plato de fideos no MIXED seco`() {
+        val pad = NutritionHeuristicEstimator.estimatePer100g("pad thai")
+        assertEquals(165.0, pad.calories, 1.0)
+        assertTrue("pad thai protein ${pad.protein}", pad.protein in 5.0..12.0)
+        val ramen = NutritionHeuristicEstimator.estimatePer100g("ramen")
+        assertEquals(165.0, ramen.calories, 1.0)
+        val pho = NutritionHeuristicEstimator.estimatePer100g("pho")
+        assertEquals(165.0, pho.calories, 1.0)
+    }
 }

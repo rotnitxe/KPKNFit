@@ -124,6 +124,9 @@ object FoodIdentity {
         "cheddar" to "queso",
         "gouda" to "queso",
         "gauda" to "queso",
+        "papa" to "papa",
+        "papas" to "papa",
+        "patata" to "papa",
     )
 
     private val COMPOUND_PRODUCT_MARKERS = listOf(

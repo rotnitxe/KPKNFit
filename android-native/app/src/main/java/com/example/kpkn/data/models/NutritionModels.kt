@@ -375,6 +375,8 @@ data class MacroOverrides(
 data class ParsedMealDescription(
     val items: List<ParsedMealItem> = emptyList(),
     val rawDescription: String = "",
+    /** User text before typo normalization (poyo→pollo); used for disambiguation policy. */
+    val verbatimDescription: String = "",
     val overallConfidence: Double? = null,
     val containsEstimatedItems: Boolean = false,
     val requiresReview: Boolean = false,

@@ -101,11 +101,15 @@ object SemanticPortionRetriever {
     @Volatile
     private var knowledge: DatasetKnowledgeSnapshot? = null
 
+    @Volatile
+    private var lastRetrieve: RetrievalResult? = null
+
     fun install(snapshot: DatasetKnowledgeSnapshot) {
         require(snapshot.documents.indices.all { snapshot.documents[it].id == it }) {
             "Dataset document IDs must be contiguous"
         }
         knowledge = snapshot
+        lastRetrieve = null
     }
 
     /** Snapshot instalado actualmente (diagnóstico y tests). */
@@ -139,6 +143,8 @@ object SemanticPortionRetriever {
     }
 
     fun retrieve(query: String, topK: Int = 8): RetrievalResult {
+        val cached = lastRetrieve
+        if (cached != null && cached.query == query) return cached
         retrieveCount++
         val startedAt = System.nanoTime()
         val snapshot = knowledge ?: return emptyResult(query, startedAt)
@@ -208,7 +214,7 @@ object SemanticPortionRetriever {
         val tokenCoverage = matchedQueryTokens.toDouble() / tokenCounts.size.coerceAtLeast(1)
         val confidence = calculateConfidence(matches, tokenCoverage)
 
-        return RetrievalResult(
+        val result = RetrievalResult(
             query = query,
             matches = matches,
             contextDetected = contexts,
@@ -218,30 +224,115 @@ object SemanticPortionRetriever {
             elapsedMs = elapsedMillis(startedAt),
             datasetChecksum = snapshot.checksum,
         )
+        lastRetrieve = result
+        return result
     }
 
-    fun getGramsForFood(foodName: String, retrievalResult: RetrievalResult?): Double? {
-        val normalizedFood = normalize(foodName)
-        if (normalizedFood.isBlank()) return null
-        retrievalResult?.portionPriors?.entries
-            ?.maxByOrNull { (key, _) -> foodSimilarity(normalizedFood, key) }
-            ?.takeIf { (key, _) -> foodSimilarity(normalizedFood, key) >= PORTION_MATCH_THRESHOLD }
-            ?.let { return it.value }
-
+    /**
+     * Typo repair against Chilean food names seen in the 19K corpus.
+     * Never returns a different staple family/cut (pollo stays pollo).
+     */
+    fun repairToken(token: String): String? {
         val snapshot = knowledge ?: return null
-        snapshot.portionPriors[normalizedFood]?.let { return it.grams }
-        return snapshot.portionPriors.values.asSequence()
-            .map { prior -> prior to foodSimilarity(normalizedFood, prior.food) }
-            .filter { (_, similarity) -> similarity >= PORTION_MATCH_THRESHOLD }
-            // D5: frecuencia como desempate con peso — a igual similitud, el prior más
-            // visto en el dataset es más representativo.
-            .maxWithOrNull(
-                compareBy<Pair<DatasetPortionPrior, Double>> { it.second }
-                    .thenBy { reliabilityScore(it.first) },
-            )
-            ?.first
-            ?.grams
+        val blob = normalize(token)
+        if (blob.length < 4 || blob.length > 18) return null
+        if (blob in stopwords) return null
+        if (FoodStapleOntology.isFamilyDefault(blob)) return null
+        if (FoodStapleOntology.shouldAvoidAliasCollapse(blob)) return null
+        if (snapshot.tokenIndex.containsKey(blob)) return null
+        if (com.example.kpkn.data.food.findFoodExactByNormalized(blob) != null) return null
+        val vocab = foodVocabTokens(snapshot)
+        if (blob in vocab) return null
+        val queryTrigrams = generateTrigrams(blob)
+        if (queryTrigrams.isEmpty()) return null
+        var best: String? = null
+        var bestScore = 0.0
+        for (candidate in vocab) {
+            if (candidate == blob) continue
+            if (kotlin.math.abs(candidate.length - blob.length) > 2) continue
+            if (candidate.length < 4) continue
+            if (candidate.take(2) != blob.take(2)) continue
+            val distance = editDistance(blob, candidate)
+            if (distance > 2) continue
+            val candTrigrams = generateTrigrams(candidate)
+            val union = queryTrigrams.union(candTrigrams).size.coerceAtLeast(1)
+            val jaccard = queryTrigrams.intersect(candTrigrams).size.toDouble() / union
+            val score = when {
+                distance == 1 -> 0.90 + jaccard * 0.10
+                jaccard >= 0.40 -> jaccard
+                else -> continue
+            }
+            if (score > bestScore) {
+                bestScore = score
+                best = candidate
+            }
+        }
+        val repaired = best ?: return null
+        if (bestScore < 0.40) return null
+        val originalFamily = FoodStapleOntology.detectFamily(blob)
+        val repairedFamily = FoodStapleOntology.detectFamily(repaired)
+        if (originalFamily != null && repairedFamily != null && originalFamily != repairedFamily) return null
+        if (FoodStapleOntology.isFamilyDefault(repaired)) return null
+        return repaired
     }
+
+    fun repairQuery(query: String): String {
+        if (knowledge == null) return query
+        if (query.isBlank()) return query
+        if (FoodStapleOntology.isFamilyDefault(query)) return query
+        var changed = false
+        val rebuilt = query.split(Regex("\\s+")).joinToString(" ") { token ->
+            val core = token.trim(',', '.', ';', ':', '!', '?')
+            val repaired = repairToken(core)
+            if (repaired != null && repaired != core) {
+                changed = true
+                token.replace(core, repaired, ignoreCase = true)
+            } else {
+                token
+            }
+        }
+        return if (changed) rebuilt else query
+    }
+
+    /** Food-name tokens from neighbor examples. Never grams. */
+    fun neighborFoodTokens(retrieval: RetrievalResult?): Set<String> {
+        val snapshot = knowledge ?: return emptySet()
+        if (retrieval == null || retrieval.matches.isEmpty()) return emptySet()
+        val tokens = mutableSetOf<String>()
+        for (match in retrieval.matches.take(5)) {
+            if (match.score < MINIMUM_MATCH_SCORE) continue
+            val document = snapshot.document(match.docId) ?: continue
+            for (portion in document.portions) {
+                tokens += tokenize(normalize(portion.food))
+            }
+        }
+        return tokens.filterTo(mutableSetOf()) { it.length >= 4 && it !in stopwords }
+    }
+
+    /**
+     * Ranking-only hint: foods that co-occur in similar 19K examples.
+     * Skipped for ambiguous family queries (pollo/carne) so neighbors cannot pick a cut.
+     */
+    fun rankingTokens(query: String, contextHint: String? = null): Set<String> {
+        if (FoodStapleOntology.isFamilyDefault(query)) return emptySet()
+        val probe = contextHint?.takeIf { it.isNotBlank() } ?: query
+        if (probe.isBlank()) return emptySet()
+        return neighborFoodTokens(retrieve(probe))
+    }
+
+    fun phraseExists(query: String): Boolean {
+        val result = retrieve(query)
+        return result.matches.isNotEmpty() && result.confidence >= 0.10
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    fun getGramsForFood(foodName: String, retrievalResult: RetrievalResult?): Double? {
+        // Dataset 19K is vocabulary/ranking only — never the eaten-grams authority.
+        return null
+    }
+
+    private fun foodVocabTokens(snapshot: DatasetKnowledgeSnapshot): Set<String> =
+        snapshot.portionPriors.keys.flatMapTo(mutableSetOf()) { tokenize(normalize(it)) }
 
     /** 0..1: frecuencia normalizada logarítmicamente para comparar fiabilidad de priors. */
     private fun reliabilityScore(prior: DatasetPortionPrior): Double =
@@ -407,7 +498,25 @@ object SemanticPortionRetriever {
     private fun elapsedMillis(startedAt: Long): Long =
         (System.nanoTime() - startedAt) / 1_000_000
 
+    private fun editDistance(left: String, right: String): Int {
+        if (left == right) return 0
+        if (left.isEmpty()) return right.length
+        if (right.isEmpty()) return left.length
+        val prev = IntArray(right.length + 1) { it }
+        val cur = IntArray(right.length + 1)
+        for (i in 1..left.length) {
+            cur[0] = i
+            for (j in 1..right.length) {
+                val cost = if (left[i - 1] == right[j - 1]) 0 else 1
+                cur[j] = minOf(cur[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost)
+            }
+            for (j in prev.indices) prev[j] = cur[j]
+        }
+        return prev[right.length]
+    }
+
     private const val MINIMUM_MATCH_SCORE = 0.04
+    const val RANKING_BOOST = 0.06
     private const val MINIMUM_PRIOR_SCORE = 0.08
     private const val MINIMUM_MACRO_SCORE = 0.10
     private const val PORTION_MATCH_THRESHOLD = 0.50
