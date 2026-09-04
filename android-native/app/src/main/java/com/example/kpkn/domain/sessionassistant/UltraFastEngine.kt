@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.DropSetData
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.PlannedTechnique
 import com.example.kpkn.data.models.RestPauseData
 import com.example.kpkn.data.models.Session
@@ -491,17 +492,27 @@ fun applyMarkedSeriesTechnique(
 ): List<ExerciseSet> {
     if (sets.isEmpty() || selectedIndices.isEmpty()) return sets
     val eligible = selectedIndices
-        .filter { it in sets.indices && !skipIndex(it) }
+        .filter { it in sets.indices && !skipIndex(it) && (technique == SeriesTechnique.NORMAL || it > 0) }
         .sorted()
     if (eligible.isEmpty()) return sets
     val eligibleSet = eligible.toSet()
     val dropWeights = mutableMapOf<Int, Double>()
     if (technique == SeriesTechnique.DROPSET) {
-        var lastWeight = sets[eligible.first()].weight ?: 0.0
-        dropWeights[eligible.first()] = lastWeight
-        for (followIdx in eligible.drop(1)) {
-            lastWeight = (lastWeight - MARKED_DROPSET_WEIGHT_DROP_KG).coerceAtLeast(0.0)
-            dropWeights[followIdx] = lastWeight
+        for (followIdx in eligible) {
+            val prevWeight = dropWeights[followIdx - 1]
+                ?: sets.getOrNull(followIdx - 1)?.weight
+                ?: 0.0
+            val dropped = (prevWeight - MARKED_DROPSET_WEIGHT_DROP_KG).coerceAtLeast(0.0)
+            dropWeights[followIdx] = dropped
+        }
+    }
+    val rpWeights = mutableMapOf<Int, Double>()
+    if (technique == SeriesTechnique.REST_PAUSE) {
+        for (followIdx in eligible) {
+            val prevWeight = rpWeights[followIdx - 1]
+                ?: sets.getOrNull(followIdx - 1)?.weight
+                ?: 0.0
+            rpWeights[followIdx] = prevWeight
         }
     }
     return sets.mapIndexed { idx, set ->
@@ -509,13 +520,30 @@ fun applyMarkedSeriesTechnique(
         else {
             val withFlags = stampBetweenMarkedTechnique(set.withTechnique(technique))
             when (technique) {
-                SeriesTechnique.NORMAL -> withFlags
-                SeriesTechnique.REST_PAUSE -> withFlags.copy(restAfterSeconds = MARKED_REST_PAUSE_SECONDS)
+                SeriesTechnique.NORMAL -> withFlags.copy(
+                    isDropSet = false,
+                    isRestPause = false,
+                    restAfterSeconds = null,
+                    isFailure = false,
+                    intensityMode = if (withFlags.intensityMode == IntensityMode.FAILURE) IntensityMode.RPE else withFlags.intensityMode,
+                )
+                SeriesTechnique.REST_PAUSE -> withFlags.copy(
+                    restAfterSeconds = MARKED_REST_PAUSE_SECONDS,
+                    weight = rpWeights[idx] ?: withFlags.weight,
+                    targetReps = 3,
+                    plannedTargetV2 = 3.0,
+                    isFailure = true,
+                    intensityMode = IntensityMode.FAILURE,
+                )
                 SeriesTechnique.DROPSET -> {
                     val hasFollowUp = eligible.any { it > idx }
                     withFlags.copy(
                         restAfterSeconds = if (hasFollowUp) 0 else null,
                         weight = dropWeights[idx] ?: withFlags.weight,
+                        targetReps = 3,
+                        plannedTargetV2 = 3.0,
+                        isFailure = true,
+                        intensityMode = IntensityMode.FAILURE,
                     )
                 }
             }

@@ -190,6 +190,7 @@ fun SeriesTypeSheet(
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
             )
+            val onlyFirstSetSelected = selectedIndices.size == 1 && selectedIndices.contains(0)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -201,26 +202,30 @@ fun SeriesTypeSheet(
                     modifier = Modifier.weight(1f),
                 )
                 FilterChip(
-                    selected = selectedTechnique == SeriesTechnique.DROPSET,
+                    selected = selectedTechnique == SeriesTechnique.DROPSET && !onlyFirstSetSelected,
                     onClick = { selectedTechnique = SeriesTechnique.DROPSET },
                     label = { Text("Dropset") },
+                    enabled = !onlyFirstSetSelected,
                     modifier = Modifier.weight(1f),
                 )
                 FilterChip(
-                    selected = selectedTechnique == SeriesTechnique.REST_PAUSE,
+                    selected = selectedTechnique == SeriesTechnique.REST_PAUSE && !onlyFirstSetSelected,
                     onClick = { selectedTechnique = SeriesTechnique.REST_PAUSE },
                     label = { Text("Rest-Pause") },
+                    enabled = !onlyFirstSetSelected,
                     modifier = Modifier.weight(1f),
                 )
             }
             Text(
-                text = when (selectedTechnique) {
-                    SeriesTechnique.NORMAL -> "Serie estándar. Quita dropset o rest-pause y el descanso especial."
-                    SeriesTechnique.DROPSET -> "Entre las series marcadas: sin descanso y −5 kg en la siguiente."
-                    SeriesTechnique.REST_PAUSE -> "Entre las series marcadas: 15 s de descanso y el mismo peso."
+                text = when {
+                    onlyFirstSetSelected -> "La Serie 1 no puede ser Dropset ni Rest-Pause (requiere descanso previo completo de cambio de ejercicio)."
+                    selectedTechnique == SeriesTechnique.NORMAL -> "Serie estándar. Quita dropset o rest-pause y el descanso especial."
+                    selectedTechnique == SeriesTechnique.DROPSET -> "Entre las series marcadas: sin descanso y −5 kg en la siguiente."
+                    selectedTechnique == SeriesTechnique.REST_PAUSE -> "Entre las series marcadas: 15 s de descanso y el mismo peso."
+                    else -> ""
                 },
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.62f),
+                color = if (onlyFirstSetSelected) MaterialTheme.colorScheme.error.copy(alpha = 0.85f) else Color.White.copy(alpha = 0.62f),
             )
 
             Row(
@@ -233,18 +238,27 @@ fun SeriesTypeSheet(
                 ) { Text("Cancelar") }
                 Button(
                     onClick = {
-                        val indices = selectedIndices.filter { it in exercise.sets.indices }.toSet()
-                        val from = indices.minOrNull() ?: anchorIdx
-                        val to = indices.maxOrNull() ?: from
-                        onApply(
-                            SeriesTypeTarget(
-                                exerciseId = exercise.id,
-                                fromSetIdx = from,
-                                toSetIdx = to,
-                                selectedSetIndices = indices,
-                            ),
-                            selectedTechnique,
-                        )
+                        val rawIndices = selectedIndices.filter { it in exercise.sets.indices }.toSet()
+                        val indices = if (selectedTechnique != SeriesTechnique.NORMAL) {
+                            rawIndices.filter { it > 0 }.toSet()
+                        } else {
+                            rawIndices
+                        }
+                        if (indices.isNotEmpty()) {
+                            val from = indices.minOrNull() ?: anchorIdx
+                            val to = indices.maxOrNull() ?: from
+                            onApply(
+                                SeriesTypeTarget(
+                                    exerciseId = exercise.id,
+                                    fromSetIdx = from,
+                                    toSetIdx = to,
+                                    selectedSetIndices = indices,
+                                ),
+                                selectedTechnique,
+                            )
+                        } else {
+                            onDismiss()
+                        }
                     },
                     modifier = Modifier.weight(1f),
                 ) { Text("Aplicar") }

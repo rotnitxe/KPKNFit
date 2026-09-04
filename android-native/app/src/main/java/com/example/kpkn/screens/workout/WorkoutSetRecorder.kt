@@ -559,8 +559,15 @@ class WorkoutSetRecorder(
                     ?: supersetGroup?.restAfterSuperset
                     ?: baseRest
                 RestTimerKind.WARMUP -> exercise.warmupSets.getOrNull(targetSetIdx)?.restBetween ?: baseRest
-                RestTimerKind.STANDARD ->
-                    exercise.sets.getOrNull(targetSetIdx)?.restAfterSeconds?.takeIf { it >= 0 } ?: baseRest
+                RestTimerKind.STANDARD -> {
+                    val nextPlannedSet = exercise.sets.getOrNull(targetSetIdx + 1)
+                    when {
+                        wasLastSet -> baseRest
+                        nextPlannedSet?.isDropSet == true -> 0
+                        nextPlannedSet?.isRestPause == true -> nextPlannedSet.restAfterSeconds?.takeIf { it >= 0 } ?: 15
+                        else -> exercise.sets.getOrNull(targetSetIdx)?.restAfterSeconds?.takeIf { it >= 0 } ?: baseRest
+                    }
+                }
             }
             val dbInfo = resolveCatalogExerciseInfo(
                 catalogConfigurationId = exercise.catalogConfigurationId,
@@ -618,14 +625,20 @@ class WorkoutSetRecorder(
                 ),
             )
             if (!wasExistingSet) {
+                val nextPlannedSet = exercise.sets.getOrNull(targetSetIdx + 1)
                 val plannedRest = when (restKind) {
                     RestTimerKind.SUPERSET_INTRA,
                     RestTimerKind.SUPERSET_ROUND,
                     RestTimerKind.BETWEEN_SIDES,
                     RestTimerKind.WARMUP,
                     -> plannedRestForKind.coerceAtLeast(0)
-                    RestTimerKind.STANDARD -> plannedRestForKind.coerceAtLeast(10)
-                }.let { if (wasLastSet && it <= 0) 10 else it }
+                    RestTimerKind.STANDARD -> when {
+                        wasLastSet -> plannedRestForKind.coerceAtLeast(10)
+                        nextPlannedSet?.isDropSet == true -> 0
+                        nextPlannedSet?.isRestPause == true -> plannedRestForKind.coerceAtLeast(0)
+                        else -> plannedRestForKind.coerceAtLeast(10)
+                    }
+                }
                 val adjustedPlanned = ports.adjustRestTimeForPace(plannedRest)
                 val adjustedAdaptive = if (restKind == RestTimerKind.SUPERSET_INTRA) {
                     ports.adjustRestTimeForPace(plannedRestForKind.coerceAtLeast(0))

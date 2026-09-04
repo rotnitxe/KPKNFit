@@ -2734,8 +2734,13 @@ class WorkoutViewModel(
         pushGodModeUndo(undoLabel)
         val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
             modeSession.replaceExerciseById(exerciseId) { ex ->
+                val setsWithLifted = ex.sets.mapIndexed { idx, s ->
+                    val completed = ex.completionKeysForSet(idx)
+                        .firstNotNullOfOrNull { key -> state.completedSets[key] }
+                    if (completed != null && completed.weight > 0.0) s.copy(weight = completed.weight) else s
+                }
                 val mapped = applyMarkedSeriesTechnique(
-                    sets = ex.sets,
+                    sets = setsWithLifted,
                     selectedIndices = requested,
                     technique = technique,
                     skipIndex = { idx ->
@@ -3387,8 +3392,16 @@ class WorkoutViewModel(
                             !WorkoutStepRules.isSetOmitted(ex.id, idx, state.omittedSetKeys) &&
                             !isSetDone(state.completedSets, ex.id, idx, ex.isEffectivelyUnilateral())
                     }.toSet()
-                    if (indices.isEmpty()) ex
-                    else ex.copy(sets = applyMarkedSeriesTechnique(ex.sets, indices, SeriesTechnique.DROPSET))
+                    if (indices.isEmpty()) {
+                        ex
+                    } else {
+                        val setsWithLifted = ex.sets.mapIndexed { idx, set ->
+                            val completed = ex.completionKeysForSet(idx)
+                                .firstNotNullOfOrNull { key -> state.completedSets[key] }
+                            if (completed != null && completed.weight > 0.0) set.copy(weight = completed.weight) else set
+                        }
+                        ex.copy(sets = applyMarkedSeriesTechnique(setsWithLifted, indices, SeriesTechnique.DROPSET))
+                    }
                 }
             }
             next

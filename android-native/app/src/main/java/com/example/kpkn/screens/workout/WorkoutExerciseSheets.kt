@@ -238,11 +238,16 @@ internal fun ExerciseTagSheetContent(
             }
         }
         Button(
-            onClick = onDismiss,
+            onClick = {
+                if (tagText.isNotBlank() && tagText.trim() != (currentTag?.trim() ?: "")) {
+                    onTagSet(tagText.trim())
+                }
+                onDismiss()
+            },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Cerrar")
+            Text("Guardar")
         }
     }
 }

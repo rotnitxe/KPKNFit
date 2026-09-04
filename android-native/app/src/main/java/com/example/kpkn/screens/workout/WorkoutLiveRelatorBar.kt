@@ -16,10 +16,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -45,9 +41,14 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -174,7 +175,6 @@ internal fun WorkoutLiveRelatorLine(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ShimmerRelatorText(
     pieces: List<RelatorInlinePiece>,
@@ -191,54 +191,52 @@ private fun ShimmerRelatorText(
     val start = Offset(startX, 0f)
     val copyBrush = relatorShimmerBrush(copyMuted, copyHighlight, start, end)
     val onActionState = rememberUpdatedState(onAction)
-    FlowRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        pieces.forEach { piece ->
-            when (piece) {
-                is RelatorInlinePiece.Copy -> Text(
-                    text = piece.text,
-                    color = Color.Unspecified,
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        brush = copyBrush,
-                        fontSize = WorkoutLiveRelatorFontSp,
-                        lineHeight = RelatorLineHeightSp,
-                    ),
-                    maxLines = WorkoutLiveRelatorMaxLines,
-                    softWrap = true,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center,
-                    onTextLayout = { layout ->
-                        textWidth = layout.size.width.toFloat().coerceAtLeast(textWidth)
-                    },
-                )
-                is RelatorInlinePiece.Action -> {
-                    val action = piece.action
-                    Text(
-                        text = piece.label,
-                        modifier = Modifier
-                            .clickable(
-                                onClickLabel = piece.label,
-                            ) { onActionState.value(action) }
-                            .padding(horizontal = 2.dp),
-                        color = accentColor,
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontSize = WorkoutLiveRelatorFontSp,
-                            lineHeight = RelatorLineHeightSp,
-                            fontWeight = FontWeight.SemiBold,
-                        ),
-                        maxLines = 1,
-                        softWrap = false,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+
+    val annotated = remember(pieces, accentColor) {
+        buildAnnotatedString {
+            pieces.forEach { piece ->
+                when (piece) {
+                    is RelatorInlinePiece.Copy -> append(piece.text)
+                    is RelatorInlinePiece.Action -> {
+                        withLink(
+                            LinkAnnotation.Clickable(
+                                tag = piece.action.kind.name,
+                                styles = TextLinkStyles(
+                                    style = SpanStyle(
+                                        color = accentColor,
+                                        fontWeight = FontWeight.SemiBold,
+                                    ),
+                                ),
+                                linkInteractionListener = { onActionState.value(piece.action) },
+                            ),
+                        ) {
+                            append(piece.label)
+                        }
+                    }
                 }
             }
         }
     }
+
+    Text(
+        text = annotated,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp),
+        color = Color.Unspecified,
+        style = MaterialTheme.typography.labelSmall.copy(
+            brush = copyBrush,
+            fontSize = WorkoutLiveRelatorFontSp,
+            lineHeight = RelatorLineHeightSp,
+        ),
+        maxLines = WorkoutLiveRelatorMaxLines,
+        softWrap = true,
+        overflow = TextOverflow.Ellipsis,
+        textAlign = TextAlign.Center,
+        onTextLayout = { layout ->
+            textWidth = layout.size.width.toFloat().coerceAtLeast(textWidth)
+        },
+    )
 }
 
 private fun relatorShimmerBrush(

@@ -113,6 +113,28 @@ class WorkoutLoadSuggestionController(
         side: String? = null,
     ): WeightSuggestion? {
         val currentLoadMode = ports.effectiveLoadModeForExercise(exercise, setIdx)
+        val currentSet = exercise.sets.getOrNull(setIdx)
+        if (currentSet?.isRestPause == true) {
+            val prevWeight = previousCompletedOrPlannedWeight(exercise, setIdx, side)
+                ?: currentSet.weight?.takeIf { it > 0.0 }
+                ?: 0.0
+            return WeightSuggestion(
+                suggestedWeight = prevWeight,
+                reason = "Rest-pause · mismo peso",
+                suggestedLoadMode = currentLoadMode,
+            )
+        }
+        if (currentSet?.isDropSet == true) {
+            val prevWeight = previousCompletedOrPlannedWeight(exercise, setIdx, side)
+                ?: currentSet.weight?.takeIf { it > 0.0 }
+                ?: 0.0
+            val dropped = (prevWeight - 5.0).coerceAtLeast(0.0)
+            return WeightSuggestion(
+                suggestedWeight = dropped,
+                reason = "Dropset · −5 kg",
+                suggestedLoadMode = currentLoadMode,
+            )
+        }
         val suggestion = computeWeightSuggestionWithAutoRegulation(exercise, setIdx, activeTag, side, currentLoadMode)
         val floored = applyTaggedBaseLoadFloor(exercise, activeTag, currentLoadMode, suggestion)
         if (floored == null || floored.suggestedWeight <= 0.0) return floored
@@ -713,6 +735,31 @@ class WorkoutLoadSuggestionController(
 
     private fun inputLoadForSuggestion(set: CompletedSet, loadMode: LoadModeV2): Double =
         LoadSuggestionEngine.inputLoad(set, loadMode)
+
+    private fun previousCompletedOrPlannedWeight(
+        exercise: Exercise,
+        setIdx: Int,
+        side: String?,
+    ): Double? {
+        val prevIdx = setIdx - 1
+        if (prevIdx < 0) return null
+        val completed = getState().completedSets
+        val lookupSides = buildList {
+            if (side != null) add(side)
+            add(null)
+            if (side == null) {
+                add("left")
+                add("right")
+            }
+        }
+        lookupSides.forEach { lookupSide ->
+            completed[buildCompletedSetKey(exercise.id, prevIdx, lookupSide)]
+                ?.weight
+                ?.takeIf { it > 0.0 }
+                ?.let { return it }
+        }
+        return exercise.sets.getOrNull(prevIdx)?.weight?.takeIf { it > 0.0 }
+    }
 
     private fun buildCompletedSetKey(exerciseId: String, setIdx: Int, side: String?): String = when (side) {
         "left" -> "${exerciseId}_${setIdx}_L"

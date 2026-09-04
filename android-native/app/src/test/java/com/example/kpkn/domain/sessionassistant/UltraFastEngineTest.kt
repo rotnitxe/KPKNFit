@@ -247,38 +247,50 @@ class UltraFastEngineTest {
     }
 
     @Test
-    fun applyMarked_dropset_s1_s2_rest_zero_and_minus_five_kg() {
+    fun applyMarked_dropset_single_set_and_chain_and_s1_excluded() {
         val sets = listOf(
             ExerciseSet(id = "s1", targetReps = 8, weight = 80.0),
             ExerciseSet(id = "s2", targetReps = 8, weight = 80.0),
             ExerciseSet(id = "s3", targetReps = 8, weight = 80.0),
         )
-        val out = applyMarkedSeriesTechnique(sets, setOf(0, 1), SeriesTechnique.DROPSET)
-        assertTrue(out[0].isDropSet)
-        assertTrue(out[1].isDropSet)
-        assertFalse(out[2].isDropSet)
-        assertEquals(0, out[0].restAfterSeconds)
-        assertEquals(null, out[1].restAfterSeconds)
-        assertEquals(80.0, out[0].weight!!, 0.01)
-        assertEquals(75.0, out[1].weight!!, 0.01)
-        assertEquals(80.0, out[2].weight!!, 0.01)
-        assertEquals("true", out[0].plannedIntensityTechniques.first { it.type == TechniqueType.DROP_SET }.params["betweenMarked"])
-        assertEquals("true", out[1].plannedIntensityTechniques.first { it.type == TechniqueType.DROP_SET }.params["betweenMarked"])
+        // Selecting 0 and 1 should exclude 0 from dropset; only 1 becomes dropset
+        val outSingle = applyMarkedSeriesTechnique(sets, setOf(0, 1), SeriesTechnique.DROPSET)
+        assertFalse(outSingle[0].isDropSet)
+        assertTrue(outSingle[1].isDropSet)
+        assertFalse(outSingle[2].isDropSet)
+        assertEquals(75.0, outSingle[1].weight!!, 0.01)
+        assertEquals(3, outSingle[1].targetReps)
+        assertTrue(outSingle[1].isFailure)
+        assertEquals(null, outSingle[1].restAfterSeconds)
+
+        // Selecting 1 and 2 forms a chain where S2 has rest 0 and S3 has weight -10kg
+        val outChain = applyMarkedSeriesTechnique(sets, setOf(1, 2), SeriesTechnique.DROPSET)
+        assertFalse(outChain[0].isDropSet)
+        assertTrue(outChain[1].isDropSet)
+        assertTrue(outChain[2].isDropSet)
+        assertEquals(0, outChain[1].restAfterSeconds)
+        assertEquals(null, outChain[2].restAfterSeconds)
+        assertEquals(75.0, outChain[1].weight!!, 0.01)
+        assertEquals(70.0, outChain[2].weight!!, 0.01)
+        assertEquals(3, outChain[1].targetReps)
+        assertEquals(3, outChain[2].targetReps)
+        assertTrue(outChain[1].isFailure)
+        assertTrue(outChain[2].isFailure)
     }
 
     @Test
-    fun applyMarked_rest_pause_keeps_weight_and_sets_15s() {
+    fun applyMarked_rest_pause_keeps_weight_and_sets_15s_and_excludes_s1() {
         val sets = listOf(
             ExerciseSet(id = "s1", targetReps = 8, weight = 80.0),
             ExerciseSet(id = "s2", targetReps = 8, weight = 80.0),
         )
         val out = applyMarkedSeriesTechnique(sets, setOf(0, 1), SeriesTechnique.REST_PAUSE)
-        assertTrue(out[0].isRestPause)
+        assertFalse(out[0].isRestPause)
         assertTrue(out[1].isRestPause)
-        assertEquals(15, out[0].restAfterSeconds)
         assertEquals(15, out[1].restAfterSeconds)
-        assertEquals(80.0, out[0].weight!!, 0.01)
         assertEquals(80.0, out[1].weight!!, 0.01)
+        assertEquals(3, out[1].targetReps)
+        assertTrue(out[1].isFailure)
     }
 
     @Test

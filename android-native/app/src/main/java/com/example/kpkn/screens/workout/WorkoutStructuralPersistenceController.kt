@@ -668,10 +668,10 @@ class WorkoutStructuralPersistenceController(
         val refreshedProfile = updatedExercise?.let { exercise ->
             ports.defaultContextProfileForExercise(exercise).copy(
                 id = "${ports.canonicalExerciseKey(exercise)}|${UUID.randomUUID()}",
-                tagId = state.exerciseTags[exerciseId] ?: ports.activeContextProfile(exerciseId)?.tagId,
-                setupProfileId = ports.activeContextProfile(exerciseId)?.setupProfileId,
-                setupLabel = ports.activeContextProfile(exerciseId)?.setupLabel ?: exercise.setupDetails?.seatPosition ?: exercise.setupDetails?.pinPosition,
-                machineBrand = ports.activeContextProfile(exerciseId)?.machineBrand,
+                tagId = null,
+                setupProfileId = null,
+                setupLabel = exercise.setupDetails?.seatPosition ?: exercise.setupDetails?.pinPosition,
+                machineBrand = null,
                 createdAtIso = java.time.Instant.now().toString(),
                 lastUsedAtIso = java.time.Instant.now().toString(),
                 usageCount = 1,
@@ -736,6 +736,9 @@ class WorkoutStructuralPersistenceController(
                 } else {
                     it.activeContextProfileByExerciseId
                 },
+                exerciseTags = it.exerciseTags - exerciseId,
+                activeTagsByExercise = it.activeTagsByExercise - exerciseId,
+                activeSubTagsByExercise = it.activeSubTagsByExercise - exerciseId,
                 loadSuggestions = it.loadSuggestions.filterKeys { key -> !key.startsWith("${exerciseId}_") },
                 setDrafts = it.setDrafts.filterKeys { key -> !key.startsWith("${exerciseId}_") },
                 manualLoadOverrides = it.manualLoadOverrides.filterKeys { key -> !key.startsWith("${exerciseId}_") },

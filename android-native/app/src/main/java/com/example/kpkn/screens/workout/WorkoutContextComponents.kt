@@ -803,7 +803,17 @@ internal fun ExerciseTagSheetContent(
             }
         }
         if (showDismissButton) {
-            Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text("Listo") }
+            Button(
+                onClick = {
+                    if (tagText.isNotBlank() && tagText.trim() != (currentTag?.trim() ?: "")) {
+                        onTagSet(tagText.trim())
+                    }
+                    onDismiss()
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Guardar")
+            }
         }
     }
 }

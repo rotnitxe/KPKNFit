@@ -1404,6 +1404,17 @@ class WorkoutLiveRelatorTest {
         assertEquals(1, resolution.actions.size)
     }
 
+    @Test
+    fun shortAssistNameDoesNotTruncatePrepositions() {
+        assertEquals("Press de banca", shortAssistName("Press de banca · Barra plana"))
+        assertEquals("Press de banca con mancuernas", shortAssistName("Press de banca con mancuernas"))
+        assertEquals("Elevaciones de talón", shortAssistName("Elevaciones de talón · De pie"))
+        assertEquals("Fondos en paralelas", shortAssistName("Fondos en paralelas · Sin lastre"))
+        assertFalse(shortAssistName("Press de banca").endsWith("de"))
+        assertFalse(shortAssistName("Press de banca con mancuernas plano").endsWith("con"))
+        assertFalse(shortAssistName("Fondos en paralelas").endsWith("en"))
+    }
+
     private fun isWeightBelowCopy(lower: String): Boolean =
         lower.contains("kg") && (
             lower.contains("última") ||

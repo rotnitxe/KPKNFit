@@ -39,14 +39,16 @@ class SetTechniqueScopeTest {
         val sets = listOf(
             ExerciseSet(id = "s1", targetReps = 8, weight = 80.0),
             ExerciseSet(id = "s2", targetReps = 8, weight = 80.0),
+            ExerciseSet(id = "s3", targetReps = 8, weight = 80.0),
         )
-        val out = applyMarkedSeriesTechnique(sets, setOf(0, 1), SeriesTechnique.DROPSET)
-        assertEquals(SetTechniqueScope.VOLUME_REPLACED, out[0].techniqueScope())
+        val out = applyMarkedSeriesTechnique(sets, setOf(1, 2), SeriesTechnique.DROPSET)
+        assertEquals(SetTechniqueScope.NONE, out[0].techniqueScope())
         assertEquals(SetTechniqueScope.VOLUME_REPLACED, out[1].techniqueScope())
-        assertEquals("DROPSET", out[0].volumeReplacedLabel())
-        assertEquals(0, out[0].restAfterSeconds)
-        assertTrue(out[0].isDropSet)
-        assertEquals("true", out[0].plannedIntensityTechniques.first { it.type == TechniqueType.DROP_SET }.params["betweenMarked"])
+        assertEquals(SetTechniqueScope.VOLUME_REPLACED, out[2].techniqueScope())
+        assertEquals("DROPSET", out[1].volumeReplacedLabel())
+        assertEquals(0, out[1].restAfterSeconds)
+        assertTrue(out[1].isDropSet)
+        assertEquals("true", out[1].plannedIntensityTechniques.first { it.type == TechniqueType.DROP_SET }.params["betweenMarked"])
     }
 
     @Test
@@ -55,10 +57,11 @@ class SetTechniqueScopeTest {
             ExerciseSet(id = "s1", targetReps = 8, weight = 80.0),
             ExerciseSet(id = "s2", targetReps = 8, weight = 80.0),
         )
-        val out = applyMarkedSeriesTechnique(sets, setOf(0, 1), SeriesTechnique.REST_PAUSE)
-        assertEquals(SetTechniqueScope.VOLUME_REPLACED, out[0].techniqueScope())
-        assertEquals("REST PAUSE", out[0].volumeReplacedLabel())
-        assertEquals(15, out[0].restAfterSeconds)
+        val out = applyMarkedSeriesTechnique(sets, setOf(1), SeriesTechnique.REST_PAUSE)
+        assertEquals(SetTechniqueScope.NONE, out[0].techniqueScope())
+        assertEquals(SetTechniqueScope.VOLUME_REPLACED, out[1].techniqueScope())
+        assertEquals("REST PAUSE", out[1].volumeReplacedLabel())
+        assertEquals(15, out[1].restAfterSeconds)
     }
 
     @Test

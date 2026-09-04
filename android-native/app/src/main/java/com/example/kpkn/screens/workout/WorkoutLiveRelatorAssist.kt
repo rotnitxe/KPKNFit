@@ -499,9 +499,37 @@ private fun alreadyHasMobility(exercise: RelatorAssistExercise, drill: MobilityE
     return drill.aliases.any { alias -> alias.lowercase() in hay }
 }
 
-private fun shortAssistName(raw: String): String {
+private val DANGLING_CONNECTORS = setOf(
+    "de", "del", "con", "en", "a", "al", "para", "por", "el", "la", "los", "las", "un", "una",
+)
+
+internal fun shortAssistName(raw: String): String {
     val first = raw.split(" · ").first().trim()
+    if (first.length <= 26) return first
     val words = first.split(Regex("\\s+")).filter { it.isNotBlank() }
-    val compact = if (words.size <= 2) words.joinToString(" ") else words.take(2).joinToString(" ")
-    return if (compact.length <= 16) compact else compact.take(15).trimEnd() + "…"
+    if (words.size <= 3) return if (first.length <= 28) first else first.take(27).trimEnd() + "…"
+
+    val candidate = mutableListOf<String>()
+    var len = 0
+    for (word in words.take(4)) {
+        val nextLen = if (candidate.isEmpty()) word.length else len + 1 + word.length
+        if (nextLen > 28 && candidate.size >= 2) break
+        candidate.add(word)
+        len = nextLen
+    }
+    while (candidate.isNotEmpty() && candidate.last().lowercase() in DANGLING_CONNECTORS) {
+        val nextIndex = candidate.size
+        if (nextIndex < words.size && (len + 1 + words[nextIndex].length) <= 32) {
+            candidate.add(words[nextIndex])
+            len += 1 + words[nextIndex].length
+        } else {
+            candidate.removeAt(candidate.lastIndex)
+        }
+    }
+    val result = candidate.joinToString(" ").trim()
+    return if (result.length < first.length) {
+        if (result.isBlank()) first.take(22).trimEnd() + "…" else "$result…"
+    } else {
+        result
+    }
 }

@@ -988,15 +988,20 @@ internal fun SetInputCardV2(
     val initialSelectedSide = initialDraft?.selectedSide ?: lockedSide ?: "left"
     val draftWeightText = initialDraft?.weightText?.takeIf { it.isNotBlank() }
     val draftValueText = initialDraft?.valueText?.takeIf { it.isNotBlank() }
+    val initialTechniqueWeight = if (currentSet.isDropSet || currentSet.isRestPause) {
+        (currentSet.weight?.takeIf { it > 0 } ?: suggestedWeightText?.toDoubleOrNull()?.takeIf { it > 0 })?.toTrimmedNumberString()
+    } else null
+    val initialTechniqueValue = if ((currentSet.isDropSet || currentSet.isRestPause) && (resolvedPlannedUnitMode == UnitModeV2.REPS)) "3" else null
+
     var weightText by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
-        mutableStateOf(draftWeightText ?: completedWeightText ?: "")
+        mutableStateOf(draftWeightText ?: completedWeightText ?: initialTechniqueWeight ?: "")
     }
     var lastAutoFilledWeight by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) { mutableStateOf(defaultWeight) }
     var hasManualWeightOverride by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
         mutableStateOf(!draftWeightText.isNullOrBlank() || completedWeightText != null)
     }
     var valueText by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
-        mutableStateOf((draftValueText ?: defaultValue).ifBlank { plannedValueGhost })
+        mutableStateOf(draftValueText ?: initialTechniqueValue ?: defaultValue.ifBlank { plannedValueGhost })
     }
     var showReadinessAdjustmentSheet by remember { mutableStateOf(false) }
     LaunchedEffect(adaptActionHolder, isActivePage) {
@@ -1006,8 +1011,8 @@ internal fun SetInputCardV2(
     }
     val targetLeftWeight = currentSet.leftTarget?.weight?.toTrimmedNumberString().orEmpty()
     val targetRightWeight = currentSet.rightTarget?.weight?.toTrimmedNumberString().orEmpty()
-    val initialLeftWeight = if (initialSelectedSide == "left") draftWeightText.orEmpty() else ""
-    val initialRightWeight = if (initialSelectedSide == "right") draftWeightText.orEmpty() else ""
+    val initialLeftWeight = if (initialSelectedSide == "left") (draftWeightText ?: initialTechniqueWeight).orEmpty() else ""
+    val initialRightWeight = if (initialSelectedSide == "right") (draftWeightText ?: initialTechniqueWeight).orEmpty() else ""
     fun sideTargetValueText(target: UnilateralTarget?): String = when {
         target == null -> plannedValueGhost
         isTimeMode -> target.targetDuration?.toString() ?: plannedValueGhost
@@ -1024,18 +1029,18 @@ internal fun SetInputCardV2(
     var leftValueText by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
         mutableStateOf(
             if (initialSelectedSide == "left") {
-                (draftValueText ?: defaultValue).ifBlank { leftValueGhost }
+                (draftValueText ?: initialTechniqueValue ?: defaultValue).ifBlank { leftValueGhost }
             } else {
-                leftValueGhost
+                initialTechniqueValue ?: leftValueGhost
             },
         )
     }
     var rightValueText by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
         mutableStateOf(
             if (initialSelectedSide == "right") {
-                (draftValueText ?: defaultValue).ifBlank { rightValueGhost }
+                (draftValueText ?: initialTechniqueValue ?: defaultValue).ifBlank { rightValueGhost }
             } else {
-                rightValueGhost
+                initialTechniqueValue ?: rightValueGhost
             },
         )
     }
@@ -1133,7 +1138,37 @@ internal fun SetInputCardV2(
     }
     val ghostSuggestedWeightText = suggestedWeightText?.takeIf { weightText.isBlank() }
     var reachedFailure by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
-        mutableStateOf(initialDraft?.reachedFailure ?: (sessionCompletedSet?.isFailure == true || currentSet.isFailure || currentSet.intensityMode == IntensityMode.FAILURE))
+        mutableStateOf(
+            initialDraft?.reachedFailure ?: (
+                sessionCompletedSet?.isFailure == true ||
+                    currentSet.isFailure ||
+                    currentSet.intensityMode == IntensityMode.FAILURE ||
+                    currentSet.isDropSet ||
+                    currentSet.isRestPause
+            )
+        )
+    }
+    LaunchedEffect(
+        currentSet.isDropSet,
+        currentSet.isRestPause,
+        currentSet.weight,
+        currentSet.targetReps,
+        currentSet.isFailure,
+        sessionCompletedSet?.id,
+    ) {
+        if (sessionCompletedSet != null) return@LaunchedEffect
+        if (!currentSet.isDropSet && !currentSet.isRestPause) return@LaunchedEffect
+        reachedFailure = true
+        if (resolvedPlannedUnitMode == UnitModeV2.REPS) {
+            updateActiveValueText("3")
+        }
+        val techniqueWeight = (
+            currentSet.weight?.takeIf { it > 0.0 }
+                ?: suggestedWeightText?.toDoubleOrNull()?.takeIf { it > 0.0 }
+        )?.toTrimmedNumberString()
+        if (techniqueWeight != null) {
+            updateActiveWeightText(techniqueWeight, markManual = false)
+        }
     }
     var isFailedSet by remember(exercise.id, setIndex, sideKey, sessionCompletedSet?.id) {
         mutableStateOf(sessionCompletedSet?.isFailedSet == true)

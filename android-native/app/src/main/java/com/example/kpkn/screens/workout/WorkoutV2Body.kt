@@ -160,7 +160,14 @@ internal fun WorkoutV2Body(
             onRequestLiveTagListConsumed()
         }
     }
-    val currentExerciseKey = remember(currentExercise?.id) {
+    val currentExerciseKey = remember(
+        currentExercise?.id,
+        currentExercise?.canonicalExerciseId,
+        currentExercise?.exerciseDbId,
+        currentExercise?.exerciseId,
+        currentExercise?.catalogConfigurationId,
+        currentExercise?.name,
+    ) {
         currentExercise?.let { viewModel.canonicalExerciseKey(it) } ?: ""
     }
     val currentExerciseTags: List<WorkoutTag> = remember(currentExerciseKey, uiState.userCreatedTags) {
@@ -1953,12 +1960,12 @@ internal fun WorkoutV2Body(
                                     isDropSet = activeSet.isDropSet,
                                     isRestPause = activeSet.isRestPause,
                                     canDeleteSet = targetExercise.sets.size > 1,
-                                    onDropSet = {
-                                        pendingTechnique = SeriesTechnique.DROPSET to (targetExercise.id to activeSetIndex)
-                                    },
-                                    onRestPause = {
-                                        pendingTechnique = SeriesTechnique.REST_PAUSE to (targetExercise.id to activeSetIndex)
-                                    },
+                                    onDropSet = if (activeSetIndex > 0) {
+                                         { pendingTechnique = SeriesTechnique.DROPSET to (targetExercise.id to activeSetIndex) }
+                                     } else null,
+                                    onRestPause = if (activeSetIndex > 0) {
+                                         { pendingTechnique = SeriesTechnique.REST_PAUSE to (targetExercise.id to activeSetIndex) }
+                                     } else null,
                                     onDeleteSet = {
                                         pendingDeleteSet = targetExercise.id to activeSetIndex
                                     },
