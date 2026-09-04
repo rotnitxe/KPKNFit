@@ -48,6 +48,17 @@ object InferredMealContext {
         "cafe", "café", "te", "té", "jugo", "batido", "smoothie", "agua", "leche",
         "capuchino", "cortado", "expresso", "espresso",
     )
+    private val SNACK = listOf(
+        "galleta", "galletas", "cookie", "cookies", "chips", "chip",
+        "papas fritas", "patatas fritas", "chocolate", "dulce", "dulces",
+        "caramelo", "caramelos", "gomita", "gomitas", "alfajor", "alfajores",
+        "churro", "churros", "ramita", "ramitas", "snack", "snacks",
+        "golosina", "golosinas", "chicle", "paleta", "helado",
+    )
+    private val CHOCOLATE_DRINK = listOf(
+        "chocolate caliente", "cocoa", "cacao en polvo", "bebida de chocolate",
+        "bebida chocolate", "chocolate a la taza",
+    )
     private val WRAP = listOf(
         "taco", "tacos", "arepa", "burrito", "wrap", "sushi", "quesadilla",
     )
@@ -60,17 +71,20 @@ object InferredMealContext {
         val tokens = blob.split(" ").filter { it.isNotBlank() && it !in STOP }
         if (tokens.isEmpty()) return Shape.UNKNOWN
 
-        val hasStarch = STARCH.any { blob.contains(it) }
-        val hasProtein = PROTEIN.any { blob.contains(it) }
-        val hasBreakfast = BREAKFAST.any { blob.contains(it) }
-        val hasBread = BREAD.any { blob.contains(it) }
-        val hasDrink = DRINK.any { blob.contains(it) }
-        val hasWrap = WRAP.any { blob.contains(it) }
-        val hasNut = NUT_SNACK.any { blob.contains(it) }
+        val hasStarch = hasToken(blob, STARCH)
+        val hasProtein = hasToken(blob, PROTEIN)
+        val hasBreakfast = hasToken(blob, BREAKFAST)
+        val hasBread = hasToken(blob, BREAD)
+        val hasChocolateDrink = hasToken(blob, CHOCOLATE_DRINK)
+        val hasSnack = hasToken(blob, SNACK) && !hasChocolateDrink
+        val hasDrink = (hasToken(blob, DRINK) || hasChocolateDrink) && !hasSnack
+        val hasWrap = hasToken(blob, WRAP)
+        val hasNut = hasToken(blob, NUT_SNACK)
         val multi = foodTags.size >= 2 ||
             Regex("""\s+(?:con|y|e|and|with)\s+""").containsMatchIn(description.lowercase())
 
         if (hasWrap) return Shape.WRAP
+        if (hasSnack) return Shape.SNACK_ITEM
         if (hasDrink && !hasStarch && !hasProtein) return Shape.BEVERAGE
         if (hasBread && multi) return Shape.SANDWICH
         if (hasBreakfast && !hasStarch && !hasProtein) return Shape.BREAKFAST_BOWL
@@ -154,13 +168,16 @@ object InferredMealContext {
     fun shouldInferPortions(shape: Shape, itemCount: Int, allUnspecified: Boolean, description: String = ""): Boolean {
         // A breakfast bowl with a measured base still needs topping grams
         // (fruta/granola/miel), not heuristicDishGrams of a full plate.
+        // F2: [allUnspecified] is not a global kill-switch. A locked topping
+        // (láminas, cucharada de aceite) must not starve unspecified plate
+        // mates of MAIN_PLATE grams. TagResolver still skips EXPLICIT_MASS /
+        // RESOLVED_SUBJECTIVE per item.
         if (shape == Shape.BREAKFAST_BOWL && itemCount >= 2) return true
-        if (!allUnspecified) return false
         return when (shape) {
             Shape.MAIN_PLATE, Shape.BREAKFAST_BOWL, Shape.SANDWICH, Shape.BEVERAGE -> itemCount >= 1
             Shape.WRAP -> itemCount >= 1
+            Shape.SNACK_ITEM -> itemCount >= 1
             Shape.UNKNOWN -> itemCount == 1 && FoodIdentity.contentTokens(description).size >= 2
-            else -> false
         }
     }
 
@@ -170,5 +187,13 @@ object InferredMealContext {
         ContextDetector.MealContext.ALMUERZO -> "comida"
         ContextDetector.MealContext.CENA -> "cena"
         else -> fallback
+    }
+
+    private fun hasToken(blob: String, keywords: List<String>): Boolean {
+        return keywords.any { keyword ->
+            val n = FoodIdentity.normalize(keyword)
+            if (n.isBlank()) return@any false
+            Regex("""\b${Regex.escape(n)}\b""").containsMatchIn(blob)
+        }
     }
 }

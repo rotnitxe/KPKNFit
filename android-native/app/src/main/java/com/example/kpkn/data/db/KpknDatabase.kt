@@ -58,7 +58,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         PerformanceSnapshotEntity::class,
         AugeAdaptiveCacheEntity::class,
     ],
-    version = 23,
+    version = 24,
     exportSchema = true,
 )
 abstract class KpknDatabase : RoomDatabase() {
@@ -617,6 +617,14 @@ abstract class KpknDatabase : RoomDatabase() {
             }
         }
 
+        // v24: caffeine and creatine on global_foods for USDA import.
+        val MIGRATION_23_24 = object : Migration(23, 24) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `global_foods` ADD COLUMN `caffeineMg` REAL NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE `global_foods` ADD COLUMN `creatineG` REAL NOT NULL DEFAULT 0")
+            }
+        }
+
         fun getInstance(context: Context): KpknDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -647,6 +655,7 @@ abstract class KpknDatabase : RoomDatabase() {
                     MIGRATION_20_21,
                     MIGRATION_21_22,
                     MIGRATION_22_23,
+                    MIGRATION_23_24,
                 )
                 .build()
                 .also { INSTANCE = it }

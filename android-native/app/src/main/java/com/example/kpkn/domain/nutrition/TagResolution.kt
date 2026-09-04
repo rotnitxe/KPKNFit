@@ -66,6 +66,9 @@ data class ResolvedTag(
     val needsOilClarification: Boolean = false,
     /** Learned identity for this query; suppresses family-cut chips. */
     val learnedFoodId: String? = null,
+    /** Identity span without portion units; UI correction searches this. */
+    val foodQuery: String = "",
+    val unitId: String? = null,
 )
 
 /** Acceso a datos del resolver — implementado por el drawer con NutritionRepository. */
@@ -127,6 +130,15 @@ class TagResolver(
         val analysisTraceId = UUID.randomUUID().toString().substring(0, 8)
         for (item in parsed.items) {
             val tagStart = System.nanoTime()
+            val identityQuery = item.effectiveFoodQuery()
+            val mappedCanonicalId = calibrationProfile?.identityMappings?.let { map ->
+                sequenceOf(
+                    identityQuery.trim().lowercase(),
+                    FoodIdentity.normalize(identityQuery),
+                    item.tag.trim().lowercase(),
+                    FoodIdentity.normalize(item.tag),
+                ).mapNotNull { key -> map[key]?.takeIf { it.isNotBlank() } }.firstOrNull()
+            }
             val lockedPortionAdj = scalingForIntent(
                 if (inferPortions && item.amountIntent == AmountIntent.UNSPECIFIED) {
                     AmountIntent.INFERRED_CONTEXT
@@ -140,9 +152,9 @@ class TagResolver(
             // (con contextHint = descripción completa para boost de co-ocurrencia D6;
             // stateHint = estado declarado vía método, porque el parser ya extrajo
             // la palabra "cocida/cruda" del tag antes de resolver)
-            val assumedHint = CookingStateResolver.assumedDefault(item.tag, null)
+            val assumedHint = CookingStateResolver.assumedDefault(identityQuery, null)
             val smartResult = port.resolveSmart(
-                item.tag,
+                identityQuery,
                 item.brandHint,
                 parsed.rawDescription,
                 CookingStateResolver.stateForMethod(item.cookingMethod) ?: assumedHint,
@@ -150,7 +162,7 @@ class TagResolver(
             val smartCandidate = smartResult.candidates.firstOrNull()
             val retrievalResult = smartResult.semanticRetrieval
                 ?: SemanticPortionRetriever.RetrievalResult(
-                    query = item.tag,
+                    query = identityQuery,
                     matches = emptyList(),
                     contextDetected = emptyList(),
                     portionPriors = emptyMap(),
@@ -160,8 +172,8 @@ class TagResolver(
                 )
 
             // Fallback: lookup estático + búsqueda
-            val staticFood = port.staticFood(item.tag)
-            val exactFood = findFoodExactByNormalized(item.tag)
+            val staticFood = port.staticFood(identityQuery)
+            val exactFood = findFoodExactByNormalized(identityQuery)
             val staticIsExact = exactFood != null
 
             // R2: preferencia por precisión, no por origen.
@@ -171,13 +183,15 @@ class TagResolver(
             val staticLocal = HouseholdPortions.rejectUnbrandedGlobal(exactFood ?: staticFood, item.brandHint)
             val smartAccepted = HouseholdPortions.rejectUnbrandedGlobal(smartFood, item.brandHint)
             val smartIsQualifiedDish = smartCandidate != null &&
-                !FoodIdentity.isPlainSimpleFood(item.tag, smartCandidate.name) &&
-                FoodIdentity.normalize(smartCandidate.name) != FoodIdentity.normalize(item.tag)
+                !FoodIdentity.isPlainSimpleFood(identityQuery, smartCandidate.name) &&
+                FoodIdentity.normalize(smartCandidate.name) != FoodIdentity.normalize(identityQuery)
             val learnedStaple = smartResult.learnedFoodId
                 ?.takeIf { id ->
-                    smartAccepted?.id == id && FoodStapleOntology.isKnownCutForFamily(item.tag, id)
+                    smartAccepted?.id == id && FoodStapleOntology.isKnownCutForFamily(identityQuery, id)
                 }
+            val mappedFood = mappedCanonicalId?.let { id -> port.getFoodById(id) }
             val food = when {
+                mappedFood != null -> mappedFood
                 learnedStaple != null && smartAccepted != null -> smartAccepted
                 staticIsExact && staticLocal != null -> staticLocal
                 staticLocal != null && item.brandHint.isNullOrBlank() && smartIsQualifiedDish -> staticLocal
@@ -193,9 +207,9 @@ class TagResolver(
             }
 
             // Prefer DB row that already encodes the method (pollo frito → pechuga frita).
-            val preparedVariant = CookingStateResolver.findPreparedVariant(item.tag, item.cookingMethod)
+            val preparedVariant = CookingStateResolver.findPreparedVariant(identityQuery, item.cookingMethod)
             val assumedState = if (item.cookingMethod == null) {
-                CookingStateResolver.assumedDefault(item.tag, food)
+                CookingStateResolver.assumedDefault(identityQuery, food)
             } else null
             val skipCookedAssumption = learnedStaple != null ||
                 (
@@ -204,10 +218,10 @@ class TagResolver(
                         CookingStateResolver.isDbFoodRaw(food)
                     )
             val assumedVariant = if (assumedState != null && !skipCookedAssumption) {
-                CookingStateResolver.resolveAssumedVariant(item.tag, food, assumedState)
+                CookingStateResolver.resolveAssumedVariant(identityQuery, food, assumedState)
                     ?.takeUnless { variant ->
                         food != null &&
-                            FoodStapleOntology.isFamilyDefault(item.tag) &&
+                            FoodStapleOntology.isFamilyDefault(identityQuery) &&
                             FoodStapleOntology.cutOf(food.id) != null &&
                             FoodStapleOntology.cutOf(variant.id) != null &&
                             FoodStapleOntology.cutOf(food.id) != FoodStapleOntology.cutOf(variant.id)
@@ -248,8 +262,8 @@ class TagResolver(
 
             val isSmartMatch = smartResult.decision != SmartFoodResolver.Decision.UNRESOLVED && smartCandidate != null
 
-            val approximationAlias = isApproximationAlias(item.tag)
-            val assumeStatus = CookingStateResolver.assumedStateStatus(item.tag, effectiveFood)
+            val approximationAlias = isApproximationAlias(identityQuery)
+            val assumeStatus = CookingStateResolver.assumedStateStatus(identityQuery, effectiveFood)
 
             val source = item.analysisSource
             val isVerifiedGlobalExact = effectiveFood != null &&
@@ -269,9 +283,9 @@ class TagResolver(
             // pero nunca debe invalidar ni reinterpretar los macros autoritativos.
             val retrievalForMacroValidation = retrievalResult.takeUnless { localAuthority }
             val preferAiLoggedFood = effectiveFood == null && shouldUseAiLoggedFood(item)
-            val canonicalFamily = FoodIdentity.familyFor(effectiveFood?.name ?: item.tag)
+            val canonicalFamily = FoodIdentity.familyFor(effectiveFood?.name ?: identityQuery)
             val foodState = effectiveFood?.let { FoodIdentity.stateFor(it) }
-                ?: FoodIdentity.stateFor(item.tag)
+                ?: FoodIdentity.stateFor(identityQuery)
             val resolutionConfidence = when {
                 staticIsExact && !approximationAlias -> 1.0
                 smartCandidate != null -> smartCandidate.score
@@ -289,14 +303,14 @@ class TagResolver(
                 item.amountIntent
             }
             val inferredPreview = if (rawItemIntent == AmountIntent.INFERRED_CONTEXT) {
-                HouseholdPortions.inferredItemGrams(effectiveFood, item.tag, contextResult)
+                HouseholdPortions.inferredItemGrams(effectiveFood, identityQuery, contextResult)
             } else {
                 null
             }
             val itemIntent = if (
                 rawItemIntent == AmountIntent.INFERRED_CONTEXT &&
                 parsed.items.size == 1 &&
-                HouseholdPortions.hasClassDefault(effectiveFood, item.tag) &&
+                HouseholdPortions.hasClassDefault(effectiveFood, identityQuery) &&
                 (
                     inferredPreview == null ||
                         inferredPreview >= HouseholdPortions.HEURISTIC_DISH_GRAMS - 1.0 ||
@@ -320,7 +334,7 @@ class TagResolver(
                 quantity = item.quantity,
                 food = effectiveFood,
                 parsedGrams = inferredGrams ?: item.amountGrams,
-                query = item.tag,
+                query = identityQuery,
                 explicitKilogram = explicitKilogramPreview,
             )
             val resolutionStatus = HouseholdPortions.operationalAutoStatus(
@@ -366,6 +380,9 @@ class TagResolver(
             // champiñones salteados" puede ser una comida distinta aunque comparta un
             // token; no debe llegar al usuario como si la app hubiera entendido eso.
             val interpretation: String? = null
+            val reviewFoods = smartResult.candidates.mapNotNull { cand ->
+                port.getFoodById(cand.foodId)
+            }.distinctBy { it.id }.take(4)
 
             val resolved = if (effectiveFood != null && !preferAiLoggedFood) {
                 val calibratedGrams = if (itemIntent == AmountIntent.UNSPECIFIED) {
@@ -373,16 +390,16 @@ class TagResolver(
                         effectiveFood.id.lowercase(),
                         FoodIdentity.normalize(effectiveFood.name),
                         FoodIdentity.familyFor(effectiveFood).orEmpty().lowercase().takeIf { it.isNotBlank() },
-                        FoodIdentity.normalize(item.tag),
+                        FoodIdentity.normalize(identityQuery),
                     ).firstNotNullOfOrNull { key ->
                         calibrationProfile?.maturePortionsGrams?.get(key)
-                            ?.takeIf { it.isFinite() && it > 0.0 && HouseholdPortions.isHouseholdHint(it, effectiveFood, item.tag) }
+                            ?.takeIf { it.isFinite() && it > 0.0 && HouseholdPortions.isHouseholdHint(it, effectiveFood, identityQuery) }
                     }
                 } else null
                 val learnedGrams = smartResult.learnedPortionGrams
-                    ?.takeIf { it.isFinite() && it > 0.0 && HouseholdPortions.isHouseholdHint(it, effectiveFood, item.tag) }
+                    ?.takeIf { it.isFinite() && it > 0.0 && HouseholdPortions.isHouseholdHint(it, effectiveFood, identityQuery) }
                 val datasetHint: Double? = null
-                val stapleGrams = FoodStapleOntology.householdDefaultGrams(item.tag, effectiveFood)
+                val stapleGrams = FoodStapleOntology.householdDefaultGrams(identityQuery, effectiveFood)
                     ?.takeIf { item.amountIntent == AmountIntent.UNSPECIFIED }
                 val explicitKilogram = HouseholdPortions.isExplicitKilogram(parsed.rawDescription) ||
                     HouseholdPortions.isExplicitKilogram(item.tag)
@@ -392,7 +409,7 @@ class TagResolver(
                     food = effectiveFood,
                     parsedGrams = inferredGrams ?: item.amountGrams ?: stapleGrams,
                     datasetHint = calibratedGrams ?: learnedGrams ?: datasetHint,
-                    query = item.tag,
+                    query = identityQuery,
                     explicitKilogram = explicitKilogram,
                 )
                 val effectiveAmountIntent = when {
@@ -487,7 +504,7 @@ class TagResolver(
                     needsCookingClarification = false,
                     clarificationKind = CookingStateResolver.ClarificationKind.NONE,
                     oilApplied = applyOil,
-                    reviewCandidates = emptyList(),
+                    reviewCandidates = reviewFoods,
                     interpretation = interpretation,
                     canonicalFamily = canonicalFamily,
                     foodState = foodState,
@@ -497,6 +514,8 @@ class TagResolver(
                     resolutionMargin = resolutionMargin,
                     stateAssumed = stateAssumed,
                     learnedFoodId = learnedFoodId,
+                    foodQuery = identityQuery,
+                    unitId = item.unitId,
                 )
             } else {
                 val dishGramsRaw = when {
@@ -505,11 +524,11 @@ class TagResolver(
                         item.amountIntent == AmountIntent.RESOLVED_SUBJECTIVE ->
                         item.amountGrams?.takeIf { it > 0 }
                             ?: inferredGrams
-                            ?: HouseholdPortions.heuristicDishGrams(item.tag, contextResult)
+                            ?: HouseholdPortions.heuristicDishGrams(identityQuery, contextResult)
                     else -> inferredGrams
-                        ?: HouseholdPortions.heuristicDishGrams(item.tag, contextResult)
+                        ?: HouseholdPortions.heuristicDishGrams(identityQuery, contextResult)
                 }
-                val profile = NutritionHeuristicEstimator.estimatePer100g(item.tag)
+                val profile = NutritionHeuristicEstimator.estimatePer100g(identityQuery)
                 var dishGrams = dishGramsRaw
                 val mac = item.macroOverrides
                 var logged = createLoggedFood(
@@ -573,13 +592,15 @@ class TagResolver(
                     needsCookingClarification = false,
                     clarificationKind = CookingStateResolver.ClarificationKind.NONE,
                     interpretation = interpretation,
-                    reviewCandidates = emptyList(),
+                    reviewCandidates = reviewFoods,
                     canonicalFamily = canonicalFamily,
                     foodState = foodState,
                     resolutionStatus = FoodResolutionStatus.NO_RESOLVED,
                     nutritionSource = NutritionSourceKind.HEURISTIC_ESTIMATE,
                     resolutionConfidence = resolutionConfidence,
                     resolutionMargin = resolutionMargin,
+                    foodQuery = identityQuery,
+                    unitId = item.unitId,
                 )
             }
             resolvedTags += resolved

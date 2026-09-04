@@ -39,6 +39,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.*
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
+import com.example.kpkn.screens.nutrition.components.SupplementTrackingCard
+import com.example.kpkn.screens.nutrition.components.CreatineSaturationOverlay
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.LocalHazeState
 import com.example.kpkn.ui.components.kpknGlass
@@ -88,6 +90,13 @@ fun NutritionScreen(
     val sharedTab by viewModel.pendingSharedTab.collectAsState()
     val foodLoggerOpenRequest by viewModel.foodLoggerOpenRequest.collectAsState()
     val dailyEnergyBalance by viewModel.dailyEnergyBalance.collectAsState()
+    val caffeineLimits by viewModel.caffeineLimits.collectAsState()
+    val creatineSaturation by viewModel.creatineSaturation.collectAsState()
+    val creatineToday by viewModel.creatineTodayGrams.collectAsState()
+    val showCreatineOverlay by viewModel.showCreatineOverlay.collectAsState()
+    val creatineDoses by viewModel.creatineProtocolDoses.collectAsState()
+    val settings by remember { com.example.kpkn.data.repository.ProgramRepository.getInstance().settings }
+        .collectAsState(initial = com.example.kpkn.data.models.Settings())
     val nutritionRepo = remember { com.example.kpkn.data.repository.NutritionRepository.getInstance() }
 
     var showFoodLogger by remember { mutableStateOf(false) }
@@ -154,6 +163,17 @@ fun NutritionScreen(
                     item {
                         MacroBarsSection(dailyTotals = dailyTotals)
                     }
+                }
+
+                item {
+                    SupplementTrackingCard(
+                        caffeineMg = dailyTotals.caffeineMg,
+                        caffeineLimits = caffeineLimits,
+                        creatineTodayG = creatineToday,
+                        creatineSaturation = creatineSaturation,
+                        onCreatineCardClick = { viewModel.openCreatineTracker() },
+                        onQuickAddCreatine = { viewModel.quickAddCreatine() },
+                    )
                 }
 
                 item {
@@ -289,6 +309,14 @@ fun NutritionScreen(
         initialMealType = selectedMealForLogger,
         initialDescription = foodLoggerInitialDescription,
         initialTab = foodLoggerInitialTab,
+    )
+
+    CreatineSaturationOverlay(
+        visible = showCreatineOverlay,
+        weightKg = settings.userVitals.weight,
+        doses = creatineDoses,
+        onDismiss = { viewModel.dismissCreatineOverlay() },
+        onConfirm = { viewModel.confirmCreatineProtocol(it) },
     )
 
     if (showPlanRequiredDialog) {

@@ -204,10 +204,13 @@ object FoodIdentity {
             }
             else -> {
                 val content = contentTokens(normalized)
-                val headFamily = content.firstOrNull()?.let { SIMPLE_FAMILY_BY_TOKEN[it] }
+                val foodTokens = content.filter { !SubjectivePortionLexicon.isPortionHeadToken(it) }
+                val lookup = foodTokens.ifEmpty { content }
+                val headFamily = lookup.firstOrNull()?.let { SIMPLE_FAMILY_BY_TOKEN[it] }
+                    ?: lookup.firstNotNullOfOrNull { SIMPLE_FAMILY_BY_TOKEN[it] }
                 when {
                     headFamily != null -> headFamily
-                    content.size >= 2 -> null
+                    content.size >= 2 && foodTokens.size >= 2 -> null
                     else -> content.firstNotNullOfOrNull { SIMPLE_FAMILY_BY_TOKEN[it] }
                 }
             }

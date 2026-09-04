@@ -237,9 +237,105 @@ class NutritionViewModel : ViewModel() {
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    // ─── Supplement tracking (caffeine / creatine) ───────────────────────────
+
+    val caffeineLimits: StateFlow<CaffeineLimitEngine.CaffeineLimits> = programRepo.settings
+        .map { settings ->
+            val vitals = settings.userVitals
+            CaffeineLimitEngine.computeLimits(
+                CaffeineLimitEngine.CaffeineLimitInput(
+                    weightKg = vitals.weight,
+                    ageYears = vitals.age ?: settings.age,
+                    pregnancyLactation = vitals.pregnancyLactation,
+                ),
+            )
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, CaffeineLimitEngine.computeLimits(CaffeineLimitEngine.CaffeineLimitInput()))
+
+    val creatineSaturation: StateFlow<CreatineSaturationEngine.CreatineSaturationState> = combine(
+        programRepo.settings,
+        nutritionLogs,
+    ) { settings, logs ->
+        CreatineSaturationEngine.computeSaturation(
+            protocol = settings.creatineTracking.protocol,
+            protocolStartDate = settings.creatineTracking.protocolStartDate,
+            weightKg = settings.userVitals.weight,
+            logs = logs,
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Lazily,
+        CreatineSaturationEngine.computeSaturation(CreatineProtocol.NONE, null, null, emptyList()),
+    )
+
+    val creatineTodayGrams: StateFlow<Double> = combine(todayLogs, _selectedDate) { logs, date ->
+        CreatineSaturationEngine.todayCreatineGrams(logs, date)
+    }.stateIn(viewModelScope, SharingStarted.Lazily, 0.0)
+
+    val creatineProtocolDoses: StateFlow<CreatineSaturationEngine.CreatineProtocolDoses> =
+        programRepo.settings
+            .map { CreatineSaturationEngine.computeDoses(it.userVitals.weight) }
+            .stateIn(viewModelScope, SharingStarted.Lazily, CreatineSaturationEngine.computeDoses(null))
+
+    private val _showCreatineOverlay = MutableStateFlow(false)
+    val showCreatineOverlay: StateFlow<Boolean> = _showCreatineOverlay.asStateFlow()
+
+    fun dismissCreatineOverlay() {
+        _showCreatineOverlay.value = false
+    }
+
+    fun openCreatineTracker() {
+        _showCreatineOverlay.value = true
+    }
+
+    fun confirmCreatineProtocol(protocol: CreatineProtocol) {
+        viewModelScope.launch {
+            programRepo.updateSettings { current ->
+                current.copy(
+                    creatineTracking = current.creatineTracking.copy(
+                        protocol = protocol,
+                        protocolStartDate = LocalDate.now().toString(),
+                        onboardingSeen = true,
+                    ),
+                )
+            }
+            _showCreatineOverlay.value = false
+        }
+    }
+
+    fun quickAddCreatine() {
+        val creatineFood = foodDatabase.value.find { it.id == "gen106" }
+            ?: FoodItem(
+                id = "gen106",
+                name = "Creatina Monohidrato",
+                servingSize = 5.0,
+                unit = "g",
+                creatineG = 5.0,
+            )
+        val logged = scaleFoodByPortion(creatineFood, quantity = 1.0)
+        addLog(
+            NutritionLog(
+                id = java.util.UUID.randomUUID().toString(),
+                date = _selectedDate.value,
+                mealType = MealType.SNACK,
+                foods = listOf(logged),
+            ),
+        )
+    }
+
+    private fun maybePromptCreatineOnboarding(log: NutritionLog) {
+        val hasCreatine = log.foods.any { it.creatineG > 0.0 }
+        if (!hasCreatine) return
+        val tracking = programRepo.settings.value.creatineTracking
+        if (!tracking.onboardingSeen && tracking.protocol == CreatineProtocol.NONE) {
+            _showCreatineOverlay.value = true
+        }
+    }
+
     // ─── Actions ────────────────────────────────────────────────────────────
 
     fun addLog(log: NutritionLog) {
+        maybePromptCreatineOnboarding(log)
         nutritionRepo.addNutritionLog(log)
     }
 

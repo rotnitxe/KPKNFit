@@ -130,6 +130,9 @@ fun scaleFoodByPortion(
     val sodiumBase = extractMicronutrientAmount("sodio")
     val potassiumBase = extractMicronutrientAmount("potasio")
     val waterBase = extractMicronutrientAmount("agua", "water")
+    val caffeineBase = food.caffeineMg.takeIf { it > 0.0 }
+        ?: extractMicronutrientAmount("cafeina", "caffeine")
+    val creatineBase = food.creatineG
 
     var calPerGram = food.calories
     var protPerGram = food.protein
@@ -177,6 +180,8 @@ fun scaleFoodByPortion(
         micronutrients = food.micronutrients.map {
             it.copy(amount = kotlin.math.round(it.amount * ratio * 10) / 10.0)
         },
+        caffeineMg = kotlin.math.round(caffeineBase * ratio * 10) / 10.0,
+        creatineG = kotlin.math.round(creatineBase * ratio * 10) / 10.0,
         portionPreset = effectivePortion,
         cookingMethod = cookingMethod,
         quantity = quantity,
@@ -198,6 +203,8 @@ fun createLoggedFood(
     sodiumMg: Double = 0.0,
     potassiumMg: Double = 0.0,
     waterMl: Double = 0.0,
+    caffeineMg: Double = 0.0,
+    creatineG: Double = 0.0,
     portion: PortionPreset? = null,
     cookingMethod: CookingMethod? = null,
 ): LoggedFood {
@@ -229,6 +236,8 @@ fun createLoggedFood(
         sodiumMg = sodiumMg,
         potassiumMg = potassiumMg,
         waterMl = waterMl,
+        caffeineMg = caffeineMg,
+        creatineG = creatineG,
         portionPreset = portion,
         cookingMethod = cookingMethod,
     )
@@ -246,6 +255,8 @@ fun computeDailyTotals(logs: List<NutritionLog>): DailyMacroTotals {
     var sodiumMg = 0.0
     var potassiumMg = 0.0
     var waterMl = 0.0
+    var caffeineMg = 0.0
+    var creatineG = 0.0
 
     for (log in logs) {
         if (log.status == NutritionStatus.PLANNED) continue
@@ -259,6 +270,8 @@ fun computeDailyTotals(logs: List<NutritionLog>): DailyMacroTotals {
             sodiumMg += food.sodiumMg
             potassiumMg += food.potassiumMg
             waterMl += food.waterMl
+            caffeineMg += food.caffeineMg
+            creatineG += food.creatineG
         }
     }
 
@@ -272,6 +285,8 @@ fun computeDailyTotals(logs: List<NutritionLog>): DailyMacroTotals {
         sodiumMg = kotlin.math.round(sodiumMg),
         potassiumMg = kotlin.math.round(potassiumMg),
         waterMl = kotlin.math.round(waterMl),
+        caffeineMg = kotlin.math.round(caffeineMg),
+        creatineG = kotlin.math.round(creatineG * 10) / 10.0,
     )
 }
 

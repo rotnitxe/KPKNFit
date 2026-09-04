@@ -1,0 +1,13 @@
+{
+  "units": [
+    {"id": "thin_slice", "defaultGrams": 18, "gramsByClass": {"queso": 20, "fiambre": 17, "pan": 28}, "barePluralCount": 2},
+    {"id": "thick_slice", "defaultGrams": 40, "gramsByClass": {"dulce": 70, "platano": 90, "queso": 20}, "barePluralCount": 2},
+    {"id": "cube", "defaultGrams": 12, "gramsByClass": {"queso": 10}, "barePluralCount": 2}
+  ],
+  "synonyms": {
+    "thin_slice": ["lamina", "laminas", "laminilla", "loncha", "lonjas", "feta", "fetas", "rebanada", "rebanadita", "rodaja"],
+    "thick_slice": ["tajada", "tajadas", "torraja", "torreja"],
+    "cube": ["cuadrito", "cuadritos", "cubito", "dado", "bocadito"]
+  },
+  "note": "Runtime authority is SubjectivePortionLexicon.kt. This file documents the LATAM portion dictionary."
+}

@@ -442,6 +442,8 @@ data class GlobalFoodEntity(
     val sodiumMg: Double = 0.0,
     val potassiumMg: Double = 0.0,
     val waterMl: Double = 0.0,
+    val caffeineMg: Double = 0.0,
+    val creatineG: Double = 0.0,
     val source: String = "unknown",
     val sourcePriority: Int = 50,
     val verifiedScore: Double = 0.5,
@@ -503,6 +505,8 @@ fun GlobalFoodEntity.toFoodItem() = FoodItem(
     portionGrams = portionGrams,
     portionUnit = portionUnit,
     qualityFlags = decodeStringList(qualityFlagsJson),
+    caffeineMg = caffeineMg,
+    creatineG = creatineG,
 )
 
 private fun decodeStringList(json: String): List<String> =

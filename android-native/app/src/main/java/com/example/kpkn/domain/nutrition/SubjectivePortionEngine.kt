@@ -389,6 +389,8 @@ object SubjectivePortionEngine {
             )
         }
 
+        SubjectivePortionLexicon.resolve(lower, foodName ?: lower)?.let { return it }
+
         // Body/gesture patterns
         for ((pattern, baseGrams, source) in BODY_PATTERNS) {
             val match = pattern.find(lower) ?: continue

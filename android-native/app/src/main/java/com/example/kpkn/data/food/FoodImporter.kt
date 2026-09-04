@@ -29,7 +29,7 @@ import java.time.Instant
 object FoodImporter {
     private const val TAG = "FoodImporter"
     private const val BATCH_SIZE = 2000
-    private const val DATA_VERSION = 8
+    private const val DATA_VERSION = 9
     private const val USDA_FOOD_CSV = "food_data/food.csv"
     private const val USDA_NUTRIENT_CSV = "food_data/food_nutrient.csv"
     private const val USDA_PORTION_CSV = "food_data/food_portion.csv"
@@ -115,6 +115,7 @@ object FoodImporter {
             1093 to 6, // sodium mg
             1092 to 7, // potassium mg
             1051 to 8, // water g ~= ml
+            1057 to 9, // caffeine mg
         )
         val energyPriorityByFood = HashMap<Int, Int>()
 
@@ -127,7 +128,7 @@ object FoodImporter {
                 val fdcId = parts[1].toIntOrNull() ?: continue
                 val nutrientId = parts[2].toIntOrNull() ?: continue
                 val amount = parts[3].toFloatOrNull() ?: 0f
-                val nutrients = foodNutrients.getOrPut(fdcId) { FloatArray(9) }
+                val nutrients = foodNutrients.getOrPut(fdcId) { FloatArray(10) }
                 val energyPriority = when (nutrientId) {
                     2048 -> 3 // Energy, Atwater specific factors (kcal)
                     2047 -> 2 // Energy, Atwater general factors (kcal)
@@ -206,6 +207,7 @@ object FoodImporter {
                         sodiumMg = nutrients[6].toDouble(),
                         potassiumMg = nutrients[7].toDouble(),
                         waterMl = nutrients[8].toDouble(),
+                        caffeineMg = nutrients[9].toDouble(),
                         aliasesJson = "[]",
                         source = "USDA",
                         sourcePriority = 70,

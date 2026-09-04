@@ -197,6 +197,7 @@ fun FoodLoggerDrawer(
 
     // IT3: utensilios configurables (ml por utensilio).
     var showUtensilDialog by remember { mutableStateOf(false) }
+    var showPrivacyInfo by remember { mutableStateOf(false) }
     var utensilValues by remember {
         mutableStateOf(
             SubjectivePortionEngine.UTENSIL_DEFAULTS.mapValues { (_, ml) -> ml.toFloat() },
@@ -688,7 +689,7 @@ fun FoodLoggerDrawer(
                 lastLearnedKey = learnKey
                 lastLearnedAt = now
                 nutritionRepo.recordLearnedResolution(
-                    query = targetTag.tag,
+                    query = targetTag.foodQuery.ifBlank { targetTag.tag },
                     brandHint = null,
                     foodId = food.id,
                     portionGrams = targetTag.amountGrams,
@@ -932,6 +933,15 @@ fun FoodLoggerDrawer(
                     hasManualEdits = true,
                 )
             } else tag
+        }
+        tags.firstOrNull { it.id == tagId && it.foodItem != null }?.let { tag ->
+            nutritionRepo.recordLearnedResolution(
+                query = tag.foodQuery.ifBlank { tag.tag },
+                brandHint = null,
+                foodId = tag.foodItem!!.id,
+                portionGrams = grams,
+                cookingMethod = tag.cookingMethod?.name,
+            )
         }
     }
 
@@ -1340,6 +1350,26 @@ fun FoodLoggerDrawer(
         )
     }
 
+    if (showPrivacyInfo) {
+        KpknAlertDialog(
+            onDismissRequest = { showPrivacyInfo = false },
+            title = {
+                Text("Registro privado, sin conexión", fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Text(
+                    "En KPKN registrás comidas sin conexión y en privado: el cálculo corre solo en el teléfono, sin mandar lo que comés a servidores ni usar APIs o IA externas. Esa independencia puede equivocarse en coincidencias y calorías. Si algo no cierra, usá Corrección avanzada o ajustá gramos y macros a mano. El catálogo y el reconocimiento se siguen afinando.",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showPrivacyInfo = false }) {
+                    Text("Entendido")
+                }
+            },
+        )
+    }
+
     val activeTagsForSave = tags.filterNot { it.isExcluded }
     val saveBlocked = activeTagsForSave.isEmpty() || activeTagsForSave.any { tag ->
         val food = tag.loggedFood
@@ -1441,6 +1471,29 @@ fun FoodLoggerDrawer(
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onErrorContainer,
+                                )
+                            }
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                "Descripción",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            IconButton(
+                                onClick = { showPrivacyInfo = true },
+                                modifier = Modifier.size(28.dp),
+                            ) {
+                                Icon(
+                                    Icons.Default.Info,
+                                    contentDescription = "Cómo funciona el registro de comidas",
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                         }
@@ -2224,6 +2277,29 @@ private fun FoodClarificationPanel(
     }
 }
 
+private fun tagShowsMatchWarning(tag: ResolvedTag): Boolean {
+    if (tag.nutritionSource == NutritionSourceKind.HEURISTIC_ESTIMATE) return true
+    if (tag.isUncertain || tag.isFuzzyMatch) return true
+    if (tag.resolutionStatus == FoodResolutionStatus.NEEDS_REVIEW ||
+        tag.resolutionStatus == FoodResolutionStatus.NO_RESOLVED ||
+        tag.resolutionStatus == FoodResolutionStatus.NEEDS_CONFIRMATION
+    ) {
+        return true
+    }
+    val confidence = tag.resolutionConfidence
+    if (confidence != null && confidence < 0.80) return true
+    val query = tag.foodQuery.ifBlank { tag.tag }
+    val matched = tag.foodItem?.name.orEmpty()
+    if (query.isNotBlank() && matched.isNotBlank()) {
+        val qn = FoodIdentity.normalize(query)
+        val nn = FoodIdentity.normalize(matched)
+        if (qn.length >= 5 && nn.length >= 5 && !nn.contains(qn) && !qn.contains(nn)) {
+            return true
+        }
+    }
+    return false
+}
+
 @Composable
 private fun TagCard(
     tag: ResolvedTag,
@@ -2245,6 +2321,8 @@ private fun TagCard(
     onUnsure: () -> Unit,
 ) {
     val logged = tag.loggedFood
+    var showMatchCorrection by remember(tag.id, tag.isResolved) { mutableStateOf(!tag.isResolved) }
+    var correctionQuery by remember(tag.id) { mutableStateOf(tag.foodQuery.ifBlank { tag.tag }) }
 
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -2278,24 +2356,6 @@ private fun TagCard(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            val sourceLabel = when {
-                                tag.foodItem?.source?.contains("USDA", ignoreCase = true) == true -> "USDA"
-                                tag.foodItem?.source?.contains("OFF", ignoreCase = true) == true -> "OFF"
-                                tag.nutritionSource == NutritionSourceKind.HEURISTIC_ESTIMATE || tag.isUncertain -> "Estimado"
-                                else -> "Local"
-                            }
-                            AssistChip(onClick = {}, label = { Text(sourceLabel, style = MaterialTheme.typography.labelSmall) })
-                            if (tag.calibrationUsed) {
-                                AssistChip(onClick = {}, label = { Text("Usé tu habitual", style = MaterialTheme.typography.labelSmall) })
-                            }
-                            val stateLabel = when (tag.foodState) {
-                                FoodState.RAW -> "crudo"
-                                FoodState.COOKED, FoodState.HYDRATED -> "cocido"
-                                else -> "estado pendiente"
-                            }
-                            AssistChip(onClick = {}, label = { Text(stateLabel, style = MaterialTheme.typography.labelSmall) })
-                        }
                         if (tag.isUncertain || logged.isUncertain) {
                             val minKcal = logged.caloriesMin?.let { kotlin.math.round(it).toInt() }
                             val maxKcal = logged.caloriesMax?.let { kotlin.math.round(it).toInt() }
@@ -2303,13 +2363,6 @@ private fun TagCard(
                                 Text("Rango estimado: $minKcal–$maxKcal kcal", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
-                    }
-                    if (tag.statusText.isNotBlank()) {
-                        Text(
-                            text = tag.statusText,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (tag.isResolved) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
-                        )
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -2386,6 +2439,101 @@ private fun TagCard(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                    }
+
+                    val matchWarning = tagShowsMatchWarning(tag)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showMatchCorrection = !showMatchCorrection }
+                            .padding(vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        if (matchWarning) {
+                            Icon(
+                                Icons.Default.Warning,
+                                contentDescription = "Coincidencia incierta",
+                                modifier = Modifier.size(14.dp),
+                                tint = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                        Text(
+                            "Corrección avanzada",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+
+                    if (showMatchCorrection) {
+                        TextField(
+                            value = correctionQuery,
+                            onValueChange = { correctionQuery = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = { Text("Cambiar coincidencia") },
+                            singleLine = true,
+                            shape = RoundedCornerShape(10.dp),
+                            colors = TextFieldDefaults.colors(
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                disabledIndicatorColor = Color.Transparent,
+                            ),
+                        )
+                        val lookup = correctionQuery.ifBlank { tag.tag }
+                        var suggestions by remember(lookup, foodDatabase.size) {
+                            mutableStateOf<List<FoodCandidate>>(emptyList())
+                        }
+                        LaunchedEffect(lookup) {
+                            suggestions = nutritionRepo.searchFoodCandidates(lookup, limit = 5)
+                        }
+                        if (suggestions.isEmpty()) {
+                            Text(
+                                "No se encontraron coincidencias.",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        } else {
+                            suggestions.forEach { candidate ->
+                                val food = candidate.food
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = MaterialTheme.colorScheme.surfaceContainer,
+                                    modifier = Modifier.fillMaxWidth().clickable {
+                                        nutritionRepo.recordFoodSelection(lookup, food)
+                                        onResolve(food)
+                                        showMatchCorrection = false
+                                    },
+                                ) {
+                                    Column(modifier = Modifier.padding(10.dp)) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                        ) {
+                                            Text(
+                                                food.name.trim().replaceFirstChar { it.uppercase() },
+                                                style = MaterialTheme.typography.bodySmall,
+                                                fontWeight = FontWeight.SemiBold,
+                                            )
+                                            Text(
+                                                when (candidate.confidence) {
+                                                    SearchConfidence.HIGH -> "Alta"
+                                                    SearchConfidence.MEDIUM -> "Media"
+                                                    SearchConfidence.LOW -> "Baja"
+                                                },
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
+                                        }
+                                        Text(
+                                            "${kotlin.math.round(food.calories).toInt()} kcal / ${food.servingSize.toInt()}${food.unit}",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     if (tag.needsCutClarification && tag.stapleCutOptions.isNotEmpty()) {
@@ -2543,48 +2691,6 @@ private fun TagCard(
                         }
                     }
 
-                    if (!tag.isResolved) {
-                        Text("Resoluciones sugeridas:", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
-                        val unresolvedQuery = tag.tag
-                        var suggestions by remember(unresolvedQuery, foodDatabase.size) { mutableStateOf<List<FoodCandidate>>(emptyList()) }
-                        LaunchedEffect(unresolvedQuery) {
-                            suggestions = nutritionRepo.searchFoodCandidates(unresolvedQuery, limit = 5)
-                        }
-                        if (suggestions.isEmpty()) {
-                            Text("No se encontraron coincidencias.", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
-                        } else {
-                            suggestions.forEach { candidate ->
-                                val food = candidate.food
-                                Surface(
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = MaterialTheme.colorScheme.surfaceContainer,
-                                    modifier = Modifier.fillMaxWidth().clickable {
-                                        nutritionRepo.recordFoodSelection(unresolvedQuery, food)
-                                        onResolve(food)
-                                    },
-                                ) {
-                                    Column(modifier = Modifier.padding(10.dp)) {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                        ) {
-                                            Text(food.name.trim().replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
-                                            Text(
-                                                when (candidate.confidence) {
-                                                    SearchConfidence.HIGH -> "Alta"
-                                                    SearchConfidence.MEDIUM -> "Media"
-                                                    SearchConfidence.LOW -> "Baja"
-                                                },
-                                                style = MaterialTheme.typography.labelSmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            )
-                                        }
-                                        Text("${kotlin.math.round(food.calories).toInt()} kcal / ${food.servingSize.toInt()}${food.unit}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }

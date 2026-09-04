@@ -53,6 +53,7 @@ private val LITERAL_QUANTITIES = mapOf(
     "veinticinco" to 25.0, "treinta" to 30.0,
     "media" to 0.5, "medio" to 0.5, "mitad" to 0.5,
     "cuarto" to 0.25, "tercio" to 0.33, "doble" to 2.0, "triple" to 3.0,
+    "unos" to 2.0, "unas" to 2.0,
 )
 
 private val PORTION_PATTERNS = listOf(
@@ -122,7 +123,9 @@ private val REFERENCE_PATTERNS = listOf(
     Pair(Regex("""\b(un|una|1)\s+(puñado|punado|puñados|punados)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "handful"),
     Pair(Regex("""\b(un|1)\s+(puño)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "fist"),
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(vasos?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "glass"),
-    Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(rebanadas?|tajadas?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "slice"),
+    Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(rebanadas?|tajadas?|l[aá]minas?|lonchas?|lonjas?|fetas?|cuadritos?|cubitos?|torrijas?|torradas?|medallones?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "slice"),
+    Pair(Regex("""\b(un|una|unos|unas|un\s+par\s+de|1)\s+(rebanadas?|tajadas?|l[aá]minas?|lonchas?|lonjas?|fetas?|cuadritos?|torrijas?|torradas?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "slice"),
+    Pair(Regex("""\b(l[aá]minas?|lonchas?|lonjas?|fetas?|rebanadas?|torrijas?|torradas?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "slice"),
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(latas?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "can"),
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(scoops?|medidas?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "scoop"),
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(porci[oó]n(?:es)?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "portion"),
@@ -174,6 +177,8 @@ private val REFERENCE_KEYWORDS_FAST = listOf(
     "cucharad", "taza", "puñ", "punad", "vaso", "rebanad", "tajad", "lata",
     "scoop", "medida", "porcion", "porción", "trozo", "pedazo",
     "poco", "poquit", "pizca", "chorrit", "bowl", "bol", "tazon",
+    "lamina", "lámina", "lonch", "lonja", "feta", "cuadrit", "cubito",
+    "torraj", "torrej", "torrij", "torrad", "cacho", "palito", "ramita", "hojuela", "bolsit",
 )
 
 private val COOKING_KEYWORDS_FAST = listOf(
@@ -240,11 +245,24 @@ fun parseMealDescription(
         parseFragment(trimmed, retrievalResult)?.let { items.add(it) }
     }
 
-    return ParsedMealDescription(
-        items = items,
-        rawDescription = trimmed,
-        verbatimDescription = description.trim(),
+    return MealLanguageMerge.apply(
+        ParsedMealDescription(
+            items = items,
+            rawDescription = trimmed,
+            verbatimDescription = description.trim(),
+        ),
     )
+}
+
+internal fun splitMealFragments(description: String): List<String> = splitByListConnectors(description)
+
+internal fun isWholeProtectedMeal(text: String): Boolean {
+    val trimmed = text.trim()
+    if (trimmed.isEmpty()) return false
+    if (PROTECTED_ENTITIES.any { it.equals(trimmed, ignoreCase = true) }) return true
+    val normalized = FoodIdentity.normalize(trimmed)
+    if (PROTECTED_ENTITIES.any { FoodIdentity.normalize(it) == normalized }) return true
+    return isNamedDishPhrase(trimmed)
 }
 
 private fun isKnownNegationModifier(text: String, negMatch: MatchResult): Boolean {
@@ -347,7 +365,7 @@ private fun parseFragment(
     val householdCountGrams = if (
         amountIntent != AmountIntent.EXPLICIT_MASS &&
         countable &&
-        expressedCount
+        (expressedCount || isCookieOrCrackerName(canonical))
     ) {
         HouseholdPortions.unitGrams(catalogFood, canonical) * quantity
     } else {
@@ -737,6 +755,11 @@ private fun extractGlobalPortion(description: String): PortionPreset {
         if (pattern.containsMatchIn(description)) return preset
     }
     return PortionPreset.MEDIUM
+}
+
+private fun isCookieOrCrackerName(name: String): Boolean {
+    val n = FoodIdentity.normalize(name)
+    return n.contains("galleta") || n.contains("cookie")
 }
 
 private fun isNamedDishPhrase(text: String): Boolean {

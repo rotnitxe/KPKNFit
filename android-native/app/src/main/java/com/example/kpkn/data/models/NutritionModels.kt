@@ -84,6 +84,8 @@ data class FoodItem(
     val portionGrams: Double? = null,
     val portionUnit: String? = null,
     val qualityFlags: List<String> = emptyList(),
+    val caffeineMg: Double = 0.0,
+    val creatineG: Double = 0.0,
 )
 
 enum class CookingBehavior { SHRINKS, EXPANDS }
@@ -123,6 +125,8 @@ data class LoggedFood(
     val interpretationId: String? = null,
     val evidenceJson: String? = null,
     val isUncertain: Boolean = false,
+    val caffeineMg: Double = 0.0,
+    val creatineG: Double = 0.0,
 )
 
 // ─── NutritionLog ─────────────────────────────────────────────────────────────
@@ -361,6 +365,12 @@ data class ParsedMealItem(
     val modifierScale: MacroOverrides? = null,
     val isExcluded: Boolean = false,
     val amountIntent: AmountIntent = AmountIntent.UNSPECIFIED,
+    /** Identity span without portion units (`queso gouda`, not `láminas de queso gouda`). */
+    val foodQuery: String = "",
+    /** Shared vessel when the clause is "un plato/bowl de …". */
+    val containerScope: String? = null,
+    /** Lexicon unit id when a subjective unit bound to this item. */
+    val unitId: String? = null,
 )
 
 @Serializable
@@ -402,6 +412,8 @@ data class DailyMacroTotals(
     val sodiumMg: Double = 0.0,
     val potassiumMg: Double = 0.0,
     val waterMl: Double = 0.0,
+    val caffeineMg: Double = 0.0,
+    val creatineG: Double = 0.0,
 )
 
 data class NutrientProgress(

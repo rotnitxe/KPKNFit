@@ -1,5 +1,6 @@
 package com.example.kpkn.data.food
 
+import com.example.kpkn.data.models.CarbBreakdown
 import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.data.models.Micronutrient
 
@@ -9,7 +10,8 @@ import com.example.kpkn.data.models.Micronutrient
  * Contains generic foods (90 items), plus Chilean-specific foods.
  */
 
-fun buildFoodDatabase(): List<FoodItem> = ALL_FOODS
+fun buildFoodDatabase(context: android.content.Context? = null): List<FoodItem> =
+    ALL_FOODS + BrandedEnergyKcalCatalog.load(context) + BrandedSnackCatalog.load(context)
 
 // ─── Generic Foods (serving 100g unless noted) ───────────────────────────────
 
@@ -89,8 +91,8 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
         micronutrients = listOf(Micronutrient("Hierro", 8.8, "mg"), Micronutrient("Calcio", 350.0, "mg"))),
     FoodItem(id = "gen058", name = "Avena Instantánea", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 389.0, protein = 16.9, carbs = 66.0, fats = 6.9,
         micronutrients = listOf(Micronutrient("Hierro", 4.7, "mg"), Micronutrient("Magnesio", 177.0, "mg"))),
-    FoodItem(id = "gen059", name = "Café (negro)", brand = "Genérico", servingSize = 100.0, unit = "ml", calories = 2.0, protein = 0.1, carbs = 0.0, fats = 0.0),
-    FoodItem(id = "gen060", name = "Té Verde", brand = "Genérico", servingSize = 100.0, unit = "ml", calories = 1.0, protein = 0.0, carbs = 0.0, fats = 0.0),
+    FoodItem(id = "gen059", name = "Café (negro)", brand = "Genérico", servingSize = 100.0, unit = "ml", calories = 2.0, protein = 0.1, carbs = 0.0, fats = 0.0, caffeineMg = 40.0),
+    FoodItem(id = "gen060", name = "Té Verde", brand = "Genérico", servingSize = 100.0, unit = "ml", calories = 1.0, protein = 0.0, carbs = 0.0, fats = 0.0, caffeineMg = 15.0),
     FoodItem(id = "gen061", name = "Cacao en polvo", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 228.0, protein = 20.0, carbs = 58.0, fats = 14.0,
         micronutrients = listOf(Micronutrient("Hierro", 13.9, "mg"), Micronutrient("Magnesio", 499.0, "mg"))),
     FoodItem(id = "gen062", name = "Dátiles", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 282.0, protein = 2.5, carbs = 75.0, fats = 0.4),
@@ -146,7 +148,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen104", name = "Leche de Almendras", brand = "Genérico", servingSize = 100.0, unit = "ml", calories = 17.0, protein = 0.6, carbs = 0.6, fats = 1.5, searchAliases = listOf("leche de almendras", "leche vegetal")),
     // ─── Suplementos ─────────────────────────────────────────────────────────
     FoodItem(id = "gen105", name = "Proteína en Polvo (Whey)", brand = "Genérico", servingSize = 30.0, unit = "g", calories = 120.0, protein = 24.0, carbs = 3.0, fats = 2.0, searchAliases = listOf("whey", "proteína en polvo", "suero de leche", "proteína whey", "whey protein")),
-    FoodItem(id = "gen106", name = "Creatina Monohidrato", brand = "Genérico", servingSize = 5.0, unit = "g", calories = 0.0, protein = 0.0, carbs = 0.0, fats = 0.0, searchAliases = listOf("creatina", "creatine")),
+    FoodItem(id = "gen106", name = "Creatina Monohidrato", brand = "Genérico", servingSize = 5.0, unit = "g", calories = 0.0, protein = 0.0, carbs = 0.0, fats = 0.0, creatineG = 5.0, searchAliases = listOf("creatina", "creatine")),
     // ─── Variantes de cocción (top 30 alimentos) ─────────────────────────────
     // Pollo
     FoodItem(id = "gen003c", name = "Pechuga de Pollo (plancha)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 173.0, protein = 31.0, carbs = 0.0, fats = 3.4, searchAliases = listOf("pollo a la plancha", "pechuga plancha")),
@@ -172,7 +174,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen009p", name = "Salmón (plancha)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 218.0, protein = 20.0, carbs = 0.0, fats = 12.4, searchAliases = listOf("salmon a la plancha")),
     FoodItem(id = "gen009h", name = "Salmón (horno)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 212.0, protein = 20.0, carbs = 0.0, fats = 12.7, searchAliases = listOf("salmon al horno")),
     // Papa
-    FoodItem(id = "gen021f", name = "Papa (frita)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 312.0, protein = 3.4, carbs = 41.0, fats = 15.0, searchAliases = listOf("papa frita", "papas fritas", "papa fritas")),
+    FoodItem(id = "gen021f", name = "Papa (frita)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 312.0, protein = 3.4, carbs = 41.0, fats = 15.0, searchAliases = listOf("papa frita", "papas fritas", "patatas fritas", "papa frita de plato", "papas fritas de plato")),
     FoodItem(id = "gen021h", name = "Papa (horno)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 93.0, protein = 2.5, carbs = 21.0, fats = 0.1, searchAliases = listOf("papa al horno", "papas al horno")),
     FoodItem(id = "gen021p", name = "Papa (puré)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 110.0, protein = 2.0, carbs = 18.0, fats = 3.5, searchAliases = listOf("pure de papa", "pure")),
     // Pasta
@@ -258,6 +260,87 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen134", name = "Sopa (casera)", brand = "Genérico", servingSize = 250.0, unit = "ml", calories = 42.0, protein = 2.0, carbs = 4.0, fats = 1.5, searchAliases = listOf("sopa", "sopa casera", "caldo", "sopa de verduras", "sopa de pollo")),
     FoodItem(id = "gen135", name = "Porotos (cocidos)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 140.0, protein = 8.5, carbs = 25.0, fats = 0.5, searchAliases = listOf("porotos", "poroto", "porotos cocidos", "porotos negros", "frijoles", "frijol")),
     FoodItem(id = "gen136", name = "Arroz Integral (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 123.0, protein = 2.7, carbs = 26.0, fats = 0.9, searchAliases = listOf("arroz integral", "arroz integral cocido")),
+    FoodItem(
+        id = "gen137",
+        name = "Galletas de chocolate",
+        brand = "Genérico",
+        category = "galletas",
+        servingSize = 100.0,
+        unit = "g",
+        calories = 502.0,
+        protein = 6.2,
+        carbs = 63.0,
+        fats = 24.0,
+        carbBreakdown = CarbBreakdown(sugar = 32.0),
+        searchAliases = listOf("galleta de chocolate", "galletas de chocolate", "chocolate cookies", "galletas chocolate"),
+    ),
+    FoodItem(
+        id = "gen138",
+        name = "Galletas saladas",
+        brand = "Genérico",
+        category = "galletas",
+        servingSize = 100.0,
+        unit = "g",
+        calories = 435.0,
+        protein = 9.0,
+        carbs = 70.0,
+        fats = 13.0,
+        searchAliases = listOf("galleta salada", "galletas saladas", "crackers"),
+    ),
+    FoodItem(
+        id = "gen139",
+        name = "Galletas de avena",
+        brand = "Genérico",
+        category = "galletas",
+        servingSize = 100.0,
+        unit = "g",
+        calories = 450.0,
+        protein = 7.0,
+        carbs = 66.0,
+        fats = 18.0,
+        searchAliases = listOf("galleta de avena", "galletas de avena", "oatmeal cookies"),
+    ),
+    FoodItem(
+        id = "gen140",
+        name = "Papas fritas (snack)",
+        brand = "Genérico",
+        category = "chips",
+        servingSize = 100.0,
+        unit = "g",
+        calories = 536.0,
+        protein = 6.6,
+        carbs = 53.0,
+        fats = 35.0,
+        searchAliases = listOf("papas fritas snack", "chips de bolsa", "papas chips", "patatas chips"),
+    ),
+    FoodItem(
+        id = "gen141",
+        name = "Chocolate de mesa",
+        brand = "Genérico",
+        category = "dulce",
+        servingSize = 100.0,
+        unit = "g",
+        calories = 546.0,
+        protein = 7.6,
+        carbs = 46.0,
+        fats = 31.0,
+        carbBreakdown = CarbBreakdown(sugar = 40.0),
+        searchAliases = listOf("chocolate", "chocolate de mesa", "tableta de chocolate"),
+    ),
+    FoodItem(
+        id = "gen142",
+        name = "Dulce genérico",
+        brand = "Genérico",
+        category = "dulce",
+        servingSize = 100.0,
+        unit = "g",
+        calories = 394.0,
+        protein = 0.0,
+        carbs = 98.0,
+        fats = 0.1,
+        carbBreakdown = CarbBreakdown(sugar = 80.0),
+        searchAliases = listOf("dulce", "golosina", "caramelo"),
+    ),
 )
 
 // ─── Chilean Foods ───────────────────────────────────────────────────────────
@@ -335,6 +418,13 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "salchicha" to "salchicha tipo viena", "vienesa" to "salchicha tipo viena",
     "whey" to "proteína en polvo (whey)", "proteina en polvo" to "proteína en polvo (whey)",
     "creatina" to "creatina monohidrato",
+    "red bull" to "red bull original",
+    "redbull" to "red bull original",
+    "monster" to "monster energy",
+    "score" to "score energy drink",
+    "winkler" to "winkler energy drink",
+    "energética" to "red bull original",
+    "energetica" to "red bull original",
     "marraqueta" to "marraqueta", "marraquetas" to "marraqueta",
     "hallulla" to "hallulla", "hallullas" to "hallulla",
     "hallula" to "hallulla", "hallulas" to "hallulla",
@@ -394,7 +484,14 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "burguer" to "hamburguesa", "burger" to "hamburguesa",
     "hotdog" to "salchicha tipo viena", "hot dog" to "salchicha tipo viena",
     "nuggets" to "pechuga de pollo",
-    "galleta" to "pan blanco", "galletas" to "pan blanco",
+    "galleta de chocolate" to "galletas de chocolate",
+    "galletas de chocolate" to "galletas de chocolate",
+    "galleta salada" to "galletas saladas",
+    "galletas saladas" to "galletas saladas",
+    "galleta de avena" to "galletas de avena",
+    "galletas de avena" to "galletas de avena",
+    "galleta" to "pan blanco",
+    "galletas" to "pan blanco",
     "cereal" to "avena",
     "batido" to "leche entera",
     "smoothie" to "leche entera",
@@ -466,7 +563,7 @@ val FOOD_ALIASES_APPROXIMATION: Set<String> = setOf(
     "arepa", "arepa reina pepiada", "cachapa", "pabellon", "tequeños", "bandeja paisa",
     "empanada colombiana",
     // Internacionales / conceptos generales
-    "galleta", "galletas", "cereal", "batido", "smoothie", "ensalada", "trigo",
+    "cereal", "batido", "smoothie", "ensalada", "trigo",
     "cafe con leche", "nuggets",
 )
 

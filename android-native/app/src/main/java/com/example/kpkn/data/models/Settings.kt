@@ -84,6 +84,7 @@ data class Settings(
     val nutritionActivityLevel: Int = 3,
     /** omnivore | vegetarian | vegan — ajusta proteína recomendada. */
     val nutritionDietaryPreference: String = "omnivore",
+    val creatineTracking: CreatineTrackingState = CreatineTrackingState(),
 
     val sleepTargetHours: Double = 8.0,
     val smartSleepEnabled: Boolean = false,
@@ -173,6 +174,21 @@ data class UserVitals(
     val targetWeight: Double? = null,
     /** Perfil hormonal para Mifflin/Harris; independiente de Gender. */
     val metabolicProfile: MetabolicProfile? = null,
+    /** Usado por límites de cafeína y otros motores de salud. */
+    val pregnancyLactation: PregnancyLactation = PregnancyLactation.NONE,
+)
+
+@Serializable
+enum class PregnancyLactation { NONE, PREGNANT, LACTATING }
+
+@Serializable
+enum class CreatineProtocol { NONE, LOADING, GRADUAL }
+
+@Serializable
+data class CreatineTrackingState(
+    val protocol: CreatineProtocol = CreatineProtocol.NONE,
+    val protocolStartDate: String? = null,
+    val onboardingSeen: Boolean = false,
 )
 
 enum class Gender { MALE, FEMALE, OTHER }

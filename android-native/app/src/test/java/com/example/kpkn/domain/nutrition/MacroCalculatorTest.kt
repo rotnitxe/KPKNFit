@@ -144,6 +144,46 @@ class MacroCalculatorTest {
     // ─── Create Logged Food ────────────────────────────────────────────────
 
     @Test
+    fun `scale food copies caffeine and creatine`() {
+        val food = FoodItem(
+            id = "enr_test",
+            name = "Test Energy",
+            servingSize = 250.0,
+            unit = "ml",
+            calories = 110.0,
+            caffeineMg = 80.0,
+            creatineG = 0.0,
+        )
+        val logged = scaleFoodByPortion(food, quantity = 1.0)
+        assertEquals(80.0, logged.caffeineMg, 0.01)
+
+        val creatine = FoodItem(
+            id = "gen106",
+            name = "Creatina",
+            servingSize = 5.0,
+            unit = "g",
+            creatineG = 5.0,
+        )
+        val creatineLog = scaleFoodByPortion(creatine, quantity = 1.0)
+        assertEquals(5.0, creatineLog.creatineG, 0.01)
+    }
+
+    @Test
+    fun `daily totals sum caffeine and creatine`() {
+        val logs = listOf(
+            NutritionLog(
+                foods = listOf(
+                    LoggedFood(foodName = "Energy", calories = 100.0, caffeineMg = 80.0),
+                    LoggedFood(foodName = "Creatina", creatineG = 5.0),
+                ),
+            ),
+        )
+        val totals = computeDailyTotals(logs)
+        assertEquals(80.0, totals.caffeineMg, 0.01)
+        assertEquals(5.0, totals.creatineG, 0.01)
+    }
+
+    @Test
     fun `create logged food`() {
         val food = createLoggedFood(
             foodName = "Test",

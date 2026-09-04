@@ -725,7 +725,7 @@ class NutritionRepository private constructor(
                 _dailyGoalSnapshots.value = snapshots
                 _nutritionPlans.value = plans
                 _activeNutritionPlanId.value = activeId
-                _foodDatabase.value = (buildFoodDatabase() + customFoods)
+                _foodDatabase.value = (buildFoodDatabase(appContext) + customFoods)
                     .map(::normalizeFoodItem)
                     .distinctBy { it.id.ifBlank { it.normalizedName ?: it.name.lowercase() } }
                 _mealTemplates.value = templates
@@ -753,7 +753,7 @@ class NutritionRepository private constructor(
             } catch (t: Throwable) {
                 if (t is CancellationException) throw t
                 android.util.Log.e("NutritionRepository", "loadFromDb failed (OOM?): ${t.javaClass.simpleName}", t)
-                _foodDatabase.value = buildFoodDatabase()
+                _foodDatabase.value = buildFoodDatabase(appContext)
                 _mealTemplates.value = emptyList()
                 _foodQueryLearning.value = emptyMap()
                 _bodyMeasurements.value = emptyList()

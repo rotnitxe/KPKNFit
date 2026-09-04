@@ -154,9 +154,8 @@ class SmartFoodResolver(
         val repairedNormalized = FoodIndex.normalizeSearch(repairedQuery)
         val repairedTokens = FoodIndex.tokenize(repairedNormalized)
 
-        // Check learned resolutions first
-        val learnedKey = buildLearnedKey(normalizedQuery, brandHint)
-        val learned = learnedCache[learnedKey]
+        // Check learned resolutions first (v3 family|unit|query, then v2)
+        val learned = lookupLearned(query, normalizedQuery, brandHint)
         val ontologyId = FoodStapleOntology.resolveFoodId(query)
             ?: FoodStapleOntology.resolveFoodId(repairedQuery).takeIf { repairedQuery != query }
         val stapleId = when {
@@ -310,7 +309,20 @@ class SmartFoodResolver(
      * Persists to DB and updates in-memory cache.
      */
     fun recordLearned(query: String, brandHint: String?, foodId: String, portionGrams: Double?, cookingMethod: String?) {
-        val key = buildLearnedKey(FoodIndex.normalizeSearch(query), brandHint)
+        val v2Key = buildLearnedKey(FoodIndex.normalizeSearch(query), brandHint)
+        writeLearned(v2Key, foodId, portionGrams, cookingMethod)
+        val identity = SubjectivePortionLexicon.foodSpanAfterUnit(query)
+        val identityNorm = FoodIndex.normalizeSearch(identity)
+        if (identityNorm.isNotBlank() && identityNorm != FoodIndex.normalizeSearch(query)) {
+            writeLearned(buildLearnedKey(identityNorm, brandHint), foodId, portionGrams, cookingMethod)
+        }
+        val v3Key = buildV3LearnedKey(query)
+        if (v3Key != null) {
+            writeLearned(v3Key, foodId, portionGrams, cookingMethod)
+        }
+    }
+
+    private fun writeLearned(key: String, foodId: String, portionGrams: Double?, cookingMethod: String?) {
         val existing = learnedCache[key]
         val newCount = (existing?.count ?: 0) + 1
         learnedCache[key] = LearnedEntry(
@@ -325,7 +337,6 @@ class SmartFoodResolver(
             },
             preparation = cookingMethod ?: existing?.preparation,
         )
-        // Persist to DB in background
         kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             try {
                 learnedDao?.upsert(
@@ -345,9 +356,6 @@ class SmartFoodResolver(
                         lastConfirmedAt = System.currentTimeMillis(),
                     )
                 )
-                // E16/IT2: expiración — la memoria crece sin límite sin esto. Al
-                // superar el umbral se poda la DB (menos usadas) y se recarga el
-                // cache en memoria con las top 500.
                 if (learnedCache.size > LEARNED_EXPIRATION_THRESHOLD) {
                     learnedDao?.prune(LEARNED_PRUNE_KEEP)
                     learnedCache.clear()
@@ -654,7 +662,31 @@ class SmartFoodResolver(
         val fuzzyBonus = computeFuzzyBonus(food, queryTokens)
         score += fuzzyBonus
 
+        if (queryLooksSolid(normalizedQuery) && candidateLooksLiquid(food)) {
+            score -= 0.45
+        }
+
         return score.coerceIn(0.0, 1.0)
+    }
+
+    private fun queryLooksSolid(normalizedQuery: String): Boolean {
+        val q = FoodIdentity.normalize(normalizedQuery)
+        if (q.contains("caliente") || q.contains("jugo") || q.contains("bebida")) return false
+        return listOf(
+            "galleta", "cookie", "queso", "chip", "papa frita", "papas frita",
+            "pan ", "jamon", "cecina", "almendra", "nuez",
+        ).any { q.contains(it) } || q.startsWith("pan")
+    }
+
+    private fun candidateLooksLiquid(food: FoodIndex.IndexedFood): Boolean {
+        if (food.canonicalFamily == "leche" || food.canonicalFamily == "jugo") return true
+        val n = food.normalizedName
+        val drinkTokens = listOf(
+            "jugo", "bebida", "smoothie", "batido", "gaseosa", "refresco",
+            "energetica", "soda", "agua de", "leche con", "cafe con",
+        )
+        if (drinkTokens.any { n.contains(it) }) return true
+        return Regex("""\b(?:jugo|bebida|smoothie|batido|gaseosa|refresco)\b""").containsMatchIn(n)
     }
 
     private fun isRealIdentityRival(
@@ -859,6 +891,25 @@ class SmartFoodResolver(
         if (fuzzyTokens.isNotEmpty()) trace.add("fuzzy:${fuzzyTokens.joinToString(",")}")
 
         return trace
+    }
+
+    private fun lookupLearned(
+        originalQuery: String,
+        normalizedQuery: String,
+        brandHint: String?,
+    ): LearnedEntry? {
+        buildV3LearnedKey(originalQuery)?.let { key ->
+            learnedCache[key]?.let { return it }
+        }
+        return learnedCache[buildLearnedKey(normalizedQuery, brandHint)]
+    }
+
+    private fun buildV3LearnedKey(query: String): String? {
+        val family = FoodIdentity.familyFor(query) ?: return null
+        val unit = SubjectivePortionLexicon.boundUnitId(query) ?: return null
+        val identity = FoodIndex.normalizeSearch(SubjectivePortionLexicon.foodSpanAfterUnit(query))
+        if (identity.isBlank()) return null
+        return "v3|$family|$unit|$identity"
     }
 
     private fun buildLearnedKey(normalizedQuery: String, brandHint: String?): String {
