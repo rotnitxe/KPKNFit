@@ -18,6 +18,9 @@ object ExerciseTechniqueImageLookup {
     const val BULGARIAN_SPLIT_SQUAT_DEFINITION_ID = "bulgarian_split_squat"
     const val SUMO_SQUAT_DEFINITION_ID = "sumo_squat"
     const val HACK_SQUAT_DEFINITION_ID = "quads_sentadilla_hack"
+    const val PENDULUM_SQUAT_DEFINITION_ID = "pendulum_squat"
+    const val BELT_SQUAT_DEFINITION_ID = "belt_squat"
+    const val ZERCHER_SQUAT_DEFINITION_ID = "quads_sentadilla_zercher_barra_recta"
 
     fun variants(definitionId: String): List<ExerciseTechniqueImageVariant> = when (definitionId) {
         HIGH_BAR_BACK_SQUAT_DEFINITION_ID -> listOf(
@@ -30,27 +33,41 @@ object ExerciseTechniqueImageLookup {
             ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_sentadilla_trasera_barra_baja_smith, "Máquina Smith"),
         )
         FRONT_SQUAT_DEFINITION_ID -> listOf(
-            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_sentadilla_frontal, "Barra Libre"),
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_sentadilla_frontal, "Barra"),
             ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_sentadilla_frontal_smith, "Máquina Smith"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_sentadilla_frontal_mancuernas, "Mancuerna"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_sentadilla_frontal_kettlebell, "Kettlebell"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_sentadilla_frontal_polea, "Polea"),
         )
         GOBLET_SQUAT_DEFINITION_ID -> listOf(
-            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_sentadilla_copa, "Mancuerna"),
-            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_sentadilla_copa, "Kettlebell"),
-            ExerciseTechniqueImageVariant("default", R.drawable.exercise_sentadilla_copa, "Mancuerna / Pesa Rusa"),
-        )
-        BULGARIAN_SPLIT_SQUAT_DEFINITION_ID -> listOf(
-            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_sentadilla_bulgara_mancuernas, "Mancuernas"),
-            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_sentadilla_bulgara_mancuernas, "Kettlebells"),
-            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_sentadilla_bulgara_mancuernas, "Barra"),
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_sentadilla_copa, "Mancuerna"),
         )
         SUMO_SQUAT_DEFINITION_ID -> listOf(
-            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_sentadilla_sumo, "Barra Libre"),
-            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_sentadilla_sumo, "Mancuernas"),
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_sentadilla_sumo, "Barra"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_sentadilla_sumo, "Mancuerna"),
             ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_sentadilla_sumo, "Kettlebell"),
         )
+        BULGARIAN_SPLIT_SQUAT_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_sentadilla_bulgara_mancuernas, "Mancuerna"),
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_sentadilla_bulgara_mancuernas, "Barra"),
+            ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_sentadilla_bulgara_mancuernas, "Máquina Smith"),
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_sentadilla_bulgara_mancuernas, "Máquina"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_sentadilla_bulgara_mancuernas, "Polea"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_sentadilla_bulgara_mancuernas, "Kettlebell"),
+        )
         HACK_SQUAT_DEFINITION_ID -> listOf(
-            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_sentadilla_hack_maquina, "Máquina Hack"),
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_sentadilla_hack_maquina, "Máquina"),
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_sentadilla_hack_barra, "Barra"),
             ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_sentadilla_hack_maquina, "Máquina Smith"),
+        )
+        PENDULUM_SQUAT_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_sentadilla_pendulo, "Máquina Pendular"),
+        )
+        BELT_SQUAT_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_sentadilla_belt_squat, "Máquina Belt Squat"),
+        )
+        ZERCHER_SQUAT_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_sentadilla_zercher, "Barra Recta"),
         )
         CONVENTIONAL_DEADLIFT_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_peso_muerto_convencional, "Barra Libre"),

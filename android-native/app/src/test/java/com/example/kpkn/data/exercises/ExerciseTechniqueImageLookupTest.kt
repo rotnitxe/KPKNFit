@@ -51,7 +51,7 @@ class ExerciseTechniqueImageLookupTest {
     }
 
     @Test
-    fun front_squat_resolves_barbell_and_smith_variants() {
+    fun front_squat_resolves_all_implement_variants() {
         val barbellRes = ExerciseTechniqueImageLookup.resolveImageResId(
             catalogDefinitionId = "front_squat",
             exerciseDbId = "front_squat__barbell",
@@ -67,10 +67,36 @@ class ExerciseTechniqueImageLookupTest {
             selectedImplementation = "smith_machine",
         )
         assertEquals(R.drawable.exercise_sentadilla_frontal_smith, smithRes)
+
+        val dumbbellsRes = ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = "front_squat",
+            exerciseDbId = "front_squat__dumbbells",
+            exerciseId = "ex-fs-3",
+            selectedImplementation = "dumbbells",
+        )
+        assertEquals(R.drawable.exercise_sentadilla_frontal_mancuernas, dumbbellsRes)
+
+        val kettlebellRes = ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = "front_squat",
+            exerciseDbId = "front_squat__kettlebell",
+            exerciseId = "ex-fs-4",
+            selectedImplementation = "kettlebell",
+        )
+        assertEquals(R.drawable.exercise_sentadilla_frontal_kettlebell, kettlebellRes)
+
+        val cableRes = ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = "front_squat",
+            exerciseDbId = "front_squat__cable",
+            exerciseId = "ex-fs-5",
+            selectedImplementation = "cable",
+        )
+        assertEquals(R.drawable.exercise_sentadilla_frontal_polea, cableRes)
     }
 
     @Test
-    fun goblet_squat_resolves_image() {
+    fun goblet_squat_has_exactly_one_variant_and_resolves_image() {
+        val variants = ExerciseTechniqueImageLookup.variants("quads_sentadilla_copa")
+        assertEquals(1, variants.size)
         val res = ExerciseTechniqueImageLookup.resolveImageResId(
             catalogDefinitionId = "quads_sentadilla_copa",
             exerciseDbId = "quads_sentadilla_copa__default",
@@ -102,13 +128,57 @@ class ExerciseTechniqueImageLookupTest {
     }
 
     @Test
-    fun hack_squat_resolves_machine_image() {
-        val res = ExerciseTechniqueImageLookup.resolveImageResId(
+    fun hack_squat_resolves_machine_and_barbell_images() {
+        val machineRes = ExerciseTechniqueImageLookup.resolveImageResId(
             catalogDefinitionId = "quads_sentadilla_hack",
             exerciseDbId = "quads_sentadilla_hack__machine",
             exerciseId = "ex-hs-1",
             selectedImplementation = "machine",
         )
-        assertEquals(R.drawable.exercise_sentadilla_hack_maquina, res)
+        assertEquals(R.drawable.exercise_sentadilla_hack_maquina, machineRes)
+
+        val barbellRes = ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = "quads_sentadilla_hack",
+            exerciseDbId = "quads_sentadilla_hack__barbell",
+            exerciseId = "ex-hs-2",
+            selectedImplementation = "barbell",
+        )
+        assertEquals(R.drawable.exercise_sentadilla_hack_barra, barbellRes)
+    }
+
+    @Test
+    fun pendulum_squat_has_exactly_one_variant_and_resolves_image() {
+        val variants = ExerciseTechniqueImageLookup.variants("pendulum_squat")
+        assertEquals(1, variants.size)
+        val res = ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = "pendulum_squat",
+            exerciseDbId = "pendulum_squat__bilateral",
+            exerciseId = "ex-ps-1",
+        )
+        assertEquals(R.drawable.exercise_sentadilla_pendulo, res)
+    }
+
+    @Test
+    fun belt_squat_has_exactly_one_variant_and_resolves_image() {
+        val variants = ExerciseTechniqueImageLookup.variants("belt_squat")
+        assertEquals(1, variants.size)
+        val res = ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = "belt_squat",
+            exerciseDbId = "belt_squat__bilateral",
+            exerciseId = "ex-bs-1",
+        )
+        assertEquals(R.drawable.exercise_sentadilla_belt_squat, res)
+    }
+
+    @Test
+    fun zercher_squat_has_exactly_one_variant_and_resolves_image() {
+        val variants = ExerciseTechniqueImageLookup.variants("quads_sentadilla_zercher_barra_recta")
+        assertEquals(1, variants.size)
+        val res = ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = "quads_sentadilla_zercher_barra_recta",
+            exerciseDbId = "quads_sentadilla_zercher_barra_recta__default",
+            exerciseId = "ex-zs-1",
+        )
+        assertEquals(R.drawable.exercise_sentadilla_zercher, res)
     }
 }
