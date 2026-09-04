@@ -1,20 +1,9 @@
-"""AUGE Adaptive Engine — Self-Improving Biological Intelligence
+"""AUGE Adaptive Engine — reference implementation only (NOT canonical).
 
-This engine replaces static formulas with learned, personalized models that
-understand the human body is NOT linear:
-
-1. BAYESIAN RECOVERY: Instead of static profiles (24h, 48h, 72h, 96h), we learn
-   each user's actual recovery rate per muscle group using conjugate Bayesian
-   updating. The model starts with population defaults and converges to the
-   individual's true recovery dynamics as data accumulates.
-
-2. GAUSSIAN PROCESS FATIGUE: Instead of simple exponential decay (S * e^(-kt)),
-   we fit a non-parametric GP that captures delayed onset, supercompensation,
-   and context-dependent recovery that linear models can never represent.
-
-3. SELF-IMPROVEMENT LOOP: The system continuously compares its predictions to
-   actual outcomes and quantifies its own accuracy, adjusting parameters to
-   minimize prediction error over time. AUGE literally gets smarter with use.
+The Android app (`android-native/domain/auge/`) is the runtime source of truth for
+recovery, drain, and adaptive τ learning. This FastAPI module is not called by
+the mobile app (zero HTTP to recovery endpoints). Formulas here diverge from
+production; do not align or port without an explicit parity project.
 """
 from __future__ import annotations
 

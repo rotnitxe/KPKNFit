@@ -15,6 +15,8 @@ data class AugeAdaptiveCache(
     val muscleDrainMultipliers: Map<String, Double> = emptyMap(),
     val totalObservations: Int = 0,
     val lastUpdatedMs: Long = 0L,
+    /** Last workout log that already ran performance→τ learning (skip repeats). */
+    val lastPerformanceLearnLogId: String? = null,
     /** Bump when semantics of deltas/multipliers change to invalidate learned cache. */
     val schemaVersion: Int = 2,
 )

@@ -13,7 +13,7 @@ data class DailyWellbeingLog(
     val stressLevel: Int = 3,    // 1-5
     val doms: Int = 1,           // 1-5
     val motivation: Int = 3,     // 1-5
-    val sleepHours: Double = 7.5,
+    val sleepHours: Double? = null,
     val moodState: MoodState? = null,
     val workIntensity: IntensityLevel? = null,
     val studyIntensity: IntensityLevel? = null,

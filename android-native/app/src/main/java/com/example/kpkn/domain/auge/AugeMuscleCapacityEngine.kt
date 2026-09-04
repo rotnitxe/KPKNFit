@@ -22,7 +22,7 @@ object AugeMuscleCapacityEngine {
         val completionMs = AugeUtils.parseIsoMs(completionInstantIso)
         val cutoff = completionMs - Duration.ofDays(35).toMillis()
         val prior = history
-            .filter { dateMs(it) in cutoff until completionMs }
+            .filter { dateMs(it) > 0L && dateMs(it) in cutoff until completionMs }
             .sortedBy { dateMs(it) }
         if (prior.isEmpty()) return baseCapacity(settings)
 

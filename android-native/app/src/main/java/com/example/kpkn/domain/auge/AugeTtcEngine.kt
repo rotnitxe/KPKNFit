@@ -212,13 +212,14 @@ object AugeTtcEngine {
         val tenDaysMs = 10L * 24 * 3600 * 1000
 
         val relevantLogs = history
-            .filter { logDateMs(it) > now - tenDaysMs }
+            .filter { logDateMs(it) > 0L && logDateMs(it) > now - tenDaysMs }
             .sortedBy { logDateMs(it) }
 
         // Estado acumulado
         val accumulatedStress = ArticularBattery.entries.associateWith { 0.0 }.toMutableMap()
         val lastDrainTime     = ArticularBattery.entries.associateWith { 0L }.toMutableMap()
         val recoveryWindowMs  = 72L * 3600 * 1000
+        var latestSessionRecoveryHours = TENDON_RECOVERY_STD
 
         val discomfortStress = ArticularBattery.entries.associateWith { 0.0 }.toMutableMap()
         for (log in relevantLogs) {
@@ -310,6 +311,9 @@ object AugeTtcEngine {
             val avgTtc     = if (drainedCnt > 0) totalTtc / drainedCnt else 0.0
             val recoveryHours = if (avgTtc > 3.0) TENDON_RECOVERY_HIGH_TTC else TENDON_RECOVERY_STD
             val k = 2.0 / recoveryHours
+            if (sessionDrain.values.any { it > 0.0 }) {
+                latestSessionRecoveryHours = recoveryHours
+            }
 
             for (ab in ArticularBattery.entries) {
                 val stress = sessionDrain[ab] ?: 0.0
@@ -362,7 +366,7 @@ object AugeTtcEngine {
             }
             val hoursToRecovery: Int = if (battery < 90.0 && acc > 0.0) {
                 val targetStress = ((100.0 - 90.0) / 100.0) * TENDON_CAPACITY_BASE
-                val kFinal = 2.0 / TENDON_RECOVERY_STD
+                val kFinal = 2.0 / latestSessionRecoveryHours
                 max(0, (-ln(targetStress / totalAcc) / kFinal).toInt())
             } else 0
 

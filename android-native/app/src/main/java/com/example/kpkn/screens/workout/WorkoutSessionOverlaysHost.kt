@@ -79,7 +79,7 @@ internal fun WorkoutSessionOverlaysHost(
                 stressLevel = todayWellbeing?.stressLevel ?: 3,
                 doms = todayWellbeing?.doms ?: 1,
                 motivation = todayWellbeing?.motivation ?: 3,
-                sleepHours = todayWellbeing?.sleepHours ?: 7.5,
+                sleepHours = todayWellbeing?.sleepHours,
                 moodState = todayWellbeing?.moodState,
                 workIntensity = todayWellbeing?.workIntensity,
                 studyIntensity = todayWellbeing?.studyIntensity,

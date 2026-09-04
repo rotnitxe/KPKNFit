@@ -722,7 +722,7 @@ private fun CanonicalMuscleBarRow(
     val progressColor = when {
         !isVolumeCalibrated || target == null -> MaterialTheme.colorScheme.primary
         entry.weeklySets <= 0.0 -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-        overtrainingStatus != null && overtrainingStatus.isOvertrained -> Color(0xFFEF4444) // Rojo / Sobreentrenamiento Crónico
+        overtrainingStatus != null && overtrainingStatus.isOvertrained -> Color(0xFFEF4444) // Rojo / carga muy alta
         overtrainingStatus != null && overtrainingStatus.isOverreaching -> Color(0xFFF97316) // Naranja / Sobreachance Funcional
         entry.weeklySets < target.minEffective -> Color(0xFFEAB308) // Amarillo / Subentrenado
         entry.weeklySets <= target.maxAdaptive -> Color(0xFF10B981) // Verde / Óptimo
@@ -731,7 +731,7 @@ private fun CanonicalMuscleBarRow(
     }
 
     val statusText = when {
-        overtrainingStatus != null && overtrainingStatus.isOvertrained -> "Sobreentreno Crónico"
+        overtrainingStatus != null && overtrainingStatus.isOvertrained -> "Posible exceso de volumen"
         overtrainingStatus != null && overtrainingStatus.isOverreaching -> "Sobreachance"
         else -> buildMuscleStatusText(
             weeklySets = entry.weeklySets,

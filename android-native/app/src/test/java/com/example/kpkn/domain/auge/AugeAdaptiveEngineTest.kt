@@ -126,6 +126,23 @@ class AugeAdaptiveEngineTest {
     }
 
     @Test
+    fun updatePersonalizedRecoveryHours_moreRecovered_shortensTauVsStillFatigued() {
+        val recovered = RecoveryLearningObservation(
+            muscle = "Pectorales",
+            predictedBattery = 70,
+            actualBattery = 99,
+            sessionStress = 30.0,
+            hoursSinceSession = 48.0,
+        )
+        val fatigued = recovered.copy(actualBattery = 55)
+        val start = mapOf("pectorales" to 48.0)
+        val afterRecovered = AugeAdaptiveEngine.updatePersonalizedRecoveryHours(start, recovered, 0)
+        val afterFatigued = AugeAdaptiveEngine.updatePersonalizedRecoveryHours(start, fatigued, 0)
+        assertTrue(afterRecovered["pectorales"]!! < afterFatigued["pectorales"]!!)
+        assertTrue(afterRecovered["pectorales"]!! < 48.0)
+    }
+
+    @Test
     fun deriveImpliedRecoveryTime_hoursSinceZero_returnsNull() {
         val obs = RecoveryLearningObservation(
             muscle = "Pectorales",

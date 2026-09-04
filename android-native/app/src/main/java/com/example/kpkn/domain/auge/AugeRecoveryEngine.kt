@@ -168,17 +168,17 @@ object AugeRecoveryEngine {
      * Promedio ponderado de sueño de los últimos 3 días.
      * Pesos: 50% última noche, 30% anteayer, 20% hace 3 días.
      * Equivalente a recoveryService.ts línea 310-313.
-     * Fallback: wellbeing.sleepHours o 7.5 si no hay datos.
+     * Returns null when there is no sleep log and wellbeing has no hours recorded.
      */
     private fun calculateWeightedSleepHours(
         sleepLogs: List<SleepLog>,
         wellbeing: DailyWellbeingLog?,
-    ): Double {
+    ): Double? {
         val sorted = sleepLogs
             .sortedByDescending { it.endTime }
             .take(3)
         return when (sorted.size) {
-            0    -> wellbeing?.sleepHours ?: 7.5
+            0    -> wellbeing?.sleepHours
             1    -> sorted[0].duration
             2    -> sorted[0].duration * 0.6 + sorted[1].duration * 0.4
             else -> sorted[0].duration * 0.5 + sorted[1].duration * 0.3 + sorted[2].duration * 0.2
@@ -326,10 +326,9 @@ object AugeRecoveryEngine {
         fromMs: Long,
         toMs: Long,
     ): Double = history
-        .filter { logDateMs(it) in fromMs until toMs }
+        .filter { logDateMs(it) > 0L && logDateMs(it) in fromMs until toMs }
         .sumOf { log ->
-            val stored = log.muscularImpactV2?.perMuscle?.values?.sumOf { it.stressUnits } ?: 0.0
-            if (stored > 0.0) stored else (log.sessionStressScore ?: 0.0)
+            log.muscularImpactV2?.perMuscle?.values?.sumOf { it.stressUnits } ?: 0.0
         }
 
     internal fun muscularAcwrFor(history: List<WorkoutLog>, nowMs: Long = nowMs()): Double? {
@@ -338,9 +337,14 @@ object AugeRecoveryEngine {
         val month = muscularLoadInWindow(history, nowMs - 28L * day, nowMs)
         val chronicWeekly = month / 4.0
         if (month <= 0.0) return null
-        val recent = history.filter { logDateMs(it) in (nowMs - 28L * day) until nowMs }
-        if (recent.size < 4) return null
-        val oldest = recent.minOf { logDateMs(it) }
+        val recentV2 = history.filter { log ->
+            val ms = logDateMs(log)
+            ms > 0L &&
+                ms in (nowMs - 28L * day) until nowMs &&
+                (log.muscularImpactV2?.perMuscle?.values?.sumOf { it.stressUnits } ?: 0.0) > 0.0
+        }
+        if (recentV2.size < 4) return null
+        val oldest = recentV2.minOf { logDateMs(it) }
         if (nowMs - oldest < 14L * day) return null
         return AugeClassifiers.computeAcwr(acute, chronicWeekly)
     }
@@ -364,7 +368,9 @@ object AugeRecoveryEngine {
     ): Double {
         val now = nowMs()
         val fourWeeksAgo = now - 28L * 24 * 3600 * 1000
-        val recentLogs = history.filter { logDateMs(it) > fourWeeksAgo - 7L * 24 * 3600 * 1000 }
+        val recentLogs = history.filter {
+            logDateMs(it) > 0L && logDateMs(it) > fourWeeksAgo - 7L * 24 * 3600 * 1000
+        }
         val baseFloor = AugeFatigueEngine.getAthleteCapacity(settings)
         if (recentLogs.isEmpty()) return baseFloor
 
@@ -380,7 +386,7 @@ object AugeRecoveryEngine {
 
             val storedV2Stress = log.muscularImpactV2?.perMuscle?.entries
                 ?.filter { (key, _) -> muscleMatchesCategory(key, muscleName) }
-                ?.sumOf { (_, impact) -> impact.immediateDrainPct }
+                ?.sumOf { (_, impact) -> impact.stressUnits }
             if (storedV2Stress != null && storedV2Stress > 0.0) {
                 totalStress += storedV2Stress * decay
                 return@forEach
@@ -904,9 +910,31 @@ object AugeRecoveryEngine {
         val stressLevel = wellbeing?.stressLevel ?: 3
         val nutritionMultiplier = getNutritionMultiplier(settings, nutritionLogs, stressLevel)
 
-        val erectorsCapacity = calculateUserWorkCapacity("Erectores Espinales", history, settings, exerciseDb, adaptiveCache)
-        val latsCapacity = calculateUserWorkCapacity("Dorsales", history, settings, exerciseDb, adaptiveCache)
-        val trapsCapacity = calculateUserWorkCapacity("Trapecio", history, settings, exerciseDb, adaptiveCache)
+        val completionIso = Instant.ofEpochMilli(now).toString()
+        val erectorsCapacity = AugeMuscleCapacityEngine.calculateUserWorkCapacity(
+            muscleName = "Erectores Espinales",
+            history = history,
+            settings = settings,
+            exerciseDb = exerciseDb,
+            completionInstantIso = completionIso,
+            adaptiveCache = adaptiveCache,
+        )
+        val latsCapacity = AugeMuscleCapacityEngine.calculateUserWorkCapacity(
+            muscleName = "Dorsales",
+            history = history,
+            settings = settings,
+            exerciseDb = exerciseDb,
+            completionInstantIso = completionIso,
+            adaptiveCache = adaptiveCache,
+        )
+        val trapsCapacity = AugeMuscleCapacityEngine.calculateUserWorkCapacity(
+            muscleName = "Trapecio",
+            history = history,
+            settings = settings,
+            exerciseDb = exerciseDb,
+            completionInstantIso = completionIso,
+            adaptiveCache = adaptiveCache,
+        )
 
         recentLogs.forEach { log ->
             val logTime = logDateMs(log)
@@ -1151,7 +1179,10 @@ object AugeRecoveryEngine {
         val thirtyDaysAgo = evaluationNow - 30L * 24 * 3600_000L
         // A finish preview is evaluated at its frozen instant. A log at that
         // instant is not allowed to increase the capacity used to measure itself.
-        val recentHistory = history.filter { logDateMs(it) in thirtyDaysAgo until evaluationNow }
+        val recentHistory = history.filter {
+            val ms = logDateMs(it)
+            ms > 0L && ms in thirtyDaysAgo until evaluationNow
+        }
 
         // Optimización O(N^2): Precalcular capacidades de los músculos antes de iterar
         val precomputedCapacities = BATTERY_MUSCLES.associateWith { muscle ->
@@ -1236,10 +1267,11 @@ object AugeRecoveryEngine {
             }
             if (wellbeing?.manualMuscularBattery != null) add("Ajuste manual de readiness")
             if ((wellbeing?.doms ?: 1) >= 4) add("Agujetas altas hoy")
-            if (weightedSleep < 6.5) add("Sueño reciente por debajo de lo ideal")
+            if (weightedSleep != null && weightedSleep < 6.5) add("Sueño reciente por debajo de lo ideal")
         }
         val systemCauses = buildList {
             when {
+                weightedSleep == null -> Unit
                 weightedSleep < 5.5 -> add("Poco sueño en las últimas noches")
                 weightedSleep < 6.5 -> add("Sueño subóptimo reciente")
                 weightedSleep >= 8.5 -> add("Buen colchón de sueño")

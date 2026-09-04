@@ -436,7 +436,7 @@ private fun RingsInfoDialog(onDismiss: () -> Unit) {
                     fontWeight = FontWeight.Black,
                 )
                 Text(
-                    "Se recalculan con lo que entrenas (y un decaimiento en el tiempo). Puedes corregir cómo te sientes en el sheet de estado antes de entrenar y, si hace falta, al cerrar la sesión. Si no tocas los rings, no se “aprende” un tiempo de recuperación nuevo: solo se ancla lo que reportas.",
+                    "Se recalculan con lo que entrenas (y un decaimiento en el tiempo). Puedes corregir cómo te sientes en el sheet de estado antes de entrenar y, si hace falta, al cerrar la sesión. Si no tocas los rings, el modelo igual puede ajustar los tiempos de recuperación cuando rindes distinto a lo que el anillo predijo (mismo ejercicio, esfuerzo parecido). Si tocas un anillo, esa corrección manda ese día.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                 )

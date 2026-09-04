@@ -13,6 +13,7 @@ import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.WeightUnit
+import kotlin.math.roundToInt
 import com.example.kpkn.data.models.effectiveRepEquivalent
 import com.example.kpkn.data.models.plannedRepAnchor
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
@@ -189,15 +190,15 @@ object MuscularSessionImpactEngine {
                 supersetRounds = exercise.supersetRounds,
                 supersetRestAfter = exercise.supersetRestAfter,
             )
-            var accumulatedSets = 0
+            var accumulatedSets = 0.0
             exercise.sets.forEach { set ->
                 if (!AugeFatigueEngine.isSetEffective(set)) return@forEach
-                accumulatedSets += if (set.side == null) 1 else 1
+                accumulatedSets += if (set.side == null) 1.0 else 0.5
                 val drain = AugeFatigueEngine.calculateSetBatteryDrain(
                     set = set,
                     metrics = metrics,
                     tanks = tanks,
-                    accumulatedSets = accumulatedSets,
+                    accumulatedSets = accumulatedSets.roundToInt(),
                     restTime = exercise.supersetRestBetween ?: exercise.restTime,
                     densityMultiplier = density,
                     cnsMultiplier = adaptiveCache.cnsDrainMultiplier,
@@ -205,7 +206,7 @@ object MuscularSessionImpactEngine {
                     muscleMultiplier = 1.0,
                     weightUnit = settings.weightUnit,
                 )
-                val diminishing = 1.0 / (1.0 + 0.65 * ((accumulatedSets - 1).coerceAtLeast(0) / 10.0))
+                val diminishing = 1.0 / (1.0 + 0.65 * ((accumulatedSets - 1.0).coerceAtLeast(0.0) / 10.0))
                 val baseStress = drain.muscularDrainPct * 10.0 * diminishing
                 contributions.forEach { (muscle, contribution) ->
                     val accumulator = perMuscleAccumulator.getOrPut(muscle) { Accumulator() }

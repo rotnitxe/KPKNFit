@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.domain.training.VolumeCalculator
+import kotlin.math.max
 
 /**
  * Detects overtrained muscle groups from volume, pain, fatigue, DOMS/strength and load drops.
@@ -26,10 +27,19 @@ object OvertrainingDetector {
 
         val overtrainedList = mutableListOf<String>()
         val exerciseList = exerciseDb.values.toList()
-        val weeksCount = (logs.size / 3).coerceAtLeast(1)
+        val sortedLogs = logs
+            .filter { AugeUtils.logDateMs(it) > 0L }
+            .sortedByDescending { AugeUtils.logDateMs(it) }
+        val dateMs = sortedLogs.map { AugeUtils.logDateMs(it) }
+        val spanDays = if (dateMs.size >= 2) {
+            (dateMs.max() - dateMs.min()) / (24.0 * 3600_000.0)
+        } else {
+            7.0
+        }
+        val weeksCount = max(1, (spanDays / 7.0).toInt())
 
         val completedVolumes = VolumeCalculator.calculateCompletedWeeklyMuscleVolume(
-            logs = logs,
+            logs = sortedLogs,
             exerciseList = exerciseList,
             aliases = catalogSearchRedirects(),
             weeksCount = weeksCount,
@@ -44,7 +54,7 @@ object OvertrainingDetector {
             val completedSets = completedVolumes.find { it.muscleName == canonical }?.weeklySets ?: 0.0
             val factorVol = completedSets > mrv
 
-            val factorPain = logs.take(5).any { log ->
+            val factorPain = sortedLogs.take(5).any { log ->
                 log.discomforts.any { d ->
                     val dl = d.lowercase()
                     dl.contains(normalizedMuscleLower) ||
@@ -54,7 +64,7 @@ object OvertrainingDetector {
                 }
             }
 
-            val factorSystemic = logs.firstOrNull()?.fatigueLevel?.let { it >= 8 } ?: false
+            val factorSystemic = sortedLogs.firstOrNull()?.fatigueLevel?.let { it >= 8 } ?: false
 
             val muscleLogs = feedbacks.filter { fb ->
                 fb.muscleFeedback.keys.any { key ->
@@ -88,7 +98,7 @@ object OvertrainingDetector {
             }.map { it.id.lowercase() }
 
             var factorProg = false
-            val exercisesWithLogs = logs.flatMap { it.completedExercises }
+            val exercisesWithLogs = sortedLogs.flatMap { it.completedExercises }
                 .filter { it.exerciseDbId?.lowercase() in primaryExercises }
                 .groupBy { it.exerciseDbId?.lowercase() }
 
