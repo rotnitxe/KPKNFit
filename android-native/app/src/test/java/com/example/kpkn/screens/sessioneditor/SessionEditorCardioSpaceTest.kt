@@ -334,18 +334,14 @@ class SessionEditorCardioSpaceTest {
     }
 
     @Test
-    fun createCardioSpace_opensPlacementDialogWhenNoCardioExists() = runBlocking {
+    fun createCardioSpace_opensPickerDirectlyWhenNoCardioExists() = runBlocking {
         val programId = "prog_cardio_placement_dialog"
         val sessionId = "session_placement_dialog"
         seedSimpleSession(programId, sessionId, Session(id = sessionId, name = "Empty Day"))
 
         val vm = loadEditor(programId, sessionId)
         vm.createCardioSpace()
-        assertEquals(SessionEditorSheet.CARDIO_PLACEMENT, vm.uiState.value.sheet)
-
-        vm.confirmCardioPlacement(CardioSpacePlacement.START)
         assertEquals(SessionEditorSheet.CARDIO_PICKER, vm.uiState.value.sheet)
-        assertEquals(CardioSpacePlacement.START, vm.uiState.value.cardioSpacePlacement)
     }
 
     @Test

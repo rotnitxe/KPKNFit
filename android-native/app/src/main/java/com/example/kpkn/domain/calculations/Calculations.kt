@@ -404,6 +404,63 @@ fun calculateIPFGLPoints(
     return round(coefficient * totalKg * 100.0) / 100.0
 }
 
+// ─── DOTS (OpenPowerlifting polynomial) ──────────────────────────────────────
+
+fun calculateDotsPoints(
+    totalLifted: Double,
+    bodyWeight: Double,
+    gender: String,
+    weightUnit: String = "kg",
+): Double {
+    if (totalLifted <= 0 || bodyWeight <= 0) return 0.0
+    val isFemale = gender == "female" || gender == "transfemale"
+    var bwKg = if (weightUnit == "lbs") bodyWeight * 0.45359237 else bodyWeight
+    val totalKg = if (weightUnit == "lbs") totalLifted * 0.45359237 else totalLifted
+    bwKg = if (isFemale) bwKg.coerceAtLeast(35.0) else bwKg.coerceAtLeast(40.0)
+    data class DotsCoeffs(val a: Double, val b: Double, val c: Double, val d: Double, val e: Double)
+    val dots = if (isFemale) {
+        DotsCoeffs(-57.96288, 13.6175032, -0.1126655495, 0.0005158568, -0.0000010706)
+    } else {
+        DotsCoeffs(-307.75076, 24.0900756, -0.1918759221, 0.0007391293, -0.0000010930)
+    }
+    val coeff = dots.a + dots.b * bwKg + dots.c * bwKg * bwKg + dots.d * bwKg * bwKg * bwKg +
+        dots.e * bwKg * bwKg * bwKg * bwKg
+    if (coeff == 0.0) return 0.0
+    return round((500.0 * totalKg / coeff) * 100.0) / 100.0
+}
+
+// ─── Wilks 1994 (WPC / GPA-style meets) ──────────────────────────────────────
+
+fun calculateWilksPoints(
+    totalLifted: Double,
+    bodyWeight: Double,
+    gender: String,
+    weightUnit: String = "kg",
+): Double {
+    if (totalLifted <= 0 || bodyWeight <= 0) return 0.0
+    val isFemale = gender == "female" || gender == "transfemale"
+    var bwKg = if (weightUnit == "lbs") bodyWeight * 0.45359237 else bodyWeight
+    val totalKg = if (weightUnit == "lbs") totalLifted * 0.45359237 else totalLifted
+    bwKg = if (isFemale) bwKg.coerceAtLeast(35.0) else bwKg.coerceAtLeast(40.0)
+    data class WilksCoeffs(
+        val a: Double,
+        val b: Double,
+        val c: Double,
+        val d: Double,
+        val e: Double,
+        val f: Double,
+    )
+    val wilks = if (isFemale) {
+        WilksCoeffs(594.31747775582, -27.23842536447, 0.82112226871, -0.00930733913, 4.7315821e-05, -9.054e-08)
+    } else {
+        WilksCoeffs(-216.0475144, 16.2606339, -0.002388645, -0.00113732, 7.01863e-06, -1.291e-08)
+    }
+    val denom = wilks.a + wilks.b * bwKg + wilks.c * bwKg.pow(2.0) + wilks.d * bwKg.pow(3.0) +
+        wilks.e * bwKg.pow(4.0) + wilks.f * bwKg.pow(5.0)
+    if (denom == 0.0) return 0.0
+    return round((500.0 * totalKg / denom) * 100.0) / 100.0
+}
+
 // ─── Weight rounding ─────────────────────────────────────────────────────────
 
 fun roundWeight(weight: Double, unit: String = "kg"): Double {

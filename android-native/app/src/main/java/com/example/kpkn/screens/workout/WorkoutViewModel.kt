@@ -4493,13 +4493,15 @@ class WorkoutViewModel(
             ?: manualDurationSeconds
         val distanceKm = gpsSnapshot?.distanceMeters?.div(1_000.0)?.takeIf { it > 0.0 }
             ?: manualDistanceKm
-        return recordCardioSet(durationSeconds, distanceKm, averageHeartRate)
+        val kmSplits = gpsSnapshot?.let { com.example.kpkn.domain.cardio.CardioGpsEngine.kmSplitPaces(it.points) }.orEmpty()
+        return recordCardioSet(durationSeconds, distanceKm, averageHeartRate, kmSplits)
     }
 
     fun recordCardioSet(
         durationSeconds: Int,
         distanceKm: Double?,
         averageHeartRate: Int?,
+        kmSplitPaces: List<Int> = emptyList(),
     ): Boolean {
         cardioTimerJob?.cancel()
         cardioTimerJob = null
@@ -4527,6 +4529,7 @@ class WorkoutViewModel(
             avgHeartRate = averageHeartRate,
             calories = calories,
             rpe = details.resolvedRpe(),
+            kmSplitPaces = kmSplitPaces,
         )
         val alreadyCompleted = state.completedSets.containsKey(key)
         _uiState.update {

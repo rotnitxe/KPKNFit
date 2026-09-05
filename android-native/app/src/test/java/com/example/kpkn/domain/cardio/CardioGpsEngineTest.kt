@@ -49,6 +49,19 @@ class CardioGpsEngineTest {
         assertEquals(300, CardioGpsEngine.paceSecondsPerKm(1_000.0, 300L))
     }
 
+    @Test
+    fun kmSplitPacesRecordsEachCompletedKilometre() {
+        val points = listOf(
+            point(timestamp = 0L, latitude = 0.0, longitude = 0.0),
+            point(timestamp = 300_000L, latitude = 0.009, longitude = 0.0),
+            point(timestamp = 620_000L, latitude = 0.018, longitude = 0.0),
+        )
+        val splits = CardioGpsEngine.kmSplitPaces(points)
+        assertEquals(2, splits.size)
+        assertTrue(splits[0] in 280..320)
+        assertTrue(splits[1] in 300..340)
+    }
+
     private fun point(
         timestamp: Long = 1_000L,
         latitude: Double,

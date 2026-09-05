@@ -634,6 +634,22 @@ internal fun FinishWorkoutSheet(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        val cardioLines = remember(session, completedSets) {
+                            com.example.kpkn.domain.cardio.CardioSessionSummary.lines(session, completedSets)
+                        }
+                        cardioLines.forEach { line ->
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp), modifier = Modifier.padding(top = 6.dp)) {
+                                Text(line.exerciseName, color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+                                Text("Prescrito · ${line.prescribedSentence}", color = Color.White.copy(alpha = 0.78f), style = MaterialTheme.typography.labelSmall)
+                                Text("Hecho · ${line.actualSummary}", color = Color.White, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                line.splitLabels.forEach { split ->
+                                    Text(split, color = Color.White.copy(alpha = 0.7f), style = MaterialTheme.typography.labelSmall)
+                                }
+                                line.augeLine?.let {
+                                    Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
                         AnimatedVisibility(visible = showMuscleSetsBreakdown) {
                             Column(
                                 verticalArrangement = Arrangement.spacedBy(4.dp),

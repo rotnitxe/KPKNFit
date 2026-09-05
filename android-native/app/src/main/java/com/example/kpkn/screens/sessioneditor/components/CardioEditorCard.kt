@@ -1,33 +1,19 @@
 package com.example.kpkn.screens.sessioneditor.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,679 +22,789 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.data.models.CardioCatalog
 import com.example.kpkn.data.models.CardioDetails
-import com.example.kpkn.data.models.CardioIntensity
-import com.example.kpkn.data.models.CardioProgramMode
-import com.example.kpkn.data.models.CardioType
+import com.example.kpkn.data.models.CardioFeaturedTemplates
 import com.example.kpkn.data.models.CardioHiitConfig
-import com.example.kpkn.data.models.CardioIntervalPattern
-import com.example.kpkn.domain.cardio.CardioHiitProgramBuilder
-import com.example.kpkn.domain.cardio.CardioIntervalProgramBuilder
-import com.example.kpkn.ui.components.KpknNativeTimePickerDialog
-import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.data.models.CardioIntensity
+import com.example.kpkn.data.models.HiitProtocol
+import com.example.kpkn.data.models.HiitRestNature
+import com.example.kpkn.data.models.HiitWorkTarget
+import com.example.kpkn.domain.cardio.CardioAuthoringShape
+import com.example.kpkn.domain.cardio.CardioPaceBandEngine
+import com.example.kpkn.domain.cardio.CardioPrescriptionFormatter
+import com.example.kpkn.domain.cardio.CardioRepeatGrammar
+import com.example.kpkn.domain.cardio.CardioTypeHistory
+import com.example.kpkn.domain.cardio.CardioUniformRepeat
+import com.example.kpkn.domain.workout.CardioProgressionEngine
+import com.example.kpkn.domain.workout.CardioProgressionInput
+import com.example.kpkn.screens.workout.CardioIntervalChart
+import com.example.kpkn.ui.components.KpknSheetLightChip
+import com.example.kpkn.ui.components.KpknSheetTokens
 import kotlin.math.roundToInt
 
-private enum class CardioTargetMode(val label: String) {
-    DURATION("Tiempo"),
-    DISTANCE("Distancia"),
-    BOTH("Ambos"),
+private enum class CardioEditorPicker {
+    STEADY_MINUTES,
+    WARMUP,
+    WORK,
+    REST,
+    COOLDOWN,
+    DISTANCE,
+    PACE,
+    HR,
+    WATTS,
+    SPEED,
+    INCLINE,
+    RPM,
+    SETS_REST,
+    WORK_KCAL,
+    WORK_METERS,
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun CardioEditorCard(
     details: CardioDetails,
     accentColor: Color,
     exerciseName: String? = null,
     onChange: (CardioDetails) -> Unit,
-    editorContent: Boolean = false,
+    cardioFirst: Boolean = false,
+    showPlacementChip: Boolean = false,
+    onTogglePlacement: (() -> Unit)? = null,
+    history: CardioTypeHistory? = null,
 ) {
-    var showConfigurator by remember(details) { mutableStateOf(false) }
-    var draftDetails by remember(details) { mutableStateOf(details) }
+    val shape = remember(details) { CardioRepeatGrammar.shape(details) }
+    val catalog = remember(details.type) { CardioCatalog.findByType(details.type) }
+    val rpe = details.resolvedRpe().toInt().coerceIn(1, 10)
+    var picker by remember { mutableStateOf<CardioEditorPicker?>(null) }
+    var showBlocks by remember { mutableStateOf(shape is CardioAuthoringShape.Irregular) }
+    var showAdvanced by remember { mutableStateOf(false) }
+    val sentence = remember(details) { CardioPrescriptionFormatter.sentence(details) }
 
-    if (!editorContent) {
-        val mode = details.programMode()
-        val title = exerciseName?.takeIf { it.isNotBlank() } ?: cardioTypeLabel(details.type)
-        val modeLabel = when (mode) {
-            CardioProgramMode.STEADY -> "Estático"
-            CardioProgramMode.HIIT_SIT -> "HIIT / SIT"
-            CardioProgramMode.INTERVALS -> "Intervalos"
-        }
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp),
-            color = Color(0xFF242528),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.10f)),
-        ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(9.dp),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(title, color = Color.White, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            "$modeLabel · ${cardioSummaryText(details)}",
-                            color = accentColor,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    }
-                    TextButton(onClick = {
-                        draftDetails = details
-                        showConfigurator = true
-                    }) { Text("Configurar", color = Color.White) }
-                }
-                Text(
-                    cardioModeDescription(mode),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.62f),
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    listOf(
-                        CardioProgramMode.STEADY to "Estático",
-                        CardioProgramMode.HIIT_SIT to "HIIT / SIT",
-                        CardioProgramMode.INTERVALS to "Intervalos",
-                    ).forEach { (candidate, label) ->
-                        CardioModeChip(
-                            selected = mode == candidate,
-                            modifier = Modifier.weight(1f),
-                            label = label,
-                            accentColor = accentColor,
-                            onClick = {
-                                draftDetails = cardioDetailsForMode(details, candidate)
-                                showConfigurator = true
-                            },
-                        )
-                    }
-                }
-            }
-        }
-        if (showConfigurator) {
-            KpknSheet(
-                onDismissRequest = { showConfigurator = false },
-                maxHeightFraction = 0.96f,
-                hazeState = null,
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    Text("Configurar cardio", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = Color.White)
-                    CardioEditorCard(
-                        details = draftDetails,
-                        accentColor = accentColor,
-                        exerciseName = exerciseName,
-                        onChange = { draftDetails = it },
-                        editorContent = true,
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        TextButton(onClick = { showConfigurator = false }, modifier = Modifier.weight(1f)) {
-                            Text("Cancelar", color = Color.White.copy(alpha = 0.8f))
-                        }
-                        TextButton(
-                            onClick = {
-                                onChange(draftDetails)
-                                showConfigurator = false
-                            },
-                            modifier = Modifier.weight(1f),
-                        ) { Text("Guardar", color = accentColor, fontWeight = FontWeight.Bold) }
-                    }
-                    androidx.compose.foundation.layout.Spacer(Modifier.size(12.dp))
-                }
-            }
-        }
-        return
-    }
-
-    val currentTargetMode = remember(details.targetDurationSeconds, details.targetDistanceKm, details.supportsDistance) {
-        if (!details.supportsDistance) {
-            CardioTargetMode.DURATION
-        } else when {
-            details.targetDurationSeconds != null && details.targetDistanceKm != null -> CardioTargetMode.BOTH
-            details.targetDistanceKm != null && details.targetDurationSeconds == null -> CardioTargetMode.DISTANCE
-            else -> CardioTargetMode.DURATION
-        }
-    }
-
-    var distanceText by remember(details.targetDistanceKm) {
-        mutableStateOf(details.targetDistanceKm?.let { if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() }.orEmpty())
-    }
-
-    val currentIntensityLevel = details.resolvedIntensityLevel()
-    val programMode = details.programMode()
-
-    Surface(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        color = accentColor.copy(alpha = 0.08f),
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            // Nombre del ejercicio como título principal
-            val title = exerciseName?.takeIf { it.isNotBlank() } ?: cardioTypeLabel(details.type)
-            Text(
-                text = title,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleMedium,
-            )
-
-            Text(
-                "Modo de programación",
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.White.copy(alpha = 0.75f),
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                listOf(
-                    CardioProgramMode.STEADY to "Estático",
-                    CardioProgramMode.HIIT_SIT to "HIIT / SIT",
-                    CardioProgramMode.INTERVALS to "Intervalos",
-                ).forEach { (mode, label) ->
-                    CardioModeChip(
-                        selected = programMode == mode,
-                        modifier = Modifier.weight(1f),
-                        onClick = {
-                            if (programMode != mode) when (mode) {
-                                CardioProgramMode.STEADY -> onChange(
-                                    details.copy(
-                                        intervalBlocks = emptyList(),
-                                        intervalRounds = 1,
-                                        hiit = null,
-                                        targetDurationSeconds = details.targetDurationSeconds ?: 20 * 60,
-                                    ),
-                                )
-                                CardioProgramMode.HIIT_SIT -> {
-                                    val config = details.hiit ?: CardioHiitConfig(
-                                        targetRpe = 9.0,
-                                        protocol = com.example.kpkn.data.models.HiitProtocol.HIIT,
-                                    )
-                                    onChange(CardioHiitProgramBuilder.buildDetails(config, details.type, details))
-                                }
-                                CardioProgramMode.INTERVALS -> {
-                                    val total = details.targetDurationSeconds
-                                        ?: details.effectiveDurationSeconds().takeIf { it > 0 }
-                                        ?: 20 * 60
-                                    onChange(
-                                        CardioIntervalProgramBuilder.buildDetails(
-                                            pattern = CardioIntervalPattern.PYRAMID,
-                                            totalSeconds = total,
-                                            type = details.type,
-                                            baseLevel = details.resolvedIntensityLevel(),
-                                            base = details.copy(hiit = null),
-                                        ),
-                                    )
-                                }
-                            }
-                        },
-                        label = label,
-                        accentColor = accentColor,
-                    )
-                }
-            }
-            Text(
-                text = when (programMode) {
-                    CardioProgramMode.STEADY -> "Una intensidad continua. Define tiempo, distancia o ambos y listo."
-                    CardioProgramMode.HIIT_SIT -> "Alterna esfuerzo y recuperación. HIIT parte en RPE 9; SIT parte en RPE 10."
-                    CardioProgramMode.INTERVALS -> "Construye una secuencia por bloques; la altura muestra intensidad y el ancho, duración."
-                },
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.White.copy(alpha = 0.62f),
-            )
-
-            // Selector de tipo de objetivo (Tiempo / Distancia / Ambos) — oculto cuando hay intervalos (duración deriva del circuito)
-            if (programMode == CardioProgramMode.STEADY) {
-                if (details.supportsDistance) {
-                    Text(
-                        "Objetivo a programar",
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.75f),
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        CardioTargetMode.entries.forEach { mode ->
-                            CardioModeChip(
-                                selected = currentTargetMode == mode,
-                                modifier = Modifier.weight(1f),
-                                onClick = {
-                                    when (mode) {
-                                        CardioTargetMode.DURATION -> {
-                                            val duration = details.targetDurationSeconds ?: (20 * 60)
-                                            onChange(details.copy(targetDurationSeconds = duration, targetDistanceKm = null))
-                                        }
-                                        CardioTargetMode.DISTANCE -> {
-                                            val distance = details.targetDistanceKm ?: 3.0
-                                            distanceText = if (distance % 1.0 == 0.0) distance.toInt().toString() else distance.toString()
-                                            onChange(details.copy(targetDurationSeconds = null, targetDistanceKm = distance))
-                                        }
-                                        CardioTargetMode.BOTH -> {
-                                            val duration = details.targetDurationSeconds ?: (20 * 60)
-                                            val distance = details.targetDistanceKm ?: 3.0
-                                            distanceText = if (distance % 1.0 == 0.0) distance.toInt().toString() else distance.toString()
-                                            onChange(details.copy(targetDurationSeconds = duration, targetDistanceKm = distance))
-                                        }
-                                    }
-                                },
-                                label = mode.label,
-                                accentColor = accentColor,
-                            )
-                        }
-                    }
-                }
-
-                // Inputs de duración y/o distancia según el modo seleccionado
-                when (currentTargetMode) {
-                    CardioTargetMode.DURATION -> {
-                        CardioDurationField(
-                            durationMinutes = ((details.targetDurationSeconds ?: (20 * 60)) / 60).coerceAtLeast(1),
-                            accentColor = accentColor,
-                            modifier = Modifier.fillMaxWidth(),
-                            onConfirm = { minutes ->
-                                onChange(details.copy(targetDurationSeconds = minutes * 60))
-                            },
-                        )
-                    }
-                    CardioTargetMode.DISTANCE -> {
-                        CardioAccentField(
-                            value = distanceText,
-                            onValueChange = { value ->
-                                distanceText = value.filter { it.isDigit() || it == '.' || it == ',' }.take(8)
-                                val parsed = distanceText.replace(',', '.').toDoubleOrNull()
-                                onChange(details.copy(targetDistanceKm = parsed))
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = "Distancia meta (km)",
-                            accentColor = accentColor,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        )
-                    }
-                    CardioTargetMode.BOTH -> {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            CardioDurationField(
-                                durationMinutes = ((details.targetDurationSeconds ?: (20 * 60)) / 60).coerceAtLeast(1),
-                                accentColor = accentColor,
-                                modifier = Modifier.weight(1f),
-                                onConfirm = { minutes ->
-                                    onChange(details.copy(targetDurationSeconds = minutes * 60))
-                                },
-                            )
-                            CardioAccentField(
-                                value = distanceText,
-                                onValueChange = { value ->
-                                    distanceText = value.filter { it.isDigit() || it == '.' || it == ',' }.take(8)
-                                    val parsed = distanceText.replace(',', '.').toDoubleOrNull()
-                                    onChange(details.copy(targetDistanceKm = parsed))
-                                },
-                                modifier = Modifier.weight(1f),
-                                label = "Distancia (km)",
-                                accentColor = accentColor,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            )
-                        }
-                    }
-                }
-            } else {
-                // Cuando hay intervalos, la duración total se deriva del circuito; la distancia sigue editable si aplica
-                if (details.supportsDistance) {
-                    CardioAccentField(
-                        value = distanceText,
-                        onValueChange = { value ->
-                            distanceText = value.filter { it.isDigit() || it == '.' || it == ',' }.take(8)
-                            val parsed = distanceText.replace(',', '.').toDoubleOrNull()
-                            onChange(details.copy(targetDistanceKm = parsed))
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = "Distancia meta (km) (opcional con intervalos)",
-                        accentColor = accentColor,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    )
-                }
-                Text(
-                    "Duración total: ${formatIntervalTotal(details.totalIntervalSeconds())} (deriva de los bloques)",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.68f),
-                )
-            }
-
-            // Slider de RPE programado de 1 a 10. En HIIT/SIT se oculta: ese
-            // modo tiene su propio slider exacto dentro del panel HIIT/SIT.
-            if (programMode != CardioProgramMode.HIIT_SIT) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text("RPE programado", fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.88f))
-                        Text(
-                            "${currentIntensityLevel}/10 · ${intensityRpeAnchor(currentIntensityLevel)}",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = accentColor,
-                        )
-                    }
-                    Slider(
-                        value = currentIntensityLevel.toFloat(),
-                        onValueChange = { newValue ->
-                            val rounded = newValue.roundToInt().coerceIn(1, 10)
-                            if (rounded != currentIntensityLevel) {
-                                val newIntensity = CardioIntensity.fromLevel(rounded)
-                                onChange(details.copy(intensityLevel = rounded, intensity = newIntensity))
-                            }
-                        },
-                        valueRange = 1f..10f,
-                        steps = 0,
-                        colors = SliderDefaults.colors(
-                            thumbColor = Color.White,
-                            activeTrackColor = accentColor,
-                            inactiveTrackColor = accentColor.copy(alpha = 0.20f),
-                            activeTickColor = Color.White.copy(alpha = 0.6f),
-                            inactiveTickColor = accentColor.copy(alpha = 0.35f),
-                        ),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-            }
-
-            when (programMode) {
-                CardioProgramMode.STEADY -> Unit
-                CardioProgramMode.HIIT_SIT -> CardioHiitEditor(
-                    details = details,
-                    accentColor = accentColor,
-                    onChange = onChange,
-                )
-                CardioProgramMode.INTERVALS -> CardioIntervalsEditor(
-                    details = details,
-                    accentColor = accentColor,
-                    onChange = onChange,
-                )
-            }
-
-            // Apartado de GPS en vivo simplificado y compacto (sin texto redundante que gaste espacio)
-            if (details.type.isOutdoor()) {
-                val context = androidx.compose.ui.platform.LocalContext.current
-                val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
-                    contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
-                ) { _ -> }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(accentColor.copy(alpha = 0.06f))
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    Icon(
-                        Icons.Default.LocationOn,
-                        contentDescription = null,
-                        tint = if (details.requiresGps) accentColor else Color.White.copy(alpha = 0.5f),
-                        modifier = Modifier.size(20.dp),
-                    )
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("GPS en vivo", color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
-                        Text(
-                            "Registra ruta, ritmo y distancia con GPS",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.60f),
-                        )
-                    }
-                    Switch(
-                        checked = details.requiresGps,
-                        onCheckedChange = { enabled ->
-                            onChange(details.copy(requiresGps = enabled))
-                            if (enabled) {
-                                val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
-                                    context,
-                                    android.Manifest.permission.ACCESS_FINE_LOCATION,
-                                ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-                                if (!hasPermission) {
-                                    permissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
-                                }
-                            }
-                        },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = accentColor.copy(alpha = 0.85f),
-                            checkedBorderColor = accentColor,
-                            uncheckedThumbColor = Color.White.copy(alpha = 0.6f),
-                            uncheckedTrackColor = Color.White.copy(alpha = 0.12f),
-                            uncheckedBorderColor = Color.White.copy(alpha = 0.25f),
-                        ),
-                    )
-                }
-            }
-        }
-    }
-}
-
-private fun cardioModeDescription(mode: CardioProgramMode): String = when (mode) {
-    CardioProgramMode.STEADY -> "Una intensidad continua con tiempo, distancia o ambos como objetivo."
-    CardioProgramMode.HIIT_SIT -> "Alterna esfuerzo y recuperación; la duración se deriva de la estructura."
-    CardioProgramMode.INTERVALS -> "Construye una secuencia por bloques; el total se calcula automáticamente."
-}
-
-private fun cardioSummaryText(details: CardioDetails): String {
-    val duration = details.effectiveDurationSeconds().takeIf { it > 0 }
-        ?.let { "${it / 60} min" }
-    val distance = details.targetDistanceKm?.let { "${it.toTrimmedCardioNumber()} km" }
-    val blocks = details.intervalBlocks.size.takeIf { details.hasIntervals() }?.let { "$it bloques" }
-    return listOfNotNull(blocks, duration, distance).joinToString(" · ").ifBlank { "Sin objetivo" }
-}
-
-private fun Double.toTrimmedCardioNumber(): String =
-    if (this % 1.0 == 0.0) toInt().toString() else "%.1f".format(this)
-
-private fun cardioDetailsForMode(base: CardioDetails, mode: CardioProgramMode): CardioDetails = when (mode) {
-    CardioProgramMode.STEADY -> base.copy(
-        intervalBlocks = emptyList(),
-        intervalRounds = 1,
-        hiit = null,
-        targetDurationSeconds = base.targetDurationSeconds ?: 20 * 60,
-    )
-    CardioProgramMode.HIIT_SIT -> {
-        val config = base.hiit ?: CardioHiitConfig(
-            targetRpe = 9.0,
-            protocol = com.example.kpkn.data.models.HiitProtocol.HIIT,
-        )
-        CardioHiitProgramBuilder.buildDetails(config, base.type, base)
-    }
-    CardioProgramMode.INTERVALS -> {
-        val total = base.targetDurationSeconds
-            ?: base.effectiveDurationSeconds().takeIf { it > 0 }
-            ?: 20 * 60
-        CardioIntervalProgramBuilder.buildDetails(
-            pattern = CardioIntervalPattern.PYRAMID,
-            totalSeconds = total,
-            type = base.type,
-            baseLevel = base.resolvedIntensityLevel(),
-            base = base.copy(hiit = null),
-        )
-    }
-}
-
-@Composable
-private fun CardioModeChip(
-    selected: Boolean,
-    onClick: () -> Unit,
-    label: String,
-    accentColor: Color,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier.clickable(onClick = onClick),
-        shape = RoundedCornerShape(999.dp),
-        color = if (selected) accentColor.copy(alpha = 0.28f) else Color.White.copy(alpha = 0.08f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, if (selected) accentColor.copy(alpha = 0.85f) else Color.White.copy(alpha = 0.14f)),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
-            label,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
-            color = if (selected) Color.White else Color.White.copy(alpha = 0.75f),
-            fontWeight = if (selected) FontWeight.Black else FontWeight.Medium,
-            style = MaterialTheme.typography.labelSmall,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            sentence,
+            color = Color.White,
+            fontWeight = FontWeight.Black,
+            style = MaterialTheme.typography.bodyMedium,
         )
-    }
-}
-
-@Composable
-private fun CardioDurationField(
-    durationMinutes: Int,
-    accentColor: Color,
-    modifier: Modifier = Modifier,
-    onConfirm: (Int) -> Unit,
-) {
-    var showPicker by remember { mutableStateOf(false) }
-    Box(modifier = modifier) {
-        CardioAccentField(
-            value = "${durationMinutes.coerceAtLeast(1)} min",
-            onValueChange = {},
-            label = "Duración objetivo",
-            accentColor = accentColor,
-            readOnly = true,
-            trailingIcon = { Icon(Icons.Default.Timer, contentDescription = null, tint = accentColor) },
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .clickable { showPicker = true },
-        )
-    }
-    if (showPicker) {
-        KpknNativeTimePickerDialog(
-            title = "Duración objetivo",
-            initialHour = (durationMinutes / 60).coerceIn(0, 23),
-            initialMinute = (durationMinutes % 60).coerceIn(0, 59),
-            hint = "Horas : minutos",
-            onConfirm = { hour, minute ->
-                onConfirm((hour * 60 + minute).coerceAtLeast(1))
-                showPicker = false
-            },
-            onDismiss = { showPicker = false },
-        )
-    }
-}
-
-@Composable
-private fun CardioAccentField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    accentColor: Color,
-    modifier: Modifier = Modifier,
-    readOnly: Boolean = false,
-    trailingIcon: (@Composable (() -> Unit))? = null,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-) {
-    var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(14.dp)
-    BasicTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier
-            .clip(shape)
-            .background(accentColor.copy(alpha = if (focused) 0.14f else 0.08f))
-            .border(1.dp, accentColor.copy(alpha = if (focused) 0.95f else 0.56f), shape)
-            .onFocusChanged { focused = it.isFocused }
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        readOnly = readOnly,
-        singleLine = true,
-        keyboardOptions = keyboardOptions,
-        textStyle = MaterialTheme.typography.bodySmall.copy(color = Color.White, fontWeight = FontWeight.Bold),
-        cursorBrush = SolidColor(accentColor),
-        decorationBox = { innerTextField ->
-            Row(
+        if (details.hasIntervals()) {
+            CardioIntervalChart(
+                details = details,
+                accentColor = accentColor,
+                compact = true,
+                sparkline = true,
+                showLabels = false,
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (focused) accentColor else accentColor.copy(alpha = 0.82f),
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Box(modifier = Modifier.fillMaxWidth().heightIn(min = 22.dp)) {
-                        innerTextField()
-                    }
-                }
-                trailingIcon?.invoke()
+            )
+        }
+
+        if (showPlacementChip && onTogglePlacement != null) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                KpknSheetLightChip(
+                    label = if (cardioFirst) "Al inicio" else "Al final",
+                    selected = true,
+                    onClick = onTogglePlacement,
+                )
             }
-        },
-    )
+        }
+
+        history?.takeUnless { it.isEmpty }?.let { stats ->
+            CardioHistoryPanel(
+                history = stats,
+                accentColor = accentColor,
+                onApplyLast = {
+                    onChange(
+                        details.copy(
+                            targetDurationSeconds = stats.lastDurationSeconds ?: details.targetDurationSeconds,
+                            targetDistanceKm = stats.lastDistanceKm ?: details.targetDistanceKm,
+                            intensityLevel = stats.lastRpe?.roundToInt() ?: details.intensityLevel,
+                        ),
+                    )
+                },
+                onApplyProgression = {
+                    val suggestion = CardioProgressionEngine.suggest(
+                        CardioProgressionInput(
+                            durationSeconds = stats.lastDurationSeconds ?: details.effectiveDurationSeconds(),
+                            distanceKm = stats.lastDistanceKm ?: details.targetDistanceKm,
+                            intensity = details.intensity,
+                            rpe = stats.lastRpe ?: details.resolvedRpe(),
+                        ),
+                    )
+                    val updated = when (val current = CardioRepeatGrammar.shape(details)) {
+                        is CardioAuthoringShape.Uniform -> {
+                            val extraRound = if (suggestion.durationSeconds > details.effectiveDurationSeconds()) 1 else 0
+                            CardioRepeatGrammar.applyUniform(
+                                details,
+                                current.repeat.copy(rounds = (current.repeat.rounds + extraRound).coerceIn(1, 99)),
+                            )
+                        }
+                        else -> details.copy(
+                            targetDurationSeconds = suggestion.durationSeconds,
+                            targetDistanceKm = suggestion.distanceKm,
+                            intensity = suggestion.intensity,
+                            intensityLevel = suggestion.intensity.defaultRpe.roundToInt().coerceIn(1, 10),
+                        )
+                    }
+                    onChange(updated)
+                },
+            )
+        }
+
+        Text(
+            "Plantillas",
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Black,
+            color = Color.White.copy(alpha = 0.72f),
+        )
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            CardioFeaturedTemplates.all.forEach { template ->
+                val selected = when {
+                    template.hiitId != null -> details.hiit != null &&
+                        details.hiit!!.workSeconds == com.example.kpkn.data.models.CardioHiitTemplates.findById(template.hiitId)?.toConfig()?.workSeconds &&
+                        details.hiit!!.rounds == com.example.kpkn.data.models.CardioHiitTemplates.findById(template.hiitId)?.toConfig()?.rounds
+                    else -> !details.hasIntervals() && details.targetDurationSeconds == (template.steadyMinutes ?: 0) * 60
+                }
+                KpknSheetLightChip(
+                    label = template.name,
+                    selected = selected,
+                    onClick = { onChange(CardioFeaturedTemplates.apply(template.id, details)) },
+                )
+            }
+        }
+
+        when (shape) {
+            is CardioAuthoringShape.Steady -> {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    CardioValuePill(
+                        label = "Tiempo",
+                        value = details.targetDurationSeconds?.let { CardioPrescriptionFormatter.formatDuration(it) } ?: "Libre",
+                        accentColor = accentColor,
+                        onClick = { picker = CardioEditorPicker.STEADY_MINUTES },
+                    )
+                    if (details.supportsDistance) {
+                        CardioValuePill(
+                            label = "Distancia",
+                            value = details.targetDistanceKm?.let { CardioPrescriptionFormatter.formatDistanceKm(it) } ?: "—",
+                            accentColor = accentColor,
+                            onClick = { picker = CardioEditorPicker.DISTANCE },
+                        )
+                    }
+                    KpknSheetLightChip(
+                        label = if (details.requiresGps) "GPS on" else "GPS",
+                        selected = details.requiresGps,
+                        onClick = { onChange(details.copy(requiresGps = !details.requiresGps)) },
+                    )
+                }
+                KpknSheetLightChip(
+                    label = "Añadir series",
+                    selected = false,
+                    onClick = {
+                        onChange(
+                            CardioRepeatGrammar.applyUniform(
+                                details,
+                                CardioUniformRepeat(
+                                    warmupSeconds = 180,
+                                    workSeconds = 30,
+                                    restSeconds = 60,
+                                    rounds = 8,
+                                    cooldownSeconds = 180,
+                                    targetRpe = 9.0,
+                                ),
+                            ),
+                        )
+                    },
+                )
+            }
+            is CardioAuthoringShape.Uniform -> {
+                val repeat = shape.repeat
+                CardioStructureRow(
+                    title = "Calentamiento",
+                    value = when {
+                        repeat.warmupOpen -> "Libre"
+                        repeat.warmupSeconds <= 0 -> "Omitir"
+                        else -> CardioPrescriptionFormatter.formatDuration(repeat.warmupSeconds)
+                    },
+                    accentColor = accentColor,
+                    onValueClick = { picker = CardioEditorPicker.WARMUP },
+                    extras = {
+                        KpknSheetLightChip("Omitir", repeat.warmupSeconds <= 0 && !repeat.warmupOpen) {
+                            onChange(CardioRepeatGrammar.applyUniform(details, repeat.copy(warmupSeconds = 0, warmupOpen = false)))
+                        }
+                        KpknSheetLightChip("Libre", repeat.warmupOpen) {
+                            onChange(CardioRepeatGrammar.applyUniform(details, repeat.copy(warmupOpen = true, warmupSeconds = 0)))
+                        }
+                    },
+                )
+                CardioStructureRow(
+                    title = "Repeat",
+                    value = "${repeat.rounds}×",
+                    accentColor = accentColor,
+                    onValueClick = {},
+                    extras = {
+                        CompactRoundStepper(
+                            rounds = repeat.rounds,
+                            accentColor = accentColor,
+                            minRounds = 1,
+                            maxRounds = 99,
+                            onRoundsChange = { onChange(CardioRepeatGrammar.applyUniform(details, repeat.copy(rounds = it))) },
+                        )
+                        CardioValuePill(
+                            label = "Esfuerzo",
+                            value = CardioPrescriptionFormatter.formatDuration(repeat.workSeconds),
+                            accentColor = accentColor,
+                            onClick = { picker = CardioEditorPicker.WORK },
+                        )
+                        CardioValuePill(
+                            label = "Pausa",
+                            value = CardioPrescriptionFormatter.formatDuration(repeat.restSeconds),
+                            accentColor = accentColor,
+                            onClick = { picker = CardioEditorPicker.REST },
+                        )
+                    },
+                )
+                CardioStructureRow(
+                    title = "Enfriamiento",
+                    value = when {
+                        repeat.cooldownOpen -> "Libre"
+                        repeat.cooldownSeconds <= 0 -> "Omitir"
+                        else -> CardioPrescriptionFormatter.formatDuration(repeat.cooldownSeconds)
+                    },
+                    accentColor = accentColor,
+                    onValueClick = { picker = CardioEditorPicker.COOLDOWN },
+                    extras = {
+                        KpknSheetLightChip("Omitir", repeat.cooldownSeconds <= 0 && !repeat.cooldownOpen) {
+                            onChange(CardioRepeatGrammar.applyUniform(details, repeat.copy(cooldownSeconds = 0, cooldownOpen = false)))
+                        }
+                        KpknSheetLightChip("Libre", repeat.cooldownOpen) {
+                            onChange(CardioRepeatGrammar.applyUniform(details, repeat.copy(cooldownOpen = true, cooldownSeconds = 0)))
+                        }
+                    },
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    KpknSheetLightChip(
+                        label = if (repeat.protocol == HiitProtocol.SIT) "SIT" else "HIIT",
+                        selected = true,
+                        onClick = {
+                            val sit = repeat.protocol != HiitProtocol.SIT
+                            onChange(
+                                CardioRepeatGrammar.applyUniform(
+                                    details,
+                                    repeat.copy(
+                                        protocol = if (sit) HiitProtocol.SIT else HiitProtocol.HIIT,
+                                        targetRpe = if (sit) 10.0 else 9.0,
+                                    ),
+                                ),
+                            )
+                        },
+                    )
+                    KpknSheetLightChip(
+                        label = "Continuo",
+                        selected = false,
+                        onClick = {
+                            onChange(
+                                CardioRepeatGrammar.applySteady(
+                                    details,
+                                    durationSeconds = details.effectiveDurationSeconds().takeIf { it > 0 } ?: 20 * 60,
+                                ),
+                            )
+                        },
+                    )
+                    if (details.supportsDistance) {
+                        CardioValuePill(
+                            label = "Distancia",
+                            value = details.targetDistanceKm?.let { CardioPrescriptionFormatter.formatDistanceKm(it) } ?: "—",
+                            accentColor = accentColor,
+                            onClick = { picker = CardioEditorPicker.DISTANCE },
+                        )
+                    }
+                    KpknSheetLightChip(
+                        label = if (details.requiresGps) "GPS on" else "GPS",
+                        selected = details.requiresGps,
+                        onClick = { onChange(details.copy(requiresGps = !details.requiresGps)) },
+                    )
+                }
+            }
+            is CardioAuthoringShape.Irregular -> {
+                KpknSheetLightChip(
+                    label = if (showBlocks) "Ocultar bloques" else "Ajustar bloques",
+                    selected = showBlocks,
+                    onClick = { showBlocks = !showBlocks },
+                )
+            }
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                "RPE $rpe · ${CardioPrescriptionFormatter.rpeAnchor(rpe)}",
+                color = accentColor,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.labelMedium,
+            )
+            Slider(
+                value = rpe.toFloat(),
+                onValueChange = { value ->
+                    val level = value.roundToInt().coerceIn(1, 10)
+                    val updated = when (val current = CardioRepeatGrammar.shape(details)) {
+                        is CardioAuthoringShape.Uniform -> CardioRepeatGrammar.applyUniform(
+                            details,
+                            current.repeat.copy(targetRpe = level.toDouble()),
+                        )
+                        else -> details.copy(
+                            intensityLevel = level,
+                            intensity = CardioIntensity.fromLevel(level),
+                            hiit = details.hiit?.copy(targetRpe = level.toDouble()),
+                        )
+                    }
+                    onChange(updated)
+                },
+                valueRange = 1f..10f,
+                steps = 8,
+                colors = SliderDefaults.colors(
+                    thumbColor = accentColor,
+                    activeTrackColor = accentColor,
+                    inactiveTrackColor = Color.White.copy(alpha = 0.16f),
+                ),
+            )
+        }
+
+        if (shape is CardioAuthoringShape.Irregular && showBlocks) {
+            CardioIntervalsEditor(
+                details = details,
+                accentColor = accentColor,
+                onChange = onChange,
+            )
+        }
+
+        KpknSheetLightChip(
+            label = if (showAdvanced) "Ocultar avanzado" else "Avanzado",
+            selected = showAdvanced,
+            onClick = { showAdvanced = !showAdvanced },
+        )
+        if (showAdvanced) {
+            CardioAdvancedPanel(
+                details = details,
+                shape = shape,
+                catalogSupportsSpeed = catalog?.supportsSpeed == true,
+                catalogSupportsIncline = catalog?.supportsIncline == true,
+                catalogSupportsRpm = catalog?.supportsRpm == true,
+                catalogSupportsWatts = catalog?.supportsWatts == true,
+                accentColor = accentColor,
+                onChange = onChange,
+                onOpenPicker = { picker = it },
+            )
+        }
+    }
+
+    val uniform = (shape as? CardioAuthoringShape.Uniform)?.repeat
+    when (picker) {
+        CardioEditorPicker.STEADY_MINUTES -> CardioMinutesWheelDialog(
+            title = "Duración",
+            initialSeconds = details.targetDurationSeconds ?: 20 * 60,
+            accentColor = accentColor,
+            onDismiss = { picker = null },
+            onConfirm = {
+                onChange(details.copy(targetDurationSeconds = it.takeIf { seconds -> seconds > 0 }))
+                picker = null
+            },
+        )
+        CardioEditorPicker.WARMUP -> if (uniform != null) CardioMinutesSecondsWheelDialog(
+            title = "Calentamiento",
+            initialSeconds = uniform.warmupSeconds,
+            accentColor = accentColor,
+            onDismiss = { picker = null },
+            onConfirm = {
+                onChange(CardioRepeatGrammar.applyUniform(details, uniform.copy(warmupSeconds = it, warmupOpen = false)))
+                picker = null
+            },
+        )
+        CardioEditorPicker.WORK -> if (uniform != null) CardioSecondsWheelDialog(
+            title = "Esfuerzo",
+            initialSeconds = uniform.workSeconds,
+            accentColor = accentColor,
+            onDismiss = { picker = null },
+            onConfirm = {
+                onChange(CardioRepeatGrammar.applyUniform(details, uniform.copy(workSeconds = it.coerceAtLeast(5))))
+                picker = null
+            },
+            minSeconds = 5,
+            maxSeconds = 600,
+        )
+        CardioEditorPicker.REST -> if (uniform != null) CardioSecondsWheelDialog(
+            title = "Pausa",
+            initialSeconds = uniform.restSeconds,
+            accentColor = accentColor,
+            onDismiss = { picker = null },
+            onConfirm = {
+                onChange(CardioRepeatGrammar.applyUniform(details, uniform.copy(restSeconds = it)))
+                picker = null
+            },
+            minSeconds = 0,
+            maxSeconds = 600,
+        )
+        CardioEditorPicker.COOLDOWN -> if (uniform != null) CardioMinutesSecondsWheelDialog(
+            title = "Enfriamiento",
+            initialSeconds = uniform.cooldownSeconds,
+            accentColor = accentColor,
+            onDismiss = { picker = null },
+            onConfirm = {
+                onChange(CardioRepeatGrammar.applyUniform(details, uniform.copy(cooldownSeconds = it, cooldownOpen = false)))
+                picker = null
+            },
+        )
+        CardioEditorPicker.DISTANCE -> CardioDistanceWheelDialog(
+            title = "Distancia",
+            initialKm = details.targetDistanceKm,
+            accentColor = accentColor,
+            onDismiss = { picker = null },
+            onConfirm = {
+                onChange(details.copy(targetDistanceKm = it))
+                picker = null
+            },
+        )
+        CardioEditorPicker.PACE -> CardioPaceWheelDialog(
+            title = "Ritmo objetivo",
+            initialSecondsPerKm = details.targetPaceSecondsPerKm,
+            accentColor = accentColor,
+            onDismiss = { picker = null },
+            onConfirm = {
+                onChange(
+                    details.copy(
+                        targetPaceSecondsPerKm = it,
+                        intervalBlocks = details.intervalBlocks.map { block ->
+                            if (block.type == com.example.kpkn.data.models.CardioBlockType.WORK) {
+                                block.copy(targetPaceSecondsPerKm = it)
+                            } else block
+                        },
+                    ),
+                )
+                picker = null
+            },
+        )
+        CardioEditorPicker.HR -> CardioIntWheelDialog(
+            title = "% FC",
+            initial = details.targetHrPercent ?: 75,
+            range = 50..100,
+            unit = "%",
+            accentColor = accentColor,
+            onDismiss = { picker = null },
+            onConfirm = {
+                onChange(
+                    details.copy(
+                        targetHrPercent = it,
+                        intervalBlocks = details.intervalBlocks.map { block ->
+                            if (block.type == com.example.kpkn.data.models.CardioBlockType.WORK) {
+                                block.copy(targetHrPercent = it)
+                            } else block
+                        },
+                    ),
+                )
+                picker = null
+            },
+            allowZeroAsNone = false,
+        )
+        CardioEditorPicker.WATTS -> CardioIntWheelDialog(
+            title = "Vatios",
+            initial = details.intervalBlocks.firstOrNull { it.watts != null }?.watts ?: 120,
+            range = 0..500,
+            unit = "W",
+            accentColor = accentColor,
+            onDismiss = { picker = null },
+            onConfirm = { watts ->
+                onChange(details.copy(intervalBlocks = details.intervalBlocks.map { it.copy(watts = watts) }))
+                picker = null
+            },
+        )
+        CardioEditorPicker.SPEED -> CardioTenthsWheelDialog(
+            title = "Velocidad",
+            initial = details.intervalBlocks.firstOrNull { it.speedKmh != null }?.speedKmh ?: 8.0,
+            wholeRange = 3..25,
+            unit = "km/h",
+            accentColor = accentColor,
+            onDismiss = { picker = null },
+            onConfirm = { speed ->
+                onChange(details.copy(intervalBlocks = details.intervalBlocks.map { it.copy(speedKmh = speed) }))
+                picker = null
+            },
+        )
+        CardioEditorPicker.INCLINE -> CardioTenthsWheelDialog(
+            title = "Inclinación",
+            initial = details.intervalBlocks.firstOrNull { it.inclinePercent != null }?.inclinePercent ?: 1.0,
+            wholeRange = 0..20,
+            unit = "%",
+            accentColor = accentColor,
+            onDismiss = { picker = null },
+            onConfirm = { incline ->
+                onChange(details.copy(intervalBlocks = details.intervalBlocks.map { it.copy(inclinePercent = incline) }))
+                picker = null
+            },
+        )
+        CardioEditorPicker.RPM -> CardioIntWheelDialog(
+            title = "Cadencia",
+            initial = details.intervalBlocks.firstOrNull { it.rpm != null }?.rpm ?: 80,
+            range = 40..130,
+            unit = "rpm",
+            accentColor = accentColor,
+            onDismiss = { picker = null },
+            onConfirm = { rpm ->
+                onChange(details.copy(intervalBlocks = details.intervalBlocks.map { it.copy(rpm = rpm) }))
+                picker = null
+            },
+            allowZeroAsNone = false,
+        )
+        CardioEditorPicker.SETS_REST -> if (uniform != null) CardioMinutesSecondsWheelDialog(
+            title = "Descanso entre series",
+            initialSeconds = uniform.restBetweenSetsSeconds,
+            accentColor = accentColor,
+            onDismiss = { picker = null },
+            onConfirm = {
+                onChange(CardioRepeatGrammar.applyUniform(details, uniform.copy(restBetweenSetsSeconds = it)))
+                picker = null
+            },
+        )
+        CardioEditorPicker.WORK_KCAL -> if (uniform != null) CardioIntWheelDialog(
+            title = "Objetivo kcal",
+            initial = uniform.workTargetValue?.toInt() ?: 12,
+            range = 0..80,
+            unit = "kcal",
+            accentColor = accentColor,
+            onDismiss = { picker = null },
+            onConfirm = { kcal ->
+                onChange(
+                    CardioRepeatGrammar.applyUniform(
+                        details,
+                        uniform.copy(
+                            workTargetType = if (kcal == null) HiitWorkTarget.TIME else HiitWorkTarget.KCAL,
+                            workTargetValue = kcal?.toDouble(),
+                        ),
+                    ),
+                )
+                picker = null
+            },
+        )
+        CardioEditorPicker.WORK_METERS -> if (uniform != null) CardioIntWheelDialog(
+            title = "Objetivo metros",
+            initial = uniform.workTargetValue?.toInt() ?: 200,
+            range = 0..2000,
+            unit = "m",
+            accentColor = accentColor,
+            onDismiss = { picker = null },
+            onConfirm = { meters ->
+                onChange(
+                    CardioRepeatGrammar.applyUniform(
+                        details,
+                        uniform.copy(
+                            workTargetType = if (meters == null) HiitWorkTarget.TIME else HiitWorkTarget.DISTANCE,
+                            workTargetValue = meters?.toDouble(),
+                        ),
+                    ),
+                )
+                picker = null
+            },
+        )
+        null -> Unit
+    }
 }
 
-private fun CardioType.isOutdoor(): Boolean = when (this) {
-    CardioType.RUN_OUTDOOR,
-    CardioType.BIKE_OUTDOOR,
-    CardioType.WALK,
-    -> true
-    else -> false
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CardioStructureRow(
+    title: String,
+    value: String,
+    accentColor: Color,
+    onValueClick: () -> Unit,
+    extras: @Composable () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(KpknSheetTokens.PanelRadius))
+            .background(KpknSheetTokens.Panel)
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(title, color = Color.White, fontWeight = FontWeight.Bold)
+            Text(
+                value,
+                color = accentColor,
+                fontWeight = FontWeight.Black,
+                modifier = Modifier.clickable(onClick = onValueClick),
+            )
+        }
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) { extras() }
+    }
 }
 
-private fun cardioTypeLabel(type: CardioType): String = when (type) {
-    CardioType.TREADMILL -> "Cinta"
-    CardioType.ELLIPTICAL -> "Elíptica"
-    CardioType.ROW_MACHINE -> "Remo"
-    CardioType.BIKE_STATIONARY -> "Bici estática"
-    CardioType.RUN_OUTDOOR -> "Carrera exterior"
-    CardioType.BIKE_OUTDOOR -> "Bici exterior"
-    CardioType.WALK -> "Caminata"
-    CardioType.STAIR_CLIMBER -> "Escaladora"
-    CardioType.AIR_BIKE -> "Air Bike"
-    CardioType.SKI_ERG -> "SkiErg"
-    CardioType.CURVED_TREADMILL -> "Cinta curva"
-    CardioType.SLED -> "Trineo"
+@Composable
+private fun CardioHistoryPanel(
+    history: CardioTypeHistory,
+    accentColor: Color,
+    onApplyLast: () -> Unit,
+    onApplyProgression: () -> Unit,
+) {
+    val bands = history.bestPaceSecondsPerKm?.let { CardioPaceBandEngine.fromAnchorPace(it) }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(KpknSheetTokens.PanelRadius))
+            .background(KpknSheetTokens.Panel)
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text("Memoria", color = Color.White.copy(alpha = 0.72f), fontWeight = FontWeight.Black, style = MaterialTheme.typography.labelSmall)
+        val lastBits = listOfNotNull(
+            history.lastDurationSeconds?.let { CardioPrescriptionFormatter.formatDuration(it) },
+            history.lastDistanceKm?.let { CardioPrescriptionFormatter.formatDistanceKm(it) },
+            history.lastPaceSecondsPerKm?.let { CardioPrescriptionFormatter.formatPace(it) },
+            history.lastRpe?.let { "RPE ${it.toInt()}" },
+        ).joinToString(" · ")
+        if (lastBits.isNotBlank()) {
+            Text("Última vez · $lastBits", color = Color.White, style = MaterialTheme.typography.labelMedium)
+        }
+        val prBits = listOfNotNull(
+            history.bestPaceSecondsPerKm?.let { "Ritmo ${CardioPrescriptionFormatter.formatPace(it)}" },
+            history.longestDistanceKm?.let { "Dist ${CardioPrescriptionFormatter.formatDistanceKm(it)}" },
+            history.longestTimeSeconds?.let { "Tiempo ${CardioPrescriptionFormatter.formatDuration(it)}" },
+        ).joinToString(" · ")
+        if (prBits.isNotBlank()) {
+            Text("PRs · $prBits", color = accentColor, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+        }
+        bands?.let {
+            Text(
+                "Bandas · easy ${CardioPrescriptionFormatter.formatPace(it.easySecondsPerKm)} · tempo ${CardioPrescriptionFormatter.formatPace(it.tempoSecondsPerKm)} · 5K ${CardioPrescriptionFormatter.formatPace(it.fiveKSecondsPerKm)}",
+                color = Color.White.copy(alpha = 0.7f),
+                style = MaterialTheme.typography.labelSmall,
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            KpknSheetLightChip("Usar última", selected = false, onClick = onApplyLast)
+            KpknSheetLightChip("Progresar", selected = false, onClick = onApplyProgression)
+        }
+    }
 }
 
-private fun intensityRpeAnchor(level: Int): String = when (level.coerceIn(1, 10)) {
-    in 1..2 -> "Muy suave"
-    in 3..4 -> "Suave"
-    in 5..6 -> "Algo duro"
-    in 7..8 -> "Duro"
-    9 -> "Muy duro"
-    else -> "Máximo"
-}
-
-private fun formatIntervalTotal(totalSeconds: Int): String {
-    val m = totalSeconds / 60
-    val s = totalSeconds % 60
-    return if (s == 0) "${m} min" else "${m}m ${s}s"
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CardioAdvancedPanel(
+    details: CardioDetails,
+    shape: CardioAuthoringShape,
+    catalogSupportsSpeed: Boolean,
+    catalogSupportsIncline: Boolean,
+    catalogSupportsRpm: Boolean,
+    catalogSupportsWatts: Boolean,
+    accentColor: Color,
+    onChange: (CardioDetails) -> Unit,
+    onOpenPicker: (CardioEditorPicker) -> Unit,
+) {
+    val uniform = (shape as? CardioAuthoringShape.Uniform)?.repeat
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(KpknSheetTokens.PanelRadius))
+            .background(KpknSheetTokens.Panel)
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            CardioValuePill(
+                label = "Ritmo",
+                value = details.targetPaceSecondsPerKm?.let { CardioPrescriptionFormatter.formatPace(it) } ?: "—",
+                accentColor = accentColor,
+                onClick = { onOpenPicker(CardioEditorPicker.PACE) },
+            )
+            CardioValuePill(
+                label = "% FC",
+                value = details.targetHrPercent?.let { "$it %" } ?: "—",
+                accentColor = accentColor,
+                onClick = { onOpenPicker(CardioEditorPicker.HR) },
+            )
+            if (catalogSupportsWatts) {
+                CardioValuePill("Vatios", details.intervalBlocks.firstOrNull { it.watts != null }?.watts?.let { "$it W" } ?: "—", accentColor, { onOpenPicker(CardioEditorPicker.WATTS) })
+            }
+            if (catalogSupportsSpeed) {
+                CardioValuePill("Velocidad", details.intervalBlocks.firstOrNull { it.speedKmh != null }?.speedKmh?.let { "${it} km/h" } ?: "—", accentColor, { onOpenPicker(CardioEditorPicker.SPEED) })
+            }
+            if (catalogSupportsIncline) {
+                CardioValuePill("Inclinación", details.intervalBlocks.firstOrNull { it.inclinePercent != null }?.inclinePercent?.let { "$it %" } ?: "—", accentColor, { onOpenPicker(CardioEditorPicker.INCLINE) })
+            }
+            if (catalogSupportsRpm) {
+                CardioValuePill("RPM", details.intervalBlocks.firstOrNull { it.rpm != null }?.rpm?.let { "$it" } ?: "—", accentColor, { onOpenPicker(CardioEditorPicker.RPM) })
+            }
+        }
+        if (uniform != null) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("Series", color = Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.labelSmall)
+                CompactRoundStepper(
+                    rounds = uniform.sets,
+                    accentColor = accentColor,
+                    minRounds = 1,
+                    maxRounds = 5,
+                    onRoundsChange = { onChange(CardioRepeatGrammar.applyUniform(details, uniform.copy(sets = it))) },
+                )
+                if (uniform.sets > 1) {
+                    CardioValuePill(
+                        label = "Entre series",
+                        value = CardioPrescriptionFormatter.formatDuration(uniform.restBetweenSetsSeconds),
+                        accentColor = accentColor,
+                        onClick = { onOpenPicker(CardioEditorPicker.SETS_REST) },
+                    )
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                KpknSheetLightChip(
+                    label = if (uniform.restNature == HiitRestNature.PASSIVE) "Pausa pasiva" else "Pausa activa",
+                    selected = true,
+                    onClick = {
+                        val next = if (uniform.restNature == HiitRestNature.ACTIVE) HiitRestNature.PASSIVE else HiitRestNature.ACTIVE
+                        onChange(CardioRepeatGrammar.applyUniform(details, uniform.copy(restNature = next)))
+                    },
+                )
+                CardioValuePill(
+                    label = "kcal/bloque",
+                    value = if (uniform.workTargetType == HiitWorkTarget.KCAL) "${uniform.workTargetValue?.toInt() ?: 0}" else "—",
+                    accentColor = accentColor,
+                    onClick = { onOpenPicker(CardioEditorPicker.WORK_KCAL) },
+                )
+                CardioValuePill(
+                    label = "m/bloque",
+                    value = if (uniform.workTargetType == HiitWorkTarget.DISTANCE) "${uniform.workTargetValue?.toInt() ?: 0}" else "—",
+                    accentColor = accentColor,
+                    onClick = { onOpenPicker(CardioEditorPicker.WORK_METERS) },
+                )
+            }
+            val config = details.hiit ?: CardioHiitConfig()
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                KpknSheetLightChip("Beeps", config.beepsEnabled) {
+                    onChange(details.copy(hiit = config.copy(beepsEnabled = !config.beepsEnabled)))
+                }
+                KpknSheetLightChip("Voz", config.voiceCuesEnabled) {
+                    onChange(details.copy(hiit = config.copy(voiceCuesEnabled = !config.voiceCuesEnabled)))
+                }
+                KpknSheetLightChip("Vibra", config.vibrationEnabled) {
+                    onChange(details.copy(hiit = config.copy(vibrationEnabled = !config.vibrationEnabled)))
+                }
+            }
+        }
+    }
 }

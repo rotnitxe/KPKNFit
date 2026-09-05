@@ -43,6 +43,7 @@ fun CardioIntervalChart(
     elapsedSeconds: Int? = null,
     showLabels: Boolean = true,
     compact: Boolean = false,
+    sparkline: Boolean = false,
     selectedBlockIndex: Int? = null,
     onSelectBlockIndex: ((Int) -> Unit)? = null,
 ) {
@@ -59,22 +60,32 @@ fun CardioIntervalChart(
         }.coerceAtLeast(1.0)
     }
 
-    val chartHeight = if (compact) 56.dp else 96.dp
+    val chartHeight = when {
+        sparkline -> 28.dp
+        compact -> 56.dp
+        else -> 96.dp
+    }
+    val wellPadding = if (sparkline) 0.dp else 8.dp
+    val wellRadius = if (sparkline) 8.dp else 12.dp
     val baseBlocksCount = details.intervalBlocks.size.coerceAtLeast(1)
     val rounds = details.intervalRounds.coerceAtLeast(1)
 
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(if (sparkline) 0.dp else 6.dp)) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color.White.copy(alpha = 0.06f))
-                .padding(horizontal = 8.dp, vertical = 8.dp),
+                .clip(RoundedCornerShape(wellRadius))
+                .background(Color.White.copy(alpha = if (sparkline) 0.04f else 0.06f))
+                .padding(horizontal = wellPadding, vertical = wellPadding),
         ) {
             BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
                 val availableWidth = maxWidth
                 val totalDuration = expanded.sumOf { it.durationSeconds }.coerceAtLeast(1)
-                val minBarWidth = if (compact) 8.dp else 12.dp
+                val minBarWidth = when {
+                    sparkline -> 4.dp
+                    compact -> 8.dp
+                    else -> 12.dp
+                }
                 val gap = 2.dp
                 val totalGapsWidth = gap * (expanded.size - 1).coerceAtLeast(0)
                 val minTotalWidth = minBarWidth * expanded.size + totalGapsWidth

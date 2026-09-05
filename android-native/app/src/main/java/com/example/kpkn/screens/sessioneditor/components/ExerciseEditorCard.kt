@@ -136,6 +136,10 @@ internal fun ExerciseEditorCard(
     onAutoExpandHandled: () -> Unit,
     suppressIndividualRest: Boolean = false,
     enableDrag: Boolean = true,
+    cardioFirst: Boolean = false,
+    showCardioPlacementChip: Boolean = false,
+    onToggleCardioPlacement: (() -> Unit)? = null,
+    cardioHistory: com.example.kpkn.domain.cardio.CardioTypeHistory? = null,
 ) {
     var expanded by rememberSaveable(exercise.id) { mutableStateOf(false) }
     var showCustomUnitModal by remember { mutableStateOf(false) }
@@ -360,22 +364,34 @@ internal fun ExerciseEditorCard(
                             )
                         }
                         Text(
-                            text = buildString {
-                                exercise.cardioDetails?.let { details ->
-                                    append(cardioCollapsedSummary(details))
-                                } ?: run {
+                            text = exercise.cardioDetails?.let { details ->
+                                com.example.kpkn.domain.cardio.CardioPrescriptionFormatter.sentence(details)
+                            } ?: buildString {
                                     append("${exercise.sets.size} series · ")
                                     if (!suppressIndividualRest) append("${formatRestSummary(exercise.restTime)} · ")
                                     append(trainingModeLabel(exercise.trainingMode))
                                     if (exercise.supersetGroupRefOrLegacyId() != null) append(" · Superserie")
                                     formatExerciseCollapsedSummary(exercise)?.let { append(" · $it") }
-                                }
                             },
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White.copy(alpha = 0.58f),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
+                        if (!expanded) {
+                            exercise.cardioDetails?.takeIf { it.hasIntervals() }?.let { details ->
+                                com.example.kpkn.screens.workout.CardioIntervalChart(
+                                    details = details,
+                                    accentColor = accentColor,
+                                    sparkline = true,
+                                    compact = true,
+                                    showLabels = false,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 6.dp),
+                                )
+                            }
+                        }
                         if (isCompetitionMovement) {
                             Text(
                                 text = "Movimiento de competición",
@@ -428,6 +444,10 @@ internal fun ExerciseEditorCard(
                         details = details,
                         accentColor = accentColor,
                         exerciseName = exercise.name,
+                        cardioFirst = cardioFirst,
+                        showPlacementChip = showCardioPlacementChip,
+                        onTogglePlacement = onToggleCardioPlacement,
+                        history = cardioHistory,
                         onChange = { updated ->
                             onUpdateExercise { current ->
                                 current.copy(
@@ -928,43 +948,6 @@ internal fun ExerciseEditorCard(
             onDismiss = { showCustomUnitModal = false },
         )
     }
-}
-
-private fun cardioCollapsedSummary(details: CardioDetails): String {
-    val type = when (details.type) {
-        CardioType.TREADMILL -> "Cinta"
-        CardioType.ELLIPTICAL -> "Elíptica"
-        CardioType.ROW_MACHINE -> "Remo"
-        CardioType.BIKE_STATIONARY -> "Bici estática"
-        CardioType.RUN_OUTDOOR -> "Carrera exterior"
-        CardioType.BIKE_OUTDOOR -> "Bici exterior"
-        CardioType.WALK -> "Caminata"
-        CardioType.STAIR_CLIMBER -> "Escaladora"
-        CardioType.AIR_BIKE -> "Air Bike"
-        CardioType.SKI_ERG -> "SkiErg"
-        CardioType.CURVED_TREADMILL -> "Cinta curva"
-        CardioType.SLED -> "Trineo"
-    }
-    val level = details.resolvedIntensityLevel()
-    val parts = mutableListOf<String>()
-    parts.add("Cardio")
-    parts.add(type)
-    if (details.hasIntervals()) {
-        val totalBlocks = details.intervalBlocks.size * details.intervalRounds.coerceIn(1, 99)
-        parts.add("$totalBlocks bloques")
-        val totalSec = details.totalIntervalSeconds()
-        parts.add("${(totalSec / 60).coerceAtLeast(1)} min")
-        parts.add("Circuitos")
-    } else {
-        details.targetDurationSeconds?.let { sec ->
-            parts.add("${(sec / 60).coerceAtLeast(1)} min")
-        }
-        details.targetDistanceKm?.let { km ->
-            parts.add(if (km % 1.0 == 0.0) "${km.toInt()} km" else "$km km")
-        }
-        parts.add("RPE $level/10")
-    }
-    return parts.joinToString(" · ")
 }
 
 private fun normalizeWarmupPercentageForEditor(rawPercentage: Double): Double {

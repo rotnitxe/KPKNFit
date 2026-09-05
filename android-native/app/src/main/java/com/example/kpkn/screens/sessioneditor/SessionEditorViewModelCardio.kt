@@ -28,11 +28,7 @@ fun SessionEditorViewModel.commitStrengthSpace() {
 
 fun SessionEditorViewModel.createCardioSpace() {
     val existingCardio = currentUiState.activeVariantSession?.cardioPart()
-    if (existingCardio != null) {
-        openCardioPicker(existingCardio.id)
-    } else {
-        updateUi { it.copy(sheet = SessionEditorSheet.CARDIO_PLACEMENT) }
-    }
+    openCardioPicker(existingCardio?.id)
 }
 
 fun SessionEditorViewModel.confirmCardioPlacement(placement: CardioSpacePlacement) {

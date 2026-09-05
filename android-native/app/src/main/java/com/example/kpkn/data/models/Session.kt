@@ -361,6 +361,10 @@ data class CardioDetails(
     val intervalRounds: Int = 1,
     /** Optional authoring configuration for the explicit HIIT/SIT mode. */
     val hiit: CardioHiitConfig? = null,
+    /** Steady-state pace target; null keeps old JSON valid. */
+    val targetPaceSecondsPerKm: Int? = null,
+    /** Steady-state heart-rate target as % of max; null keeps old JSON valid. */
+    val targetHrPercent: Int? = null,
 ) {
     fun resolvedIntensityLevel(): Int = intensityLevel ?: when (intensity) {
         CardioIntensity.BAJA -> 3
@@ -408,6 +412,8 @@ data class CardioIntervalBlock(
     val targetKcal: Double? = null,
     /** Optional live auto-cut target for a work block. */
     val targetDistanceMeters: Double? = null,
+    val targetPaceSecondsPerKm: Int? = null,
+    val targetHrPercent: Int? = null,
 ) {
     fun displaySpeedOrIntensity(): Double? = speedKmh ?: intensityLevel?.toDouble()
     fun isValid(): Boolean = durationSeconds > 0
@@ -442,6 +448,8 @@ data class CardioHiitConfig(
     val voiceCuesEnabled: Boolean = true,
     val vibrationEnabled: Boolean = true,
     val keepScreenOn: Boolean = true,
+    val warmupOpen: Boolean = false,
+    val cooldownOpen: Boolean = false,
 )
 
 enum class CardioType {

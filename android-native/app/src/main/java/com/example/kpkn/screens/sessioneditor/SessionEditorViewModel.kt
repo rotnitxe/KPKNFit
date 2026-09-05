@@ -565,10 +565,14 @@ class SessionEditorViewModel(
         val currentSession = _uiState.value.activeVariantSession ?: _uiState.value.session ?: return
         viewModelScope.launch {
             val logs = repository.getLogsForSession(currentSession.id).sortedByDescending { it.date }
+            val programLogs = repository.getLogsForProgram(_uiState.value.programId)
+            val cardioHistory = com.example.kpkn.data.models.CardioType.entries.associateWith { type ->
+                com.example.kpkn.domain.cardio.CardioHistoryStats.forType(programLogs, type)
+            }
             val feedbackByLogId = logs.mapNotNull { log ->
                 augeRepository.getFeedbackForLog(log.id)?.let { log.id to it }
             }.toMap()
-            _uiState.update { it.copy(workoutLogs = logs, feedbackByLogId = feedbackByLogId) }
+            _uiState.update { it.copy(workoutLogs = logs, cardioHistoryByType = cardioHistory, feedbackByLogId = feedbackByLogId) }
         }
     }
 

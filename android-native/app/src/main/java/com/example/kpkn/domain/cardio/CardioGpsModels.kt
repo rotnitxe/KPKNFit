@@ -84,4 +84,30 @@ object CardioGpsEngine {
         if (distanceMeters < 10.0 || elapsedSeconds <= 0L) return null
         return (elapsedSeconds * 1_000.0 / distanceMeters).toInt().coerceAtLeast(1)
     }
+
+    /** Pace (seconds) for each completed kilometre along an accepted track. */
+    fun kmSplitPaces(points: List<GpsTrackPoint>): List<Int> {
+        if (points.size < 2) return emptyList()
+        val splits = mutableListOf<Int>()
+        var accumulated = 0.0
+        var kmStartMs = points.first().timestampEpochMs
+        var previous = points.first()
+        for (index in 1 until points.size) {
+            val point = points[index]
+            val append = append(previous, point)
+            if (!append.accepted) {
+                previous = point
+                continue
+            }
+            accumulated += append.distanceDeltaMeters
+            previous = point
+            while (accumulated >= 1_000.0) {
+                val elapsedSeconds = ((point.timestampEpochMs - kmStartMs) / 1_000L).toInt().coerceAtLeast(1)
+                splits += elapsedSeconds
+                accumulated -= 1_000.0
+                kmStartMs = point.timestampEpochMs
+            }
+        }
+        return splits
+    }
 }

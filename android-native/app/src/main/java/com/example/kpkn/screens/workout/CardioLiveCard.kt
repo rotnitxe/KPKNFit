@@ -68,6 +68,8 @@ internal fun CardioLiveCard(
         mutableStateOf(completedSet?.avgHeartRate?.toString().orEmpty())
     }
     var showRecordConfirmation by remember { mutableStateOf(false) }
+    var showDistancePicker by remember { mutableStateOf(false) }
+    var showHeartRatePicker by remember { mutableStateOf(false) }
 
     val status = executionState?.status ?: CardioExecutionStatus.READY
     val isLibre = !details.hasIntervals() && details.targetDurationSeconds == null
@@ -90,14 +92,6 @@ internal fun CardioLiveCard(
     val guide = remember(details.type, details.intensity, details.intensityLevel, details.hiit) {
         CardioGuideEngine.guide(details)
     }
-    val modeLabel = when (details.programMode()) {
-        com.example.kpkn.data.models.CardioProgramMode.STEADY -> "Estático"
-        com.example.kpkn.data.models.CardioProgramMode.HIIT_SIT -> "HIIT / SIT"
-        com.example.kpkn.data.models.CardioProgramMode.INTERVALS -> "Intervalos"
-    }
-    val currentBlock = remember(details, timerElapsedSeconds) {
-        CardioIntervalEngine.progressAt(details, timerElapsedSeconds)?.currentBlock
-    }
 
     LaunchedEffect(status) {
         if (status == CardioExecutionStatus.AWAITING_CONFIRMATION) showRecordConfirmation = true
@@ -115,31 +109,38 @@ internal fun CardioLiveCard(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Column {
-                    Text("ESPACIO CARDIO", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = accentColor)
-                    Text(details.type.name.replace('_', ' '), fontWeight = FontWeight.Black, color = Color.White, style = MaterialTheme.typography.titleLarge)
-                }
-                Surface(shape = RoundedCornerShape(999.dp), color = accentColor.copy(alpha = 0.22f)) {
-                    Text(modeLabel, modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp), color = Color.White, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        com.example.kpkn.domain.cardio.CardioPrescriptionFormatter.typeLabel(details.type).uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Black,
+                        color = accentColor,
+                    )
+                    Text(
+                        com.example.kpkn.domain.cardio.CardioPrescriptionFormatter.sentence(details),
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleSmall,
+                    )
                 }
             }
-            val targetGoalSummary = if (details.hasIntervals()) {
-                val blocks = details.intervalBlocks.size * details.intervalRounds.coerceIn(1, 99)
-                val mins = details.totalIntervalSeconds() / 60
-                listOfNotNull(
-                    "$blocks bloques",
-                    "${mins} min",
-                    details.targetDistanceKm?.let { "$it km" },
-                    "Circuitos",
-                ).joinToString(" · ")
-            } else listOfNotNull(
-                details.targetDurationSeconds?.let { "${it / 60} min" },
-                details.targetDistanceKm?.let { "$it km" },
-            ).joinToString(" · ").ifEmpty { "Libre" }
-            Text(
-                "Objetivo $targetGoalSummary · ${details.intensity.name.replace('_', ' ')}",
-                color = Color.White.copy(alpha = 0.68f),
-            )
+            val liveNow = remember(details, timerElapsedSeconds) {
+                com.example.kpkn.domain.cardio.CardioPrescriptionFormatter.liveNowNext(details, timerElapsedSeconds)
+            }
+            val phaseColor = when (liveNow.phase) {
+                com.example.kpkn.data.models.CardioBlockType.WORK -> accentColor
+                com.example.kpkn.data.models.CardioBlockType.RECOVER -> Color(0xFF38BDF8)
+                com.example.kpkn.data.models.CardioBlockType.WARMUP,
+                com.example.kpkn.data.models.CardioBlockType.COOLDOWN,
+                -> Color(0xFF10B981)
+                null -> accentColor
+            }
+            Surface(shape = RoundedCornerShape(16.dp), color = phaseColor.copy(alpha = 0.16f)) {
+                Column(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Ahora · ${liveNow.nowLabel}", color = phaseColor, fontWeight = FontWeight.Black)
+                    liveNow.nextLabel?.let { Text("Siguiente · $it", color = Color.White.copy(alpha = 0.78f), style = MaterialTheme.typography.labelMedium) }
+                }
+            }
 
             Box(
                 modifier = Modifier
@@ -165,18 +166,9 @@ internal fun CardioLiveCard(
                     details = details,
                     accentColor = accentColor,
                     elapsedSeconds = timerElapsedSeconds,
+                    compact = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                currentBlock?.let { block ->
-                    Text(
-                        "Bloque actual: ${CardioIntervalEngine.blockTypeLabel(block.type)} · ${formatCardioTime(block.durationSeconds)}" +
-                            (block.targetKcal?.let { " · ${"%.0f".format(it)} kcal" } ?: "") +
-                            (block.targetDistanceMeters?.let { " · ${"%.0f".format(it)} m" } ?: ""),
-                        color = accentColor,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
             }
 
             Text(
@@ -282,34 +274,37 @@ internal fun CardioLiveCard(
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 if (details.supportsDistance) {
-                    CardioLiveAccentField(
-                        value = if (gpsHasData) formatCardioDistance(recordedDistanceKm) else distanceText,
-                        onValueChange = { distanceText = it.filter { char -> char.isDigit() || char == '.' || char == ',' }.take(8) },
-                        modifier = Modifier.weight(1f),
-                        label = "Km (opcional)",
+                    com.example.kpkn.screens.sessioneditor.components.CardioValuePill(
+                        label = "Km",
+                        value = if (gpsHasData) formatCardioDistance(recordedDistanceKm) else (distanceText.ifBlank { "—" }),
                         accentColor = accentColor,
-                        readOnly = gpsHasData,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        onClick = { if (!gpsHasData) showDistancePicker = true },
+                        modifier = Modifier.weight(1f),
                     )
                 }
-                CardioLiveAccentField(
-                    value = liveHeartRateBpm?.toString() ?: heartRateText,
-                    onValueChange = { heartRateText = it.filter(Char::isDigit).take(3) },
-                    modifier = Modifier.weight(1f),
-                    label = "FC media (opcional)",
+                com.example.kpkn.screens.sessioneditor.components.CardioValuePill(
+                    label = "FC media",
+                    value = (liveHeartRateBpm?.toString() ?: heartRateText.ifBlank { "—" }),
                     accentColor = accentColor,
-                    readOnly = liveHeartRateBpm != null,
-                    trailingIcon = { androidx.compose.material3.Icon(Icons.Default.Favorite, null, tint = accentColor) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    onClick = { if (liveHeartRateBpm == null) showHeartRatePicker = true },
+                    modifier = Modifier.weight(1f),
                 )
             }
             if (gpsMode) {
                 Text(
-                    "Distancia ${formatCardioDistance(recordedDistanceKm)} · velocidad/ritmo ${formatCardioPace(gpsState?.paceSecondsPerKm)}",
+                    "Distancia ${formatCardioDistance(recordedDistanceKm)} · ritmo ${formatCardioPace(gpsState?.paceSecondsPerKm)}",
                     color = accentColor.copy(alpha = 0.88f),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                 )
+                val splits = gpsState?.kmSplitPaces.orEmpty()
+                if (splits.isNotEmpty()) {
+                    Text(
+                        splits.mapIndexed { index, pace -> "km ${index + 1} ${formatCardioPace(pace)}" }.joinToString(" · "),
+                        color = Color.White.copy(alpha = 0.72f),
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
             }
             val hasManualInput = (distanceKm != null && distanceKm > 0.0) || (heartRate != null) || (durationSeconds > 0)
             val canRecord = (status !in setOf(CardioExecutionStatus.READY, CardioExecutionStatus.RECORDED)) ||
@@ -335,6 +330,33 @@ internal fun CardioLiveCard(
             }
         }
 
+    if (showDistancePicker) {
+        com.example.kpkn.screens.sessioneditor.components.CardioDistanceWheelDialog(
+            title = "Distancia",
+            initialKm = distanceText.replace(',', '.').toDoubleOrNull(),
+            accentColor = accentColor,
+            onDismiss = { showDistancePicker = false },
+            onConfirm = { km ->
+                distanceText = km?.let { if (it % 1.0 == 0.0) it.toInt().toString() else "%.1f".format(it) }.orEmpty()
+                showDistancePicker = false
+            },
+        )
+    }
+    if (showHeartRatePicker) {
+        com.example.kpkn.screens.sessioneditor.components.CardioIntWheelDialog(
+            title = "FC media",
+            initial = heartRateText.toIntOrNull() ?: 140,
+            range = 80..220,
+            unit = "bpm",
+            accentColor = accentColor,
+            onDismiss = { showHeartRatePicker = false },
+            onConfirm = { bpm ->
+                heartRateText = bpm?.toString().orEmpty()
+                showHeartRatePicker = false
+            },
+            allowZeroAsNone = true,
+        )
+    }
     if (showRecordConfirmation) {
         KpknAlertDialog(
             onDismissRequest = {

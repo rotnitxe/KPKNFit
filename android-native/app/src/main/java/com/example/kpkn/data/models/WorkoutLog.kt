@@ -166,6 +166,8 @@ data class CompletedSet(
     val avgHeartRate: Int? = null,
     val calories: Double? = null,
     val notes: String? = null,
+    /** Seconds per completed GPS kilometre; empty keeps old strength/cardio logs valid. */
+    val kmSplitPaces: List<Int> = emptyList(),
 )
 
 fun CompletedSet.effectiveRepEquivalent(): Double =

@@ -84,4 +84,26 @@ class CardioIntervalsSerializationTest {
         val decoded = json.decodeFromString<CardioDetails>(newJson)
         assertEquals(1, decoded.intervalBlocks.size)
     }
+
+    @Test
+    fun newTargetFieldsDefaultNullOnOldJson() {
+        val oldJson = """{"type":"TREADMILL","targetDurationSeconds":1200}"""
+        val decoded = json.decodeFromString<CardioDetails>(oldJson)
+        assertEquals(null, decoded.targetPaceSecondsPerKm)
+        assertEquals(null, decoded.targetHrPercent)
+        assertEquals(null, decoded.intervalBlocks.firstOrNull()?.targetPaceSecondsPerKm)
+    }
+
+    @Test
+    fun hiitOpenFlagsRoundTrip() {
+        val original = CardioDetails(
+            type = CardioType.AIR_BIKE,
+            hiit = CardioHiitConfig(warmupOpen = true, cooldownOpen = false, rounds = 6),
+        )
+        val encoded = json.encodeToString(original)
+        val decoded = json.decodeFromString<CardioDetails>(encoded)
+        assertEquals(true, decoded.hiit?.warmupOpen)
+        assertEquals(false, decoded.hiit?.cooldownOpen)
+        assertEquals(6, decoded.hiit?.rounds)
+    }
 }

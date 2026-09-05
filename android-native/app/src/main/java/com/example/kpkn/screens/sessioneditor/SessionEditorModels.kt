@@ -172,6 +172,7 @@ data class SessionEditorUiState(
     val pendingTransferToDays: PendingTransferToDays? = null,
     val selectedSiblingSessionId: String? = null,
     val workoutLogs: List<WorkoutLog> = emptyList(),
+    val cardioHistoryByType: Map<com.example.kpkn.data.models.CardioType, com.example.kpkn.domain.cardio.CardioTypeHistory> = emptyMap(),
     val feedbackByLogId: Map<String, PostSessionFeedback> = emptyMap(),
     val localDraftHistory: List<SessionDraftSnapshot> = emptyList(),
     val sheet: SessionEditorSheet = SessionEditorSheet.NONE,

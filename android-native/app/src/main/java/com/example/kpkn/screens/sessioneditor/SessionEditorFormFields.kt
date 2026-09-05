@@ -276,6 +276,7 @@ internal fun NativeWheelPicker(
     range: IntRange,
     accentColor: Color,
     modifier: Modifier = Modifier,
+    formatValue: (Int) -> String = { it.toString().padStart(2, '0') },
     onValueChange: (Int) -> Unit,
 ) {
     Column(
@@ -304,7 +305,7 @@ internal fun NativeWheelPicker(
                         maxValue = range.last
                         wrapSelectorWheel = true
                         descendantFocusability = NumberPicker.FOCUS_BLOCK_DESCENDANTS
-                        setFormatter { it.toString().padStart(2, '0') }
+                        setFormatter { formatValue(it) }
                         setOnValueChangedListener { _, _, newVal -> onValueChange(newVal) }
                     }
                 },

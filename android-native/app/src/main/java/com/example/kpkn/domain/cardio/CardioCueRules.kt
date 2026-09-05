@@ -25,14 +25,15 @@ object CardioCueRules {
         val block = curr.currentBlock
         val config = hiit
         val speech = if (config?.voiceCuesEnabled != false) {
+            val target = CardioPrescriptionFormatter.targetBits(block)?.let { " · $it" } ?: ""
             when (block.type) {
                 CardioBlockType.WORK -> {
                     val suffix = if (curr.currentIndex >= curr.totalBlocks - 2) " · Última ronda" else ""
-                    "¡Sprint! ${block.durationSeconds} segundos$suffix"
+                    "¡Sprint! ${block.durationSeconds} segundos$target$suffix"
                 }
                 CardioBlockType.RECOVER -> if (config?.restNature == HiitRestNature.PASSIVE) "Descanso, alto total" else "Descanso activo, muévete suave"
-                CardioBlockType.WARMUP -> "Calentamiento ${block.durationSeconds} segundos"
-                CardioBlockType.COOLDOWN -> "Vuelta a la calma"
+                CardioBlockType.WARMUP -> "Calentamiento ${block.durationSeconds} segundos$target"
+                CardioBlockType.COOLDOWN -> "Vuelta a la calma$target"
             }
         } else null
         val vibration = if (config?.vibrationEnabled != false) {

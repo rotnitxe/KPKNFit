@@ -49,6 +49,7 @@ data class CardioGpsState(
     val distanceMeters: Double = 0.0,
     val elapsedActiveSeconds: Long = 0L,
     val paceSecondsPerKm: Int? = null,
+    val kmSplitPaces: List<Int> = emptyList(),
     val pointCount: Int = 0,
     val lastFixAtEpochMs: Long? = null,
 )
@@ -300,6 +301,7 @@ object CardioGpsTracker {
             distanceMeters = current.distanceMeters,
             elapsedActiveSeconds = elapsed,
             paceSecondsPerKm = CardioGpsEngine.paceSecondsPerKm(current.distanceMeters, elapsed),
+            kmSplitPaces = CardioGpsEngine.kmSplitPaces(current.points),
             pointCount = current.points.size,
             lastFixAtEpochMs = current.lastFixAtEpochMs,
         )

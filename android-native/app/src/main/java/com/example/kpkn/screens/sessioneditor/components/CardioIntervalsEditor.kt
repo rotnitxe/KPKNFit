@@ -566,10 +566,6 @@ private fun CardioActiveBlockInspector(
     onNext: (() -> Unit)?,
 ) {
     var showDurationPicker by remember { mutableStateOf(false) }
-    var speedText by remember(block.id) { mutableStateOf(block.speedKmh?.let { if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() } ?: "") }
-    var inclineText by remember(block.id) { mutableStateOf(block.inclinePercent?.let { if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() } ?: "") }
-    var rpmText by remember(block.id) { mutableStateOf(block.rpm?.toString() ?: "") }
-    var wattsText by remember(block.id) { mutableStateOf(block.watts?.toString() ?: "") }
 
     Surface(
         shape = RoundedCornerShape(12.dp),
@@ -668,18 +664,13 @@ private fun CardioActiveBlockInspector(
 
             // Duración con ajuste rápido y selector
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-                Box(modifier = Modifier.weight(1f)) {
-                    IntervalAccentField(
-                        value = formatMinutes(block.durationSeconds),
-                        onValueChange = {},
-                        label = "Duración",
-                        accentColor = accentColor,
-                        readOnly = true,
-                        trailingIcon = { Icon(Icons.Default.Timer, null, tint = accentColor, modifier = Modifier.size(16.dp)) },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Box(Modifier.matchParentSize().clickable { showDurationPicker = true })
-                }
+                CardioValuePill(
+                    label = "Duración",
+                    value = formatMinutes(block.durationSeconds),
+                    accentColor = accentColor,
+                    onClick = { showDurationPicker = true },
+                    modifier = Modifier.weight(1f),
+                )
 
                 // Botones rápidos de ajuste de tiempo (+15s / -15s)
                 Row(
@@ -712,90 +703,145 @@ private fun CardioActiveBlockInspector(
             }
 
             if (showDurationPicker) {
-                KpknNativeTimePickerDialog(
+                CardioMinutesSecondsWheelDialog(
                     title = "Duración del bloque",
-                    initialHour = (block.durationSeconds / 60) / 60,
-                    initialMinute = (block.durationSeconds / 60) % 60,
-                    hint = "Horas : minutos",
-                    onConfirm = { h, m ->
-                        val sec = (h * 3600 + m * 60).coerceAtLeast(15)
-                        onUpdate(block.copy(durationSeconds = sec))
+                    initialSeconds = block.durationSeconds,
+                    accentColor = accentColor,
+                    onDismiss = { showDurationPicker = false },
+                    onConfirm = { seconds ->
+                        onUpdate(block.copy(durationSeconds = seconds.coerceAtLeast(5)))
                         showDurationPicker = false
                     },
-                    onDismiss = { showDurationPicker = false },
                 )
             }
 
-            // Campos condicionales de parámetros
+            var blockPicker by remember { mutableStateOf<String?>(null) }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 if (catalogSupportsSpeed) {
-                    IntervalAccentField(
-                        value = speedText,
-                        onValueChange = { v ->
-                            speedText = v.filter { it.isDigit() || it == '.' || it == ',' }.take(6)
-                            val parsed = speedText.replace(',', '.').toDoubleOrNull()
-                            onUpdate(block.copy(speedKmh = parsed))
-                        },
-                        label = "Velocidad (km/h)",
+                    CardioValuePill(
+                        label = "km/h",
+                        value = block.speedKmh?.let { if (it % 1.0 == 0.0) it.toInt().toString() else "%.1f".format(it) } ?: "—",
                         accentColor = accentColor,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        onClick = { blockPicker = "speed" },
                         modifier = Modifier.weight(1f),
                     )
                 }
                 if (catalogSupportsIncline) {
-                    IntervalAccentField(
-                        value = inclineText,
-                        onValueChange = { v ->
-                            inclineText = v.filter { it.isDigit() || it == '.' || it == '-' }.take(5)
-                            val parsed = inclineText.replace(',', '.').toDoubleOrNull()
-                            onUpdate(block.copy(inclinePercent = parsed))
-                        },
-                        label = "Inclinación (%)",
+                    CardioValuePill(
+                        label = "Incl %",
+                        value = block.inclinePercent?.toString() ?: "—",
                         accentColor = accentColor,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        onClick = { blockPicker = "incline" },
                         modifier = Modifier.weight(1f),
                     )
                 }
                 if (catalogSupportsRpm) {
-                    IntervalAccentField(
-                        value = rpmText,
-                        onValueChange = { v ->
-                            rpmText = v.filter { it.isDigit() }.take(4)
-                            onUpdate(block.copy(rpm = rpmText.toIntOrNull()))
-                        },
+                    CardioValuePill(
                         label = "RPM",
+                        value = block.rpm?.toString() ?: "—",
                         accentColor = accentColor,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        onClick = { blockPicker = "rpm" },
                         modifier = Modifier.weight(1f),
                     )
                 }
                 if (catalogSupportsWatts) {
-                    IntervalAccentField(
-                        value = wattsText,
-                        onValueChange = { v ->
-                            wattsText = v.filter { it.isDigit() }.take(4)
-                            onUpdate(block.copy(watts = wattsText.toIntOrNull()))
-                        },
-                        label = "Vatios (W)",
+                    CardioValuePill(
+                        label = "W",
+                        value = block.watts?.toString() ?: "—",
                         accentColor = accentColor,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        onClick = { blockPicker = "watts" },
                         modifier = Modifier.weight(1f),
                     )
                 }
                 if (!catalogSupportsSpeed) {
-                    var levelText by remember(block.id) { mutableStateOf(block.intensityLevel?.toString() ?: "") }
-                    IntervalAccentField(
-                        value = levelText,
-                        onValueChange = { v ->
-                            levelText = v.filter { it.isDigit() }.take(2)
-                            onUpdate(block.copy(intensityLevel = levelText.toIntOrNull()?.coerceIn(1, 10)))
-                        },
-                        label = "Nivel 1-10",
+                    CardioValuePill(
+                        label = "Nivel",
+                        value = block.intensityLevel?.toString() ?: "—",
                         accentColor = accentColor,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        onClick = { blockPicker = "level" },
                         modifier = Modifier.weight(1f),
                     )
                 }
+                CardioValuePill(
+                    label = "Ritmo",
+                    value = block.targetPaceSecondsPerKm?.let { com.example.kpkn.domain.cardio.CardioPrescriptionFormatter.formatPace(it) } ?: "—",
+                    accentColor = accentColor,
+                    onClick = { blockPicker = "pace" },
+                    modifier = Modifier.weight(1f),
+                )
+                CardioValuePill(
+                    label = "% FC",
+                    value = block.targetHrPercent?.toString() ?: "—",
+                    accentColor = accentColor,
+                    onClick = { blockPicker = "hr" },
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            when (blockPicker) {
+                "speed" -> CardioTenthsWheelDialog(
+                    title = "Velocidad",
+                    initial = block.speedKmh,
+                    wholeRange = 3..25,
+                    unit = "km/h",
+                    accentColor = accentColor,
+                    onDismiss = { blockPicker = null },
+                    onConfirm = { onUpdate(block.copy(speedKmh = it)); blockPicker = null },
+                )
+                "incline" -> CardioTenthsWheelDialog(
+                    title = "Inclinación",
+                    initial = block.inclinePercent,
+                    wholeRange = 0..20,
+                    unit = "%",
+                    accentColor = accentColor,
+                    onDismiss = { blockPicker = null },
+                    onConfirm = { onUpdate(block.copy(inclinePercent = it)); blockPicker = null },
+                )
+                "rpm" -> CardioIntWheelDialog(
+                    title = "Cadencia",
+                    initial = block.rpm ?: 80,
+                    range = 40..130,
+                    unit = "rpm",
+                    accentColor = accentColor,
+                    onDismiss = { blockPicker = null },
+                    onConfirm = { onUpdate(block.copy(rpm = it)); blockPicker = null },
+                    allowZeroAsNone = false,
+                )
+                "watts" -> CardioIntWheelDialog(
+                    title = "Vatios",
+                    initial = block.watts ?: 120,
+                    range = 0..500,
+                    unit = "W",
+                    accentColor = accentColor,
+                    onDismiss = { blockPicker = null },
+                    onConfirm = { onUpdate(block.copy(watts = it)); blockPicker = null },
+                )
+                "level" -> CardioIntWheelDialog(
+                    title = "Nivel",
+                    initial = block.intensityLevel ?: 6,
+                    range = 1..10,
+                    unit = "RPE",
+                    accentColor = accentColor,
+                    onDismiss = { blockPicker = null },
+                    onConfirm = { onUpdate(block.copy(intensityLevel = it)); blockPicker = null },
+                    allowZeroAsNone = false,
+                )
+                "pace" -> CardioPaceWheelDialog(
+                    title = "Ritmo",
+                    initialSecondsPerKm = block.targetPaceSecondsPerKm,
+                    accentColor = accentColor,
+                    onDismiss = { blockPicker = null },
+                    onConfirm = { onUpdate(block.copy(targetPaceSecondsPerKm = it)); blockPicker = null },
+                )
+                "hr" -> CardioIntWheelDialog(
+                    title = "% FC",
+                    initial = block.targetHrPercent ?: 75,
+                    range = 50..100,
+                    unit = "%",
+                    accentColor = accentColor,
+                    onDismiss = { blockPicker = null },
+                    onConfirm = { onUpdate(block.copy(targetHrPercent = it)); blockPicker = null },
+                    allowZeroAsNone = false,
+                )
             }
         }
     }
