@@ -2,6 +2,7 @@ package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.PostSessionPreview
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -44,6 +45,13 @@ class WorkoutFinishCalibrationTest {
         assertTrue("Tríceps nunca entra en el delta", "Tríceps" !in keys)
         val restored = seed + ("Pectorales" to 78)
         assertTrue(restored.keys.filterTo(mutableSetOf()) { restored[it] != seed[it] }.isEmpty())
+    }
+
+    @Test
+    fun drainCaptionHidesZeroAndShowsMinusN() {
+        assertNull(finishRingDrainCaption(0))
+        assertNull(finishRingDrainCaption(-3))
+        assertEquals("−20", finishRingDrainCaption(20))
     }
 
     private fun muscle(name: String, score: Int) = com.example.kpkn.data.models.MuscleRecoveryStatus(

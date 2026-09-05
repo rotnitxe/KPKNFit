@@ -465,6 +465,8 @@ internal fun WorkoutV2Body(
                         showCreateTagDialog = true
                     },
                     onDismiss = { showTagListOverlay = false },
+                    hasSeenEducation = settings.hasSeenWorkoutTagEducation,
+                    onOpened = { viewModel.markWorkoutTagEducationSeen() },
                 )
             }
 

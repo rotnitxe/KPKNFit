@@ -6,6 +6,8 @@ import kotlinx.serialization.Serializable
 data class Settings(
     val hasSeenWelcome: Boolean = false,
     val hasSeenHomeTour: Boolean = false,
+    /** Ensayo del overlay de etiquetas de workout: solo la primera vez real. */
+    val hasSeenWorkoutTagEducation: Boolean = false,
 
     /** Onboarding de bienvenida (primera vez): fases y finalización. */
     val onboardingCompleted: Boolean = false,

@@ -141,6 +141,7 @@ class SettingsViewModel : ViewModel() {
             current.copy(
                 hasSeenWelcome = false,
                 hasSeenHomeTour = false,
+                hasSeenWorkoutTagEducation = false,
                 hasChosenVoiceCaptureMode = false,
             )
         }

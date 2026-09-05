@@ -27,6 +27,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import kotlin.math.*
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.theme.RingRed
 
 // ─── Ring Constants ──────────────────────────────────────────────────────────
 
@@ -36,6 +37,7 @@ internal val RingColors = listOf(
     Color(0xFF9A86C8), // Columna — lavanda apagado
 )
 private val RingLabels = listOf("Músculos", "Energía", "Columna")
+private val AugeRingDrainFill = RingRed.copy(alpha = 0.32f)
 
 @Composable
 fun HomeRingsSection(
@@ -244,7 +246,14 @@ internal fun SingleRingCanvas(
 }
 
 @Composable
-internal fun AugeRingsCanvas(mp: Float, sp: Float, cp: Float, ringColors: List<Color> = RingColors) {
+internal fun AugeRingsCanvas(
+    mp: Float,
+    sp: Float,
+    cp: Float,
+    ringColors: List<Color> = RingColors,
+    drainFractions: List<Float>? = null,
+    drainColor: Color = AugeRingDrainFill,
+) {
     val values = listOf(mp, sp, cp)
     Canvas(
         Modifier
@@ -256,9 +265,18 @@ internal fun AugeRingsCanvas(mp: Float, sp: Float, cp: Float, ringColors: List<C
         val rings = layout.centers.mapIndexed { index, center ->
             Triple(center, ringColors[index], values[index].coerceIn(0f, 1f))
         }
+        val drains = drainFractions ?: emptyList()
 
         rings.forEach { (center, color, _) ->
             drawAugeRingTrack(center, radius, color)
+        }
+        rings.forEachIndexed { index, (center, _, _) ->
+            drawAugeRingDrainFill(
+                center = center,
+                radius = radius,
+                drainFraction = drains.getOrElse(index) { 0f },
+                color = drainColor,
+            )
         }
         rings.forEach { (center, color, progress) ->
             drawAugeRingBlooms(center, radius, color, progress, BlendMode.Plus)
@@ -267,6 +285,28 @@ internal fun AugeRingsCanvas(mp: Float, sp: Float, cp: Float, ringColors: List<C
             drawAugeRingCore(center, radius, color, progress)
         }
     }
+}
+
+internal fun DrawScope.drawAugeRingDrainFill(
+    center: Offset,
+    radius: Float,
+    drainFraction: Float,
+    color: Color,
+) {
+    val clamped = drainFraction.coerceIn(0f, 1f)
+    if (clamped <= 0f) return
+    val inner = (radius - AugeRingCoreStroke.toPx() * 2f).coerceAtLeast(radius * 0.72f)
+    val topLeft = Offset(center.x - inner, center.y - inner)
+    val arcSize = Size(inner * 2f, inner * 2f)
+    drawArc(
+        color = color,
+        startAngle = -90f,
+        sweepAngle = 360f * clamped,
+        useCenter = true,
+        topLeft = topLeft,
+        size = arcSize,
+        blendMode = BlendMode.SrcOver,
+    )
 }
 
 internal fun DrawScope.drawAugeRingTrack(center: Offset, radius: Float, color: Color) {

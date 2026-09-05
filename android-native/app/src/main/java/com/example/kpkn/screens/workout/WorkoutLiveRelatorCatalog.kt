@@ -42,7 +42,7 @@ internal object WorkoutLiveRelatorCatalog {
         RelatorSpeechBucket.ASSIST_TIME,
         RelatorSpeechBucket.ASSIST_MOBILITY,
         -> listOf(snapshot.assistOffer?.text ?: fallback(snapshot))
-        RelatorSpeechBucket.ASSIST_CONFIRM -> listOf(assistConfirm(snapshot))
+        RelatorSpeechBucket.ASSIST_CONFIRM -> assistConfirmVariants(snapshot)
         RelatorSpeechBucket.CAUTION_FAILED_SET -> cautionFailedSetVariants(snapshot)
         RelatorSpeechBucket.CONCEPT_CUE -> snapshot.conceptCueOrNull()?.lines.orEmpty()
             .ifEmpty { situateWorkingVariants(snapshot) }
@@ -123,45 +123,100 @@ internal object WorkoutLiveRelatorCatalog {
         }
     }
 
-    private fun assistConfirm(snapshot: LiveRelatorSnapshot): String {
-        val ack = snapshot.assistAck ?: return situateWorking(snapshot)
-        if (!ack.applied) {
-            return when (ack.kind) {
-                RelatorAssistActionKind.PREVIEW_ULTRAFAST ->
-                    "El modo ultrarrápido ya está aplicado en esta sesión."
-                RelatorAssistActionKind.CONVERT_DROPSETS ->
-                    "Eso ya está aplicado: las series que quedan ya van en dropset."
-                RelatorAssistActionKind.HALVE_SETS ->
-                    "No había series suficientes para recortar a la mitad."
-                RelatorAssistActionKind.ADD_MOBILITY ->
-                    "No pude añadir esa movilidad ahora. Revisa el ejercicio y reintenta."
+    internal fun assistConfirmVariants(snapshot: LiveRelatorSnapshot): List<String> {
+        val ack = snapshot.assistAck ?: return situateWorkingVariants(snapshot)
+        val target = ack.detail.trim().ifBlank { "{ex}" }
+        val lines = if (!ack.applied) {
+            when (ack.kind) {
+                RelatorAssistActionKind.PREVIEW_ULTRAFAST -> listOf(
+                    "El modo ultrarrápido ya está aplicado en esta sesión.",
+                    "Ultrarrápido ya estaba puesto. No hay nada más que aplicar.",
+                    "Ese modo ya corre en esta sesión.",
+                )
+                RelatorAssistActionKind.CONVERT_DROPSETS -> listOf(
+                    "Eso ya está aplicado: las series que quedan ya van en dropset.",
+                    "Las series que quedan ya van en dropset. Nada que cambiar.",
+                    "Dropsets ya estaban. Seguimos.",
+                )
+                RelatorAssistActionKind.HALVE_SETS -> listOf(
+                    "No había series suficientes para recortar a la mitad.",
+                    "No alcanza para partir las series a la mitad.",
+                    "Quedan pocas series; no pude recortar.",
+                )
+                RelatorAssistActionKind.ADD_MOBILITY -> listOf(
+                    "No pude añadir esa movilidad ahora. Revisa el ejercicio y reintenta.",
+                    "No pude sumar esa movilidad ahora.",
+                    "Esa movilidad no entró. Revisa y reintenta.",
+                )
                 RelatorAssistActionKind.JUMP_TO_SIDE,
                 RelatorAssistActionKind.JUMP_TO_SET,
                 RelatorAssistActionKind.JUMP_TO_EXERCISE,
-                -> "No pude saltar ahí. El paso ya no está disponible."
-                else -> "Eso ya está aplicado para esta sesión."
+                -> listOf(
+                    "No pude saltar ahí. El paso ya no está disponible.",
+                    "Ese salto ya no está. El paso desapareció.",
+                    "No hay a dónde saltar ahora.",
+                )
+                RelatorAssistActionKind.MOVE_EXERCISE_END -> listOf(
+                    "No pude mandar $target al final ahora.",
+                    "$target no se pudo mover al cierre.",
+                    "Ese cambio de orden no aplicó. Seguimos aquí.",
+                )
+                RelatorAssistActionKind.OMIT_SET -> listOf(
+                    "No pude omitir esa serie. Ya no está disponible.",
+                    "Esa serie ya no se puede omitir.",
+                    "Omitir no aplicó. Seguimos con lo que toca.",
+                )
+            }
+        } else {
+            when (ack.kind) {
+                RelatorAssistActionKind.CONVERT_DROPSETS -> listOf(
+                    "Ok, aplico dropsets a las series que quedan para que termines antes. Ojo a las articulaciones y recupera bien para la próxima.",
+                    "Dropsets en lo que queda. Aceleramos; cuida las articulaciones.",
+                    "Quedan en dropset. Terminas antes; no fuerces la articulación.",
+                )
+                RelatorAssistActionKind.PREVIEW_ULTRAFAST -> listOf(
+                    "Ok, aplico modo ultrarrápido a lo que queda: menos series y menos descanso para terminar a tiempo. Ten ojo con las articulaciones.",
+                    "Ultrarrápido activo: menos series y menos descanso. Cierra limpio.",
+                    "Modo ultrarrápido puesto. Prioriza terminar; ojo a las articulaciones.",
+                )
+                RelatorAssistActionKind.HALVE_SETS -> listOf(
+                    "Ok, recorto a la mitad las series que quedan. Terminas antes; no persigas volumen extra hoy.",
+                    "Mitad de series en lo que queda. Cierra sin perseguir volumen.",
+                    "Recorté las series a la mitad. Hoy no sumes extra.",
+                )
+                RelatorAssistActionKind.OMIT_SET -> listOf(
+                    "Hecho: dejo esa serie omitida y seguimos.",
+                    "Serie omitida. Seguimos con lo que toca.",
+                    "La dejo de lado. Avanzamos.",
+                )
+                RelatorAssistActionKind.JUMP_TO_SET -> listOf(
+                    "Vamos a esa serie ahora.",
+                    "Saltamos a esa serie. Sigue desde aquí.",
+                    "Esa serie, ahora. Retomamos.",
+                )
+                RelatorAssistActionKind.JUMP_TO_SIDE -> listOf(
+                    "Cambio al otro lado.",
+                    "Pasamos al otro lado. Sigue esa serie.",
+                    "Otro lado. Mismo ejercicio, otra mitad.",
+                )
+                RelatorAssistActionKind.JUMP_TO_EXERCISE -> listOf(
+                    "Volvemos a $target.",
+                    "Regresamos a $target; retomamos desde aquí.",
+                    "$target otra vez. Sigue esta serie.",
+                )
+                RelatorAssistActionKind.MOVE_EXERCISE_END -> listOf(
+                    "Listo: $target queda al final. Seguimos con lo de ahora.",
+                    "$target se va al cierre. Ahora toca lo que sigue.",
+                    "Lo mandé al final. $target espera; seguimos aquí.",
+                )
+                RelatorAssistActionKind.ADD_MOBILITY -> listOf(
+                    "Añado esa movilidad a {ex}. Un momento para la articulación y seguimos.",
+                    "Movilidad añadida a {ex}. Un momento y seguimos.",
+                    "Sumé esa movilidad. {ex} queda más protegido.",
+                )
             }
         }
-        return when (ack.kind) {
-            RelatorAssistActionKind.CONVERT_DROPSETS ->
-                "Ok, aplico dropsets a las series que quedan para que termines antes. Ojo a las articulaciones y recupera bien para la próxima."
-            RelatorAssistActionKind.PREVIEW_ULTRAFAST ->
-                "Ok, aplico modo ultrarrápido a lo que queda: menos series y menos descanso para terminar a tiempo. Ten ojo con las articulaciones."
-            RelatorAssistActionKind.HALVE_SETS ->
-                "Ok, recorto a la mitad las series que quedan. Terminas antes; no persigas volumen extra hoy."
-            RelatorAssistActionKind.OMIT_SET ->
-                "Hecho: dejo esa serie omitida y seguimos."
-            RelatorAssistActionKind.JUMP_TO_SET ->
-                "Vamos a esa serie ahora."
-            RelatorAssistActionKind.JUMP_TO_SIDE ->
-                "Cambio al otro lado."
-            RelatorAssistActionKind.JUMP_TO_EXERCISE ->
-                "Saltamos a ese ejercicio."
-            RelatorAssistActionKind.MOVE_EXERCISE_END ->
-                "Lo mando al final de la sesión. Seguimos con lo que toca ahora."
-            RelatorAssistActionKind.ADD_MOBILITY ->
-                "Añado esa movilidad a {ex}. Un momento para la articulación y seguimos."
-        }
+        return lines.map { it.replace("{target}", target) }
     }
 
     fun idleTissue(snapshot: LiveRelatorSnapshot): String = idleTissueVariants(snapshot).first()

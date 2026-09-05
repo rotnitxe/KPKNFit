@@ -983,6 +983,30 @@ class WorkoutLiveRelatorTest {
     }
 
     @Test
+    fun relatorActionSpansDoNotStartInsideAWord() {
+        val action = RelatorAssistAction(
+            kind = RelatorAssistActionKind.JUMP_TO_EXERCISE,
+            label = "Vuelve",
+            span = "Vuelve",
+        )
+        val inside = relatorActionSpans("Devuelve el peso y sigue.", listOf(action))
+        assertTrue(inside.isEmpty())
+        val standalone = relatorActionSpans("Pendiente Press banca. Vuelve ahora.", listOf(action))
+        assertEquals(1, standalone.size)
+        assertEquals("Vuelve", "Pendiente Press banca. Vuelve ahora.".substring(standalone.single().start, standalone.single().endExclusive))
+        assertTrue(relatorIsStandaloneSpan("Pendiente Press banca. Vuelve ahora.", standalone.single().start, standalone.single().endExclusive))
+        assertFalse(relatorIsStandaloneSpan("Devuelve", 2, 8))
+    }
+
+    @Test
+    fun relatorLinkWrapChunksKeepSpacesOutsideWords() {
+        val chunks = relatorLinkWrapChunks("Ve a Remo Barra")
+        assertEquals(listOf("Ve", " ", "a", " ", "Remo", " ", "Barra"), chunks)
+        assertTrue(chunks.any { it.isBlank() })
+        assertEquals(listOf("Vuelve"), relatorLinkWrapChunks("Vuelve"))
+    }
+
+    @Test
     fun relatorInlinePiecesWithoutActionsStayCopy() {
         val text = "Estás en la serie 1 de Press banca."
         val pieces = relatorInlinePieces(text, emptyList())
@@ -1386,7 +1410,7 @@ class WorkoutLiveRelatorTest {
     }
 
     @Test
-    fun assistActionsStayAttachedOnConfirm() {
+    fun assistActionsStayDetachedOnConfirm() {
         val offer = RelatorAssistOffer(
             kind = RelatorAssistKind.TIME,
             text = "Quedan 4 minutos. Convierte a dropsets.",
@@ -1401,7 +1425,95 @@ class WorkoutLiveRelatorTest {
             ),
         )
         assertEquals(RelatorSpeechBucket.ASSIST_CONFIRM.phaseKey(), resolution.phaseKey)
-        assertEquals(1, resolution.actions.size)
+        assertTrue(resolution.actions.isEmpty())
+    }
+
+    @Test
+    fun assistConfirmJumpAndMoveCarryShortExerciseName() {
+        val move = WorkoutLiveRelator.resolve(
+            baseSnapshot(exerciseDisplayName = "Press banca").copy(
+                assistAck = RelatorAssistAck(
+                    kind = RelatorAssistActionKind.MOVE_EXERCISE_END,
+                    applied = true,
+                    detail = "Remo T",
+                ),
+            ),
+        )
+        assertEquals(RelatorSpeechBucket.ASSIST_CONFIRM.phaseKey(), move.phaseKey)
+        assertTrue(move.actions.isEmpty())
+        assertTrue(move.text!!.contains("Remo T"))
+
+        val jump = WorkoutLiveRelator.resolve(
+            baseSnapshot(exerciseDisplayName = "Press banca").copy(
+                assistAck = RelatorAssistAck(
+                    kind = RelatorAssistActionKind.JUMP_TO_EXERCISE,
+                    applied = true,
+                    detail = "Remo T",
+                ),
+            ),
+        )
+        assertTrue(jump.text!!.contains("Remo T"))
+        assertTrue(jump.actions.isEmpty())
+    }
+
+    @Test
+    fun assistConfirmHasDistinctMoveAndJumpVariants() {
+        val moveSnap = baseSnapshot().copy(
+            assistAck = RelatorAssistAck(
+                kind = RelatorAssistActionKind.MOVE_EXERCISE_END,
+                applied = true,
+                detail = "Remo T",
+            ),
+        )
+        val jumpSnap = baseSnapshot().copy(
+            assistAck = RelatorAssistAck(
+                kind = RelatorAssistActionKind.JUMP_TO_EXERCISE,
+                applied = true,
+                detail = "Remo T",
+            ),
+        )
+        val move = WorkoutLiveRelatorCatalog.variantsFor(RelatorSpeechBucket.ASSIST_CONFIRM, moveSnap)
+        val jump = WorkoutLiveRelatorCatalog.variantsFor(RelatorSpeechBucket.ASSIST_CONFIRM, jumpSnap)
+        assertTrue(move.distinct().size >= 2)
+        assertTrue(jump.distinct().size >= 2)
+        assertTrue(move.all { it.contains("Remo T") })
+        assertTrue(jump.all { it.contains("Remo T") })
+    }
+
+    @Test
+    fun assistConfirmAppliedFalseStillSpeaks() {
+        val line = WorkoutLiveRelator.resolve(
+            baseSnapshot().copy(
+                assistAck = RelatorAssistAck(
+                    kind = RelatorAssistActionKind.JUMP_TO_EXERCISE,
+                    applied = false,
+                    detail = "Press banca",
+                ),
+            ),
+        ).text
+        assertFalse(line.isNullOrBlank())
+        assertTrue(line!!.lowercase().contains("saltar") || line.lowercase().contains("salto"))
+    }
+
+    @Test
+    fun assistConfirmFingerprintSkipsSameVariantTwice() {
+        val snap = baseSnapshot().copy(
+            assistAck = RelatorAssistAck(
+                kind = RelatorAssistActionKind.MOVE_EXERCISE_END,
+                applied = true,
+                detail = "Remo T",
+            ),
+        )
+        val variants = WorkoutLiveRelatorCatalog.variantsFor(RelatorSpeechBucket.ASSIST_CONFIRM, snap)
+        val extra = RelatorAssistActionKind.MOVE_EXERCISE_END.name
+        val first = pickRelatorVariant(RelatorSpeechBucket.ASSIST_CONFIRM, variants, RelatorSpeechMemory(), extra)
+        val second = pickRelatorVariant(
+            RelatorSpeechBucket.ASSIST_CONFIRM,
+            variants,
+            RelatorSpeechMemory().record(first.fingerprint),
+            extra,
+        )
+        assertTrue(first.text != second.text)
     }
 
     @Test

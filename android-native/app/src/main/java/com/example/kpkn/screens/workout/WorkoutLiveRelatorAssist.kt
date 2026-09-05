@@ -197,14 +197,35 @@ internal fun relatorActionSpans(text: String, actions: List<RelatorAssistAction>
     for (action in actions.sortedByDescending { it.clickableSpan().length }) {
         val needle = action.clickableSpan()
         if (needle.isEmpty()) continue
-        val idx = text.indexOf(needle, ignoreCase = true)
-        if (idx < 0) continue
-        val end = idx + needle.length
-        if ((idx until end).any { it in used.indices && used[it] }) continue
-        for (i in idx until end) used[i] = true
-        found += RelatorTextSpan(idx, end, action)
+        var from = 0
+        while (from <= text.length - needle.length) {
+            val idx = text.indexOf(needle, startIndex = from, ignoreCase = true)
+            if (idx < 0) break
+            val end = idx + needle.length
+            val overlaps = (idx until end).any { it in used.indices && used[it] }
+            if (!overlaps && relatorIsStandaloneSpan(text, idx, end)) {
+                for (i in idx until end) used[i] = true
+                found += RelatorTextSpan(idx, end, action)
+                break
+            }
+            from = idx + 1
+        }
     }
     return found.sortedBy { it.start }
+}
+
+/** A link must not start or end inside another word (that would clip the name before it). */
+internal fun relatorIsStandaloneSpan(text: String, start: Int, endExclusive: Int): Boolean {
+    if (start < 0 || endExclusive > text.length || start >= endExclusive) return false
+    val before = start == 0 || !text[start - 1].isLetterOrDigit()
+    val after = endExclusive == text.length || !text[endExclusive].isLetterOrDigit()
+    return before && after
+}
+
+/** Keep spaces outside clickable runs so a long link can wrap instead of crushing the previous word. */
+internal fun relatorLinkWrapChunks(label: String): List<String> {
+    if (label.isEmpty()) return emptyList()
+    return Regex("\\S+|\\s+").findAll(label).map { it.value }.toList().ifEmpty { listOf(label) }
 }
 
 internal sealed class RelatorInlinePiece {

@@ -904,26 +904,36 @@ private fun ColumnScope.CatalogReadyContent(
             def.id to searchMatchChipLabels(cfg, def)
         }.toMap()
     }
-    val selectedRows = remember(catalog, selectedExercisesIds) {
+    val selectedRows = remember {
         // neverEqualPolicy: reordenar el LinkedHashMap produce un mapa igual
         // (la igualdad de Maps ignora el orden), y sin esto Compose no
         // recompondría y el reorden no se vería.
-        val restored = linkedMapOf<String, ExerciseMuscleInfo>()
-        selectedExercisesIds.forEach { selectedId ->
-            val definition = definitionsById[selectedId]
-            val info = when {
-                definition != null -> exactInfo(catalog, definition, definition.configurations.firstOrNull()?.id)
-                else -> catalog.families
-                    .asSequence()
-                    .flatMap { it.definitions.asSequence() }
-                    .firstNotNullOfOrNull { candidate ->
-                        candidate.configurations.firstOrNull { it.id.equals(selectedId, ignoreCase = true) }
-                            ?.let { exactInfo(catalog, candidate, it.id) }
-                    }
-            }
-            if (info != null) restored[info.id] = info
+        mutableStateOf(
+            restoreSelectedCatalogRows(
+                catalog = catalog,
+                definitionsById = definitionsById,
+                selectedIds = selectedExercisesIds,
+                previous = emptyMap(),
+                draftByDefinition = initialDraftByDefinition,
+                initialCatalogDefinitionId = initialCatalogDefinitionId,
+                initialCatalogConfigurationId = initialCatalogConfigurationId,
+            ),
+            neverEqualPolicy(),
+        )
+    }
+    LaunchedEffect(catalog, selectedExercisesIds) {
+        val next = restoreSelectedCatalogRows(
+            catalog = catalog,
+            definitionsById = definitionsById,
+            selectedIds = selectedExercisesIds,
+            previous = selectedRows.value,
+            draftByDefinition = draftByDefinition.value,
+            initialCatalogDefinitionId = initialCatalogDefinitionId,
+            initialCatalogConfigurationId = initialCatalogConfigurationId,
+        )
+        if (next != selectedRows.value) {
+            selectedRows.value = next
         }
-        mutableStateOf<Map<String, ExerciseMuscleInfo>>(restored, neverEqualPolicy())
     }
     var selectedListExpanded by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(selectedRows.value.isEmpty()) {
@@ -1115,6 +1125,14 @@ private fun ColumnScope.CatalogReadyContent(
                     value = value,
                 )
                 draftByDefinition.value = draftByDefinition.value + (definition.id to newDraft)
+                if (definition.id in selectedRows.value) {
+                    val nextConfigId = repository.compatibility(definition.id, newDraft).exactConfigurationId
+                        ?: bestMatchingConfigurationId(definition, newDraft, default)
+                    val info = exactInfo(catalog, definition, nextConfigId)
+                    if (info != null) {
+                        selectedRows.value = selectedRows.value + (definition.id to info)
+                    }
+                }
             }
 
             Card(
@@ -2659,6 +2677,72 @@ internal fun bestMatchingConfigurationId(
         configuration.selectedOptions.count { (axis, value) -> defaultOptions[axis] != value }
     }?.id
 }
+
+/**
+ * Resolves the configuration to persist for a selected definition.
+ * Never falls back to `configurations.first()`: that array order is editorial,
+ * not the user's choice (e.g. t_bar_row starts with machine/wide).
+ */
+internal fun resolveSelectedCatalogConfigurationId(
+    definition: ExerciseDefinitionV2,
+    draftOptions: Map<String, String>?,
+    previousConfigurationId: String?,
+    initialConfigurationId: String?,
+): String? {
+    fun exists(id: String?) = !id.isNullOrBlank() && definition.configurations.any { it.id == id }
+    if (exists(previousConfigurationId)) return previousConfigurationId
+    val default = definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }
+    val fromDraft = draftOptions?.takeIf { it.isNotEmpty() }?.let { options ->
+        bestMatchingConfigurationId(definition, options, default)
+    }
+    if (fromDraft != null) return fromDraft
+    if (exists(initialConfigurationId)) return initialConfigurationId
+    return default?.id
+}
+
+internal fun restoreSelectedCatalogRows(
+    catalog: ExerciseCatalogV2,
+    definitionsById: Map<String, ExerciseDefinitionV2>,
+    selectedIds: Collection<String>,
+    previous: Map<String, ExerciseMuscleInfo>,
+    draftByDefinition: Map<String, Map<String, String>>,
+    initialCatalogDefinitionId: String? = null,
+    initialCatalogConfigurationId: String? = null,
+): Map<String, ExerciseMuscleInfo> {
+    val restored = linkedMapOf<String, ExerciseMuscleInfo>()
+    selectedIds.forEach { selectedId ->
+        val definitionById = definitionsById[selectedId]
+        val definitionByConfig = if (definitionById == null) {
+            definitionsById.values.firstOrNull { definition ->
+                definition.configurations.any { it.id.equals(selectedId, ignoreCase = true) }
+            }
+        } else {
+            null
+        }
+        val definition = definitionById ?: definitionByConfig
+        if (definition == null) {
+            previous[selectedId]?.let { restored[selectedId] = it }
+            return@forEach
+        }
+        val previousInfo = previous[definition.id]
+        val configurationId = if (definitionByConfig != null) {
+            definition.configurations.first { it.id.equals(selectedId, ignoreCase = true) }.id
+        } else {
+            resolveSelectedCatalogConfigurationId(
+                definition = definition,
+                draftOptions = draftByDefinition[definition.id],
+                previousConfigurationId = previousInfo?.catalogConfigurationId,
+                initialConfigurationId = initialCatalogConfigurationId.takeIf {
+                    initialCatalogDefinitionId == null || initialCatalogDefinitionId == definition.id
+                },
+            )
+        }
+        val info = exactInfo(catalog, definition, configurationId) ?: previousInfo
+        if (info != null) restored[definition.id] = info
+    }
+    return restored
+}
+
 private fun exactInfo(
     catalog: ExerciseCatalogV2,
     definition: ExerciseDefinitionV2,

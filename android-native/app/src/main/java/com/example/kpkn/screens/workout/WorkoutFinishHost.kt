@@ -2,16 +2,15 @@ package com.example.kpkn.screens.workout
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -80,11 +79,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import com.example.kpkn.screens.home.drawAugeRingBlooms
-import com.example.kpkn.screens.home.drawAugeRingCore
-import com.example.kpkn.screens.home.drawAugeRingTrack
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -105,6 +102,9 @@ import com.example.kpkn.domain.auge.SessionDiscomfortSummary
 import com.example.kpkn.domain.auge.SessionIntensityResult
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.training.VolumeCalculator
+import com.example.kpkn.screens.home.AugeRingsCanvas
+import com.example.kpkn.screens.home.RingColors
+import com.example.kpkn.screens.home.augeRingsHostHeightDp
 import com.example.kpkn.screens.workout.components.AdjustableRingCompact
 import com.example.kpkn.screens.workout.components.MinimalMuscleSlider
 import dev.chrisbanes.haze.HazeState
@@ -454,30 +454,15 @@ internal fun FinishWorkoutSheet(
                     color = Color.White,
                 )
 
-                // 1. CARDS RESUMEN / ESTADO FINAL DE RINGS
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    FinishSummaryCard(
-                        modifier = Modifier.weight(1f),
-                        title = "Músculos",
-                        value = derivedMuscularFinal,
-                        color = com.example.kpkn.ui.theme.RingRed
-                    )
-                    FinishSummaryCard(
-                        modifier = Modifier.weight(1f),
-                        title = "Energía",
-                        value = neuralFinal,
-                        color = com.example.kpkn.ui.theme.RingBlue
-                    )
-                    FinishSummaryCard(
-                        modifier = Modifier.weight(1f),
-                        title = "Columna",
-                        value = spinalFinal,
-                        color = com.example.kpkn.ui.theme.RingYellow
-                    )
-                }
+                // 1. CLUSTER DE RINGS + DRENAJE DE LA SESIÓN
+                FinishDrainRingsBlock(
+                    muscular = derivedMuscularFinal,
+                    neural = neuralFinal,
+                    spinal = spinalFinal,
+                    muscularDrain = postSessionPreview.globalMuscularDrain,
+                    neuralDrain = postSessionPreview.globalCnsDrain,
+                    spinalDrain = postSessionPreview.globalSpinalDrain,
+                )
 
                 // 2. ACCORDEÓN COLAPSABLE DE AJUSTES (RECALIBRAR RINGS)
                 var isAdjustExpanded by rememberSaveable { mutableStateOf(false) }
@@ -1063,39 +1048,60 @@ internal fun FinishWorkoutSheet(
     }
 }
 
+internal fun finishRingDrainCaption(drain: Int): String? {
+    val n = drain.coerceAtLeast(0)
+    return if (n == 0) null else "−$n"
+}
+
 @Composable
-private fun FinishSummaryCard(
-    modifier: Modifier = Modifier,
-    title: String,
-    value: Int,
-    color: Color
+private fun FinishDrainRingsBlock(
+    muscular: Int,
+    neural: Int,
+    spinal: Int,
+    muscularDrain: Int,
+    neuralDrain: Int,
+    spinalDrain: Int,
 ) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f),
-        border = BorderStroke(1.dp, color.copy(alpha = 0.2f))
+    val values = listOf(muscular, neural, spinal)
+    val drains = listOf(muscularDrain, neuralDrain, spinalDrain)
+    val labels = listOf("Músculos", "Energía", "Columna")
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val hostHeight = augeRingsHostHeightDp(maxWidth.value).dp
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(hostHeight)
+                    .semantics(mergeDescendants = true) {
+                        contentDescription = labels.indices.joinToString(", ") { i ->
+                            val drainText = finishRingDrainCaption(drains[i])?.let { ", drenaje $it" }.orEmpty()
+                            "${labels[i]} ${values[i]}%$drainText"
+                        }
+                    },
+            ) {
+                AugeRingsCanvas(
+                    mp = muscular.coerceIn(0, 100) / 100f,
+                    sp = neural.coerceIn(0, 100) / 100f,
+                    cp = spinal.coerceIn(0, 100) / 100f,
+                    drainFractions = drains.map { it.coerceIn(0, 100) / 100f },
+                )
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(Modifier.height(8.dp))
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(54.dp)) {
-                FinishCircularProgressVisual(value = value, color = color)
-                Text(
-                    text = "${value}%",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Black,
-                    color = color,
-                    fontSize = 11.sp
+            labels.forEachIndexed { i, label ->
+                FinishDrainRingLabel(
+                    label = label,
+                    value = values[i],
+                    drain = drains[i],
+                    color = RingColors[i],
                 )
             }
         }
@@ -1103,27 +1109,35 @@ private fun FinishSummaryCard(
 }
 
 @Composable
-private fun FinishCircularProgressVisual(
+private fun FinishDrainRingLabel(
+    label: String,
     value: Int,
-    color: Color
+    drain: Int,
+    color: Color,
 ) {
-    val animatedValue by animateFloatAsState(
-        targetValue = (value.coerceIn(0, 100) / 100f),
-        label = "finishCircularProgressVisual",
-    )
-
-    Canvas(
-        Modifier
-            .fillMaxSize()
-            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen },
-    ) {
-        val bloomFarPx = 8.dp.toPx()
-        val radius = (size.minDimension - bloomFarPx) / 2f
-        val center = Offset(size.width / 2f, size.height / 2f)
-        val progress = animatedValue.coerceIn(0f, 1f)
-        drawAugeRingTrack(center, radius, color)
-        drawAugeRingBlooms(center, radius, color, progress, BlendMode.Plus)
-        drawAugeRingCore(center, radius, color, progress)
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = label.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            color = color,
+            fontWeight = FontWeight.Black,
+            fontSize = 11.sp,
+            maxLines = 1,
+        )
+        Text(
+            text = "${value.coerceIn(0, 100)}%",
+            style = MaterialTheme.typography.labelMedium,
+            color = Color.White.copy(alpha = 0.85f),
+            fontWeight = FontWeight.Bold,
+        )
+        finishRingDrainCaption(drain)?.let { delta ->
+            Text(
+                text = delta,
+                style = MaterialTheme.typography.labelSmall,
+                color = Color(0xFFEF4444).copy(alpha = 0.90f),
+                fontWeight = FontWeight.Bold,
+            )
+        }
     }
 }
 

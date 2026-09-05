@@ -834,6 +834,7 @@ class ProgramDetailViewModel(
     fun replaceWeekSessions(weekId: String, sessions: List<Session>) {
         val current = program.value ?: return
         if (weekId.isBlank()) return
+        val resolvedWeekId = resolvePersistedWeekId(current, weekId) ?: return
         val updated = current.copy(
             macrocycles = current.macrocycles.map { macro ->
                 macro.copy(
@@ -842,7 +843,7 @@ class ProgramDetailViewModel(
                             mesocycles = block.mesocycles.map { meso ->
                                 meso.copy(
                                     weeks = meso.weeks.map { week ->
-                                        if (week.id == weekId) {
+                                        if (week.id == resolvedWeekId) {
                                             week.copy(sessions = normalizeMainSessions(sessions))
                                         } else {
                                             week
@@ -1795,6 +1796,19 @@ class ProgramDetailViewModel(
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return ProgramDetailViewModel(programId) as T
             }
+        }
+
+        internal fun resolvePersistedWeekId(program: Program, weekId: String): String? {
+            if (weekId.isBlank()) return null
+            val weekIds = program.macrocycles
+                .flatMap { it.blocks }
+                .flatMap { it.mesocycles }
+                .flatMap { it.weeks }
+                .map { it.id }
+                .toSet()
+            if (weekId in weekIds) return weekId
+            val fromInstance = ProgramProgressEngine.templateWeekIdFromInstance(weekId)
+            return fromInstance.takeIf { it in weekIds }
         }
 
         internal fun resolveActiveWeekSelection(

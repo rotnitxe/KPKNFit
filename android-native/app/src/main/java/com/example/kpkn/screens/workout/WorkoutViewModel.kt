@@ -152,6 +152,9 @@ class WorkoutViewModel(
     val uiState: StateFlow<WorkoutUiState> = _uiState.asStateFlow()
     private val _relatorAssistAck = MutableStateFlow<RelatorAssistAck?>(null)
     val relatorAssistAck: StateFlow<RelatorAssistAck?> = _relatorAssistAck.asStateFlow()
+    private var relatorAssistAckJob: Job? = null
+    private var lastRelatorAssistKey: String = ""
+    private var lastRelatorAssistAtMs: Long = 0L
     val cardioGpsState: StateFlow<CardioGpsState> = CardioGpsTracker.state
     val cardioHealthState: StateFlow<com.example.kpkn.services.cardio.CardioHealthState> = cardioHealthProvider.state
 
@@ -3259,6 +3262,19 @@ class WorkoutViewModel(
     }
 
     internal fun performRelatorAssist(action: RelatorAssistAction) {
+        val assistKey = listOf(
+            action.kind.name,
+            action.exerciseId,
+            action.setIndex.toString(),
+            action.side,
+            action.mobilityId,
+            action.span,
+        ).joinToString(":")
+        val now = System.currentTimeMillis()
+        if (assistKey == lastRelatorAssistKey && now - lastRelatorAssistAtMs < 500L) return
+        lastRelatorAssistKey = assistKey
+        lastRelatorAssistAtMs = now
+        val targetName = relatorAssistTargetName(action)
         val applied = when (action.kind) {
             RelatorAssistActionKind.JUMP_TO_SET -> {
                 if (action.exerciseId.isBlank() || action.setIndex < 0) {
@@ -3337,11 +3353,46 @@ class WorkoutViewModel(
                 }
             }
         }
-        _relatorAssistAck.value = RelatorAssistAck(
-            kind = action.kind,
-            applied = applied,
-            detail = action.label,
+        publishRelatorAssistAck(
+            RelatorAssistAck(
+                kind = action.kind,
+                applied = applied,
+                detail = targetName,
+            ),
         )
+    }
+
+    private fun relatorAssistTargetName(action: RelatorAssistAction): String {
+        val state = _uiState.value
+        val all = state.session
+            ?.let { sessionForActiveMode(it, state.activeMode).allExercises() }
+            .orEmpty()
+        val visible = visibleExercises(state)
+        val id = action.exerciseId.ifBlank {
+            visible.getOrNull(state.currentExerciseIdx)?.id.orEmpty()
+        }
+        val raw = all.firstOrNull { it.id == id }?.name
+            ?: visible.firstOrNull { it.id == id }?.name
+            ?: action.label
+        return shortAssistName(raw)
+    }
+
+    private fun publishRelatorAssistAck(ack: RelatorAssistAck) {
+        _relatorAssistAck.value = ack
+        relatorAssistAckJob?.cancel()
+        relatorAssistAckJob = viewModelScope.launch {
+            delay(RELATOR_ASSIST_CONFIRM_MS)
+            if (_relatorAssistAck.value == ack) {
+                _relatorAssistAck.value = null
+            }
+        }
+    }
+
+    fun markWorkoutTagEducationSeen() {
+        if (repository.settings.value.hasSeenWorkoutTagEducation) return
+        repository.updateSettings { settings ->
+            settings.copy(hasSeenWorkoutTagEducation = true)
+        }
     }
 
     private fun restoreSkippedExercise(exerciseId: String) {

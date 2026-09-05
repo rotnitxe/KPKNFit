@@ -16,6 +16,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -37,18 +38,23 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.takeOrElse
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -96,6 +102,8 @@ internal fun rememberLiveRelatorLine(snapshot: LiveRelatorSnapshot): RelatorReso
         live.idleCycle,
         live.assistOffer?.stickyKey,
         live.assistAck?.kind,
+        live.assistAck?.applied,
+        live.assistAck?.detail,
         live.failedSetCaution?.stickyKey,
     ) {
         delay(RELATOR_DEBOUNCE_MS)
@@ -190,27 +198,21 @@ private fun ShimmerRelatorText(
     val end = Offset(startX + travel * 0.46f, 0f)
     val start = Offset(startX, 0f)
     val copyBrush = relatorShimmerBrush(copyMuted, copyHighlight, start, end)
+    val actionBrush = relatorShimmerBrush(
+        accentColor.copy(alpha = 0.55f),
+        accentColor,
+        start,
+        end,
+    )
     val onActionState = rememberUpdatedState(onAction)
-
-    val annotated = remember(pieces, accentColor) {
-        buildAnnotatedString {
-            pieces.forEach { piece ->
-                when (piece) {
-                    is RelatorInlinePiece.Copy -> append(piece.text)
-                    is RelatorInlinePiece.Action -> {
-                        withLink(
-                            LinkAnnotation.Clickable(
-                                tag = piece.action.kind.name,
-                                styles = TextLinkStyles(
-                                    style = SpanStyle(
-                                        color = accentColor,
-                                        fontWeight = FontWeight.SemiBold,
-                                    ),
-                                ),
-                                linkInteractionListener = { onActionState.value(piece.action) },
-                            ),
-                        ) {
-                            append(piece.label)
+    var layoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+    val actionByTag = remember(pieces) {
+        buildMap {
+            pieces.forEachIndexed { index, piece ->
+                if (piece is RelatorInlinePiece.Action) {
+                    relatorLinkWrapChunks(piece.label).forEachIndexed { chunkIndex, chunk ->
+                        if (chunk.isNotBlank()) {
+                            put("relator-action-$index-$chunkIndex", piece.action)
                         }
                     }
                 }
@@ -218,22 +220,81 @@ private fun ShimmerRelatorText(
         }
     }
 
+    val annotated = buildAnnotatedString {
+        pieces.forEachIndexed { index, piece ->
+            when (piece) {
+                is RelatorInlinePiece.Copy -> {
+                    withStyle(SpanStyle(brush = copyBrush)) {
+                        append(piece.text)
+                    }
+                }
+                is RelatorInlinePiece.Action -> {
+                    relatorLinkWrapChunks(piece.label).forEachIndexed { chunkIndex, chunk ->
+                        if (chunk.isBlank()) {
+                            withStyle(SpanStyle(brush = copyBrush)) {
+                                append(chunk)
+                            }
+                        } else {
+                            val tag = "relator-action-$index-$chunkIndex"
+                            withLink(
+                                LinkAnnotation.Clickable(
+                                    tag = tag,
+                                    styles = TextLinkStyles(
+                                        style = SpanStyle(
+                                            brush = actionBrush,
+                                            fontWeight = FontWeight.SemiBold,
+                                        ),
+                                    ),
+                                    linkInteractionListener = { onActionState.value(piece.action) },
+                                ),
+                            ) {
+                                append(chunk)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    val annotatedState = rememberUpdatedState(annotated)
+    val actionsState = rememberUpdatedState(actionByTag)
+
     Text(
         text = annotated,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp),
+            .padding(horizontal = 12.dp)
+            .then(
+                if (actionByTag.isEmpty()) {
+                    Modifier
+                } else {
+                    Modifier.pointerInput(actionByTag) {
+                        detectTapGestures { pos ->
+                            val layout = layoutResult ?: return@detectTapGestures
+                            val text = annotatedState.value
+                            val offset = layout.getOffsetForPosition(pos)
+                            val tag = text.getLinkAnnotations(offset, offset)
+                                .mapNotNull { range -> (range.item as? LinkAnnotation.Clickable)?.tag }
+                                .firstOrNull()
+                            val action = tag?.let { actionsState.value[it] } ?: return@detectTapGestures
+                            onActionState.value(action)
+                        }
+                    }
+                },
+            ),
         color = Color.Unspecified,
         style = MaterialTheme.typography.labelSmall.copy(
-            brush = copyBrush,
             fontSize = WorkoutLiveRelatorFontSp,
             lineHeight = RelatorLineHeightSp,
+            hyphens = Hyphens.None,
+            lineBreak = LineBreak.Simple,
         ),
         maxLines = WorkoutLiveRelatorMaxLines,
         softWrap = true,
         overflow = TextOverflow.Ellipsis,
         textAlign = TextAlign.Center,
         onTextLayout = { layout ->
+            layoutResult = layout
             textWidth = layout.size.width.toFloat().coerceAtLeast(textWidth)
         },
     )

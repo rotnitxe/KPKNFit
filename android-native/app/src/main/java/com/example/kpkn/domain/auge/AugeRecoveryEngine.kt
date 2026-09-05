@@ -1731,22 +1731,17 @@ object AugeRecoveryEngine {
                 }
             }
         }
-        val resolvedMuscularBattery = if (automaticImpact == null) {
-            batteries.muscular
-        } else {
-            (baseBatteries.muscular - automaticImpact.globalMuscularDrain).coerceIn(
-                physiologicalFloor(settings).muscular,
-                100,
-            )
-        }
+        val resolvedMuscularBattery = batteries.muscular.coerceIn(
+            physiologicalFloor(settings).muscular,
+            100,
+        )
         return PostSessionPreview(
             neural = batteries.cnc,
             spinal = batteries.spinal,
             muscular = resolvedMuscularBattery,
             perMuscle = resolvedMuscles,
             globalCnsDrain = (baseBatteries.cnc - batteries.cnc).coerceIn(0, 100),
-            globalMuscularDrain = automaticImpact?.globalMuscularDrain
-                ?: (baseBatteries.muscular - batteries.muscular).coerceIn(0, 100),
+            globalMuscularDrain = (baseBatteries.muscular - batteries.muscular).coerceIn(0, 100),
             globalSpinalDrain = (baseBatteries.spinal - batteries.spinal).coerceIn(0, 100),
             finishOperationId = finishOperationId,
             completionInstantIso = completionInstantIso,

@@ -10,6 +10,7 @@ import com.example.kpkn.domain.concepts.pickRelatorConceptCue
 internal const val RELATOR_MAX_LINE_CHARS = 140 // two-line visual budget; UI wraps, copy keeps the name
 internal const val RELATOR_DEBOUNCE_MS = 400L
 internal const val RELATOR_IDLE_ROTATE_MS = 28_000L
+internal const val RELATOR_ASSIST_CONFIRM_MS = 3_500L
 
 internal enum class RelatorPhase {
     HIDDEN,
@@ -211,10 +212,10 @@ internal object WorkoutLiveRelator {
         }
 
         val bucket = snapshot.speechBucket()
-        val extra = if (bucket == RelatorSpeechBucket.CONCEPT_CUE) {
-            snapshot.conceptCueOrNull()?.id
-        } else {
-            null
+        val extra = when (bucket) {
+            RelatorSpeechBucket.CONCEPT_CUE -> snapshot.conceptCueOrNull()?.id
+            RelatorSpeechBucket.ASSIST_CONFIRM -> snapshot.assistAck?.kind?.name
+            else -> null
         }
         val variants = WorkoutLiveRelatorCatalog.variantsFor(bucket, snapshot)
         val pick = pickRelatorVariant(bucket, variants, snapshot.speechMemory, extra)
@@ -252,7 +253,11 @@ internal object WorkoutLiveRelator {
                 phaseKey = bucket.phaseKey(),
             )
         }
-        val actions = snapshot.assistOffer?.actions.orEmpty()
+        val actions = if (bucket == RelatorSpeechBucket.ASSIST_CONFIRM) {
+            emptyList()
+        } else {
+            snapshot.assistOffer?.actions.orEmpty()
+        }
         return line(
             template = pick.text,
             snapshot = snapshot,

@@ -51,6 +51,64 @@ class AugeRecoveryEngineRingTest {
     }
 
     @Test
+    fun previewPostSessionBatteries_muscular_matches_home_not_fatigue_drain() {
+        val previewLog = heavySession().first().copy(id = "preview")
+        val impact = MuscularSessionImpactV2(
+            completionInstantIso = previewLog.date,
+            globalMuscularDrain = 56,
+            perMuscle = emptyMap(),
+            involvedVolumeMuscles = emptySet(),
+            setInputHash = "hash",
+            contextHash = "ctx",
+        )
+        val settings = Settings()
+        val preview = AugeRecoveryEngine.previewPostSessionBatteries(
+            baseHistory = emptyList(),
+            previewLog = previewLog,
+            wellbeing = null,
+            settings = settings,
+            exerciseDb = exerciseDb,
+            automaticImpact = impact,
+        )
+        val homeMuscles = AugeRecoveryEngine.getPerMuscleBatteries(
+            history = listOf(previewLog),
+            wellbeing = null,
+            settings = settings,
+            exerciseDb = exerciseDb,
+        )
+        val homeBatteries = AugeRecoveryEngine.calculateGlobalBatteries(
+            history = listOf(previewLog),
+            wellbeing = null,
+            settings = settings,
+            exerciseDb = exerciseDb,
+            precomputedMuscles = homeMuscles,
+        )
+        val baseMuscles = AugeRecoveryEngine.getPerMuscleBatteries(
+            history = emptyList(),
+            wellbeing = null,
+            settings = settings,
+            exerciseDb = exerciseDb,
+        )
+        val baseBatteries = AugeRecoveryEngine.calculateGlobalBatteries(
+            history = emptyList(),
+            wellbeing = null,
+            settings = settings,
+            exerciseDb = exerciseDb,
+            precomputedMuscles = baseMuscles,
+        )
+        assertEquals(homeBatteries.muscular, preview.muscular)
+        val subtracted = (baseBatteries.muscular - impact.globalMuscularDrain).coerceIn(0, 100)
+        assertTrue(
+            "Finish ring ${preview.muscular} must follow Home ${homeBatteries.muscular}, not base-drain $subtracted",
+            preview.muscular != subtracted || homeBatteries.muscular == subtracted,
+        )
+        assertEquals(
+            (baseBatteries.muscular - homeBatteries.muscular).coerceIn(0, 100),
+            preview.globalMuscularDrain,
+        )
+    }
+
+    @Test
     fun fullPipeline_manualOverrideWithHistory_lowersRingsBelow100() {
         val wellbeing = DailyWellbeingLog(
             id = "today",

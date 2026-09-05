@@ -679,6 +679,66 @@ class ProgramDetailViewModelTest {
     }
 
     @Test
+    fun replaceWeekSessions_persists_dayOfWeek_across_reread() {
+        val id = nextId()
+        repository.addProgram(makeProgram(id))
+        val vm = ProgramDetailViewModel(id)
+        val weekId = "${id}_w1"
+        val moved = listOf(
+            Session(id = "${id}_s1", name = "S1", dayOfWeek = 4, assignedDays = listOf(4)),
+            Session(id = "${id}_s2", name = "S2", dayOfWeek = 2, assignedDays = listOf(2)),
+        )
+
+        vm.replaceWeekSessions(weekId, moved)
+
+        val week = repository.getProgramById(id)!!
+            .macrocycles[0].blocks[0].mesocycles[0].weeks[0]
+        assertEquals(4, week.sessions.first { it.id == "${id}_s1" }.dayOfWeek)
+        assertEquals(listOf(4), week.sessions.first { it.id == "${id}_s1" }.assignedDays)
+        val reread = repository.getProgramById(id)!!
+            .macrocycles[0].blocks[0].mesocycles[0].weeks[0]
+        assertEquals(4, reread.sessions.first { it.id == "${id}_s1" }.dayOfWeek)
+    }
+
+    @Test
+    fun replaceWeekSessions_resolves_instance_week_id() {
+        val id = nextId()
+        repository.addProgram(makeProgram(id))
+        val vm = ProgramDetailViewModel(id)
+        val templateWeekId = "${id}_w1"
+        val instanceWeekId = com.example.kpkn.domain.training.ProgramProgressEngine.instanceIdFor(1, templateWeekId)
+        val moved = listOf(
+            Session(id = "${id}_s1", name = "S1", dayOfWeek = 5, assignedDays = listOf(5)),
+            Session(id = "${id}_s2", name = "S2", dayOfWeek = 2, assignedDays = listOf(2)),
+        )
+
+        vm.replaceWeekSessions(instanceWeekId, moved)
+
+        val week = repository.getProgramById(id)!!
+            .macrocycles[0].blocks[0].mesocycles[0].weeks[0]
+        assertEquals(templateWeekId, week.id)
+        assertEquals(5, week.sessions.first { it.id == "${id}_s1" }.dayOfWeek)
+    }
+
+    @Test
+    fun replaceWeekSessions_unknown_week_does_not_write() {
+        val id = nextId()
+        repository.addProgram(makeProgram(id))
+        val vm = ProgramDetailViewModel(id)
+        val before = repository.getProgramById(id)!!
+
+        vm.replaceWeekSessions("missing-week", listOf(
+            Session(id = "${id}_s1", name = "S1", dayOfWeek = 7, assignedDays = listOf(7)),
+        ))
+
+        val after = repository.getProgramById(id)!!
+        assertEquals(
+            before.macrocycles[0].blocks[0].mesocycles[0].weeks[0].sessions.map { it.dayOfWeek },
+            after.macrocycles[0].blocks[0].mesocycles[0].weeks[0].sessions.map { it.dayOfWeek },
+        )
+    }
+
+    @Test
     fun updateProgram_replaces_in_repository() {
         val id = nextId()
         repository.addProgram(makeProgram(id))

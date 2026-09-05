@@ -181,13 +181,21 @@ fun DayView(
     var expandedDays by remember(initialExpandedDay) { mutableStateOf(initialExpandedDay) }
 
     LaunchedEffect(sessions) {
+        val draggingId = dragState.draggedSessionId
         dayLayout = sessions.map { session ->
             val previous = dayLayout.firstOrNull { it.session.id == session.id }
-            DaySessionEntry(session = session, dayId = previous?.dayId ?: (session.dayOfWeek ?: 1))
+            val dayId = if (draggingId != null && previous != null) {
+                previous.dayId
+            } else {
+                session.dayOfWeek ?: 1
+            }
+            DaySessionEntry(session = session, dayId = dayId)
         }
-        dragState = DayDragState()
-        cardBounds.clear()
-        dayBounds.clear()
+        if (draggingId == null) {
+            dragState = DayDragState()
+            cardBounds.clear()
+            dayBounds.clear()
+        }
     }
 
     Box(

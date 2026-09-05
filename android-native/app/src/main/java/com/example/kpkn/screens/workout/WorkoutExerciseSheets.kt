@@ -38,6 +38,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -287,13 +288,30 @@ internal data class WorkoutTagListRow(
     val isActive: Boolean,
 )
 
+internal fun showTagEducation(seen: Boolean, @Suppress("UNUSED_PARAMETER") emptyRows: Boolean): Boolean = !seen
+
+internal const val WORKOUT_TAG_EDUCATION_COPY =
+    "Un ejercicio lo puedes llevar a cabo con distintas técnicas o máquinas diferentes. " +
+        "Eso puede cambiar bastante las cargas que puedes mover. Para esos casos y más, " +
+        "puedes asignar etiquetas; guardan su propio historial y sobrecarga progresiva, " +
+        "y para cambiar entre etiquetas, adaptamos las cargas a una u otra para que tu " +
+        "progreso sea fluído."
+
+internal const val WORKOUT_TAG_EMPTY_COPY = "Este ejercicio aún no tiene etiquetas."
+
 @Composable
 internal fun WorkoutTagListOverlay(
     rows: List<WorkoutTagListRow>,
     onSelectTag: (String) -> Unit,
     onCreateTag: () -> Unit,
     onDismiss: () -> Unit,
+    hasSeenEducation: Boolean = true,
+    onOpened: () -> Unit = {},
 ) {
+    LaunchedEffect(Unit) { onOpened() }
+    val showEducation = remember {
+        showTagEducation(hasSeenEducation, rows.isEmpty())
+    }
     KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Etiquetas", fontWeight = FontWeight.Black) },
@@ -305,16 +323,18 @@ internal fun WorkoutTagListOverlay(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                if (rows.isEmpty()) {
+                if (showEducation) {
                     Text(
-                        "Un ejercicio lo puedes llevar a cabo con distintas técnicas o máquinas diferentes. " +
-                            "Eso puede cambiar bastante las cargas que puedes mover. Para esos casos y más, " +
-                            "puedes asignar etiquetas; guardan su propio historial y sobrecarga progresiva, " +
-                            "y para cambiar entre etiquetas, adaptamos las cargas a una u otra para que tu " +
-                            "progreso sea fluído.",
+                        WORKOUT_TAG_EDUCATION_COPY,
                         style = MaterialTheme.typography.bodySmall,
                     )
-                } else {
+                } else if (rows.isEmpty()) {
+                    Text(
+                        WORKOUT_TAG_EMPTY_COPY,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                if (rows.isNotEmpty()) {
                     rows.forEach { row ->
                         Row(
                             modifier = Modifier
