@@ -1586,7 +1586,7 @@ internal fun LegacyAdvancedRoadmapSection(
                     )
                 }
                 Text(
-                    "Guía: los bloques muestran el plan completo y los puntos son semanas reales. La competición se reserva como semana completa para que puedas entrar y programar el día exacto.",
+                    "Guía: los bloques muestran el plan completo y los puntos son semanas reales. La competición se reserva como semana completa; el registro de resultados se hace después, desde Home o Perfil.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -1627,10 +1627,6 @@ internal fun LegacyAdvancedRoadmapSection(
                         slot = competitionSlot,
                         mark = competitionMark,
                         onFocusWeek = { onFocusWeek(competitionSlot.blockId, competitionSlot.weekId) },
-                        onCreateCompetitionSession = {
-                            val preferredDay = (competitionMark.eventDate ?: competitionSlot.weekStart).dayOfWeek.value
-                            onCreateSessionForWeek(competitionSlot.weekId, preferredDay, competitionMark.keyDateId)
-                        },
                     )
                 } else if (competition != null) {
                     Card(
@@ -1804,7 +1800,6 @@ private fun CompetitionWeekCard(
     slot: AdvancedWeekSlot,
     mark: KeyDateMark,
     onFocusWeek: () -> Unit,
-    onCreateCompetitionSession: () -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -1832,8 +1827,7 @@ private fun CompetitionWeekCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = onFocusWeek, modifier = Modifier.weight(1f)) { Text("Ver semana") }
-                OutlinedButton(onClick = onCreateCompetitionSession, modifier = Modifier.weight(1f)) { Text("Crear día") }
+                Button(onClick = onFocusWeek, modifier = Modifier.fillMaxWidth()) { Text("Ver semana") }
             }
         }
     }
@@ -2727,7 +2721,7 @@ internal data class KeyDateMark(
 
     val ctaLabel: String
         get() = when (type) {
-            KeyDateType.COMPETITION -> "Crear sesión clave"
+            KeyDateType.COMPETITION -> "Ver semana"
             KeyDateType.EXAMS -> "Crear sesión ligera"
             KeyDateType.VACATION -> "Crear sesión ajuste"
             KeyDateType.TRAVEL -> "Crear sesión viaje"

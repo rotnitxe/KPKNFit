@@ -76,6 +76,7 @@ fun HomeScreen(
     onNavigateToProgram: (String) -> Unit = {},
     onCreateProgram: () -> Unit = {},
     onStartWorkout: (Session, Program) -> Unit = { _, _ -> },
+    onRegisterCompetition: (String) -> Unit = {},
     onResumeWorkout: () -> Unit = {},
     onEditSession: (Session, Program) -> Unit = { _, _ -> },
     onNavigateToCard: (String) -> Unit = {},
@@ -236,10 +237,12 @@ fun HomeScreen(
             sncProgress = sncProgress,
             columnaProgress = columnaProgress,
             primarySession = uiState.primarySession,
+            homeCompetition = uiState.homeCompetition,
             isRestDay = uiState.primarySession == null && (uiState.isRestDay || uiState.todaySessions.isEmpty()),
             dailyCalorieGoal = uiState.dailyCalorieGoal,
             consumedCalories = uiState.todayNutritionTotals.calories.toInt(),
             onStartWorkout = onStartWorkout,
+            onRegisterCompetition = onRegisterCompetition,
             onCreateProgram = onCreateProgram,
             onAddMeal = { showFoodLogger = true },
             onNavigateToProfile = onNavigateToProfile,
@@ -286,7 +289,7 @@ fun HomeScreen(
                 augeLoading = augeLoading,
                 perMuscle = augePerMuscle,
                 todaySessions = uiState.todaySessions,
-                competitionCountdown = uiState.competitionCountdown,
+                homeCompetition = uiState.homeCompetition,
                 hasActiveProgram = uiState.hasActiveProgram,
                 activeProgramId = uiState.activeProgramId,
                 programs = uiState.programs,
@@ -297,6 +300,7 @@ fun HomeScreen(
                 userName = uiState.userName,
                 greeting = uiState.greeting,
                 onStartWorkout = onStartWorkout,
+                onRegisterCompetition = onRegisterCompetition,
                 onResumeWorkout = onResumeWorkout,
                 onEditSession = onEditSession,
                 onNavigateToProgram = onNavigateToProgram,
@@ -373,7 +377,7 @@ private fun HomeWithProgram(
     augeLoading: Boolean = false,
     perMuscle: Map<String, MuscleRecoveryStatus> = emptyMap(),
     todaySessions: List<TodaySessionItem>,
-    competitionCountdown: CompetitionCountdown?,
+    homeCompetition: com.example.kpkn.domain.training.HomeCompetitionState?,
     hasActiveProgram: Boolean,
     activeProgramId: String?,
     programs: List<Program>,
@@ -384,6 +388,7 @@ private fun HomeWithProgram(
     userName: String,
     greeting: String,
     onStartWorkout: (Session, Program) -> Unit,
+    onRegisterCompetition: (String) -> Unit,
     onResumeWorkout: () -> Unit,
     onEditSession: (Session, Program) -> Unit = { _, _ -> },
     onNavigateToProgram: (String) -> Unit,
@@ -411,10 +416,12 @@ private fun HomeWithProgram(
         item(key = "session") {
             HomeSessionSection(
                 sessions = todaySessions,
+                homeCompetition = homeCompetition,
                 hasActiveProgram = hasActiveProgram,
                 currentDayOfWeek = getCurrentDayOfWeek(),
                 perMuscle = perMuscle,
                 onStartWorkout = onStartWorkout,
+                onRegisterCompetition = onRegisterCompetition,
                 onResumeWorkout = onResumeWorkout,
                 onEditSession = onEditSession,
                 onCreateProgram = onCreateProgram,
@@ -453,11 +460,6 @@ private fun HomeWithProgram(
                     emphasize = true,
                     leadingIcon = true,
                 )
-            }
-        }
-        competitionCountdown?.let { countdown ->
-            item(key = "competition") {
-                CompetitionCountdownCard(countdown = countdown, onClick = { onNavigateToProgram(countdown.programId) })
             }
         }
         item(key = "cards") {
@@ -529,41 +531,6 @@ private fun AlertActionCard(
 }
 
 @Composable
-private fun CompetitionCountdownCard(countdown: CompetitionCountdown, onClick: () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).clip(RoundedCornerShape(18.dp)).clickable(onClick = onClick),
-        shape = RoundedCornerShape(18.dp),
-        color = Color(0xFFF59E0B).copy(alpha = 0.14f),
-        tonalElevation = 2.dp,
-    ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier = Modifier.size(58.dp).clip(RoundedCornerShape(16.dp)).background(Color(0xFFF59E0B)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(countdown.countdownLabel.substringBefore(" "), fontSize = 18.sp, fontWeight = FontWeight.Black, color = Color.Black, maxLines = 1)
-                    Text("COMP", fontSize = 9.sp, fontWeight = FontWeight.Black, color = Color.Black.copy(alpha = 0.76f))
-                }
-            }
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text("Cuenta atrás de competición", fontWeight = FontWeight.Black, fontSize = 13.sp)
-                Text(countdown.programName, fontWeight = FontWeight.Bold, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("${countdown.countdownLabel} · ${countdown.competitionDateLabel}", fontSize = 11.sp, color = Color(0xFFF59E0B), fontWeight = FontWeight.Bold)
-                countdown.competitionWeekLabel?.let { week ->
-                    Text("Semana reservada: $week", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-            Text("Ver", fontSize = 11.sp, fontWeight = FontWeight.Black, color = Color(0xFFF59E0B))
-        }
-    }
-}
-
-@Composable
 private fun HomeTopBar(
     modifier: Modifier = Modifier,
     greeting: String,
@@ -577,10 +544,12 @@ private fun HomeTopBar(
     sncProgress: Float,
     columnaProgress: Float,
     primarySession: TodaySessionItem?,
+    homeCompetition: com.example.kpkn.domain.training.HomeCompetitionState?,
     isRestDay: Boolean,
     dailyCalorieGoal: Int,
     consumedCalories: Int,
     onStartWorkout: (Session, Program) -> Unit,
+    onRegisterCompetition: (String) -> Unit,
     onCreateProgram: () -> Unit,
     onAddMeal: () -> Unit,
     onNavigateToProfile: () -> Unit,
@@ -682,8 +651,10 @@ private fun HomeTopBar(
                         MiniSessionCard(
                             hasPrograms = hasPrograms,
                             primarySession = primarySession,
+                            homeCompetition = homeCompetition,
                             isRestDay = isRestDay,
                             onStartWorkout = onStartWorkout,
+                            onRegisterCompetition = onRegisterCompetition,
                             onCreateProgram = onCreateProgram,
                             modifier = Modifier.graphicsLayer { alpha = sessionAlpha; translationY = sessionSlide },
                         )
@@ -760,11 +731,14 @@ private fun MiniRingsWidget(
 private fun MiniSessionCard(
     hasPrograms: Boolean,
     primarySession: TodaySessionItem?,
+    homeCompetition: com.example.kpkn.domain.training.HomeCompetitionState?,
     isRestDay: Boolean,
     onStartWorkout: (Session, Program) -> Unit,
+    onRegisterCompetition: (String) -> Unit,
     onCreateProgram: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val registerPhase = homeCompetition?.phase == com.example.kpkn.domain.training.CompetitionHomePhase.REGISTER
     Row(
         modifier = modifier.fillMaxWidth().height(44.dp).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -778,6 +752,18 @@ private fun MiniSessionCard(
                 shape = RoundedCornerShape(8.dp),
             ) {
                 Text("Crear programa", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1)
+            }
+        } else if (registerPhase && homeCompetition != null) {
+            Text(
+                homeCompetition.title,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+                maxLines = 1,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = { onRegisterCompetition(homeCompetition.recordId) }) {
+                Text("Registrar", fontWeight = FontWeight.Black, fontSize = 12.sp)
             }
         } else if (isRestDay || primarySession == null) {
             Text(

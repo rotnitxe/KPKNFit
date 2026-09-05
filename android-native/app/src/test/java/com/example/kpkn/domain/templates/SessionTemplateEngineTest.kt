@@ -17,6 +17,7 @@ import com.example.kpkn.data.models.SupersetGroup
 import com.example.kpkn.data.models.SupersetVisualPlacement
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateApplyMode
+import com.example.kpkn.data.sessions.SessionTemplateKind
 import com.example.kpkn.data.sessions.SessionTemplateSourceType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -72,6 +73,15 @@ class SessionTemplateEngineTest {
         exercises = exercises,
         parts = parts,
     )
+
+    @Test
+    fun canApplyTemplate_rejects_meet_day_kind() {
+        val meetTemplate = makeTemplate().copy(kind = SessionTemplateKind.MEET_DAY)
+        val trainingTemplate = makeTemplate().copy(kind = SessionTemplateKind.TRAINING)
+        val target = makeTargetSession()
+        assertFalse(SessionTemplateEngine.canApplyTemplate(meetTemplate, target))
+        assertTrue(SessionTemplateEngine.canApplyTemplate(trainingTemplate, target))
+    }
 
     @Test
     fun `applyReplace_clearsExistingExercises`() {
@@ -172,7 +182,11 @@ class SessionTemplateEngineTest {
     fun `mode-only sets are placeholders while explicit failure and unilateral targets execute`() {
         val modeOnly = makeTargetSession(
             exercises = listOf(
-                makeExercise(sets = listOf(makeSet().copy(intensityMode = IntensityMode.RPE, targetRPE = null))),
+                makeExercise(sets = listOf(makeSet().copy(
+                    intensityMode = IntensityMode.RPE,
+                    targetRPE = null,
+                    targetReps = null,
+                ))),
             ),
         )
         assertFalse(SessionTemplateEngine.sessionHasExecutableContent(modeOnly))

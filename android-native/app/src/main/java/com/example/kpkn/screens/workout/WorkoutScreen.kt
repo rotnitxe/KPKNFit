@@ -114,7 +114,6 @@ import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
 import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.models.isCompetitionMeet
 import com.example.kpkn.data.models.SupersetGroup
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.TrainingMode
@@ -296,11 +295,9 @@ fun WorkoutScreen(
     var selectionClearNonce by remember { mutableIntStateOf(0) }
 
     // ─── Readiness sheet state ─────────────────────────────────────────────────
-    val isMeetOrComp = session?.isCompetitionMeet == true
-    // Local source keeps workout overlays as true siblings; the activity source is an ancestor.
     val overlayHazeState = remember { HazeState() }
     var readinessSheetDismissed by rememberSaveable(programId, sessionId) { mutableStateOf(false) }
-    val showReadinessSheet = !readinessSheetDismissed && !isMeetOrComp && uiState.readinessNeuralOverride == null
+    val showReadinessSheet = !readinessSheetDismissed && uiState.readinessNeuralOverride == null
     val structureSheets = rememberWorkoutStructureSheetsState()
     var pendingCatalogRequest by remember { mutableStateOf<CatalogLaunchRequest?>(null) }
     val hasContextTabOpen = structureSheets.selectedExerciseContextTab != null

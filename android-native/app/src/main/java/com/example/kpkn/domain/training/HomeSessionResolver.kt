@@ -9,7 +9,6 @@ import com.example.kpkn.data.models.SessionLocation
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.data.models.WorkoutLog
-import com.example.kpkn.data.models.isCompetitionMeet
 import com.example.kpkn.data.models.isSimpleProgram
 import java.time.LocalDate
 
@@ -213,7 +212,6 @@ object HomeSessionResolver {
             compareBy(
                 { if (it.isOngoing) 0 else 1 },
                 { if (it.isCompleted) 1 else 0 },
-                { if (it.isToday && it.session.isCompetitionMeet) 0 else 1 },
                 { if (it.isToday) 0 else 1 },
                 { it.dayOfWeek },
                 { if (it.session.isMainSession) 0 else 1 },

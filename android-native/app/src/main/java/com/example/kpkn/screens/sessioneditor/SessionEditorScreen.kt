@@ -106,8 +106,6 @@ import com.example.kpkn.screens.sessioneditor.components.sheets.AssistantGlassOv
 import com.example.kpkn.screens.sessioneditor.components.HeroGlassFab
 import com.example.kpkn.screens.sessioneditor.components.HeroTimeFab
 import com.example.kpkn.screens.sessioneditor.components.DraggableHeroFabGroup
-import com.example.kpkn.screens.sessioneditor.components.CompetitionConfigSheet
-import com.example.kpkn.screens.sessioneditor.components.CompetitionSessionEditor
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -144,7 +142,6 @@ fun SessionEditorScreen(
     draftMacroIndex: Int? = null,
     draftMesoIndex: Int? = null,
     draftDayOfWeek: Int? = null,
-    openCompetitionConfig: Boolean = false,
     viewModel: SessionEditorViewModel = viewModel(
         factory = SessionEditorViewModel.factory(
             programId = programId,
@@ -167,7 +164,6 @@ fun SessionEditorScreen(
     val context = LocalContext.current
     var showDiscardDialog by rememberSaveable { mutableStateOf(false) }
     var pendingAutoExpandExerciseId by rememberSaveable { mutableStateOf<String?>(null) }
-    var showCompetitionConfigSheet by rememberSaveable { mutableStateOf(openCompetitionConfig) }
     var catalogRequestInFlight by rememberSaveable { mutableStateOf(false) }
     var catalogRequestId by rememberSaveable { mutableStateOf<String?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -563,12 +559,6 @@ fun SessionEditorScreen(
         return dragController.calculateProjectedShift(activeSession, partId, index, exerciseId, itemHeight)
     }
 
-    LaunchedEffect(openCompetitionConfig, session.id) {
-        if (openCompetitionConfig && session.isMeetDay) {
-            showCompetitionConfigSheet = true
-        }
-    }
-
     BackHandler(enabled = !showDiscardDialog && uiState.sheet == SessionEditorSheet.NONE) {
         viewModel.saveDraftForExit()
         onBack()
@@ -725,9 +715,6 @@ fun SessionEditorScreen(
                             onCreateSessionForDay = { day ->
                                 viewModel.createSessionForDay(day)
                             },
-                            onCreateCompetitionSessionForDay = { day ->
-                                viewModel.createCompetitionSessionForDay(day)
-                            },
                             isSimpleProgram = uiState.isSimpleProgram,
                             hasActiveLoops = uiState.hasActiveLoops,
                             hazeState = hazeState,
@@ -769,7 +756,6 @@ fun SessionEditorScreen(
                     onPendingAutoExpandHandled = { exerciseId ->
                         if (pendingAutoExpandExerciseId == exerciseId) pendingAutoExpandExerciseId = null
                     },
-                    onOpenCompetitionConfig = { showCompetitionConfigSheet = true },
                     onLooseBoundsReport = { rect ->
                         dragController.setLooseContentBounds(rect, fromStrengthAddActions = false)
                     },
@@ -1149,40 +1135,6 @@ fun SessionEditorScreen(
         onRulesInitialTabConsumed = viewModel::clearRulesSheetInitialTab,
     )
 
-    if (uiState.sheet == SessionEditorSheet.CARDIO_PLACEMENT) {
-        KpknAlertDialog(
-            onDismissRequest = viewModel::closeSheet,
-            title = { Text("Espacio de cardio", fontWeight = FontWeight.Black) },
-            text = {
-                Text("¿Quieres añadirlo al inicio o al final de la sesión?")
-            },
-            confirmButton = {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Button(
-                        onClick = { viewModel.confirmCardioPlacement(CardioSpacePlacement.START) },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text("Al inicio")
-                    }
-                    OutlinedButton(
-                        onClick = { viewModel.confirmCardioPlacement(CardioSpacePlacement.END) },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text("Al final")
-                    }
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::closeSheet) {
-                    Text("Cancelar")
-                }
-            },
-        )
-    }
-
     if (showDiscardDialog) {
         KpknAlertDialog(
             onDismissRequest = { showDiscardDialog = false },
@@ -1222,14 +1174,6 @@ fun SessionEditorScreen(
             dismissButton = {
                 TextButton(onClick = { showDiscardDialog = false }) { Text("Continuar editando") }
             },
-        )
-    }
-
-    if (showCompetitionConfigSheet && session.isMeetDay) {
-        CompetitionConfigSheet(
-            session = session,
-            onDismiss = { showCompetitionConfigSheet = false },
-            onUpdateSession = { updater: (Session) -> Session -> viewModel.updateCurrentSession(updater) },
         )
     }
 }

@@ -44,16 +44,20 @@ import com.example.kpkn.data.repository.CustomExerciseRepository
 import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.auge.getAugeMuscleDisplayId
 import com.example.kpkn.domain.auge.lookupMuscleValue
+import com.example.kpkn.domain.training.CompetitionHomePhase
+import com.example.kpkn.domain.training.HomeCompetitionState
 import com.example.kpkn.screens.sessioneditor.components.SessionBackgroundLayer
 import com.example.kpkn.ui.components.SectionHeader
 
 @Composable
 fun HomeSessionSection(
     sessions: List<TodaySessionItem>,
+    homeCompetition: HomeCompetitionState? = null,
     hasActiveProgram: Boolean = true,
     currentDayOfWeek: Int,
     perMuscle: Map<String, MuscleRecoveryStatus> = emptyMap(),
     onStartWorkout: (Session, Program) -> Unit,
+    onRegisterCompetition: (String) -> Unit = {},
     onResumeWorkout: () -> Unit,
     onEditSession: (Session, Program) -> Unit = { _, _ -> },
     onCreateProgram: () -> Unit = {},
@@ -97,7 +101,9 @@ fun HomeSessionSection(
     Column(modifier.fillMaxWidth()) {
         val current = sessions.getOrNull(activeIndex) ?: sessions.firstOrNull()
         val isCurrentToday = current?.isToday == true
+        val registerToday = homeCompetition?.phase == CompetitionHomePhase.REGISTER
         val headerTitle = when {
+            registerToday -> "Registrar competición"
             !hasActiveProgram -> "Sesión de hoy"
             sessions.isEmpty() || sessions.none { it.isToday } -> "Próxima sesión"
             isCurrentToday -> "Sesión de hoy"
@@ -106,15 +112,27 @@ fun HomeSessionSection(
 
         SectionHeader(headerTitle, Modifier.padding(horizontal = 24.dp))
 
-        if (!hasActiveProgram) {
+        if (registerToday && homeCompetition != null) {
+            CompetitionRegisterCard(
+                state = homeCompetition,
+                onRegister = { onRegisterCompetition(homeCompetition.recordId) },
+                modifier = Modifier.padding(horizontal = 24.dp),
+            )
+        } else if (!hasActiveProgram) {
             NoProgramSessionCard(
                 modifier = Modifier.padding(horizontal = 24.dp),
                 onCreateProgram = onCreateProgram,
             )
         } else if (sessions.isEmpty()) {
-            RestDayCard(modifier = Modifier.padding(horizontal = 24.dp))
+            Box(Modifier.padding(horizontal = 24.dp)) {
+                RestDayCard()
+                homeCompetition?.takeIf { it.phase == CompetitionHomePhase.UPCOMING }?.let {
+                    CompetitionCountdownCanvas(it, Modifier.align(Alignment.TopCenter))
+                }
+            }
         } else {
             val currentItem = sessions.getOrElse(activeIndex) { sessions.first() }
+            val upcoming = homeCompetition?.takeIf { it.phase == CompetitionHomePhase.UPCOMING }
 
             if (sessions.size > 1) {
                 val pagerState = rememberPagerState(initialPage = activeIndex) { sessions.size }
@@ -122,7 +140,6 @@ fun HomeSessionSection(
                     val needsSnap = pagerState.currentPage != activeIndex ||
                         pagerState.currentPageOffsetFraction != 0f
                     if (!needsSnap) return@LaunchedEffect
-                    // Cualquier offset fraccional (también settled==active) se asienta al instante.
                     pagerState.scrollToPage(activeIndex)
                     isProgrammaticScroll = false
                 }
@@ -141,26 +158,30 @@ fun HomeSessionSection(
                     modifier = Modifier.fillMaxWidth(),
                 ) { page ->
                     val pageItem = sessions[page]
-                    SessionCard(
-                        item = pageItem,
-                        currentDayOfWeek = currentDayOfWeek,
-                        perMuscle = perMuscle,
-                        onStart = { onStartWorkout(pageItem.session, pageItem.program) },
-                        onResume = onResumeWorkout,
-                        onEdit = { onEditSession(pageItem.session, pageItem.program) },
-                        modifier = Modifier.padding(horizontal = 24.dp),
-                    )
+                    Box(Modifier.padding(horizontal = 24.dp)) {
+                        SessionCard(
+                            item = pageItem,
+                            currentDayOfWeek = currentDayOfWeek,
+                            perMuscle = perMuscle,
+                            onStart = { onStartWorkout(pageItem.session, pageItem.program) },
+                            onResume = onResumeWorkout,
+                            onEdit = { onEditSession(pageItem.session, pageItem.program) },
+                        )
+                        upcoming?.let { CompetitionCountdownCanvas(it, Modifier.align(Alignment.TopCenter)) }
+                    }
                 }
             } else {
-                SessionCard(
-                    item = currentItem,
-                    currentDayOfWeek = currentDayOfWeek,
-                    perMuscle = perMuscle,
-                    onStart = { onStartWorkout(currentItem.session, currentItem.program) },
-                    onResume = onResumeWorkout,
-                    onEdit = { onEditSession(currentItem.session, currentItem.program) },
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                )
+                Box(Modifier.padding(horizontal = 24.dp)) {
+                    SessionCard(
+                        item = currentItem,
+                        currentDayOfWeek = currentDayOfWeek,
+                        perMuscle = perMuscle,
+                        onStart = { onStartWorkout(currentItem.session, currentItem.program) },
+                        onResume = onResumeWorkout,
+                        onEdit = { onEditSession(currentItem.session, currentItem.program) },
+                    )
+                    upcoming?.let { CompetitionCountdownCanvas(it, Modifier.align(Alignment.TopCenter)) }
+                }
             }
         }
     }
@@ -545,6 +566,71 @@ private fun RestDayCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             )
+        }
+    }
+}
+
+@Composable
+private fun CompetitionCountdownCanvas(state: HomeCompetitionState, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp),
+        color = Color(0xFFF59E0B).copy(alpha = 0.92f),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text("COMP", fontWeight = FontWeight.Black, fontSize = 11.sp, color = Color.Black)
+            Column(Modifier.weight(1f)) {
+                Text(
+                    "Cuenta atrás · ${state.countdownLabel}",
+                    fontWeight = FontWeight.Black,
+                    fontSize = 13.sp,
+                    color = Color.Black,
+                )
+                Text(
+                    state.competitionDateLabel,
+                    fontSize = 11.sp,
+                    color = Color.Black.copy(alpha = 0.78f),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CompetitionRegisterCard(
+    state: HomeCompetitionState,
+    onRegister: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = Color(0xFFF59E0B).copy(alpha = 0.16f),
+        tonalElevation = 2.dp,
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text("Día de competición", fontWeight = FontWeight.Black, fontSize = 12.sp, color = Color(0xFFF59E0B))
+            Text(state.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+            Text(
+                "${state.countdownLabel} · ${state.competitionDateLabel}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Button(
+                onClick = onRegister,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF59E0B), contentColor = Color.Black),
+            ) {
+                Text("Registrar resultados", fontWeight = FontWeight.Black)
+            }
         }
     }
 }

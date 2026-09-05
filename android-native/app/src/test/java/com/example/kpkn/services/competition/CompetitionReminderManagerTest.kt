@@ -52,6 +52,18 @@ class CompetitionReminderManagerTest {
     }
 
     @Test
+    fun schedule_completed_cancels_and_does_not_create_alarms() {
+        val manager = CompetitionReminderManager(context)
+        val planned = futureRecord()
+        manager.schedule(planned)
+        val alarmManager = context.getSystemService(AlarmManager::class.java)
+        assertEquals(4, shadowOf(alarmManager).scheduledAlarms.size)
+
+        manager.schedule(planned.copy(status = com.example.kpkn.data.models.CompetitionRecordStatus.COMPLETED))
+        assertEquals(0, shadowOf(alarmManager).scheduledAlarms.size)
+    }
+
+    @Test
     fun boot_reschedule_rebuilds_alarms_from_persisted_records() = runBlocking {
         val database = KpknDatabase.createInMemory(context)
         try {

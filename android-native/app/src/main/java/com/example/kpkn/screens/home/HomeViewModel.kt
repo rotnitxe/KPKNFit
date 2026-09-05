@@ -10,7 +10,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.GoalMetric
-import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.NutritionPlan
@@ -23,8 +22,8 @@ import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.TodaySessionItem
-import com.example.kpkn.data.models.isSimpleTemporalProgram
 import com.example.kpkn.data.repository.AugeRepository
+import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.auge.OvertrainingDetector
@@ -33,6 +32,8 @@ import com.example.kpkn.domain.calculations.calculateBrzycki1RM
 import com.example.kpkn.domain.calculations.calculateFFMI
 import com.example.kpkn.domain.calculations.calculateIPFGLPoints
 import com.example.kpkn.domain.nutrition.deriveMacroGoals
+import com.example.kpkn.domain.training.HomeCompetitionResolver
+import com.example.kpkn.domain.training.HomeCompetitionState
 import com.example.kpkn.domain.training.HomeSessionResolver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -47,20 +48,19 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
-import java.time.temporal.ChronoUnit
 import java.util.Calendar
-import java.util.Locale
 import java.util.UUID
 
 /**
  * HomeViewModel — State management for Home Screen.
  */
-class HomeViewModel : ViewModel() {
+    class HomeViewModel : ViewModel() {
 
     private val repository = ProgramRepository.getInstance()
     private val nutritionRepository = NutritionRepository.getInstance()
+    private val competitionRecords: StateFlow<List<com.example.kpkn.data.models.CompetitionRecord>> =
+        runCatching { CompetitionRepository.getInstance().records }
+            .getOrElse { MutableStateFlow(emptyList()) }
 
     private val _feedbacks = MutableStateFlow<List<PostSessionFeedback>>(emptyList())
     val feedbacks: StateFlow<List<PostSessionFeedback>> = _feedbacks.asStateFlow()
@@ -91,8 +91,12 @@ class HomeViewModel : ViewModel() {
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
-    val competitionCountdown: StateFlow<CompetitionCountdown?> = activeProgram
-        .map { program -> program?.let(::buildCompetitionCountdown) }
+    val homeCompetition: StateFlow<HomeCompetitionState?> = combine(
+        activeProgram,
+        competitionRecords,
+    ) { program, records ->
+        HomeCompetitionResolver.resolve(program, records)
+    }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
@@ -233,52 +237,6 @@ class HomeViewModel : ViewModel() {
     private fun currentDayOfWeek(): Int {
         val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
         return if (today == Calendar.SUNDAY) 7 else today - 1
-    }
-
-    private fun buildCompetitionCountdown(program: Program): CompetitionCountdown? {
-        if (program.isSimpleTemporalProgram) return null
-        val keyDate = program.keyDates.firstOrNull { it.type == KeyDateType.COMPETITION } ?: return null
-        val competitionDate = parseProgramDate(keyDate.eventDate ?: keyDate.startDate) ?: return null
-        val weekStart = parseProgramDate(keyDate.startDate)
-        val weekEnd = parseProgramDate(keyDate.endDate)
-        val daysUntil = ChronoUnit.DAYS.between(LocalDate.now(), competitionDate)
-
-        return CompetitionCountdown(
-            programId = program.id,
-            programName = program.name,
-            competitionDate = competitionDate.toString(),
-            competitionDateLabel = formatHomeDate(competitionDate),
-            daysUntil = daysUntil,
-            countdownLabel = formatCountdown(daysUntil),
-            competitionWeekLabel = if (weekStart != null && weekEnd != null) {
-                "${formatHomeDate(weekStart)} → ${formatHomeDate(weekEnd)}"
-            } else null,
-        )
-    }
-
-    private fun parseProgramDate(raw: String?): LocalDate? {
-        if (raw.isNullOrBlank()) return null
-        return try {
-            LocalDate.parse(raw, DateTimeFormatter.ISO_LOCAL_DATE)
-        } catch (_: DateTimeParseException) {
-            null
-        }
-    }
-
-    private fun formatHomeDate(date: LocalDate): String {
-        return date.format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.forLanguageTag("es-CL")))
-    }
-
-    private fun formatCountdown(days: Long): String = when {
-        days < 0 -> "Hace ${kotlin.math.abs(days)} días"
-        days == 0L -> "Hoy"
-        days == 1L -> "1 día"
-        days < 7 -> "$days días"
-        else -> {
-            val weeks = days / 7
-            val rest = days % 7
-            if (rest == 0L) "$weeks semanas" else "$weeks sem $rest días"
-        }
     }
 
     val todaySessions: StateFlow<List<TodaySessionItem>> = combine(
@@ -607,7 +565,7 @@ class HomeViewModel : ViewModel() {
 
     private data class HomeUiExtras(
         val isRestDay: Boolean,
-        val competitionCountdown: CompetitionCountdown?,
+        val homeCompetition: HomeCompetitionState?,
         val dailyCalorieGoal: Int,
         val todayNutritionTotals: HomeNutritionSnapshot,
         val overtrainedMuscles: List<String>,
@@ -627,7 +585,7 @@ class HomeViewModel : ViewModel() {
         },
         combine(
             isRestDay,
-            competitionCountdown,
+            homeCompetition,
             dailyCalorieGoal,
             todayNutritionTotals,
             combine(overtrainedMuscles, programs) { overtrained, programList ->
@@ -652,7 +610,7 @@ class HomeViewModel : ViewModel() {
             todaySessions = core.todaySessions,
             primarySession = core.primarySession,
             isRestDay = extras.isRestDay,
-            competitionCountdown = extras.competitionCountdown,
+            homeCompetition = extras.homeCompetition,
             dailyCalorieGoal = extras.dailyCalorieGoal,
             todayNutritionTotals = extras.todayNutritionTotals,
             overtrainedMuscles = extras.overtrainedMuscles,
@@ -754,7 +712,7 @@ data class HomeUiState(
     val todaySessions: List<TodaySessionItem> = emptyList(),
     val primarySession: TodaySessionItem? = null,
     val isRestDay: Boolean = false,
-    val competitionCountdown: CompetitionCountdown? = null,
+    val homeCompetition: HomeCompetitionState? = null,
     val dailyCalorieGoal: Int = 2500,
     val todayNutritionTotals: HomeNutritionSnapshot = HomeNutritionSnapshot(),
     val overtrainedMuscles: List<String> = emptyList(),
@@ -786,16 +744,6 @@ data class RelativeStrengthData(
     val deadliftRM: Double,
     val totalKg: Double,
     val relativeStrength: Double,
-)
-
-data class CompetitionCountdown(
-    val programId: String,
-    val programName: String,
-    val competitionDate: String,
-    val competitionDateLabel: String,
-    val daysUntil: Long,
-    val countdownLabel: String,
-    val competitionWeekLabel: String?,
 )
 
 data class HomeNutritionSnapshot(

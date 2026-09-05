@@ -23,10 +23,6 @@ sealed class SessionListItem {
         override val stableKey: String = "hero"
     }
 
-    data object CompetitionEditor : SessionListItem() {
-        override val stableKey: String = "competition-editor"
-    }
-
     data class LooseSuperset(
         val groupId: String,
         val memberIds: List<String>,
@@ -113,11 +109,6 @@ fun buildSessionListItems(
 ): List<SessionListItem> {
     val items = mutableListOf<SessionListItem>()
     items += SessionListItem.Hero
-
-    if (session.isMeetDay) {
-        items += SessionListItem.CompetitionEditor
-        return items
-    }
 
     val groupedParts = session.parts.filterNot { it.isUncategorizedPart() }
     val strengthParts = groupedParts.filterNot { it.isCardioPart() }

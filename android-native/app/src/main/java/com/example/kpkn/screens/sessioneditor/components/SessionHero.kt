@@ -29,7 +29,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MoreVert
@@ -42,9 +41,6 @@ import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -67,7 +63,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -76,9 +71,6 @@ import com.example.kpkn.data.models.BodyMeasurementEntry
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionBackground
 import com.example.kpkn.screens.sessioneditor.DarkEditorChip
-import com.example.kpkn.screens.sessioneditor.formatEditableNumber
-import com.example.kpkn.screens.sessioneditor.formatEditorOneDecimal
-import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.sessionBackgroundPresets
 import com.example.kpkn.screens.sessioneditor.sessionGradients
 import com.example.kpkn.ui.components.KpknDropdownMenu
@@ -392,14 +384,6 @@ internal fun SessionHero(
             }
         }
 
-        if (session.isMeetDay) {
-            MeetDayHeroFields(
-                session = session,
-                latestBodyMeasurement = latestBodyMeasurement,
-                onMeetBodyweightChange = onMeetBodyweightChange,
-                onSyncMeetBodyweight = onSyncMeetBodyweight,
-            )
-        }
     }
 }
 
@@ -493,56 +477,6 @@ private fun CompactSessionTitlePill(
             fontWeight = FontWeight.Black,
             color = Color.White,
         )
-    }
-}
-
-@Composable
-private fun MeetDayHeroFields(
-    session: Session,
-    latestBodyMeasurement: BodyMeasurementEntry?,
-    onMeetBodyweightChange: (Double?) -> Unit,
-    onSyncMeetBodyweight: () -> Unit,
-) {
-    OutlinedTextField(
-        value = session.meetBodyweight?.let(::formatEditableNumber).orEmpty(),
-        onValueChange = { onMeetBodyweightChange(it.safeDoubleOrNull()) },
-        modifier = Modifier.fillMaxWidth(),
-        label = { Text("Peso corporal objetivo (kg)", color = Color.White.copy(alpha = 0.72f)) },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-        singleLine = true,
-        shape = RoundedCornerShape(14.dp),
-        textStyle = MaterialTheme.typography.bodySmall.copy(color = Color.White),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = Color.Black.copy(alpha = 0.22f),
-            unfocusedContainerColor = Color.Black.copy(alpha = 0.22f),
-            focusedBorderColor = Color.White.copy(alpha = 0.38f),
-            unfocusedBorderColor = Color.White.copy(alpha = 0.18f),
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            focusedLabelColor = Color.White.copy(alpha = 0.82f),
-            unfocusedLabelColor = Color.White.copy(alpha = 0.62f),
-            cursorColor = Color.White,
-        ),
-    )
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        val measurementText = latestBodyMeasurement?.weight?.let { weight ->
-            "Medición reciente: ${formatEditorOneDecimal(weight)} kg (${latestBodyMeasurement.date})"
-        } ?: "Sin medición corporal reciente"
-        Text(
-            text = measurementText,
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.White.copy(alpha = 0.75f),
-        )
-        OutlinedButton(
-            onClick = onSyncMeetBodyweight,
-            enabled = latestBodyMeasurement?.weight != null,
-        ) {
-            Text("Usar medición")
-        }
     }
 }
 

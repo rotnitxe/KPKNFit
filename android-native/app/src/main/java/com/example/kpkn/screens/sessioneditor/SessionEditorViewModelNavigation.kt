@@ -4,13 +4,11 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.data.exercises.isExerciseCatalogV2RuntimeReady
 import com.example.kpkn.data.exercises.catalogv2.catalogV2SelectionIssues
 
-import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.domain.auge.AugeClassifiers
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.sessionassistant.SessionAssistantEngine
 import com.example.kpkn.domain.sessionassistant.SessionAssistantInput
-import com.example.kpkn.domain.training.CompetitionSessionSync
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.workout.SupersetRules
 import androidx.lifecycle.viewModelScope
@@ -123,77 +121,6 @@ fun SessionEditorViewModel.createSessionForDay(dayOfWeek: Int): SessionEditorSav
             hasUnsavedChanges = false,
             draftBundle = it.draftBundle?.copy(sessionId = newSession.id, dayOfWeek = dayOfWeek),
             snackbarMessage = "Sesión creada para ${dayLabel(dayOfWeek)}",
-            strengthSpaceCommitted = false,
-            cardioSpacePlacement = null,
-        )
-    }
-    refreshDerivedStateImmediate()
-    loadHistory()
-    return SessionEditorSaveResult(success = true, message = "")
-}
-
-fun SessionEditorViewModel.createCompetitionSessionForDay(dayOfWeek: Int): SessionEditorSaveResult {
-    val state = currentUiState
-    if (state.hasUnsavedChanges) {
-        val ok = kotlinx.coroutines.runBlocking(Dispatchers.IO) { persistRecoverableSession(state) }
-        if (!ok) {
-            updateUi { it.copy(snackbarMessage = "Error al guardar el borrador de la sesión actual") }
-            return SessionEditorSaveResult(success = false, message = "")
-        }
-    }
-
-    val existingOnDay = state.weekSessions.firstOrNull { it.dayOfWeek == dayOfWeek }
-    if (existingOnDay != null) {
-        requestSessionSwitch(existingOnDay.id)
-        return SessionEditorSaveResult(success = true, message = "")
-    }
-
-    val program = repository.getProgramById(programId) ?: return SessionEditorSaveResult(
-        success = false,
-        message = "No pudimos recuperar el programa.",
-    )
-    val week = findWeek(program, state.macroIndex, state.mesoIndex, state.weekId)
-    val keyDate = week?.let { findCompetitionKeyDateForWeekDay(program, it, dayOfWeek) }
-    val eventDate = keyDate?.eventDate ?: keyDate?.startDate
-    val sessionName = keyDate?.title?.takeIf { it.isNotBlank() } ?: "Sesion Competicion ${dayLabel(dayOfWeek)}"
-
-    val newSession = createDraftSession(UUID.randomUUID().toString(), dayOfWeek).copy(
-        name = sessionName,
-        isMainSession = true,
-        isMeetDay = true,
-        isCompetitionSession = true,
-        focus = "Competición",
-        competitionDetails = CompetitionDetails(
-            competitionDate = eventDate,
-        ),
-        competitionRecordId = UUID.randomUUID().toString(),
-        competitionKeyDateId = keyDate?.id,
-        competitionRecordMode = CompetitionRecordMode.HYBRID,
-        competitionSportType = defaultCompetitionSportType(program.mode),
-        lastModifiedAtMs = System.currentTimeMillis(),
-    )
-    if (!repository.upsertSessionInProgram(programId, state.weekId, state.macroIndex, state.mesoIndex, newSession)) {
-        return SessionEditorSaveResult(success = false, message = "No pudimos crear la sesión de competición en esta semana.")
-    }
-    // Crear el CompetitionRecord de forma atómica junto con la sesión: evita records huérfanos
-    // si el usuario navega fuera antes de guardar la sesión explícitamente.
-    CompetitionSessionSync.merge(newSession, existingRecord = null, programId = program.id, weekId = state.weekId)
-        ?.let { record -> runCatching { CompetitionRepository.getInstance() }.getOrNull()?.upsert(record) }
-
-    updateUi {
-        val updatedWeekSessions = ensureSessionInList(it.weekSessions, newSession)
-        it.copy(
-            session = newSession,
-            originalSession = newSession,
-            dayOfWeek = dayOfWeek,
-            isNewSession = true,
-            selectedSiblingSessionId = newSession.id,
-            siblingSessions = updatedWeekSessions.sortedBy { session -> session.dayOfWeek ?: 99 },
-            weekSessions = updatedWeekSessions,
-            localDraftHistory = TrainedSessionVersionStore.getInstance(getApplication()).loadForSession(newSession.id),
-            hasUnsavedChanges = false,
-            draftBundle = it.draftBundle?.copy(sessionId = newSession.id, dayOfWeek = dayOfWeek),
-            snackbarMessage = "Sesión de competición creada para ${dayLabel(dayOfWeek)}",
             strengthSpaceCommitted = false,
             cardioSpacePlacement = null,
         )
@@ -386,7 +313,6 @@ fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScop
     }
 
     repository.updateProgram(programWithTransfers)
-    syncCompetitionRecordFromSession(draft, program, state.weekId)
     clearPersistedDraft(
         weekId = state.weekId,
         macroIndex = state.macroIndex,
@@ -429,14 +355,6 @@ fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScop
     }
     val warningSuffix = validation.warnings.takeIf { it.isNotEmpty() }?.joinToString(separator = " | ", prefix = " (Alertas: ")?.plus(")") ?: ""
     return SessionEditorSaveResult(true, "Sesión guardada$transferSuffix$warningSuffix")
-}
-
-internal fun SessionEditorViewModel.syncCompetitionRecordFromSession(session: Session, program: Program, weekId: String) {
-    if (!session.isCompetitionMeet) return
-    val repository = runCatching { CompetitionRepository.getInstance() }.getOrNull() ?: return
-    val existing = session.competitionRecordId?.let { repository.getById(it) }
-    val merged = CompetitionSessionSync.merge(session, existing, program.id, weekId) ?: return
-    repository.upsert(merged)
 }
 
 internal fun detectChangedFields(previous: Session, current: Session): List<String> {

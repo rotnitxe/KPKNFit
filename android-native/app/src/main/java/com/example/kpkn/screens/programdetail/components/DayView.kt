@@ -137,7 +137,6 @@ fun DayView(
     onApplySessionsLayout: (List<Session>) -> Unit,
     onUpdateStartDay: (Int, StartDayTemporalScope, StartDaySessionMode) -> Unit,
     onUpdateWeekMetadata: (String, String, String?) -> Unit,
-    onCreateCompetitionSession: (() -> Unit)? = null,
     onUpdateTrainingDayDate: (weekId: String, dayOfWeek: Int, isoDate: String?) -> Unit = { _, _, _ -> },
     modifier: Modifier = Modifier,
 ) {
@@ -211,7 +210,6 @@ fun DayView(
                         onSave = { name, description ->
                             onUpdateWeekMetadata(selectedWeek.id, name, description)
                         },
-                        onCreateCompetitionSession = onCreateCompetitionSession,
                     )
             }
 
@@ -504,7 +502,6 @@ private fun StartDayConfirmDialog(
 private fun WeekIdentityCard(
     week: WeekWithMeta,
     onSave: (String, String?) -> Unit,
-    onCreateCompetitionSession: (() -> Unit)? = null,
 ) {
     var isEditing by remember(week.id) { mutableStateOf(false) }
     var descriptionExpanded by remember(week.id) { mutableStateOf(false) }
@@ -607,18 +604,6 @@ private fun WeekIdentityCard(
                     ) {
                         Text("Guardar")
                     }
-                }
-            }
-
-            if (week.keyDateType == KeyDateType.COMPETITION &&
-                onCreateCompetitionSession != null &&
-                week.sessions.none { it.isMeetDay || it.isCompetitionSession }
-            ) {
-                Button(
-                    onClick = onCreateCompetitionSession,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("Crear sesión de competición")
                 }
             }
         }

@@ -47,6 +47,7 @@ class CompetitionReminderManager(context: Context) {
 
     fun schedule(record: CompetitionRecord) {
         cancel(record.id)
+        if (record.status != CompetitionRecordStatus.PLANNED) return
         val eventAt = record.eventDate?.toEventDateTime(record.startTime) ?: return
         scheduleIfEnabled(record, TYPE_WEEK, eventAt.minusDays(7), record.reminderOneWeekEnabled)
         scheduleIfEnabled(record, TYPE_48H, eventAt.minusHours(48), record.reminder48hEnabled)
@@ -147,10 +148,10 @@ class CompetitionReminderReceiver : BroadcastReceiver() {
                 KpknDeepLinks.pendingActivityIntent(
                     context = context,
                     requestCode = 0,
-                    path = if (type == CompetitionReminderManager.TYPE_POST_RESULT && recordId.isNotBlank()) {
+                    path = if (recordId.isNotBlank()) {
                         "competition/$recordId"
                     } else {
-                        "competitions"
+                        "profile"
                     },
                 )
             )
@@ -193,7 +194,7 @@ class CompetitionReminderBootReceiver : BroadcastReceiver() {
             database.competitionRecordDao()
                 .getAll()
                 .map { it.toCompetitionRecord() }
-                .filterNot { it.status == CompetitionRecordStatus.ARCHIVED }
+                .filter { it.status == CompetitionRecordStatus.PLANNED }
                 .forEach(manager::schedule)
         }
     }

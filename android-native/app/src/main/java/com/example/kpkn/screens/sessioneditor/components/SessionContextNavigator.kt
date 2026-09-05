@@ -335,7 +335,6 @@ internal fun SessionContextNavigator(
     onSelectRoadmapOption: (SessionRoadmapOption) -> Unit,
     competitionKeyDaysInWeek: Set<Int>,
     onCreateSessionForDay: (Int) -> Unit,
-    onCreateCompetitionSessionForDay: (Int) -> Unit,
     isSimpleProgram: Boolean,
     hasActiveLoops: Boolean,
     hazeState: HazeState?,
@@ -753,46 +752,24 @@ internal fun SessionContextNavigator(
 
     // Create session dialog
     if (showCreateSessionDialog && pendingCreateDay > 0) {
-        val isCompetitionDay = pendingCreateDay in competitionKeyDaysInWeek
         KpknAlertDialog(
             onDismissRequest = { showCreateSessionDialog = false },
             icon = { Icon(Icons.Default.Add, null, tint = MaterialTheme.colorScheme.primary) },
             title = { Text("¿Crear sesión para ${sessionEditorDayLabel(pendingCreateDay)}?") },
             text = {
-                Text(
-                    if (isCompetitionDay) {
-                        "Este día coincide con una fecha clave de competición. Puedes crear una sesión de competición directamente."
-                    } else {
-                        "Este día no tiene una sesión asignada. ¿Deseas crear una nueva sesión aquí?"
-                    }
-                )
+                Text("Este día no tiene una sesión asignada. ¿Deseas crear una nueva sesión aquí?")
             },
             confirmButton = {
                 Button(onClick = {
                     showCreateSessionDialog = false
-                    if (isCompetitionDay) onCreateCompetitionSessionForDay(pendingCreateDay)
-                    else onCreateSessionForDay(pendingCreateDay)
+                    onCreateSessionForDay(pendingCreateDay)
                 }) {
-                    Text(if (isCompetitionDay) "Crear sesión de competición" else "Crear sesión")
+                    Text("Crear sesión")
                 }
             },
             dismissButton = {
-                if (isCompetitionDay) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = {
-                            showCreateSessionDialog = false
-                            onCreateSessionForDay(pendingCreateDay)
-                        }) {
-                            Text("Crear normal")
-                        }
-                        OutlinedButton(onClick = { showCreateSessionDialog = false }) {
-                            Text("Cancelar")
-                        }
-                    }
-                } else {
-                    OutlinedButton(onClick = { showCreateSessionDialog = false }) {
-                        Text("Cancelar")
-                    }
+                OutlinedButton(onClick = { showCreateSessionDialog = false }) {
+                    Text("Cancelar")
                 }
             },
         )

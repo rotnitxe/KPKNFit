@@ -12,6 +12,7 @@ import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SimpleProgramKind
+import com.example.kpkn.data.models.isCompetitionMeet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -98,7 +99,7 @@ class ProgramPersistNormalizerTest {
     }
 
     @Test
-    fun normalize_moves_competition_session_to_week_that_contains_event_date() {
+    fun normalize_strips_competition_meet_sessions() {
         val monday = Session(
             id = "mon",
             name = "Sesión Lunes",
@@ -174,11 +175,13 @@ class ProgramPersistNormalizerTest {
         )
 
         val normalized = ProgramPersistNormalizer.normalize(program)
-        val weeks = normalized.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
-        val host = weeks.first { week -> week.sessions.any { it.id == "meet" } }
-        assertEquals("w-new", host.id)
-        assertEquals("2026-08-31", host.startDate)
-        assertEquals("2026-09-06", host.endDate)
-        assertTrue(weeks.first { it.id == "w-meet" }.sessions.none { it.id == "meet" })
+        val sessions = normalized.macrocycles
+            .flatMap { it.blocks }
+            .flatMap { it.mesocycles }
+            .flatMap { it.weeks }
+            .flatMap { it.sessions }
+        assertTrue(sessions.none { it.id == "meet" })
+        assertTrue(sessions.none { it.isCompetitionMeet })
+        assertTrue(sessions.any { it.id == "mon" })
     }
 }

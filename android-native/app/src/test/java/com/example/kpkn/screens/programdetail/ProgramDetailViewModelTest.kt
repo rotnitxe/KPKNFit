@@ -272,8 +272,23 @@ class ProgramDetailViewModelTest {
     }
 
     @Test
-    fun deleteSession_unlinks_but_preserves_linked_competition_record() = runBlocking {
+    fun persist_strips_meet_session_and_preserves_linked_competition_record() = runBlocking {
         val id = nextId()
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        CompetitionRepository.initForTests(context)
+        val competitionRepository = CompetitionRepository.getInstance()
+        withTimeout(5_000) { while (!competitionRepository.isReady.value) delay(10) }
+        competitionRepository.upsertNow(
+            CompetitionRecord(
+                id = "${id}_record",
+                title = "Meet day",
+                plannedProgramId = id,
+                plannedSessionId = "${id}_comp",
+                plannedWeekId = "${id}_w1",
+                journal = CompetitionJournal(overallFeeling = "Buena sensación"),
+            )
+        )
+
         val program = makeProgram(id)
         val competitionSession = Session(
             id = "${id}_comp",
@@ -299,31 +314,12 @@ class ProgramDetailViewModelTest {
         )
         repository.addProgram(withCompetitionSession)
 
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        CompetitionRepository.initForTests(context)
-        val competitionRepository = CompetitionRepository.getInstance()
-        withTimeout(5_000) { while (!competitionRepository.isReady.value) delay(10) }
-        competitionRepository.upsertNow(
-            CompetitionRecord(
-                id = "${id}_record",
-                title = "Meet day",
-                plannedProgramId = id,
-                plannedSessionId = "${id}_comp",
-                plannedWeekId = "${id}_w1",
-                journal = CompetitionJournal(overallFeeling = "Buena sensación"),
-            )
-        )
-
-        val vm = ProgramDetailViewModel(id)
-        vm.deleteSession("${id}_comp", macroIndex = 0, mesoIndex = 0, weekId = "${id}_w1")
-
         val updatedWeek = repository.getProgramById(id)!!.macrocycles[0].blocks[0].mesocycles[0].weeks[0]
         assertTrue(updatedWeek.sessions.none { it.id == "${id}_comp" })
 
         val record = competitionRepository.getById("${id}_record")
         assertNotNull("El record de competición no debería eliminarse", record)
         assertNull(record!!.plannedSessionId)
-        assertNull(record.plannedWeekId)
         assertEquals("Buena sensación", record.journal?.overallFeeling)
     }
 

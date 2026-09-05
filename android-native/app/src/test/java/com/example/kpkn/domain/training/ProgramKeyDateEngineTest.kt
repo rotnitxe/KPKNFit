@@ -9,6 +9,7 @@ import com.example.kpkn.data.models.ProgramKeyDate
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.isCompetitionMeet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -82,6 +83,73 @@ class ProgramKeyDateEngineTest {
         assertNotNull(result.competitionKeyDate)
         assertEquals("2026-06-07", result.competitionKeyDate?.eventDate)
         assertNull(ProgramKeyDateEngine.validate(result.competitionKeyDate!!))
+        assertTrue(
+            result.program.macrocycles
+                .flatMap { it.blocks }
+                .flatMap { it.mesocycles }
+                .flatMap { it.weeks }
+                .flatMap { it.sessions }
+                .none { it.isCompetitionMeet },
+        )
+    }
+
+    @Test
+    fun applyAdvancedCalendarSave_strips_existing_meet_sessions() {
+        val meet = Session(
+            id = "meet",
+            name = "Meet",
+            isMeetDay = true,
+            isCompetitionSession = true,
+            competitionKeyDateId = "old-comp",
+        )
+        val program = Program(
+            id = "p",
+            name = "P",
+            structure = ProgramStructure.COMPLEX,
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "mc",
+                    name = "M",
+                    blocks = listOf(
+                        Block(
+                            id = "b",
+                            name = "B",
+                            mesocycles = listOf(
+                                Mesocycle(
+                                    id = "m",
+                                    name = "M",
+                                    weeks = listOf(
+                                        ProgramWeek(
+                                            id = "w",
+                                            name = "W",
+                                            sessions = listOf(
+                                                Session(id = "train", name = "Fuerza"),
+                                                meet,
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val result = ProgramKeyDateEngine.applyAdvancedCalendarSave(
+            program = program,
+            timelineStartDate = "2026-05-01",
+            competitionDate = "2026-06-07",
+            manualEndDate = null,
+            competitionRepository = null,
+        )
+        val sessions = result.program.macrocycles
+            .flatMap { it.blocks }
+            .flatMap { it.mesocycles }
+            .flatMap { it.weeks }
+            .flatMap { it.sessions }
+        assertTrue(sessions.any { it.id == "train" })
+        assertTrue(sessions.none { it.id == "meet" })
+        assertTrue(sessions.none { it.isCompetitionMeet })
     }
 
     @Test

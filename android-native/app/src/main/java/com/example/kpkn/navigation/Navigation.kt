@@ -39,7 +39,7 @@ sealed class KpknRoute(val route: String) {
         const val TAB_ANALYTICS = "analytics"
     }
 
-    object SessionEditor : KpknRoute("session-editor/{programId}/{sessionId}?weekId={weekId}&macroIndex={macroIndex}&mesoIndex={mesoIndex}&dayOfWeek={dayOfWeek}&configureCompetition={configureCompetition}") {
+    object SessionEditor : KpknRoute("session-editor/{programId}/{sessionId}?weekId={weekId}&macroIndex={macroIndex}&mesoIndex={mesoIndex}&dayOfWeek={dayOfWeek}") {
         fun create(
             programId: String,
             sessionId: String,
@@ -47,14 +47,12 @@ sealed class KpknRoute(val route: String) {
             macroIndex: Int? = null,
             mesoIndex: Int? = null,
             dayOfWeek: Int? = null,
-            configureCompetition: Boolean = false,
         ): String {
             val query = buildList {
                 weekId?.let { add("weekId=$it") }
                 macroIndex?.let { add("macroIndex=$it") }
                 mesoIndex?.let { add("mesoIndex=$it") }
                 dayOfWeek?.let { add("dayOfWeek=$it") }
-                if (configureCompetition) add("configureCompetition=true")
             }.joinToString("&")
 
             return if (query.isBlank()) {
@@ -69,7 +67,6 @@ sealed class KpknRoute(val route: String) {
         const val ARG_MACRO_INDEX = "macroIndex"
         const val ARG_MESO_INDEX = "mesoIndex"
         const val ARG_DAY_OF_WEEK = "dayOfWeek"
-        const val ARG_CONFIGURE_COMPETITION = "configureCompetition"
     }
 
     object Workout : KpknRoute("workout/{programId}/{sessionId}") {
@@ -115,6 +112,7 @@ sealed class KpknRoute(val route: String) {
     object CompetitionDetail : KpknRoute("competition/{competitionId}") {
         fun create(competitionId: String) = "competition/$competitionId"
         const val ARG_COMPETITION_ID = "competitionId"
+        const val NEW_ID = "new"
     }
 
     object Settings : KpknRoute("settings")

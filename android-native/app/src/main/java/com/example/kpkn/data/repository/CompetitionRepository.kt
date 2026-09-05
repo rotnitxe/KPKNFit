@@ -65,7 +65,7 @@ class CompetitionRepository private constructor(context: Context, databaseOverri
             next.sortedWith(recordSorter)
         }
         scope.launch { db.competitionRecordDao().upsert(normalized.toEntity()) }
-        reminderManager.schedule(normalized)
+        syncReminders(normalized)
     }
 
     suspend fun upsertNow(record: CompetitionRecord) {
@@ -79,13 +79,21 @@ class CompetitionRepository private constructor(context: Context, databaseOverri
             next.sortedWith(recordSorter)
         }
         withContext(Dispatchers.IO) { db.competitionRecordDao().upsert(normalized.toEntity()) }
-        reminderManager.schedule(normalized)
+        syncReminders(normalized)
     }
 
     fun delete(id: String) {
         _records.update { it.filterNot { record -> record.id == id } }
         scope.launch { db.competitionRecordDao().delete(id) }
         reminderManager.cancel(id)
+    }
+
+    private fun syncReminders(record: CompetitionRecord) {
+        if (record.status == CompetitionRecordStatus.PLANNED) {
+            reminderManager.schedule(record)
+        } else {
+            reminderManager.cancel(record.id)
+        }
     }
 
     private fun CompetitionRecord.withFreshTimestamps(): CompetitionRecord {

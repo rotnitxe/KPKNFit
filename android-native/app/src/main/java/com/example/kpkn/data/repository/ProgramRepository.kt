@@ -9,6 +9,7 @@ import com.example.kpkn.domain.training.ProgramActiveStateEngine
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ProgramMigrationEngine
 import com.example.kpkn.domain.training.ProgramPersistNormalizer
+import com.example.kpkn.domain.training.ProgramKeyDateEngine
 import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.training.BlockTransitionEngine
 import kotlinx.coroutines.CoroutineScope
@@ -68,14 +69,14 @@ class ProgramRepository private constructor(
     val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
 
     fun addProgram(program: Program) {
-        val normalized = ProgramPersistNormalizer.normalize(program).normalizedIdentityFields()
+        val normalized = normalizeProgramWithCompetitions(program)
         val version = reserveProgramWrite(normalized.id)
         _programs.update { it + normalized }
         scope.launch { persistProgramIfNewest(normalized, version) }
     }
 
     fun updateProgram(program: Program) {
-        val normalized = ProgramPersistNormalizer.normalize(program).normalizedIdentityFields()
+        val normalized = normalizeProgramWithCompetitions(program)
         val version = reserveProgramWrite(normalized.id)
         _programs.update { list -> list.map { if (it.id == normalized.id) normalized else it } }
         repairActiveStateIfNeeded(normalized)
@@ -83,11 +84,28 @@ class ProgramRepository private constructor(
     }
 
     suspend fun updateProgramNow(program: Program) {
-        val normalized = ProgramPersistNormalizer.normalize(program).normalizedIdentityFields()
+        val normalized = normalizeProgramWithCompetitions(program)
         val version = reserveProgramWrite(normalized.id)
         _programs.update { list -> list.map { if (it.id == normalized.id) normalized else it } }
         repairActiveStateIfNeeded(normalized)
         withContext(Dispatchers.IO) { persistProgramIfNewest(normalized, version) }
+    }
+
+    private fun normalizeProgramWithCompetitions(program: Program): Program {
+        val existingRecords = runCatching { CompetitionRepository.getInstance().records.value }
+            .getOrDefault(emptyList())
+        val weekId = ProgramKeyDateEngine.competitionKeyDate(program)
+            ?.let { ProgramKeyDateEngine.locateCompetitionWeekDay(program, it)?.first }
+        val migrated = com.example.kpkn.domain.training.CompetitionKeyDateSync.migrate(
+            program = program,
+            existingRecords = existingRecords,
+            competitionWeekId = weekId,
+        )
+        runCatching {
+            val repo = CompetitionRepository.getInstance()
+            migrated.recordsToUpsert.forEach(repo::upsert)
+        }
+        return ProgramPersistNormalizer.normalize(migrated.program).normalizedIdentityFields()
     }
 
     private fun reserveProgramWrite(programId: String): Long =

@@ -82,6 +82,7 @@ import com.example.kpkn.data.models.WeightUnit
 import com.example.kpkn.data.profile.ProfilePhotoStore
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.screens.competitions.ProfileCompetitionsArchive
 import com.example.kpkn.domain.training.NutritionGoalProgress
 import com.example.kpkn.domain.training.StarredExerciseProgress
 import com.example.kpkn.domain.training.buildNutritionGoalProgress
@@ -187,6 +188,8 @@ class ProfileViewModel : ViewModel() {
 fun ProfileScreen(
     onBack: () -> Unit,
     onNavigateToSettings: () -> Unit = {},
+    onOpenCompetition: (String) -> Unit = {},
+    onCreateCompetition: () -> Unit = {},
     viewModel: ProfileViewModel = viewModel { ProfileViewModel() },
 ) {
     val context = LocalContext.current
@@ -287,6 +290,10 @@ fun ProfileScreen(
             }
 
             StarredExercisesCard(state.starredExercises)
+            ProfileCompetitionsArchive(
+                onOpenCompetition = onOpenCompetition,
+                onCreateCompetition = onCreateCompetition,
+            )
             NutritionProgressCard(state.nutritionGoal)
             Spacer(Modifier.height(64.dp))
         }

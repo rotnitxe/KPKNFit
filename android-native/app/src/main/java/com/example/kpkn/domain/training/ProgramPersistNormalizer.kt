@@ -14,8 +14,9 @@ object ProgramPersistNormalizer {
         val synced = LoopEngine.syncOccurrences(aligned)
         val repaired = repairStaleRunCursor(synced)
         val dated = ProgramCalendarEngine.materializeWeekDates(repaired)
-        val competition = ProgramKeyDateEngine.competitionKeyDate(dated) ?: return dated
-        return ProgramKeyDateEngine.syncCompetitionLinkedEntities(dated, competition, null)
+        val stripped = CompetitionKeyDateSync.stripMeetSessions(dated)
+        val competition = ProgramKeyDateEngine.competitionKeyDate(stripped) ?: return stripped
+        return ProgramKeyDateEngine.syncCompetitionLinkedEntities(stripped, competition, null)
     }
 
     fun repairStaleRunCursor(program: Program): Program {

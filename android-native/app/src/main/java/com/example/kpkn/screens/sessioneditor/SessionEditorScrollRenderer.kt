@@ -49,17 +49,16 @@ import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.hasCardioPart
+import com.example.kpkn.data.models.cardioPart
 import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.isCardioPart
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.exercises.resolveCatalogInfoForDisplay
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
-import com.example.kpkn.screens.sessioneditor.components.CompetitionSessionEditor
 import com.example.kpkn.screens.sessioneditor.components.ExerciseEditorCard
 import com.example.kpkn.screens.sessioneditor.components.GroupEditorCard
 import com.example.kpkn.screens.sessioneditor.components.SessionEditorEmptyState
 import com.example.kpkn.screens.sessioneditor.components.SupersetGroupEditorCard
-import com.example.kpkn.screens.sessioneditor.components.matchesCompetitionMovement
 
 private fun Modifier.drawPartBorder(partAccent: Color): Modifier = this
 
@@ -80,7 +79,6 @@ internal fun SessionEditorListItem(
     partDropTargetId: String?,
     pendingAutoExpandExerciseId: String?,
     onPendingAutoExpandHandled: (String) -> Unit,
-    onOpenCompetitionConfig: () -> Unit,
     onLooseBoundsReport: (Rect) -> Unit,
     onStrengthAddActionsBoundsReport: (Rect) -> Unit = onLooseBoundsReport,
     onPartContentBoundsReport: (String, Rect) -> Unit,
@@ -97,15 +95,6 @@ internal fun SessionEditorListItem(
         session.supersetGroups.associateBy { it.id }
     }
     when (listItem) {
-        is SessionListItem.CompetitionEditor -> {
-            CompetitionSessionEditor(
-                session = session,
-                onUpdateSession = { updater -> viewModel.updateCurrentSession(updater) },
-                onOpenConfig = onOpenCompetitionConfig,
-                onAddCompetitionMovement = { viewModel.openSheet(SessionEditorSheet.EXERCISE_PICKER) },
-            )
-        }
-
         is SessionListItem.PartHeader -> {
             val part = groupedParts.firstOrNull { it.id == listItem.partId } ?: return
             val isCardio = part.isCardioPart()
@@ -200,6 +189,7 @@ internal fun SessionEditorListItem(
                         index = listItem.indexInLoose,
                         exercises = session.exercises,
                         session = session,
+                        cardioHistoryByType = uiState.cardioHistoryByType,
                         exerciseInfoById = exerciseInfoById,
                         competitionMovementIds = uiState.competitionMovementIds,
                         draggingExerciseId = draggingExerciseId,
@@ -287,6 +277,7 @@ internal fun SessionEditorListItem(
                         part = part,
                         index = listItem.indexInPart,
                         session = session,
+                        cardioHistoryByType = uiState.cardioHistoryByType,
                         exerciseInfoById = exerciseInfoById,
                         competitionMovementIds = uiState.competitionMovementIds,
                         draggingExerciseId = draggingExerciseId,
@@ -789,6 +780,7 @@ private fun LooseExerciseItem(
     index: Int,
     exercises: List<Exercise>,
     session: Session,
+    cardioHistoryByType: Map<com.example.kpkn.data.models.CardioType, com.example.kpkn.domain.cardio.CardioTypeHistory> = emptyMap(),
     exerciseInfoById: Map<String, ExerciseMuscleInfo>,
     competitionMovementIds: Set<String>,
     draggingExerciseId: String?,
@@ -861,6 +853,11 @@ private fun LooseExerciseItem(
             onAutoExpandHandled = {
                 if (pendingAutoExpandExerciseId == exercise.id) onPendingAutoExpandHandled(exercise.id)
             },
+            cardioFirst = session.cardioFirst,
+            showCardioPlacementChip = exercise.cardioDetails != null &&
+                session.cardioPart()?.exercises?.firstOrNull()?.id == exercise.id,
+            onToggleCardioPlacement = viewModel::toggleCardioPlacement,
+            cardioHistory = exercise.cardioDetails?.type?.let { cardioHistoryByType[it] },
         )
     }
 
@@ -877,6 +874,7 @@ private fun PartExerciseItem(
     part: SessionPart,
     index: Int,
     session: Session,
+    cardioHistoryByType: Map<com.example.kpkn.data.models.CardioType, com.example.kpkn.domain.cardio.CardioTypeHistory> = emptyMap(),
     exerciseInfoById: Map<String, ExerciseMuscleInfo>,
     competitionMovementIds: Set<String>,
     draggingExerciseId: String?,
@@ -947,6 +945,11 @@ private fun PartExerciseItem(
             onAutoExpandHandled = {
                 if (pendingAutoExpandExerciseId == exercise.id) onPendingAutoExpandHandled(exercise.id)
             },
+            cardioFirst = session.cardioFirst,
+            showCardioPlacementChip = exercise.cardioDetails != null &&
+                session.cardioPart()?.exercises?.firstOrNull()?.id == exercise.id,
+            onToggleCardioPlacement = viewModel::toggleCardioPlacement,
+            cardioHistory = exercise.cardioDetails?.type?.let { cardioHistoryByType[it] },
         )
     }
 

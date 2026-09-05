@@ -106,4 +106,18 @@ class DeepLinkRouterTest {
         assertNull(otherHost)
         assertNull(noId)
     }
+
+    @Test
+    fun competitionsListGoesToProfileAndDetailKeepsRecordPage() {
+        assertEquals(KpknRoute.Profile.route, DeepLinkRouter.resolve(Uri.parse("kpkn://competitions"))?.route)
+        assertEquals(KpknRoute.Profile.route, DeepLinkRouter.resolve(Uri.parse("kpkn://competencias"))?.route)
+        assertEquals(
+            KpknRoute.CompetitionDetail.create("rec-1"),
+            DeepLinkRouter.resolve(Uri.parse("kpkn://competition/rec-1"))?.route,
+        )
+        assertEquals(
+            KpknRoute.CompetitionDetail.create("new"),
+            DeepLinkRouter.resolve(Uri.parse("kpkn://competition/new"))?.route,
+        )
+    }
 }

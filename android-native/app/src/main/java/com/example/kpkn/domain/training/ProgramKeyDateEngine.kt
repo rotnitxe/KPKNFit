@@ -1,14 +1,13 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.Block
-import com.example.kpkn.data.models.CompetitionDetails
-import com.example.kpkn.data.models.CompetitionRecord
 import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramCalendarizationMode
 import com.example.kpkn.data.models.ProgramKeyDate
 import com.example.kpkn.data.models.ProgramWeek
+import com.example.kpkn.data.models.isCompetitionMeet
 import com.example.kpkn.data.models.resolvedSchedulePlan
 import com.example.kpkn.data.models.ScheduleMode
 import com.example.kpkn.data.models.totalProgramWeeks
@@ -351,12 +350,14 @@ object ProgramKeyDateEngine {
         // Materialize dated weeks first so competition placement uses the new timeline.
         updated = ProgramCalendarEngine.materializeWeekDates(updated)
 
-        if (competitionKeyDate != null && (competitionMoved || previousCompetition == null)) {
+        if (competitionKeyDate != null) {
             updated = syncCompetitionLinkedEntities(
                 program = updated,
                 keyDate = competitionKeyDate,
                 competitionRepository = competitionRepository,
             )
+        } else {
+            updated = CompetitionKeyDateSync.stripMeetSessions(updated)
         }
 
         return CalendarSaveResult(
@@ -371,117 +372,29 @@ object ProgramKeyDateEngine {
         keyDate: ProgramKeyDate,
         competitionRepository: CompetitionRepository?,
     ): Program {
-        if (keyDate.type != KeyDateType.COMPETITION) return program
-        val eventDate = keyDate.eventDate ?: keyDate.startDate
-        val eventLocal = parseDate(eventDate) ?: return program
+        if (keyDate.type != KeyDateType.COMPETITION) return CompetitionKeyDateSync.stripMeetSessions(program)
         val weekDay = locateCompetitionWeekDay(program, keyDate)
         val targetWeekId = weekDay?.first
-        val targetDay = weekDay?.second ?: eventLocal.dayOfWeek.value
-
-        // Collect linked sessions, then place them into the target week (move if needed).
-        data class LinkedSession(val session: com.example.kpkn.data.models.Session, val fromWeekId: String)
-        val linked = mutableListOf<LinkedSession>()
-        program.macrocycles.forEach { macro ->
-            macro.blocks.forEach { block ->
-                block.mesocycles.forEach { meso ->
-                    meso.weeks.forEach { week ->
-                        week.sessions.forEach { session ->
-                            if (session.competitionKeyDateId == keyDate.id) {
-                                linked += LinkedSession(session, week.id)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        var updatedProgram = program.copy(
-            macrocycles = program.macrocycles.map { macro ->
-                macro.copy(
-                    blocks = macro.blocks.map { block ->
-                        block.copy(
-                            mesocycles = block.mesocycles.map { meso ->
-                                meso.copy(
-                                    weeks = meso.weeks.map { week ->
-                                        val withoutLinked = week.sessions.filterNot { it.competitionKeyDateId == keyDate.id }
-                                        val toAdd = if (targetWeekId != null && week.id == targetWeekId) {
-                                            linked.map { linkedSession ->
-                                                linkedSession.session.copy(
-                                                    dayOfWeek = targetDay,
-                                                    assignedDays = listOf(targetDay),
-                                                    name = keyDate.title.ifBlank { linkedSession.session.name },
-                                                    description = keyDate.notes ?: linkedSession.session.description,
-                                                    competitionDetails = linkedSession.session.competitionDetails?.copy(
-                                                        competitionDate = eventDate,
-                                                    ) ?: CompetitionDetails(competitionDate = eventDate),
-                                                )
-                                            }
-                                        } else {
-                                            emptyList()
-                                        }
-                                        val merged = withoutLinked + toAdd
-                                        week.copy(
-                                            sessions = merged.sortedWith(
-                                                compareBy(
-                                                    { it.dayOfWeek ?: it.assignedDays.firstOrNull() ?: Int.MAX_VALUE },
-                                                    { if (it.competitionKeyDateId == keyDate.id) 0 else 1 },
-                                                    { it.name },
-                                                ),
-                                            ),
-                                        )
-                                    },
-                                )
-                            },
-                        )
-                    },
-                )
-            },
+        val migration = CompetitionKeyDateSync.migrate(
+            program = program,
+            existingRecords = competitionRepository?.records?.value.orEmpty(),
+            competitionWeekId = targetWeekId,
         )
-
-        // If no linked session exists yet but we have a target week, leave structure alone
-        // (session creation is handled by the UI flow).
-        if (linked.isEmpty()) {
-            updatedProgram = program
-        }
-
         competitionRepository?.let { repo ->
-            updatedProgram.macrocycles
-                .flatMap { it.blocks }
-                .flatMap { it.mesocycles }
-                .flatMap { it.weeks }
-                .flatMap { it.sessions }
-                .filter { it.competitionKeyDateId == keyDate.id && !it.competitionRecordId.isNullOrBlank() }
-                .forEach { session ->
-                    val record = repo.getById(session.competitionRecordId!!)
-                        ?: repo.getByPlannedSessionId(session.id)
-                    if (record != null) {
-                        repo.upsert(
-                            record.copy(
-                                title = keyDate.title.ifBlank { record.title },
-                                eventDate = eventDate,
-                                notes = keyDate.notes ?: record.notes,
-                                plannedWeekId = targetWeekId ?: record.plannedWeekId,
-                                keyDateId = keyDate.id,
-                            ),
-                        )
-                    }
-                }
-            repo.records.value
-                .filter { it.keyDateId == keyDate.id && it.plannedProgramId == program.id }
-                .forEach { record ->
-                    if (record.plannedSessionId.isNullOrBlank()) {
-                        repo.upsert(
-                            record.copy(
-                                eventDate = eventDate,
-                                title = keyDate.title.ifBlank { record.title },
-                                plannedWeekId = targetWeekId ?: record.plannedWeekId,
-                            ),
-                        )
-                    }
-                }
+            migration.recordsToUpsert.forEach(repo::upsert)
+            val existing = repo.records.value.firstOrNull {
+                it.keyDateId == keyDate.id && it.plannedProgramId == program.id
+            } ?: migration.recordsToUpsert.firstOrNull { it.keyDateId == keyDate.id }
+            repo.upsert(
+                CompetitionKeyDateSync.mergeFromKeyDate(
+                    keyDate = keyDate,
+                    existing = existing,
+                    programId = program.id,
+                    weekId = targetWeekId,
+                ),
+            )
         }
-
-        return updatedProgram
+        return migration.program
     }
 
     private fun unlinkCompetitionEntities(
@@ -490,7 +403,7 @@ object ProgramKeyDateEngine {
         mode: KeyDateDeleteMode,
         competitionRepository: CompetitionRepository?,
     ): Program {
-        val updatedSessions = program.copy(
+        val withoutLinkedSessions = program.copy(
             macrocycles = program.macrocycles.map { macro ->
                 macro.copy(
                     blocks = macro.blocks.map { block ->
@@ -499,18 +412,8 @@ object ProgramKeyDateEngine {
                                 meso.copy(
                                     weeks = meso.weeks.map { week ->
                                         week.copy(
-                                            sessions = week.sessions.mapNotNull { session ->
-                                                if (session.competitionKeyDateId != keyDate.id) session
-                                                else when (mode) {
-                                                    KeyDateDeleteMode.UNLINK_SESSION -> session.copy(
-                                                        isCompetitionSession = false,
-                                                        isMeetDay = false,
-                                                        competitionKeyDateId = null,
-                                                        competitionRecordId = null,
-                                                        competitionDetails = null,
-                                                    )
-                                                    KeyDateDeleteMode.ARCHIVE_SESSION_AND_RECORD -> null
-                                                }
+                                            sessions = week.sessions.filterNot { session ->
+                                                session.competitionKeyDateId == keyDate.id || session.isCompetitionMeet
                                             },
                                         )
                                     },
@@ -535,7 +438,7 @@ object ProgramKeyDateEngine {
                 }
         }
 
-        return updatedSessions
+        return CompetitionKeyDateSync.stripMeetSessions(withoutLinkedSessions)
     }
 
     private fun normalizeKeyDate(keyDate: ProgramKeyDate): ProgramKeyDate {

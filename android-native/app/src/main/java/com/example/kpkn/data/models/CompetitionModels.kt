@@ -69,11 +69,13 @@ data class CompetitionRecord(
     val status: CompetitionRecordStatus = CompetitionRecordStatus.PLANNED,
     val location: String? = null,
     val federation: String? = null,
+    val federationId: String? = null,
     val category: String? = null,
     val bodyweightKg: Double? = null,
     val resultSummary: String? = null,
     val placement: String? = null,
     val medal: String? = null,
+    val trophyId: String? = null,
     val notes: String? = null,
     val plannedProgramId: String? = null,
     val plannedSessionId: String? = null,
@@ -136,10 +138,17 @@ data class CompetitionJournal(
 )
 
 @Serializable
+enum class CompetitionMediaKind {
+    PHOTO,
+    VIDEO,
+}
+
+@Serializable
 data class CompetitionPhoto(
     val id: String,
     val uri: String,
     val caption: String? = null,
+    val kind: CompetitionMediaKind = CompetitionMediaKind.PHOTO,
 )
 
 @Serializable
@@ -160,6 +169,7 @@ data class PowerliftingCompetitionDetails(
     val ipfGlPoints: Double? = null,
     val dotsPoints: Double? = null,
     val wilksPoints: Double? = null,
+    val pointsFormula: String? = null,
 )
 
 @Serializable

@@ -82,7 +82,7 @@ import com.example.kpkn.screens.home.HomeScreen
 import com.example.kpkn.screens.home.HomeGlassOverlay
 import com.example.kpkn.screens.home.HomeGlassOverlayChange
 import com.example.kpkn.screens.home.ConceptosClaveScreen
-import com.example.kpkn.screens.competitions.CompetitionScreen
+import com.example.kpkn.screens.competitions.CompetitionLogScreen
 import com.example.kpkn.screens.nutrition.BodyProgressScreen
 import com.example.kpkn.screens.nutrition.MealHistoryScreen
 import com.example.kpkn.screens.nutrition.NutritionScreen
@@ -115,7 +115,6 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.models.isCompetitionMeet
 import java.util.UUID
 import com.example.kpkn.ui.locale.LocaleManager
 import com.example.kpkn.ui.theme.AppThemeMode
@@ -479,7 +478,9 @@ fun KPKNApp(
         currentRoute?.startsWith("session-editor") == true ||
         currentRoute?.startsWith("workout") == true ||
         currentRoute?.startsWith(KpknRoute.ExerciseCatalog.route) == true ||
-        currentRoute?.startsWith(KpknRoute.NutritionWizard.BASE_ROUTE) == true
+        currentRoute?.startsWith(KpknRoute.NutritionWizard.BASE_ROUTE) == true ||
+        currentRoute == KpknRoute.CompetitionDetail.route ||
+        resolvedRoute?.startsWith("competition/") == true
     val primaryProgramId = activeProgram?.id ?: allPrograms.firstOrNull()?.id
 
     val currentTab = when {
@@ -1041,7 +1042,15 @@ private fun KPKNNavGraph(
                 },
                 onCreateProgram = { createProgramAndOpen(navController) },
                 onStartWorkout = { session, program ->
-                    navigateWorkoutOrCompetition(navController, session, program)
+                    navController.navigate(KpknRoute.Workout.create(program.id, session.id))
+                },
+                onRegisterCompetition = { recordId ->
+                    val route = if (recordId.isBlank()) {
+                        KpknRoute.CompetitionDetail.create(KpknRoute.CompetitionDetail.NEW_ID)
+                    } else {
+                        KpknRoute.CompetitionDetail.create(recordId)
+                    }
+                    navController.navigate(route) { launchSingleTop = true }
                 },
                 onResumeWorkout = {
                     val ongoing = ProgramRepository.getInstance().ongoingWorkout.value
@@ -1097,7 +1106,7 @@ private fun KPKNNavGraph(
                         "settings/notifications", "settings/auge", "settings/general", "settings/nutrition", "settings/training", "settings/data", "settings/diagnostics" -> navController.navigate(KpknRoute.Settings.route)
                         "learn", "cursos", "wiki-home", "wikilab", "wikilab/" -> navController.navigate(KpknRoute.Home.route)
                         "powerlifter-corner" -> {
-                            navController.navigate(KpknRoute.Competitions.route)
+                            navController.navigate(KpknRoute.Profile.route)
                         }
                         else -> {
                             if (destination.startsWith("concept/")) {
@@ -1131,15 +1140,25 @@ private fun KPKNNavGraph(
             )
         }
         composable(KpknRoute.Competitions.route) {
-            CompetitionScreen(onBack = { navController.popBackStack() })
+            ProfileScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToSettings = { navController.navigate(KpknRoute.Settings.route) },
+                onOpenCompetition = { recordId ->
+                    navController.navigate(KpknRoute.CompetitionDetail.create(recordId)) { launchSingleTop = true }
+                },
+                onCreateCompetition = {
+                    navController.navigate(KpknRoute.CompetitionDetail.create(KpknRoute.CompetitionDetail.NEW_ID)) {
+                        launchSingleTop = true
+                    }
+                },
+            )
         }
         composable(KpknRoute.CompetitionDetail.route) { backStack ->
             val competitionId = backStack.arguments
                 ?.getString(KpknRoute.CompetitionDetail.ARG_COMPETITION_ID)
-                ?.takeIf { it.isNotBlank() }
-            CompetitionScreen(
+            CompetitionLogScreen(
+                competitionId = competitionId,
                 onBack = { navController.popBackStack() },
-                initialCompetitionId = competitionId,
             )
         }
         composable(KpknRoute.Nutrition.route) {
@@ -1247,6 +1266,14 @@ private fun KPKNNavGraph(
             ProfileScreen(
                 onBack = { navController.popBackStack() },
                 onNavigateToSettings = { navController.navigate(KpknRoute.Settings.route) },
+                onOpenCompetition = { recordId ->
+                    navController.navigate(KpknRoute.CompetitionDetail.create(recordId)) { launchSingleTop = true }
+                },
+                onCreateCompetition = {
+                    navController.navigate(KpknRoute.CompetitionDetail.create(KpknRoute.CompetitionDetail.NEW_ID)) {
+                        launchSingleTop = true
+                    }
+                },
             )
         }
         composable(KpknRoute.ProgramDetail.route) { backStack ->
@@ -1262,12 +1289,12 @@ private fun KPKNNavGraph(
                     }
                 },
                 onStartWorkout = { session, program ->
-                    navigateWorkoutOrCompetition(navController, session, program)
+                    navController.navigate(KpknRoute.Workout.create(program.id, session.id))
                 },
                 onEditSession = { sessionId ->
                     navController.navigate(KpknRoute.SessionEditor.create(id, sessionId))
                 },
-                onCreateSession = { sessionId, weekId, macroIndex, mesoIndex, dayOfWeek, configureCompetition ->
+                onCreateSession = { sessionId, weekId, macroIndex, mesoIndex, dayOfWeek ->
                     navController.navigate(
                         KpknRoute.SessionEditor.create(
                             programId = id,
@@ -1276,7 +1303,6 @@ private fun KPKNNavGraph(
                             macroIndex = macroIndex,
                             mesoIndex = mesoIndex,
                             dayOfWeek = dayOfWeek,
-                            configureCompetition = configureCompetition,
                         )
                     )
                 },
@@ -1345,9 +1371,6 @@ private fun KPKNNavGraph(
             val macroIndex = backStack.arguments?.getString(KpknRoute.SessionEditor.ARG_MACRO_INDEX)?.toIntOrNull()
             val mesoIndex = backStack.arguments?.getString(KpknRoute.SessionEditor.ARG_MESO_INDEX)?.toIntOrNull()
             val dayOfWeek = backStack.arguments?.getString(KpknRoute.SessionEditor.ARG_DAY_OF_WEEK)?.toIntOrNull()
-            val configureCompetition = backStack.arguments
-                ?.getString(KpknRoute.SessionEditor.ARG_CONFIGURE_COMPETITION)
-                ?.toBooleanStrictOrNull() == true
             val catalogResultJson by backStack.savedStateHandle
                 .getStateFlow<String?>(CatalogSavedStateKeys.RESULT, null)
                 .collectAsState()
@@ -1377,7 +1400,6 @@ private fun KPKNNavGraph(
                 draftMacroIndex = macroIndex,
                 draftMesoIndex = mesoIndex,
                 draftDayOfWeek = dayOfWeek,
-                openCompetitionConfig = configureCompetition,
             )
         }
         composable(KpknRoute.Workout.route) { backStack ->
@@ -1411,27 +1433,6 @@ private fun KPKNNavGraph(
                 },
             )
         }
-    }
-}
-
-private fun navigateWorkoutOrCompetition(
-    navController: androidx.navigation.NavHostController,
-    session: Session,
-    program: Program,
-) {
-    // Las sesiones de competición (técnica, bitácora o híbrida) nunca abren el WorkoutScreen:
-    // no tienen series planificadas y quedaría una pantalla vacía. Siempre van al flujo de
-    // meet day (CompetitionScreen/CompetitionDetail), donde viven el peso corporal, los
-    // intentos y las luces del jurado.
-    if (session.isCompetitionMeet) {
-        val recordId = session.competitionRecordId
-        if (!recordId.isNullOrBlank()) {
-            navController.navigate(KpknRoute.CompetitionDetail.create(recordId)) { launchSingleTop = true }
-        } else {
-            navController.navigate(KpknRoute.Competitions.route) { launchSingleTop = true }
-        }
-    } else {
-        navController.navigate(KpknRoute.Workout.create(program.id, session.id))
     }
 }
 

@@ -15,7 +15,6 @@ import com.example.kpkn.data.models.TrainingBackup
 import com.example.kpkn.data.models.UnilateralTarget
 import com.example.kpkn.data.models.WarmupExercise
 import com.example.kpkn.data.models.WarmupSetDefinition
-import com.example.kpkn.data.models.isCompetitionMeet
 import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.sessions.SessionTemplate
@@ -44,8 +43,8 @@ object SessionTemplateEngine {
     fun canApplyTemplate(template: SessionTemplate, targetSession: Session): Boolean =
         template.publicationStatus != SessionTemplatePublicationStatus.HIDDEN_UNVERIFIED &&
             when (template.kind) {
-                SessionTemplateKind.TRAINING -> !targetSession.isCompetitionMeet
-                SessionTemplateKind.MEET_DAY -> targetSession.isCompetitionMeet
+                SessionTemplateKind.TRAINING -> true
+                SessionTemplateKind.MEET_DAY -> false
             }
 
     fun applyTemplate(

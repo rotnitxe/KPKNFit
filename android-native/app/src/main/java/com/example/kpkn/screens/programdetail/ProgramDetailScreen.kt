@@ -33,21 +33,15 @@ import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.models.isCompetitionMeet
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.ringScore
-import com.example.kpkn.data.models.CompetitionDetails
-import com.example.kpkn.data.models.CompetitionRecordMode
-import com.example.kpkn.data.models.CompetitionTemplateType
 import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.isSimpleTemporalProgram
-import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.LoopEngine
 import com.example.kpkn.domain.training.ProgramAnalyticsEngine
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ProgramProgressEngine
-import com.example.kpkn.domain.training.CompetitionSessionSync
 import com.example.kpkn.domain.training.BlockTransitionEngine
 import com.example.kpkn.screens.auge.AugeViewModel
 import com.example.kpkn.ui.components.KpknGlass
@@ -71,7 +65,7 @@ fun ProgramDetailScreen(
     onBack: () -> Unit,
     onStartWorkout: (Session, Program) -> Unit,
     onEditSession: (String) -> Unit,
-    onCreateSession: (String, String, Int, Int, Int, Boolean) -> Unit,
+    onCreateSession: (String, String, Int, Int, Int) -> Unit,
     onOpenProgram: (String) -> Unit = {},
     viewModel: ProgramDetailViewModel = viewModel(factory = ProgramDetailViewModel.factory(programId)),
 ) {
@@ -455,7 +449,7 @@ private fun TrainingPanel(
     structureSubTab: StructureSubTab,
     onStartWorkout: (Session, Program) -> Unit,
     onEditSession: (String) -> Unit,
-    onCreateSession: (String, String, Int, Int, Int, Boolean) -> Unit,
+    onCreateSession: (String, String, Int, Int, Int) -> Unit,
     onOpenProgram: (String) -> Unit = {},
     onOpenSplitPage: () -> Unit = {},
     onOpenOneRmDialog: () -> Unit = {},
@@ -469,23 +463,12 @@ private fun TrainingPanel(
     val calendarizationEndDate by viewModel.calendarizationEndDate.collectAsState()
     val calendarizationStartDayOfWeek by viewModel.calendarizationStartDayOfWeek.collectAsState()
     val calendarizationTrainingDays by viewModel.calendarizationTrainingDays.collectAsState()
-    val competitionKeyDateForSelectedWeek = remember(program, selectedWeekMeta?.id) {
-        if (selectedWeekMeta?.keyDateType == KeyDateType.COMPETITION) {
-            program.keyDates.firstOrNull { it.type == KeyDateType.COMPETITION }
-        } else {
-            null
-        }
-    }
     var copiedRoadmapWeekId by remember(program.id) { mutableStateOf<String?>(null) }
     var showCopyWeekDialog by remember { mutableStateOf(false) }
     val allProgramWeeks = remember(program, roadmapBlocks) {
         com.example.kpkn.domain.training.ProgramDetailHelpers.getAllWeeks(roadmapBlocks, program)
     }
-    var pendingCompetitionCreation by remember { mutableStateOf<PendingCompetitionSessionCreation?>(null) }
-    var pendingCompetitionModeSelection by remember { mutableStateOf<PendingCompetitionModeSelection?>(null) }
-    var showCompetitionEligibilityNotice by remember { mutableStateOf(false) }
     var pendingDeleteSession by remember { mutableStateOf<Session?>(null) }
-    var showCompetitionDeleteFollowup by remember { mutableStateOf(false) }
 
     fun focusWeek(blockId: String, weekId: String) {
         viewModel.selectBlock(blockId)
@@ -496,8 +479,6 @@ private fun TrainingPanel(
     fun addSessionForWeek(
         weekId: String,
         preferredDayOfWeek: Int,
-        competitionKeyDate: ProgramKeyDate? = null,
-        competitionRecordMode: CompetitionRecordMode = CompetitionRecordMode.HYBRID,
     ) {
         val located = locateWeekForSessionCreation(program, weekId) ?: return
         val suggestedDay = chooseSessionCreationDay(
@@ -509,73 +490,31 @@ private fun TrainingPanel(
         viewModel.selectWeek(located.weekId)
         viewModel.setStructureSubTab(StructureSubTab.SEMANA)
         val sessionId = java.util.UUID.randomUUID().toString()
-        val competitionKey = competitionKeyDate?.takeIf { it.type == KeyDateType.COMPETITION }
-        val recordId = competitionKey?.let { java.util.UUID.randomUUID().toString() }
-        val session = if (competitionKey != null && recordId != null) {
-            createCompetitionRoadmapSession(
-                sessionId = sessionId,
-                dayOfWeek = suggestedDay,
-                keyDate = competitionKey,
-                competitionRecordId = recordId,
-                program = program,
-                competitionRecordMode = competitionRecordMode,
-            )
-        } else {
-            createBlankRoadmapSession(sessionId, suggestedDay)
-        }
+        val session = createBlankRoadmapSession(sessionId, suggestedDay)
         viewModel.addSession(
             macroIndex = located.macroIndex,
             mesoIndex = located.mesoIndex,
             weekId = located.weekId,
             session = session,
         )
-        if (competitionKey != null && recordId != null) {
-            val repository = CompetitionRepository.getInstance()
-            CompetitionSessionSync.merge(
-                session = session,
-                existingRecord = repository.getById(recordId),
-                programId = program.id,
-                weekId = located.weekId,
-            )?.let(repository::upsert)
-        }
         onCreateSession(
             sessionId,
             located.weekId,
             located.macroIndex,
             located.mesoIndex,
             suggestedDay,
-            competitionKey != null,
         )
     }
 
     fun createSessionForWeek(weekId: String, preferredDayOfWeek: Int, keyDateId: String? = null) {
-        val keyDate = keyDateId?.let { id -> program.keyDates.firstOrNull { it.id == id } }
-        if (keyDate?.type == KeyDateType.COMPETITION) {
-            if (!program.canCreateCompetitionSession()) {
-                showCompetitionEligibilityNotice = true
-                return
-            }
-            pendingCompetitionCreation = PendingCompetitionSessionCreation(weekId, preferredDayOfWeek, keyDate)
+        if (keyDateId != null && program.keyDates.any { it.id == keyDateId && it.type == KeyDateType.COMPETITION }) {
+            focusWeek(
+                blockId = locateWeekForSessionCreation(program, weekId)?.blockId ?: return,
+                weekId = weekId,
+            )
             return
         }
         addSessionForWeek(weekId, preferredDayOfWeek)
-    }
-
-    fun handleCompetitionKeyDateSaved(updatedProgram: Program, keyDate: ProgramKeyDate) {
-        if (keyDate.type != KeyDateType.COMPETITION) return
-        val alreadyLinked = updatedProgram.macrocycles
-            .flatMap { it.blocks }
-            .flatMap { it.mesocycles }
-            .flatMap { it.weeks }
-            .flatMap { it.sessions }
-            .any { it.competitionKeyDateId == keyDate.id }
-        if (alreadyLinked) return
-        val target = locateCompetitionWeekDay(updatedProgram, keyDate) ?: return
-        pendingCompetitionModeSelection = PendingCompetitionModeSelection(
-            weekId = target.first,
-            preferredDayOfWeek = target.second,
-            keyDate = keyDate,
-        )
     }
 
     // Edge case: empty program
@@ -732,7 +671,6 @@ private fun TrainingPanel(
                                 block.macroIndex,
                                 weekMeta.mesoIndex,
                                 dayId,
-                                false,
                             )
                         }
                     },
@@ -752,23 +690,6 @@ private fun TrainingPanel(
                     onUpdateWeekMetadata = { weekId, name, description ->
                         viewModel.updateWeekMetadata(weekId, name, description)
                     },
-                    onCreateCompetitionSession = if (
-                        competitionKeyDateForSelectedWeek != null && selectedWeekMeta != null
-                    ) {
-                        {
-                            val keyDate = competitionKeyDateForSelectedWeek
-                            val weekMeta = selectedWeekMeta
-                            val preferredDay = locateCompetitionWeekDay(program, keyDate)?.second
-                                ?: weekMeta.trainingDayDates.keys.firstOrNull()
-                                ?: program.startDay
-                                ?: 1
-                            createSessionForWeek(
-                                weekId = weekMeta.id,
-                                preferredDayOfWeek = preferredDay,
-                                keyDateId = keyDate.id,
-                            )
-                        }
-                    } else null,
                     onUpdateTrainingDayDate = { weekId, dayOfWeek, isoDate ->
                         viewModel.updateWeekTrainingDayDate(weekId, dayOfWeek, isoDate)
                     },
@@ -777,7 +698,6 @@ private fun TrainingPanel(
             StructureSubTab.MACROCICLO, StructureSubTab.LOOPS -> MacrocycleEditor(
                 program = program,
                 onUpdateProgram = { viewModel.updateProgram(it) },
-                onCompetitionKeyDateSaved = ::handleCompetitionKeyDateSaved,
                 onFocusWeek = ::focusWeek,
                 onCreateSessionForWeek = ::createSessionForWeek,
                 showSimpleCalendarizationSheet = showSimpleCalendarizationSheet,
@@ -883,31 +803,7 @@ private fun TrainingPanel(
         )
     }
 
-    pendingCompetitionCreation?.let { pending ->
-        KpknAlertDialog(
-            onDismissRequest = { pendingCompetitionCreation = null },
-            title = { Text("Configurar competición", fontWeight = FontWeight.Black) },
-            text = {
-                Text(
-                    "KPKN creará una sesión especial para la fecha clave y te llevará al editor para configurar federación, ubicación, hora y movimientos de competición."
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        addSessionForWeek(pending.weekId, pending.preferredDayOfWeek, pending.keyDate)
-                        pendingCompetitionCreation = null
-                    },
-                ) { Text("Crear y configurar") }
-            },
-            dismissButton = {
-                TextButton(onClick = { pendingCompetitionCreation = null }) { Text("Cancelar") }
-            },
-        )
-    }
-
     pendingDeleteSession?.let { sessionToDelete ->
-        val isCompetition = sessionToDelete.isCompetitionMeet
         KpknAlertDialog(
             onDismissRequest = { pendingDeleteSession = null },
             title = { Text("Confirmar eliminación", fontWeight = FontWeight.Black) },
@@ -923,87 +819,11 @@ private fun TrainingPanel(
                             viewModel.deleteSession(sessionToDelete.id, block.macroIndex, weekMeta.mesoIndex, selectedWeekId ?: "")
                         }
                         pendingDeleteSession = null
-                        if (isCompetition) showCompetitionDeleteFollowup = true
                     },
                 ) { Text("Eliminar") }
             },
             dismissButton = {
                 TextButton(onClick = { pendingDeleteSession = null }) { Text("Cancelar") }
-            },
-        )
-    }
-
-    if (showCompetitionDeleteFollowup) {
-        KpknAlertDialog(
-            onDismissRequest = { showCompetitionDeleteFollowup = false },
-            title = { Text("Fecha de competición", fontWeight = FontWeight.Black) },
-            text = {
-                Text("La sesión de competición fue eliminada. ¿Vas a cambiar la fecha clave de competición o dejar el programa sin fecha de competición?")
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.setStructureSubTab(StructureSubTab.MACROCICLO)
-                        showCompetitionDeleteFollowup = false
-                    },
-                ) { Text("Cambiar fecha") }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.clearCompetitionKeyDate()
-                        showCompetitionDeleteFollowup = false
-                    },
-                ) { Text("Dejar sin fecha") }
-            },
-        )
-    }
-
-    pendingCompetitionModeSelection?.let { pending ->
-        KpknAlertDialog(
-            onDismissRequest = { pendingCompetitionModeSelection = null },
-            title = { Text("Tipo de sesión de competición", fontWeight = FontWeight.Black) },
-            text = {
-                Text("Elige si esta sesión será técnica (movimientos de competición) o simple (registro de resultados/fotos estilo bitácora).")
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        addSessionForWeek(
-                            weekId = pending.weekId,
-                            preferredDayOfWeek = pending.preferredDayOfWeek,
-                            competitionKeyDate = pending.keyDate,
-                            competitionRecordMode = CompetitionRecordMode.TECHNICAL,
-                        )
-                        pendingCompetitionModeSelection = null
-                    },
-                ) { Text("Técnica") }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        addSessionForWeek(
-                            weekId = pending.weekId,
-                            preferredDayOfWeek = pending.preferredDayOfWeek,
-                            competitionKeyDate = pending.keyDate,
-                            competitionRecordMode = CompetitionRecordMode.JOURNAL,
-                        )
-                        pendingCompetitionModeSelection = null
-                    },
-                ) { Text("Simple") }
-            },
-        )
-    }
-
-    if (showCompetitionEligibilityNotice) {
-        KpknAlertDialog(
-            onDismissRequest = { showCompetitionEligibilityNotice = false },
-            title = { Text("Sesión de competición no disponible", fontWeight = FontWeight.Black) },
-            text = {
-                Text("Solo se crean sesiones de competición desde programas avanzados con calendarización de competición y fecha clave configurada.")
-            },
-            confirmButton = {
-                TextButton(onClick = { showCompetitionEligibilityNotice = false }) { Text("Entendido") }
             },
         )
     }
@@ -1248,18 +1068,6 @@ private data class WeekSessionLocation(
     val sessions: List<Session>,
 )
 
-private data class PendingCompetitionSessionCreation(
-    val weekId: String,
-    val preferredDayOfWeek: Int,
-    val keyDate: ProgramKeyDate,
-)
-
-private data class PendingCompetitionModeSelection(
-    val weekId: String,
-    val preferredDayOfWeek: Int,
-    val keyDate: ProgramKeyDate,
-)
-
 private fun createBlankRoadmapSession(sessionId: String, dayOfWeek: Int): Session =
     Session(
         id = sessionId,
@@ -1268,48 +1076,6 @@ private fun createBlankRoadmapSession(sessionId: String, dayOfWeek: Int): Sessio
         dayOfWeek = dayOfWeek,
         isMainSession = true,
     )
-
-private fun createCompetitionRoadmapSession(
-    sessionId: String,
-    dayOfWeek: Int,
-    keyDate: ProgramKeyDate,
-    competitionRecordId: String,
-    program: Program,
-    competitionRecordMode: CompetitionRecordMode = CompetitionRecordMode.HYBRID,
-): Session {
-    val eventDate = keyDate.eventDate ?: keyDate.startDate
-    val sportType = defaultCompetitionSportType(program)
-    return Session(
-        id = sessionId,
-        name = keyDate.title.ifBlank { "Competición" },
-        description = keyDate.notes,
-        lastModifiedAtMs = System.currentTimeMillis(),
-        dayOfWeek = dayOfWeek,
-        isMainSession = true,
-        isMeetDay = true,
-        isCompetitionSession = true,
-        focus = "Competición",
-        competitionDetails = CompetitionDetails(
-            competitionDate = eventDate,
-        ),
-        competitionRecordId = competitionRecordId,
-        competitionKeyDateId = keyDate.id,
-        competitionSportType = sportType,
-        competitionRecordMode = competitionRecordMode,
-    )
-}
-
-private fun Program.canCreateCompetitionSession(): Boolean =
-    structure == ProgramStructure.COMPLEX &&
-        calendarization?.mode == ProgramCalendarizationMode.ADVANCED_COMPETITION &&
-        keyDates.any { it.type == KeyDateType.COMPETITION }
-
-private fun defaultCompetitionSportType(program: Program): CompetitionTemplateType =
-    when (program.mode) {
-        ProgramMode.POWERLIFTING -> CompetitionTemplateType.POWERLIFTING
-        ProgramMode.POWERBUILDING -> CompetitionTemplateType.POWERLIFTING
-        ProgramMode.HYPERTROPHY -> CompetitionTemplateType.CUSTOM
-    }
 
 private fun dayLabelShort(dayOfWeek: Int): String = when (dayOfWeek) {
     1 -> "Lun"

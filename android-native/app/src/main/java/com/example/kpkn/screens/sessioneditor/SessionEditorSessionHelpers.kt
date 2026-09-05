@@ -580,6 +580,16 @@ internal fun Exercise.asCompetitionMovement(): Exercise {
     )
 }
 
+internal fun Exercise.matchesCompetitionMovement(competitionMovementIds: Set<String>): Boolean {
+    if (isCompetitionLift) return true
+    return listOfNotNull(
+        resolvedCanonicalExerciseId(),
+        exerciseDbId,
+        exerciseId,
+        canonicalExerciseId,
+    ).any { it in competitionMovementIds }
+}
+
 internal fun formatOneDecimal(value: Double): String = ((value * 10.0).roundToInt() / 10.0).toString()
 
 internal fun dayLabel(dayOfWeek: Int?): String = when (dayOfWeek) {
