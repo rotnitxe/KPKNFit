@@ -47,8 +47,30 @@ object ExerciseTechniqueImageLookup {
     const val ROMANIAN_SUMO_DEADLIFT_DEFICIT_DEFINITION_ID = "hams_peso_muerto_rumano_sumo_deficit"
     const val KETTLEBELL_SWING_TWO_HANDS_DEFINITION_ID = "hams_swing_kettlebell_dos_manos"
     const val KETTLEBELL_SWING_ONE_HAND_DEFINITION_ID = "hams_swing_kettlebell_unilateral"
+    const val STANDING_BICEPS_CURL_DEFINITION_ID = "standing_biceps_curl"
+    const val SEATED_BICEPS_CURL_DEFINITION_ID = "biceps_curl_sentado_banco_plano"
+    const val PREACHER_CURL_DEFINITION_ID = "preacher_curl"
+    const val SPIDER_CURL_DEFINITION_ID = "spider_curl"
+    const val CONCENTRATION_CURL_DEFINITION_ID = "concentration_curl"
+    const val BAYESIAN_CURL_DEFINITION_ID = "biceps_curl_bayesian"
+    const val HAMMER_CURL_DEFINITION_ID = "hammer_curl"
+    const val REVERSE_CURL_DEFINITION_ID = "reverse_curl"
+    const val DRAG_CURL_DEFINITION_ID = "biceps_curl_drag"
+    const val ZOTTMAN_CURL_DEFINITION_ID = "biceps_curl_zottman"
+    const val WAITER_CURL_DEFINITION_ID = "biceps_curl_waiter"
+    const val CRUCIFIX_CURL_DEFINITION_ID = "biceps_curl_crucifijo"
+    const val SUPERMAN_CURL_DEFINITION_ID = "biceps_curl_superman"
+    const val TRX_BICEPS_CURL_DEFINITION_ID = "biceps_curl_trx"
 
-    private val NON_IMPLEMENT_TOKENS = setOf("bilateral", "unilateral", "left", "right")
+    private val NON_IMPLEMENT_TOKENS = setOf(
+        "bilateral",
+        "unilateral",
+        "left",
+        "right",
+        "supinated",
+        "neutral",
+        "pronated",
+    )
 
     fun variants(definitionId: String): List<ExerciseTechniqueImageVariant> = when (definitionId) {
         HIGH_BAR_BACK_SQUAT_DEFINITION_ID -> listOf(
@@ -202,6 +224,67 @@ object ExerciseTechniqueImageLookup {
         )
         KETTLEBELL_SWING_ONE_HAND_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("default", R.drawable.exercise_swing_kettlebell_unilateral, "Kettlebell"),
+        )
+        STANDING_BICEPS_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_curl_biceps_pie_barra, "Barra"),
+            ExerciseTechniqueImageVariant("ez_bar", R.drawable.exercise_curl_biceps_pie_ez, "Barra EZ"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_curl_biceps_pie_mancuernas, "Mancuernas"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_curl_biceps_pie_polea, "Polea"),
+        )
+        SEATED_BICEPS_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_curl_biceps_sentado_mancuernas, "Mancuernas"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_curl_biceps_sentado_polea, "Polea"),
+        )
+        PREACHER_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_curl_predicador_barra, "Barra"),
+            ExerciseTechniqueImageVariant("ez_bar", R.drawable.exercise_curl_predicador_ez, "Barra EZ"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_curl_predicador_mancuernas, "Mancuernas"),
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_curl_predicador_maquina, "Máquina"),
+        )
+        SPIDER_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_curl_arana_mancuernas, "Mancuernas"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_curl_arana_polea, "Polea"),
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_curl_arana_barra, "Barra"),
+        )
+        CONCENTRATION_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_curl_concentrado_mancuernas, "Mancuernas"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_curl_concentrado_polea, "Polea"),
+        )
+        BAYESIAN_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_curl_bayesian_mancuernas, "Mancuernas"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_curl_bayesian_polea, "Polea"),
+        )
+        HAMMER_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("h_bar", R.drawable.exercise_curl_martillo_h_bar, "Barra H"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_curl_martillo_mancuernas, "Mancuernas"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_curl_martillo_polea, "Polea"),
+            ExerciseTechniqueImageVariant("band", R.drawable.exercise_curl_martillo_banda, "Banda"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_curl_martillo_kettlebell, "Kettlebell"),
+        )
+        REVERSE_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("h_bar", R.drawable.exercise_curl_invertido_h_bar, "Barra H"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_curl_invertido_mancuernas, "Mancuernas"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_curl_invertido_polea, "Polea"),
+            ExerciseTechniqueImageVariant("band", R.drawable.exercise_curl_invertido_banda, "Banda"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_curl_invertido_kettlebell, "Kettlebell"),
+        )
+        DRAG_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_curl_drag_barra, "Barra"),
+        )
+        ZOTTMAN_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_curl_zottman_mancuernas, "Mancuernas"),
+        )
+        WAITER_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("plate", R.drawable.exercise_curl_waiter_disco, "Disco"),
+        )
+        CRUCIFIX_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_curl_crucifijo, "Polea"),
+        )
+        SUPERMAN_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_curl_superman, "Polea"),
+        )
+        TRX_BICEPS_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_curl_biceps_trx, "TRX"),
         )
         FLAT_BENCH_PRESS_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_press_de_banca_plano, "Barra"),

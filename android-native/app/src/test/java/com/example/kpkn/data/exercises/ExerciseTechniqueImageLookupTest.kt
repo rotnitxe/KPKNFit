@@ -452,6 +452,53 @@ class ExerciseTechniqueImageLookupTest {
     }
 
     @Test
+    fun arm_lote_a_biceps_maps_catalog_implement_and_ignores_grip() {
+        fun res(
+            definitionId: String,
+            configurationId: String,
+            selected: String? = null,
+        ) = ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = definitionId,
+            exerciseDbId = configurationId,
+            exerciseId = "ex-$definitionId",
+            catalogConfigurationId = configurationId,
+            selectedImplementation = selected,
+        )
+
+        assertEquals(R.drawable.exercise_curl_biceps_pie_barra, res("standing_biceps_curl", "standing_biceps_curl__barbell"))
+        assertEquals(R.drawable.exercise_curl_biceps_pie_ez, res("standing_biceps_curl", "standing_biceps_curl__ez_bar"))
+        assertEquals(R.drawable.exercise_curl_biceps_pie_mancuernas, res("standing_biceps_curl", "standing_biceps_curl__dumbbells"))
+        assertEquals(R.drawable.exercise_curl_biceps_pie_polea, res("standing_biceps_curl", "standing_biceps_curl__cable"))
+
+        assertEquals(R.drawable.exercise_curl_biceps_sentado_mancuernas, res("biceps_curl_sentado_banco_plano", "biceps_curl_sentado_banco_plano__dumbbells"))
+        assertEquals(R.drawable.exercise_curl_biceps_sentado_polea, res("biceps_curl_sentado_banco_plano", "biceps_curl_sentado_banco_plano__cable"))
+
+        assertEquals(R.drawable.exercise_curl_predicador_barra, res("preacher_curl", "preacher_curl__barbell"))
+        assertEquals(R.drawable.exercise_curl_predicador_maquina, res("preacher_curl", "preacher_curl__machine"))
+
+        assertEquals(R.drawable.exercise_curl_arana_mancuernas, res("spider_curl", "spider_curl__dumbbells__supinated"))
+        assertEquals(R.drawable.exercise_curl_arana_mancuernas, res("spider_curl", "spider_curl__dumbbells__pronated"))
+        assertEquals(R.drawable.exercise_curl_arana_polea, res("spider_curl", "spider_curl__cable__neutral"))
+        assertEquals(R.drawable.exercise_curl_arana_barra, res("spider_curl", "spider_curl__barbell__supinated"))
+
+        assertEquals(R.drawable.exercise_curl_concentrado_mancuernas, res("concentration_curl", "concentration_curl__dumbbells"))
+        assertEquals(R.drawable.exercise_curl_bayesian_mancuernas, res("biceps_curl_bayesian", "biceps_curl_bayesian__dumbbells__supinated"))
+        assertEquals(R.drawable.exercise_curl_bayesian_polea, res("biceps_curl_bayesian", "biceps_curl_bayesian__cable__neutral"))
+
+        assertEquals(R.drawable.exercise_curl_martillo_h_bar, res("hammer_curl", "hammer_curl__h_bar"))
+        assertEquals(R.drawable.exercise_curl_martillo_kettlebell, res("hammer_curl", "hammer_curl__kettlebell"))
+        assertEquals(R.drawable.exercise_curl_invertido_h_bar, res("reverse_curl", "reverse_curl__h_bar"))
+        assertEquals(R.drawable.exercise_curl_invertido_mancuernas, res("reverse_curl", "reverse_curl__dumbbells"))
+
+        assertEquals(R.drawable.exercise_curl_drag_barra, res("biceps_curl_drag", "biceps_curl_drag__barbell__supinated"))
+        assertEquals(R.drawable.exercise_curl_zottman_mancuernas, res("biceps_curl_zottman", "biceps_curl_zottman__dumbbells"))
+        assertEquals(R.drawable.exercise_curl_waiter_disco, res("biceps_curl_waiter", "biceps_curl_waiter__plate"))
+        assertEquals(R.drawable.exercise_curl_crucifijo, res("biceps_curl_crucifijo", "biceps_curl_crucifijo__default"))
+        assertEquals(R.drawable.exercise_curl_superman, res("biceps_curl_superman", "biceps_curl_superman__default"))
+        assertEquals(R.drawable.exercise_curl_biceps_trx, res("biceps_curl_trx", "biceps_curl_trx__supinated"))
+    }
+
+    @Test
     fun laterality_token_is_not_treated_as_implement() {
         val barbell = ExerciseTechniqueImageLookup.resolveImageResId(
             catalogDefinitionId = "hip_thrust",
