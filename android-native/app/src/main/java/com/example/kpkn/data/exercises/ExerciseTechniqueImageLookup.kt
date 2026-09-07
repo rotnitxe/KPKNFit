@@ -61,6 +61,21 @@ object ExerciseTechniqueImageLookup {
     const val CRUCIFIX_CURL_DEFINITION_ID = "biceps_curl_crucifijo"
     const val SUPERMAN_CURL_DEFINITION_ID = "biceps_curl_superman"
     const val TRX_BICEPS_CURL_DEFINITION_ID = "biceps_curl_trx"
+    const val TRICEPS_PUSHDOWN_DEFINITION_ID = "triceps_pushdown"
+    const val OVERHEAD_TRICEPS_DEFINITION_ID = "overhead_triceps_extension"
+    const val FRENCH_PRESS_DEFINITION_ID = "triceps_press_frances"
+    const val JM_PRESS_DEFINITION_ID = "jm_press"
+    const val CALIFORNIA_PRESS_DEFINITION_ID = "california_press"
+    const val TATE_PRESS_DEFINITION_ID = "tate_press"
+    const val TRICEPS_KICKBACK_DEFINITION_ID = "triceps_patada"
+    const val KATANA_EXTENSION_DEFINITION_ID = "katana_extension"
+    const val CROSSBODY_TRICEPS_DEFINITION_ID = "crossbody_triceps_extension"
+    const val TRICEPS_TRX_DEFINITION_ID = "triceps_extension"
+    const val TRICEPS_PJR_DEFINITION_ID = "triceps_extension_pjr_mancuerna"
+    const val SPHINX_PUSHUP_DEFINITION_ID = "triceps_flexiones_esfinge"
+    const val BENCH_DIPS_DEFINITION_ID = "triceps_fondos_entre_bancos"
+    const val TRICEPS_MACHINE_PRESS_DEFINITION_ID = "triceps_press_maquina"
+    const val ROLLING_EXTENSION_DEFINITION_ID = "triceps_rolling_extension"
 
     private val NON_IMPLEMENT_TOKENS = setOf(
         "bilateral",
@@ -285,6 +300,69 @@ object ExerciseTechniqueImageLookup {
         )
         TRX_BICEPS_CURL_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("default", R.drawable.exercise_curl_biceps_trx, "TRX"),
+        )
+        TRICEPS_PUSHDOWN_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_triceps_pushdown_polea, "Polea"),
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_triceps_pushdown_maquina, "Máquina"),
+            ExerciseTechniqueImageVariant("band", R.drawable.exercise_triceps_pushdown_banda, "Banda"),
+        )
+        OVERHEAD_TRICEPS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_triceps_overhead_barra, "Barra"),
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_triceps_overhead_maquina, "Máquina"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_triceps_overhead_mancuernas, "Mancuernas"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_triceps_overhead_polea, "Polea"),
+        )
+        FRENCH_PRESS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_press_frances_mancuernas, "Mancuernas"),
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_press_frances_barra, "Barra"),
+            ExerciseTechniqueImageVariant("ez_bar", R.drawable.exercise_press_frances_ez, "Barra EZ"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_press_frances_polea, "Polea"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_press_frances_kettlebell, "Kettlebell"),
+        )
+        JM_PRESS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_jm_press_barra, "Barra"),
+            ExerciseTechniqueImageVariant("ez_bar", R.drawable.exercise_jm_press_ez, "Barra EZ"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_jm_press_mancuernas, "Mancuernas"),
+            ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_jm_press_smith, "Máquina Smith"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_jm_press_polea, "Polea"),
+        )
+        CALIFORNIA_PRESS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_press_california_barra, "Barra"),
+            ExerciseTechniqueImageVariant("ez_bar", R.drawable.exercise_press_california_ez, "Barra EZ"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_press_california_mancuernas, "Mancuernas"),
+        )
+        TATE_PRESS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_tate_press_mancuernas, "Mancuernas"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_tate_press_polea, "Polea"),
+        )
+        TRICEPS_KICKBACK_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_triceps_patada_mancuernas, "Mancuernas"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_triceps_patada_polea, "Polea"),
+        )
+        KATANA_EXTENSION_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_triceps_katana_polea, "Polea"),
+            ExerciseTechniqueImageVariant("band", R.drawable.exercise_triceps_katana_banda, "Banda"),
+        )
+        CROSSBODY_TRICEPS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_triceps_cruzada_polea, "Polea"),
+        )
+        TRICEPS_TRX_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_triceps_extension_trx, "TRX"),
+        )
+        TRICEPS_PJR_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_triceps_pjr_mancuerna, "Mancuerna"),
+        )
+        SPHINX_PUSHUP_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_triceps_flexion_esfinge, "Peso corporal"),
+        )
+        BENCH_DIPS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_triceps_fondos_bancos, "Bancos"),
+        )
+        TRICEPS_MACHINE_PRESS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_triceps_press_maquina, "Máquina"),
+        )
+        ROLLING_EXTENSION_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_triceps_rolling_extension, "Mancuernas"),
         )
         FLAT_BENCH_PRESS_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_press_de_banca_plano, "Barra"),

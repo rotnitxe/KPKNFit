@@ -499,6 +499,65 @@ class ExerciseTechniqueImageLookupTest {
     }
 
     @Test
+    fun arm_lote_b_triceps_maps_catalog_implement_and_ignores_laterality() {
+        fun res(
+            definitionId: String,
+            configurationId: String,
+        ) = ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = definitionId,
+            exerciseDbId = configurationId,
+            exerciseId = "ex-$definitionId",
+            catalogConfigurationId = configurationId,
+        )
+
+        assertEquals(R.drawable.exercise_triceps_pushdown_polea, res("triceps_pushdown", "triceps_pushdown__bilateral__cable"))
+        assertEquals(R.drawable.exercise_triceps_pushdown_polea, res("triceps_pushdown", "triceps_pushdown__unilateral__cable"))
+        assertEquals(R.drawable.exercise_triceps_pushdown_maquina, res("triceps_pushdown", "triceps_pushdown__bilateral__machine"))
+        assertEquals(R.drawable.exercise_triceps_pushdown_banda, res("triceps_pushdown", "triceps_pushdown__unilateral__band"))
+
+        assertEquals(R.drawable.exercise_triceps_overhead_barra, res("overhead_triceps_extension", "overhead_triceps__barbell"))
+        assertEquals(R.drawable.exercise_triceps_overhead_maquina, res("overhead_triceps_extension", "overhead_triceps__machine"))
+        assertEquals(R.drawable.exercise_triceps_overhead_mancuernas, res("overhead_triceps_extension", "overhead_triceps__dumbbells"))
+        assertEquals(R.drawable.exercise_triceps_overhead_polea, res("overhead_triceps_extension", "overhead_triceps__cable"))
+
+        assertEquals(R.drawable.exercise_press_frances_mancuernas, res("triceps_press_frances", "triceps_press_frances__dumbbells"))
+        assertEquals(R.drawable.exercise_press_frances_barra, res("triceps_press_frances", "triceps_press_frances__barbell"))
+        assertEquals(R.drawable.exercise_press_frances_ez, res("triceps_press_frances", "triceps_press_frances__ez_bar"))
+        assertEquals(R.drawable.exercise_press_frances_polea, res("triceps_press_frances", "triceps_press_frances__cable"))
+        assertEquals(R.drawable.exercise_press_frances_kettlebell, res("triceps_press_frances", "triceps_press_frances__kettlebell"))
+
+        assertEquals(R.drawable.exercise_jm_press_barra, res("jm_press", "jm_press__barbell"))
+        assertEquals(R.drawable.exercise_jm_press_ez, res("jm_press", "jm_press__ez_bar"))
+        assertEquals(R.drawable.exercise_jm_press_mancuernas, res("jm_press", "jm_press__dumbbells"))
+        assertEquals(R.drawable.exercise_jm_press_smith, res("jm_press", "jm_press__smith_machine"))
+        assertEquals(R.drawable.exercise_jm_press_polea, res("jm_press", "jm_press__cable"))
+
+        assertEquals(R.drawable.exercise_press_california_barra, res("california_press", "california_press__barbell"))
+        assertEquals(R.drawable.exercise_press_california_ez, res("california_press", "california_press__ez_bar"))
+        assertEquals(R.drawable.exercise_press_california_mancuernas, res("california_press", "california_press__dumbbells"))
+
+        assertEquals(R.drawable.exercise_tate_press_mancuernas, res("tate_press", "tate_press__dumbbells"))
+        assertEquals(R.drawable.exercise_tate_press_polea, res("tate_press", "tate_press__cable"))
+
+        assertEquals(R.drawable.exercise_triceps_patada_mancuernas, res("triceps_patada", "triceps_patada__dumbbells__bilateral"))
+        assertEquals(R.drawable.exercise_triceps_patada_mancuernas, res("triceps_patada", "triceps_patada__dumbbells__unilateral"))
+        assertEquals(R.drawable.exercise_triceps_patada_polea, res("triceps_patada", "triceps_patada__cable__bilateral"))
+
+        assertEquals(R.drawable.exercise_triceps_katana_polea, res("katana_extension", "katana_extension__cable__unilateral"))
+        assertEquals(R.drawable.exercise_triceps_katana_banda, res("katana_extension", "katana_extension__band__bilateral"))
+
+        assertEquals(R.drawable.exercise_triceps_cruzada_polea, res("crossbody_triceps_extension", "crossbody_triceps__cable__bilateral"))
+        assertEquals(R.drawable.exercise_triceps_cruzada_polea, res("crossbody_triceps_extension", "crossbody_triceps__cable__unilateral"))
+
+        assertEquals(R.drawable.exercise_triceps_extension_trx, res("triceps_extension", "triceps_extension__default"))
+        assertEquals(R.drawable.exercise_triceps_pjr_mancuerna, res("triceps_extension_pjr_mancuerna", "triceps_extension_pjr_mancuerna__default"))
+        assertEquals(R.drawable.exercise_triceps_flexion_esfinge, res("triceps_flexiones_esfinge", "triceps_flexiones_esfinge__default"))
+        assertEquals(R.drawable.exercise_triceps_fondos_bancos, res("triceps_fondos_entre_bancos", "triceps_fondos_entre_bancos__default"))
+        assertEquals(R.drawable.exercise_triceps_press_maquina, res("triceps_press_maquina", "triceps_press_maquina__default"))
+        assertEquals(R.drawable.exercise_triceps_rolling_extension, res("triceps_rolling_extension", "triceps_rolling_extension__default"))
+    }
+
+    @Test
     fun laterality_token_is_not_treated_as_implement() {
         val barbell = ExerciseTechniqueImageLookup.resolveImageResId(
             catalogDefinitionId = "hip_thrust",
