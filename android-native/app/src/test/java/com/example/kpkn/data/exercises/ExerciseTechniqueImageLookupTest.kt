@@ -324,15 +324,6 @@ class ExerciseTechniqueImageLookupTest {
     @Test
     fun sissy_squat_resolves_all_implement_variants() {
         assertEquals(
-            R.drawable.exercise_sentadilla_sissy_barra,
-            ExerciseTechniqueImageLookup.resolveImageResId(
-                catalogDefinitionId = "sissy_squat",
-                exerciseDbId = "sissy_squat__barbell",
-                exerciseId = "ex-sy-1",
-                selectedImplementation = "barbell",
-            ),
-        )
-        assertEquals(
             R.drawable.exercise_sentadilla_sissy_maquina,
             ExerciseTechniqueImageLookup.resolveImageResId(
                 catalogDefinitionId = "sissy_squat",
@@ -388,5 +379,87 @@ class ExerciseTechniqueImageLookupTest {
                 exerciseId = "ex-ps-u",
             ),
         )
+    }
+
+    @Test
+    fun conventional_deadlift_catalog_implements_exclude_kettlebell() {
+        val keys = ExerciseTechniqueImageLookup.variants("conventional_deadlift").map { it.implementation }
+        assertEquals(listOf("barbell", "smith_machine", "hex_bar", "dumbbells"), keys)
+        assertEquals(
+            R.drawable.exercise_peso_muerto_convencional_mancuernas,
+            ExerciseTechniqueImageLookup.resolveImageResId(
+                catalogDefinitionId = "conventional_deadlift",
+                exerciseDbId = "conventional_deadlift__bilateral__dumbbells",
+                exerciseId = "ex-cdl-db",
+                catalogConfigurationId = "conventional_deadlift__bilateral__dumbbells",
+            ),
+        )
+        assertEquals(
+            R.drawable.exercise_peso_muerto_convencional,
+            ExerciseTechniqueImageLookup.resolveImageResId(
+                catalogDefinitionId = "conventional_deadlift",
+                exerciseDbId = "conventional_deadlift__unilateral__barbell",
+                exerciseId = "ex-cdl-u",
+                catalogConfigurationId = "conventional_deadlift__unilateral__barbell",
+            ),
+        )
+    }
+
+    @Test
+    fun hinge_lote_maps_each_catalog_implement_to_one_drawable() {
+        fun res(
+            definitionId: String,
+            configurationId: String,
+            selected: String? = null,
+        ) = ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = definitionId,
+            exerciseDbId = configurationId,
+            exerciseId = "ex-$definitionId",
+            catalogConfigurationId = configurationId,
+            selectedImplementation = selected,
+        )
+
+        assertEquals(R.drawable.exercise_peso_muerto_sumo, res("sumo_deadlift", "sumo_deadlift__barbell", "barbell"))
+        assertEquals(R.drawable.exercise_peso_muerto_sumo_mancuernas, res("sumo_deadlift", "sumo_deadlift__dumbbells", "dumbbells"))
+
+        assertEquals(R.drawable.exercise_peso_muerto_rumano, res("romanian_deadlift", "romanian_deadlift__bilateral__barbell"))
+        assertEquals(R.drawable.exercise_peso_muerto_rumano, res("romanian_deadlift", "romanian_deadlift__unilateral__barbell"))
+        assertEquals(R.drawable.exercise_peso_muerto_rumano_mancuernas, res("romanian_deadlift", "romanian_deadlift__bilateral__dumbbells"))
+        assertEquals(R.drawable.exercise_peso_muerto_rumano_smith, res("romanian_deadlift", "romanian_deadlift__smith_machine", "smith_machine"))
+        assertEquals(R.drawable.exercise_peso_muerto_rumano_hex_bar, res("romanian_deadlift", "romanian_deadlift__hex_bar", "hex_bar"))
+
+        assertEquals(R.drawable.exercise_peso_muerto_rumano_sumo, res("romanian_sumo_deadlift", "romanian_sumo_deadlift__bilateral__barbell"))
+        assertEquals(R.drawable.exercise_peso_muerto_piernas_rigidas, res("stiff_leg_deadlift", "stiff_leg_deadlift__bilateral__barbell"))
+
+        assertEquals(R.drawable.exercise_buenos_dias, res("good_morning", "good_morning__bilateral__barbell"))
+        assertEquals(R.drawable.exercise_buenos_dias_safety_bar, res("good_morning", "good_morning__unilateral__safety_bar"))
+        assertEquals(R.drawable.exercise_buenos_dias_sentado, res("good_morning_seated", "good_morning_seated__barbell", "barbell"))
+        assertEquals(R.drawable.exercise_buenos_dias_zercher, res("good_morning_zercher", "good_morning_zercher__default"))
+        assertEquals(R.drawable.exercise_peso_muerto_rumano_zercher, res("hams_peso_muerto_rumano_zercher", "hams_peso_muerto_rumano_zercher__default"))
+        assertEquals(R.drawable.exercise_pull_through, res("hams_pull_through", "hams_pull_through__default"))
+
+        assertEquals(R.drawable.exercise_hip_thrust, res("hip_thrust", "hip_thrust__bilateral__barbell"))
+        assertEquals(R.drawable.exercise_hip_thrust_banda, res("hip_thrust", "hip_thrust__unilateral__band"))
+
+        assertEquals(R.drawable.exercise_peso_muerto_convencional_deficit, res("hams_peso_muerto_convencional_deficit", "hams_peso_muerto_convencional_deficit__default"))
+        assertEquals(R.drawable.exercise_peso_muerto_sumo_deficit, res("hams_peso_muerto_sumo_deficit", "hams_peso_muerto_sumo_deficit__default"))
+        assertEquals(R.drawable.exercise_peso_muerto_piernas_rigidas_deficit, res("hams_peso_muerto_piernas_rigidas_deficit", "hams_peso_muerto_piernas_rigidas_deficit__default"))
+        assertEquals(R.drawable.exercise_peso_muerto_rumano_deficit, res("hams_peso_muerto_rumano_deficit", "hams_peso_muerto_rumano_deficit__default"))
+        assertEquals(R.drawable.exercise_peso_muerto_rumano_sumo_deficit, res("hams_peso_muerto_rumano_sumo_deficit", "hams_peso_muerto_rumano_sumo_deficit__default"))
+
+        assertEquals(R.drawable.exercise_swing_kettlebell_dos_manos, res("hams_swing_kettlebell_dos_manos", "hams_swing_kettlebell_dos_manos__default"))
+        assertEquals(R.drawable.exercise_swing_kettlebell_unilateral, res("hams_swing_kettlebell_unilateral", "hams_swing_kettlebell_unilateral__default"))
+    }
+
+    @Test
+    fun laterality_token_is_not_treated_as_implement() {
+        val barbell = ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = "hip_thrust",
+            exerciseDbId = "hip_thrust__bilateral__barbell",
+            exerciseId = "ex-ht",
+            catalogConfigurationId = "hip_thrust__bilateral__barbell",
+            selectedImplementation = "bilateral",
+        )
+        assertEquals(R.drawable.exercise_hip_thrust, barbell)
     }
 }
