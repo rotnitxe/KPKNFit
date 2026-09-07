@@ -76,6 +76,15 @@ object ExerciseTechniqueImageLookup {
     const val BENCH_DIPS_DEFINITION_ID = "triceps_fondos_entre_bancos"
     const val TRICEPS_MACHINE_PRESS_DEFINITION_ID = "triceps_press_maquina"
     const val ROLLING_EXTENSION_DEFINITION_ID = "triceps_rolling_extension"
+    const val WRIST_CURL_DEFINITION_ID = "forearms_curl_muneca_sentado"
+    const val WRIST_EXTENSION_DEFINITION_ID = "forearms_curl_muneca_inverso_sentado"
+    const val BEHIND_BACK_WRIST_CURL_DEFINITION_ID = "forearms_curl_muneca_de_pie_tras_espalda_barra"
+    const val WRIST_ROLLER_DEFINITION_ID = "forearms_enrollamiento_muneca_rodillo"
+    const val SUPINATION_DEFINITION_ID = "supination"
+    const val PRONATION_DEFINITION_ID = "pronation"
+    const val FARMER_WALK_DEFINITION_ID = "forearms_paseo_del_granjero"
+    const val DEAD_HANG_DEFINITION_ID = "forearms_suspension_isometrica_barra_fija"
+    const val PLATE_PINCH_DEFINITION_ID = "forearms_pinza_de_discos"
 
     private val NON_IMPLEMENT_TOKENS = setOf(
         "bilateral",
@@ -363,6 +372,44 @@ object ExerciseTechniqueImageLookup {
         )
         ROLLING_EXTENSION_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("default", R.drawable.exercise_triceps_rolling_extension, "Mancuernas"),
+        )
+        WRIST_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_curl_muneca_mancuernas, "Mancuernas"),
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_curl_muneca_barra, "Barra"),
+            ExerciseTechniqueImageVariant("ez_bar", R.drawable.exercise_curl_muneca_ez, "Barra EZ"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_curl_muneca_polea, "Polea"),
+        )
+        WRIST_EXTENSION_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_extension_muneca_polea, "Polea"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_extension_muneca_mancuernas, "Mancuernas"),
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_extension_muneca_barra, "Barra"),
+            ExerciseTechniqueImageVariant("ez_bar", R.drawable.exercise_extension_muneca_ez, "Barra EZ"),
+        )
+        BEHIND_BACK_WRIST_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_curl_muneca_tras_espalda, "Barra"),
+        )
+        WRIST_ROLLER_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_enrollamiento_muneca_rodillo, "Rodillo"),
+        )
+        SUPINATION_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_supinacion_mancuernas, "Mancuernas"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_supinacion_polea, "Polea"),
+        )
+        PRONATION_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_pronacion_mancuernas, "Mancuernas"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_pronacion_polea, "Polea"),
+        )
+        FARMER_WALK_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_paseo_granjero_mancuernas, "Mancuernas"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_paseo_granjero_kettlebell, "Kettlebell"),
+            ExerciseTechniqueImageVariant("plate", R.drawable.exercise_paseo_granjero_discos, "Discos"),
+            ExerciseTechniqueImageVariant("hex_bar", R.drawable.exercise_paseo_granjero_hex, "Hex bar"),
+        )
+        DEAD_HANG_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_dead_hang, "Barra fija"),
+        )
+        PLATE_PINCH_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_pinza_discos, "Discos"),
         )
         FLAT_BENCH_PRESS_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_press_de_banca_plano, "Barra"),

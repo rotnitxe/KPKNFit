@@ -558,6 +558,45 @@ class ExerciseTechniqueImageLookupTest {
     }
 
     @Test
+    fun arm_lote_c_forearms_maps_catalog_implement() {
+        fun res(
+            definitionId: String,
+            configurationId: String,
+        ) = ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = definitionId,
+            exerciseDbId = configurationId,
+            exerciseId = "ex-$definitionId",
+            catalogConfigurationId = configurationId,
+        )
+
+        assertEquals(R.drawable.exercise_curl_muneca_mancuernas, res("forearms_curl_muneca_sentado", "forearms_curl_muneca_sentado__dumbbells"))
+        assertEquals(R.drawable.exercise_curl_muneca_barra, res("forearms_curl_muneca_sentado", "forearms_curl_muneca_sentado__barbell"))
+        assertEquals(R.drawable.exercise_curl_muneca_ez, res("forearms_curl_muneca_sentado", "forearms_curl_muneca_sentado__ez_bar"))
+        assertEquals(R.drawable.exercise_curl_muneca_polea, res("forearms_curl_muneca_sentado", "forearms_curl_muneca_sentado__cable"))
+
+        assertEquals(R.drawable.exercise_extension_muneca_polea, res("forearms_curl_muneca_inverso_sentado", "forearms_curl_muneca_inverso_sentado__cable"))
+        assertEquals(R.drawable.exercise_extension_muneca_mancuernas, res("forearms_curl_muneca_inverso_sentado", "forearms_curl_muneca_inverso_sentado__dumbbells"))
+        assertEquals(R.drawable.exercise_extension_muneca_barra, res("forearms_curl_muneca_inverso_sentado", "forearms_curl_muneca_inverso_sentado__barbell"))
+        assertEquals(R.drawable.exercise_extension_muneca_ez, res("forearms_curl_muneca_inverso_sentado", "forearms_curl_muneca_inverso_sentado__ez_bar"))
+
+        assertEquals(R.drawable.exercise_curl_muneca_tras_espalda, res("forearms_curl_muneca_de_pie_tras_espalda_barra", "forearms_curl_muneca_de_pie_tras_espalda_barra__default"))
+        assertEquals(R.drawable.exercise_enrollamiento_muneca_rodillo, res("forearms_enrollamiento_muneca_rodillo", "forearms_enrollamiento_muneca_rodillo__default"))
+
+        assertEquals(R.drawable.exercise_supinacion_mancuernas, res("supination", "supination__dumbbells"))
+        assertEquals(R.drawable.exercise_supinacion_polea, res("supination", "supination__cable"))
+        assertEquals(R.drawable.exercise_pronacion_mancuernas, res("pronation", "pronation__dumbbells"))
+        assertEquals(R.drawable.exercise_pronacion_polea, res("pronation", "pronation__cable"))
+
+        assertEquals(R.drawable.exercise_paseo_granjero_mancuernas, res("forearms_paseo_del_granjero", "forearms_paseo_del_granjero__dumbbells"))
+        assertEquals(R.drawable.exercise_paseo_granjero_kettlebell, res("forearms_paseo_del_granjero", "forearms_paseo_del_granjero__kettlebell"))
+        assertEquals(R.drawable.exercise_paseo_granjero_discos, res("forearms_paseo_del_granjero", "forearms_paseo_del_granjero__plate"))
+        assertEquals(R.drawable.exercise_paseo_granjero_hex, res("forearms_paseo_del_granjero", "forearms_paseo_del_granjero__hex_bar"))
+
+        assertEquals(R.drawable.exercise_dead_hang, res("forearms_suspension_isometrica_barra_fija", "forearms_suspension_isometrica_barra_fija__default"))
+        assertEquals(R.drawable.exercise_pinza_discos, res("forearms_pinza_de_discos", "forearms_pinza_de_discos__default"))
+    }
+
+    @Test
     fun laterality_token_is_not_treated_as_implement() {
         val barbell = ExerciseTechniqueImageLookup.resolveImageResId(
             catalogDefinitionId = "hip_thrust",
