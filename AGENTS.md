@@ -12,6 +12,17 @@ KPKN Fit is a local-first native Android application with an iOS parity port and
 - Prefer targeted tests before a full build; the repository contains large offline datasets and a bundled Vosk model.
 - Windows hang note: nunca llames `gradlew.bat` sin `--no-daemon --console=plain`; el daemon deja pipes abiertos y el `bash` de OpenCode queda colgado aunque el build haya terminado. El plugin `gradle-guard` inyecta esos flags y reescribe tareas simples al wrapper automáticamente.
 
+## Cursor Cloud specific instructions
+
+Cloud Agents run on Linux. Do not use the Windows PowerShell gradle wrapper or `gradlew.bat` there.
+
+- Bootstrap: `bash .cursor/install.sh` (JDK 21, Android SDK under `$HOME/Android/Sdk`, `android-native/local.properties`).
+- Per boot: `bash .cursor/start.sh` rewrites `local.properties` from `ANDROID_HOME`.
+- Gradle: `cd android-native && ./gradlew --no-daemon --console=plain --warning-mode=summary <task>`.
+- Targeted unit tests: `./gradlew --no-daemon --console=plain testBaseDebugUnitTest --tests '*.SessionTemplateCatalogTest'`.
+- Debug APK: `./gradlew --no-daemon --console=plain assembleBaseDebug`.
+- There is no Windows emulator session. Skip `installBaseDebug` / `adb` relaunch unless `adb devices` shows a `device`. `/dev/kvm` may exist; creating an AVD is optional and must not run inside `start.sh`.
+
 ## Architecture Rules
 
 - Use Clean Architecture and MVVM with unidirectional data flow.

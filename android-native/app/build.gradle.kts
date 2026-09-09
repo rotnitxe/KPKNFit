@@ -33,17 +33,20 @@ android {
         }
     }
 
+    val releaseKeystore = file("kpkn-release.keystore")
     signingConfigs {
-        create("release") {
-            // Firma local forzada para evitar el error de "paquete no válido"
-            storeFile = file("kpkn-release.keystore")
-            storePassword = "kpkn2024"
-            keyAlias = "kpkn"
-            keyPassword = "kpkn2024"
-            enableV1Signing = true
-            enableV2Signing = true
-            enableV3Signing = true
-            enableV4Signing = true
+        if (releaseKeystore.isFile) {
+            create("release") {
+                // Firma local forzada para evitar el error de "paquete no válido"
+                storeFile = releaseKeystore
+                storePassword = "kpkn2024"
+                keyAlias = "kpkn"
+                keyPassword = "kpkn2024"
+                enableV1Signing = true
+                enableV2Signing = true
+                enableV3Signing = true
+                enableV4Signing = true
+            }
         }
     }
 
@@ -51,7 +54,9 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("release")
+            if (releaseKeystore.isFile) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -63,8 +68,11 @@ android {
             }
         }
         debug {
-            // El debug también usa la firma de release para evitar conflictos de instalación
-            signingConfig = signingConfigs.getByName("release")
+            // En máquinas con el keystore local, debug usa la misma firma que release
+            // para evitar conflictos de instalación. En Cloud/CI cae a la debug key.
+            if (releaseKeystore.isFile) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
     
