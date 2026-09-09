@@ -234,18 +234,17 @@ private fun DataStep(state: NutritionWizardUiState, vm: NutritionWizardViewModel
                     Text("Selecciona tu sexo", color = WizardTeal, fontWeight = FontWeight.Bold)
                 }
             }
-        } else {
             Box(Modifier.fillMaxWidth().height(420.dp).clip(RoundedCornerShape(18.dp)).background(Color.White.copy(alpha = 0.04f))) {
-                val p = pos.coerceIn(1f, 7f)
-                val lo = kotlin.math.floor(p.toDouble()).toInt().coerceIn(1, 7)
-                val hi = kotlin.math.ceil(p.toDouble()).toInt().coerceIn(1, 7)
-                val frac = (p - lo).coerceIn(0f, 1f)
-                val sex = state.draft.equationSex
-                val loId = wizardPhysiqueDrawableId(lo, sex)
-                val hiId = wizardPhysiqueDrawableId(hi, sex)
+                val frames = if (state.draft.equationSex == EerSex.FEMALE) WizardFemaleFrames else WizardMaleFrames
+                val frameIdx = ((pos.coerceIn(1f, 7f) - 1f) / 6f * (frames.size - 1)).roundToInt().coerceIn(0, frames.size - 1)
+                val currentDrawableId = frames[frameIdx]
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Image(painter = painterResource(id = loId), contentDescription = null, modifier = Modifier.fillMaxSize().padding(6.dp), contentScale = ContentScale.Fit)
-                    Image(painter = painterResource(id = hiId), contentDescription = null, modifier = Modifier.fillMaxSize().padding(6.dp), contentScale = ContentScale.Fit, alpha = frac)
+                    Image(
+                        painter = painterResource(id = currentDrawableId),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize().padding(6.dp),
+                        contentScale = ContentScale.Fit,
+                    )
                 }
                 Box(Modifier.align(Alignment.TopStart).padding(10.dp)) {
                     SexPillCompact(selected = state.draft.equationSex, onSelect = vm::updateEquationSex)
@@ -583,16 +582,34 @@ private fun AnimatedMacroRing(kcal: Int, macros: com.example.kpkn.domain.nutriti
     }
 }
 
-private fun wizardPhysiqueDrawableId(group: Int, sex: EerSex?): Int {
-    val g = group.coerceIn(1, 7)
-    val female = sex == EerSex.FEMALE
-    return when (g) {
-        1 -> if (female) R.drawable.wizard_m_08_12 else R.drawable.wizard_h_08_12
-        2 -> if (female) R.drawable.wizard_m_13_17 else R.drawable.wizard_h_13_17
-        3 -> if (female) R.drawable.wizard_m_18_22 else R.drawable.wizard_h_18_22
-        4 -> if (female) R.drawable.wizard_m_23_27 else R.drawable.wizard_h_23_27
-        5 -> if (female) R.drawable.wizard_m_28_32 else R.drawable.wizard_h_28_32
-        6 -> if (female) R.drawable.wizard_m_33_37 else R.drawable.wizard_h_33_37
-        else -> if (female) R.drawable.wizard_m_38p else R.drawable.wizard_h_38p
-    }
-}
+private val WizardMaleFrames = intArrayOf(
+    R.drawable.wizard_h_00, R.drawable.wizard_h_01, R.drawable.wizard_h_02, R.drawable.wizard_h_03, R.drawable.wizard_h_04,
+    R.drawable.wizard_h_05, R.drawable.wizard_h_06, R.drawable.wizard_h_07, R.drawable.wizard_h_08, R.drawable.wizard_h_09,
+    R.drawable.wizard_h_10, R.drawable.wizard_h_11, R.drawable.wizard_h_12, R.drawable.wizard_h_13, R.drawable.wizard_h_14,
+    R.drawable.wizard_h_15, R.drawable.wizard_h_16, R.drawable.wizard_h_17, R.drawable.wizard_h_18, R.drawable.wizard_h_19,
+    R.drawable.wizard_h_20, R.drawable.wizard_h_21, R.drawable.wizard_h_22, R.drawable.wizard_h_23, R.drawable.wizard_h_24,
+    R.drawable.wizard_h_25, R.drawable.wizard_h_26, R.drawable.wizard_h_27, R.drawable.wizard_h_28, R.drawable.wizard_h_29,
+    R.drawable.wizard_h_30, R.drawable.wizard_h_31, R.drawable.wizard_h_32, R.drawable.wizard_h_33, R.drawable.wizard_h_34,
+    R.drawable.wizard_h_35, R.drawable.wizard_h_36, R.drawable.wizard_h_37, R.drawable.wizard_h_38, R.drawable.wizard_h_39,
+    R.drawable.wizard_h_40, R.drawable.wizard_h_41, R.drawable.wizard_h_42, R.drawable.wizard_h_43, R.drawable.wizard_h_44,
+    R.drawable.wizard_h_45, R.drawable.wizard_h_46, R.drawable.wizard_h_47, R.drawable.wizard_h_48, R.drawable.wizard_h_49,
+    R.drawable.wizard_h_50, R.drawable.wizard_h_51, R.drawable.wizard_h_52, R.drawable.wizard_h_53, R.drawable.wizard_h_54,
+    R.drawable.wizard_h_55, R.drawable.wizard_h_56, R.drawable.wizard_h_57, R.drawable.wizard_h_58, R.drawable.wizard_h_59,
+    R.drawable.wizard_h_60,
+)
+
+private val WizardFemaleFrames = intArrayOf(
+    R.drawable.wizard_m_00, R.drawable.wizard_m_01, R.drawable.wizard_m_02, R.drawable.wizard_m_03, R.drawable.wizard_m_04,
+    R.drawable.wizard_m_05, R.drawable.wizard_m_06, R.drawable.wizard_m_07, R.drawable.wizard_m_08, R.drawable.wizard_m_09,
+    R.drawable.wizard_m_10, R.drawable.wizard_m_11, R.drawable.wizard_m_12, R.drawable.wizard_m_13, R.drawable.wizard_m_14,
+    R.drawable.wizard_m_15, R.drawable.wizard_m_16, R.drawable.wizard_m_17, R.drawable.wizard_m_18, R.drawable.wizard_m_19,
+    R.drawable.wizard_m_20, R.drawable.wizard_m_21, R.drawable.wizard_m_22, R.drawable.wizard_m_23, R.drawable.wizard_m_24,
+    R.drawable.wizard_m_25, R.drawable.wizard_m_26, R.drawable.wizard_m_27, R.drawable.wizard_m_28, R.drawable.wizard_m_29,
+    R.drawable.wizard_m_30, R.drawable.wizard_m_31, R.drawable.wizard_m_32, R.drawable.wizard_m_33, R.drawable.wizard_m_34,
+    R.drawable.wizard_m_35, R.drawable.wizard_m_36, R.drawable.wizard_m_37, R.drawable.wizard_m_38, R.drawable.wizard_m_39,
+    R.drawable.wizard_m_40, R.drawable.wizard_m_41, R.drawable.wizard_m_42, R.drawable.wizard_m_43, R.drawable.wizard_m_44,
+    R.drawable.wizard_m_45, R.drawable.wizard_m_46, R.drawable.wizard_m_47, R.drawable.wizard_m_48, R.drawable.wizard_m_49,
+    R.drawable.wizard_m_50, R.drawable.wizard_m_51, R.drawable.wizard_m_52, R.drawable.wizard_m_53, R.drawable.wizard_m_54,
+    R.drawable.wizard_m_55, R.drawable.wizard_m_56, R.drawable.wizard_m_57, R.drawable.wizard_m_58, R.drawable.wizard_m_59,
+    R.drawable.wizard_m_60,
+)

@@ -1,8 +1,8 @@
 # Índice del catálogo de ejercicios v2
 
 Revisión: `v2-approved-2026-08-12-a` · Ontología: `wikilab-v3-2026-08-08`
-96 familias · 196 definiciones · 521 configuraciones
-Hash canónico: `920eaa6e9b2da4ab…`
+96 familias · 195 definiciones · 515 configuraciones
+Hash canónico: `4556cc912446360a…`
 
 Artefacto informativo generado por `scripts/merge_catalog_v2_families.py`.
 No editar a mano: se regenera en cada merge.
@@ -47,12 +47,12 @@ No editar a mano: se regenera en cada merge.
 | elbow_flexion_biceps_curl | spider_curl | Curl Araña | implement, grip_type | 9 |
 | elbow_flexion_biceps_curl | standing_biceps_curl | Curl de Bíceps de Pie | implement | 4 |
 | elbow_flexion_biceps_curl | hammer_curl | Curl Martillo | implement | 5 |
-| elbow_flexion_biceps_curl | reverse_curl | Curl Invertido | implement | 5 |
+| elbow_flexion_biceps_curl | reverse_curl | Curl Invertido | implement | 4 |
 | hinge_deadlift | conventional_deadlift | Peso Muerto Convencional | implement, laterality | 8 |
 | hinge_deadlift | sumo_deadlift | Peso Muerto Sumo | implement | 2 |
-| hinge_good_morning | good_morning | Buenos Días | implement, laterality | 10 |
+| hinge_good_morning | good_morning | Buenos Días | implement, laterality | 8 |
 | hinge_good_morning | good_morning_seated | Buenos Días Sentado | implement | 3 |
-| hinge_good_morning | good_morning_zercher | Buenos Días Zercher |  | 1 |
+| hinge_good_morning | good_morning_zercher | Buenos Días/RDL Zercher |  | 1 |
 | hinge_rdl | romanian_deadlift | Peso Muerto Rumano | implement, stance | 8 |
 | hinge_rdl | romanian_sumo_deadlift | Peso Muerto Rumano Sumo | implement, stance | 8 |
 | hip_abduction | hip_abduction | Abducciones de Pierna | implement, station, laterality | 8 |
@@ -74,7 +74,6 @@ No editar a mano: se regenera en cada merge.
 | lower_hip_extension_abduction | glutes_patada_gluteo_polea_diagonal | Patada de Glúteos Diagonal en Polea |  | 1 |
 | lower_hip_extension_external_rotation | glutes_frog_pumps | Frog Pumps |  | 1 |
 | lower_hip_extension_hip_thrust | hip_thrust | Hip Thrust | implement, laterality | 8 |
-| lower_hip_hinge | hams_peso_muerto_rumano_zercher | Peso Muerto Rumano Zercher |  | 1 |
 | lower_hip_hinge | hams_pull_through | Pull-Through |  | 1 |
 | lower_hip_hinge_deficit | hams_peso_muerto_convencional_deficit | Peso Muerto Convencional en Déficit |  | 1 |
 | lower_hip_hinge_deficit | hams_peso_muerto_piernas_rigidas_deficit | Peso Muerto Piernas Rígidas en Déficit |  | 1 |
@@ -157,8 +156,8 @@ No editar a mano: se regenera en cada merge.
 | shoulder_z_press | z_press | Press Z | implement | 4 |
 | triceps_california_press | california_press | Press California | implement | 3 |
 | triceps_jm_press | jm_press | JM Press | implement | 5 |
-| triceps_katana_extension | katana_extension | Extensión Katana | implement, laterality | 3 |
-| triceps_tate_press | tate_press | Tate Press | implement | 2 |
+| triceps_katana_extension | katana_extension | Extensión Katana | laterality | 2 |
+| triceps_tate_press | tate_press | Tate Press |  | 1 |
 | unilateral_knee_dominant_bulgarian | bulgarian_split_squat | Sentadilla Búlgara | implement | 6 |
 | unilateral_knee_dominant_bulgarian | bulgarian_zercher | Sentadilla Búlgara Zercher |  | 1 |
 | upper_diagonal_push | deltoides_press_landmine_unilateral | Press Landmine Unilateral |  | 1 |

@@ -158,9 +158,7 @@
                 "display": {
                   "displayName": "Tate Press",
                   "displaySummary": "dumbbells",
-                  "selectedOptions": {
-                    "implement": "dumbbells"
-                  }
+                  "selectedOptions": {}
                 },
                 "editorial": {
                   "benefits": [
@@ -190,8 +188,7 @@
                   "performanceProfileId": "tate_press__dumbbells__tate_press",
                   "searchTerms": [
                     "tate press",
-                    "tate press con mancuernas",
-                    "tate press en polea"
+                    "tate press con mancuernas"
                   ]
                 },
                 "programming": {
@@ -250,257 +247,7 @@
               "ttc": 1.6,
               "variantRationale": "Mancuernas acostado juntando los codos: bajas y subes apretando las pesas. Este press de tríceps tradicional, con el tríceps concentrado."
             },
-            "selectedOptions": {
-              "implement": "dumbbells"
-            }
-          },
-          {
-            "displaySummary": "cable",
-            "evidence": {
-              "confidence": "MEDIUM",
-              "evidenceRefs": [
-                "legacy:exercise_database.json#triceps_tate_press_polea",
-                "editorial:catalog-v7.2-human-editorial-2026-08-10"
-              ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
-              "reviewStatus": "APPROVED"
-            },
-            "id": "tate_press__cable",
-            "profile": {
-              "articulationType": "AISLADO",
-              "automationEligible": true,
-              "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
-                "El favorito de Dave Tate para llenar la parte trasera del brazo desde otro ángulo."
-              ],
-              "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
-              "cnc": 1.8,
-              "commonMistakes": [
-                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-              ],
-              "description": "Con polea, con las palmas al frente y los codos en abanico, la carga empuja desde el pecho mezclando press y extensión. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
-              "efc": 2.2,
-              "equipmentId": "cable",
-              "executionCues": [
-                "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-              ],
-              "fatigueTier": "BAJA",
-              "jointInvolvement": [
-                {
-                  "actions": [
-                    "Extensión"
-                  ],
-                  "jointId": "codo",
-                  "role": "PRIMARY"
-                },
-                {
-                  "actions": [
-                    "Posición Del Hombro"
-                  ],
-                  "jointId": "glenohumeral",
-                  "role": "SECONDARY"
-                },
-                {
-                  "actions": [
-                    "Alineación"
-                  ],
-                  "jointId": "muñeca",
-                  "role": "STABILIZER"
-                }
-              ],
-              "kineticChain": "FULL",
-              "laterality": "BILATERAL",
-              "loadMode": "continuous_cable",
-              "movementPatternId": "elbow_extension",
-              "performanceProfileId": "tate_press__cable__tate_press",
-              "primaryMuscles": [
-                "triceps"
-              ],
-              "replacementGroup": null,
-              "replacementPriority": null,
-              "resistanceProfile": "continuous_cable",
-              "richMetadata": {
-                "anatomy": {
-                  "jointActions": [
-                    "Extensión",
-                    "Posición Del Hombro",
-                    "Alineación"
-                  ],
-                  "jointInvolvement": [
-                    {
-                      "actions": [
-                        "Extensión"
-                      ],
-                      "jointId": "codo",
-                      "role": "PRIMARY"
-                    },
-                    {
-                      "actions": [
-                        "Posición Del Hombro"
-                      ],
-                      "jointId": "glenohumeral",
-                      "role": "SECONDARY"
-                    },
-                    {
-                      "actions": [
-                        "Alineación"
-                      ],
-                      "jointId": "muñeca",
-                      "role": "STABILIZER"
-                    }
-                  ],
-                  "muscleLengthBias": "mixed_controlled",
-                  "primaryMuscles": [
-                    "triceps"
-                  ],
-                  "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "triceps"
-                  ],
-                  "volumeContribution": "direct"
-                },
-                "biomechanics": {
-                  "bodyRegion": "UPPER",
-                  "equipmentId": "cable",
-                  "kineticChain": "FULL",
-                  "laterality": "BILATERAL",
-                  "loadMode": "continuous_cable",
-                  "movementPatternId": "elbow_extension",
-                  "rangeOfMotion": "controlled_full_available",
-                  "relevantJoints": [
-                    "codo",
-                    "glenohumeral",
-                    "muñeca"
-                  ],
-                  "resistanceProfile": "continuous_cable",
-                  "stability": "self_stabilized"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-                  ],
-                  "cues": [
-                    "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "execution": [
-                    "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de codo según tolerancia y rango disponible.",
-                    "Movilidad de hombro según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final."
-                  ]
-                },
-                "display": {
-                  "displayName": "Tate Press",
-                  "displaySummary": "cable",
-                  "selectedOptions": {
-                    "implement": "cable"
-                  }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
-                    "El favorito de Dave Tate para llenar la parte trasera del brazo desde otro ángulo."
-                  ],
-                  "description": "Con polea, con las palmas al frente y los codos en abanico, la carga empuja desde el pecho mezclando press y extensión. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
-                  "technique": "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-                  "variantRationale": "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final. La resistencia ajustable permite buscar contracción sin depender de una carga libre sobre la cara."
-                },
-                "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
-                "identity": {
-                  "canonicalName": "Tate Press",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
-                  "configurationId": "tate_press__cable",
-                  "definitionId": "tate_press",
-                  "familyId": "triceps_tate_press",
-                  "kind": "PARENT",
-                  "performanceProfileId": "tate_press__cable__tate_press",
-                  "searchTerms": [
-                    "tate press",
-                    "tate press con mancuernas",
-                    "tate press en polea"
-                  ]
-                },
-                "programming": {
-                  "fatigueCost": "moderate",
-                  "indicativeRestSeconds": {
-                    "max": 90,
-                    "min": 30
-                  },
-                  "objectives": [
-                    "Desarrollar el tríceps mediante Tate Press en la variante Polea.",
-                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
-                  "requiredEquipment": [
-                    "cable"
-                  ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
-                },
-                "replacement": {
-                  "compatibleEquipmentIds": [
-                    "cable"
-                  ],
-                  "preservesIntent": [
-                    "Conserva extensión del codo y el objetivo de el tríceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
-                  ],
-                  "replacementGroup": null,
-                  "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
-                }
-              },
-              "secondaryMuscles": [],
-              "setupCues": [
-                "Preparación: Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final."
-              ],
-              "setupTimeSeconds": 25,
-              "ssc": 0.2,
-              "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "techniqueSummary": "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-              "ttc": 1.6,
-              "variantRationale": "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final. La resistencia ajustable permite buscar contracción sin depender de una carga libre sobre la cara."
-            },
-            "selectedOptions": {
-              "implement": "cable"
-            }
+            "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "tate_press__dumbbells",
@@ -516,13 +263,10 @@
         "familyId": "triceps_tate_press",
         "id": "tate_press",
         "kind": "PARENT",
-        "optionAxes": [
-          "implement"
-        ],
+        "optionAxes": [],
         "searchTerms": [
           "tate press",
-          "tate press con mancuernas",
-          "tate press en polea"
+          "tate press con mancuernas"
         ]
       }
     ],

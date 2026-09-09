@@ -433,9 +433,13 @@ class ExerciseTechniqueImageLookupTest {
 
         assertEquals(R.drawable.exercise_buenos_dias, res("good_morning", "good_morning__bilateral__barbell"))
         assertEquals(R.drawable.exercise_buenos_dias_safety_bar, res("good_morning", "good_morning__unilateral__safety_bar"))
+        assertEquals(
+            listOf("barbell", "safety_bar", "smith_machine", "machine"),
+            ExerciseTechniqueImageLookup.variants("good_morning").map { it.implementation },
+        )
         assertEquals(R.drawable.exercise_buenos_dias_sentado, res("good_morning_seated", "good_morning_seated__barbell", "barbell"))
         assertEquals(R.drawable.exercise_buenos_dias_zercher, res("good_morning_zercher", "good_morning_zercher__default"))
-        assertEquals(R.drawable.exercise_peso_muerto_rumano_zercher, res("hams_peso_muerto_rumano_zercher", "hams_peso_muerto_rumano_zercher__default"))
+        assertEquals(R.drawable.exercise_buenos_dias_zercher, res("hams_peso_muerto_rumano_zercher", "hams_peso_muerto_rumano_zercher__default"))
         assertEquals(R.drawable.exercise_pull_through, res("hams_pull_through", "hams_pull_through__default"))
 
         assertEquals(R.drawable.exercise_hip_thrust, res("hip_thrust", "hip_thrust__bilateral__barbell"))
@@ -487,7 +491,6 @@ class ExerciseTechniqueImageLookupTest {
 
         assertEquals(R.drawable.exercise_curl_martillo_h_bar, res("hammer_curl", "hammer_curl__h_bar"))
         assertEquals(R.drawable.exercise_curl_martillo_kettlebell, res("hammer_curl", "hammer_curl__kettlebell"))
-        assertEquals(R.drawable.exercise_curl_invertido_h_bar, res("reverse_curl", "reverse_curl__h_bar"))
         assertEquals(R.drawable.exercise_curl_invertido_mancuernas, res("reverse_curl", "reverse_curl__dumbbells"))
 
         assertEquals(R.drawable.exercise_curl_drag_barra, res("biceps_curl_drag", "biceps_curl_drag__barbell__supinated"))
@@ -537,14 +540,12 @@ class ExerciseTechniqueImageLookupTest {
         assertEquals(R.drawable.exercise_press_california_mancuernas, res("california_press", "california_press__dumbbells"))
 
         assertEquals(R.drawable.exercise_tate_press_mancuernas, res("tate_press", "tate_press__dumbbells"))
-        assertEquals(R.drawable.exercise_tate_press_polea, res("tate_press", "tate_press__cable"))
 
         assertEquals(R.drawable.exercise_triceps_patada_mancuernas, res("triceps_patada", "triceps_patada__dumbbells__bilateral"))
         assertEquals(R.drawable.exercise_triceps_patada_mancuernas, res("triceps_patada", "triceps_patada__dumbbells__unilateral"))
         assertEquals(R.drawable.exercise_triceps_patada_polea, res("triceps_patada", "triceps_patada__cable__bilateral"))
 
         assertEquals(R.drawable.exercise_triceps_katana_polea, res("katana_extension", "katana_extension__cable__unilateral"))
-        assertEquals(R.drawable.exercise_triceps_katana_banda, res("katana_extension", "katana_extension__band__bilateral"))
 
         assertEquals(R.drawable.exercise_triceps_cruzada_polea, res("crossbody_triceps_extension", "crossbody_triceps__cable__bilateral"))
         assertEquals(R.drawable.exercise_triceps_cruzada_polea, res("crossbody_triceps_extension", "crossbody_triceps__cable__unilateral"))

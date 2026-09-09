@@ -206,7 +206,6 @@ object ExerciseTechniqueImageLookup {
             ExerciseTechniqueImageVariant("safety_bar", R.drawable.exercise_buenos_dias_safety_bar, "Barra de Seguridad"),
             ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_buenos_dias_smith, "Máquina Smith"),
             ExerciseTechniqueImageVariant("machine", R.drawable.exercise_buenos_dias_maquina, "Máquina"),
-            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_buenos_dias_polea, "Polea"),
         )
         GOOD_MORNING_SEATED_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_buenos_dias_sentado, "Barra"),
@@ -217,7 +216,7 @@ object ExerciseTechniqueImageLookup {
             ExerciseTechniqueImageVariant("default", R.drawable.exercise_buenos_dias_zercher, "Barra Zercher"),
         )
         ROMANIAN_ZERCHER_DEADLIFT_DEFINITION_ID -> listOf(
-            ExerciseTechniqueImageVariant("default", R.drawable.exercise_peso_muerto_rumano_zercher, "Barra Zercher"),
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_buenos_dias_zercher, "Barra Zercher"),
         )
         PULL_THROUGH_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("default", R.drawable.exercise_pull_through, "Polea"),
@@ -286,7 +285,6 @@ object ExerciseTechniqueImageLookup {
             ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_curl_martillo_kettlebell, "Kettlebell"),
         )
         REVERSE_CURL_DEFINITION_ID -> listOf(
-            ExerciseTechniqueImageVariant("h_bar", R.drawable.exercise_curl_invertido_h_bar, "Barra H"),
             ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_curl_invertido_mancuernas, "Mancuernas"),
             ExerciseTechniqueImageVariant("cable", R.drawable.exercise_curl_invertido_polea, "Polea"),
             ExerciseTechniqueImageVariant("band", R.drawable.exercise_curl_invertido_banda, "Banda"),
@@ -342,7 +340,6 @@ object ExerciseTechniqueImageLookup {
         )
         TATE_PRESS_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_tate_press_mancuernas, "Mancuernas"),
-            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_tate_press_polea, "Polea"),
         )
         TRICEPS_KICKBACK_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_triceps_patada_mancuernas, "Mancuernas"),
@@ -350,7 +347,6 @@ object ExerciseTechniqueImageLookup {
         )
         KATANA_EXTENSION_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("cable", R.drawable.exercise_triceps_katana_polea, "Polea"),
-            ExerciseTechniqueImageVariant("band", R.drawable.exercise_triceps_katana_banda, "Banda"),
         )
         CROSSBODY_TRICEPS_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("cable", R.drawable.exercise_triceps_cruzada_polea, "Polea"),

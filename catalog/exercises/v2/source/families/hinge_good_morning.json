@@ -247,8 +247,7 @@
                     "barbell",
                     "safety_bar",
                     "smith_machine",
-                    "machine",
-                    "cable"
+                    "machine"
                   ],
                   "preservesIntent": [
                     "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
@@ -528,8 +527,7 @@
                     "barbell",
                     "safety_bar",
                     "smith_machine",
-                    "machine",
-                    "cable"
+                    "machine"
                   ],
                   "preservesIntent": [
                     "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
@@ -809,8 +807,7 @@
                     "barbell",
                     "safety_bar",
                     "smith_machine",
-                    "machine",
-                    "cable"
+                    "machine"
                   ],
                   "preservesIntent": [
                     "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
@@ -1090,8 +1087,7 @@
                     "barbell",
                     "safety_bar",
                     "smith_machine",
-                    "machine",
-                    "cable"
+                    "machine"
                   ],
                   "preservesIntent": [
                     "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
@@ -1371,8 +1367,7 @@
                     "barbell",
                     "safety_bar",
                     "smith_machine",
-                    "machine",
-                    "cable"
+                    "machine"
                   ],
                   "preservesIntent": [
                     "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
@@ -1652,8 +1647,7 @@
                     "barbell",
                     "safety_bar",
                     "smith_machine",
-                    "machine",
-                    "cable"
+                    "machine"
                   ],
                   "preservesIntent": [
                     "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
@@ -1933,8 +1927,7 @@
                     "barbell",
                     "safety_bar",
                     "smith_machine",
-                    "machine",
-                    "cable"
+                    "machine"
                   ],
                   "preservesIntent": [
                     "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
@@ -2214,8 +2207,7 @@
                     "barbell",
                     "safety_bar",
                     "smith_machine",
-                    "machine",
-                    "cable"
+                    "machine"
                   ],
                   "preservesIntent": [
                     "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
@@ -2251,568 +2243,6 @@
             },
             "selectedOptions": {
               "implement": "machine",
-              "laterality": "unilateral"
-            }
-          },
-          {
-            "displaySummary": "cable · bilateral",
-            "evidence": {
-              "confidence": "MEDIUM",
-              "evidenceRefs": [
-                "legacy:exercise_database.json#hams_buenos_dias",
-                "editorial:catalog-v7.2-human-editorial-2026-08-10"
-              ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
-              "reviewStatus": "APPROVED"
-            },
-            "id": "good_morning__bilateral__cable",
-            "profile": {
-              "articulationType": "MULTIARTICULAR",
-              "automationEligible": true,
-              "axialLoadFactor": 0.6,
-              "benefits": [
-                "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-              ],
-              "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
-              "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
-              "description": "Con polea y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-              "efc": 2.8,
-              "equipmentId": "cable",
-              "executionCues": [
-                "Polea baja con ambas piernas: la tensión constante acompaña toda la inclinación. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-              ],
-              "fatigueTier": "MEDIA",
-              "jointInvolvement": [
-                {
-                  "actions": [
-                    "Flexión Y Extensión"
-                  ],
-                  "jointId": "cadera",
-                  "role": "PRIMARY"
-                },
-                {
-                  "actions": [
-                    "Flexión Ligera Y Estabilidad"
-                  ],
-                  "jointId": "rodilla",
-                  "role": "SECONDARY"
-                },
-                {
-                  "actions": [
-                    "Resistencia A La Flexión"
-                  ],
-                  "jointId": "columna-lumbar",
-                  "role": "STABILIZER"
-                },
-                {
-                  "actions": [
-                    "Transferencia Pelvis-Tronco"
-                  ],
-                  "jointId": "sacroiliaca",
-                  "role": "STABILIZER"
-                }
-              ],
-              "kineticChain": "POSTERIOR",
-              "laterality": "BILATERAL",
-              "loadMode": "continuous_cable",
-              "movementPatternId": "hip_hinge",
-              "performanceProfileId": "good_morning__bilateral__cable",
-              "primaryMuscles": [
-                "hamstrings"
-              ],
-              "replacementGroup": null,
-              "replacementPriority": null,
-              "resistanceProfile": "continuous_cable",
-              "richMetadata": {
-                "anatomy": {
-                  "jointActions": [
-                    "Flexión Y Extensión",
-                    "Flexión Ligera Y Estabilidad",
-                    "Resistencia A La Flexión",
-                    "Transferencia Pelvis-Tronco"
-                  ],
-                  "jointInvolvement": [
-                    {
-                      "actions": [
-                        "Flexión Y Extensión"
-                      ],
-                      "jointId": "cadera",
-                      "role": "PRIMARY"
-                    },
-                    {
-                      "actions": [
-                        "Flexión Ligera Y Estabilidad"
-                      ],
-                      "jointId": "rodilla",
-                      "role": "SECONDARY"
-                    },
-                    {
-                      "actions": [
-                        "Resistencia A La Flexión"
-                      ],
-                      "jointId": "columna-lumbar",
-                      "role": "STABILIZER"
-                    },
-                    {
-                      "actions": [
-                        "Transferencia Pelvis-Tronco"
-                      ],
-                      "jointId": "sacroiliaca",
-                      "role": "STABILIZER"
-                    }
-                  ],
-                  "muscleLengthBias": "mixed_controlled",
-                  "primaryMuscles": [
-                    "hamstrings"
-                  ],
-                  "secondaryMuscles": [
-                    "gluteus_maximus"
-                  ],
-                  "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [
-                    "erector_spinae",
-                    "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
-                  ],
-                  "volumeContribution": "indirect"
-                },
-                "biomechanics": {
-                  "bodyRegion": "LOWER",
-                  "equipmentId": "cable",
-                  "kineticChain": "POSTERIOR",
-                  "laterality": "BILATERAL",
-                  "loadMode": "continuous_cable",
-                  "movementPatternId": "hip_hinge",
-                  "rangeOfMotion": "controlled_full_available",
-                  "relevantJoints": [
-                    "cadera",
-                    "rodilla",
-                    "columna-lumbar",
-                    "sacroiliaca"
-                  ],
-                  "resistanceProfile": "continuous_cable",
-                  "stability": "self_stabilized"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Polea baja con ambas piernas: la tensión constante acompaña toda la inclinación. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-                  ],
-                  "execution": [
-                    "Polea baja con ambas piernas: la tensión constante acompaña toda la inclinación. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea baja con ambas piernas: la tensión constante acompaña toda la inclinación."
-                  ]
-                },
-                "display": {
-                  "displayName": "Buenos Días",
-                  "displaySummary": "cable · bilateral",
-                  "selectedOptions": {
-                    "implement": "cable",
-                    "laterality": "bilateral"
-                  }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                    "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-                  ],
-                  "description": "Con polea y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                  "technique": "Polea baja con ambas piernas: la tensión constante acompaña toda la inclinación. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-                  "variantRationale": "Polea baja con ambas piernas: la tensión constante acompaña toda la inclinación. Variante suave que mantiene el estímulo sin cargar la espalda."
-                },
-                "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.6,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
-                "identity": {
-                  "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
-                  "configurationId": "good_morning__bilateral__cable",
-                  "definitionId": "good_morning",
-                  "familyId": "hinge_good_morning",
-                  "kind": "PARENT",
-                  "performanceProfileId": "good_morning__bilateral__cable",
-                  "searchTerms": [
-                    "buenos dias",
-                    "good morning",
-                    "buenos dias con barra",
-                    "safety bar"
-                  ]
-                },
-                "programming": {
-                  "fatigueCost": "moderate",
-                  "indicativeRestSeconds": {
-                    "max": 120,
-                    "min": 60
-                  },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Buenos Días en la variante Polea · Trabajo Bilateral.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
-                  "requiredEquipment": [
-                    "cable"
-                  ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
-                },
-                "replacement": {
-                  "compatibleEquipmentIds": [
-                    "barbell",
-                    "safety_bar",
-                    "smith_machine",
-                    "machine",
-                    "cable"
-                  ],
-                  "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
-                  ],
-                  "replacementGroup": null,
-                  "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
-                }
-              },
-              "secondaryMuscles": [
-                "gluteus_maximus"
-              ],
-              "setupCues": [
-                "Preparación: Polea baja con ambas piernas: la tensión constante acompaña toda la inclinación."
-              ],
-              "setupTimeSeconds": 35,
-              "ssc": 1.0,
-              "stabilizerMuscles": [
-                "erector_spinae",
-                "core"
-              ],
-              "technicalDifficulty": 4.2,
-              "techniqueSummary": "Polea baja con ambas piernas: la tensión constante acompaña toda la inclinación. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-              "ttc": 2.0,
-              "variantRationale": "Polea baja con ambas piernas: la tensión constante acompaña toda la inclinación. Variante suave que mantiene el estímulo sin cargar la espalda."
-            },
-            "selectedOptions": {
-              "implement": "cable",
-              "laterality": "bilateral"
-            }
-          },
-          {
-            "displaySummary": "cable · unilateral",
-            "evidence": {
-              "confidence": "MEDIUM",
-              "evidenceRefs": [
-                "legacy:exercise_database.json#hams_buenos_dias",
-                "editorial:catalog-v7.2-human-editorial-2026-08-10"
-              ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
-              "reviewStatus": "APPROVED"
-            },
-            "id": "good_morning__unilateral__cable",
-            "profile": {
-              "articulationType": "MULTIARTICULAR",
-              "automationEligible": true,
-              "axialLoadFactor": 0.6,
-              "benefits": [
-                "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-                "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-              ],
-              "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
-              "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
-              "description": "Con polea y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-              "efc": 2.8,
-              "equipmentId": "cable",
-              "executionCues": [
-                "Polea en una pierna: tensión continua y equilibrio en cada repetición. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-              ],
-              "fatigueTier": "MEDIA",
-              "jointInvolvement": [
-                {
-                  "actions": [
-                    "Flexión Y Extensión"
-                  ],
-                  "jointId": "cadera",
-                  "role": "PRIMARY"
-                },
-                {
-                  "actions": [
-                    "Flexión Ligera Y Estabilidad"
-                  ],
-                  "jointId": "rodilla",
-                  "role": "SECONDARY"
-                },
-                {
-                  "actions": [
-                    "Resistencia A La Flexión"
-                  ],
-                  "jointId": "columna-lumbar",
-                  "role": "STABILIZER"
-                },
-                {
-                  "actions": [
-                    "Transferencia Pelvis-Tronco"
-                  ],
-                  "jointId": "sacroiliaca",
-                  "role": "STABILIZER"
-                }
-              ],
-              "kineticChain": "POSTERIOR",
-              "laterality": "UNILATERAL",
-              "loadMode": "continuous_cable",
-              "movementPatternId": "hip_hinge",
-              "performanceProfileId": "good_morning__unilateral__cable",
-              "primaryMuscles": [
-                "hamstrings"
-              ],
-              "replacementGroup": null,
-              "replacementPriority": null,
-              "resistanceProfile": "continuous_cable",
-              "richMetadata": {
-                "anatomy": {
-                  "jointActions": [
-                    "Flexión Y Extensión",
-                    "Flexión Ligera Y Estabilidad",
-                    "Resistencia A La Flexión",
-                    "Transferencia Pelvis-Tronco"
-                  ],
-                  "jointInvolvement": [
-                    {
-                      "actions": [
-                        "Flexión Y Extensión"
-                      ],
-                      "jointId": "cadera",
-                      "role": "PRIMARY"
-                    },
-                    {
-                      "actions": [
-                        "Flexión Ligera Y Estabilidad"
-                      ],
-                      "jointId": "rodilla",
-                      "role": "SECONDARY"
-                    },
-                    {
-                      "actions": [
-                        "Resistencia A La Flexión"
-                      ],
-                      "jointId": "columna-lumbar",
-                      "role": "STABILIZER"
-                    },
-                    {
-                      "actions": [
-                        "Transferencia Pelvis-Tronco"
-                      ],
-                      "jointId": "sacroiliaca",
-                      "role": "STABILIZER"
-                    }
-                  ],
-                  "muscleLengthBias": "mixed_controlled",
-                  "primaryMuscles": [
-                    "hamstrings"
-                  ],
-                  "secondaryMuscles": [
-                    "gluteus_maximus"
-                  ],
-                  "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [
-                    "erector_spinae",
-                    "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
-                  ],
-                  "volumeContribution": "indirect"
-                },
-                "biomechanics": {
-                  "bodyRegion": "LOWER",
-                  "equipmentId": "cable",
-                  "kineticChain": "POSTERIOR",
-                  "laterality": "UNILATERAL",
-                  "loadMode": "continuous_cable",
-                  "movementPatternId": "hip_hinge",
-                  "rangeOfMotion": "controlled_full_available",
-                  "relevantJoints": [
-                    "cadera",
-                    "rodilla",
-                    "columna-lumbar",
-                    "sacroiliaca"
-                  ],
-                  "resistanceProfile": "continuous_cable",
-                  "stability": "self_stabilized"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Polea en una pierna: tensión continua y equilibrio en cada repetición. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-                  ],
-                  "execution": [
-                    "Polea en una pierna: tensión continua y equilibrio en cada repetición. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea en una pierna: tensión continua y equilibrio en cada repetición."
-                  ]
-                },
-                "display": {
-                  "displayName": "Buenos Días",
-                  "displaySummary": "cable · unilateral",
-                  "selectedOptions": {
-                    "implement": "cable",
-                    "laterality": "unilateral"
-                  }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-                    "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-                  ],
-                  "description": "Con polea y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-                  "technique": "Polea en una pierna: tensión continua y equilibrio en cada repetición. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-                  "variantRationale": "Polea en una pierna: tensión continua y equilibrio en cada repetición. Un este ejercicio de cadera preciso para trabajar la cadera de lado a lado."
-                },
-                "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.6,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
-                "identity": {
-                  "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
-                  "configurationId": "good_morning__unilateral__cable",
-                  "definitionId": "good_morning",
-                  "familyId": "hinge_good_morning",
-                  "kind": "PARENT",
-                  "performanceProfileId": "good_morning__unilateral__cable",
-                  "searchTerms": [
-                    "buenos dias",
-                    "good morning",
-                    "buenos dias con barra",
-                    "safety bar"
-                  ]
-                },
-                "programming": {
-                  "fatigueCost": "moderate",
-                  "indicativeRestSeconds": {
-                    "max": 120,
-                    "min": 60
-                  },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Buenos Días en la variante Polea · Trabajo Unilateral.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
-                  "requiredEquipment": [
-                    "cable"
-                  ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
-                },
-                "replacement": {
-                  "compatibleEquipmentIds": [
-                    "barbell",
-                    "safety_bar",
-                    "smith_machine",
-                    "machine",
-                    "cable"
-                  ],
-                  "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
-                  ],
-                  "replacementGroup": null,
-                  "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
-                }
-              },
-              "secondaryMuscles": [
-                "gluteus_maximus"
-              ],
-              "setupCues": [
-                "Preparación: Polea en una pierna: tensión continua y equilibrio en cada repetición."
-              ],
-              "setupTimeSeconds": 35,
-              "ssc": 1.0,
-              "stabilizerMuscles": [
-                "erector_spinae",
-                "core"
-              ],
-              "technicalDifficulty": 4.2,
-              "techniqueSummary": "Polea en una pierna: tensión continua y equilibrio en cada repetición. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-              "ttc": 2.0,
-              "variantRationale": "Polea en una pierna: tensión continua y equilibrio en cada repetición. Un este ejercicio de cadera preciso para trabajar la cadera de lado a lado."
-            },
-            "selectedOptions": {
-              "implement": "cable",
               "laterality": "unilateral"
             }
           }
@@ -3692,7 +3122,7 @@
         ]
       },
       {
-        "canonicalName": "Buenos Días Zercher",
+        "canonicalName": "Buenos Días/RDL Zercher",
         "configurations": [
           {
             "displaySummary": "Buenos Días Zercher",
@@ -3865,7 +3295,7 @@
                   ]
                 },
                 "display": {
-                  "displayName": "Buenos Días Zercher",
+                  "displayName": "Buenos Días/RDL Zercher",
                   "displaySummary": "Buenos Días Zercher",
                   "selectedOptions": {}
                 },
@@ -3888,7 +3318,7 @@
                   "ttc": 2.0
                 },
                 "identity": {
-                  "canonicalName": "Buenos Días Zercher",
+                  "canonicalName": "Buenos Días/RDL Zercher",
                   "catalogRevision": "v2-approved-2026-08-12-a",
                   "configurationId": "good_morning_zercher__default",
                   "definitionId": "good_morning_zercher",
@@ -3898,7 +3328,11 @@
                   "searchTerms": [
                     "buenos días zercher",
                     "buenos días zercher con barra",
-                    "hams buenos dias zercher"
+                    "hams buenos dias zercher",
+                    "buenos dias rdl zercher",
+                    "rdl zercher",
+                    "peso muerto rumano zercher",
+                    "hams peso muerto rumano zercher"
                   ]
                 },
                 "programming": {
@@ -3964,7 +3398,7 @@
           }
         ],
         "defaultConfigurationId": "good_morning_zercher__default",
-        "description": "El Buenos Días Zercher traslada la carga al hueco de los codos y el gesto se vuelve otra historia: el core abraza la barra contra el pecho mientras la cadera ejecuta la misma inclinación de siempre. Glúteos e isquiosurales siguen mandando, pero el torso trabaja el doble para no desarmarse. La posición incomoda los brazos y exige técnica depurada. Una especialidad dura para quien ya exprimió las variantes convencionales.",
+        "description": "El Buenos Días/RDL Zercher une ambas identidades en un solo gesto: la barra vive en el hueco de los codos y la cadera hace la misma inclinación de siempre. Glúteos e isquiosurales siguen mandando, pero el torso trabaja el doble para no desarmarse. La posición incomoda los brazos y exige técnica depurada. Una especialidad dura para quien ya exprimió las variantes convencionales.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -3980,7 +3414,11 @@
         "searchTerms": [
           "buenos días zercher",
           "buenos días zercher con barra",
-          "hams buenos dias zercher"
+          "hams buenos dias zercher",
+          "buenos dias rdl zercher",
+          "rdl zercher",
+          "peso muerto rumano zercher",
+          "hams peso muerto rumano zercher"
         ]
       }
     ],

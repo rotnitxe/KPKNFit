@@ -177,7 +177,6 @@ AXIS_ORDER_OVERRIDES = {
         "implement"
     ],
     "tate_press": [
-        "implement"
     ],
     "arnold_press": [
         "implement"
@@ -186,7 +185,6 @@ AXIS_ORDER_OVERRIDES = {
         "implement"
     ],
     "katana_extension": [
-        "implement",
         "laterality"
     ],
     "chest_supported_row": [
@@ -1094,8 +1092,7 @@ def build() -> tuple[dict[str, Any], dict[str, Any]]:
         "triceps_press_california_barra_recta": ("triceps_california_press", "california_press", {"implement": "barbell"}, "Press California", "california_press__barbell"),
         "triceps_press_california_barra_ez": ("triceps_california_press", "california_press", {"implement": "ez_bar"}, "Press California", "california_press__ez_bar"),
         "triceps_press_california_mancuernas": ("triceps_california_press", "california_press", {"implement": "dumbbells"}, "Press California", "california_press__dumbbells"),
-        "triceps_tate_press_mancuernas": ("triceps_tate_press", "tate_press", {"implement": "dumbbells"}, "Tate press", "tate_press__dumbbells"),
-        "triceps_tate_press_polea": ("triceps_tate_press", "tate_press", {"implement": "cable"}, "Tate press", "tate_press__cable"),
+        "triceps_tate_press_mancuernas": ("triceps_tate_press", "tate_press", {}, "Tate press", "tate_press__dumbbells"),
         "deltoides_press_arnold_mancuernas": ("shoulder_arnold_press", "arnold_press", {"implement": "dumbbells"}, "Press Arnold", "arnold_press__dumbbells"),
         "deltoides_press_arnold_kettlebell": ("shoulder_arnold_press", "arnold_press", {"implement": "kettlebell"}, "Press Arnold", "arnold_press__kettlebell"),
         "deltoides_press_arnold_polea": ("shoulder_arnold_press", "arnold_press", {"implement": "cable"}, "Press Arnold", "arnold_press__cable"),

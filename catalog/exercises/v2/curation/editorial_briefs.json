@@ -3413,21 +3413,6 @@
           "techniqueSummary": "Barra sobre los hombros con ambas piernas: la inclinación tradicional de cadera hacia delante. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
           "variantRationale": "Barra sobre los hombros con ambas piernas: la inclinación tradicional de cadera hacia delante. Este ejercicio de cadera tradicional, exigente y productivo."
         },
-        "good_morning__bilateral__cable": {
-          "benefits": [
-            "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-            "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-          ],
-          "description": "Con polea y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-          "executionCues": [
-            "Polea baja con ambas piernas: la tensión constante acompaña toda la inclinación. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-          ],
-          "setupCues": [
-            "Preparación: Polea baja con ambas piernas: la tensión constante acompaña toda la inclinación."
-          ],
-          "techniqueSummary": "Polea baja con ambas piernas: la tensión constante acompaña toda la inclinación. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-          "variantRationale": "Polea baja con ambas piernas: la tensión constante acompaña toda la inclinación. Variante suave que mantiene el estímulo sin cargar la espalda."
-        },
         "good_morning__bilateral__machine": {
           "benefits": [
             "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
@@ -3487,21 +3472,6 @@
           ],
           "techniqueSummary": "Barra en una sola pierna: el equilibrio añade trabajo a la cadera y la espalda baja. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
           "variantRationale": "Barra en una sola pierna: el equilibrio añade trabajo a la cadera y la espalda baja. Avanzado, profundo y muy revelador de desequilibrios."
-        },
-        "good_morning__unilateral__cable": {
-          "benefits": [
-            "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-            "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-          ],
-          "description": "Con polea y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-          "executionCues": [
-            "Polea en una pierna: tensión continua y equilibrio en cada repetición. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-          ],
-          "setupCues": [
-            "Preparación: Polea en una pierna: tensión continua y equilibrio en cada repetición."
-          ],
-          "techniqueSummary": "Polea en una pierna: tensión continua y equilibrio en cada repetición. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-          "variantRationale": "Polea en una pierna: tensión continua y equilibrio en cada repetición. Un este ejercicio de cadera preciso para trabajar la cadera de lado a lado."
         },
         "good_morning__unilateral__machine": {
           "benefits": [
@@ -3619,7 +3589,7 @@
           "variantRationale": "Barra en los codos, torso inclinándose hacia delante con la carga pegada al pecho. El torso trabaja de más y la sensación en la cadera es distinta a cualquier buenos días."
         }
       },
-      "description": "El Buenos Días Zercher traslada la carga al hueco de los codos y el gesto se vuelve otra historia: el core abraza la barra contra el pecho mientras la cadera ejecuta la misma inclinación de siempre. Glúteos e isquiosurales siguen mandando, pero el torso trabaja el doble para no desarmarse. La posición incomoda los brazos y exige técnica depurada. Una especialidad dura para quien ya exprimió las variantes convencionales."
+      "description": "El Buenos Días/RDL Zercher une ambas identidades en un solo gesto: la barra vive en el hueco de los codos y la cadera hace la misma inclinación de siempre. Glúteos e isquiosurales siguen mandando, pero el torso trabaja el doble para no desarmarse. La posición incomoda los brazos y exige técnica depurada. Una especialidad dura para quien ya exprimió las variantes convencionales."
     },
     "hammer_curl": {
       "configurations": {
@@ -3800,26 +3770,6 @@
         }
       },
       "description": "El Peso Muerto Rumano Sumo en Déficit junta postura ancha, bisagra desde arriba y plataforma: el estiramiento llega a los isquiosurales y a los aductores desde un ángulo distinto y más largo. Se ejecuta deslizando la carga entre las piernas abiertas hasta donde la movilidad lo permita. Es la variante más profunda de la familia rumana. Reservada para quien busca rango extremo con la técnica ya asentada."
-    },
-    "hams_peso_muerto_rumano_zercher": {
-      "configurations": {
-        "hams_peso_muerto_rumano_zercher__default": {
-          "benefits": [
-            "La barra es la referencia para cargar los isquiosurales con peso de verdad.",
-            "Una variante compacta que convierte un ejercicio de piernas en un reto de torso entero."
-          ],
-          "description": "Con barra, con la carga abrazada entre los brazos, la cadera viaja atrás con las piernas casi rectas. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
-          "executionCues": [
-            "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-          ],
-          "setupCues": [
-            "Preparación: Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente."
-          ],
-          "techniqueSummary": "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-          "variantRationale": "Barra en los codos bajando con las piernas casi rectas: el isquio se estira a fondo y el torso aguanta la carga al frente. Exigente y con una demanda amplia."
-        }
-      },
-      "description": "El Peso Muerto Rumano Zercher sostiene la barra en el hueco de los codos mientras la cadera viaja atrás con las piernas casi rectas. Los isquiosurales se estiran igual que en el rumano clásico, pero el core y los erectores trabajan el doble por sujetar la carga al frente. El agarre zercher acerca el peso al cuerpo y cambia la sensación por completo. Una variante compacta que convierte un ejercicio de piernas en un reto de torso entero."
     },
     "hams_peso_muerto_sumo_deficit": {
       "configurations": {
@@ -4553,21 +4503,6 @@
     },
     "katana_extension": {
       "configurations": {
-        "katana_extension__band__bilateral": {
-          "benefits": [
-            "Con la banda, la resistencia crece a medida que avanza el trabajo del tríceps. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
-            "Elegante y distinto, con una congestión final sorprendente."
-          ],
-          "description": "Con banda elástica y a dos lados, de pie, el codo se extiende llevando la mano hacia atrás y arriba en un arco de desenvaine. Con la banda, la resistencia crece a medida que avanza el trabajo del tríceps. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
-          "executionCues": [
-            "Banda anclada a un lado con ambas manos: la resistencia crece al estirar en diagonal. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-          ],
-          "setupCues": [
-            "Preparación: Banda anclada a un lado con ambas manos: la resistencia crece al estirar en diagonal."
-          ],
-          "techniqueSummary": "Banda anclada a un lado con ambas manos: la resistencia crece al estirar en diagonal. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-          "variantRationale": "Banda anclada a un lado con ambas manos: la resistencia crece al estirar en diagonal. La versión portátil de la katana."
-        },
         "katana_extension__cable__bilateral": {
           "benefits": [
             "El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo del tríceps admite más carga total.",
@@ -6487,21 +6422,6 @@
           ],
           "techniqueSummary": "Mancuernas con las palmas hacia abajo: cada lado dirige su propia carga y el antebrazo trabaja sin esconder desequilibrios. Las palmas miran al suelo y la muñeca se mantiene firme; el codo flexiona mientras el antebrazo soporta la mayor parte de la limitación.",
           "variantRationale": "Mancuernas con las palmas hacia abajo: cada lado dirige su propia carga y el antebrazo trabaja sin esconder desequilibrios. La trayectoria independiente resulta útil cuando un brazo pierde la posición antes que el otro."
-        },
-        "reverse_curl__h_bar": {
-          "benefits": [
-            "Con la barra H, el agarre neutro deja la muñeca tranquila y el trabajo del antebrazo intacto.",
-            "El equilibrador del brazo: antebrazos que combinan con unos buenos bíceps."
-          ],
-          "description": "Con barra H, con las palmas hacia abajo, el dorso de la mano lidera la subida y el antebrazo manda. Con la barra H, el agarre neutro deja la muñeca tranquila y el trabajo del antebrazo intacto.",
-          "executionCues": [
-            "Barra H con las palmas hacia abajo: el agarre fijo mantiene la muñeca alineada y permite concentrar la serie en braquial y antebrazo. Las palmas miran al suelo y la muñeca se mantiene firme; el codo flexiona mientras el antebrazo soporta la mayor parte de la limitación."
-          ],
-          "setupCues": [
-            "Preparación: Barra H con las palmas hacia abajo: el agarre fijo mantiene la muñeca alineada y permite concentrar la serie en braquial y antebrazo."
-          ],
-          "techniqueSummary": "Barra H con las palmas hacia abajo: el agarre fijo mantiene la muñeca alineada y permite concentrar la serie en braquial y antebrazo. Las palmas miran al suelo y la muñeca se mantiene firme; el codo flexiona mientras el antebrazo soporta la mayor parte de la limitación.",
-          "variantRationale": "Barra H con las palmas hacia abajo: el agarre fijo mantiene la muñeca alineada y permite concentrar la serie en braquial y antebrazo. Una opción estable para progresar sin que el giro de la barra distraiga del recorrido."
         },
         "reverse_curl__kettlebell": {
           "benefits": [

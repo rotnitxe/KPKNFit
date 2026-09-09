@@ -10619,280 +10619,6 @@
         "canonicalName": "Curl Invertido",
         "configurations": [
           {
-            "displaySummary": "h_bar · bilateral",
-            "evidence": {
-              "confidence": "MEDIUM",
-              "evidenceRefs": [
-                "legacy:exercise_database.json#biceps_curl_drag",
-                "editorial:catalog-v7.2-human-editorial-2026-08-10"
-              ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
-              "reviewStatus": "APPROVED"
-            },
-            "id": "reverse_curl__h_bar",
-            "profile": {
-              "articulationType": "AISLADO",
-              "automationEligible": true,
-              "axialLoadFactor": 0.6,
-              "benefits": [
-                "Con la barra H, el agarre neutro deja la muñeca tranquila y el trabajo del antebrazo intacto.",
-                "El equilibrador del brazo: antebrazos que combinan con unos buenos bíceps."
-              ],
-              "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
-              "cnc": 1.6,
-              "commonMistakes": [
-                "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
-              ],
-              "description": "Con barra H, con las palmas hacia abajo, el dorso de la mano lidera la subida y el antebrazo manda. Con la barra H, el agarre neutro deja la muñeca tranquila y el trabajo del antebrazo intacto.",
-              "efc": 2.0,
-              "equipmentId": "h_bar",
-              "executionCues": [
-                "Barra H con las palmas hacia abajo: el agarre fijo mantiene la muñeca alineada y permite concentrar la serie en braquial y antebrazo. Las palmas miran al suelo y la muñeca se mantiene firme; el codo flexiona mientras el antebrazo soporta la mayor parte de la limitación."
-              ],
-              "fatigueTier": "BAJA",
-              "jointInvolvement": [
-                {
-                  "actions": [
-                    "Flexión"
-                  ],
-                  "jointId": "codo",
-                  "role": "PRIMARY"
-                },
-                {
-                  "actions": [
-                    "Pronación O Supinación"
-                  ],
-                  "jointId": "radiocubital-proximal",
-                  "role": "SECONDARY"
-                },
-                {
-                  "actions": [
-                    "Centrado Del Húmero"
-                  ],
-                  "jointId": "glenohumeral",
-                  "role": "STABILIZER"
-                },
-                {
-                  "actions": [
-                    "Alineación"
-                  ],
-                  "jointId": "muñeca",
-                  "role": "STABILIZER"
-                }
-              ],
-              "kineticChain": "FULL",
-              "laterality": "BILATERAL",
-              "loadMode": "free_external_load",
-              "movementPatternId": "elbow_flexion",
-              "performanceProfileId": "reverse_curl__h_bar",
-              "primaryMuscles": [
-                "forearm"
-              ],
-              "replacementGroup": null,
-              "replacementPriority": null,
-              "resistanceProfile": "gravity_arc",
-              "richMetadata": {
-                "anatomy": {
-                  "jointActions": [
-                    "Flexión",
-                    "Pronación O Supinación",
-                    "Centrado Del Húmero",
-                    "Alineación"
-                  ],
-                  "jointInvolvement": [
-                    {
-                      "actions": [
-                        "Flexión"
-                      ],
-                      "jointId": "codo",
-                      "role": "PRIMARY"
-                    },
-                    {
-                      "actions": [
-                        "Pronación O Supinación"
-                      ],
-                      "jointId": "radiocubital-proximal",
-                      "role": "SECONDARY"
-                    },
-                    {
-                      "actions": [
-                        "Centrado Del Húmero"
-                      ],
-                      "jointId": "glenohumeral",
-                      "role": "STABILIZER"
-                    },
-                    {
-                      "actions": [
-                        "Alineación"
-                      ],
-                      "jointId": "muñeca",
-                      "role": "STABILIZER"
-                    }
-                  ],
-                  "muscleLengthBias": "mixed_controlled",
-                  "primaryMuscles": [
-                    "forearm"
-                  ],
-                  "secondaryMuscles": [
-                    "biceps"
-                  ],
-                  "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "forearm",
-                    "biceps"
-                  ],
-                  "volumeContribution": "direct"
-                },
-                "biomechanics": {
-                  "bodyRegion": "UPPER",
-                  "equipmentId": "h_bar",
-                  "kineticChain": "FULL",
-                  "laterality": "BILATERAL",
-                  "loadMode": "free_external_load",
-                  "movementPatternId": "elbow_flexion",
-                  "rangeOfMotion": "controlled_full_available",
-                  "relevantJoints": [
-                    "codo",
-                    "radiocubital-proximal",
-                    "glenohumeral",
-                    "muñeca"
-                  ],
-                  "resistanceProfile": "gravity_arc",
-                  "stability": "self_stabilized"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Llevar el hombro hacia delante, balancear el tronco o perder la posición de la muñeca."
-                  ],
-                  "cues": [
-                    "Barra H con las palmas hacia abajo: el agarre fijo mantiene la muñeca alineada y permite concentrar la serie en braquial y antebrazo. Las palmas miran al suelo y la muñeca se mantiene firme; el codo flexiona mientras el antebrazo soporta la mayor parte de la limitación."
-                  ],
-                  "execution": [
-                    "Barra H con las palmas hacia abajo: el agarre fijo mantiene la muñeca alineada y permite concentrar la serie en braquial y antebrazo. Las palmas miran al suelo y la muñeca se mantiene firme; el codo flexiona mientras el antebrazo soporta la mayor parte de la limitación."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar los flexores del codo con un recorrido claro y fácil de comparar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión del codo y giro del antebrazo según el agarre como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de codo según tolerancia y rango disponible.",
-                    "Movilidad de radiocubital proximal según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra H con las palmas hacia abajo: el agarre fijo mantiene la muñeca alineada y permite concentrar la serie en braquial y antebrazo."
-                  ]
-                },
-                "display": {
-                  "displayName": "Curl Invertido",
-                  "displaySummary": "h_bar · bilateral",
-                  "selectedOptions": {
-                    "implement": "h_bar"
-                  }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la barra H, el agarre neutro deja la muñeca tranquila y el trabajo del antebrazo intacto.",
-                    "El equilibrador del brazo: antebrazos que combinan con unos buenos bíceps."
-                  ],
-                  "description": "Con barra H, con las palmas hacia abajo, el dorso de la mano lidera la subida y el antebrazo manda. Con la barra H, el agarre neutro deja la muñeca tranquila y el trabajo del antebrazo intacto.",
-                  "technique": "Barra H con las palmas hacia abajo: el agarre fijo mantiene la muñeca alineada y permite concentrar la serie en braquial y antebrazo. Las palmas miran al suelo y la muñeca se mantiene firme; el codo flexiona mientras el antebrazo soporta la mayor parte de la limitación.",
-                  "variantRationale": "Barra H con las palmas hacia abajo: el agarre fijo mantiene la muñeca alineada y permite concentrar la serie en braquial y antebrazo. Una opción estable para progresar sin que el giro de la barra distraiga del recorrido."
-                },
-                "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.6,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
-                "identity": {
-                  "canonicalName": "Curl Invertido",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
-                  "configurationId": "reverse_curl__h_bar",
-                  "definitionId": "reverse_curl",
-                  "familyId": "elbow_flexion_biceps_curl",
-                  "kind": "PARENT",
-                  "performanceProfileId": "reverse_curl__h_bar",
-                  "searchTerms": [
-                    "curl invertido",
-                    "reverse curl",
-                    "curl prono",
-                    "antebrazo"
-                  ]
-                },
-                "programming": {
-                  "fatigueCost": "moderate",
-                  "indicativeRestSeconds": {
-                    "max": 90,
-                    "min": 30
-                  },
-                  "objectives": [
-                    "Desarrollar el antebrazo mediante Curl Invertido en la variante Barra H.",
-                    "Priorizar trabajar los flexores del codo con un recorrido claro y fácil de comparar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
-                  "requiredEquipment": [
-                    "h_bar"
-                  ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
-                },
-                "replacement": {
-                  "compatibleEquipmentIds": [
-                    "h_bar",
-                    "dumbbells",
-                    "cable",
-                    "band",
-                    "kettlebell"
-                  ],
-                  "preservesIntent": [
-                    "Conserva flexión del codo y giro del antebrazo según el agarre y el objetivo de el antebrazo.",
-                    "La sustitución debe respetar las articulaciones relevantes: codo, radiocubital proximal, hombro."
-                  ],
-                  "replacementGroup": null,
-                  "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
-                }
-              },
-              "secondaryMuscles": [
-                "biceps"
-              ],
-              "setupCues": [
-                "Preparación: Barra H con las palmas hacia abajo: el agarre fijo mantiene la muñeca alineada y permite concentrar la serie en braquial y antebrazo."
-              ],
-              "setupTimeSeconds": 25,
-              "ssc": 0.1,
-              "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "techniqueSummary": "Barra H con las palmas hacia abajo: el agarre fijo mantiene la muñeca alineada y permite concentrar la serie en braquial y antebrazo. Las palmas miran al suelo y la muñeca se mantiene firme; el codo flexiona mientras el antebrazo soporta la mayor parte de la limitación.",
-              "ttc": 1.5,
-              "variantRationale": "Barra H con las palmas hacia abajo: el agarre fijo mantiene la muñeca alineada y permite concentrar la serie en braquial y antebrazo. Una opción estable para progresar sin que el giro de la barra distraiga del recorrido."
-            },
-            "selectedOptions": {
-              "implement": "h_bar"
-            }
-          },
-          {
             "displaySummary": "dumbbells · bilateral",
             "evidence": {
               "confidence": "MEDIUM",
@@ -11127,7 +10853,6 @@
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
-                    "h_bar",
                     "dumbbells",
                     "cable",
                     "band",
@@ -11401,7 +11126,6 @@
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
-                    "h_bar",
                     "dumbbells",
                     "cable",
                     "band",
@@ -11675,7 +11399,6 @@
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
-                    "h_bar",
                     "dumbbells",
                     "cable",
                     "band",
@@ -11949,7 +11672,6 @@
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
-                    "h_bar",
                     "dumbbells",
                     "cable",
                     "band",
@@ -11990,7 +11712,7 @@
           }
         ],
         "defaultConfigurationId": "reverse_curl__dumbbells",
-        "description": "El Curl Invertido pone las palmas a mirar al suelo: el protagonista pasa a ser el antebrazo y el braquial, y el bíceps trabaja en desventaja mecánica. Se ejecuta como un curl normal pero con el dorso de la mano liderando la subida, con cargas más modestas de lo habitual. La barra H o la banda permiten la misma idea con otro tacto. El equilibrador del brazo: antebrazos que combinan con unos buenos bíceps.",
+        "description": "El Curl Invertido pone las palmas a mirar al suelo: el protagonista pasa a ser el antebrazo y el braquial, y el bíceps trabaja en desventaja mecánica. Se ejecuta como un curl normal pero con el dorso de la mano liderando la subida, con cargas más modestas de lo habitual. La banda o la polea permiten la misma idea con otro tacto. El equilibrador del brazo: antebrazos que combinan con unos buenos bíceps.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

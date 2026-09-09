@@ -57,11 +57,11 @@ class AprendeCatalogAuditTest {
         assertEquals("v2-approved-2026-08-12-a", report.catalogRevision)
         assertEquals("wikilab-v3-2026-08-08", report.ontologyRevision)
         assertEquals(96, report.familyCount)
-        assertEquals(196, report.definitionCount)
-        assertEquals(521, report.configurationCount)
-        assertEquals(521, report.richMetadataCount)
-        assertEquals(521, report.editorialCoverageCount)
-        assertEquals(521, report.jointCoverageCount)
+        assertEquals(195, report.definitionCount)
+        assertEquals(515, report.configurationCount)
+        assertEquals(515, report.richMetadataCount)
+        assertEquals(515, report.editorialCoverageCount)
+        assertEquals(515, report.jointCoverageCount)
         assertEquals(0, report.shortDescriptionCount)
         assertEquals(0, report.shortBenefitCount)
         assertEquals(0, report.shortTechniqueCount)
@@ -71,7 +71,7 @@ class AprendeCatalogAuditTest {
         assertEquals(0, report.duplicateVariantRationaleCount)
         assertEquals(0, report.desynchronizedMetadataCount)
         assertEquals(0, report.reverseLinkConsistencyIssueCount)
-        assertEquals("d4ea20ed8fcce76c6b621f0b6f1ec3713270328ce44914a1a57931bb51ee453f", report.sourceSha256)
+        assertEquals("4556cc912446360ad590d863bcf73460862a6a2904140a9db705555accc0f6ec", report.sourceSha256)
         assertTrue(report.unmappedMuscleIds.isEmpty())
         assertTrue(report.unmappedPatternIds.isEmpty())
         assertTrue(report.unknownJointIds.isEmpty())
@@ -117,7 +117,7 @@ class AprendeCatalogAuditTest {
             .map { it.id }
             .toSet()
 
-        assertEquals(521, runtime.size)
+        assertEquals(515, runtime.size)
         assertEquals(sourceConfigurationIds, runtime.keys)
         assertTrue(runtime.values.all {
             val configurationId = it.catalogConfigurationId
@@ -131,7 +131,7 @@ class AprendeCatalogAuditTest {
         val reverse = buildAprendeCatalogReverseIndex(catalog)
         // A configuration contributes to exactly one movement-pattern bucket;
         // this also guards against parent-name deduplication.
-        assertEquals(521, reverse.exerciseIdsByPattern.values.sumOf { it.size })
+        assertEquals(515, reverse.exerciseIdsByPattern.values.sumOf { it.size })
         catalog.families.flatMap { it.definitions }.flatMap { it.configurations }.forEach { configuration ->
             val profile = configuration.profile
             assertTrue(configuration.id in reverse.exerciseIdsByPattern[profile.movementPatternId].orEmpty())

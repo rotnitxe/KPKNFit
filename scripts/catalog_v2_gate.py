@@ -177,7 +177,6 @@ EXPECTED_AXIS_ORDER = {
         "implement"
     ],
     "katana_extension": [
-        "implement",
         "laterality"
     ],
     "chest_supported_row": [
