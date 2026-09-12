@@ -225,7 +225,7 @@ private fun DataStep(state: NutritionWizardUiState, vm: NutritionWizardViewModel
             CompactField(state.draft.weightText, vm::updateWeight, "Peso ${state.draft.weightUnit}", "72", KeyboardType.Decimal, Modifier.weight(1f))
         }
         Text("¿Cuál de estas opciones te representa actualmente?", color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
-        if (state.draft.equationSex == null) {
+        if (!shouldShowWizardPhysiqueExamples(state.draft.equationSex)) {
             SexPill(selected = null, onSelect = vm::updateEquationSex)
             Surface(color = Color.White.copy(alpha = 0.06f), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(18.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -234,6 +234,7 @@ private fun DataStep(state: NutritionWizardUiState, vm: NutritionWizardViewModel
                     Text("Selecciona tu sexo", color = WizardTeal, fontWeight = FontWeight.Bold)
                 }
             }
+        } else {
             Box(Modifier.fillMaxWidth().height(420.dp).clip(RoundedCornerShape(18.dp)).background(Color.White.copy(alpha = 0.04f))) {
                 val frames = if (state.draft.equationSex == EerSex.FEMALE) WizardFemaleFrames else WizardMaleFrames
                 val frameIdx = ((pos.coerceIn(1f, 7f) - 1f) / 6f * (frames.size - 1)).roundToInt().coerceIn(0, frames.size - 1)
@@ -581,6 +582,9 @@ private fun AnimatedMacroRing(kcal: Int, macros: com.example.kpkn.domain.nutriti
         ring(r1, calPct, CalColor); ring(r2, proPct, ProColor); ring(r3, carbPct, CarbColor); ring(r4, fatPct, FatColor)
     }
 }
+
+/** Personajes y slider de % grasa solo tras elegir sexo. No anidar el visor en el if (null). */
+internal fun shouldShowWizardPhysiqueExamples(equationSex: EerSex?): Boolean = equationSex != null
 
 private val WizardMaleFrames = intArrayOf(
     R.drawable.wizard_h_00, R.drawable.wizard_h_01, R.drawable.wizard_h_02, R.drawable.wizard_h_03, R.drawable.wizard_h_04,
