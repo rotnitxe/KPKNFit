@@ -198,7 +198,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 3.2,
                   "efc": 3.5,
-                  "ssc": 1.0,
+                  "ssc": 0.35,
                   "technicalDifficulty": 5.2,
                   "ttc": 2.0
                 },
@@ -269,7 +269,7 @@
                 "Preparación: Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
+              "ssc": 0.35,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
               "techniqueSummary": "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable.",
@@ -472,7 +472,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 2.8,
                   "efc": 3.2,
-                  "ssc": 0.9,
+                  "ssc": 0.35,
                   "technicalDifficulty": 4.8,
                   "ttc": 2.0
                 },
@@ -541,7 +541,7 @@
                 "Preparación: Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.9,
+              "ssc": 0.35,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
               "techniqueSummary": "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable.",

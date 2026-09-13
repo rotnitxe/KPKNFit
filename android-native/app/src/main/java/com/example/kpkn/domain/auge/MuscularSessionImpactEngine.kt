@@ -226,7 +226,7 @@ object MuscularSessionImpactEngine {
             val capacity = capacitiesAtCompletion[muscle]
                 ?.takeIf { it.isFinite() && it > 0.0 }
                 ?: defaultCapacity(settings)
-            val rawDrain = 100.0 * (1.0 - exp(-accumulator.stress / capacity.coerceAtLeast(120.0)))
+            val rawDrain = 100.0 * (1.0 - exp(-accumulator.stress / capacity.coerceAtLeast(AugeUtils.CAPACITY_MIN_STRESS_UNITS)))
             MuscleSessionImpactV2(
                 stressUnits = accumulator.stress,
                 capacityAtCompletion = capacity,
@@ -315,7 +315,7 @@ object MuscularSessionImpactEngine {
     }
 
     private fun defaultCapacity(settings: Settings): Double =
-        AugeFatigueEngine.getAthleteCapacity(settings).coerceIn(120.0, 3500.0)
+        AugeUtils.clampWorkCapacity(AugeFatigueEngine.getAthleteCapacity(settings))
 
     private fun sha256(value: String): String {
         val bytes = MessageDigest.getInstance("SHA-256").digest(value.toByteArray(Charsets.UTF_8))

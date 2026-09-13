@@ -26,39 +26,64 @@ object AugeFatigueEngine {
 
     // ─── Capacidades base por tipo de atleta ─────────────────────────────────
 
-    // Recalibración 2026-08-17: floors reducidos ~48% para que una sesión dura
-    // drene de forma realista (hard pecho 8 sets RPE8.5: antes 90% inmediato, ahora ~82%).
-    // Simulación: stress hard ~47pp → con cap 260 => battery 76-82 inmediato, 87 a 24h, ~98 a 48h.
-    // Light (3 sets) => 88 inmediato. Estrangulamiento previo: floor 500 dominaba siempre
-    // (harían falta >278pp/sem para superarlo); nuevo floor permite adaptación desde 2-3 sesiones/sem.
-    // Mantiene jerarquía por tipo de atleta y clamp 120-3500.
+    // Recalibración 2026-09-12: capacidad en stressUnits (drainPct × 10).
+    // Antes 260–625 convivía con V2 stress ~750 y el cold-start saturaba el finish.
     private val ATHLETE_CAPACITY: Map<AthleteType, Double> = mapOf(
-        AthleteType.ENTHUSIAST    to 260.0,
-        AthleteType.HYBRID        to 340.0,
-        AthleteType.CALISTHENICS  to 310.0,
-        AthleteType.BODYBUILDER   to 520.0,
-        AthleteType.POWERBUILDER  to 570.0,
-        AthleteType.POWERLIFTER   to 625.0,
-        AthleteType.WEIGHTLIFTER  to 520.0,
-        AthleteType.ZERCHER_LIFTER to 340.0,
+        AthleteType.ENTHUSIAST    to 2600.0,
+        AthleteType.HYBRID        to 3400.0,
+        AthleteType.CALISTHENICS  to 3100.0,
+        AthleteType.BODYBUILDER   to 5200.0,
+        AthleteType.POWERBUILDER  to 5700.0,
+        AthleteType.POWERLIFTER   to 6250.0,
+        AthleteType.WEIGHTLIFTER  to 5200.0,
+        AthleteType.ZERCHER_LIFTER to 3400.0,
     )
 
     fun getAthleteCapacity(settings: Settings): Double =
-        ATHLETE_CAPACITY[settings.athleteType] ?: 500.0
+        ATHLETE_CAPACITY[settings.athleteType] ?: 2600.0
+
+    /**
+     * 0 si el catálogo declara axial=0 (press banca no drena Columna).
+     * Null (ejercicio custom / sin ficha) conserva el ssc heurístico.
+     */
+    fun spinalAxialGate(axialLoadFactor: Double?): Double {
+        if (axialLoadFactor == null) return 1.0
+        if (axialLoadFactor <= 0.0) return 0.0
+        return axialLoadFactor.coerceIn(0.0, 1.5)
+    }
+
+    fun sessionHasAxialLoad(
+        exercises: List<CompletedExercise>,
+        exerciseDb: Map<String, ExerciseMuscleInfo>,
+    ): Boolean = exercises.any { ex ->
+        if (ex.cardioDetails != null) return@any false
+        val dbInfo = resolveCatalogExerciseInfoInIndex(
+            index = exerciseDb,
+            catalogConfigurationId = ex.catalogConfigurationId,
+            exerciseDbId = ex.exerciseDbId,
+            exerciseId = ex.exerciseId,
+            exerciseName = ex.exerciseName,
+        )
+        val axial = dbInfo?.axialLoadFactor
+        axial == null || axial > 0.0
+    }
+
+    fun relativeLoadFactorForAxial(set: CompletedSet): Double {
+        val rpe = getEffectiveRPE(set)
+        val reps = set.reps.toDouble().coerceAtLeast(0.0)
+        val ratio = estimateRelativeLoadRatio(set, reps, rpe)
+        if (ratio != null) return ratio.coerceIn(0.50, 1.20)
+        return when {
+            rpe >= 9.5 -> 1.15
+            rpe >= 8.5 -> 1.0
+            rpe >= 7.0 -> 0.85
+            else -> 0.70
+        }
+    }
 
 
     private fun applySoftCap(drain: Double, accumulated: Double, cap: Double): Double =
         AugeUtils.applySessionSoftCap(drain, accumulated, cap)
-
-    private fun normalizeBias(profile: PredictionBiasProfile): Triple<Double, Double, Double> {
-        val confidence = (profile.sampleCount.coerceIn(0, 30) / 30.0)
-        return Triple(
-            (profile.cnsBias * confidence).coerceIn(-15.0, 15.0),
-            ((if (profile.muscularBiasVersion >= 2) profile.muscularBias else 0.0) * confidence)
-                .coerceIn(-15.0, 15.0),
-            (profile.spinalBias * confidence).coerceIn(-15.0, 15.0),
-        )
-    }
 
     // ─── Tanques de batería personalizados ───────────────────────────────────
 
@@ -251,10 +276,8 @@ object AugeFatigueEngine {
         if (set.skipped) return false
         if (set.isWarmup) return false
         val hasTime = (set.timeSeconds ?: 0) > 0
+        if (set.isFailedSet && set.reps <= 0 && !hasTime) return false
         if (set.reps <= 0 && !hasTime && set.weight <= 0.0) return false
-        // Cardio puro (solo tiempo, sin carga ni reps) nunca debe drenar baterías AUGE.
-        // Evita que 20 min de cinta se conviertan en ~240 "reps" sintéticas.
-        if (set.reps <= 0 && set.weight <= 0.0 && hasTime) return false
         val rpe = getEffectiveRPE(set)
         return rpe >= 6.0
     }
@@ -349,7 +372,7 @@ object AugeFatigueEngine {
         return debtPenalty * failurePenalty * dropPenalty * restPausePenalty * partialPenalty
     }
 
-    private fun estimateRelativeLoadRatio(
+    internal fun estimateRelativeLoadRatio(
         set: CompletedSet,
         reps: Double,
         rpe: Double,
@@ -404,7 +427,8 @@ object AugeFatigueEngine {
         val rpe = getEffectiveRPE(set)
         val baseReps = when {
             (set.timeSeconds ?: 0) > 0 -> ((set.timeSeconds ?: 0).coerceAtLeast(5) / 5.0)
-            else -> set.reps.coerceAtLeast(1).toDouble()
+            set.isFailedSet && set.reps <= 0 -> 0.0
+            else -> set.reps.coerceAtLeast(0).toDouble().takeIf { it > 0.0 } ?: 0.0
         }
         
         val dropReps = set.dropSets.sumOf { it.reps }.toDouble()
@@ -471,7 +495,7 @@ object AugeFatigueEngine {
             else -> 1.0
         }
         val effectiveLoadRaw = set.homologatedResultV3?.augeEquivalentLoad ?: set.weight
-        val effectiveLoad = if (weightUnit == WeightUnit.LBS) effectiveLoadRaw / 2.2046226218 else effectiveLoadRaw
+        val effectiveLoad = effectiveLoadRaw
         val loadFactor = if (effectiveLoad > 0.0) {
             1.0 + ln(1.0 + (effectiveLoad / 20.0)) * 0.25
         } else {
@@ -577,6 +601,7 @@ object AugeFatigueEngine {
         muscularCap: Double,
         cnsCap: Double,
         spinalCap: Double,
+        spinalAxialGate: Double = 1.0,
     ) {
         val conservationFactor = AugeUtils.SESSION_CONSERVATION_FACTOR
         val decayK = AugeUtils.SESSION_DECAY_K
@@ -597,7 +622,7 @@ object AugeFatigueEngine {
         val diminishingFactor = 1.0 / (1.0 + decayK * (acc.accumulatedDrain / 100.0))
         val adjustedMuscular = drain.muscularDrainPct * conservationFactor * diminishingFactor
         val adjustedCns = drain.cnsDrainPct * conservationFactor * diminishingFactor
-        val adjustedSpinal = drain.spinalDrainPct * conservationFactor * diminishingFactor
+        val adjustedSpinal = drain.spinalDrainPct * conservationFactor * diminishingFactor * spinalAxialGate
         val cappedMuscular = applySoftCap(adjustedMuscular, acc.totalMuscular, muscularCap)
         val cappedCns = applySoftCap(adjustedCns, acc.totalCns, cnsCap)
         val cappedSpinal = applySoftCap(adjustedSpinal, acc.totalSpinal, spinalCap)
@@ -617,6 +642,7 @@ object AugeFatigueEngine {
         cnsCap: Double,
         spinalCap: Double,
         hardEffectiveSets: Int,
+        hasAxialLoad: Boolean,
     ): SessionDrainBreakdown {
         val scaledSpinal = scaleSpinalDrainToUi(acc.totalSpinal, tanks)
         var result = PredictedDrain(
@@ -624,17 +650,20 @@ object AugeFatigueEngine {
             muscular = acc.totalMuscular.coerceAtMost(muscularCap).toInt(),
             spinal = scaledSpinal.coerceAtMost(spinalCap).toInt(),
         )
-        result = ensureMinimumHardSessionDrain(result, hardEffectiveSets, muscularCap, cnsCap, spinalCap)
-        val (cnsBias, muscularBias, spinalBias) = normalizeBias(settings.augePredictionBias)
-        val global = PredictedDrain(
-            cns = (result.cns + cnsBias).toInt().coerceIn(0, cnsCap.toInt()),
-            muscular = (result.muscular + muscularBias).toInt().coerceIn(0, muscularCap.toInt()),
-            spinal = (result.spinal + spinalBias).toInt().coerceIn(0, spinalCap.toInt()),
+        result = ensureMinimumHardSessionDrain(
+            drain = result,
+            hardEffectiveSets = hardEffectiveSets,
+            muscularCap = muscularCap,
+            cnsCap = cnsCap,
+            spinalCap = spinalCap,
+            hasAxialLoad = hasAxialLoad,
         )
-        val perMuscle = acc.perMuscleMuscular.mapValues { (_, v) ->
-            v.roundToInt().coerceIn(0, muscularCap.toInt())
-        }
-        return SessionDrainBreakdown(global = global, perMuscleMuscular = perMuscle)
+        return SessionDrainBreakdown(
+            global = result,
+            perMuscleMuscular = acc.perMuscleMuscular.mapValues { (_, v) ->
+                v.roundToInt().coerceIn(0, muscularCap.toInt())
+            },
+        )
     }
 
     fun calculateCompletedSessionDrainBreakdown(
@@ -700,6 +729,7 @@ object AugeFatigueEngine {
                 ?: ""
             val involvementWeights = involvementWeightsFor(involved)
             val muscleMult = lookupMuscleDrainMultiplier(remappedMultipliers, primaryMuscle)
+            val axialGate = spinalAxialGate(dbInfo?.axialLoadFactor)
 
             ex.sets.forEach { s ->
                 if (!isSetEffective(s)) return@forEach
@@ -719,13 +749,15 @@ object AugeFatigueEngine {
                     muscularCap = muscularCap,
                     cnsCap = cnsCap,
                     spinalCap = spinalCap,
+                    spinalAxialGate = axialGate,
                 )
             }
         }
 
         val hardSets = completedExercises.flatMap { it.sets }
             .count { isSetEffective(it) && getEffectiveRPE(it) >= 8.0 }
-        return finalizeSessionDrain(acc, tanks, settings, muscularCap, cnsCap, spinalCap, hardSets)
+        val hasAxial = sessionHasAxialLoad(completedExercises, exerciseDb)
+        return finalizeSessionDrain(acc, tanks, settings, muscularCap, cnsCap, spinalCap, hardSets, hasAxial)
     }
 
     fun calculateCompletedSessionDrain(
@@ -759,13 +791,18 @@ object AugeFatigueEngine {
         muscularCap: Double,
         cnsCap: Double,
         spinalCap: Double,
+        hasAxialLoad: Boolean,
     ): PredictedDrain {
         if (hardEffectiveSets < 6) return drain
         val minDrop = 10
         return PredictedDrain(
             cns = max(drain.cns, minDrop).coerceAtMost(cnsCap.toInt()),
             muscular = max(drain.muscular, minDrop).coerceAtMost(muscularCap.toInt()),
-            spinal = max(drain.spinal, (minDrop * 0.8).toInt()).coerceAtMost(spinalCap.toInt()),
+            spinal = if (hasAxialLoad) {
+                max(drain.spinal, (minDrop * 0.8).toInt()).coerceAtMost(spinalCap.toInt())
+            } else {
+                drain.spinal
+            },
         )
     }
 
@@ -851,6 +888,7 @@ object AugeFatigueEngine {
                 ?: ""
             val involvementWeights = involvementWeightsFor(involved)
             val muscleMult = lookupMuscleDrainMultiplier(remappedMultipliers, primaryMuscle)
+            val axialGate = spinalAxialGate(dbInfo?.axialLoadFactor)
 
             ex.sets.forEach { s ->
                 if (s.isIneffective) return@forEach
@@ -890,6 +928,7 @@ object AugeFatigueEngine {
                     muscularCap = muscularCap,
                     cnsCap = cnsCap,
                     spinalCap = spinalCap,
+                    spinalAxialGate = axialGate,
                 )
             }
         }
@@ -902,7 +941,19 @@ object AugeFatigueEngine {
                 }) >= 8.0
             }
         }
-        return finalizeSessionDrain(acc, tanks, settings, muscularCap, cnsCap, spinalCap, hardSets).global
+        val hasAxial = exercises.any { ex ->
+            if (ex.cardioDetails != null) return@any false
+            val info = resolveCatalogExerciseInfoInIndex(
+                index = exerciseDb,
+                catalogConfigurationId = ex.catalogConfigurationId,
+                exerciseDbId = ex.exerciseDbId,
+                exerciseId = ex.exerciseId,
+                exerciseName = ex.name,
+            )
+            val axial = info?.axialLoadFactor
+            axial == null || axial > 0.0
+        }
+        return finalizeSessionDrain(acc, tanks, settings, muscularCap, cnsCap, spinalCap, hardSets, hasAxial).global
     }
 
     private const val EMA_ALPHA = 0.17

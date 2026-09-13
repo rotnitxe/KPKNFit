@@ -13,6 +13,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -85,7 +86,8 @@ internal fun WorkoutSessionOverlaysHost(
                 studyIntensity = todayWellbeing?.studyIntensity,
                 manualMuscularBattery = manualMuscular ?: todayWellbeing?.manualMuscularBattery,
                 manualNeuralBattery = manualNeural ?: todayWellbeing?.manualNeuralBattery,
-                manualSpinalBattery = manualSpinal ?: todayWellbeing?.manualSpinalBattery,
+                manualSpinalBattery = manualSpinal?.let { augeViewModel.invertDisplayedStructure(it) }
+                    ?: todayWellbeing?.manualSpinalBattery,
                 manualMuscleBatteries = if (manualMuscleBatteries.isNotEmpty()) {
                     remapMuscleIntMapToPillars(
                         (todayWellbeing?.manualMuscleBatteries.orEmpty()) + manualMuscleBatteries,
@@ -110,6 +112,7 @@ internal fun WorkoutSessionOverlaysHost(
         exerciseReadinessMap = uiState.exerciseReadinessMap,
         sessionExercises = session.exercises,
         perMuscle = perMuscle,
+        augeSnapshot = augeViewModel.snapshot.collectAsState().value,
         initialDiscomforts = todayWellbeing?.preWorkoutDiscomforts ?: emptyList(),
         voiceSessionEnabled = voiceSessionEnabled,
         voiceCaptureMode = voiceCaptureMode,

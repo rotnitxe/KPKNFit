@@ -18,7 +18,12 @@ data class AugeAdaptiveCache(
     /** Last workout log that already ran performance→τ learning (skip repeats). */
     val lastPerformanceLearnLogId: String? = null,
     /** Bump when semantics of deltas/multipliers change to invalidate learned cache. */
-    val schemaVersion: Int = 2,
+    val schemaVersion: Int = 3,
+    /** Keys `${type}|${isoWeek}` dismissed by the user. */
+    val dismissedAdvisoryKeys: Set<String> = emptySet(),
+    val lastAdvisoryLevelByChannel: Map<String, String> = emptyMap(),
+    val lastAdvisoryDay: String? = null,
+    val modelUpdateNoticeShown: Boolean = false,
 )
 
 @Serializable

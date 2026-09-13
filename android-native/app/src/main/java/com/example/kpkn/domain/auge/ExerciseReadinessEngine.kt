@@ -14,7 +14,7 @@ import kotlin.math.roundToInt
  */
 object ExerciseReadinessEngine {
 
-    const val ADJUSTMENT_THRESHOLD = 75
+    const val ADJUSTMENT_THRESHOLD = RecoveryBands.ADJUSTMENT_THRESHOLD
 
     private const val MIN_REDUCTION_MULTIPLIER = 0.20
     private const val MAX_REDUCTION_MULTIPLIER = 0.80
@@ -407,13 +407,7 @@ object ExerciseReadinessEngine {
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
-    fun readinessLabel(score: Int): String = when {
-        score >= 85 -> "Óptimo"
-        score >= 75 -> "Bueno"
-        score >= 50 -> "Moderado"
-        score >= 35 -> "Bajo"
-        else -> "Crítico"
-    }
+    fun readinessLabel(score: Int): String = RecoveryBands.shortReadinessLabel(score)
 
     private fun patternLabelFor(force: String): String = when (force.lowercase()) {
         "empuje" -> "Empuje"
@@ -494,7 +488,7 @@ object ExerciseReadinessEngine {
                     ?.average()
                     ?.roundToInt()
                 val score2 = muscleScore2 ?: secondary.averageMuscleRecovery
-                if (score2 >= 80) {
+                if (score2 >= RecoveryBands.HIGH_MIN) {
                     " También llevas $plural2 ($share2% de las series) al $score2%: sin problema."
                 } else {
                     " También llevas $plural2 ($share2% de las series) al $score2%: tenlo en cuenta."
@@ -506,7 +500,7 @@ object ExerciseReadinessEngine {
         val detail: String
         val tone: CoachingTone
         when {
-            score >= 75 -> {
+            score >= RecoveryBands.NORMAL_MIN -> {
                 tone = CoachingTone.GREEN
                 headline = "Estimación: el plan de $plural encaja con tu estado de hoy."
                 detail = buildString {
@@ -520,7 +514,7 @@ object ExerciseReadinessEngine {
                     append(" Sigue el plan tal cual.")
                 }
             }
-            score >= 50 -> {
+            score >= RecoveryBands.MODERATE_MIN -> {
                 tone = CoachingTone.AMBER
                 headline = "A medias para tus $plural."
                 val body = if (leastFresh != null) {

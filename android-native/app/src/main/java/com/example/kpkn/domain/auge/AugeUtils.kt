@@ -26,6 +26,34 @@ internal object AugeUtils {
     const val STRESS_WEIGHT_MUSCULAR = 0.25
     const val STRESS_WEIGHT_SPINAL = 0.30
 
+    /** ln(20): hours to ~95 % recovery when remaining = exp(-k t) with k = TAU_K_95 / τ. */
+    const val TAU_K_95 = 2.9957
+
+    /** V2 muscular stress is drainPct × 10. Capacity must live in the same units. */
+    const val STRESS_UNITS_PER_DRAIN_PCT = 10.0
+    const val CAPACITY_MIN_STRESS_UNITS = 1200.0
+    const val CAPACITY_MAX_STRESS_UNITS = 35000.0
+    /** Snapshots saved before the ×10 capacity remap (~260). */
+    const val LEGACY_CAPACITY_THRESHOLD = 800.0
+
+    fun recoveryDecay(effectiveHours: Double, tauHours: Double): Double {
+        val tau = tauHours.coerceAtLeast(1.0)
+        val k = TAU_K_95 / tau
+        return safeExp(-k * effectiveHours.coerceAtLeast(0.0))
+    }
+
+    fun clampWorkCapacity(capacity: Double): Double =
+        capacity.coerceIn(CAPACITY_MIN_STRESS_UNITS, CAPACITY_MAX_STRESS_UNITS)
+
+    fun normalizeStoredCapacity(stored: Double, current: Double): Double {
+        val cap = stored.takeIf { it.isFinite() && it > 0.0 } ?: current
+        return if (cap < LEGACY_CAPACITY_THRESHOLD && current >= LEGACY_CAPACITY_THRESHOLD * 2.0) {
+            cap * STRESS_UNITS_PER_DRAIN_PCT
+        } else {
+            cap
+        }
+    }
+
     /**
      * Canonical fallback when predicted-drain calculation fails but the session
      * has work. Single source for Session Editor / Assistant / callers.
@@ -114,11 +142,18 @@ internal object AugeUtils {
         }
     }
 
+    /**
+     * Tiempo efectivo para Columna. El +18 h extra se incorpora de forma
+     * continua entre 12 h y 24 h (antes saltaba de 12 a 30 en un tick).
+     */
     fun getSpinalRecoveryHours(hoursSince: Double): Double {
-        if (hoursSince < 12.0) {
-            return hoursSince
+        val h = hoursSince.coerceAtLeast(0.0)
+        val extra = when {
+            h < 12.0 -> 0.0
+            h >= 24.0 -> 18.0
+            else -> 18.0 * (h - 12.0) / 12.0
         }
-        return hoursSince + 18.0
+        return h + extra
     }
 
     /**

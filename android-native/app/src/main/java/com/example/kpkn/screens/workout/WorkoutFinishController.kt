@@ -409,6 +409,7 @@ class WorkoutFinishController(
                         closingFeedback.stillPresentDiscomfortIds +
                             state.postExerciseFeedbackByExerciseId.values.flatMap { it.stillPresentDiscomfortIds }
                         ).distinct(),
+                    ringStartSnapshot = closingFeedback.ringStartSnapshot,
                 ).normalizedIdentityFields()
 
                 repository.finalizeWorkout(log)

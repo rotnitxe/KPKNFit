@@ -47,6 +47,14 @@ object AugeAdaptiveEngine {
         return clamp(impliedTau, 6.0, 200.0)
     }
 
+    internal const val OBSERVATION_TAU_RATIO = 0.25
+
+    internal fun capObservationTau(impliedTau: Double, currentTau: Double): Double {
+        val lo = currentTau * (1.0 - OBSERVATION_TAU_RATIO)
+        val hi = currentTau * (1.0 + OBSERVATION_TAU_RATIO)
+        return clamp(impliedTau, lo, hi)
+    }
+
     /**
      * Updates the per-muscle personalized recovery hours using an EMA
      * (not Bayesian / GP). One observation should update τ only — not
@@ -63,10 +71,11 @@ object AugeAdaptiveEngine {
 
         val muscleKey = observation.muscle.lowercase().trim()
         val currentTau = current[muscleKey] ?: defaultRecoveryHours(muscleKey)
+        val cappedImplied = capObservationTau(impliedTau, currentTau)
 
         val samples = (totalObservations + 1).coerceAtLeast(1).toDouble()
         val alpha = max(0.05, min(0.5, 1.5 / samples))
-        val newTau = currentTau * (1.0 - alpha) + impliedTau * alpha
+        val newTau = currentTau * (1.0 - alpha) + cappedImplied * alpha
 
         return current + (muscleKey to clamp(newTau, 12.0, 144.0))
     }
@@ -125,7 +134,7 @@ object AugeAdaptiveEngine {
             val impliedCns = deriveImpliedRecoveryTime(cnsObservation)
             if (impliedCns != null) {
                 val base = currentCnsTau ?: 36.0
-                base * (1.0 - alpha) + impliedCns * alpha
+                base * (1.0 - alpha) + capObservationTau(impliedCns, base) * alpha
             } else currentCnsTau
         } else currentCnsTau
 
@@ -133,7 +142,7 @@ object AugeAdaptiveEngine {
             val impliedSpinal = deriveImpliedRecoveryTime(spinalObservation)
             if (impliedSpinal != null) {
                 val base = currentSpinalTau ?: 52.0
-                base * (1.0 - alpha) + impliedSpinal * alpha
+                base * (1.0 - alpha) + capObservationTau(impliedSpinal, base) * alpha
             } else currentSpinalTau
         } else currentSpinalTau
 

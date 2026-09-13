@@ -31,13 +31,14 @@ class AugeFatigueEngineEffectiveSetTest {
     }
 
     @Test
-    fun skippedSetIsNotEffective() {
-        val skipped = CompletedSet(
-            id = "s2",
-            weight = 100.0,
-            reps = 8,
-            skipped = true,
-        )
-        assertFalse(AugeFatigueEngine.isSetEffective(skipped))
+    fun plankTimeOnlyIsEffectiveWithoutCardioDetails() {
+        val plank = CompletedSet(id = "plank", reps = 0, weight = 0.0, timeSeconds = 45, rpe = 7.0)
+        assertTrue(AugeFatigueEngine.isSetEffective(plank))
+    }
+
+    @Test
+    fun failedEmptySetIsNotEffective() {
+        val failed = CompletedSet(id = "f1", reps = 0, weight = 0.0, isFailedSet = true)
+        assertFalse(AugeFatigueEngine.isSetEffective(failed))
     }
 }

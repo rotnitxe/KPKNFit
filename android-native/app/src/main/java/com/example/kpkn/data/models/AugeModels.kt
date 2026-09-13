@@ -81,6 +81,13 @@ data class PostSessionPreview(
     val globalCnsDrain: Int,
     val globalMuscularDrain: Int,
     val globalSpinalDrain: Int,
+    /** Canal spinal crudo (sin blend articular/guardia). */
+    val spinalRaw: Int = spinal,
+    val tomorrowNeural: Int? = null,
+    val tomorrowSpinal: Int? = null,
+    val preSessionMuscular: Int? = null,
+    val preSessionNeural: Int? = null,
+    val preSessionSpinal: Int? = null,
     val finishOperationId: String? = null,
     val completionInstantIso: String? = null,
     val inputHash: String? = null,
@@ -121,8 +128,10 @@ data class AugeReadinessVerdict(
 
 enum class ReadinessColor { GREEN, YELLOW, RED }
 
+@Serializable
 enum class RecoveryChannelId { MUSCULAR, SYSTEM, STRUCTURE }
 
+@Serializable
 enum class RecoveryBand { HIGH, NORMAL, MODERATE, LOW, CRITICAL }
 
 data class RecoveryChannelSnapshot(
@@ -166,7 +175,26 @@ data class AugeSnapshot(
     val cumulativeFatigue: Double = 0.0,
     val autoDeloadMessage: String? = null,
     val isLoading: Boolean = true,
+    val advisories: List<LoadAdvisory> = emptyList(),
+    val hoursToNormal: Map<RecoveryChannelId, Int?> = emptyMap(),
+    val personalBaseline: Map<RecoveryChannelId, IntRange> = emptyMap(),
+    val sparkline: Map<RecoveryChannelId, List<Int>> = emptyMap(),
+    val showModelUpdateNotice: Boolean = false,
 )
+
+@Serializable
+data class LoadAdvisory(
+    val id: String,
+    val channel: RecoveryChannelId,
+    val level: LoadAdvisoryLevel,
+    val title: String,
+    val body: String,
+    val weekKey: String,
+    val dismissible: Boolean = true,
+)
+
+@Serializable
+enum class LoadAdvisoryLevel { NONE, WATCH, ADJUST, UNLOAD }
 
 // ─── AUGE Metrics (per-exercise) ─────────────────────────────────────────────
 

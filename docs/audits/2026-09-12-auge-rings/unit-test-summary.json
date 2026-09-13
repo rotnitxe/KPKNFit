@@ -1,0 +1,19 @@
+{
+  "date": "2026-09-12",
+  "task": "testBaseDebugUnitTest",
+  "filters": [
+    "com.example.kpkn.domain.auge.*",
+    "*CatalogAxialSscConsistencyTest",
+    "*AugeRingsLayoutTest"
+  ],
+  "result": "BUILD SUCCESSFUL",
+  "tests": 157,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "notes": [
+    "AugeRingDrainRealismTest (ruta legacy ×10) permanece en 78-86 inmediato tras alinear el soft-cap a stressUnits.",
+    "UNLOAD ya no se dispara solo con ACWR >= 1.3; exige tendencia de inicios o ACWR > 1.6 con caídas consecutivas del ring.",
+    "PerformanceTauObservationTest cubre bajo rendimiento (implied < predicted); el sesgo de progresión se salta con progression_not_learned."
+  ]
+}

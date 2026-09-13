@@ -94,15 +94,9 @@ object AugeRecoveryEngine {
         .replace("á","a").replace("é","e").replace("í","i")
         .replace("ó","o").replace("ú","u").replace("ü","u")
 
-    private fun nowMs() = System.currentTimeMillis()
+    private fun nowMs() = AugeClock.nowMs()
 
-    private fun recoveryBand(score: Int): RecoveryBand = when {
-        score >= 85 -> RecoveryBand.HIGH
-        score >= 70 -> RecoveryBand.NORMAL
-        score >= 50 -> RecoveryBand.MODERATE
-        score >= 35 -> RecoveryBand.LOW
-        else -> RecoveryBand.CRITICAL
-    }
+    private fun recoveryBand(score: Int): RecoveryBand = RecoveryBands.band(score)
 
     private fun confidenceLabel(score: Int): String = when {
         score >= 80 -> "Alta"
@@ -110,29 +104,8 @@ object AugeRecoveryEngine {
         else -> "Baja"
     }
 
-    private fun actionForChannel(id: RecoveryChannelId, score: Int): String = when (id) {
-        RecoveryChannelId.MUSCULAR -> when {
-            score >= 85 -> "Puedes meter volumen alto si la sesión lo pide."
-            score >= 70 -> "Volumen normal y buena ejecución."
-            score >= 50 -> "Modera series duras en el músculo más cargado."
-            score >= 35 -> "Prioriza técnica y recorta volumen local."
-            else -> "No fuerces volumen local hoy."
-        }
-        RecoveryChannelId.SYSTEM -> when {
-            score >= 85 -> "Buen día para intensidad y coordinación."
-            score >= 70 -> "Empuja normal, sin necesidad de ir al límite."
-            score >= 50 -> "Mejor dejar alguna repetición en reserva."
-            score >= 35 -> "Evita sets al fallo y compuestos muy demandantes."
-            else -> "Haz una sesión ligera o técnica."
-        }
-        RecoveryChannelId.STRUCTURE -> when {
-            score >= 85 -> "Toleras bien carga axial y tensión conectiva."
-            score >= 70 -> "Carga estructural normal con buena técnica."
-            score >= 50 -> "Conviene moderar impacto axial y variantes agresivas."
-            score >= 35 -> "Usa variantes estables o menos compresivas."
-            else -> "Evita carga axial o trabajo explosivo hoy."
-        }
-    }
+    private fun actionForChannel(id: RecoveryChannelId, score: Int): String =
+        RecoveryBands.action(id, score)
 
 
     private fun parseWellbeingDate(dateStr: String): Long = try {
@@ -148,7 +121,7 @@ object AugeRecoveryEngine {
                 || wellbeing.manualSpinalBattery != null
                 || wellbeing.manualMuscleBatteries.isNotEmpty()
                 || wellbeing.manualMuscleOverridesV2.isNotEmpty()
-            ) nowMs()
+            ) parseWellbeingDate(wellbeing.date)
             else wellbeing.date.let { parseWellbeingDate(it) }
     }
 
@@ -321,6 +294,40 @@ object AugeRecoveryEngine {
         return min(spinal, blended.roundToInt()).coerceIn(0, 100)
     }
 
+    /**
+     * Invierte el blend de Columna: el usuario edita el valor mostrado y
+     * anclamos el canal spinal crudo.
+     */
+    fun invertStructureRingScore(
+        desiredBlended: Int,
+        articularFloor: Int,
+        guardMuscleScores: Collection<Int>,
+    ): Int {
+        val muscleGuard = guardMuscleScores.minOrNull() ?: 100
+        val intercept = 0.25 * articularFloor + 0.25 * muscleGuard
+        val desired = desiredBlended.coerceIn(0, 100).toDouble()
+        val twoIntercept = 2.0 * intercept
+        val raw = if (desired <= twoIntercept) desired else 2.0 * (desired - intercept)
+        return raw.roundToInt().coerceIn(0, 100)
+    }
+
+    fun structureInputs(
+        perMuscle: Map<String, MuscleRecoveryStatus>,
+        articularBatteries: Map<ArticularBattery, ArticularBatteryState>,
+    ): Pair<Int, List<Int>> {
+        val weakestArticular = articularBatteries.entries.sortedBy { it.value.recoveryScore }.take(2)
+        val articularFloor = weakestArticular
+            .takeIf { it.isNotEmpty() }
+            ?.map { it.value.recoveryScore.toDouble() }
+            ?.average()
+            ?.toInt()
+            ?: 100
+        val guardScores = SPINE_GUARD_MUSCLES.mapNotNull { name ->
+            perMuscle.entries.firstOrNull { muscleMatchesCategory(it.key, name) }?.value?.recoveryScore
+        }
+        return articularFloor to guardScores
+    }
+
     private fun muscularLoadInWindow(
         history: List<WorkoutLog>,
         fromMs: Long,
@@ -330,6 +337,14 @@ object AugeRecoveryEngine {
         .sumOf { log ->
             log.muscularImpactV2?.perMuscle?.values?.sumOf { it.stressUnits } ?: 0.0
         }
+
+    fun recentSessionCount(history: List<WorkoutLog>, nowMs: Long = nowMs()): Int {
+        val cutoff = nowMs - 28L * 24 * 3600_000L
+        return history.count { log ->
+            val ms = logDateMs(log)
+            ms > 0L && ms in cutoff until nowMs
+        }
+    }
 
     internal fun muscularAcwrFor(history: List<WorkoutLog>, nowMs: Long = nowMs()): Double? {
         val day = 24L * 3600_000L
@@ -402,7 +417,7 @@ object AugeRecoveryEngine {
                     val matched = cardioDrain.muscleDrains.entries
                         .filter { (key, _) -> muscleMatchesCategory(key, muscleName) }
                         .sumOf { it.value }
-                    totalStress += matched * decay
+                    totalStress += matched * AugeUtils.STRESS_UNITS_PER_DRAIN_PCT * decay
                     return@forEach
                 }
                 val dbInfo = resolveDbInfo(ex, exerciseDb)
@@ -427,13 +442,14 @@ object AugeRecoveryEngine {
                     )
                     drain.muscularDrainPct
                 }
-                totalStress += setStress * resolveMuscleVolumeContribution(involvement) * decay
+                totalStress += setStress * resolveMuscleVolumeContribution(involvement) *
+                    AugeUtils.STRESS_UNITS_PER_DRAIN_PCT * decay
             }
         }
 
         val weeklyAvg = totalStress / 4.0
         val calculatedCapacity = weeklyAvg * 1.8
-        return clamp(max(calculatedCapacity, baseFloor), 120.0, 3500.0)
+        return AugeUtils.clampWorkCapacity(max(calculatedCapacity, baseFloor))
     }
 
 
@@ -482,9 +498,10 @@ object AugeRecoveryEngine {
         val sleepMult = systemicRecoveryMultiplier(wellbeing, sleepLogs)
         val realRecoveryTime = baseRecoveryTime * max(0.5, multiplier) * recoveryTimeMultiplier * sleepMult
 
-        val k = 2.9957 / max(1.0, realRecoveryTime)
+        val k = AugeUtils.TAU_K_95 / max(1.0, realRecoveryTime)
         val tenDaysAgo = now - 10L * 24 * 3600 * 1000
         val muscularCap = (100 - physiologicalFloor(settings).muscular).coerceAtLeast(5).toDouble()
+        val sessionStressCap = (muscularCap / 100.0) * capacity.coerceAtLeast(1.0)
 
         val manualOverrideV2 = manualMuscleOverride(wellbeing, muscleName)
         val manualScore = manualOverrideV2?.battery
@@ -524,10 +541,12 @@ object AugeRecoveryEngine {
                 ?.firstOrNull { (key, _) -> muscleMatchesCategory(key, muscleName) }
                 ?.value
             if (storedImpact != null) {
+                val logCap = AugeUtils.normalizeStoredCapacity(storedImpact.capacityAtCompletion, capacity)
                 val decayedStress = storedImpact.stressUnits * safeExp(
                     -k * AugeUtils.getSigmoidalHours(hoursSince),
                 )
-                val capped = AugeUtils.applySessionSoftCap(decayedStress, sessionSoftAccum, muscularCap)
+                val equivalent = decayedStress * (capacity / logCap.coerceAtLeast(1.0))
+                val capped = AugeUtils.applySessionSoftCap(equivalent, sessionSoftAccum, sessionStressCap)
                 sessionSoftAccum += capped
                 sessionMuscleStress += capped
                 if (hoursSince <= 168.0 && capped > 0.0) {
@@ -547,8 +566,8 @@ object AugeRecoveryEngine {
                     val cardioDrain = CardioRingDrainEngine.drain(cardio, duration, rpe, settings)
                     val matched = cardioDrain.muscleDrains.entries
                         .filter { (key, _) -> muscleMatchesCategory(key, muscleName) }
-                        .sumOf { it.value }
-                    val capped = AugeUtils.applySessionSoftCap(matched * conservationFactor, sessionSoftAccum, muscularCap)
+                        .sumOf { it.value } * AugeUtils.STRESS_UNITS_PER_DRAIN_PCT
+                    val capped = AugeUtils.applySessionSoftCap(matched * conservationFactor, sessionSoftAccum, sessionStressCap)
                     sessionSoftAccum += capped
                     sessionMuscleStress += capped
                     if (hoursSince <= 168 && matched > 0.0) effectiveSetsCount++
@@ -600,8 +619,8 @@ object AugeRecoveryEngine {
                     
                     if (involvement != null) {
                         val share = resolveMuscleVolumeContribution(involvement)
-                        val contrib = adjustedMuscular * share
-                        val capped = AugeUtils.applySessionSoftCap(contrib, sessionSoftAccum, muscularCap)
+                        val contrib = adjustedMuscular * share * AugeUtils.STRESS_UNITS_PER_DRAIN_PCT
+                        val capped = AugeUtils.applySessionSoftCap(contrib, sessionSoftAccum, sessionStressCap)
                         sessionSoftAccum += capped
                         sessionMuscleStress += capped
                         
@@ -724,7 +743,7 @@ object AugeRecoveryEngine {
                 
                 if (involvement != null) {
                     val share = resolveMuscleVolumeContribution(involvement)
-                    sessionMuscleStress += adjustedMuscular * share
+                    sessionMuscleStress += adjustedMuscular * share * AugeUtils.STRESS_UNITS_PER_DRAIN_PCT
                 }
             }
             overallMuscleVolumeMap[primaryMuscle] = accumulated
@@ -742,8 +761,9 @@ object AugeRecoveryEngine {
         sleepLogs: List<SleepLog> = emptyList(),
         feedbacks: List<PostSessionFeedback> = emptyList(),
         adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
+        nowOverride: Long? = null,
     ): Triple<Int, Int, Int> { // Triple(cnsBattery, gymLoad, lifeLoad)
-        val now = nowMs()
+        val now = nowOverride ?: nowMs()
         val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
         val baseTau = adaptiveCache.cnsRecoveryHours ?: 36.0
         val feedbackPenalty = calculateSystemFeedbackPenaltyPct(feedbacks)
@@ -763,7 +783,7 @@ object AugeRecoveryEngine {
             val impliedRawGymPct = -75.0 * ln(1.0 - penalty / 100.0)
             val capacity = max(80.0, tanks.cns * 1.15)
             val manualLoad = (impliedRawGymPct / 100.0) * capacity
-            accumulatedGymLoad = manualLoad * exp(-hoursSinceAnchor / tauHours)
+            accumulatedGymLoad = manualLoad * AugeUtils.recoveryDecay(hoursSinceAnchor, tauHours)
             history.filter { logDateMs(it) > anchorMs && logDateMs(it) > last10Days }
         } else {
             history.filter { logDateMs(it) > last10Days }
@@ -779,6 +799,21 @@ object AugeRecoveryEngine {
             var sessionSoftAccum = 0.0
 
             log.completedExercises.forEach { ex ->
+                ex.cardioDetails?.let { cardio ->
+                    val duration = ex.sets.sumOf { it.timeSeconds ?: 0 }
+                        .takeIf { it > 0 }
+                        ?: return@forEach
+                    val rpe = ex.sets.firstOrNull { (it.timeSeconds ?: 0) > 0 }?.rpe ?: cardio.resolvedRpe()
+                    val cardioDrain = CardioRingDrainEngine.drain(cardio, duration, rpe, settings)
+                    val capped = AugeUtils.applySessionSoftCap(
+                        cardioDrain.cns * conservationFactor * adaptiveCache.cnsDrainMultiplier,
+                        sessionSoftAccum,
+                        cnsCap,
+                    )
+                    sessionSoftAccum += capped
+                    sessionCns += capped
+                    return@forEach
+                }
                 val dbInfo = resolveDbInfo(ex, exerciseDb)
                 val involvedMuscles = involvedMusclesFor(ex, dbInfo)
                 val primaryMuscle = involvedMuscles
@@ -831,7 +866,7 @@ object AugeRecoveryEngine {
             if (durationMin > 90) sessionCns *= 1.15
             else if (durationMin > 75) sessionCns *= 1.08
 
-            accumulatedGymLoad += sessionCns * safeExp(-(hoursSince / tauHours))
+            accumulatedGymLoad += sessionCns * AugeUtils.recoveryDecay(hoursSince, tauHours)
         }
 
         val capacity = max(80.0, tanks.cns * 1.15)
@@ -883,8 +918,9 @@ object AugeRecoveryEngine {
         nutritionLogs: List<NutritionLog> = emptyList(),
         feedbacks: List<PostSessionFeedback> = emptyList(),
         adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
+        nowOverride: Long? = null,
     ): Int {
-        val now = nowMs()
+        val now = nowOverride ?: nowMs()
         val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
         val tauHours = adaptiveCache.spinalRecoveryHours ?: 52.0
         val spinalCap = (100 - physiologicalFloor(settings).spinal).coerceAtLeast(5).toDouble()
@@ -901,7 +937,10 @@ object AugeRecoveryEngine {
             val impliedRawPct = -70.0 * ln(1.0 - penalty / 100.0)
             val capacity = max(70.0, tanks.spinal * 0.02)
             val manualLoad = (impliedRawPct / 100.0) * capacity
-            accumulatedSpinalLoad = manualLoad * exp(-com.example.kpkn.domain.auge.AugeUtils.getSpinalRecoveryHours(hoursSinceAnchor) / tauHours)
+            accumulatedSpinalLoad = manualLoad * AugeUtils.recoveryDecay(
+                AugeUtils.getSpinalRecoveryHours(hoursSinceAnchor),
+                tauHours,
+            )
             history.filter { logDateMs(it) > anchorMs && logDateMs(it) > last10Days }
         } else {
             history.filter { logDateMs(it) > last10Days }
@@ -972,6 +1011,21 @@ object AugeRecoveryEngine {
             var sessionSoftAccum = 0.0
 
             log.completedExercises.forEach { ex ->
+                ex.cardioDetails?.let { cardio ->
+                    val duration = ex.sets.sumOf { it.timeSeconds ?: 0 }
+                        .takeIf { it > 0 }
+                        ?: return@forEach
+                    val rpe = ex.sets.firstOrNull { (it.timeSeconds ?: 0) > 0 }?.rpe ?: cardio.resolvedRpe()
+                    val cardioDrain = CardioRingDrainEngine.drain(cardio, duration, rpe, settings)
+                    val capped = AugeUtils.applySessionSoftCap(
+                        cardioDrain.spinal * conservationFactor * adaptiveCache.spinalDrainMultiplier,
+                        sessionSoftAccum,
+                        spinalCap,
+                    )
+                    sessionSoftAccum += capped
+                    sessionSpinalLoad += capped
+                    return@forEach
+                }
                 val dbInfo = resolveDbInfo(ex, exerciseDb)
                 val involvedMuscles = involvedMusclesFor(ex, dbInfo)
                 val primaryMuscle = involvedMuscles
@@ -985,6 +1039,7 @@ object AugeRecoveryEngine {
                     adaptiveCache.muscleDrainMultipliers,
                     primaryMuscle,
                 )
+                val axialGate = AugeFatigueEngine.spinalAxialGate(dbInfo?.axialLoadFactor)
 
                 ex.sets.forEach { s ->
                     if (!isSetEffective(s)) return@forEach
@@ -1009,7 +1064,7 @@ object AugeRecoveryEngine {
                     
                     accumulatedDrain += (adjustedMuscular + adjustedCns + adjustedSpinal) / 3.0
                     
-                    val contrib = adjustedSpinal * spineProtectionMultiplier
+                    val contrib = adjustedSpinal * spineProtectionMultiplier * axialGate
                     val capped = AugeUtils.applySessionSoftCap(contrib, sessionSoftAccum, spinalCap)
                     sessionSoftAccum += capped
                     sessionSpinalLoad += capped
@@ -1018,7 +1073,10 @@ object AugeRecoveryEngine {
             }
 
             if (log.durationMinutes > 90) sessionSpinalLoad *= 1.08
-            accumulatedSpinalLoad += sessionSpinalLoad * safeExp(-(com.example.kpkn.domain.auge.AugeUtils.getSpinalRecoveryHours(hoursSince) / tauHours))
+            accumulatedSpinalLoad += sessionSpinalLoad * AugeUtils.recoveryDecay(
+                AugeUtils.getSpinalRecoveryHours(hoursSince),
+                tauHours,
+            )
         }
 
         val capacity = max(70.0, tanks.spinal * 0.02)
@@ -1040,7 +1098,9 @@ object AugeRecoveryEngine {
         adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
         precomputedMuscles: Map<String, MuscleRecoveryStatus>? = null,
         articularBatteries: Map<ArticularBattery, ArticularBatteryState> = emptyMap(),
+        nowOverrideMs: Long? = null,
     ): GlobalBatteries {
+        val evaluationNow = nowOverrideMs ?: nowMs()
         val stressLevel = wellbeing?.stressLevel ?: 3
         val nutritionMultiplier = getNutritionMultiplier(settings, nutritionLogs, stressLevel)
 
@@ -1058,6 +1118,7 @@ object AugeRecoveryEngine {
                     sleepLogs = sleepLogs,
                     feedbacks = feedbacks,
                     adaptiveCache = adaptiveCache,
+                    nowOverride = evaluationNow,
                 ).recoveryScore
             } ?: return@mapNotNull null
 
@@ -1079,7 +1140,7 @@ object AugeRecoveryEngine {
             // Same anchor + temporal decay semantics as neural/spinal — do not freeze raw value all day
             val manualBattery = wellbeing.manualMuscularBattery.coerceIn(0, 100).toDouble()
             val anchorMs = manualBatteryAnchorMs(wellbeing)
-            val hoursSinceAnchor = max(0.0, (nowMs() - anchorMs) / 3_600_000.0)
+            val hoursSinceAnchor = max(0.0, (evaluationNow - anchorMs) / 3_600_000.0)
             val baseTau = adaptiveCache.personalizedRecoveryHours.values
                 .takeIf { it.isNotEmpty() }
                 ?.average()
@@ -1087,7 +1148,7 @@ object AugeRecoveryEngine {
             val sleepMult = systemicRecoveryMultiplier(wellbeing, sleepLogs)
             val tauHours = max(1.0, baseTau * sleepMult)
             val penalty = (100.0 - manualBattery).coerceIn(0.0, 99.9)
-            val k = 2.9957 / tauHours
+            val k = AugeUtils.TAU_K_95 / tauHours
             val recovered = 100.0 - penalty * exp(-k * AugeUtils.getSigmoidalHours(hoursSinceAnchor))
             recovered.roundToInt().coerceIn(0, 100)
         } else if (gatedPillarBatteries.isEmpty()) {
@@ -1114,6 +1175,7 @@ object AugeRecoveryEngine {
             sleepLogs = sleepLogs,
             feedbacks = feedbacks,
             adaptiveCache = adaptiveCache,
+            nowOverride = evaluationNow,
         )
         val spinalBattery = calculateSpinalBattery(
             history = history,
@@ -1124,6 +1186,7 @@ object AugeRecoveryEngine {
             nutritionLogs = nutritionLogs,
             feedbacks = feedbacks,
             adaptiveCache = adaptiveCache,
+            nowOverride = evaluationNow,
         )
 
         val avgMuscleDelta = if (adaptiveCache.muscleDeltas.isNotEmpty()) {
@@ -1179,16 +1242,20 @@ object AugeRecoveryEngine {
         val thirtyDaysAgo = evaluationNow - 30L * 24 * 3600_000L
         // A finish preview is evaluated at its frozen instant. A log at that
         // instant is not allowed to increase the capacity used to measure itself.
-        val recentHistory = history.filter {
+        val historyForCapacity = history.filter {
             val ms = logDateMs(it)
             ms > 0L && ms in thirtyDaysAgo until evaluationNow
+        }
+        val historyForBatteries = history.filter {
+            val ms = logDateMs(it)
+            ms > 0L && ms in thirtyDaysAgo..evaluationNow
         }
 
         // Optimización O(N^2): Precalcular capacidades de los músculos antes de iterar
         val precomputedCapacities = BATTERY_MUSCLES.associateWith { muscle ->
             AugeMuscleCapacityEngine.calculateUserWorkCapacity(
                 muscleName = muscle,
-                history = recentHistory,
+                history = historyForCapacity,
                 settings = settings,
                 exerciseDb = exerciseDb,
                 completionInstantIso = Instant.ofEpochMilli(evaluationNow).toString(),
@@ -1199,7 +1266,7 @@ object AugeRecoveryEngine {
         return BATTERY_MUSCLES.associateWith { muscle ->
             calculateMuscleBattery(
                 muscleName = muscle,
-                history = recentHistory,
+                history = historyForBatteries,
                 wellbeing = wellbeing,
                 settings = settings,
                 exerciseDb = exerciseDb,
@@ -1260,7 +1327,7 @@ object AugeRecoveryEngine {
         val structureConfidence = (baseConfidence + if (articularBatteries.isNotEmpty()) 12 else 0).coerceIn(35, 95)
 
         val muscularCauses = buildList {
-            if (lowestMuscles.isNotEmpty() && lowestMuscles.first().recoveryScore < 80) {
+            if (lowestMuscles.isNotEmpty() && lowestMuscles.first().recoveryScore < RecoveryBands.HIGH_MIN) {
                 add(lowestMuscles.joinToString(" y ") { "${it.muscleName} ${it.recoveryScore}%" })
             } else {
                 add("Promedio de grupos pilar estable")
@@ -1278,15 +1345,15 @@ object AugeRecoveryEngine {
             }
             if (wellbeing?.manualNeuralBattery != null) add("Ajuste manual de readiness")
             if ((wellbeing?.stressLevel ?: 3) >= 4) add("Estrés alto fuera del entrenamiento")
-            if (systemScore < 70) add("Carga neural reciente acumulada")
+            if (systemScore < RecoveryBands.NORMAL_MIN) add("Carga neural reciente acumulada")
         }
         val structureCauses = buildList {
-            if (batteries.spinal < 75) add("Carga axial reciente elevada")
-            if (muscleGuard < 75) add("Dorsales, erectores o trapecio aún cargados")
-            if (weakestArticular.isNotEmpty() && articularFloor < 80) {
+            if (batteries.spinal < RecoveryBands.NORMAL_MIN) add("Carga axial reciente elevada")
+            if (muscleGuard < RecoveryBands.NORMAL_MIN) add("Dorsales, erectores o trapecio aún cargados")
+            if (weakestArticular.isNotEmpty() && articularFloor < RecoveryBands.HIGH_MIN) {
                 add(weakestArticular.joinToString(" y ") { "${AugeTtcEngine.articularLabel(it.key)} ${it.value.recoveryScore}%" })
             }
-            if (isEmpty() && displayStructureScore >= 75) add("Sin cuello de botella estructural claro")
+            if (isEmpty() && displayStructureScore >= RecoveryBands.NORMAL_MIN) add("Sin cuello de botella estructural claro")
             if (wellbeing?.manualSpinalBattery != null) add("Ajuste manual de readiness")
             if ((wellbeing?.doms ?: 1) >= 4) add("Tejidos aún sensibles hoy")
         }
@@ -1298,7 +1365,7 @@ object AugeRecoveryEngine {
                 shortTitle = "Mús.",
                 score = muscularScore,
                 band = recoveryBand(muscularScore),
-                description = "Promedio del estado de todos tus músculos hoy.",
+                description = RecoveryBands.description(RecoveryChannelId.MUSCULAR),
                 action = actionForChannel(RecoveryChannelId.MUSCULAR, muscularScore),
                 causes = muscularCauses.take(3),
                 confidence = muscularConfidence,
@@ -1310,7 +1377,7 @@ object AugeRecoveryEngine {
                 shortTitle = "En.",
                 score = systemScore,
                 band = recoveryBand(systemScore),
-                description = "Qué tanta intensidad, coordinación y producción de fuerza toleras hoy.",
+                description = RecoveryBands.description(RecoveryChannelId.SYSTEM),
                 action = actionForChannel(RecoveryChannelId.SYSTEM, systemScore),
                 causes = systemCauses.take(3),
                 confidence = systemConfidence,
@@ -1322,7 +1389,7 @@ object AugeRecoveryEngine {
                 shortTitle = "Col.",
                 score = displayStructureScore,
                 band = recoveryBand(displayStructureScore),
-                description = "Carga axial, piso articular y el estado de dorsales, erectores/lumbar y trapecio.",
+                description = RecoveryBands.description(RecoveryChannelId.STRUCTURE),
                 action = actionForChannel(RecoveryChannelId.STRUCTURE, displayStructureScore),
                 causes = structureCauses.take(3),
                 confidence = structureConfidence,
@@ -1335,20 +1402,8 @@ object AugeRecoveryEngine {
                 channels.first { it.id == RecoveryChannelId.MUSCULAR }.score * 0.35 +
                 channels.first { it.id == RecoveryChannelId.STRUCTURE }.score * 0.25
             ).toInt().coerceIn(0, 100)
-        val headline = when (recoveryBand(overallScore)) {
-            RecoveryBand.HIGH -> "Listo para empujar"
-            RecoveryBand.NORMAL -> "Buen estado para entrenar"
-            RecoveryBand.MODERATE -> "Día para moderar"
-            RecoveryBand.LOW -> "Llega cargado"
-            RecoveryBand.CRITICAL -> "Prioriza recuperación"
-        }
-        val recommendation = when (recoveryBand(overallScore)) {
-            RecoveryBand.HIGH -> "Hoy puedes entrenar normal o fuerte si la sesión lo pide."
-            RecoveryBand.NORMAL -> "Hoy conviene entrenar normal, dejando algo en reserva."
-            RecoveryBand.MODERATE -> "Hoy conviene moderar volumen o intensidad según el ring más bajo."
-            RecoveryBand.LOW -> "Hoy conviene priorizar técnica, variantes estables y menos carga."
-            RecoveryBand.CRITICAL -> "Hoy conviene descargar o hacer solo trabajo liviano."
-        }
+        val headline = RecoveryBands.headline(recoveryBand(overallScore))
+        val recommendation = RecoveryBands.recommendation(recoveryBand(overallScore))
         val confidenceAverage = channels.map { it.confidence }.average().toInt()
         val limitingChannel = channels.minByOrNull { it.score }
         val summary = limitingChannel?.let {
@@ -1370,13 +1425,7 @@ object AugeRecoveryEngine {
         wellbeing: DailyWellbeingLog?,
     ): AugeReadinessVerdict {
         val score = dashboard.overallScore.coerceIn(0, 100)
-        val (label, color) = when (recoveryBand(score)) {
-            RecoveryBand.HIGH -> "Óptimo para entrenar" to ReadinessColor.GREEN
-            RecoveryBand.NORMAL -> "Buen estado" to ReadinessColor.GREEN
-            RecoveryBand.MODERATE -> "Moderado" to ReadinessColor.YELLOW
-            RecoveryBand.LOW -> "Cargado" to ReadinessColor.YELLOW
-            RecoveryBand.CRITICAL -> "Descanso recomendado" to ReadinessColor.RED
-        }
+        val (label, color) = RecoveryBands.dailyReadinessLabel(recoveryBand(score))
         val details = buildList {
             dashboard.channels.flatMap { it.causes }.take(4).forEach { add(it) }
             if ((wellbeing?.doms ?: 1) >= 4) add("Agujetas altas reportadas")
@@ -1679,6 +1728,7 @@ object AugeRecoveryEngine {
             adaptiveCache = adaptiveCache,
             precomputedMuscles = muscles,
             articularBatteries = articularBatteries,
+            nowOverrideMs = nowOverrideMs,
         )
         // Calcular baterías base (sin la sesión preview) para derivar drains netos
         val baseMuscles = getPerMuscleBatteries(
@@ -1703,6 +1753,7 @@ object AugeRecoveryEngine {
             adaptiveCache = adaptiveCache,
             precomputedMuscles = baseMuscles,
             articularBatteries = articularBatteries,
+            nowOverrideMs = nowOverrideMs,
         )
         val resolvedMuscles = if (automaticImpact == null) {
             muscles
@@ -1735,14 +1786,50 @@ object AugeRecoveryEngine {
             physiologicalFloor(settings).muscular,
             100,
         )
+        val (artFloor, guardScores) = structureInputs(resolvedMuscles, articularBatteries)
+        val blendedSpinal = structureRingScore(batteries.spinal, artFloor, guardScores)
+        val (baseArtFloor, baseGuard) = structureInputs(baseMuscles, articularBatteries)
+        val baseBlendedSpinal = structureRingScore(baseBatteries.spinal, baseArtFloor, baseGuard)
+        val tomorrowMs = (nowOverrideMs ?: nowMs()) + 24L * 3_600_000L
+        val tomorrowMuscles = getPerMuscleBatteries(
+            history = historyWithPreview,
+            wellbeing = wellbeing,
+            settings = settings,
+            exerciseDb = exerciseDb,
+            sleepLogs = sleepLogs,
+            nutritionLogs = nutritionLogs,
+            feedbacks = feedbacks,
+            adaptiveCache = adaptiveCache,
+            nowOverrideMs = tomorrowMs,
+        )
+        val tomorrowBatteries = calculateGlobalBatteries(
+            history = historyWithPreview,
+            wellbeing = wellbeing,
+            settings = settings,
+            exerciseDb = exerciseDb,
+            sleepLogs = sleepLogs,
+            nutritionLogs = nutritionLogs,
+            feedbacks = feedbacks,
+            adaptiveCache = adaptiveCache,
+            precomputedMuscles = tomorrowMuscles,
+            articularBatteries = articularBatteries,
+            nowOverrideMs = tomorrowMs,
+        )
+        val (tomArt, tomGuard) = structureInputs(tomorrowMuscles, articularBatteries)
         return PostSessionPreview(
             neural = batteries.cnc,
-            spinal = batteries.spinal,
+            spinal = blendedSpinal,
             muscular = resolvedMuscularBattery,
             perMuscle = resolvedMuscles,
             globalCnsDrain = (baseBatteries.cnc - batteries.cnc).coerceIn(0, 100),
             globalMuscularDrain = (baseBatteries.muscular - batteries.muscular).coerceIn(0, 100),
-            globalSpinalDrain = (baseBatteries.spinal - batteries.spinal).coerceIn(0, 100),
+            globalSpinalDrain = (baseBlendedSpinal - blendedSpinal).coerceIn(0, 100),
+            spinalRaw = batteries.spinal,
+            tomorrowNeural = tomorrowBatteries.cnc,
+            tomorrowSpinal = structureRingScore(tomorrowBatteries.spinal, tomArt, tomGuard),
+            preSessionMuscular = baseBatteries.muscular,
+            preSessionNeural = baseBatteries.cnc,
+            preSessionSpinal = baseBlendedSpinal,
             finishOperationId = finishOperationId,
             completionInstantIso = completionInstantIso,
             inputHash = inputHash,

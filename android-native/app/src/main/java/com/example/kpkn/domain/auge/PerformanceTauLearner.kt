@@ -66,6 +66,14 @@ object PerformanceTauLearner {
     const val CHANNEL_ENERGY = "cns"
     const val CHANNEL_STRUCTURE = "spinal"
 
+    fun sessionHasAxialStimulus(
+        exercises: List<CompletedExercise>,
+        exerciseDb: Map<String, ExerciseMuscleInfo>,
+    ): Boolean = exercises.any { ex ->
+        if (ex.cardioDetails != null) return@any false
+        (dbInfo(exercise = ex, exerciseDb = exerciseDb)?.axialLoadFactor ?: 0.0) >= AXIAL_MIN
+    }
+
     fun observations(input: PerformanceTauInput): PerformanceTauResult {
         val diagnostics = mutableListOf<PerformanceTauDiagnostic>()
         val observations = mutableListOf<RecoveryLearningObservation>()
@@ -298,6 +306,16 @@ object PerformanceTauLearner {
             return PerformanceTauDiagnostic(
                 channel = channel,
                 skipReason = "below_noise_threshold",
+                ratio = ratio,
+                deltaRpe = deltaRpe,
+                predicted = predicted,
+                implied = implied,
+            )
+        }
+        if (implied > predicted) {
+            return PerformanceTauDiagnostic(
+                channel = channel,
+                skipReason = "progression_not_learned",
                 ratio = ratio,
                 deltaRpe = deltaRpe,
                 predicted = predicted,

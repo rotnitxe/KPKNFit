@@ -559,6 +559,10 @@ internal fun computeSessionAugeComputation(
 
         val primaryMuscle = resolvePrimaryMuscle(info) ?: "Core"
         var accumulated = muscleSetCounters[primaryMuscle] ?: 0
+        val perExerciseContrib = VolumeCalculator.buildPerExerciseMuscleContributions(
+            musclesForVolume,
+        )
+        val totalRoleWeight = perExerciseContrib.values.sum()
 
         validSets.forEach { set ->
             val effectiveRpe = set.effectiveTargetRpe()
@@ -570,9 +574,6 @@ internal fun computeSessionAugeComputation(
             }
 
             val volumeMultiplier = AugeClassifiers.getEffectiveVolumeMultiplier(effectiveRpe)
-            val perExerciseContrib = VolumeCalculator.buildPerExerciseMuscleContributions(
-                musclesForVolume,
-            )
             perExerciseContrib.forEach { (normalized, hyperFactor) ->
                 val bucket = volumeMap.getOrPut(normalized) { AugeVolumeAccumulator() }
                 bucket.flat += hyperFactor
@@ -623,19 +624,14 @@ internal fun computeSessionAugeComputation(
                     restTime = exercise.restTime ?: settings.restTimerDefaultSeconds,
                 ),
             )
+            val axialGate = AugeFatigueEngine.spinalAxialGate(info.axialLoadFactor)
             muscular += drain.muscularDrainPct
             cns += drain.cnsDrainPct
-            spinal += drain.spinalDrainPct
+            spinal += drain.spinalDrainPct * axialGate
 
-            val roleWeightByMuscle = linkedMapOf<String, Double>()
-            VolumeCalculator.buildPerExerciseMuscleContributions(musclesForVolume)
-                .forEach { (muscle, contribution) ->
-                    roleWeightByMuscle[muscle] = contribution
-                }
-            val totalRoleWeight = roleWeightByMuscle.values.sum()
             // Raw attribution (legacy, kept for fallback)
             if (totalRoleWeight > 0.0) {
-                roleWeightByMuscle.forEach { (muscle, roleWeight) ->
+                perExerciseContrib.forEach { (muscle, roleWeight) ->
                     val share = roleWeight / totalRoleWeight
                     if (drain.muscularDrainPct > 0.0) {
                         muscleDrainMap[muscle] = (muscleDrainMap[muscle] ?: 0.0) + (drain.muscularDrainPct * share)
@@ -644,10 +640,9 @@ internal fun computeSessionAugeComputation(
                         muscleEnergyDrainMap[muscle] =
                             (muscleEnergyDrainMap[muscle] ?: 0.0) + (drain.cnsDrainPct * share)
                     }
-                    // Spinal cost only attributed when the exercise has axial load.
-                    if (drain.spinalDrainPct > 0.0 && (info.axialLoadFactor ?: 0.0) > 0.0) {
+                    if (drain.spinalDrainPct > 0.0 && axialGate > 0.0) {
                         muscleSpinalDrainMap[muscle] =
-                            (muscleSpinalDrainMap[muscle] ?: 0.0) + (drain.spinalDrainPct * share)
+                            (muscleSpinalDrainMap[muscle] ?: 0.0) + (drain.spinalDrainPct * axialGate * share)
                     }
                 }
             }
@@ -657,7 +652,7 @@ internal fun computeSessionAugeComputation(
             val diminishingFactor = 1.0 / (1.0 + AugeUtils.SESSION_DECAY_K * (pipelinedAccumulatedDrain / 100.0))
             val adjustedMuscular = drain.muscularDrainPct * AugeUtils.SESSION_CONSERVATION_FACTOR * diminishingFactor
             val adjustedCns = drain.cnsDrainPct * AugeUtils.SESSION_CONSERVATION_FACTOR * diminishingFactor
-            val adjustedSpinal = drain.spinalDrainPct * AugeUtils.SESSION_CONSERVATION_FACTOR * diminishingFactor
+            val adjustedSpinal = drain.spinalDrainPct * AugeUtils.SESSION_CONSERVATION_FACTOR * diminishingFactor * axialGate
             val cappedMuscular = AugeUtils.applySessionSoftCap(adjustedMuscular, pipelinedTotalMuscular, muscularCap)
             val cappedCns = AugeUtils.applySessionSoftCap(adjustedCns, pipelinedTotalCns, cnsCap)
             val cappedSpinal = AugeUtils.applySessionSoftCap(adjustedSpinal, pipelinedTotalSpinal, spinalCap)
@@ -666,7 +661,7 @@ internal fun computeSessionAugeComputation(
             pipelinedTotalSpinal += cappedSpinal
             pipelinedAccumulatedDrain += (adjustedMuscular + adjustedCns + adjustedSpinal) / 3.0
             if (totalRoleWeight > 0.0) {
-                roleWeightByMuscle.forEach { (muscle, roleWeight) ->
+                perExerciseContrib.forEach { (muscle, roleWeight) ->
                     val share = roleWeight / totalRoleWeight
                     if (cappedMuscular > 0.0) {
                         muscleDrainMapPipelined[muscle] = (muscleDrainMapPipelined[muscle] ?: 0.0) + (cappedMuscular * share)
@@ -674,7 +669,7 @@ internal fun computeSessionAugeComputation(
                     if (cappedCns > 0.0) {
                         muscleEnergyDrainMapPipelined[muscle] = (muscleEnergyDrainMapPipelined[muscle] ?: 0.0) + (cappedCns * share)
                     }
-                    if (cappedSpinal > 0.0 && (info.axialLoadFactor ?: 0.0) > 0.0) {
+                    if (cappedSpinal > 0.0) {
                         muscleSpinalDrainMapPipelined[muscle] = (muscleSpinalDrainMapPipelined[muscle] ?: 0.0) + (cappedSpinal * share)
                     }
                 }
@@ -711,28 +706,28 @@ internal fun computeSessionAugeComputation(
     }
 
     val averageRest = exercises.mapNotNull { it.restTime }.ifEmpty { listOf(settings.restTimerDefaultSeconds) }.average().toInt()
-    val predictedDrain = try {
-        val base = AugeFatigueEngine.calculateAdjustedPredictedDrain(session, exerciseIndex, settings)
-        val ema = AugeFatigueEngine.calculateMesocycleStressEMA(
-            logs = programLogs,
-            programId = programId,
-            mesoIndex = mesoIndex,
+    val predictedDrain = run {
+        val fromPass = PredictedDrain(
+            cns = pipelinedTotalCns.roundToInt().coerceIn(0, 100),
+            muscular = pipelinedTotalMuscular.roundToInt().coerceIn(0, 100),
+            spinal = pipelinedTotalSpinal.roundToInt().coerceIn(0, 100),
         )
-        AugeFatigueEngine.adjustPredictedDrainWithEMA(base, ema)
-    } catch (_: Throwable) {
-        val fallback = AugeFatigueEngine.calculateAdjustedPredictedDrain(session, exerciseIndex, settings)
-        val adjustedFallback = runCatching {
-            val ema = AugeFatigueEngine.calculateMesocycleStressEMA(
+        val ema = runCatching {
+            AugeFatigueEngine.calculateMesocycleStressEMA(
                 logs = programLogs,
                 programId = programId,
                 mesoIndex = mesoIndex,
             )
-            AugeFatigueEngine.adjustPredictedDrainWithEMA(fallback, ema)
-        }.getOrDefault(fallback)
-        if (adjustedFallback.cns == 0 && adjustedFallback.muscular == 0 && adjustedFallback.spinal == 0 && totalSets > 0) {
+        }.getOrNull()
+        val adjusted = if (ema != null) {
+            AugeFatigueEngine.adjustPredictedDrainWithEMA(fromPass, ema)
+        } else {
+            fromPass
+        }
+        if (adjusted.cns == 0 && adjusted.muscular == 0 && adjusted.spinal == 0 && totalSets > 0) {
             AugeFatigueEngine.DEFAULT_FALLBACK_PREDICTED_DRAIN
         } else {
-            adjustedFallback
+            adjusted
         }
     }
 

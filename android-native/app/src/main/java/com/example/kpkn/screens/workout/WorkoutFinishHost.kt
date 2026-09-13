@@ -96,6 +96,7 @@ import com.example.kpkn.data.models.DISCOMFORT_CATALOG_BY_ID
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.PostSessionPreview
+import com.example.kpkn.data.models.RingStartSnapshot
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.SessionDiscomfortSummary
@@ -108,6 +109,7 @@ import com.example.kpkn.screens.home.augeRingsHostHeightDp
 import com.example.kpkn.screens.workout.components.AdjustableRingCompact
 import com.example.kpkn.screens.workout.components.MinimalMuscleSlider
 import dev.chrisbanes.haze.HazeState
+import java.time.Instant
 
 internal const val FINISH_ROLE_STABILIZER_MULT = 0.4
 
@@ -398,6 +400,14 @@ internal fun FinishWorkoutSheet(
                 completedSetInputHash = postSessionPreview.inputHash,
                 additionalDiscomfortNote = additionalDiscomfortNote.trim().takeIf { it.isNotBlank() },
                 stillPresentDiscomfortIds = stillPresentIds,
+                ringStartSnapshot = postSessionPreview.preSessionMuscular?.let { muscular ->
+                    RingStartSnapshot(
+                        capturedAtIso = postSessionPreview.completionInstantIso ?: Instant.now().toString(),
+                        muscular = muscular,
+                        energy = postSessionPreview.preSessionNeural ?: postSessionPreview.neural,
+                        structure = postSessionPreview.preSessionSpinal ?: postSessionPreview.spinal,
+                    )
+                },
             ),
             shareToStory,
         )
@@ -463,6 +473,15 @@ internal fun FinishWorkoutSheet(
                     neuralDrain = postSessionPreview.globalCnsDrain,
                     spinalDrain = postSessionPreview.globalSpinalDrain,
                 )
+                if (postSessionPreview.tomorrowNeural != null || postSessionPreview.tomorrowSpinal != null) {
+                    Text(
+                        text = "Mañana: Energía ~${postSessionPreview.tomorrowNeural ?: "—"} %, Columna ~${postSessionPreview.tomorrowSpinal ?: "—"} %",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
 
                 // 2. ACCORDEÓN COLAPSABLE DE AJUSTES (RECALIBRAR RINGS)
                 var isAdjustExpanded by rememberSaveable { mutableStateOf(false) }

@@ -33,14 +33,19 @@ import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.adapt
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.exerciseCatalogReady
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.LoadAdvisory
+import com.example.kpkn.data.models.LoadAdvisoryLevel
 import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.repository.CustomExerciseRepository
+import com.example.kpkn.domain.auge.AxialSessionExercise
+import com.example.kpkn.domain.auge.LoadAdvisoryEngine
 import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.auge.getAugeMuscleDisplayId
 import com.example.kpkn.domain.auge.lookupMuscleValue
@@ -56,6 +61,7 @@ fun HomeSessionSection(
     hasActiveProgram: Boolean = true,
     currentDayOfWeek: Int,
     perMuscle: Map<String, MuscleRecoveryStatus> = emptyMap(),
+    loadAdvisory: LoadAdvisory? = null,
     onStartWorkout: (Session, Program) -> Unit,
     onRegisterCompetition: (String) -> Unit = {},
     onResumeWorkout: () -> Unit,
@@ -163,6 +169,7 @@ fun HomeSessionSection(
                             item = pageItem,
                             currentDayOfWeek = currentDayOfWeek,
                             perMuscle = perMuscle,
+                            loadAdvisory = loadAdvisory,
                             onStart = { onStartWorkout(pageItem.session, pageItem.program) },
                             onResume = onResumeWorkout,
                             onEdit = { onEditSession(pageItem.session, pageItem.program) },
@@ -176,6 +183,7 @@ fun HomeSessionSection(
                         item = currentItem,
                         currentDayOfWeek = currentDayOfWeek,
                         perMuscle = perMuscle,
+                        loadAdvisory = loadAdvisory,
                         onStart = { onStartWorkout(currentItem.session, currentItem.program) },
                         onResume = onResumeWorkout,
                         onEdit = { onEditSession(currentItem.session, currentItem.program) },
@@ -192,6 +200,7 @@ private fun SessionCard(
     item: TodaySessionItem,
     currentDayOfWeek: Int,
     perMuscle: Map<String, MuscleRecoveryStatus>,
+    loadAdvisory: LoadAdvisory? = null,
     onStart: () -> Unit,
     onResume: () -> Unit,
     onEdit: () -> Unit,
@@ -207,6 +216,9 @@ private fun SessionCard(
 
     val durationDisplay = remember(item.log, item.session) {
         getSessionDurationDisplay(item.session, item.log)
+    }
+    val axialHints = remember(item.session, customExercises, isCatalogReady) {
+        axialHintsForSession(item.session)
     }
 
     val homeAdapt = LocalViewportAdapt.current
@@ -248,6 +260,27 @@ private fun SessionCard(
                         letterSpacing = 1.sp,
                     )
                 }
+                if (loadAdvisory != null &&
+                    LoadAdvisoryEngine.rank(loadAdvisory.level) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.ADJUST)
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(12.dp),
+                        shape = RoundedCornerShape(50),
+                        color = Color(0xCCEF4444),
+                    ) {
+                        Text(
+                            LoadAdvisoryEngine.badgeLabel(loadAdvisory, axialHints),
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            color = Color.White,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
 
                 Row(
                     Modifier
@@ -274,6 +307,16 @@ private fun SessionCard(
                             fontWeight = FontWeight.Black,
                             maxLines = 2,
                         )
+                        formatTodayPrescription(item.session)?.let { prescription ->
+                            Text(
+                                prescription,
+                                color = Color.White.copy(alpha = 0.85f),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -632,5 +675,60 @@ private fun CompetitionRegisterCard(
                 Text("Registrar resultados", fontWeight = FontWeight.Black)
             }
         }
+    }
+}
+
+internal fun formatTodayPrescription(session: Session): String? {
+    val main = session.allExercises().firstOrNull { it.isCompetitionLift }
+        ?: session.allExercises().firstOrNull()
+        ?: return null
+    val working = main.sets.filter { !it.isEmptySlot }
+    if (working.isEmpty()) return main.name.takeIf { it.isNotBlank() }
+    val reps = working.first().targetRepsRange?.format()
+        ?: working.first().targetReps?.toString()
+        ?: "—"
+    val percent = working.first().targetPercentageRM
+    val rpe = working.mapNotNull { it.targetRPE }.firstOrNull()
+    val kg = working.first().weight
+        ?: percent?.let { p -> main.reference1RM?.let { rm -> rm * p / 100.0 } }
+    val load = when {
+        kg != null && percent != null -> "${percent.toInt()}% → ${"%.1f".format(kg)} kg"
+        kg != null -> "${"%.1f".format(kg)} kg"
+        percent != null -> "${percent.toInt()}%"
+        else -> null
+    }
+    val rpePart = rpe?.let { " RPE ${if (it % 1.0 == 0.0) it.toInt().toString() else it.toString()}" }.orEmpty()
+    val loadPart = load?.let { " @ $it" }.orEmpty()
+    return "${main.name}: ${working.size}×$reps$loadPart$rpePart"
+}
+
+internal fun axialHintsForSession(session: Session): List<AxialSessionExercise> =
+    session.allExercises().mapNotNull { exercise ->
+        val info = resolveCatalogExerciseInfo(
+            catalogConfigurationId = exercise.catalogConfigurationId,
+            exerciseDbId = exercise.exerciseDbId,
+            exerciseId = exercise.exerciseId ?: exercise.id,
+            exerciseName = exercise.name,
+        ) ?: return@mapNotNull null
+        AxialSessionExercise(
+            name = exercise.name.ifBlank { info.name },
+            axial = info.axialLoadFactor ?: 0.0,
+            replacementGroup = info.replacementGroup,
+        )
+    }
+
+internal fun axialCatalogAlternatives(
+    hints: List<AxialSessionExercise>,
+): List<AxialSessionExercise> {
+    val groups = hints.mapNotNull { it.replacementGroup }.toSet()
+    if (groups.isEmpty()) return emptyList()
+    return exerciseCatalogSnapshot().mapNotNull { info ->
+        val group = info.replacementGroup ?: return@mapNotNull null
+        if (group !in groups) return@mapNotNull null
+        AxialSessionExercise(
+            name = info.name,
+            axial = info.axialLoadFactor ?: 0.0,
+            replacementGroup = group,
+        )
     }
 }

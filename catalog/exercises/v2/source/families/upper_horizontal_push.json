@@ -200,7 +200,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 3.0,
                   "efc": 3.5,
-                  "ssc": 0.9,
+                  "ssc": 0.35,
                   "technicalDifficulty": 6.0,
                   "ttc": 1.8
                 },
@@ -273,7 +273,7 @@
                 "Preparación: Flexiones con el cuerpo recto y las manos al ancho del pecho: el tradicional completo."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.9,
+              "ssc": 0.35,
               "stabilizerMuscles": [
                 "core"
               ],
@@ -1637,7 +1637,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 3.0,
                   "efc": 3.5,
-                  "ssc": 0.9,
+                  "ssc": 0.35,
                   "technicalDifficulty": 6.0,
                   "ttc": 2.0
                 },
@@ -1710,7 +1710,7 @@
                 "Preparación: Entre paralelas, bajas flexionando los codos hasta donde puedas y subes."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.9,
+              "ssc": 0.35,
               "stabilizerMuscles": [
                 "core"
               ],
@@ -1936,7 +1936,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 3.8,
                   "efc": 4.0,
-                  "ssc": 1.1,
+                  "ssc": 0.35,
                   "technicalDifficulty": 6.8,
                   "ttc": 2.2
                 },
@@ -2006,7 +2006,7 @@
                 "Preparación: Cadenas colgando de la barra: la resistencia crece al subir y se aligera al bajar."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.1,
+              "ssc": 0.35,
               "stabilizerMuscles": [],
               "technicalDifficulty": 6.8,
               "techniqueSummary": "Cadenas colgando de la barra: la resistencia crece al subir y se aligera al bajar. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
@@ -2227,7 +2227,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 3.0,
                   "efc": 3.2,
-                  "ssc": 0.9,
+                  "ssc": 0.35,
                   "technicalDifficulty": 5.0,
                   "ttc": 2.0
                 },
@@ -2297,7 +2297,7 @@
                 "Preparación: Bandas atadas a la barra: tensión extra arriba, justo donde empujas más."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.9,
+              "ssc": 0.35,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.0,
               "techniqueSummary": "Bandas atadas a la barra: tensión extra arriba, justo donde empujas más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
@@ -2813,7 +2813,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 3.8,
                   "efc": 4.0,
-                  "ssc": 1.2,
+                  "ssc": 0.35,
                   "technicalDifficulty": 6.8,
                   "ttc": 2.2
                 },
@@ -2883,7 +2883,7 @@
                 "Preparación: Pausa corta a unos centímetros del pecho en cada repetición: sin rebote y con el punto débil trabajado."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.2,
+              "ssc": 0.35,
               "stabilizerMuscles": [],
               "technicalDifficulty": 6.8,
               "techniqueSummary": "Pausa corta a unos centímetros del pecho en cada repetición: sin rebote y con el punto débil trabajado. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",

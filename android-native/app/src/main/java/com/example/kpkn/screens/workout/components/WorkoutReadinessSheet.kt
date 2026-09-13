@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.mapSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,15 +61,20 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import kotlin.math.min
+import com.example.kpkn.data.models.AugeSnapshot
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseReadiness
 import com.example.kpkn.data.models.Gender
+import com.example.kpkn.data.models.LoadAdvisoryLevel
 import com.example.kpkn.data.models.MovementPatternReadiness
 import com.example.kpkn.ui.components.KpknSheet
 import dev.chrisbanes.haze.HazeState
 import com.example.kpkn.data.exercises.resolveExercise
 import com.example.kpkn.data.models.DiscomfortCatalogEntry
 import com.example.kpkn.domain.auge.DiscomfortSuggestionEngine
+import com.example.kpkn.domain.auge.ExerciseReadinessEngine
+import com.example.kpkn.domain.auge.LoadAdvisoryEngine
+import com.example.kpkn.domain.auge.RecoveryBands
 import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
@@ -104,6 +110,7 @@ fun WorkoutReadinessSheet(
     exerciseReadinessMap: Map<String, ExerciseReadiness> = emptyMap(),
     sessionExercises: List<Exercise> = emptyList(),
     perMuscle: Map<String, com.example.kpkn.data.models.MuscleRecoveryStatus> = emptyMap(),
+    augeSnapshot: AugeSnapshot? = null,
     initialDiscomforts: List<String> = emptyList(),
     voiceSessionEnabled: Boolean = false,
     voiceCaptureMode: com.example.kpkn.data.models.VoiceCaptureMode = com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE,
@@ -115,7 +122,19 @@ fun WorkoutReadinessSheet(
     var neural by rememberSaveable { mutableIntStateOf(readinessNeuralStart) }
     var muscular by rememberSaveable { mutableIntStateOf(readinessMuscularStart) }
     var spinal by rememberSaveable { mutableIntStateOf(readinessSpinalStart) }
-    val muscleAdjustments = remember { mutableStateMapOf<String, Int>() }
+    val muscleAdjustments = rememberSaveable(
+        saver = mapSaver(
+            save = { value -> value.toMap() },
+            restore = { restored ->
+                mutableStateMapOf<String, Int>().apply {
+                    restored.forEach { (key, value) ->
+                        val n = (value as? Number)?.toInt() ?: return@forEach
+                        this[key] = n
+                    }
+                }
+            },
+        ),
+    ) { mutableStateMapOf<String, Int>() }
     val derivedMuscular by derivedStateOf {
         if (muscleAdjustments.isEmpty()) readinessMuscularStart.coerceIn(0, 100)
         else muscleAdjustments.values.average().toInt().coerceIn(0, 100)
@@ -124,7 +143,7 @@ fun WorkoutReadinessSheet(
     var userEditedSpinal by rememberSaveable { mutableStateOf(false) }
     val userEditedMuscles = remember { mutableStateMapOf<String, Boolean>() }
     var initialized by rememberSaveable { mutableStateOf(false) }
-    val selectedDiscomforts = remember { mutableStateListOf<String>() }
+    var selectedDiscomforts by rememberSaveable { mutableStateOf(listOf<String>()) }
     var adjustTarget by remember { mutableStateOf<ReadinessAdjustTarget?>(null) }
 
     LaunchedEffect(
@@ -142,8 +161,7 @@ fun WorkoutReadinessSheet(
             sessionMuscleStartingBatteries.forEach { (muscleId, value) ->
                 muscleAdjustments[muscleId] = value.coerceIn(0, 100)
             }
-            selectedDiscomforts.clear()
-            selectedDiscomforts.addAll(initialDiscomforts)
+            selectedDiscomforts = initialDiscomforts
             initialized = true
         } else {
             if (!userEditedNeural) neural = readinessNeuralStart
@@ -237,14 +255,51 @@ fun WorkoutReadinessSheet(
                     },
                 )
 
+                augeSnapshot?.dashboard?.channels?.forEach { channel ->
+                    Text(
+                        text = "${channel.title}: ${RecoveryBands.label(channel.band)} · ${channel.action}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.85f),
+                    )
+                }
+                val coaching = remember(patternReadiness, exerciseReadinessMap, sessionExercises, perMuscle) {
+                    ExerciseReadinessEngine.buildPatternCoaching(
+                        patternReadiness = patternReadiness,
+                        exerciseReadinessMap = exerciseReadinessMap,
+                        sessionExercises = sessionExercises,
+                        perMuscle = perMuscle,
+                    )
+                }
+                coaching?.let { tip ->
+                    Text(
+                        text = tip.headline,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                    )
+                    Text(
+                        text = tip.detail,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.8f),
+                    )
+                }
+                augeSnapshot?.advisories
+                    ?.firstOrNull { LoadAdvisoryEngine.rank(it.level) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.ADJUST) }
+                    ?.let { advisory ->
+                        Text(
+                            text = "${advisory.title}: ${advisory.body}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFFFACC15),
+                        )
+                    }
+
                 val sessionPillarMuscleIds = remember(sessionExercises) {
                     getSessionPillarMuscleIds(sessionExercises)
                 }
                 PreWorkoutDiscomfortSelector(
                     selectedDiscomforts = selectedDiscomforts,
                     onDiscomfortsChanged = { list ->
-                        selectedDiscomforts.clear()
-                        selectedDiscomforts.addAll(list)
+                        selectedDiscomforts = list
                     },
                     sessionPillarMuscleIds = sessionPillarMuscleIds,
                 )
@@ -271,9 +326,7 @@ fun WorkoutReadinessSheet(
                         val editedMuscleMap = muscleAdjustments
                             .filter { (id, _) -> userEditedMuscles[id] == true }
                             .mapValues { (_, v) -> v.coerceIn(0, 100) }
-                        val manualMuscular = if (editedMuscleMap.isNotEmpty()) {
-                            editedMuscleMap.values.average().toInt().coerceIn(0, 100)
-                        } else null
+                        val manualMuscular = null
                         onSave(
                             neural,
                             derivedMuscular,

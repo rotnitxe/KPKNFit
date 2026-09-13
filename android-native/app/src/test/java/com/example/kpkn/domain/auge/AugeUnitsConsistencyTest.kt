@@ -71,16 +71,16 @@ class AugeUnitsConsistencyTest {
     fun capacityEngine_usesStressUnits_notImmediateDrainPct() {
         val completion = "2026-08-29T12:00:00Z"
         val completionMs = Instant.parse(completion).toEpochMilli()
-        val log = logWithStress("cap", Instant.parse(completion).minus(3, ChronoUnit.DAYS), stress = 200.0)
+        val log = logWithStress("cap", Instant.parse(completion).minus(3, ChronoUnit.DAYS), stress = 2000.0)
             .copy(
-                muscularImpactV2 = logWithStress("cap", Instant.parse(completion).minus(3, ChronoUnit.DAYS), 200.0)
+                muscularImpactV2 = logWithStress("cap", Instant.parse(completion).minus(3, ChronoUnit.DAYS), 2000.0)
                     .muscularImpactV2!!.copy(
                         perMuscle = mapOf(
                             "Pectorales" to MuscleSessionImpactV2(
-                                stressUnits = 200.0,
-                                capacityAtCompletion = 260.0,
+                                stressUnits = 2000.0,
+                                capacityAtCompletion = 2600.0,
                                 immediateDrainPct = 5.0,
-                                directStressUnits = 200.0,
+                                directStressUnits = 2000.0,
                                 indirectStressUnits = 0.0,
                             ),
                         ),
@@ -95,10 +95,10 @@ class AugeUnitsConsistencyTest {
             muscularImpactV2 = log.muscularImpactV2!!.copy(
                 perMuscle = mapOf(
                     "Pectorales" to MuscleSessionImpactV2(
-                        stressUnits = 5.0,
-                        capacityAtCompletion = 260.0,
+                        stressUnits = 50.0,
+                        capacityAtCompletion = 2600.0,
                         immediateDrainPct = 200.0,
-                        directStressUnits = 5.0,
+                        directStressUnits = 50.0,
                         indirectStressUnits = 0.0,
                     ),
                 ),
@@ -110,14 +110,14 @@ class AugeUnitsConsistencyTest {
             completionInstantIso = completion,
         )
         assertTrue(capacity > lowCapacity)
-        assertTrue(capacity >= 120.0)
+        assertTrue(capacity >= 1200.0)
         assertTrue(completionMs > 0L)
     }
 
     @Test
-    fun timeOnlySetWithoutCardioDetails_isNotEffective() {
-        val timeOnly = CompletedSet(id = "t1", reps = 0, weight = 0.0, timeSeconds = 1200)
-        assertFalse(AugeFatigueEngine.isSetEffective(timeOnly))
+    fun timeOnlySetWithoutCardioDetails_isEffectiveAsIsometric() {
+        val timeOnly = CompletedSet(id = "t1", reps = 0, weight = 0.0, timeSeconds = 45, rpe = 7.0)
+        assertTrue(AugeFatigueEngine.isSetEffective(timeOnly))
     }
 
     @Test

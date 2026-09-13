@@ -42,13 +42,13 @@ class PerformanceTauObservationTest {
     )
 
     @Test
-    fun pecs48hAfterHardSession_ratio095_vsPredicted70_emitsObservation() {
+    fun pecs48hAfterHardSession_underperformance_emitsObservation() {
         val result = PerformanceTauLearner.observations(
-            pecsInput(todayWeight = 76.0, predictedPecs = 70, historyCount = 3),
+            pecsInput(todayWeight = 72.0, predictedPecs = 70, historyCount = 3),
         )
         val pecs = result.observations.single { it.muscle == "Pectorales" }
         assertEquals(70, pecs.predictedBattery)
-        assertEquals(80, pecs.actualBattery)
+        assertEquals(60, pecs.actualBattery)
         assertTrue(pecs.hoursSinceSession in 47.0..49.0)
         assertTrue(pecs.sessionStress > 0.0)
         assertTrue(result.diagnostics.none { it.channel == "Pectorales" && it.skipReason != null })
@@ -97,7 +97,7 @@ class PerformanceTauObservationTest {
     fun skipsHoursBelowEight() {
         val result = PerformanceTauLearner.observations(
             pecsInput(
-                todayWeight = 76.0,
+                todayWeight = 72.0,
                 predictedPecs = 70,
                 historyCount = 3,
                 latestHistoryHoursAgo = 4,
@@ -152,7 +152,7 @@ class PerformanceTauObservationTest {
         val today = squatLog(
             id = "today",
             instant = now,
-            weight = 95.0,
+            weight = 90.0,
         )
         val result = PerformanceTauLearner.observations(
             PerformanceTauInput(
@@ -168,7 +168,7 @@ class PerformanceTauObservationTest {
         )
         val spinal = result.observations.single { it.muscle == "spinal" }
         assertEquals(70, spinal.predictedBattery)
-        assertEquals(80, spinal.actualBattery)
+        assertEquals(60, spinal.actualBattery)
     }
 
     @Test

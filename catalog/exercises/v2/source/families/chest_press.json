@@ -200,7 +200,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 4.0,
                   "efc": 4.2,
-                  "ssc": 1.2,
+                  "ssc": 0.35,
                   "technicalDifficulty": 7.0,
                   "ttc": 2.2
                 },
@@ -280,7 +280,7 @@
                 "Preparación: Con barra, mueves la mayor cantidad de peso y lo compruebas en cada sesión: los números no mienten."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.2,
+              "ssc": 0.35,
               "stabilizerMuscles": [
                 "biceps"
               ],
@@ -487,7 +487,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 4.0,
                   "efc": 4.2,
-                  "ssc": 1.2,
+                  "ssc": 0.35,
                   "technicalDifficulty": 7.0,
                   "ttc": 2.2
                 },
@@ -567,7 +567,7 @@
                 "Preparación: Con mancuernas, cada brazo trabaja por su cuenta y el recorrido es más adaptable para el hombro."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 1.2,
+              "ssc": 0.35,
               "stabilizerMuscles": [
                 "biceps"
               ],
@@ -774,7 +774,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 4.0,
                   "efc": 4.2,
-                  "ssc": 1.2,
+                  "ssc": 0.35,
                   "technicalDifficulty": 7.0,
                   "ttc": 2.2
                 },
@@ -854,7 +854,7 @@
                 "Preparación: En Smith, la barra va guiada y puedes cargar el pecho sin preocuparte por el equilibrio."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 1.2,
+              "ssc": 0.35,
               "stabilizerMuscles": [
                 "biceps"
               ],
@@ -1059,7 +1059,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 4.0,
                   "efc": 4.2,
-                  "ssc": 1.2,
+                  "ssc": 0.35,
                   "technicalDifficulty": 7.0,
                   "ttc": 2.2
                 },
@@ -1139,7 +1139,7 @@
                 "Preparación: En máquina, el recorrido fijo te deja concentrarte en empujar con el pecho con intensidad."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 1.2,
+              "ssc": 0.35,
               "stabilizerMuscles": [],
               "technicalDifficulty": 7.0,
               "techniqueSummary": "En máquina, el recorrido fijo te deja concentrarte en empujar con el pecho con intensidad. El banco fija la espalda y la carga desciende hacia la parte elegida del pecho antes de volver con los antebrazos alineados.",
@@ -1344,7 +1344,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 4.0,
                   "efc": 4.2,
-                  "ssc": 1.2,
+                  "ssc": 0.35,
                   "technicalDifficulty": 7.0,
                   "ttc": 2.2
                 },
@@ -1424,7 +1424,7 @@
                 "Preparación: En polea, la tensión constante llega hasta arriba del empuje y el pecho no descansa jamás."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 1.2,
+              "ssc": 0.35,
               "stabilizerMuscles": [
                 "core"
               ],
@@ -1631,7 +1631,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 4.0,
                   "efc": 4.2,
-                  "ssc": 1.2,
+                  "ssc": 0.35,
                   "technicalDifficulty": 7.0,
                   "ttc": 2.2
                 },
@@ -1711,7 +1711,7 @@
                 "Preparación: Con kettlebell, el press se vuelve más inestable y el trabajo de estabilidad aumenta."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 1.2,
+              "ssc": 0.35,
               "stabilizerMuscles": [
                 "biceps"
               ],
@@ -1952,7 +1952,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 4.0,
                   "efc": 4.2,
-                  "ssc": 1.2,
+                  "ssc": 0.35,
                   "technicalDifficulty": 7.0,
                   "ttc": 2.2
                 },
@@ -2024,7 +2024,7 @@
                 "Preparación: Barra en banco declinado: el ángulo apunta directo a la parte baja del pecho."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.2,
+              "ssc": 0.35,
               "stabilizerMuscles": [
                 "biceps"
               ],
@@ -2231,7 +2231,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 4.0,
                   "efc": 4.2,
-                  "ssc": 1.2,
+                  "ssc": 0.35,
                   "technicalDifficulty": 7.0,
                   "ttc": 2.2
                 },
@@ -2303,7 +2303,7 @@
                 "Preparación: Mancuernas en banco declinado: el trabajo cae a la parte inferior del pectoral con recorrido libre."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 1.2,
+              "ssc": 0.35,
               "stabilizerMuscles": [
                 "biceps"
               ],
@@ -2510,7 +2510,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 4.0,
                   "efc": 4.2,
-                  "ssc": 1.2,
+                  "ssc": 0.35,
                   "technicalDifficulty": 7.0,
                   "ttc": 2.2
                 },
@@ -2582,7 +2582,7 @@
                 "Preparación: Smith en banco declinado: barra guiada y ángulo bajo para aislar el pectoral inferior."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 1.2,
+              "ssc": 0.35,
               "stabilizerMuscles": [
                 "biceps"
               ],
@@ -2787,7 +2787,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 4.0,
                   "efc": 4.2,
-                  "ssc": 1.2,
+                  "ssc": 0.35,
                   "technicalDifficulty": 7.0,
                   "ttc": 2.2
                 },
@@ -2859,7 +2859,7 @@
                 "Preparación: Máquina declinada: recorrido fijo y foco total en la parte baja del pecho."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 1.2,
+              "ssc": 0.35,
               "stabilizerMuscles": [],
               "technicalDifficulty": 7.0,
               "techniqueSummary": "Máquina declinada: recorrido fijo y foco total en la parte baja del pecho. El respaldo declinado cambia la línea del empuje hacia el pecho inferior y acorta la sensación de recorrido en el hombro.",
@@ -3064,7 +3064,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 4.0,
                   "efc": 4.2,
-                  "ssc": 1.2,
+                  "ssc": 0.35,
                   "technicalDifficulty": 7.0,
                   "ttc": 2.2
                 },
@@ -3136,7 +3136,7 @@
                 "Preparación: Polea en banco declinado: tensión constante que mantiene la parte baja del pecho bajo una tensión intensa."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 1.2,
+              "ssc": 0.35,
               "stabilizerMuscles": [
                 "core"
               ],
@@ -3343,7 +3343,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 4.0,
                   "efc": 4.2,
-                  "ssc": 1.2,
+                  "ssc": 0.35,
                   "technicalDifficulty": 7.0,
                   "ttc": 2.2
                 },
@@ -3415,7 +3415,7 @@
                 "Preparación: Kettlebell en banco declinado: inestabilidad extra y trabajo enfocado en el pecho bajo."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 1.2,
+              "ssc": 0.35,
               "stabilizerMuscles": [
                 "biceps"
               ],
@@ -3648,7 +3648,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 4.0,
                   "efc": 4.2,
-                  "ssc": 1.2,
+                  "ssc": 0.35,
                   "technicalDifficulty": 7.0,
                   "ttc": 2.2
                 },
@@ -3720,7 +3720,7 @@
                 "Preparación: Barra en banco inclinado: el empuje sube el foco a la parte alta del pecho y al hombro."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.2,
+              "ssc": 0.35,
               "stabilizerMuscles": [
                 "biceps"
               ],
@@ -3927,7 +3927,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 4.0,
                   "efc": 4.2,
-                  "ssc": 1.2,
+                  "ssc": 0.35,
                   "technicalDifficulty": 7.0,
                   "ttc": 2.2
                 },
@@ -3999,7 +3999,7 @@
                 "Preparación: Mancuernas en banco inclinado: la parte alta del pecho trabaja con recorrido libre y adaptable."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 1.2,
+              "ssc": 0.35,
               "stabilizerMuscles": [
                 "biceps"
               ],
@@ -4206,7 +4206,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 4.0,
                   "efc": 4.2,
-                  "ssc": 1.2,
+                  "ssc": 0.35,
                   "technicalDifficulty": 7.0,
                   "ttc": 2.2
                 },
@@ -4278,7 +4278,7 @@
                 "Preparación: Smith en banco inclinado: barra guiada, ángulo alto y foco en el pectoral superior."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 1.2,
+              "ssc": 0.35,
               "stabilizerMuscles": [
                 "biceps"
               ],
@@ -4483,7 +4483,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 4.0,
                   "efc": 4.2,
-                  "ssc": 1.2,
+                  "ssc": 0.35,
                   "technicalDifficulty": 7.0,
                   "ttc": 2.2
                 },
@@ -4555,7 +4555,7 @@
                 "Preparación: Máquina inclinada: el recorrido fijo lleva la tensión directa a la parte alta del pecho."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 1.2,
+              "ssc": 0.35,
               "stabilizerMuscles": [],
               "technicalDifficulty": 7.0,
               "techniqueSummary": "Máquina inclinada: el recorrido fijo lleva la tensión directa a la parte alta del pecho. El respaldo inclinado orienta el empuje hacia la zona alta del pecho; la barra o las manos regresan sin perder el apoyo escapular.",
@@ -4760,7 +4760,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 4.0,
                   "efc": 4.2,
-                  "ssc": 1.2,
+                  "ssc": 0.35,
                   "technicalDifficulty": 7.0,
                   "ttc": 2.2
                 },
@@ -4832,7 +4832,7 @@
                 "Preparación: Polea en banco inclinado: tensión constante en la zona alta del pecho en todo el empuje."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 1.2,
+              "ssc": 0.35,
               "stabilizerMuscles": [
                 "core"
               ],
@@ -5039,7 +5039,7 @@
                   "axialLoadFactor": 0.0,
                   "cnc": 4.0,
                   "efc": 4.2,
-                  "ssc": 1.2,
+                  "ssc": 0.35,
                   "technicalDifficulty": 7.0,
                   "ttc": 2.2
                 },
@@ -5111,7 +5111,7 @@
                 "Preparación: Kettlebell en banco inclinado: el ángulo alto más la inestabilidad encienden el pecho superior."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 1.2,
+              "ssc": 0.35,
               "stabilizerMuscles": [
                 "biceps"
               ],

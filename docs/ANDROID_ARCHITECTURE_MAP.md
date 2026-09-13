@@ -151,6 +151,7 @@ graph TD
     *   $\text{SPF} = (\text{Erectores} \times 0.50) + (\text{Core} \times 0.25) + (\text{Gluteos} \times 0.15) + (\text{Dorsales} \times 0.10)$
 *   **Spinal Bracing Failure Penalty:** If $\text{SPF} < 80.0$, spinal recovery time is amplified:
     *   $\text{SpinalRecoveryMult} = 1.0 + (\text{Deficit}^2 \times 0.75)$
+*   **Displayed Columna (2026-09):** a single blended score on Home, finish, readiness and overrides: `min(spinal, 0.5·spinal + 0.25·articular + 0.25·guardia)`. Drain uses `ssc × spinalAxialGate(axialLoadFactor)` (`null` keeps heuristic `ssc`; `0` contributes 0). Forward recovery uses `recoveryDecay` with `k = TAU_K_95 / τ` (same 95 % semantics as inversion). Adaptive cache `schemaVersion` 3 resets learned system τ and legacy drain multipliers.
 *   **TTC (Time to Recovery):** Converts decay time back to remaining hours before the battery reaches $90\%$ (implemented in `AugeTtcEngine.kt`).
 
 #### 4. Articular Battery & Tendon Imbalances
@@ -160,6 +161,9 @@ graph TD
 #### 5. Supporting AUGE Engines (`domain/auge/`)
 *   `AugeAdaptiveEngine.kt` — learns from user feedback to adapt recovery curves (`auge_adaptive_cache` table).
 *   `AugeFatigueEngine.kt` — per-set stress and fatigue math.
+*   `AugeClock.kt` — injectable clock for Energy/Columna tests and recovery.
+*   `RecoveryBands.kt` — unique % band contract (Alta/Normal/Moderada/Baja/Crítica) for colors, labels, coaching and causes.
+*   `AxialLoadMonitor.kt` / `SystemicLoadMonitor.kt` / `LoadAdvisoryEngine.kt` — ACWR and session-start trend advisories (WATCH only in ring sheet; ADJUST+ badge + Home card).
 *   `InterferenceEngine.kt` — structural muscle interference between exercises.
 *   `DiscomfortAggregationEngine.kt` — aggregates logged discomforts into penalties.
 *   `NutritionRecoveryEngine.kt` — nutrition's contribution to recovery.

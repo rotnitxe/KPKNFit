@@ -21,7 +21,7 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
+              "axialLoadFactor": 0.0,
               "benefits": [
                 "La barra es la referencia para cargar el antebrazo con peso de verdad.",
                 "Un gesto antiguo que construye muñecas de acero como siempre."
@@ -173,7 +173,7 @@
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
-                  "axialLoadFactor": 0.7,
+                  "axialLoadFactor": 0.0,
                   "cnc": 1.5,
                   "efc": 2.0,
                   "ssc": 0.2,

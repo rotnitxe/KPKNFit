@@ -2,13 +2,18 @@ package com.example.kpkn.screens.home
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
@@ -19,7 +24,11 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.semantics.contentDescription
@@ -28,6 +37,10 @@ import androidx.compose.ui.semantics.stateDescription
 import kotlin.math.*
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.theme.RingRed
+import com.example.kpkn.data.models.AugeSnapshot
+import com.example.kpkn.data.models.RecoveryChannelId
+import com.example.kpkn.data.models.RecoveryDashboard
+import com.example.kpkn.domain.auge.RecoveryBands
 
 // ─── Ring Constants ──────────────────────────────────────────────────────────
 
@@ -46,6 +59,11 @@ fun HomeRingsSection(
     columnaProgress: Float,
     hasActiveProgram: Boolean = true,
     isLoading: Boolean = false,
+    dashboard: RecoveryDashboard? = null,
+    snapshot: AugeSnapshot? = null,
+    showModelUpdateNotice: Boolean = false,
+    onDismissAdvisory: (String) -> Unit = {},
+    onModelNoticeShown: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val progressValues = remember(muscularProgress, sncProgress, columnaProgress, isLoading) {
@@ -62,10 +80,11 @@ fun HomeRingsSection(
     }
 
     var showInfoDialog by remember { mutableStateOf(false) }
+    var selectedChannel by remember { mutableStateOf<RecoveryChannelId?>(null) }
 
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
-            modifier = Modifier.padding(start = 24.dp, bottom = 16.dp),
+            modifier = Modifier.padding(start = 24.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -86,13 +105,39 @@ fun HomeRingsSection(
                 )
             }
         }
+        dashboard?.headline?.takeIf { it.isNotBlank() && !isLoading }?.let { headline ->
+            Text(
+                text = headline,
+                modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 12.dp),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
 
-        CombinedRingsView(progressValues, ringColors, hasActiveProgram, isLoading = isLoading)
+        CombinedRingsView(
+            progressValues = progressValues,
+            ringColors = ringColors,
+            hasActiveProgram = hasActiveProgram,
+            isLoading = isLoading,
+            onChannelClick = { selectedChannel = it },
+        )
         Spacer(Modifier.height(4.dp))
     }
 
     if (showInfoDialog) {
         RingsInfoDialog(onDismiss = { showInfoDialog = false })
+    }
+    val channel = selectedChannel
+    if (channel != null && snapshot != null) {
+        RingDetailSheet(
+            channel = channel,
+            snapshot = snapshot,
+            showModelUpdateNotice = showModelUpdateNotice,
+            onDismiss = { selectedChannel = null },
+            onDismissAdvisory = onDismissAdvisory,
+            onModelNoticeShown = onModelNoticeShown,
+        )
     }
 }
 
@@ -102,7 +147,15 @@ private fun CombinedRingsView(
     ringColors: List<Color>,
     hasActiveProgram: Boolean = true,
     isLoading: Boolean = false,
+    onChannelClick: (RecoveryChannelId) -> Unit = {},
 ) {
+    val density = LocalDensity.current
+    var ringsSize by remember { mutableStateOf(IntSize.Zero) }
+    val channelIds = listOf(
+        RecoveryChannelId.MUSCULAR,
+        RecoveryChannelId.SYSTEM,
+        RecoveryChannelId.STRUCTURE,
+    )
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -116,7 +169,8 @@ private fun CombinedRingsView(
                     Modifier
                         .height(hostHeight)
                         .fillMaxWidth()
-                        .semantics(mergeDescendants = true) {
+                        .onSizeChanged { ringsSize = it }
+                        .semantics(mergeDescendants = isLoading) {
                             val desc = if (isLoading) {
                                 "Calculando recuperación"
                             } else {
@@ -134,6 +188,31 @@ private fun CombinedRingsView(
                             modifier = Modifier.align(Alignment.Center).size(28.dp),
                             strokeWidth = 2.dp,
                         )
+                    } else if (ringsSize != IntSize.Zero) {
+                        val bloomPx = with(density) { AugeRingBloomFar.toPx() }
+                        val layout = augeRingsLayout(
+                            width = ringsSize.width.toFloat(),
+                            height = ringsSize.height.toFloat(),
+                            bloomPx = bloomPx,
+                        )
+                        val hitRadius = layout.radius + with(density) { 12.dp.toPx() }
+                        channelIds.forEachIndexed { i, channel ->
+                            val c = layout.centers[i]
+                            Box(
+                                modifier = Modifier
+                                    .offset { IntOffset((c.x - hitRadius).toInt(), (c.y - hitRadius).toInt()) }
+                                    .size(with(density) { (hitRadius * 2).toInt().toDp() })
+                                    .clip(CircleShape)
+                                    .clickable(
+                                        interactionSource = remember(channel) { MutableInteractionSource() },
+                                        indication = null,
+                                    ) { onChannelClick(channel) }
+                                    .semantics {
+                                        contentDescription =
+                                            "Ring de ${RingLabels[i]}. Toca para ver el detalle."
+                                    },
+                            )
+                        }
                     }
                 }
             }
@@ -145,7 +224,11 @@ private fun CombinedRingsView(
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 progressValues.forEachIndexed { i, progress ->
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    val score = (progress * 100).toInt()
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.clickable { onChannelClick(channelIds[i]) },
+                    ) {
                         Text(
                             RingLabels[i].uppercase(),
                             style = MaterialTheme.typography.labelSmall,
@@ -155,11 +238,25 @@ private fun CombinedRingsView(
                             maxLines = 1,
                         )
                         Text(
-                            if (isLoading) "…" else "${(progress * 100).toInt()}%",
+                            if (isLoading) "…" else "$score%",
                             style = MaterialTheme.typography.labelMedium,
                             color = Color.White.copy(alpha = 0.85f),
                             fontWeight = FontWeight.Bold,
                         )
+                        if (!isLoading) {
+                            Surface(
+                                shape = RoundedCornerShape(50),
+                                color = Color(RecoveryBands.colorArgb(score).toInt()).copy(alpha = 0.18f),
+                            ) {
+                                Text(
+                                    RecoveryBands.labelForScore(score),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color(RecoveryBands.colorArgb(score).toInt()),
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -400,11 +497,7 @@ internal fun DrawScope.drawAugeRingCore(center: Offset, radius: Float, color: Co
         )
     }
 }
-internal fun batteryColor(score: Int): Color = when {
-    score >= 80 -> Color(0xFF22C55E)
-    score >= 50 -> Color(0xFFFACC15)
-    else        -> Color(0xFFEF4444)
-}
+internal fun batteryColor(score: Int): Color = Color(RecoveryBands.colorArgb(score).toInt())
 
 // ─── RINGS Info Dialog ─────────────────────────────────────────────────────
 

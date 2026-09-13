@@ -47,7 +47,7 @@ object AugeMuscleCapacityEngine {
         val weeks = ((completionMs - dateMs(prior.first())).toDouble() / (7.0 * 24 * 60 * 60 * 1000.0))
             .coerceIn(1.0, 5.0)
         val averageWeekly = weeklyStress / weeks
-        return max(baseCapacity(settings), averageWeekly * 1.8).coerceIn(120.0, 3500.0)
+        return max(baseCapacity(settings), averageWeekly * 1.8).let(AugeUtils::clampWorkCapacity)
     }
 
     fun capacitiesFor(
@@ -69,7 +69,7 @@ object AugeMuscleCapacityEngine {
     }
 
     private fun baseCapacity(settings: Settings): Double =
-        AugeFatigueEngine.getAthleteCapacity(settings).coerceIn(120.0, 3500.0)
+        AugeUtils.clampWorkCapacity(AugeFatigueEngine.getAthleteCapacity(settings))
 
     private fun dateMs(log: WorkoutLog): Long = runCatching { AugeUtils.logDateMs(log) }.getOrDefault(0L)
 }

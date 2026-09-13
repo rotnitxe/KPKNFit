@@ -36,6 +36,9 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.adapt
 import com.example.kpkn.R
+import com.example.kpkn.data.exercises.exerciseCatalogReady
+import com.example.kpkn.data.models.AugeSnapshot
+import com.example.kpkn.data.models.LoadAdvisoryLevel
 import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.RecoveryChannelId
@@ -47,6 +50,7 @@ import com.example.kpkn.data.models.MealType
 import com.example.kpkn.data.models.NutritionLog
 import com.example.kpkn.data.models.NutritionStatus
 import com.example.kpkn.data.repository.NutritionRepository
+import com.example.kpkn.domain.auge.LoadAdvisoryEngine
 import com.example.kpkn.screens.auge.rememberAugeViewModel
 import com.example.kpkn.screens.home.components.WelcomeOnboardingOverlay
 import com.example.kpkn.screens.nutrition.NutritionViewModel
@@ -309,6 +313,9 @@ fun HomeScreen(
                 onNavigate = { destination ->
                     if (destination == "settings/auge") showAugeRecommendations = true else onNavigate(destination)
                 },
+                augeSnapshot = augeSnapshot,
+                onDismissAdvisory = augeViewModel::dismissAdvisory,
+                onModelNoticeShown = augeViewModel::markModelUpdateNoticeShown,
                 autoDeloadMessage = augeSnapshot.autoDeloadMessage,
                 overtrainedMuscles = uiState.overtrainedMuscles,
                  onAddMeal = { showFoodLogger = true },
@@ -396,12 +403,27 @@ private fun HomeWithProgram(
     onNavigateToCard: (String) -> Unit,
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier,
+    augeSnapshot: AugeSnapshot? = null,
+    onDismissAdvisory: (String) -> Unit = {},
+    onModelNoticeShown: () -> Unit = {},
     autoDeloadMessage: String? = null,
     overtrainedMuscles: List<String> = emptyList(),
     onAddMeal: () -> Unit = {},
     onOpenNutritionOverlay: () -> Unit = {},
 ) {
     val homeAdapt = LocalViewportAdapt.current
+    val isCatalogReady by exerciseCatalogReady.collectAsState()
+    val homeAdvisory = remember(augeSnapshot, todaySessions, isCatalogReady) {
+        val raw = augeSnapshot?.advisories
+            ?.filter { LoadAdvisoryEngine.rank(it.level) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.ADJUST) }
+            ?.firstOrNull()
+            ?: return@remember null
+        val session = todaySessions.firstOrNull { it.isToday && !it.isCompleted }
+            ?: todaySessions.firstOrNull { !it.isCompleted }
+            ?: todaySessions.firstOrNull()
+        val hints = session?.session?.let { axialHintsForSession(it) }.orEmpty()
+        LoadAdvisoryEngine.contextualize(raw, hints, axialCatalogAlternatives(hints))
+    }
     LazyColumn(
         state = listState,
         modifier = modifier.fillMaxSize(),
@@ -420,6 +442,7 @@ private fun HomeWithProgram(
                 hasActiveProgram = hasActiveProgram,
                 currentDayOfWeek = getCurrentDayOfWeek(),
                 perMuscle = perMuscle,
+                loadAdvisory = homeAdvisory,
                 onStartWorkout = onStartWorkout,
                 onRegisterCompetition = onRegisterCompetition,
                 onResumeWorkout = onResumeWorkout,
@@ -436,17 +459,22 @@ private fun HomeWithProgram(
                 columnaProgress = columnaProgress,
                 hasActiveProgram = hasActiveProgram,
                 isLoading = augeLoading,
+                dashboard = augeSnapshot?.dashboard,
+                snapshot = augeSnapshot,
+                showModelUpdateNotice = augeSnapshot?.showModelUpdateNotice == true,
+                onDismissAdvisory = onDismissAdvisory,
+                onModelNoticeShown = onModelNoticeShown,
                 modifier = Modifier.onGloballyPositioned { onRingsAnchorPositionChanged(it.positionInRoot().y) },
             )
         }
-        if (!autoDeloadMessage.isNullOrBlank()) {
+        if (homeAdvisory != null) {
             item(key = "auto-deload") {
                 AlertActionCard(
-                    title = "Auto-deload sugerido",
-                    body = autoDeloadMessage,
-                    actionLabel = "Ver recomendación",
-                    onAction = { onNavigate("settings/auge") },
-                    emphasize = false,
+                    title = homeAdvisory.title,
+                    body = homeAdvisory.body,
+                    actionLabel = "Entendido",
+                    onAction = { onDismissAdvisory(homeAdvisory.id) },
+                    emphasize = homeAdvisory.level == LoadAdvisoryLevel.UNLOAD,
                 )
             }
         }

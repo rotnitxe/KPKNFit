@@ -51,6 +51,16 @@ data class WorkoutLog(
      * para completar semanas/ciclos del run cíclico restaurado.
      */
     val calendarBreakId: String? = null,
+    /** Rings just before this session (or at finish without this log). */
+    val ringStartSnapshot: RingStartSnapshot? = null,
+)
+
+@Serializable
+data class RingStartSnapshot(
+    val capturedAtIso: String,
+    val muscular: Int,
+    val energy: Int,
+    val structure: Int,
 )
 
 @Serializable

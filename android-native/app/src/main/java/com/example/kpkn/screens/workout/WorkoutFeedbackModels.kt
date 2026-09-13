@@ -9,6 +9,7 @@ import com.example.kpkn.data.models.PlanDeviation
 import com.example.kpkn.data.models.PlanDeviationType
 import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.PostSessionFeedback
+import com.example.kpkn.data.models.RingStartSnapshot
 import com.example.kpkn.data.models.MuscleFeedbackEntry
 import com.example.kpkn.data.models.RestPauseData
 import com.example.kpkn.data.models.ExerciseSet
@@ -163,6 +164,7 @@ data class SessionClosingFeedback(
     val completedSetInputHash: String? = null,
     val additionalDiscomfortNote: String? = null,
     val stillPresentDiscomfortIds: List<String> = emptyList(),
+    val ringStartSnapshot: RingStartSnapshot? = null,
 )
 
 data class ExerciseHistoryEntry(

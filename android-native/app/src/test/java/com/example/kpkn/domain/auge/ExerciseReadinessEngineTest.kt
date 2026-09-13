@@ -239,6 +239,27 @@ class ExerciseReadinessEngineTest {
             perMuscle = muscleRecovery("Cuádriceps" to 70),
         )
         assertTrue(coaching?.detail?.contains("También llevas sentadillas (30% de las series) al 70%") == true)
+        assertTrue(coaching?.detail?.contains("tenlo en cuenta") == true)
+    }
+
+    @Test
+    fun `coaching secondary pattern is fine when high band`() {
+        val coaching = ExerciseReadinessEngine.buildPatternCoaching(
+            patternReadiness = listOf(
+                pattern("Empuje", totalSets = 7, score = 90, muscles = listOf("Pectorales")),
+                pattern("Sentadilla", totalSets = 3, score = 90, muscles = listOf("Cuádriceps")),
+            ),
+            exerciseReadinessMap = mapOf(
+                "ex1" to exerciseReadiness("ex1", "Press Banca", "Empuje", 90),
+                "ex2" to exerciseReadiness("ex2", "Sentadilla", "Sentadilla", 90, muscles = listOf("Cuádriceps")),
+            ),
+            sessionExercises = listOf(
+                sessionExercise("ex1", "Press Banca", 7),
+                sessionExercise("ex2", "Sentadilla", 3),
+            ),
+            perMuscle = muscleRecovery("Cuádriceps" to RecoveryBands.HIGH_MIN),
+        )
+        assertTrue(coaching?.detail?.contains("sin problema") == true)
     }
 
     @Test

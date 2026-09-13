@@ -20,10 +20,14 @@ import com.example.kpkn.domain.auge.AugeMuscleCapacityEngine
 import com.example.kpkn.domain.auge.AugeRecoveryEngine
 import com.example.kpkn.domain.auge.AugeTtcEngine
 import com.example.kpkn.domain.auge.AugeUtils
+import com.example.kpkn.domain.auge.AxialLoadMonitor
+import com.example.kpkn.domain.auge.LoadAdvisoryEngine
 import com.example.kpkn.domain.auge.MuscularSessionImpactEngine
 import com.example.kpkn.domain.auge.PerformanceTauInput
 import com.example.kpkn.domain.auge.PerformanceTauLearner
 import com.example.kpkn.domain.auge.PerformanceTauManualTouches
+import com.example.kpkn.domain.auge.RecoveryBands
+import com.example.kpkn.domain.auge.SystemicLoadMonitor
 import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
 import com.example.kpkn.domain.auge.remapMuscleMultiplierMapToPillars
 import com.example.kpkn.domain.auge.toAugeAdaptiveMuscleKey
@@ -243,7 +247,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 articularBatteries = articular,
                 wellbeing = wellbeingNormalized,
                 sleepLogs = sleepLogs,
-                recentSessionCount = history.size,
+                recentSessionCount = AugeRecoveryEngine.recentSessionCount(history),
             )
             val verdict = AugeRecoveryEngine.calculateDailyReadiness(dashboard, wellbeingNormalized)
             
@@ -263,16 +267,50 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             Sextuple(bat, muscles, dashboard, verdict, articular, cumFatigue)
         }
 
-        val readinessScore = readiness?.score ?: dashboard.overallScore
-        val shouldSuggestAutoDeload = AugeFatigueEngine.shouldSuggestAutoDeload(
-            cumulativeFatigue = cumulativeFatigue,
-            readinessScore = readinessScore,
+        val nowMs = System.currentTimeMillis()
+        val axial = AxialLoadMonitor.evaluate(history, exerciseDb, nowMs)
+        val systemic = SystemicLoadMonitor.evaluate(
+            history = history,
+            exerciseDb = exerciseDb,
             settings = settings,
+            adaptiveCache = adaptiveCache,
+            nowMs = nowMs,
         )
-        val autoDeloadMessage = if (shouldSuggestAutoDeload) {
-            "Fatiga alta detectada: considera una semana de descarga para recuperar mejor."
-        } else {
-            null
+        val advisoryResult = LoadAdvisoryEngine.evaluate(
+            axial = axial,
+            systemic = systemic,
+            cache = adaptiveCache,
+            nowMs = nowMs,
+        )
+        if (advisoryResult.cache.lastAdvisoryDay != adaptiveCache.lastAdvisoryDay ||
+            advisoryResult.cache.lastAdvisoryLevelByChannel != adaptiveCache.lastAdvisoryLevelByChannel
+        ) {
+            augeRepo.saveAdaptiveCache(advisoryResult.cache)
+        }
+        val actionable = advisoryResult.advisories.filter {
+            LoadAdvisoryEngine.rank(it.level) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.ADJUST)
+        }
+        val shouldSuggestAutoDeload = actionable.isNotEmpty()
+        val autoDeloadMessage = actionable.firstOrNull()?.body
+        val snapshots = history
+            .sortedBy { AugeUtils.logDateMs(it) }
+            .mapNotNull { it.ringStartSnapshot }
+        val hoursToNormal = mapOf(
+            RecoveryChannelId.MUSCULAR to muscularHoursToNormal(batteries.muscular, perMuscle),
+            RecoveryChannelId.SYSTEM to RecoveryBands.hoursUntilNormal(
+                batteries.cnc,
+                adaptiveCache.cnsRecoveryHours ?: 36.0,
+            ),
+            RecoveryChannelId.STRUCTURE to RecoveryBands.hoursUntilNormal(
+                dashboard.channelScore(RecoveryChannelId.STRUCTURE, batteries.spinal),
+                adaptiveCache.spinalRecoveryHours ?: 52.0,
+            ),
+        )
+        val personalBaseline = RecoveryChannelId.entries.mapNotNull { channel ->
+            AxialLoadMonitor.personalBaseline(snapshots, channel)?.let { channel to it }
+        }.toMap()
+        val sparkline = RecoveryChannelId.entries.associateWith { channel ->
+            AxialLoadMonitor.sparkline(snapshots, channel)
         }
         if (generation != recomputeGeneration.get()) return
         _snapshot.value = _snapshot.value.copy(
@@ -285,6 +323,11 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             cumulativeFatigue = cumulativeFatigue,
             autoDeloadMessage = autoDeloadMessage,
             isLoading = false,
+            advisories = advisoryResult.advisories,
+            hoursToNormal = hoursToNormal,
+            personalBaseline = personalBaseline,
+            sparkline = sparkline,
+            showModelUpdateNotice = !adaptiveCache.modelUpdateNoticeShown,
         )
         KpknDiagnosticLogger.event(
             namespace = "auge",
@@ -345,8 +388,8 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             // Finish-near-zero hours is rejected inside learnFromManualAdjustment.
             if (hasManualOverrides) {
                 val snapshot = _snapshot.value
-                val predictedNeural = snapshot.ringScore(RecoveryChannelId.SYSTEM)
-                val predictedSpinal = snapshot.ringScore(RecoveryChannelId.STRUCTURE)
+                val predictedNeural = snapshot.batteries.cnc
+                val predictedSpinal = snapshot.batteries.spinal
                 val predictedMuscles = snapshot.perMuscle.mapValues { (_, v) -> v.recoveryScore }
                 learnFromManualAdjustment(
                     manualNeural = anchoredLog.manualNeuralBattery?.takeIf { it != predictedNeural },
@@ -547,6 +590,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             }
             // Do not invent a global muscular override from a simple average of per-muscle
             // values — that freezes the muscular ring and diverges from the engine formula.
+            val invertedSpinal = spinal?.let { invertDisplayedStructure(it) }
             val updated = DailyWellbeingLog(
                 id = base?.id ?: UUID.randomUUID().toString(),
                 date = LocalDate.now().toString(),
@@ -560,7 +604,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 studyIntensity = base?.studyIntensity,
                 manualMuscularBattery = muscular?.coerceIn(0, 100) ?: base?.manualMuscularBattery,
                 manualNeuralBattery = neural?.coerceIn(0, 100) ?: base?.manualNeuralBattery,
-                manualSpinalBattery = spinal?.coerceIn(0, 100) ?: base?.manualSpinalBattery,
+                manualSpinalBattery = invertedSpinal?.coerceIn(0, 100) ?: base?.manualSpinalBattery,
                 // New writes use V2 per-muscle anchors. Keep legacy V1 only when
                 // this call did not touch a muscle, for backwards compatibility.
                 manualMuscleBatteries = if (touchedMuscles) emptyMap() else existingPillarMuscles,
@@ -594,7 +638,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
             learnFromManualAdjustment(
                 manualNeural = neural,
-                manualSpinal = spinal,
+                manualSpinal = invertedSpinal,
                 manualMuscleBatteries = canonicalDelta,
                 sessionCnsDrain = sessionCnsDrain,
                 sessionSpinalDrain = sessionSpinalDrain,
@@ -676,7 +720,13 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             null
         }
 
-        val spinalObs = if (manualSpinal != null && predictedSpinalBattery != null && spinalStress != null && spinalStress > 0.0) {
+        val spinalObs = if (
+            manualSpinal != null &&
+            predictedSpinalBattery != null &&
+            spinalStress != null &&
+            spinalStress > 0.0 &&
+            PerformanceTauLearner.sessionHasAxialStimulus(lastSession.completedExercises, exerciseDb)
+        ) {
             RecoveryLearningObservation(
                 muscle = "spinal",
                 predictedBattery = predictedSpinalBattery,
@@ -897,11 +947,11 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             articularBatteries = articular,
             wellbeing = wellbeing,
             sleepLogs = sleepLogs,
-            recentSessionCount = historyWithout.size,
+            recentSessionCount = AugeRecoveryEngine.recentSessionCount(historyWithout),
         )
         return StartPrediction(
             energy = dashboard.channelScore(RecoveryChannelId.SYSTEM, batteries.cnc),
-            structure = dashboard.channelScore(RecoveryChannelId.STRUCTURE, batteries.spinal),
+            structure = batteries.spinal,
             muscles = muscles.mapValues { it.value.recoveryScore },
         )
     }
@@ -949,6 +999,55 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             ?: cache.personalizedRecoveryHours.entries.firstOrNull {
                 toAugeAdaptiveMuscleKey(it.key) == toAugeAdaptiveMuscleKey(channel)
             }?.value
+    }
+
+    fun invertDisplayedStructure(
+        desiredBlended: Int,
+        perMuscle: Map<String, MuscleRecoveryStatus> = _snapshot.value.perMuscle,
+        articular: Map<ArticularBattery, ArticularBatteryState> = _snapshot.value.articular,
+    ): Int {
+        val (artFloor, guard) = AugeRecoveryEngine.structureInputs(perMuscle, articular)
+        return AugeRecoveryEngine.invertStructureRingScore(desiredBlended, artFloor, guard)
+    }
+
+    fun dismissAdvisory(id: String) {
+        viewModelScope.launch {
+            augeWriteMutex.lock()
+            try {
+                val cache = augeRepo.getAdaptiveCache()
+                augeRepo.saveAdaptiveCache(
+                    cache.copy(dismissedAdvisoryKeys = cache.dismissedAdvisoryKeys + id),
+                )
+                recompute(programRepo.history.value, programRepo.settings.value)
+            } finally {
+                augeWriteMutex.unlock()
+            }
+        }
+    }
+
+    fun markModelUpdateNoticeShown() {
+        viewModelScope.launch {
+            augeWriteMutex.lock()
+            try {
+                val cache = augeRepo.getAdaptiveCache()
+                if (!cache.modelUpdateNoticeShown) {
+                    augeRepo.saveAdaptiveCache(cache.copy(modelUpdateNoticeShown = true))
+                }
+            } finally {
+                augeWriteMutex.unlock()
+            }
+        }
+    }
+
+    private fun muscularHoursToNormal(
+        muscularScore: Int,
+        perMuscle: Map<String, MuscleRecoveryStatus>,
+    ): Int? {
+        if (muscularScore >= RecoveryBands.NORMAL_MIN) return 0
+        return perMuscle.values
+            .filter { it.recoveryScore < RecoveryBands.NORMAL_MIN }
+            .minOfOrNull { it.hoursToRecovery }
+            ?: RecoveryBands.hoursUntilNormal(muscularScore, 48.0)
     }
 
     private fun lastSessionDrainOrNull(log: WorkoutLog): PredictedDrain? {

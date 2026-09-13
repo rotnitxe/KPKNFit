@@ -92,7 +92,7 @@ class AugeRingDrainRealismTest {
         // POST-FIX: tras pecho intenso (8 sets RPE8-8.5) debe drenar de forma visible
         // Recalibración 2026-08-17: floor 260 (antes 500) + clamp 120.
         // Simulación: stress ~47pp → battery 81 inmediato (drena ~19pts), realista sin caer a 0.
-        println("[PIN] chestHard immediate Pectorales=${battery.recoveryScore} (expected 78-86 post-fix)")
+        println("[PIN] chestHard immediate Pectorales=${battery.recoveryScore} (expected 78-86 post ×10 capacity)")
         assertTrue(
             "Pectorales tras pecho intenso debe estar en 78..86 (drenaje realista), fue ${battery.recoveryScore}",
             battery.recoveryScore in 78..86,

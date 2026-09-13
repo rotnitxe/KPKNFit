@@ -9236,7 +9236,7 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.6,
+              "axialLoadFactor": 0.0,
               "benefits": [
                 "Con la barra H, el agarre neutro deja la muñeca tranquila y el trabajo del bíceps intacto.",
                 "El grosor del brazo se construye también aquí, no solo en los curls de palmas arriba."
@@ -9407,7 +9407,7 @@
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
-                  "axialLoadFactor": 0.6,
+                  "axialLoadFactor": 0.0,
                   "cnc": 1.6,
                   "efc": 2.0,
                   "ssc": 0.1,
@@ -9510,7 +9510,7 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.6,
+              "axialLoadFactor": 0.0,
               "benefits": [
                 "El bíceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                 "El grosor del brazo se construye también aquí, no solo en los curls de palmas arriba."
@@ -9681,7 +9681,7 @@
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
-                  "axialLoadFactor": 0.6,
+                  "axialLoadFactor": 0.0,
                   "cnc": 1.6,
                   "efc": 2.0,
                   "ssc": 0.1,
@@ -9784,7 +9784,7 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.6,
+              "axialLoadFactor": 0.0,
               "benefits": [
                 "Con la polea, la tensión sobre el bíceps se mantiene viva de principio a fin.",
                 "El grosor del brazo se construye también aquí, no solo en los curls de palmas arriba."
@@ -9955,7 +9955,7 @@
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
-                  "axialLoadFactor": 0.6,
+                  "axialLoadFactor": 0.0,
                   "cnc": 1.6,
                   "efc": 2.0,
                   "ssc": 0.1,
@@ -10058,7 +10058,7 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.6,
+              "axialLoadFactor": 0.0,
               "benefits": [
                 "Con la banda, la resistencia crece a medida que avanza el trabajo del bíceps.",
                 "El grosor del brazo se construye también aquí, no solo en los curls de palmas arriba."
@@ -10229,7 +10229,7 @@
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
-                  "axialLoadFactor": 0.6,
+                  "axialLoadFactor": 0.0,
                   "cnc": 1.6,
                   "efc": 2.0,
                   "ssc": 0.1,
@@ -10332,7 +10332,7 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.6,
+              "axialLoadFactor": 0.0,
               "benefits": [
                 "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del bíceps.",
                 "El grosor del brazo se construye también aquí, no solo en los curls de palmas arriba."
@@ -10503,7 +10503,7 @@
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
-                  "axialLoadFactor": 0.6,
+                  "axialLoadFactor": 0.0,
                   "cnc": 1.6,
                   "efc": 2.0,
                   "ssc": 0.1,
@@ -10633,7 +10633,7 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.6,
+              "axialLoadFactor": 0.0,
               "benefits": [
                 "El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
                 "El equilibrador del brazo: antebrazos que combinan con unos buenos bíceps."
@@ -10804,7 +10804,7 @@
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
-                  "axialLoadFactor": 0.6,
+                  "axialLoadFactor": 0.0,
                   "cnc": 1.6,
                   "efc": 2.0,
                   "ssc": 0.1,
@@ -10906,7 +10906,7 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.6,
+              "axialLoadFactor": 0.0,
               "benefits": [
                 "Con la polea, la tensión sobre el antebrazo se mantiene viva de principio a fin.",
                 "El equilibrador del brazo: antebrazos que combinan con unos buenos bíceps."
@@ -11077,7 +11077,7 @@
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
-                  "axialLoadFactor": 0.6,
+                  "axialLoadFactor": 0.0,
                   "cnc": 1.6,
                   "efc": 2.0,
                   "ssc": 0.1,
@@ -11179,7 +11179,7 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.6,
+              "axialLoadFactor": 0.0,
               "benefits": [
                 "Con la banda, la resistencia crece a medida que avanza el trabajo del antebrazo.",
                 "El equilibrador del brazo: antebrazos que combinan con unos buenos bíceps."
@@ -11350,7 +11350,7 @@
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
-                  "axialLoadFactor": 0.6,
+                  "axialLoadFactor": 0.0,
                   "cnc": 1.6,
                   "efc": 2.0,
                   "ssc": 0.1,
@@ -11452,7 +11452,7 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.6,
+              "axialLoadFactor": 0.0,
               "benefits": [
                 "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del antebrazo.",
                 "El equilibrador del brazo: antebrazos que combinan con unos buenos bíceps."
@@ -11623,7 +11623,7 @@
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
-                  "axialLoadFactor": 0.6,
+                  "axialLoadFactor": 0.0,
                   "cnc": 1.6,
                   "efc": 2.0,
                   "ssc": 0.1,
