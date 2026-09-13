@@ -394,4 +394,22 @@ class UltraFastEngineTest {
         assertEquals(20, halved.roundRestBetweenExercises[0])
         assertEquals(50, halved.roundRestAfterSuperset[0])
     }
+
+    @Test
+    fun customSetCountsReachApply() {
+        val ex = exercise("ex1", "Curl polea baja", 4)
+        val idx = mapOf(
+            "curl polea baja" to info(
+                "curl polea baja",
+                "Curl polea baja",
+                equipment = "polea",
+                type = "Aislamiento",
+                primaryMuscles = listOf("Bíceps"),
+            ),
+        )
+        val session = Session(id = "s", name = "test", exercises = listOf(ex))
+        val result = UltraFastEngine.apply(session, idx, customSetCounts = mapOf("ex1" to 3))
+        assertEquals(3, result.transformedExercises.first().sets.size)
+        assertTrue(result.transformedExercises.first().sets.all { it.isRestPause })
+    }
 }

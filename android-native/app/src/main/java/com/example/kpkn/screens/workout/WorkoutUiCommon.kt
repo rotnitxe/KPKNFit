@@ -11,11 +11,9 @@ import kotlin.math.abs
 
 internal fun Double.toTrimmedNumberString(): String {
     val rounded = ((this * 10).toInt()) / 10.0
-    return if (rounded == rounded.toInt().toDouble()) {
-        rounded.toInt().toString()
-    } else {
-        rounded.toString()
-    }
+    val symbols = java.text.DecimalFormatSymbols(java.util.Locale("es", "CL"))
+    val pattern = if (rounded == rounded.toInt().toDouble()) "0" else "0.#"
+    return java.text.DecimalFormat(pattern, symbols).format(rounded)
 }
 
 internal fun formatSignedDelta(value: Double, suffix: String = ""): String {

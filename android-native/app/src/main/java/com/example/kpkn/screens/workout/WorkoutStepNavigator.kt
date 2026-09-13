@@ -100,7 +100,9 @@ class WorkoutStepNavigator(
             }
         }
 
-        return exercises.size to 0
+        val lastExerciseIdx = exercises.lastIndex.coerceAtLeast(0)
+        val lastSetIdx = exercises.getOrNull(lastExerciseIdx)?.sets?.lastIndex?.coerceAtLeast(0) ?: 0
+        return lastExerciseIdx to lastSetIdx
     }
 
     fun workoutStepPositions(state: WorkoutUiState): List<WorkoutStep> {
@@ -132,11 +134,13 @@ class WorkoutStepNavigator(
             includeCurrent -> currentStepIdx
             else -> currentStepIdx + 1
         }
-        val orderedCandidates = if (start <= 0) {
-            steps
+        val later = if (start <= 0) steps else steps.drop(start)
+        val wrap = if (start > 0 && state.voiceExerciseQueue.isNotEmpty()) {
+            steps.take(start.coerceAtMost(steps.size))
         } else {
-            steps.drop(start) + steps.take(start.coerceAtMost(steps.size))
+            emptyList()
         }
+        val orderedCandidates = later + wrap
         val queueOrder = state.voiceExerciseQueue.withIndex().associate { it.value to it.index }
         val prioritizedCandidates = if (queueOrder.isEmpty()) orderedCandidates else {
             orderedCandidates.sortedWith(
@@ -202,7 +206,7 @@ class WorkoutStepNavigator(
         val currentStep = steps.getOrNull(currentStepIdx) ?: return
         val groupId = currentStep.supersetGroupId ?: return
         val roundIndex = currentStep.supersetRoundIndex ?: return
-        val remainingRoundSteps = steps.drop(currentStepIdx + 1)
+        val remainingRoundSteps = steps.drop(currentStepIdx)
             .takeWhile { it.supersetGroupId == groupId && it.supersetRoundIndex == roundIndex }
             .filter { it.type == WorkoutStepType.WORKING_SET && it.setIndex != null }
         if (remainingRoundSteps.isEmpty()) return
@@ -727,8 +731,15 @@ class WorkoutStepNavigator(
                 val setIdx = step.setIndex ?: return true
                 val exercise = visible.firstOrNull { it.id == step.exerciseId } ?: return true
                 if (exercise.isEffectivelyUnilateral() && step.side != null) {
-                    return completedSets.containsKey(buildCompletedSetKey(exercise.id, setIdx, step.side))
+                    val thisSideDone = completedSets.containsKey(buildCompletedSetKey(exercise.id, setIdx, step.side))
+                    if (!thisSideDone) return false
+                    if (isStackedTechniqueStillOpen(exercise, setIdx, completedSets)) {
+                        val lastSide = WorkoutStepRules.workingSidesForSet(exercise, setIdx).lastOrNull()
+                        return step.side != lastSide
+                    }
+                    return true
                 }
+                if (isStackedTechniqueStillOpen(exercise, setIdx, completedSets)) return false
                 ports.isSetDone(completedSets, exercise.id, setIdx, exercise.isEffectivelyUnilateral())
             }
         }

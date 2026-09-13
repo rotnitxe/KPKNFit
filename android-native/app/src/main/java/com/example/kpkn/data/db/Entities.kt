@@ -13,7 +13,27 @@ import kotlinx.serialization.json.jsonPrimitive
 import java.time.Instant
 import java.text.Normalizer
 
-internal val dbJson = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+internal val dbJson = Json {
+    ignoreUnknownKeys = true
+    encodeDefaults = true
+    coerceInputValues = true
+}
+
+sealed class OngoingDecode {
+    data class Ok(val state: OngoingWorkoutState) : OngoingDecode()
+    data object Empty : OngoingDecode()
+    data class Corrupt(val raw: String, val cause: String) : OngoingDecode()
+}
+
+internal fun decodeOngoingWorkout(data: String?): OngoingDecode {
+    val raw = data?.trim().orEmpty()
+    if (raw.isEmpty() || raw == "{}") return OngoingDecode.Empty
+    return runCatching {
+        OngoingDecode.Ok(dbJson.decodeFromString<OngoingWorkoutState>(raw))
+    }.getOrElse { error ->
+        OngoingDecode.Corrupt(raw = raw, cause = error.message ?: error.javaClass.simpleName)
+    }
+}
 
 private fun normalizeSearch(value: String?): String {
     if (value.isNullOrBlank()) return ""
@@ -98,9 +118,9 @@ fun ActiveProgramEntity.toActiveProgramState(): ActiveProgramState = dbJson.deco
 @Entity(tableName = "ongoing_workout")
 data class OngoingWorkoutEntity(@PrimaryKey val rowId: Int = 1, val data: String?)
 fun OngoingWorkoutState.toEntity() = OngoingWorkoutEntity(data = dbJson.encodeToString(this))
-fun OngoingWorkoutEntity.toOngoingWorkoutState(): OngoingWorkoutState? = runCatching {
-    dbJson.decodeFromString<OngoingWorkoutState>(data ?: "{}")
-}.getOrNull()
+fun OngoingWorkoutEntity.toOngoingDecode(): OngoingDecode = decodeOngoingWorkout(data)
+fun OngoingWorkoutEntity.toOngoingWorkoutState(): OngoingWorkoutState? =
+    (toOngoingDecode() as? OngoingDecode.Ok)?.state
 
 @Entity(tableName = "workout_context_performance")
 data class WorkoutContextPerformanceEntity(@PrimaryKey val contextKey: String, val updatedAt: String, val data: String)
@@ -126,6 +146,39 @@ fun WorkoutContextProfile.toEntity() = WorkoutContextProfileEntity(
     data = dbJson.encodeToString(this),
 )
 fun WorkoutContextProfileEntity.toWorkoutContextProfile(): WorkoutContextProfile = dbJson.decodeFromString(data)
+
+@Entity(
+    tableName = "workout_tags",
+    indices = [Index("exerciseKey"), Index("normalizedName"), Index("lastUsedAt")],
+)
+data class WorkoutTagEntity(
+    @PrimaryKey val id: String,
+    val exerciseKey: String,
+    val normalizedName: String,
+    val lastUsedAt: String,
+    val data: String,
+)
+
+fun WorkoutTag.toEntity() = WorkoutTagEntity(
+    id = id,
+    exerciseKey = exerciseKey,
+    normalizedName = normalizedName.ifBlank {
+        com.example.kpkn.domain.workout.WorkoutTagResolver.normalizeName(name)
+    },
+    lastUsedAt = lastUsedAtIso,
+    data = dbJson.encodeToString(this),
+)
+
+fun WorkoutTagEntity.toWorkoutTag(): WorkoutTag = runCatching {
+    dbJson.decodeFromString<WorkoutTag>(data)
+}.getOrDefault(
+    WorkoutTag(
+        id = id,
+        exerciseKey = exerciseKey,
+        normalizedName = normalizedName,
+        lastUsedAtIso = lastUsedAt,
+    ),
+)
 
 @Entity(tableName = "workout_replacement_decisions")
 data class WorkoutReplacementDecisionEntity(@PrimaryKey val id: String, val programId: String, val sessionId: String, val createdAt: String, val data: String)
@@ -177,16 +230,11 @@ fun AugeAdaptiveCacheEntity.toAdaptiveCache(): com.example.kpkn.data.models.Auge
         }.getOrDefault(1)
         if (storedVersion < 2) {
             // v1 muscular τ/deltas/multipliers were learned from finish-sheet
-            // inversions (hoursSince≈0.5). Drop all three; keep CNS/spinal deltas.
-            decoded.copy(
-                muscleDeltas = emptyMap(),
-                muscleDrainMultipliers = emptyMap(),
-                personalizedRecoveryHours = emptyMap(),
-                schemaVersion = 2,
-            )
+            // inversions (hoursSince≈0.5). Drop all three; keep CNS/spinal until v3.
+            decoded
         } else {
-            decoded.copy(schemaVersion = maxOf(decoded.schemaVersion, 2))
-        }
+            decoded
+        }.let { com.example.kpkn.domain.auge.AugeAdaptiveCacheMigration.migrate(it, storedVersion) }
     }.getOrDefault(com.example.kpkn.data.models.AugeAdaptiveCache())
 
 @Entity(tableName = "nutrition_logs", indices = [Index("date")])
@@ -353,6 +401,8 @@ fun CustomFoodEntity.toFoodItem(): FoodItem {
     val decoded = dbJson.decodeFromString<FoodItem>(data)
     val aliases = decodeAliases(aliasesJson)
     return decoded.copy(
+        // The table, not an old optional JSON flag, establishes user provenance.
+        isCustom = decoded.isCustom || !decoded.isAiInferred,
         id = decoded.id.ifBlank { id },
         name = decoded.name.ifBlank { name },
         normalizedName = decoded.normalizedName ?: normalizedName,
@@ -481,6 +531,7 @@ fun GlobalFoodEntity.toFoodItem() = FoodItem(
     brand = brand,
     normalizedName = if (normalizedName.isBlank()) normalizeSearch(name) else normalizedName,
     normalizedBrand = normalizedBrand,
+    servingSize = if (nutritionBasis == "PER_SERVING") portionGrams?.takeIf { it.isFinite() && it > 0.0 } ?: 100.0 else 100.0,
     calories = calories,
     protein = protein,
     carbs = carbs,

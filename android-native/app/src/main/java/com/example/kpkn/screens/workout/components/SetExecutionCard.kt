@@ -988,10 +988,11 @@ internal fun SetInputCardV2(
     val initialSelectedSide = initialDraft?.selectedSide ?: lockedSide ?: "left"
     val draftWeightText = initialDraft?.weightText?.takeIf { it.isNotBlank() }
     val draftValueText = initialDraft?.valueText?.takeIf { it.isNotBlank() }
-    val initialTechniqueWeight = if (currentSet.isDropSet || currentSet.isRestPause) {
+    val volumeReplacedTechnique = currentSet.techniqueScope() == SetTechniqueScope.VOLUME_REPLACED
+    val initialTechniqueWeight = if (volumeReplacedTechnique) {
         (currentSet.weight?.takeIf { it > 0 } ?: suggestedWeightText?.toDoubleOrNull()?.takeIf { it > 0 })?.toTrimmedNumberString()
     } else null
-    val initialTechniqueValue = if ((currentSet.isDropSet || currentSet.isRestPause) && (resolvedPlannedUnitMode == UnitModeV2.REPS)) "3" else null
+    val initialTechniqueValue = if (volumeReplacedTechnique && (resolvedPlannedUnitMode == UnitModeV2.REPS)) "3" else null
 
     var weightText by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
         mutableStateOf(draftWeightText ?: completedWeightText ?: initialTechniqueWeight ?: "")
@@ -1143,8 +1144,7 @@ internal fun SetInputCardV2(
                 sessionCompletedSet?.isFailure == true ||
                     currentSet.isFailure ||
                     currentSet.intensityMode == IntensityMode.FAILURE ||
-                    currentSet.isDropSet ||
-                    currentSet.isRestPause
+                    volumeReplacedTechnique
             )
         )
     }
@@ -1155,9 +1155,10 @@ internal fun SetInputCardV2(
         currentSet.targetReps,
         currentSet.isFailure,
         sessionCompletedSet?.id,
+        volumeReplacedTechnique,
     ) {
         if (sessionCompletedSet != null) return@LaunchedEffect
-        if (!currentSet.isDropSet && !currentSet.isRestPause) return@LaunchedEffect
+        if (!volumeReplacedTechnique) return@LaunchedEffect
         reachedFailure = true
         if (resolvedPlannedUnitMode == UnitModeV2.REPS) {
             updateActiveValueText("3")
@@ -1673,6 +1674,14 @@ internal fun SetInputCardV2(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
             val activeGuidedPhase = guidedPhase
+            if (currentSet.plannedIntensityTechniques.any { it.type == TechniqueType.CLUSTER_SET }) {
+                Text(
+                    "Cluster set: próximamente",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White.copy(alpha = 0.7f),
+                )
+            }
             if (activeGuidedPhase != null) {
                 GuidedTechniquePanel(
                     phase = activeGuidedPhase,
@@ -1805,6 +1814,7 @@ internal fun SetInputCardV2(
                                 previousSessionFirstSetWeight = thisSessionPreviousWorkingWeight?.takeIf { it > 0.0 }
                                     ?: previousSessionFirstSetWeight,
                                 loadIncrementKg = quickLoadIncrementFor(exercise, currentSet),
+                                previousSessionTagLabel = activeTag,
                             ),
                             onChipSelected = { option ->
                                 loadMode = loadModeAfterChipSelection(option)
@@ -2732,9 +2742,9 @@ internal fun SetInputCardV2(
                     }
                 }
             }
-            DisposableEffect(isActivePage, exercise.id, setIndex, selectedSide) {
+            DisposableEffect(isActivePage) {
                 onDispose {
-                    if (isActivePage) {
+                    if (!isActivePage) {
                         recordActionHolder.action = null
                     }
                 }

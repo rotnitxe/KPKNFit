@@ -97,6 +97,7 @@ import com.example.kpkn.screens.sessioneditor.SessionEditorScreen
 import com.example.kpkn.screens.settings.SettingsScreen
 import com.example.kpkn.screens.workout.WorkoutScreen
 
+import com.example.kpkn.services.workout.ActiveWorkoutHolder
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import com.example.kpkn.telemetry.TelemetryHelper
 import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
@@ -280,6 +281,7 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             runCatching {
                 withTimeoutOrNull(1500L) {
+                    ActiveWorkoutHolder.get()?.flushOngoingForBackgroundAndAwait()
                     ProgramRepository.getInstance().flushPendingWrites()
                 }
             }.onFailure { logKpknError("MainActivity", "Error flushing pending writes on stop", it) }
@@ -1430,6 +1432,12 @@ private fun KPKNNavGraph(
                 catalogResult = catalogResult,
                 onCatalogResultConsumed = {
                     backStack.savedStateHandle.remove<String>(CatalogSavedStateKeys.RESULT)
+                },
+                onOpenExistingWorkout = { existingProgramId, existingSessionId ->
+                    navController.navigate(KpknRoute.Workout.create(existingProgramId, existingSessionId)) {
+                        popUpTo(KpknRoute.Workout.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 },
             )
         }

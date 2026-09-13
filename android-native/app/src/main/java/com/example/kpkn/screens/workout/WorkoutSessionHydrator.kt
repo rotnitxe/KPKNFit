@@ -10,13 +10,16 @@ import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutContextProfile
 import com.example.kpkn.data.models.WorkoutHeaderWidgets
+import com.example.kpkn.data.models.WorkoutTag
 import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.data.models.normalizeMobilityCompatibility
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.repository.StartWorkoutResult
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.workout.WorkoutContextRecurrenceEngine
+import com.example.kpkn.domain.workout.WorkoutTagResolver
 import com.example.kpkn.services.workout.ActiveWorkoutHolder
 
 /**
@@ -43,6 +46,11 @@ class WorkoutSessionHydrator(
             profiles: Map<String, WorkoutContextProfile>,
             exerciseKey: String,
         ): List<com.example.kpkn.data.models.WorkoutTag>
+        fun mergeDurableTags(
+            exerciseKey: String,
+            resumed: List<com.example.kpkn.data.models.WorkoutTag>,
+            profiles: Map<String, WorkoutContextProfile>,
+        ): List<com.example.kpkn.data.models.WorkoutTag>
         fun resolveResumePosition(
             exercises: List<Exercise>,
             completedSets: Map<String, com.example.kpkn.data.models.CompletedSet>,
@@ -65,6 +73,7 @@ class WorkoutSessionHydrator(
         fun workoutWidgetsSessionKey(): String
         fun bindActiveWorkoutHolder()
         fun restAlertCapability(soundsEnabled: Boolean): RestAlertCapability
+        fun openFinishSheet()
     }
 
     data class RestAlertCapability(
@@ -106,9 +115,21 @@ class WorkoutSessionHydrator(
             }
         }
 
+        val sessionMissingFromProgram = foundSession == null
+        val snapshotForThis = snapshotMatchesLiveSession(
+            repository.ongoingWorkout.value,
+            programId,
+            sessionId,
+        )
+        if (foundSession == null) {
+            val snap = snapshotForThis ?: return false
+            foundSession = snap.session
+            if (foundWeekId.isBlank()) foundWeekId = snap.weekId.orEmpty()
+            foundMacroIdx = snap.macroIndex ?: 0
+            foundMesoIdx = snap.mesoIndex ?: 0
+        }
         val session = foundSession ?: return false
-        val resumedState = repository.ongoingWorkout.value
-            ?.takeIf { it.programId == programId && it.session.id == sessionId }
+        val resumedState = snapshotForThis
         val priorSessionLog = if (resumedState == null) {
             repository.getLogsForSession(sessionId)
                 .filter { it.programId == programId }
@@ -166,42 +187,30 @@ class WorkoutSessionHydrator(
             resumedState = resumedState,
         )
         val restoredActiveProfiles = hydratedProfiles.second.toMutableMap()
-        val restoredTags = (resumedState?.exerciseTags ?: emptyMap()).toMutableMap().apply {
-            hydratedProfiles.second.forEach { (exerciseId, profileId) ->
-                val profileTag = hydratedProfiles.first[profileId]?.legacyTagName() ?: return@forEach
-                putIfAbsent(exerciseId, profileTag)
-            }
-        }
-        val restoredActiveTags = if (resumedState != null) {
-            resumedState.activeTags.takeIf { it.isNotEmpty() }?.toMutableMap()
-                ?: buildMap {
-                    restoredTags.forEach { (exId, tagName) ->
-                        put(exId, listOf(tagName))
-                    }
-                }.toMutableMap()
-        } else {
-            mutableMapOf<String, List<String>>()
-        }
+        val restoredTags = (resumedState?.exerciseTags ?: emptyMap()).toMutableMap()
         val restoredActiveSubTags = resumedState?.activeSubTags?.toMutableMap() ?: mutableMapOf()
         val restoredUserCreatedTags = resumedState?.userCreatedTags?.toMutableMap() ?: mutableMapOf()
 
         exercisesForMode.forEach { exercise ->
             val exKey = ports.canonicalExerciseKey(exercise)
-            val migrated = ports.migrateContextProfilesToTags(hydratedProfiles.first, exKey)
-            if (migrated.isNotEmpty()) {
-                val existing = restoredUserCreatedTags[exKey].orEmpty()
-                val merged = buildList {
-                    addAll(existing)
-                    migrated.forEach { migratedTag ->
-                        if (existing.none { existingTag ->
-                                existingTag.id == migratedTag.id ||
-                                    existingTag.name.equals(migratedTag.name, ignoreCase = true)
-                            }) {
-                            add(migratedTag)
-                        }
+            val merged = ports.mergeDurableTags(exKey, restoredUserCreatedTags[exKey].orEmpty(), hydratedProfiles.first)
+            restoredUserCreatedTags[exKey] = merged
+        }
+
+        val restoredActiveTags = mutableMapOf<String, List<String>>()
+        if (resumedState != null) {
+            val rawActive = resumedState.activeTags
+            if (rawActive.isNotEmpty()) {
+                rawActive.forEach { (exId, tokens) ->
+                    val resolved = tokens.mapNotNull { token -> resolveStoredTagId(exId, token, restoredUserCreatedTags, exercisesForMode) }
+                    if (resolved.isNotEmpty()) restoredActiveTags[exId] = listOf(resolved.first())
+                }
+            } else {
+                restoredTags.forEach { (exId, tagName) ->
+                    resolveStoredTagId(exId, tagName, restoredUserCreatedTags, exercisesForMode)?.let { id ->
+                        restoredActiveTags[exId] = listOf(id)
                     }
                 }
-                restoredUserCreatedTags[exKey] = merged
             }
         }
 
@@ -209,20 +218,44 @@ class WorkoutSessionHydrator(
             val historicalLogs = repository.history.value
             val dayOfWeek = java.time.LocalDate.now().dayOfWeek
             for (exercise in exercisesForMode) {
-                val exerciseDbId = ports.canonicalExerciseKey(exercise)
-                val recurrence = WorkoutContextRecurrenceEngine.detectDayRecurrence(
-                    exerciseDbId = exerciseDbId,
-                    dayOfWeek = dayOfWeek,
-                    logs = historicalLogs,
-                )
-                if (recurrence.confidence >= 2) {
-                    if (recurrence.tagId != null) {
-                        restoredTags.putIfAbsent(exercise.id, recurrence.tagId)
+                val exKey = ports.canonicalExerciseKey(exercise)
+                val tags = restoredUserCreatedTags[exKey].orEmpty()
+                val keys = identityKeysForExercise(exercise)
+                val observations = historicalLogs.map { log ->
+                    val completed = log.completedExercises.firstOrNull { item ->
+                        identityKeysOverlap(identityKeysForCompleted(item), keys)
                     }
-                    if (recurrence.profileId != null && hydratedProfiles.first.containsKey(recurrence.profileId)) {
-                        restoredActiveProfiles[exercise.id] = recurrence.profileId
+                    val tagId = completed?.let { item ->
+                        WorkoutTagResolver.resolvedTagIdFromLog(log, item, tags)
                     }
+                    val setupId = completed?.sets?.firstNotNullOfOrNull { it.setupProfileId }
+                    WorkoutContextRecurrenceEngine.RecurrenceObservation(
+                        dateIso = log.date,
+                        tagId = tagId,
+                        profileId = setupId,
+                    )
                 }
+                val recurrence = WorkoutContextRecurrenceEngine.detectDayRecurrence(dayOfWeek, observations)
+                val chosen = when {
+                    recurrence.confidence >= 2 && recurrence.tagId != null ->
+                        WorkoutTagResolver.resolveTag(recurrence.tagId, tags)
+                    else -> tags.maxByOrNull { it.lastUsedAtIso.ifBlank { it.createdAtIso } }
+                }
+                if (chosen != null) {
+                    restoredActiveTags[exercise.id] = listOf(chosen.id)
+                    restoredTags[exercise.id] = chosen.name
+                }
+                if (recurrence.confidence >= 2 &&
+                    recurrence.profileId != null &&
+                    hydratedProfiles.first.containsKey(recurrence.profileId)
+                ) {
+                    restoredActiveProfiles[exercise.id] = recurrence.profileId!!
+                }
+            }
+        } else {
+            hydratedProfiles.second.forEach { (exerciseId, profileId) ->
+                val profileTag = hydratedProfiles.first[profileId]?.legacyTagName() ?: return@forEach
+                restoredTags.putIfAbsent(exerciseId, profileTag)
             }
         }
         val resumeProbe = WorkoutUiState(
@@ -343,6 +376,17 @@ class WorkoutSessionHydrator(
                 voiceTimedSet = resumedState?.voiceTimedSet?.copy(isRunning = false),
                 voiceExerciseQueue = resumedState?.voiceExerciseQueue.orEmpty(),
                 voicePendingFeedbackExerciseIds = resumedState?.voicePendingFeedbackExerciseIds.orEmpty(),
+                postExerciseFeedbackByExerciseId = resumedState?.postExerciseFeedbackByExerciseId.orEmpty(),
+                planDeviations = resumedState?.planDeviations.orEmpty(),
+                showFinishSheet = resumedState?.showFinishSheet == true,
+                finishResumeSnapshot = resumedState?.finishResumeSnapshot,
+                godModeUndoStack = resumedState?.godModeUndoStack.orEmpty(),
+                pendingVolumeAdvances = resumedState?.pendingVolumeAdvances.orEmpty(),
+                showVolumeAdvanceModal = resumedState?.showVolumeAdvanceModal == true,
+                volumeAdvanceHandled = resumedState?.volumeAdvanceHandled == true,
+                archivedCompletedExercises = resumedState?.archivedCompletedExercises.orEmpty(),
+                logAlreadyWrittenId = resumedState?.logAlreadyWrittenId,
+                sessionMissingFromProgram = sessionMissingFromProgram,
             )
         }
 
@@ -375,10 +419,23 @@ class WorkoutSessionHydrator(
                 state.copy(activeStepKey = ports.nextIncompleteStepAfter(state, includeCurrent = true)?.stepKey)
             }
         }
+        val hydrated = getState()
+        when {
+            hydrated.showVolumeAdvanceModal && hydrated.pendingVolumeAdvances.isNotEmpty() -> Unit
+            hydrated.showFinishSheet || hydrated.finishResumeSnapshot != null -> {
+                ports.openFinishSheet()
+            }
+            resumedState != null &&
+                hydrated.logAlreadyWrittenId.isNullOrBlank() &&
+                ports.firstIncompleteStep(hydrated) == null -> {
+                ports.openFinishSheet()
+            }
+        }
 
+        var persistBlocked = false
         if (resumedState == null) {
             val initialExercise = exercisesForMode.firstOrNull()
-            repository.startWorkout(
+            val startResult = repository.startWorkout(
                 OngoingWorkoutState(
                     programId = programId,
                     session = restoredSession.normalizedIdentityFields(),
@@ -421,8 +478,21 @@ class WorkoutSessionHydrator(
                     sessionChecklist = getState().sessionChecklist,
                 )
             )
+            when (startResult) {
+                StartWorkoutResult.Started -> Unit
+                is StartWorkoutResult.Conflict -> {
+                    persistBlocked = true
+                    updateState { it.copy(pendingOngoingConflict = startResult.existing) }
+                }
+                StartWorkoutResult.Corrupt -> {
+                    persistBlocked = true
+                    updateState { it.copy(pendingOngoingCorrupt = true) }
+                }
+            }
         }
-        ports.bindActiveWorkoutHolder()
+        if (!persistBlocked) {
+            ports.bindActiveWorkoutHolder()
+        }
         val ema = AugeFatigueEngine.calculateMesocycleStressEMA(
             logs = repository.history.value,
             programId = programId,
@@ -447,7 +517,7 @@ class WorkoutSessionHydrator(
             targetDurationMinutes = getState().targetDurationMinutes,
             sessionTargetDurationMinutes = restoredSession.targetDurationMinutes,
         )
-        if (targetMinutes != null) {
+        if (!persistBlocked && targetMinutes != null) {
             val elapsedSeconds = ((System.currentTimeMillis() - restoredStartTime) / 1000L).coerceAtLeast(0)
             val remainingSeconds = ((targetMinutes * 60) - elapsedSeconds).toInt()
             ports.startSessionTimer(remainingSeconds)
@@ -478,4 +548,35 @@ class WorkoutSessionHydrator(
         }
         return ProgramProgressEngine.instanceIdFor(cycle, templateWeekId)
     }
+
+    private fun resolveStoredTagId(
+        exerciseId: String,
+        token: String?,
+        tagsByKey: Map<String, List<WorkoutTag>>,
+        exercises: List<Exercise>,
+    ): String? {
+        if (token.isNullOrBlank()) return null
+        val exercise = exercises.firstOrNull { it.id == exerciseId } ?: return null
+        val exKey = ports.canonicalExerciseKey(exercise)
+        val tags = tagsByKey[exKey].orEmpty()
+        return WorkoutTagResolver.resolveTag(token, tags)?.id
+    }
+}
+
+internal fun snapshotMatchesLiveSession(
+    snapshot: OngoingWorkoutState?,
+    programId: String,
+    sessionId: String,
+): OngoingWorkoutState? = snapshot?.takeIf { it.programId == programId && it.session.id == sessionId }
+
+internal fun resolveHydrationSession(
+    foundInProgram: Session?,
+    snapshot: OngoingWorkoutState?,
+    programId: String,
+    sessionId: String,
+): Pair<Session, Boolean>? {
+    val matching = snapshotMatchesLiveSession(snapshot, programId, sessionId)
+    if (foundInProgram != null) return foundInProgram to false
+    val snapSession = matching?.session ?: return null
+    return snapSession to true
 }

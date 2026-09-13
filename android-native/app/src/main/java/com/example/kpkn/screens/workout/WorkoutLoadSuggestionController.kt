@@ -711,12 +711,21 @@ class WorkoutLoadSuggestionController(
         }.filter { !it.completedSet.isWarmup }
 
         val taggedSets = if (activeTag.isNullOrBlank()) {
-            allSessionSets
+            allSessionSets.filter { snapshot ->
+                snapshot.completedSet.tagId.isNullOrBlank() && snapshot.completedSet.tagName.isNullOrBlank()
+            }
         } else {
-            allSessionSets.filter { snapshot -> snapshot.completedSet.tagId == activeTag }
+            allSessionSets.filter { snapshot ->
+                val set = snapshot.completedSet
+                val id = set.tagId?.trim().orEmpty()
+                val name = set.tagName?.trim().orEmpty()
+                id == activeTag ||
+                    id.equals(activeTag, ignoreCase = true) ||
+                    name.equals(activeTag, ignoreCase = true)
+            }
         }
 
-        return taggedSets.ifEmpty { allSessionSets }
+        return taggedSets
     }
 
     private fun plannedWorkingWeightForSet(

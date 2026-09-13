@@ -25,7 +25,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -111,11 +110,9 @@ class WorkoutVoiceForegroundService : Service() {
 
         override fun pause(generation: Long, releaseMic: Boolean): Boolean {
             if (generation != clientGeneration) return false
-            val acknowledged = runBlocking(Dispatchers.IO) {
-                engine.pauseAndAwait(releaseMic = releaseMic, timeoutMs = 1_500L)
-            }
+            engine.pause(releaseMic)
             if (releaseMic) releaseWakeLock()
-            return acknowledged
+            return true
         }
 
         override fun resume(generation: Long, delayMs: Long) {
@@ -139,7 +136,8 @@ class WorkoutVoiceForegroundService : Service() {
                 mapOf("origin" to "binder_stop") +
                     WorkoutVoiceDiagnosticLogger.runtimeStateFields(this@WorkoutVoiceForegroundService),
             )
-            return runBlocking(Dispatchers.IO) { engine.stopAndAwait(1_500L) }
+            engine.stop()
+            return true
         }
 
         override fun requestNativeFallback(generation: Long, transcript: String?): Boolean =

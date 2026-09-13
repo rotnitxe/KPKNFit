@@ -48,6 +48,8 @@ data class ProgramRunState(
     val oneRmResolution: OneRmResolution? = null,
     /** Append-only audit trail for recorded/skipped gate decisions. */
     val oneRmAuditTrail: List<OneRmResolution> = emptyList(),
+    /** Append-only trail of weekly AUGE proposals (applied or pending). */
+    val autoregulationAudit: List<AutoregulationAuditEntry> = emptyList(),
 )
 
 enum class ProgramRunStatus { ACTIVE, PAUSED, BREAK, COMPLETED }
@@ -70,6 +72,8 @@ data class PendingProgramAction(
     val type: PendingProgramActionType,
     val message: String,
     val nextBlockId: String? = null,
+    val proposals: List<AutoregulationProposal> = emptyList(),
+    val targetWeekId: String? = null,
 )
 
 @Serializable
@@ -78,7 +82,37 @@ enum class PendingProgramActionType {
     CONFIRM_1RM_TEST,
     /** AUGE proposed a generated deload; it is not active until accepted. */
     CONFIRM_DELOAD,
+    /** AUGE proposed weekly autoregulation; not applied until accepted. */
+    CONFIRM_AUTOREGULATION,
 }
+
+@Serializable
+enum class AutoregulationProposalKind {
+    ADJUST_TM,
+    SCALE_WEEK_INTENSITY,
+    SCALE_WEEK_VOLUME,
+    INSERT_DELOAD,
+    DELAY_PEAK,
+    PROMOTE_TM,
+    SWAP_TO_TECHNIQUE_VARIANT,
+}
+
+@Serializable
+data class AutoregulationProposal(
+    val kind: AutoregulationProposalKind,
+    val liftSlot: String? = null,
+    val percentDelta: Double? = null,
+    val volumeFactor: Double? = null,
+    val explanation: String,
+)
+
+@Serializable
+data class AutoregulationAuditEntry(
+    val atMs: Long,
+    val mode: AutoregulationMode,
+    val kinds: List<AutoregulationProposalKind>,
+    val weekId: String? = null,
+)
 
 /** Instancia concreta de una regla de loop con estado de ciclo. */
 @Serializable

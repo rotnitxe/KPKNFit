@@ -3,6 +3,7 @@ package com.example.kpkn.screens.workout
 import com.example.kpkn.data.models.*
 import com.example.kpkn.services.workout.VoiceSessionState
 import com.example.kpkn.screens.sessioneditor.CatalogSupersetConfig
+import kotlinx.serialization.Serializable
 
 /** Molestia repetida ≥N sesiones en el mismo ejercicio/patrón. */
 data class PersistentDiscomfortHit(
@@ -15,6 +16,9 @@ data class PendingReplacementPersistencePrompt(
     val replacement: ExerciseMuscleInfo,
     val sourceExerciseDbId: String,
     val sourceExerciseSlot: Int?,
+    val fromCatalogRevision: String? = null,
+    val fromCatalogDefinitionId: String? = null,
+    val fromCatalogConfigurationId: String? = null,
 )
 
 sealed class PendingStructuralChange {
@@ -36,6 +40,7 @@ sealed class PendingStructuralChange {
         val afterExerciseId: String?,
         val newExerciseIds: List<String>,
         val newExerciseNames: List<String>,
+        val newExerciseTemplates: List<Exercise> = emptyList(),
     ) : PendingStructuralChange()
     /** One logical persistence payload for a catalog-created live superserie. */
     data class AddSuperset(
@@ -78,6 +83,7 @@ sealed class PendingStructuralChange {
     ) : PendingStructuralChange()
 }
 
+@Serializable
 data class FinishResumeSnapshot(
     val exerciseId: String? = null,
     val setId: String? = null,
@@ -130,6 +136,7 @@ enum class PacingAlertMode {
     fun toStored(): String = name.lowercase()
 }
 
+@Serializable
 data class WorkoutEditingState(
     val setKey: String,
     val exerciseId: String,
@@ -206,6 +213,7 @@ data class WorkoutUiState(
     // V2 outcome del último set registrado — visible mientras el timer de descanso corre
     val lastSetOutcomeV2: SetOutcomeV2? = null,
     val lastHomologatedResultV3: HomologatedPerformanceResult? = null,
+    val lastDrainOverlay: ExerciseDrainOverlayState? = null,
     // Auto-regulación: ajuste dinámico del peso objetivo del siguiente set.
     val currentAutoRegulation: SetAutoRegulation? = null,
     // Mensaje contextual basado en fatiga y recuperación.
@@ -270,12 +278,18 @@ data class WorkoutUiState(
     val ultraFastPreview: com.example.kpkn.domain.sessionassistant.UltraFastPreview? = null,
     val ultraFastApplied: Boolean = false,
     val ultraFastSnapshot: Session? = null,
+    val ultraFastCompletedSetsSnapshot: Map<String, CompletedSet> = emptyMap(),
     val ultraFastSavedSeconds: Int = 0,
     val showUltraFastSheet: Boolean = false,
     val ultraFastManualOverrides: Map<String, Boolean> = emptyMap(),
     val seriesTypeTarget: SeriesTypeTarget? = null,
     val godModeUndoStack: List<GodModeUndoSnapshot> = emptyList(),
     val plannedSessionBaseline: Session? = null,
+    val pendingOngoingConflict: OngoingWorkoutState? = null,
+    val pendingOngoingCorrupt: Boolean = false,
+    val sessionMissingFromProgram: Boolean = false,
+    val logAlreadyWrittenId: String? = null,
+    val archivedCompletedExercises: List<CompletedExercise> = emptyList(),
 )
 
 data class SeriesTypeTarget(
@@ -285,6 +299,7 @@ data class SeriesTypeTarget(
     val selectedSetIndices: Set<Int> = emptySet(),
 )
 
+@Serializable
 data class GodModeUndoSnapshot(
     val label: String,
     val session: Session? = null,
@@ -293,6 +308,9 @@ data class GodModeUndoSnapshot(
     val currentExerciseIdx: Int = 0,
     val currentSetIdx: Int = 0,
     val activeStepKey: String? = null,
+    val completedSets: Map<String, CompletedSet> = emptyMap(),
+    val setDrafts: Map<String, WorkoutSetDraft> = emptyMap(),
+    val manualLoadOverrides: Map<String, Double> = emptyMap(),
 )
 
 fun godModeUndoStackAfterRevert(

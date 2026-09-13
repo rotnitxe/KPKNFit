@@ -298,10 +298,15 @@ internal fun WorkoutStructureSheetsHost(
                 req
             }
             state.showReplaceExercisePicker && state.replaceTargetExerciseId != null -> {
+                val replaceTarget = modeSession.allExercises()
+                    .firstOrNull { it.id == state.replaceTargetExerciseId }
                 val req = CatalogLaunchRequest(
                     origin = CatalogLaunchOrigin.REPLACEMENT,
                     selectionMode = CatalogSelectionMode.REPLACEMENT,
                     targetExerciseId = state.replaceTargetExerciseId,
+                    targetCatalogDefinitionId = replaceTarget?.catalogDefinitionId,
+                    targetCatalogConfigurationId = replaceTarget?.catalogConfigurationId
+                        ?: replaceTarget?.exerciseDbId,
                     initialQuery = state.replaceSearchQuery,
                 )
                 state.showReplaceExercisePicker = false
@@ -1417,7 +1422,7 @@ internal fun WorkoutStructureSheetsHost(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("¿Cómo quieres guardar este cambio?")
-                    options.forEach { scope ->
+                    options.filter { it != ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING }.forEach { scope ->
                         OutlinedButton(
                             onClick = {
                                 viewModel.commitPendingReplacementPersistence(scope)
@@ -1427,9 +1432,9 @@ internal fun WorkoutStructureSheetsHost(
                             Text(
                                 when (scope) {
                                     ReplacementPersistenceScopeV2.SESSION_ONLY -> "Solo esta vez"
-                                    ReplacementPersistenceScopeV2.PERMANENT -> "Guardar permanente"
-                                    ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> "Guardar en sesiones coincidentes del mesociclo"
+                                    ReplacementPersistenceScopeV2.PERMANENT -> "Reemplazar en todo el programa"
                                     ReplacementPersistenceScopeV2.BLOCK_MATCHING -> "Aplicar a todo el bloque"
+                                    ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> ""
                                 }
                             )
                         }
@@ -1504,7 +1509,7 @@ internal fun WorkoutStructureSheetsHost(
                             }
                         }
                     )
-                    options.forEach { scope ->
+                    options.filter { it != ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING }.forEach { scope ->
                         OutlinedButton(
                             onClick = {
                                 viewModel.commitStructuralPersistence(scope)
@@ -1514,9 +1519,9 @@ internal fun WorkoutStructureSheetsHost(
                             Text(
                                 when (scope) {
                                     ReplacementPersistenceScopeV2.SESSION_ONLY -> "Solo esta vez"
-                                    ReplacementPersistenceScopeV2.PERMANENT -> "Guardar permanente"
-                                    ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> "Guardar en sesiones coincidentes del mesociclo"
+                                    ReplacementPersistenceScopeV2.PERMANENT -> "Guardar en esta semana"
                                     ReplacementPersistenceScopeV2.BLOCK_MATCHING -> "Aplicar a todo el bloque"
+                                    ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING -> ""
                                 }
                             )
                         }

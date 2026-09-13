@@ -53,7 +53,7 @@ class WorkoutRestAlertManager(private val context: Context) {
         private const val KEY_LAST_AUDIO_FAILURE_AT = "last_audio_failure_at"
 
         private const val NOTIF_ID_ONGOING = 42041
-        private const val NOTIF_ID_FINISHED = 42042
+        private const val NOTIF_ID_FINISHED = 42045
         private const val REQUEST_CODE_ALARM = 42043
         private const val REQUEST_CODE_PREALERT = 42044
         private const val SHORT_SERVICE_SAFE_SECONDS = 170
@@ -134,7 +134,7 @@ class WorkoutRestAlertManager(private val context: Context) {
             cancelAlarm(REQUEST_CODE_ALARM)
             cancelAlarm(REQUEST_CODE_PREALERT)
         } else {
-            cancelRestAlerts()
+            cancelRestAlerts(cancelFinished = true)
         }
 
         val timerId = UUID.randomUUID().toString()
@@ -193,12 +193,14 @@ class WorkoutRestAlertManager(private val context: Context) {
         deliverCompletionAlert(sessionName, exerciseName)
     }
 
-    fun cancelRestAlerts() {
+    fun cancelRestAlerts(cancelFinished: Boolean = false) {
         WorkoutRestForegroundService.stop(appContext)
         cancelAlarm(REQUEST_CODE_ALARM)
         cancelAlarm(REQUEST_CODE_PREALERT)
         notificationManager.cancel(NOTIF_ID_ONGOING)
-        notificationManager.cancel(NOTIF_ID_FINISHED)
+        if (cancelFinished) {
+            notificationManager.cancel(NOTIF_ID_FINISHED)
+        }
         prefs.edit()
             .remove(KEY_TIMER_ID)
             .remove(KEY_SESSION_NAME)

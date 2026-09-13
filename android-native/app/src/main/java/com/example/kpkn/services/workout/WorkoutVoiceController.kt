@@ -143,6 +143,8 @@ class WorkoutVoiceController(
     var autoSuggestLoadsProvider: (() -> Boolean)? = null
     /** Ejercicios de la sesión visible: lista de (id, nombre). */
     var sessionExercisesProvider: (() -> List<Pair<String, String>>)? = null
+    /** Alias de usuario (nombre hablado) para inyectar en la gramática. */
+    var sessionExerciseAliasesProvider: (() -> Map<String, String>)? = null
 
     private var pendingUndo: VoiceUndoPayload? = null
     private var announcedTenSecondsForRest = false
@@ -188,6 +190,7 @@ class WorkoutVoiceController(
         voiceSetPersistenceInFlight = false
         val restAnnouncement = pendingRestAnnouncement?.spokenText()
         pendingRestAnnouncement = null
+        clearPendingConfirmation()
         _state.update { it.copy(errorMessage = null) }
         runSpeakingOrSkip(
             priority = WorkoutSpeechPriority.HIGH,
@@ -1127,6 +1130,11 @@ class WorkoutVoiceController(
                 }
                 updateStage(VoicePipelineStage.ERROR_RECOVERY)
                 onError?.invoke(error)
+                if (WorkoutVoiceModelFailedPolicy.isFatalEngineError(error)) {
+                    sessionWanted = false
+                    disable()
+                    return@collect
+                }
                 if (errors <= WorkoutVoiceSessionGate.MAX_CONSECUTIVE_ENGINE_ERRORS) {
                     delay(WorkoutVoiceSessionGate.engineErrorBackoffMs(errors))
                     if (sessionWanted && _state.value.stage == VoicePipelineStage.ERROR_RECOVERY) {
@@ -2812,8 +2820,10 @@ class WorkoutVoiceController(
             } else {
                 finalInterpretation
             }
+            pendingConfirmationExerciseId = exerciseInfo?.exercise?.id
+            pendingConfirmationSetIndex = exerciseInfo?.setIndex
+            pendingConfirmationSide = resolved.side
             confirmedOrCancelled = true
-            clearPendingConfirmation()
             dispatchPersistenceAfterPause(resolved)
             return
         }
@@ -3564,7 +3574,12 @@ class WorkoutVoiceController(
             isUnilateralSidePending = isUnilateralSidePending,
             completedSidesCount = completedSidesCount,
             pendingUnilateralSide = pendingUnilateralSide,
-            exerciseAliases = setOf(exercise.name),
+            exerciseAliases = voiceGrammarExerciseAliases(
+                currentName = exercise.name,
+                nextName = nextExerciseName,
+                sessionNames = sessionExercisesProvider?.invoke().orEmpty().map { it.second },
+                userAliases = sessionExerciseAliasesProvider?.invoke().orEmpty().values,
+            ),
             customIntensityPhrases = customPhrasesProvider?.invoke().orEmpty()
                 .mapNotNull { it.phrase.trim().takeIf(String::isNotBlank) },
         )

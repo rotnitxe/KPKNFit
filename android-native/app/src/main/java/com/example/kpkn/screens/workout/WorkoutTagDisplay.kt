@@ -1,16 +1,13 @@
 package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.WorkoutContextProfile
-import java.util.UUID
-
-private fun isInternalWorkoutTagId(value: String): Boolean =
-    runCatching { UUID.fromString(value) }.isSuccess
+import com.example.kpkn.domain.workout.WorkoutTagResolver
 
 internal fun workoutTagDisplayTitle(
     tagName: String?,
     machineBrand: String?,
 ): String {
-    val name = tagName?.trim().orEmpty().takeUnless(::isInternalWorkoutTagId).orEmpty()
+    val name = tagName?.trim().orEmpty().takeUnless(WorkoutTagResolver::isInternalId).orEmpty()
     val brand = machineBrand?.trim().orEmpty()
     return when {
         name.isBlank() -> brand
@@ -21,12 +18,8 @@ internal fun workoutTagDisplayTitle(
     }
 }
 
-internal fun WorkoutContextProfile.persistentTagName(): String? {
-    val setupName = setupLabel?.trim().takeIf { !it.isNullOrBlank() }
-    val brandName = machineBrand?.trim().takeIf { !it.isNullOrBlank() }
-    val legacyId = tagId?.trim().takeIf { !it.isNullOrBlank() && !isInternalWorkoutTagId(it) }
-    return setupName ?: brandName ?: legacyId
-}
+internal fun WorkoutContextProfile.persistentTagName(): String? =
+    WorkoutTagResolver.profilePersistentName(this)
 
 internal fun WorkoutContextProfile.tagDisplayTitle(): String =
     workoutTagDisplayTitle(persistentTagName(), machineBrand)

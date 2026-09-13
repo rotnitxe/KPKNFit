@@ -1579,6 +1579,19 @@ class WorkoutLiveRelatorTest {
         lastLiftedWeight = lastLifted,
     )
 
+    @Test
+    fun idleRestSpeaksBestTagProgressWhenHintExists() {
+        val snapshot = baseSnapshot(
+            phase = RelatorPhase.REST,
+            idleCycle = 1,
+        ).copy(tagProgressHint = RelatorTagProgressHint("Smith"))
+        assertEquals(RelatorSpeechBucket.TAG_BEST_PROGRESS, snapshot.speechBucket())
+        val text = WorkoutLiveRelator.resolve(snapshot).text
+        assertNotNull(text)
+        assertTrue(text!!.contains("Smith"))
+        assertTrue(text.contains("progres") || text.contains("rindiendo") || text.contains("curva"))
+    }
+
     private fun baseSnapshot(
         phase: RelatorPhase = RelatorPhase.WORKING,
         family: RelatorFamily = RelatorFamily.PRESS,

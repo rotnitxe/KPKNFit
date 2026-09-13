@@ -41,7 +41,7 @@ fun UltraFastPreviewSheet(
     visibleExercises: List<Exercise>,
     ultraFastManualOverrides: Map<String, Boolean>,
     onToggleOverride: (String) -> Unit,
-    onConfirm: () -> Unit,
+    onConfirm: (Map<String, Int>) -> Unit,
     onDismiss: () -> Unit,
 ) {
     if (preview == null) {
@@ -337,7 +337,7 @@ fun UltraFastPreviewSheet(
                     Text("Cancelar", color = Color.White)
                 }
                 Button(
-                    onClick = onConfirm,
+                    onClick = { onConfirm(customSetCounts) },
                     modifier = Modifier.weight(1f).height(44.dp),
                     enabled = totalSaved >= 0,
                     shape = RoundedCornerShape(12.dp),

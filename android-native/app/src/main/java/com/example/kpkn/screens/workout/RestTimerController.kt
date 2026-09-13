@@ -159,6 +159,16 @@ class RestTimerController private constructor(
         _recovery.value = null
     }
 
+    fun fireNaturalFinishIfIdleAtZero() {
+        if (_remaining.value > 0) return
+        if (timerJob?.isActive == true) return
+        val callback = lastOnNaturalFinish ?: return
+        val id = activeRestTimerId
+        scope.launch { callback(id) }
+    }
+
+    private var lastOnNaturalFinish: (suspend (String?) -> Unit)? = null
+
     fun scheduleAndTick(
         seconds: Int,
         endMs: Long,
@@ -186,6 +196,7 @@ class RestTimerController private constructor(
         _remaining.value = seconds
 
         val scheduledId = activeRestTimerId
+        lastOnNaturalFinish = onNaturalFinish
         timerJob = scope.launch {
             var lastElapsedSecond = -1
             var lastRemaining = _remaining.value

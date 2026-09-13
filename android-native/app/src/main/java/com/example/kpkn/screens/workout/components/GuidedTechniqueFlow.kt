@@ -112,12 +112,7 @@ internal fun suggestDropWeightForThreeReps(
     if (mainWeight <= 0.0) return 0.0
     val fromKg = mainWeight - DropSetPlanDefaults.DropKg * (dropIndex + 1)
     val pct = dropPcts.getOrNull(dropIndex)
-    val fromPct = if (pct != null && pct > -15.0) {
-        mainWeight * (1.0 + pct / 100.0)
-    } else {
-        fromKg
-    }
-    val candidate = min(fromKg, fromPct)
+    val candidate = (if (pct != null) mainWeight + pct else fromKg)
         .coerceAtMost(mainWeight - 0.5)
         .coerceAtLeast(0.5)
     return LoadSuggestionEngine.roundLoad(candidate)

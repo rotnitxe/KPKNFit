@@ -127,9 +127,7 @@ object SupersetRules {
             allCurrentExercises.find { it.id == id }?.let { member -> member.copy(
                 supersetGroupRef = groupId,
                 supersetId = groupId,
-                // Translate each exercise's existing rest into the member
-                // override instead of erasing it with one global value.
-                supersetRestBetween = member.supersetRestBetween ?: member.restTime ?: group.restBetweenExercises,
+                supersetRestBetween = member.supersetRestBetween ?: group.restBetweenExercises,
                 supersetRestAfter = member.supersetRestAfter ?: group.restAfterSuperset,
             ) }
         }

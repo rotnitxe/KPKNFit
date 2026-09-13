@@ -198,6 +198,7 @@ import com.example.kpkn.screens.sessioneditor.CatalogLaunchOrigin
 import com.example.kpkn.screens.sessioneditor.CatalogCommitAction
 import com.example.kpkn.screens.sessioneditor.CatalogLaunchRequest
 import com.example.kpkn.screens.sessioneditor.CatalogResult
+import com.example.kpkn.ui.components.KpknAlertDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -210,6 +211,7 @@ fun WorkoutScreen(
     onOpenCatalog: ((CatalogLaunchRequest) -> Unit)? = null,
     catalogResult: CatalogResult? = null,
     onCatalogResultConsumed: () -> Unit = {},
+    onOpenExistingWorkout: (programId: String, sessionId: String) -> Unit = { _, _ -> },
 ) {
     val augeViewModel = rememberAugeViewModel()
     val context = LocalContext.current
@@ -231,6 +233,8 @@ fun WorkoutScreen(
                 grants[Manifest.permission.RECORD_AUDIO] == true
             if (micOk) {
                 viewModel.enableVoice()
+            } else {
+                viewModel.showWorkoutToast(com.example.kpkn.services.workout.WorkoutVoiceModelFailedPolicy.MIC_PERMISSION_MESSAGE)
             }
         }
     )
@@ -276,7 +280,7 @@ fun WorkoutScreen(
     val restTimerRemaining by viewModel.restTimerRemaining.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
-    var showExitDialog by remember { mutableStateOf(false) }
+    var showExitDialog by rememberSaveable { mutableStateOf(false) }
     var roadmapMode by rememberSaveable(programId, sessionId) { mutableStateOf(RoadmapMode.COMPACT) }
     var roadmapSelecting by remember { mutableStateOf(false) }
     val chromeScale = LocalViewportAdapt.current.uniformScale
@@ -357,8 +361,16 @@ fun WorkoutScreen(
     DisposableEffect(lifecycleOwner, viewModel) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_PAUSE -> viewModel.onVoiceHostPaused()
-                Lifecycle.Event.ON_RESUME -> viewModel.onVoiceHostResumed()
+                Lifecycle.Event.ON_PAUSE -> {
+                    viewModel.onVoiceHostPaused()
+                    viewModel.flushOngoingForBackground()
+                    viewModel.notifyHostBackgrounded()
+                }
+                Lifecycle.Event.ON_STOP -> viewModel.flushOngoingForBackground()
+                Lifecycle.Event.ON_RESUME -> {
+                    viewModel.onVoiceHostResumed()
+                    viewModel.resumeHostTimers()
+                }
                 else -> Unit
             }
         }
@@ -392,7 +404,7 @@ fun WorkoutScreen(
                     onClick = onBack,
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White.copy(alpha = 0.8f)),
                 ) {
-                    Text("Volver")
+                    Text("Cancelar carga")
                 }
             }
         }
@@ -461,32 +473,18 @@ fun WorkoutScreen(
             ?: augeSnapshot.ringScore(RecoveryChannelId.MUSCULAR)).coerceIn(0, 100)
     }
 
-    val completedExercisesForSummary = remember(visibleExercises, uiState.completedSets) {
-        visibleExercises.map { exercise ->
-            val sets = exercise.sets.indices.flatMap { setIdx ->
-                listOfNotNull(
-                    uiState.completedSets["${exercise.id}_$setIdx"],
-                    uiState.completedSets["${exercise.id}_${setIdx}_L"],
-                    uiState.completedSets["${exercise.id}_${setIdx}_R"],
-                )
-            }
-            CompletedExercise(
-                exerciseId = exercise.id,
-                exerciseName = exerciseDisplayParts(exercise, workoutCatalogInfo(exercise)).text,
-                exerciseDbId = exercise.exerciseDbId ?: exercise.exerciseId,
-                catalogRevision = exercise.catalogRevision,
-                catalogDefinitionId = exercise.catalogDefinitionId,
-                catalogConfigurationId = exercise.catalogConfigurationId,
-                performanceProfileId = exercise.performanceProfileId,
-                occurrenceId = exercise.occurrenceId ?: exercise.id,
-                variantName = exercise.variantName,
-                selectedAspects = exercise.selectedAspects,
-                effectiveMuscles = exercise.effectiveMuscles,
-                restTime = exercise.restTime ?: 90,
-                supersetId = exercise.supersetGroupRefOrLegacyId(),
-                sets = sets,
-            )
-        }.filter { it.sets.isNotEmpty() }
+    val completedExercisesForSummary = remember(
+        modeSession,
+        uiState.completedSets,
+        uiState.skippedExerciseIds,
+        uiState.archivedCompletedExercises,
+    ) {
+        uiState.archivedCompletedExercises + toCompletedExercises(
+            session = modeSession,
+            completedSets = uiState.completedSets,
+            skippedExerciseIds = uiState.skippedExerciseIds,
+            catalogIndex = catalogExerciseIndex(),
+        )
     }
     val adaptiveCache by produceState(
         initialValue = com.example.kpkn.data.models.AugeAdaptiveCache(),
@@ -500,7 +498,9 @@ fun WorkoutScreen(
     val currentExercise = visibleExercises.getOrNull(uiState.currentExerciseIdx)
     val currentSet = currentExercise?.sets?.getOrNull(uiState.currentSetIdx)
     val keepCardioScreenOn = uiState.cardioTimerState?.status == com.example.kpkn.data.models.CardioExecutionStatus.RUNNING &&
-        currentExercise?.cardioDetails?.hiit?.keepScreenOn == true
+        currentExercise?.cardioDetails?.let { details ->
+            details.keepScreenOn || details.hiit?.keepScreenOn == true
+        } == true
     DisposableEffect(keepCardioScreenOn) {
         val window = (context as? Activity)?.window
         if (keepCardioScreenOn) {
@@ -751,6 +751,12 @@ fun WorkoutScreen(
         }
     }
 
+    LaunchedEffect(restTimerRemaining, uiState.isRestTimerRunning) {
+        if (uiState.isRestTimerRunning && restTimerRemaining <= 0) {
+            viewModel.completeRestIfStuckAtZero()
+        }
+    }
+
     LaunchedEffect(uiState.setJustLoggedKey, uiState.lastHomologatedResultV3) {
         val loggedKey = uiState.setJustLoggedKey
         if (loggedKey.isNullOrBlank() || loggedKey == lastAnnouncedSetKey) return@LaunchedEffect
@@ -881,6 +887,23 @@ fun WorkoutScreen(
     val canReturnToMobilityFromWarmup = isWarmupOverlayActive && (currentExercise?.mobilitySeries?.isNotEmpty() == true)
 
     Box(modifier = Modifier.fillMaxSize()) {
+        if (uiState.sessionMissingFromProgram) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .zIndex(30f)
+                    .statusBarsPadding(),
+                color = MaterialTheme.colorScheme.errorContainer,
+            ) {
+                Text(
+                    "Esta sesión ya no está en el programa; puedes terminar o abandonar lo registrado.",
+                    modifier = Modifier.padding(12.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                )
+            }
+        }
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -1289,6 +1312,9 @@ fun WorkoutScreen(
             hasContextTabOpen = hasContextTabOpen,
             showReadiness = showReadinessSheet,
             canReturnToMobilityFromWarmup = canReturnToMobilityFromWarmup,
+            isRestOverlayVisible = uiState.isRestTimerRunning && !uiState.isRestMinimized,
+            showPostExerciseFeedback = uiState.showPostExerciseSheet,
+            godModeExpanded = roadmapMode == RoadmapMode.EXPANDED,
         ),
     )
     BackHandler(enabled = !showExitDialog) {
@@ -1308,6 +1334,9 @@ fun WorkoutScreen(
                         viewModel.selectWorkoutStep(WorkoutStepRules.mobilityStepKey(currentExercise.id, firstMob.id, 0))
                     }
                 }
+                WorkoutBackAction.MINIMIZE_REST -> viewModel.minimizeRestOverlay()
+                WorkoutBackAction.DISMISS_POST_EXERCISE_FEEDBACK -> viewModel.dismissPostExerciseSheet()
+                WorkoutBackAction.COLLAPSE_GOD_MODE -> roadmapMode = RoadmapMode.COMPACT
                 WorkoutBackAction.SHOW_EXIT_DIALOG -> showExitDialog = true
                 WorkoutBackAction.DISMISS_EXIT_DIALOG,
                 WorkoutBackAction.DISMISS_MOBILITY_PICKER,
@@ -1493,8 +1522,8 @@ fun WorkoutScreen(
                 val sessionName = session.name
                 val completedExercises = completedExercisesForSummary
                 val durationMinutes = duration
-                val totalVolume = uiState.completedSets.values.sumOf { it.weight * it.reps }
-                val totalSets = uiState.completedSets.size
+                val totalVolume = sessionTonnage(completedExercises)
+                val totalSets = logicalSetCountFromCompleted(completedExercises)
                 val previousSnapshot = viewModel.latestCompletedSessionSnapshot()
                 val currentBestEstimated1RM = uiState.completedSets.values
                     .filter { it.weight > 0 && it.reps > 0 }
@@ -1534,14 +1563,14 @@ fun WorkoutScreen(
                                 sessionSpinalDrain = postSessionPreview.globalSpinalDrain.toDouble(),
                                 sessionMuscleDrain = postSessionPreview.globalMuscularDrain.toDouble(),
                                 predictedNeuralBattery = postSessionPreview.neural,
-                                predictedSpinalBattery = postSessionPreview.spinal,
+                                predictedSpinalBattery = postSessionPreview.spinalRaw,
                                 predictedMuscleBatteries = predictedMuscles,
                             )
                         } else {
                             augeViewModel.refresh()
                         }
                         if (share) {
-                            WorkoutShareService.shareToInstagramStory(
+                            viewModel.shareWorkoutToStory(
                                 context = context,
                                 sessionName = sessionName,
                                 completedExercises = completedExercises,
@@ -1563,13 +1592,13 @@ fun WorkoutScreen(
                 val sessionName = session.name
                 val completedExercises = completedExercisesForSummary
                 val durationMinutes = duration
-                val totalVolume = uiState.completedSets.values.sumOf { it.weight * it.reps }
-                val totalSets = uiState.completedSets.size
+                val totalVolume = sessionTonnage(completedExercises)
+                val totalSets = logicalSetCountFromCompleted(completedExercises)
                 val previousSnapshot = viewModel.latestCompletedSessionSnapshot()
                 val currentBestEstimated1RM = uiState.completedSets.values
                     .filter { it.weight > 0 && it.reps > 0 }
                     .maxOfOrNull { calculateHybrid1RM(it.weight, it.reps) }
-                WorkoutShareService.shareToInstagramStory(
+                viewModel.shareWorkoutToStory(
                     context = context,
                     sessionName = sessionName,
                     completedExercises = completedExercises,
@@ -1582,7 +1611,7 @@ fun WorkoutScreen(
                     previousBestEstimated1RM = previousSnapshot?.bestEstimated1RM,
                     currentBestEstimated1RM = currentBestEstimated1RM,
                 )
-            }
+            },
             )
         } else {
             BackHandler { viewModel.hideFinish() }
@@ -1618,6 +1647,64 @@ fun WorkoutScreen(
                 viewModel.setVoiceCaptureMode(mode)
                 viewModel.hideVoiceCaptureModeDialog()
                 viewModel.enableVoice(mode)
+            },
+            onDismissRequest = { viewModel.hideVoiceCaptureModeDialog() },
+        )
+    }
+
+    uiState.pendingOngoingConflict?.let { existing ->
+        KpknAlertDialog(
+            onDismissRequest = {
+                viewModel.dismissOngoingConflict()
+                onBack()
+            },
+            title = { Text("Entrenamiento en curso", fontWeight = FontWeight.Black) },
+            text = {
+                Text(
+                    "Ya hay un entrenamiento en curso: ${existing.session.name}. " +
+                        "Si empiezas este, se perderá el anterior.",
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.confirmDiscardOngoingAndStart() }) {
+                    Text("Descartar y empezar este")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        val existingProgramId = existing.programId
+                        val existingSessionId = existing.session.id
+                        viewModel.dismissOngoingConflict()
+                        onOpenExistingWorkout(existingProgramId, existingSessionId)
+                    },
+                ) { Text("Reanudar el que está en curso") }
+            },
+        )
+    }
+
+    if (uiState.pendingOngoingCorrupt) {
+        KpknAlertDialog(
+            onDismissRequest = {
+                viewModel.dismissOngoingCorrupt()
+                onBack()
+            },
+            title = { Text("No se pudo leer el entrenamiento", fontWeight = FontWeight.Black) },
+            text = {
+                Text("No se pudo leer el entrenamiento en curso. Puedes reintentar o descartarlo.")
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.confirmDiscardOngoingAndStart() }) {
+                    Text("Descartar y empezar este")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.dismissOngoingCorrupt()
+                        onBack()
+                    },
+                ) { Text("Volver") }
             },
         )
     }

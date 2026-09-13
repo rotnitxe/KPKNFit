@@ -5,6 +5,8 @@ import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.MobilitySeries
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.UnilateralSideOrder
+import com.example.kpkn.data.models.WarmupExercise
+import com.example.kpkn.data.models.WarmupSetDefinition
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
@@ -38,6 +40,51 @@ data class WorkoutStep(
     val isEmptySlot: Boolean = false,
     val restAfterKind: RestTimerKind = RestTimerKind.STANDARD,
 )
+
+const val SESSION_WARMUP_LIVE_EXERCISE_ID = "__session_warmup__"
+
+fun partMobilityLiveExerciseId(partId: String): String = "__part_mobility__$partId"
+
+fun Session.liveRoadmapExercises(): List<Exercise> {
+    val warmupItems = warmup.filter(::isLiveSessionWarmup)
+    val warmupExercise = warmupItems.takeIf { it.isNotEmpty() }?.let { items ->
+        Exercise(
+            id = SESSION_WARMUP_LIVE_EXERCISE_ID,
+            name = "Calentamiento",
+            warmupSets = items.map { warmup ->
+                WarmupSetDefinition(
+                    id = warmup.id.ifBlank { "warmup-${warmup.name}" },
+                    percentageOfWorkingWeight = 0.0,
+                    targetReps = warmup.reps
+                        ?.filter { it.isDigit() }
+                        ?.toIntOrNull()
+                        ?.coerceAtLeast(1)
+                        ?: 1,
+                )
+            },
+            sets = emptyList(),
+        )
+    }
+    val partMobility = parts.mapNotNull { part ->
+        val hasSeries = part.mobilitySeries.any { series ->
+            series.sets > 0 && ((series.durationSeconds ?: 0) > 0 || !series.reps.isNullOrBlank())
+        }
+        val hasTimer = (part.mobilityConfig?.totalMinutes ?: 0) > 0
+        if (!hasSeries && !hasTimer) return@mapNotNull null
+        Exercise(
+            id = partMobilityLiveExerciseId(part.id),
+            name = part.name.ifBlank { "Movilidad" },
+            mobilitySeries = part.mobilitySeries,
+            mobilityConfig = part.mobilityConfig,
+            sets = emptyList(),
+        )
+    }
+    return listOfNotNull(warmupExercise) + partMobility + allExercises()
+}
+
+private fun isLiveSessionWarmup(warmup: WarmupExercise): Boolean =
+    (warmup.duration ?: 0) > 0 ||
+        ((warmup.sets ?: 0) > 0 && !warmup.reps.isNullOrBlank())
 
 object WorkoutStepRules {
     fun omittedSetKey(exerciseId: String, setIndex: Int): String = "${exerciseId}_$setIndex"
@@ -93,7 +140,7 @@ object WorkoutStepRules {
 
     fun buildSteps(
         session: Session,
-        visibleExercises: List<Exercise> = session.allExercises(),
+        visibleExercises: List<Exercise> = session.liveRoadmapExercises(),
         omittedSetKeys: Set<String> = emptySet(),
     ): List<WorkoutStep> {
         val steps = mutableListOf<WorkoutStep>()
@@ -101,7 +148,9 @@ object WorkoutStepRules {
 
         visibleExercises.forEach { exercise ->
             val groupId = exercise.supersetGroupRefOrLegacyId()
-            if (groupId != null) {
+            val optionalGroup = groupId != null &&
+                session.allSupersetGroups().firstOrNull { it.id == groupId }?.isOptional == true
+            if (groupId != null && !optionalGroup) {
                 if (emittedSupersets.add(groupId)) {
                     appendSupersetSteps(session, visibleExercises, groupId, steps, omittedSetKeys)
                 }
@@ -115,7 +164,7 @@ object WorkoutStepRules {
 
     fun buildWorkingPositions(
         session: Session,
-        visibleExercises: List<Exercise> = session.allExercises(),
+        visibleExercises: List<Exercise> = session.liveRoadmapExercises(),
         omittedSetKeys: Set<String> = emptySet(),
     ): List<WorkoutStep> {
         return buildSteps(session, visibleExercises, omittedSetKeys)
@@ -147,12 +196,12 @@ object WorkoutStepRules {
         mobilityCompletedExerciseIds: Set<String> = emptySet(),
         mobilityTotalCompletedStepKeys: Set<String> = emptySet(),
     ): WorkoutStep? {
-        val visible = session.allExercises()
+        val visible = session.liveRoadmapExercises()
         return buildSteps(session, visible).firstOrNull { step ->
             if (step.isEmptySlot) return@firstOrNull false
             when (step.type) {
                 WorkoutStepType.CARDIO -> "${step.exerciseId}_0" !in completedSets
-WorkoutStepType.MOBILITY,
+                WorkoutStepType.MOBILITY,
                 WorkoutStepType.MOBILITY_GROUP -> {
                     val mobilityId = step.mobilitySeriesId ?: return@firstOrNull false
                     mobilityStepKey(step.exerciseId, mobilityId, step.mobilitySetIndex) !in mobilityCompletedExerciseIds
@@ -209,7 +258,7 @@ WorkoutStepType.MOBILITY,
 
     fun buildSetPositions(
         session: Session,
-        visibleExercises: List<Exercise> = session.allExercises(),
+        visibleExercises: List<Exercise> = session.liveRoadmapExercises(),
     ): List<WorkoutStep> {
         val emitted = mutableSetOf<Pair<String, Int>>()
         return buildSteps(session, visibleExercises)
@@ -318,11 +367,29 @@ WorkoutStepType.MOBILITY,
     ) {
         appendMobilitySteps(
             exercise = exercise,
-            type = WorkoutStepType.MOBILITY,
+            type = if (exercise.id.startsWith("__part_mobility__")) {
+                WorkoutStepType.MOBILITY_GROUP
+            } else {
+                WorkoutStepType.MOBILITY
+            },
             exerciseName = spokenWorkoutExerciseName(exercise),
             groupId = groupId,
             steps = steps,
         )
+        if (
+            exercise.id.startsWith("__part_mobility__") &&
+            exercise.mobilitySeries.isEmpty() &&
+            (exercise.mobilityConfig?.totalMinutes ?: 0) > 0
+        ) {
+            steps += WorkoutStep(
+                type = WorkoutStepType.MOBILITY_TOTAL,
+                exerciseId = exercise.id,
+                exerciseName = spokenWorkoutExerciseName(exercise),
+                stepKey = mobilityTotalStepKey(exercise.id),
+                mobilityTotalMinutes = exercise.mobilityConfig?.totalMinutes,
+                restAfterKind = RestTimerKind.STANDARD,
+            )
+        }
         exercise.warmupSets.forEachIndexed { index, _ ->
             steps += warmupStep(exercise, groupId, index)
         }

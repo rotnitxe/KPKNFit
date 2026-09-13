@@ -241,10 +241,15 @@ internal fun parseWorkoutVoiceTranscript(
     }
 
     val equipmentWeightKg = mancuernaWeight ?: barraWeight
-    val weightKg = if (effectiveUnitMode != UnitModeV2.REPS) {
+    val weightKgRaw = if (effectiveUnitMode != UnitModeV2.REPS) {
         explicitWeight ?: equipmentWeightKg
     } else {
         explicitWeight ?: spokenDecimalWeight ?: equipmentWeightKg ?: connectorPair?.first
+    }
+    val weightKg = if (weightKgRaw != null && tokens.any { it in POUND_KEYWORDS }) {
+        weightKgRaw / 2.2046
+    } else {
+        weightKgRaw
     }
     val metricDecimalValue = when (effectiveUnitMode) {
         UnitModeV2.TIME -> (explicitSeconds ?: explicitMinutes)?.toDouble() ?: connectorPair?.second
@@ -701,7 +706,8 @@ private fun Double.toSafeWholeNumber(): Int? =
 private val DIGIT_TOKEN = Regex("\\d+(?:[.,]\\d+)?")
 
 private val CONNECTOR_KEYWORDS = setOf("x", "por")
-private val WEIGHT_KEYWORDS = setOf("kg", "kilo", "kilos", "peso", "carga", "lastre", "asistencia")
+private val POUND_KEYWORDS = setOf("libra", "libras", "pound", "pounds", "lbs")
+private val WEIGHT_KEYWORDS = setOf("kg", "kilo", "kilos", "peso", "carga", "lastre", "asistencia") + POUND_KEYWORDS
 private val REP_KEYWORDS = setOf("rep", "reps", "repeticion", "repeticiones")
 private val SECOND_KEYWORDS = setOf("seg", "segundo", "segundos")
 private val MINUTE_KEYWORDS = setOf("min", "minuto", "minutos")

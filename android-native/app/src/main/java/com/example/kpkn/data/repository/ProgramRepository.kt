@@ -5,6 +5,13 @@ import com.example.kpkn.data.db.*
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.ExerciseNicknameResolver
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
+import com.example.kpkn.domain.auge.AugeFatigueEngine
+import com.example.kpkn.domain.auge.AugeRecoveryEngine
+import com.example.kpkn.domain.auge.AugeTtcEngine
+import com.example.kpkn.domain.auge.AxialLoadMonitor
+import com.example.kpkn.domain.auge.LoadAdvisoryEngine
+import com.example.kpkn.domain.auge.SystemicLoadMonitor
 import com.example.kpkn.domain.training.ProgramActiveStateEngine
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ProgramMigrationEngine
@@ -12,6 +19,7 @@ import com.example.kpkn.domain.training.ProgramPersistNormalizer
 import com.example.kpkn.domain.training.ProgramKeyDateEngine
 import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.training.BlockTransitionEngine
+import com.example.kpkn.domain.training.WeeklyAutoregulationSignals
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -61,6 +69,7 @@ class ProgramRepository private constructor(
     private val programWriteMutex = Mutex()
     private val programWriteSequence = AtomicLong(0L)
     private val newestProgramWrite = ConcurrentHashMap<String, Long>()
+    private val programMutationLock = Any()
 
     private val _programQueue = MutableStateFlow<List<String>>(emptyList())
     val programQueue: StateFlow<List<String>> = _programQueue.asStateFlow()
@@ -89,6 +98,26 @@ class ProgramRepository private constructor(
         _programs.update { list -> list.map { if (it.id == normalized.id) normalized else it } }
         repairActiveStateIfNeeded(normalized)
         withContext(Dispatchers.IO) { persistProgramIfNewest(normalized, version) }
+    }
+
+    /**
+     * Read-modify-write of a program against the latest in-memory snapshot.
+     * Returns false if the program is missing or [transform] returns null (abort).
+     */
+    suspend fun mutateProgramNow(programId: String, transform: (Program) -> Program?): Boolean {
+        val prepared = synchronized(programMutationLock) {
+            val current = getProgramById(programId) ?: return false
+            val next = transform(current) ?: return false
+            val normalized = normalizeProgramWithCompetitions(next)
+            val version = reserveProgramWrite(normalized.id)
+            _programs.update { list -> list.map { if (it.id == normalized.id) normalized else it } }
+            repairActiveStateIfNeeded(normalized)
+            normalized to version
+        }
+        withContext(NonCancellable + Dispatchers.IO) {
+            persistProgramIfNewest(prepared.first, prepared.second)
+        }
+        return true
     }
 
     private fun normalizeProgramWithCompetitions(program: Program): Program {
@@ -177,15 +206,17 @@ class ProgramRepository private constructor(
         mesoIndex: Int,
         session: Session,
     ): Boolean {
-        val current = getProgramById(programId) ?: return false
-        val updated = current.upsertSessionInWeek(
-            weekId = weekId,
-            macroIndex = macroIndex,
-            mesoIndex = mesoIndex,
-            session = session,
-        ) ?: return false
-        updateProgram(updated)
-        return true
+        synchronized(programMutationLock) {
+            val current = getProgramById(programId) ?: return false
+            val updated = current.upsertSessionInWeek(
+                weekId = weekId,
+                macroIndex = macroIndex,
+                mesoIndex = mesoIndex,
+                session = session,
+            ) ?: return false
+            updateProgram(updated)
+            return true
+        }
     }
 
     suspend fun upsertSessionInProgramNow(
@@ -272,6 +303,7 @@ class ProgramRepository private constructor(
             _programQueue.value = emptyList()
             _activeProgramState.value = null
             _ongoingWorkout.value = null
+            _ongoingWorkoutCorrupt.value = false
             db.programDao().deleteAll()
             persistActiveProgramStateIfLatest(null, activeVersion)
             db.stateDao().clearOngoingWorkout()
@@ -435,7 +467,7 @@ class ProgramRepository private constructor(
      * Idempotent: if [log.id] already exists, identity fields are frozen from the first
      * write and progress is not reapplied.
      */
-    suspend fun finalizeWorkout(log: WorkoutLog) {
+    suspend fun finalizeWorkout(log: WorkoutLog, clearOngoing: Boolean = true) {
         withContext(Dispatchers.IO + NonCancellable) {
             ongoingWorkoutMutex.withLock {
                 val prior = _history.value.firstOrNull { it.id == log.id }
@@ -445,10 +477,13 @@ class ProgramRepository private constructor(
                     // Retry path: never reinterpret identity against the current cursor.
                     db.withTransaction {
                         db.workoutLogDao().insert(prior.toEntity())
-                        db.stateDao().clearOngoingWorkout()
+                        if (clearOngoing) db.stateDao().clearOngoingWorkout()
                     }
                     _history.value = listOf(prior) + _history.value.filterNot { it.id == prior.id }
-                    _ongoingWorkout.value = null
+                    if (clearOngoing) {
+                        _ongoingWorkout.value = null
+                        _ongoingWorkoutCorrupt.value = false
+                    }
                     return@withLock
                 }
 
@@ -517,6 +552,7 @@ class ProgramRepository private constructor(
                         weekInstanceId = enriched.weekInstanceId ?: enriched.weekId.orEmpty(),
                         logs = historyForProgress,
                         transitionContext = buildTransitionContext(program, historyForProgress),
+                        weeklySignals = buildWeeklyAutoregulationSignals(program, historyForProgress),
                     )
                 } else {
                     null
@@ -546,7 +582,7 @@ class ProgramRepository private constructor(
                     activeStateWriteMutex.withLock {
                         db.withTransaction {
                             db.workoutLogDao().insert(enriched.toEntity())
-                            db.stateDao().clearOngoingWorkout()
+                            if (clearOngoing) db.stateDao().clearOngoingWorkout()
                             if (nextProgram != null && nextProgramVersion != null && newestProgramWrite[nextProgram.id] == nextProgramVersion) {
                                 db.programDao().upsert(nextProgram.toEntity())
                             }
@@ -563,7 +599,10 @@ class ProgramRepository private constructor(
                 }
 
                 _history.value = historyForProgress
-                _ongoingWorkout.value = null
+                if (clearOngoing) {
+                    _ongoingWorkout.value = null
+                    _ongoingWorkoutCorrupt.value = false
+                }
                 if (nextProgram != null && nextProgramVersion != null && newestProgramWrite[nextProgram.id] == nextProgramVersion) {
                     _programs.update { list -> list.map { if (it.id == nextProgram.id) nextProgram else it } }
                 }
@@ -575,12 +614,11 @@ class ProgramRepository private constructor(
     }
 
     /**
-     * Builds the transition evidence from persisted workout history. A missing
-     * readiness measurement intentionally stays null: this layer must not
-     * manufacture a readiness score just to satisfy the AUGE gate. Stress EMA,
-     * athlete-reported fatigue, and overtrained muscles all come from logs.
+     * Builds the transition evidence from persisted workout history plus a live
+     * AUGE readiness snapshot (wellbeing, batteries, feedback). Readiness stays
+     * null only when AUGE cannot be computed.
      */
-    private fun buildTransitionContext(
+    private suspend fun buildTransitionContext(
         program: Program,
         history: List<WorkoutLog>,
     ): BlockTransitionEngine.TransitionContext {
@@ -593,23 +631,138 @@ class ProgramRepository private constructor(
         var stressEma = 0.0
         stressScores.forEachIndexed { index, score ->
             stressEma = if (index == 0) score else {
-                // Same smoothing constant used by AugeFatigueEngine's
-                // mesocycle EMA; no synthetic score is introduced.
                 (0.17 * score) + (0.83 * stressEma)
             }
         }
         val measuredFatigue = relevant
             .asReversed()
             .firstNotNullOfOrNull { it.fatigueLevel?.coerceIn(1, 10)?.times(10.0) }
+        val auge = computeAugeSnapshot(history)
         return BlockTransitionEngine.TransitionContext(
-            cumulativeFatigue = measuredFatigue,
-            // WorkoutLog currently has no persisted readiness verdict. Keep
-            // this null so shouldSuggestAutoDeload cannot infer one.
-            readinessScore = null,
+            cumulativeFatigue = auge?.cumulativeFatigue ?: measuredFatigue,
+            readinessScore = auge?.readinessScore,
             settings = _settings.value,
             mesocycleStressEma = stressEma,
-            overtrainedMuscles = BlockTransitionEngine.detectOvertrained(program, relevant),
+            overtrainedMuscles = BlockTransitionEngine.detectOvertrained(
+                program,
+                relevant,
+                auge?.feedbacks.orEmpty(),
+            ),
         )
+    }
+
+    private suspend fun buildWeeklyAutoregulationSignals(
+        program: Program,
+        history: List<WorkoutLog>,
+    ): WeeklyAutoregulationSignals {
+        val auge = computeAugeSnapshot(history)
+        val week = program.runState?.weekId?.let { id ->
+            program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
+                .firstOrNull { it.id == id }
+        }
+        val amrap = week?.let {
+            com.example.kpkn.domain.training.ProgramAutoregulationEngine.collectAmrapHits(it, history)
+        }.orEmpty()
+        val e1rm = week?.let {
+            com.example.kpkn.domain.training.ProgramAutoregulationEngine.collectE1rmByLift(history, it)
+        }.orEmpty()
+        return WeeklyAutoregulationSignals(
+            readinessScore = auge?.readinessScore,
+            cumulativeFatigue = auge?.cumulativeFatigue,
+            stressLevel = auge?.stressLevel,
+            loadAdvisoryLevel = auge?.advisoryLevel ?: LoadAdvisoryLevel.NONE,
+            overtrainedMuscles = auge?.overtrained.orEmpty(),
+            amrapHits = amrap,
+            e1rmByLift = e1rm,
+            consecutiveHighE1rmWeeks = auge?.consecutiveHighE1rm ?: 0,
+            repeatedJointPain = auge?.repeatedJointPain == true,
+            settings = _settings.value,
+        )
+    }
+
+    private data class AugeTransitionSnapshot(
+        val readinessScore: Int?,
+        val cumulativeFatigue: Double?,
+        val stressLevel: Int?,
+        val advisoryLevel: LoadAdvisoryLevel,
+        val feedbacks: List<PostSessionFeedback>,
+        val overtrained: List<String>,
+        val consecutiveHighE1rm: Int,
+        val repeatedJointPain: Boolean,
+    )
+
+    private suspend fun computeAugeSnapshot(history: List<WorkoutLog>): AugeTransitionSnapshot? {
+        val context = appContext ?: return null
+        return runCatching {
+            val augeRepo = AugeRepository.getInstance(context)
+            val wellbeing = augeRepo.getTodayWellbeing() ?: augeRepo.getActiveWellbeingWithManualOverrides()
+            val feedbacks = augeRepo.getPostSessionFeedbacks()
+            val sleepLogs = augeRepo.getLastNSleepLogs(7)
+            val adaptiveCache = augeRepo.getAdaptiveCache()
+            val nutritionLogs = runCatching { NutritionRepository.getInstance().nutritionLogs.value }.getOrDefault(emptyList())
+            val exerciseDb = exerciseCatalogSnapshot().associateBy { it.id.lowercase() }
+            val settings = _settings.value
+            val muscles = AugeRecoveryEngine.getPerMuscleBatteries(
+                history = history,
+                wellbeing = wellbeing,
+                settings = settings,
+                exerciseDb = exerciseDb,
+                sleepLogs = sleepLogs,
+                nutritionLogs = nutritionLogs,
+                feedbacks = feedbacks,
+                adaptiveCache = adaptiveCache,
+            )
+            val articular = AugeTtcEngine.calculateArticularBatteries(history, exerciseDb, feedbacks, wellbeing)
+            val batteries = AugeRecoveryEngine.calculateGlobalBatteries(
+                history = history,
+                wellbeing = wellbeing,
+                settings = settings,
+                exerciseDb = exerciseDb,
+                sleepLogs = sleepLogs,
+                nutritionLogs = nutritionLogs,
+                feedbacks = feedbacks,
+                adaptiveCache = adaptiveCache,
+                precomputedMuscles = muscles,
+                articularBatteries = articular,
+            )
+            val dashboard = AugeRecoveryEngine.calculateRecoveryDashboard(
+                batteries = batteries,
+                perMuscle = muscles,
+                articularBatteries = articular,
+                wellbeing = wellbeing,
+                sleepLogs = sleepLogs,
+                recentSessionCount = AugeRecoveryEngine.recentSessionCount(history),
+            )
+            val verdict = AugeRecoveryEngine.calculateDailyReadiness(dashboard, wellbeing)
+            val twoWeeksAgo = System.currentTimeMillis() - 14L * 24 * 3600_000
+            val cumFatigue = history
+                .filter { com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) >= twoWeeksAgo }
+                .sumOf { log ->
+                    AugeFatigueEngine.calculateCompletedSessionStress(
+                        completedExercises = log.completedExercises,
+                        exerciseDb = exerciseDb,
+                        settings = settings,
+                        adaptiveCache = adaptiveCache,
+                    )
+                }
+            val axial = AxialLoadMonitor.evaluate(history, exerciseDb)
+            val systemic = SystemicLoadMonitor.evaluate(history, exerciseDb, settings, adaptiveCache)
+            val advisory = LoadAdvisoryEngine.evaluate(axial, systemic, adaptiveCache)
+            val topLevel = advisory.advisories.maxByOrNull { LoadAdvisoryEngine.rank(it.level) }?.level
+                ?: LoadAdvisoryLevel.NONE
+            AugeTransitionSnapshot(
+                readinessScore = verdict.score,
+                cumulativeFatigue = cumFatigue.takeIf { it > 0.0 } ?: batteries.cnc.toDouble(),
+                stressLevel = wellbeing?.stressLevel,
+                advisoryLevel = topLevel,
+                feedbacks = feedbacks,
+                overtrained = emptyList(),
+                consecutiveHighE1rm = 0,
+                repeatedJointPain = feedbacks.take(6).count { fb ->
+                    fb.muscleFeedback.values.any { it.jointPain } || fb.unresolvedDiscomfortIds.isNotEmpty()
+                } >= 2,
+            )
+        }.getOrNull()
     }
 
     fun getLogsForProgram(programId: String): List<WorkoutLog> =
@@ -622,23 +775,45 @@ class ProgramRepository private constructor(
 
     private val _ongoingWorkout = MutableStateFlow<OngoingWorkoutState?>(null)
     val ongoingWorkout: StateFlow<OngoingWorkoutState?> = _ongoingWorkout.asStateFlow()
+    private val _ongoingWorkoutCorrupt = MutableStateFlow(false)
+    val ongoingWorkoutCorrupt: StateFlow<Boolean> = _ongoingWorkoutCorrupt.asStateFlow()
     private val ongoingWorkoutMutex = Mutex()
 
-    fun startWorkout(state: OngoingWorkoutState) {
-        runBlocking(Dispatchers.IO + NonCancellable) {
+    fun startWorkout(
+        state: OngoingWorkoutState,
+        replaceExisting: Boolean = false,
+    ): StartWorkoutResult {
+        return runBlocking(Dispatchers.IO + NonCancellable) {
             ongoingWorkoutMutex.withLock {
+                if (_ongoingWorkoutCorrupt.value && !replaceExisting) {
+                    val existing = _ongoingWorkout.value
+                    if (existing != null && !existing.sameOngoingIdentity(state.programId, state.session.id)) {
+                        return@withLock StartWorkoutResult.Conflict(existing)
+                    }
+                    return@withLock StartWorkoutResult.Corrupt
+                }
+                val existing = _ongoingWorkout.value
+                if (existing != null &&
+                    !existing.sameOngoingIdentity(state.programId, state.session.id) &&
+                    !replaceExisting
+                ) {
+                    return@withLock StartWorkoutResult.Conflict(existing)
+                }
                 // A blank program id is the explicit ad-hoc workout sentinel.
                 // Any non-blank id must still exist in the authoritative cache;
                 // otherwise a delayed start for a deleted program would revive
                 // an ongoing Room row after deleteProgram returned.
                 if (state.programId.isNotBlank() && _programs.value.none { it.id == state.programId }) {
                     _ongoingWorkout.value = null
+                    _ongoingWorkoutCorrupt.value = false
                     db.stateDao().clearOngoingWorkout()
-                    return@withLock
+                    return@withLock StartWorkoutResult.Started
                 }
                 val normalized = state.normalizedIdentityFields()
                 _ongoingWorkout.value = normalized
+                _ongoingWorkoutCorrupt.value = false
                 db.stateDao().upsertOngoingWorkout(normalized.toEntity())
+                StartWorkoutResult.Started
             }
         }
     }
@@ -672,6 +847,7 @@ class ProgramRepository private constructor(
         runBlocking(Dispatchers.IO + NonCancellable) {
             ongoingWorkoutMutex.withLock {
                 _ongoingWorkout.value = null
+                _ongoingWorkoutCorrupt.value = false
                 db.stateDao().clearOngoingWorkout()
             }
         }
@@ -682,6 +858,7 @@ class ProgramRepository private constructor(
             ongoingWorkoutMutex.withLock {
                 if (_ongoingWorkout.value?.programId != programId) return@withLock
                 _ongoingWorkout.value = null
+                _ongoingWorkoutCorrupt.value = false
                 db.stateDao().clearOngoingWorkout()
             }
         }
@@ -692,6 +869,7 @@ class ProgramRepository private constructor(
         withContext(Dispatchers.IO + NonCancellable) {
             ongoingWorkoutMutex.withLock {
                 _ongoingWorkout.value = null
+                _ongoingWorkoutCorrupt.value = false
                 db.stateDao().clearOngoingWorkout()
             }
         }
@@ -758,6 +936,9 @@ class ProgramRepository private constructor(
     private val _contextProfiles = MutableStateFlow<Map<String, WorkoutContextProfile>>(emptyMap())
     val contextProfiles: StateFlow<Map<String, WorkoutContextProfile>> = _contextProfiles.asStateFlow()
 
+    private val _workoutTags = MutableStateFlow<Map<String, WorkoutTag>>(emptyMap())
+    val workoutTags: StateFlow<Map<String, WorkoutTag>> = _workoutTags.asStateFlow()
+
     private val _replacementDecisions = MutableStateFlow<List<ExerciseReplacementDecisionV2>>(emptyList())
     val replacementDecisions: StateFlow<List<ExerciseReplacementDecisionV2>> = _replacementDecisions.asStateFlow()
 
@@ -796,6 +977,22 @@ class ProgramRepository private constructor(
     fun deleteContextProfile(profileId: String) {
         _contextProfiles.update { it - profileId }
         scope.launch { db.workoutV2Dao().deleteContextProfile(profileId) }
+    }
+
+    fun getWorkoutTagsForExercise(exerciseKey: String): List<WorkoutTag> =
+        _workoutTags.value.values
+            .filter { it.exerciseKey == exerciseKey }
+            .sortedByDescending { it.lastUsedAtIso }
+
+    fun upsertWorkoutTag(tag: WorkoutTag) {
+        val normalized = com.example.kpkn.domain.workout.WorkoutTagResolver.withNormalized(tag)
+        _workoutTags.update { it + (normalized.id to normalized) }
+        scope.launch { db.workoutV2Dao().upsertWorkoutTag(normalized.toEntity()) }
+    }
+
+    fun deleteWorkoutTag(tagId: String) {
+        _workoutTags.update { it - tagId }
+        scope.launch { db.workoutV2Dao().deleteWorkoutTag(tagId) }
     }
 
     fun getReplacementDecisions(programId: String): List<ExerciseReplacementDecisionV2> =
@@ -908,7 +1105,10 @@ class ProgramRepository private constructor(
                     }
                 }
                 val activeProgram = db.stateDao().getActiveProgram()?.toActiveProgramState()
-                val ongoingWorkout = db.stateDao().getOngoingWorkout()?.toOngoingWorkoutState()?.normalizedIdentityFields()
+                val ongoingEntity = db.stateDao().getOngoingWorkout()
+                val ongoingDecode = ongoingEntity?.toOngoingDecode() ?: OngoingDecode.Empty
+                val ongoingWorkout = (ongoingDecode as? OngoingDecode.Ok)?.state?.normalizedIdentityFields()
+                val ongoingCorrupt = ongoingDecode is OngoingDecode.Corrupt
                 val contextPerformance = db.workoutV2Dao().getAllContextPerformance()
                     .map { it.toContextPerformanceStateV2() }
                     .associateBy { it.contextKey }
@@ -917,6 +1117,9 @@ class ProgramRepository private constructor(
                     .associateBy { it.globalKey }
                 val contextProfiles = db.workoutV2Dao().getAllContextProfiles()
                     .map { it.toWorkoutContextProfile() }
+                    .associateBy { it.id }
+                val workoutTags = db.workoutV2Dao().getAllWorkoutTags()
+                    .map { it.toWorkoutTag() }
                     .associateBy { it.id }
                 val replacementDecisions = db.workoutV2Dao().getAllReplacementDecisions()
                     .map { it.toExerciseReplacementDecisionV2() }
@@ -938,7 +1141,11 @@ class ProgramRepository private constructor(
                     }
                 }
                 val persistedOngoing = db.stateDao().getOngoingWorkout()?.toOngoingWorkoutState()
-                if (persistedOngoing != null && persistedOngoing != ongoingWorkout && ongoingWorkout != null) {
+                if (!ongoingCorrupt &&
+                    persistedOngoing != null &&
+                    persistedOngoing != ongoingWorkout &&
+                    ongoingWorkout != null
+                ) {
                     scope.launch { db.stateDao().upsertOngoingWorkout(ongoingWorkout.toEntity()) }
                 }
 
@@ -956,9 +1163,11 @@ class ProgramRepository private constructor(
                     ExerciseNicknameResolver.nicknames = settings.exerciseNicknames
                     _activeProgramState.value = normalizedActiveProgram
                     _ongoingWorkout.value = ongoingWorkout
+                    _ongoingWorkoutCorrupt.value = ongoingCorrupt
                     _contextPerformance.value = contextPerformance
                     _globalPerformance.value = globalPerformance
                     _contextProfiles.value = contextProfiles
+                    _workoutTags.value = workoutTags
                     _replacementDecisions.value = replacementDecisions
                     _isReady.value = true
                 }
@@ -1198,6 +1407,7 @@ class ProgramRepository private constructor(
 
     companion object {
         @Volatile private var INSTANCE: ProgramRepository? = null
+        @Volatile private var appContext: Context? = null
 
         /**
          * Llamar una vez al inicio (MainActivity.onCreate o Application.onCreate).
@@ -1205,6 +1415,7 @@ class ProgramRepository private constructor(
          */
         fun init(context: Context): ProgramRepository =
             INSTANCE ?: synchronized(this) {
+                appContext = context.applicationContext
                 INSTANCE ?: ProgramRepository(
                     KpknDatabase.getInstance(context.applicationContext),
                 ).also { INSTANCE = it; it.loadFromDb() }
@@ -1213,6 +1424,7 @@ class ProgramRepository private constructor(
         /** Robolectric-friendly init with in-memory Room and isolated singleton. */
         fun initForTests(context: Context): ProgramRepository = synchronized(this) {
             closeInstance()
+            appContext = context.applicationContext
             KpknDatabase.closeInstance()
             ProgramRepository(
                 KpknDatabase.createInMemory(context.applicationContext),
@@ -1228,6 +1440,13 @@ class ProgramRepository private constructor(
             INSTANCE?.let { runBlocking { it.repositoryJob.cancelAndJoin() } }
             INSTANCE?.takeIf { it.ownsDatabase }?.db?.close()
             INSTANCE = null
+            appContext = null
         }
     }
+}
+
+sealed class StartWorkoutResult {
+    data object Started : StartWorkoutResult()
+    data class Conflict(val existing: OngoingWorkoutState) : StartWorkoutResult()
+    data object Corrupt : StartWorkoutResult()
 }

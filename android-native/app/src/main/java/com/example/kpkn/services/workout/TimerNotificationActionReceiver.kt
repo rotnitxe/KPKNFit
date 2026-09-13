@@ -12,9 +12,11 @@ class TimerNotificationActionReceiver : BroadcastReceiver() {
         when (intent.action) {
             WorkoutRestForegroundService.ACTION_COMPLETE_SET -> {
                 ActiveWorkoutHolder.handleAction(TimerAction.CompleteSet)
+                NotificationManagerCompat.from(context).cancel(WorkoutRestForegroundService.NOTIF_ID)
             }
             WorkoutRestForegroundService.ACTION_SKIP_TIMER -> {
                 ActiveWorkoutHolder.handleAction(TimerAction.SkipTimer)
+                NotificationManagerCompat.from(context).cancel(WorkoutRestForegroundService.NOTIF_ID)
             }
             WorkoutRestForegroundService.ACTION_ADD_TIME -> {
                 ActiveWorkoutHolder.handleAction(TimerAction.AddTime)
@@ -23,7 +25,5 @@ class TimerNotificationActionReceiver : BroadcastReceiver() {
                 ActiveWorkoutHolder.handleAction(TimerAction.SubtractTime)
             }
         }
-
-        NotificationManagerCompat.from(context).cancel(WorkoutRestForegroundService.NOTIF_ID)
     }
 }

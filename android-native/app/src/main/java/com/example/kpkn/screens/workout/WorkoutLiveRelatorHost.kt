@@ -235,6 +235,13 @@ internal fun rememberLiveRelatorSnapshot(
     } else {
         enteredRepsValue?.toInt()
     }
+    val tagProgressHint = remember(
+        currentExercise?.id,
+        uiState.userCreatedTags,
+        uiState.completedSets.size,
+    ) {
+        currentExercise?.let { viewModel.tagProgressionHint(it) }
+    }
     val prHint = currentExercise?.let { ex ->
         resolveRelatorPrHint(
             liveWeightKg = prProbeWeight,
@@ -340,6 +347,7 @@ internal fun rememberLiveRelatorSnapshot(
         historyLastSet = loadAnchor.historyFirst,
         discomfortHint = discomfortHint,
         prHint = prHint,
+        tagProgressHint = tagProgressHint,
         isDropsetFollowUp = currentSet?.isDropSet == true &&
             currentExercise?.sets?.getOrNull(setIdx - 1)?.restAfterSeconds == 0,
         failedSetCaution = currentExercise?.let {

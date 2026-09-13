@@ -246,6 +246,22 @@ private fun FeedbackContent(
                         color = Color.White,
                         fontSize = fontSize,
                     )
+                    if (!state.notificationsEnabled) {
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            text = "Sin notificaciones el aviso es solo sonoro.",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.7f),
+                        )
+                    }
+                    if (!state.exactAlarmGranted) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = "Sin alarma exacta el aviso puede retrasarse con la pantalla apagada.",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.7f),
+                        )
+                    }
                     Spacer(Modifier.height(2.dp))
                     Text(
                         text = when (state.kind) {

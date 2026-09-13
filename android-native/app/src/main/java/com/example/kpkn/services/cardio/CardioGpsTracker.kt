@@ -205,6 +205,8 @@ object CardioGpsTracker {
             val current = snapshot ?: return
             snapshot = freezeElapsedLocked(current).copy(paused = true)
             stopLocationUpdatesLocked()
+            tickerJob?.cancel()
+            tickerJob = null
             persistLocked()
             _state.value = publishStateLocked(CardioGpsStatus.PAUSED)
         }

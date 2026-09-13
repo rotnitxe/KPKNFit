@@ -17,19 +17,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.ui.components.kpknGlassOrFallback
 
-internal enum class ExerciseDrainOverlayChannel {
+enum class ExerciseDrainOverlayChannel {
     ENERGY,
     BACK,
     MUSCLE,
 }
 
-internal data class ExerciseDrainOverlayItem(
+data class ExerciseDrainOverlayItem(
     val label: String,
     val delta: Int,
     val channel: ExerciseDrainOverlayChannel,
 )
 
-internal data class ExerciseDrainOverlayState(
+data class ExerciseDrainOverlayState(
     val key: Long,
     val exerciseName: String,
     val items: List<ExerciseDrainOverlayItem>,

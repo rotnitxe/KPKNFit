@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +52,11 @@ internal fun WorkoutRestOverlayHost(
 
     if (showExpanded && restState != null) {
         RestRemainingReader(viewModel = viewModel) { restTimerRemaining ->
+            LaunchedEffect(restTimerRemaining, isRestTimerRunning) {
+                if (isRestTimerRunning && restTimerRemaining <= 0) {
+                    viewModel.completeRestIfStuckAtZero()
+                }
+            }
             RestTimerOverlay(
                 state = restState,
                 remainingSeconds = if (isRestTimerRunning) restTimerRemaining else 0,

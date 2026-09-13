@@ -18,6 +18,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         WorkoutContextPerformanceEntity::class,
         WorkoutGlobalPerformanceEntity::class,
         WorkoutContextProfileEntity::class,
+        WorkoutTagEntity::class,
         WorkoutReplacementDecisionEntity::class,
         WellbeingEntity::class,
         SleepLogEntity::class,
@@ -58,7 +59,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         PerformanceSnapshotEntity::class,
         AugeAdaptiveCacheEntity::class,
     ],
-    version = 24,
+    version = 25,
     exportSchema = true,
 )
 abstract class KpknDatabase : RoomDatabase() {
@@ -625,6 +626,27 @@ abstract class KpknDatabase : RoomDatabase() {
             }
         }
 
+        // v25: durable workout tags per canonical exercise.
+        val MIGRATION_24_25 = object : Migration(24, 25) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `workout_tags` (
+                        `id` TEXT NOT NULL,
+                        `exerciseKey` TEXT NOT NULL,
+                        `normalizedName` TEXT NOT NULL,
+                        `lastUsedAt` TEXT NOT NULL,
+                        `data` TEXT NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_workout_tags_exerciseKey` ON `workout_tags` (`exerciseKey`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_workout_tags_normalizedName` ON `workout_tags` (`normalizedName`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_workout_tags_lastUsedAt` ON `workout_tags` (`lastUsedAt`)")
+            }
+        }
+
         fun getInstance(context: Context): KpknDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -656,6 +678,7 @@ abstract class KpknDatabase : RoomDatabase() {
                     MIGRATION_21_22,
                     MIGRATION_22_23,
                     MIGRATION_23_24,
+                    MIGRATION_24_25,
                 )
                 .build()
                 .also { INSTANCE = it }

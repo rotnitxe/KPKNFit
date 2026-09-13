@@ -154,6 +154,7 @@ internal fun WorkoutV2Body(
     var tagManagerTagId by remember { mutableStateOf<String?>(null) }
     var showTagListOverlay by remember { mutableStateOf(false) }
     var showCreateTagDialog by remember { mutableStateOf(false) }
+    var pendingUntaggedAdoption by remember { mutableStateOf<PendingUntaggedAdoption?>(null) }
     LaunchedEffect(requestLiveTagList) {
         if (requestLiveTagList) {
             showTagListOverlay = true
@@ -199,6 +200,10 @@ internal fun WorkoutV2Body(
         }
     }
     var drainOverlayState by remember { mutableStateOf<ExerciseDrainOverlayState?>(null) }
+
+    LaunchedEffect(uiState.lastDrainOverlay?.key) {
+        uiState.lastDrainOverlay?.let { drainOverlayState = it }
+    }
     var expandedSupersetWarmups by remember { mutableStateOf<Set<String>>(emptySet()) }
     var pendingDeleteSet by remember { mutableStateOf<Pair<String, Int>?>(null) }
     var pendingTechnique by remember {
@@ -210,9 +215,6 @@ internal fun WorkoutV2Body(
     LaunchedEffect(currentExercise?.id) {
         warmupWeightDrafts = emptyMap()
         settledRelatorPhase = null
-    }
-
-    LaunchedEffect(currentExercise?.id, uiState.currentSetIdx) {
         recordActionHolder.action = null
     }
 
@@ -403,11 +405,13 @@ internal fun WorkoutV2Body(
                         exerciseId = currentExercise.id,
                         onRename = { newName ->
                             viewModel.renameTag(currentExercise.id, tag.id, newName)
-                            tagManagerTagId = null
                         },
                         onDelete = {
                             viewModel.deleteTag(currentExercise.id, tag.id)
                             tagManagerTagId = null
+                        },
+                        onResetHistory = {
+                            viewModel.resetTagHistory(currentExercise.id, tag.id)
                         },
                         onAddSubTag = { name, category ->
                             viewModel.addSubTag(currentExercise.id, tag.id, name, category)
@@ -474,12 +478,50 @@ internal fun WorkoutV2Body(
             if (showCreateTagDialog && currentExercise != null) {
                 WorkoutCreateTagOverlay(
                     onCreate = { name, setup ->
-                        viewModel.createTag(currentExercise.id, name, setup)
-                        showCreateTagDialog = false
-                        showTagListOverlay = true
+                        val result = viewModel.createTag(currentExercise.id, name, setup)
+                        when (result) {
+                            is CreateTagResult.Created -> {
+                                showCreateTagDialog = false
+                                if (result.untaggedSessionCount > 0) {
+                                    pendingUntaggedAdoption = PendingUntaggedAdoption(
+                                        exerciseId = currentExercise.id,
+                                        tagId = result.tag.id,
+                                        tagName = result.tag.name,
+                                        sessionCount = result.untaggedSessionCount,
+                                    )
+                                } else {
+                                    showTagListOverlay = true
+                                }
+                            }
+                            is CreateTagResult.Duplicate,
+                            CreateTagResult.InvalidName,
+                            -> Unit
+                        }
+                        result
                     },
                     onDismiss = {
                         showCreateTagDialog = false
+                        showTagListOverlay = true
+                    },
+                )
+            }
+
+            pendingUntaggedAdoption?.let { pending ->
+                WorkoutUntaggedAdoptionDialog(
+                    pending = pending,
+                    onAdopt = {
+                        viewModel.adoptUntaggedHistory(pending.exerciseId, pending.tagId)
+                        pendingUntaggedAdoption = null
+                        showTagListOverlay = true
+                    },
+                    onReject = {
+                        viewModel.rejectUntaggedAdoption(pending.exerciseId, pending.tagId)
+                        pendingUntaggedAdoption = null
+                        showTagListOverlay = true
+                    },
+                    onDismiss = {
+                        viewModel.rejectUntaggedAdoption(pending.exerciseId, pending.tagId)
+                        pendingUntaggedAdoption = null
                         showTagListOverlay = true
                     },
                 )
@@ -528,9 +570,10 @@ internal fun WorkoutV2Body(
                                     executionState = uiState.cardioTimerState?.takeIf { it.exerciseId == currentExercise.id },
                                     liveHeartRateBpm = cardioHealthState.heartRateBpm.takeIf { cardioHealthState.exerciseId == currentExercise.id },
                                     onStartTimer = {
+                                        val isLibre = !cardioDetails.hasIntervals() && cardioDetails.targetDurationSeconds == null
                                         viewModel.startCardioTimer(
                                             currentExercise.id,
-                                            cardioDetails.effectiveDurationSeconds().coerceAtLeast(1),
+                                            if (isLibre) 0 else cardioDetails.effectiveDurationSeconds(),
                                         )
                                     },
                                     onPauseTimer = viewModel::pauseCardioTimer,
@@ -684,6 +727,7 @@ internal fun WorkoutV2Body(
                             for (roundIdx in 0 until rounds) {
                                 for (member in pagerSupersetMembers) {
                                     if (roundIdx in member.sets.indices &&
+                                        member.sets.getOrNull(roundIdx)?.isEmptySlot != true &&
                                         !WorkoutStepRules.isSetOmitted(member.id, roundIdx, uiState.omittedSetKeys)
                                     ) {
                                         if (member.isEffectivelyUnilateral()) {
@@ -715,7 +759,8 @@ internal fun WorkoutV2Body(
                             list.add(WorkoutSetSwipePage(type = LivePageType.CARDIO, setIndex = 0, exerciseId = pagerExercise.id))
                         } else {
                             val pagerIsUnilateral = pagerExercise.isEffectivelyUnilateral()
-                            pagerExercise.sets.forEachIndexed { i, _ ->
+                            pagerExercise.sets.forEachIndexed { i, set ->
+                                if (set.isEmptySlot) return@forEachIndexed
                                 if (WorkoutStepRules.isSetOmitted(pagerExercise.id, i, uiState.omittedSetKeys)) {
                                     return@forEachIndexed
                                 }
@@ -927,9 +972,7 @@ internal fun WorkoutV2Body(
                                         )
                                     }
                                 } finally {
-                                    if (!currentCoroutineContext().isActive) {
-                                        pagerSyncCoordinator.clearProgrammaticScroll(activeSwipePageIndex)
-                                    }
+                                    pagerSyncCoordinator.clearProgrammaticScroll(activeSwipePageIndex)
                                 }
                             }
                         }
@@ -946,9 +989,7 @@ internal fun WorkoutV2Body(
                                     ),
                                 )
                             } finally {
-                                if (!currentCoroutineContext().isActive) {
-                                    pagerSyncCoordinator.clearProgrammaticScroll(page)
-                                }
+                                pagerSyncCoordinator.clearProgrammaticScroll(page)
                             }
                         }
                         val requestPagerPage: (Int) -> Unit = requestPagerPage@{ pageIndex ->
@@ -1842,12 +1883,22 @@ internal fun WorkoutV2Body(
                                         null
                                     },
                                     thisSessionPreviousWorkingWeight = if (isActivePage) {
+                                        val activeTagToken = uiState.exerciseTags[targetExercise.id]
+                                        val activeTagId = uiState.activeTagsByExercise[targetExercise.id]?.firstOrNull()
                                         uiState.completedSets.entries
                                             .mapNotNull { (key, set) ->
                                                 val parsed = parseCompletedSetKey(key) ?: return@mapNotNull null
                                                 if (parsed.exerciseId != targetExercise.id) return@mapNotNull null
                                                 if (parsed.setIdx >= activeSetIndex) return@mapNotNull null
                                                 if (set.isWarmup || set.weight <= 0.0) return@mapNotNull null
+                                                if (!activeTagToken.isNullOrBlank() || !activeTagId.isNullOrBlank()) {
+                                                    val id = set.tagId.orEmpty()
+                                                    val name = set.tagName.orEmpty()
+                                                    val matches = id == activeTagId ||
+                                                        id.equals(activeTagToken, ignoreCase = true) ||
+                                                        name.equals(activeTagToken, ignoreCase = true)
+                                                    if (!matches) return@mapNotNull null
+                                                }
                                                 parsed.setIdx to set.weight
                                             }
                                             .maxByOrNull { it.first }
@@ -1855,6 +1906,7 @@ internal fun WorkoutV2Body(
                                     } else {
                                         null
                                     },
+                                    activeTag = uiState.exerciseTags[targetExercise.id],
                                     sessionAccentColor = sessionAccentColor,
                                     persistedLoadModeBySet = uiState.persistedLoadModeBySet,
                                     persistedLoadModeByExercise = uiState.persistedLoadModeByExercise,
@@ -2089,7 +2141,7 @@ internal fun WorkoutV2Body(
             visibleExercises = visibleExercises,
             ultraFastManualOverrides = uiState.ultraFastManualOverrides,
             onToggleOverride = { viewModel.toggleUltraFastManualOverride(it) },
-            onConfirm = { viewModel.applyUltraFast() },
+            onConfirm = { counts -> viewModel.applyUltraFast(counts) },
             onDismiss = { viewModel.hideUltraFastSheet() },
         )
     }

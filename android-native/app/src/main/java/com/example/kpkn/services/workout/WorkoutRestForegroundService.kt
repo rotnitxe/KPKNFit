@@ -62,7 +62,11 @@ class WorkoutRestForegroundService : Service() {
     ) {
         ensureChannel()
         val notification = buildNotification(sessionName, exerciseName, setInfoText, endAt, exerciseImage)
-        startForeground(NOTIF_ID, notification)
+        if (Build.VERSION.SDK_INT >= 34) {
+            startForeground(NOTIF_ID, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        } else {
+            startForeground(NOTIF_ID, notification)
+        }
     }
 
     private fun updateEndTime(newEndAt: Long) {

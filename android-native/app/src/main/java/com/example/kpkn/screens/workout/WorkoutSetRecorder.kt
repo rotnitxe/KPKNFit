@@ -19,13 +19,13 @@ import com.example.kpkn.data.models.SubTagCategory
 import com.example.kpkn.data.models.TimeProgressionStrategyV3
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.WeekVariant
-import com.example.kpkn.data.models.WeightUnit
 import com.example.kpkn.data.models.WorkoutContextProfile
 import com.example.kpkn.data.models.buildWorkoutContextKey
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngine
+import com.example.kpkn.domain.workout.WorkoutTagResolver
 import com.example.kpkn.domain.workout.isStackedIntensityTechnique
 import com.example.kpkn.domain.workout.isVolumeReplacedTechnique
 import com.example.kpkn.domain.auge.AugeFatigueEngine
@@ -167,14 +167,22 @@ class WorkoutSetRecorder(
             if (resolvedLoadMode == LoadModeV2.LASTRE && weight <= 0.0) {
                 resolvedLoadMode = LoadModeV2.BODYWEIGHT
             }
-            val resolvedBodyWeight = (bodyWeight ?: ports.currentBodyWeight())?.let { bw ->
-                if (repository.settings.value.weightUnit == WeightUnit.LBS) bw * 0.45359237 else bw
-            }
-            val resolvedTagId = tagId ?: activeProfile?.tagId
-                ?: state.activeTagsByExercise[exercise.id]?.let { ids ->
-                    state.userCreatedTags.values.flatten().firstOrNull { it.id in ids }?.name
+            val resolvedBodyWeight = bodyWeight ?: ports.currentBodyWeight()
+            val activeTagIds = state.activeTagsByExercise[exercise.id].orEmpty()
+            val activeTagObj = state.userCreatedTags.values.flatten().firstOrNull { it.id in activeTagIds }
+                ?: state.userCreatedTags.values.flatten().firstOrNull {
+                    WorkoutTagResolver.namesMatch(it.name, state.exerciseTags[exercise.id])
                 }
+            val resolvedTagId = when {
+                !tagId.isNullOrBlank() && WorkoutTagResolver.isInternalId(tagId) -> tagId
+                activeTagObj != null -> activeTagObj.id
+                !activeProfile?.tagId.isNullOrBlank() && WorkoutTagResolver.isInternalId(activeProfile?.tagId) ->
+                    activeProfile?.tagId
+                else -> tagId ?: activeProfile?.tagId ?: state.exerciseTags[exercise.id]
+            }
+            val resolvedTagName = activeTagObj?.name
                 ?: state.exerciseTags[exercise.id]
+                ?: tagId?.takeUnless { WorkoutTagResolver.isInternalId(it) }
             val resolvedSubTagIds = state.activeSubTagsByExercise[exercise.id].orEmpty()
             val resolvedSetupId = setupId ?: activeProfile?.setupProfileId ?: plannedSet?.defaultSetupProfileIdV3 ?: plannedSet?.setupId
             val resolvedMachineBrand = machineBrand ?: activeProfile?.machineBrand ?: plannedSet?.machineBrand
@@ -206,7 +214,7 @@ class WorkoutSetRecorder(
                 else -> null
             }
             val plannedRepRange = sideRepRange ?: plannedSet?.effectiveRepRange()
-                ?: plannedTarget?.toInt()?.takeIf { resolvedUnitMode == UnitModeV2.REPS }?.let { RepRange(it, it) }
+                ?: plannedTarget?.toInt()?.takeIf { resolvedUnitMode == UnitModeV2.REPS && it > 0 }?.let { RepRange(it, it) }
             val debt = if (resolvedUnitMode == UnitModeV2.REPS && logicalActualValue >= 0) {
                 evaluateRepRange(
                     actual = logicalActualValue,
@@ -370,7 +378,7 @@ class WorkoutSetRecorder(
                 suggestedNextLoad = null,
                 suggestedTargetSeconds = null,
                 suggestionReason = null,
-                augeEquivalentLoad = weight.coerceAtLeast(0.0),
+                augeEquivalentLoad = WorkoutPerformanceHomologationEngine.computeNormalizedLoad(entry),
                 augeEquivalentReps = logicalActualValue.roundToInt().coerceAtLeast(0),
             )
 
@@ -397,6 +405,7 @@ class WorkoutSetRecorder(
                     debt = outcome.debt,
                     contextProfileId = activeProfile?.id,
                     tagId = resolvedTagId,
+                    tagName = resolvedTagName,
                     subTagIds = resolvedSubTagIds,
                     setupProfileId = resolvedSetupId,
                     machineBrand = resolvedMachineBrand,
@@ -531,7 +540,11 @@ class WorkoutSetRecorder(
             // An execution error is a recoverable state, not a completed route:
             // keep the cursor on the red card so Revertir can remove the
             // placeholder without racing the pager/rest timer.
-            if (!isExecutionError && !unilateralPendingOtherSide && !wasExistingSet) {
+            val techniqueStillOpen = plannedSet?.isStackedIntensityTechnique() == true && (
+                (plannedSet.isDropSet && advanced.dropSets.isEmpty()) ||
+                    (plannedSet.isRestPause && advanced.restPauses.isEmpty())
+                )
+            if (!isExecutionError && !unilateralPendingOtherSide && !wasExistingSet && !techniqueStillOpen) {
                 ports.nextSet(stopRest = false)
             }
 
@@ -550,13 +563,13 @@ class WorkoutSetRecorder(
             }
             val plannedRestForKind = when (restKind) {
                 RestTimerKind.BETWEEN_SIDES -> exercise.restBetweenSidesSeconds ?: 0
-                RestTimerKind.SUPERSET_INTRA -> exercise.supersetRestBetween
-                    ?: supersetGroup?.roundRestBetweenExercises?.get(targetSetIdx)
+                RestTimerKind.SUPERSET_INTRA -> supersetGroup?.roundRestBetweenExercises?.get(targetSetIdx)
                     ?: supersetGroup?.restBetweenExercises
+                    ?: exercise.supersetRestBetween
                     ?: 0
-                RestTimerKind.SUPERSET_ROUND -> exercise.supersetRestAfter
-                    ?: supersetGroup?.roundRestAfterSuperset?.get(targetSetIdx)
+                RestTimerKind.SUPERSET_ROUND -> supersetGroup?.roundRestAfterSuperset?.get(targetSetIdx)
                     ?: supersetGroup?.restAfterSuperset
+                    ?: exercise.supersetRestAfter
                     ?: baseRest
                 RestTimerKind.WARMUP -> exercise.warmupSets.getOrNull(targetSetIdx)?.restBetween ?: baseRest
                 RestTimerKind.STANDARD -> {
@@ -633,10 +646,10 @@ class WorkoutSetRecorder(
                     RestTimerKind.WARMUP,
                     -> plannedRestForKind.coerceAtLeast(0)
                     RestTimerKind.STANDARD -> when {
-                        wasLastSet -> plannedRestForKind.coerceAtLeast(10)
+                        wasLastSet && nextStepForRest == null -> plannedRestForKind.coerceAtLeast(0)
                         nextPlannedSet?.isDropSet == true -> 0
                         nextPlannedSet?.isRestPause == true -> plannedRestForKind.coerceAtLeast(0)
-                        else -> plannedRestForKind.coerceAtLeast(10)
+                        else -> plannedRestForKind.coerceAtLeast(0)
                     }
                 }
                 val adjustedPlanned = ports.adjustRestTimeForPace(plannedRest)
@@ -657,10 +670,10 @@ class WorkoutSetRecorder(
 
                 val pendingSuggestion = PendingRestSuggestion(
                     plannedSeconds = effectivePlanned,
-                    adaptiveSeconds = if (restKind == RestTimerKind.SUPERSET_INTRA) {
+                    adaptiveSeconds = if (restKind == RestTimerKind.SUPERSET_INTRA || plannedRestForKind <= 0) {
                         adjustedAdaptive.coerceAtLeast(0)
                     } else {
-                        adjustedAdaptive.coerceAtLeast(10)
+                        adjustedAdaptive.coerceAtLeast(0)
                     },
                     exerciseName = displayWorkoutExerciseName(exercise),
                     exerciseId = exercise.id,
@@ -697,6 +710,18 @@ class WorkoutSetRecorder(
                 effectiveRpe = effectiveRpe,
                 sessionProgress = sessionProgress,
             )
+            val drainOverlay = buildExerciseDrainOverlayState(
+                exerciseName = displayWorkoutExerciseName(exercise),
+                drain = com.example.kpkn.data.models.PredictedDrain(
+                    cns = setDrain.cnsDrainPct.roundToInt(),
+                    muscular = setDrain.muscularDrainPct.roundToInt(),
+                    spinal = setDrain.spinalDrainPct.roundToInt(),
+                ),
+                involvedMuscles = dbInfo?.involvedMuscles.orEmpty().ifEmpty {
+                    exercise.effectiveMuscles.orEmpty()
+                },
+            )
+            updateState { it.copy(lastDrainOverlay = drainOverlay) }
             if (amrapActive) {
                 val contextPerformance = state.contextualPerformanceCache[contextKey]
                 val ewma = contextPerformance?.ewma ?: 0.0

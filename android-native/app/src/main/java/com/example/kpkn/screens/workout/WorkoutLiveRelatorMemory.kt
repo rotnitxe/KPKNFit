@@ -31,6 +31,10 @@ internal data class RelatorPrHint(
     val goalPct: Int? = null,
 )
 
+internal data class RelatorTagProgressHint(
+    val tagName: String,
+)
+
 internal fun identityKeysForExercise(exercise: Exercise): Set<String> = identityKeysFor(
     canonicalId = exercise.canonicalExerciseId,
     exerciseDbId = exercise.exerciseDbId,

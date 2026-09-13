@@ -13,10 +13,7 @@ import com.example.kpkn.data.models.OmittedExercise
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutLog
-import com.example.kpkn.data.exercises.catalogv2.toResolvedCatalogSnapshotJson
 import com.example.kpkn.data.models.discomfortLabel
-import com.example.kpkn.data.models.effectiveRepEquivalent
-import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
@@ -27,7 +24,6 @@ import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.VolumeCalculator
-import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.services.workout.ActiveWorkoutHolder
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import kotlinx.coroutines.CancellationException
@@ -65,6 +61,7 @@ class WorkoutFinishController(
     private val onEmptySession: () -> Unit = {},
     /** Test seam; production supplies WorkoutRecordingGate.awaitIdle. */
     private val awaitRecordingIdle: suspend (Long) -> Boolean = { true },
+    private val persistOngoing: suspend () -> Unit = {},
 ) {
     fun finish(
         notes: String,
@@ -75,6 +72,14 @@ class WorkoutFinishController(
     ) {
         val initialState = getState()
         if (initialState.isFinishingWorkout || initialState.isComplete || initialState.session == null) return
+        if (!initialState.logAlreadyWrittenId.isNullOrBlank()) {
+            if (initialState.showVolumeAdvanceModal && initialState.pendingVolumeAdvances.isNotEmpty()) {
+                updateState { it.copy(isFinishingWorkout = false, showFinishSheet = false) }
+            } else {
+                updateState { it.copy(isFinishingWorkout = false) }
+            }
+            return
+        }
         updateState { it.copy(isFinishingWorkout = true, finishWarning = null) }
 
         scope.launch {
@@ -115,53 +120,13 @@ class WorkoutFinishController(
                 val allExercises = activeSession.allExercises()
                 val currentExerciseIndex = exerciseIndex()
 
-                val completedExercises = allExercises.map { exercise ->
-            val catalogInfo = resolveCatalogExerciseInfoInIndex(
-                index = currentExerciseIndex,
-                catalogConfigurationId = exercise.catalogConfigurationId,
-                exerciseDbId = exercise.exerciseDbId,
-                exerciseId = exercise.exerciseId,
-                exerciseName = exercise.name,
-            )
-            val displayName = com.example.kpkn.domain.exercises.exerciseDisplayParts(exercise, catalogInfo).text
-            val sets = exercise.sets.indices.flatMap { setIdx ->
-                val bilateral = state.completedSets["${exercise.id}_$setIdx"]
-                val left = state.completedSets["${exercise.id}_${setIdx}_L"]
-                val right = state.completedSets["${exercise.id}_${setIdx}_R"]
-                listOfNotNull(bilateral, left, right)
-            }
-            CompletedExercise(
-                exerciseId = exercise.id,
-                exerciseName = displayName,
-                exerciseDbId = canonicalExerciseKey(exercise),
-                catalogRevision = exercise.catalogRevision,
-                catalogDefinitionId = exercise.catalogDefinitionId,
-                catalogConfigurationId = exercise.catalogConfigurationId,
-                performanceProfileId = exercise.performanceProfileId,
-                occurrenceId = exercise.occurrenceId ?: exercise.id,
-                canonicalExerciseId = exercise.canonicalExerciseId ?: canonicalExerciseKey(exercise),
-                relativeToCanonicalExerciseId = exercise.relativeToCanonicalExerciseId,
-                variantName = exercise.variantName,
-                selectedAspects = exercise.selectedAspects,
-                effectiveMuscles = exercise.effectiveMuscles,
-                restTime = exercise.restTime ?: 90,
-                supersetId = exercise.supersetGroupRefOrLegacyId(),
-                supersetExerciseCount = exercise.supersetGroupRefOrLegacyId()
-                    ?.let { SupersetRules.orderedMembers(activeSession, it).size }
-                    ?: 1,
-                supersetRounds = exercise.supersetGroupRefOrLegacyId()
-                    ?.let { SupersetRules.roundCount(activeSession, it) },
-                supersetRestBetween = exercise.supersetRestBetween,
-                supersetRestAfter = exercise.supersetRestAfter,
-                sets = sets,
-            ).let { completed ->
-                completed.copy(
-                    resolvedProfileSnapshotJson = catalogInfo?.let { info ->
-                        exercise.toResolvedCatalogSnapshotJson(info, System.currentTimeMillis())
-                    },
+                val completedExercises = state.archivedCompletedExercises + toCompletedExercises(
+                    session = activeSession,
+                    completedSets = state.completedSets,
+                    skippedExerciseIds = state.skippedExerciseIds,
+                    catalogIndex = currentExerciseIndex,
+                    includeCardioDetails = true,
                 )
-            }
-                }.filter { it.sets.isNotEmpty() }
 
         // Guard P0 de sesión vacía: sin series completadas no se persiste un log hueco
         // (drenaría 0 y taparía el problema); se aborta con feedback al usuario.
@@ -204,9 +169,7 @@ class WorkoutFinishController(
             )
         }
 
-                val totalVolume = completedExercises.sumOf { ex ->
-            ex.sets.sumOf { it.weight * it.effectiveRepEquivalent() }
-        }
+                val totalVolume = sessionTonnage(completedExercises)
 
                 val logId = listOf(
             programId,
@@ -377,6 +340,8 @@ class WorkoutFinishController(
                     environmentTags = closingFeedback.environmentTags,
                     planDeviations = state.planDeviations,
                     exerciseTags = state.exerciseTags,
+                    exerciseTagIds = state.activeTagsByExercise.mapValues { (_, ids) -> ids.firstOrNull().orEmpty() }
+                        .filterValues { it.isNotBlank() },
                     exerciseNotes = state.exerciseNotes,
                     exercisePhotos = state.exercisePhotos,
                     sessionMilestones = state.sessionMilestones,
@@ -405,14 +370,26 @@ class WorkoutFinishController(
                     },
                     omittedExercises = omittedExercises,
                     energySummary = finalEnergySummary,
+                    ringStartSnapshot = closingFeedback.ringStartSnapshot,
                     stillPresentDiscomfortIds = (
                         closingFeedback.stillPresentDiscomfortIds +
                             state.postExerciseFeedbackByExerciseId.values.flatMap { it.stillPresentDiscomfortIds }
                         ).distinct(),
-                    ringStartSnapshot = closingFeedback.ringStartSnapshot,
                 ).normalizedIdentityFields()
 
-                repository.finalizeWorkout(log)
+                val volumeDeltas = if (state.volumeAdvanceHandled) {
+                    emptyList()
+                } else {
+                    computeVolumeDelta(
+                        plannedSession = session,
+                        completedSets = state.completedSets,
+                    )
+                }
+                val keepOngoingForVolume = shouldKeepOngoingForVolumeAdvance(
+                    volumeDeltas = volumeDeltas,
+                    volumeAdvanceHandled = state.volumeAdvanceHandled,
+                )
+                repository.finalizeWorkout(log, clearOngoing = !keepOngoingForVolume)
                 KpknDiagnosticLogger.event(
                     namespace = "auge",
                     name = "post_persisted_auto",
@@ -465,6 +442,8 @@ class WorkoutFinishController(
 
                 scope.launch(Dispatchers.IO) {
                     try {
+                        state.contextualPerformanceCache.values.forEach { repository.upsertContextPerformanceState(it) }
+                        state.globalPerformanceCache.values.forEach { repository.upsertGlobalPerformanceState(it) }
                         performanceRangeStore.persistFinishedSessionPerformance(
                             completedExercises = log.completedExercises,
                             sessionId = sessionId,
@@ -477,27 +456,23 @@ class WorkoutFinishController(
 
                 val currentState = getState()
                 val currentSession = currentState.session
-                if (currentSession != null &&
-                    currentState.programId.isNotEmpty() &&
-                    !currentState.volumeAdvanceHandled
+                if (keepOngoingForVolume &&
+                    currentSession != null &&
+                    currentState.programId.isNotEmpty()
                 ) {
-                    val deltas = computeVolumeDelta(
-                        plannedSession = currentSession,
-                        completedSets = currentState.completedSets,
-                    )
-                    if (deltas.isNotEmpty()) {
-                        deferOnComplete(onComplete)
-                        updateState {
-                            it.copy(
-                                pendingVolumeAdvances = deltas,
-                                showVolumeAdvanceModal = true,
-                                showFinishSheet = false,
-                                isFinishingWorkout = false,
-                                finishResumeSnapshot = null,
-                            )
-                        }
-                        return@launch
+                    deferOnComplete(onComplete)
+                    updateState {
+                        it.copy(
+                            pendingVolumeAdvances = volumeDeltas,
+                            showVolumeAdvanceModal = true,
+                            showFinishSheet = false,
+                            isFinishingWorkout = false,
+                            finishResumeSnapshot = null,
+                            logAlreadyWrittenId = log.id,
+                        )
                     }
+                    persistOngoing()
+                    return@launch
                 }
                 prepareVoiceDiagnosticExport()
                 updateState {
@@ -524,7 +499,12 @@ class WorkoutFinishController(
                     ),
                     sessionId = sessionId,
                 )
-                updateState { it.copy(isFinishingWorkout = false) }
+                updateState {
+                    it.copy(
+                        isFinishingWorkout = false,
+                        finishWarning = error.message ?: "No se pudo guardar la sesión.",
+                    )
+                }
                 // (P0) El caller (p.ej. cierre por voz) puede avisar que el save falló.
                 if (error !is CancellationException) onFailure(error)
             }
@@ -612,11 +592,8 @@ internal fun computeMuscleSetSurplus(
         }
     }
 
-    val completedByExercise = mutableMapOf<String, Int>()
-    for ((key, _) in completedSets) {
-        val parsed = parseCompletedSetKey(key) ?: continue
-        completedByExercise[parsed.exerciseId] =
-            (completedByExercise[parsed.exerciseId] ?: 0) + 1
+    val completedByExercise = liveSession.allExercises().associate { exercise ->
+        exercise.id to logicalWorkingSetCount(exercise, completedSets)
     }
 
     val actualPerMuscle = mutableMapOf<String, Double>()
@@ -686,3 +663,8 @@ internal fun computeWorkoutVolumeDelta(
         )
     }
 }
+
+internal fun shouldKeepOngoingForVolumeAdvance(
+    volumeDeltas: List<*>,
+    volumeAdvanceHandled: Boolean,
+): Boolean = !volumeAdvanceHandled && volumeDeltas.isNotEmpty()

@@ -114,4 +114,22 @@ class WorkoutPagerSyncTest {
             ),
         )
     }
+
+    @Test
+    fun stickyProgrammaticTargetClearsWithoutSettleAndUserSwipeSyncs() {
+        val coordinator = WorkoutPagerSyncCoordinator()
+        coordinator.onSettledPage(0)
+        coordinator.beginProgrammaticScroll(2)
+        assertEquals(WorkoutPagerSettlementOrigin.PROGRAMMATIC, coordinator.onSettledPage(0))
+        coordinator.clearProgrammaticScroll(2)
+        assertEquals(WorkoutPagerSettlementOrigin.USER, coordinator.onSettledPage(3))
+        assertTrue(
+            shouldSyncSettledPagerPage(
+                origin = WorkoutPagerSettlementOrigin.USER,
+                activeStepKey = "press_0",
+                activeStepType = WorkoutStepType.WORKING_SET,
+                targetStepKey = "press_1",
+            ),
+        )
+    }
 }

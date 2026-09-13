@@ -265,7 +265,7 @@ object WorkoutPerformanceHomologationEngine {
             best = max(priorBest, metric),
             count = newCount,
             recent = (listOf(metric) + priorRecent).take(30),
-            isPr = metric > priorBest || priorCount == 0,
+            isPr = priorCount >= 1 && metric > priorBest,
         )
     }
 
@@ -500,11 +500,15 @@ object WorkoutPerformanceHomologationEngine {
         return entry.reachedFailure && entry.debt > 0.0
     }
 
-    fun computeNormalizedLoad(entry: SetEntryV2): Double = when (entry.loadMode) {
-        LoadModeV2.LOAD -> entry.loggedLoad ?: 0.0
-        LoadModeV2.BODYWEIGHT -> entry.loggedLoad ?: 0.0
-        LoadModeV2.LASTRE -> entry.loggedLoad ?: 0.0
-        LoadModeV2.ASSISTED -> -(entry.loggedLoad ?: 0.0)
+    fun computeNormalizedLoad(entry: SetEntryV2): Double {
+        val userKg = entry.bodyWeight?.takeIf { it > 0.0 } ?: 0.0
+        val logged = entry.loggedLoad ?: 0.0
+        return when (entry.loadMode) {
+            LoadModeV2.LOAD -> logged
+            LoadModeV2.BODYWEIGHT -> userKg
+            LoadModeV2.LASTRE -> userKg + logged
+            LoadModeV2.ASSISTED -> (userKg - logged).coerceAtLeast(0.0)
+        }
     }
 
     private fun computeMetric(entry: SetEntryV2): Double {
@@ -549,12 +553,7 @@ object WorkoutPerformanceHomologationEngine {
         }
     }
 
-    private fun normalizeLoad(entry: SetEntryV2): Double = when (entry.loadMode) {
-        LoadModeV2.LOAD -> entry.loggedLoad ?: 0.0
-        LoadModeV2.BODYWEIGHT -> 0.0
-        LoadModeV2.LASTRE -> entry.loggedLoad ?: 0.0
-        LoadModeV2.ASSISTED -> entry.loggedLoad ?: 0.0
-    }
+    private fun normalizeLoad(entry: SetEntryV2): Double = computeNormalizedLoad(entry)
 
     private fun normalizeScore(metric: Double, mean: Double, stdDev: Double): Double {
         val z = if (stdDev > 0.0) (metric - mean) / stdDev else 0.0

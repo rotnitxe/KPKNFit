@@ -118,6 +118,13 @@ internal fun RestLiveCard(
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
+                    if (restState?.notificationsEnabled == false) {
+                        Text(
+                            text = "Sin notificaciones el aviso es solo sonoro.",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.65f),
+                        )
+                    }
                 }
                 if (onExpand != null) {
                     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {

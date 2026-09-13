@@ -157,8 +157,26 @@ class WorkoutBackNavigationTest {
     }
 
     @Test
-    fun micPermissionOutcomes() {
-        assertEquals(MicPermissionOutcome.GRANT_AND_TOGGLE, onRecordAudioPermissionResult(true))
-        assertEquals(MicPermissionOutcome.DENY_SNACKBAR, onRecordAudioPermissionResult(false))
+    fun restOverlayMinimizesBeforeExit() {
+        assertEquals(
+            WorkoutBackAction.MINIMIZE_REST,
+            resolveWorkoutBackAction(WorkoutOverlayFlags(isRestOverlayVisible = true)),
+        )
+    }
+
+    @Test
+    fun postExerciseFeedbackDismissesBeforeExit() {
+        assertEquals(
+            WorkoutBackAction.DISMISS_POST_EXERCISE_FEEDBACK,
+            resolveWorkoutBackAction(WorkoutOverlayFlags(showPostExerciseFeedback = true)),
+        )
+    }
+
+    @Test
+    fun godModeExpandedCollapsesBeforeExit() {
+        assertEquals(
+            WorkoutBackAction.COLLAPSE_GOD_MODE,
+            resolveWorkoutBackAction(WorkoutOverlayFlags(godModeExpanded = true)),
+        )
     }
 }

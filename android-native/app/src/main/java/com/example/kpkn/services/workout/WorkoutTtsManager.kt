@@ -66,9 +66,26 @@ class WorkoutTtsManager(context: Context) {
                     })
                     ttsEngine.language = Locale("es", "CL")
                     val langResult = ttsEngine.setLanguage(Locale("es", "CL"))
-                    if (langResult == TextToSpeech.LANG_MISSING_DATA || langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    val primaryOk = langResult != TextToSpeech.LANG_MISSING_DATA &&
+                        langResult != TextToSpeech.LANG_NOT_SUPPORTED
+                    val languageOk = if (primaryOk) {
+                        true
+                    } else {
                         ttsEngine.language = Locale("es", "ES")
-                        ttsEngine.setLanguage(Locale("es", "ES"))
+                        val fallback = ttsEngine.setLanguage(Locale("es", "ES"))
+                        fallback != TextToSpeech.LANG_MISSING_DATA &&
+                            fallback != TextToSpeech.LANG_NOT_SUPPORTED
+                    }
+                    if (!languageOk) {
+                        _isInitialized = false
+                        _initError = "TTS language unavailable"
+                        initializationStarted = false
+                        val message = _initError!!
+                        val callbacks = errorCallbacks.toList()
+                        readyCallbacks.clear()
+                        errorCallbacks.clear()
+                        callbacks.forEach { callback -> mainHandler.post { callback(message) } }
+                        return@TextToSpeech
                     }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                         ttsEngine.setAudioAttributes(

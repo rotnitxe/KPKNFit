@@ -71,4 +71,30 @@ class WorkoutVolumeDeltaTest {
         )
         assertTrue(surplus.isEmpty())
     }
+
+    @Test
+    fun unilateralLeftAndRightCountAsOneLogicalSet() {
+        val unilateral = Exercise(
+            id = "exU",
+            name = "Curl",
+            exerciseDbId = "bench",
+            isUnilateral = true,
+            sets = listOf(ExerciseSet(id = "u0", targetReps = 10), ExerciseSet(id = "u1", targetReps = 10), ExerciseSet(id = "u2", targetReps = 10)),
+        )
+        val session = Session(id = "s1", name = "A", exercises = listOf(unilateral))
+        val completed = buildMap {
+            (0 until 3).forEach { idx ->
+                put("exU_${idx}_L", CompletedSet(id = "l$idx", weight = 12.0, reps = 10, side = "left"))
+                put("exU_${idx}_R", CompletedSet(id = "r$idx", weight = 12.0, reps = 10, side = "right"))
+            }
+        }
+        val surplus = computeMuscleSetSurplus(
+            plannedSession = session,
+            liveSession = session,
+            completedSets = completed,
+            exerciseIndex = mapOf("bench" to pecInfo()),
+        )
+        assertEquals(3, logicalWorkingSetCount(unilateral, completed))
+        assertTrue(surplus.isEmpty())
+    }
 }

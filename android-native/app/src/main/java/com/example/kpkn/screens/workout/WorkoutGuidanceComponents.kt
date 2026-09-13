@@ -13,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -85,7 +84,11 @@ internal fun WorkoutLiveGuidanceCard(
                             )
                         }
                         coachMessage?.let { message ->
-                            AssistChip(onClick = {}, label = { Text(coachSeverityLabel(message.severity)) })
+                            Text(
+                                text = coachSeverityLabel(message.severity),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                            )
                         }
                     }
                 } else {
@@ -103,7 +106,11 @@ internal fun WorkoutLiveGuidanceCard(
                             )
                         }
                         coachMessage?.let { message ->
-                            AssistChip(onClick = {}, label = { Text(coachSeverityLabel(message.severity)) })
+                            Text(
+                                text = coachSeverityLabel(message.severity),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                            )
                         }
                     }
                 }
@@ -217,9 +224,17 @@ internal fun WorkoutLiveGuidanceCard(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
-                                AssistChip(onClick = {}, label = { Text(coachSeverityLabel(message.severity)) })
+                                Text(
+                                    text = coachSeverityLabel(message.severity),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
                                 message.action?.let { action ->
-                                    AssistChip(onClick = {}, label = { Text(coachActionLabel(action)) })
+                                    Text(
+                                        text = coachActionLabel(action),
+                                        style = MaterialTheme.typography.labelLarge,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
                                 }
                             }
                             Text(

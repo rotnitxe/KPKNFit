@@ -276,6 +276,7 @@ class WorkoutRestTimerOrchestrator(
     }
 
     private suspend fun handleNaturalFinish(advanceOnFinish: Boolean) {
+        if (!getState().isRestTimerRunning) return
         val stateBeforeFinish = getState()
         val exercise = ports.visibleExercises(stateBeforeFinish).getOrNull(stateBeforeFinish.currentExerciseIdx)
         // Si hay un sheet de feedback post-ejercicio pendiente (última serie ya

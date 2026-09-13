@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.MobilitySeries
 import com.example.kpkn.data.models.MobilityConfig
 import com.example.kpkn.data.models.MobilityMode
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.WarmupExercise
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.UnilateralMode
 import com.example.kpkn.data.models.UnilateralSideOrder
@@ -388,5 +389,32 @@ class WorkoutStepRulesTest {
 
         assertEquals(2, WorkoutStepRules.totalRoadmapSlotsForExercise(exercise, omitted))
         assertEquals(2, WorkoutStepRules.completedRoadmapSlotsForExercise(exercise, completed, omitted))
+    }
+
+    @Test
+    fun buildSteps_emitsSessionWarmupAndPartMobility() {
+        val session = Session(
+            id = "s",
+            name = "Solo prep",
+            warmup = listOf(
+                WarmupExercise(id = "wu1", name = "Bici", duration = 300),
+            ),
+            parts = listOf(
+                SessionPart(
+                    id = "mob-part",
+                    name = "Movilidad",
+                    isMobilityGroup = true,
+                    mobilitySeries = listOf(
+                        MobilitySeries(id = "hip", name = "Cadera", sets = 2, reps = "8"),
+                    ),
+                ),
+            ),
+        )
+
+        val steps = WorkoutStepRules.buildSteps(session)
+
+        assertTrue(steps.any { it.type == WorkoutStepType.WARMUP && it.exerciseId == SESSION_WARMUP_LIVE_EXERCISE_ID })
+        assertTrue(steps.any { it.type == WorkoutStepType.MOBILITY_GROUP && it.exerciseId == partMobilityLiveExerciseId("mob-part") })
+        assertTrue(steps.isNotEmpty())
     }
 }

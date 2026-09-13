@@ -16,6 +16,7 @@ import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.workout.expectedSidesForSet
+import com.example.kpkn.domain.workout.isSetDone
 import java.text.Normalizer
 import kotlin.math.roundToInt
 
@@ -61,18 +62,8 @@ object WorkoutEditingRules {
                 completedSets.containsKey(buildCompletedSetKey(exerciseId, setIdx, "right")))
     }
 
-    private fun isSetDoneForExercise(completedSets: Map<String, CompletedSet>, exercise: Exercise, setIdx: Int): Boolean {
-        val set = exercise.sets.getOrNull(setIdx) ?: return false
-        val sides = exercise.expectedSidesForSet(set)
-        return sides.all { side ->
-            val key = when (side) {
-                "L" -> buildCompletedSetKey(exercise.id, setIdx, "left")
-                "R" -> buildCompletedSetKey(exercise.id, setIdx, "right")
-                else -> buildCompletedSetKey(exercise.id, setIdx, null)
-            }
-            completedSets.containsKey(key)
-        }
-    }
+    private fun isSetDoneForExercise(completedSets: Map<String, CompletedSet>, exercise: Exercise, setIdx: Int): Boolean =
+        exercise.isSetDone(completedSets, setIdx)
 
     private fun buildCompletedSetKey(exerciseId: String, setIdx: Int, side: String?): String = when (side) {
         "left" -> "${exerciseId}_${setIdx}_L"

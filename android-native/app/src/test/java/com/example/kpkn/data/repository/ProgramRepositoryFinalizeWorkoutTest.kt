@@ -494,6 +494,50 @@ class ProgramRepositoryFinalizeWorkoutTest {
         assertEquals(weekId, repository.activeProgramState.value?.currentWeekId)
     }
 
+    @Test
+    fun finalizeWorkout_keepOngoing_writesLogWithoutClearingDraft() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val repository = ProgramRepository.initForTests(context)
+        withTimeout(10_000) { repository.isReady.first { it } }
+        repository.resetAllStateSync()
+
+        val program = Program(id = "keep-ongoing", name = "Keep")
+        repository.addProgram(program)
+        withTimeout(5_000) { repository.programs.first { it.any { item -> item.id == program.id } } }
+        val session = executableSession("keep-session", "Press")
+        repository.startWorkout(
+            OngoingWorkoutState(programId = program.id, session = session, startTime = 1L),
+        )
+        repository.finalizeWorkout(
+            WorkoutLog(
+                id = "log-keep",
+                programId = program.id,
+                sessionId = session.id,
+                sessionName = session.name,
+                date = "2026-09-12T10:00:00Z",
+                durationMinutes = 40,
+            ),
+            clearOngoing = false,
+        )
+        assertEquals(session.id, repository.ongoingWorkout.value?.session?.id)
+        assertTrue(repository.history.value.any { it.id == "log-keep" })
+        val room = repository.databaseForTests()
+        assertTrue(room.stateDao().getOngoingWorkout() != null)
+        repository.finalizeWorkout(
+            WorkoutLog(
+                id = "log-keep",
+                programId = program.id,
+                sessionId = session.id,
+                sessionName = session.name,
+                date = "2026-09-12T10:00:00Z",
+                durationMinutes = 40,
+            ),
+            clearOngoing = false,
+        )
+        assertEquals(1, repository.history.value.count { it.id == "log-keep" })
+        assertEquals(session.id, repository.ongoingWorkout.value?.session?.id)
+    }
+
     private fun log(
         programId: String,
         sessionId: String,

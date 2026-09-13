@@ -28,13 +28,14 @@ object UltraFastEngine {
         session: Session,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
         manualOverrides: Map<String, Boolean> = emptyMap(),
+        completedSetCountByExercise: Map<String, Int> = emptyMap(),
     ): UltraFastPreview {
         val beforeBd = calculateSessionTimeBreakdown(
             exercises = session.allExercises(),
             supersetGroups = session.allSupersetGroups(),
             sessionWarmup = session.warmup,
         )
-        val result = applyInternal(session, exerciseIndex, manualOverrides)
+        val result = applyInternal(session, exerciseIndex, manualOverrides, completedSetCountByExercise)
         val afterBd = calculateSessionTimeBreakdown(
             exercises = result.transformedExercisesFlat,
             supersetGroups = result.supersetGroups,
@@ -52,8 +53,10 @@ object UltraFastEngine {
         session: Session,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
         manualOverrides: Map<String, Boolean> = emptyMap(),
+        completedSetCountByExercise: Map<String, Int> = emptyMap(),
+        customSetCounts: Map<String, Int> = emptyMap(),
     ): UltraFastApplyResult {
-        val result = applyInternal(session, exerciseIndex, manualOverrides)
+        val result = applyInternal(session, exerciseIndex, manualOverrides, completedSetCountByExercise, customSetCounts)
         val beforeBd = calculateSessionTimeBreakdown(session.allExercises(), session.allSupersetGroups(), session.warmup)
         val afterBd = calculateSessionTimeBreakdown(result.transformedExercisesFlat, result.supersetGroups, session.warmup)
         val preview = result.preview.copy(
@@ -148,6 +151,8 @@ object UltraFastEngine {
         session: Session,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
         manualOverrides: Map<String, Boolean>,
+        completedSetCountByExercise: Map<String, Int> = emptyMap(),
+        customSetCounts: Map<String, Int> = emptyMap(),
     ): InternalResult {
         val all = session.allExercises()
         val transformed = mutableListOf<Exercise>()
@@ -159,6 +164,7 @@ object UltraFastEngine {
             val isDanger = isDangerous(ex, info)
             val override = manualOverrides[ex.id]
             val allowDensifyOnProtected = override == true
+            val loggedCount = completedSetCountByExercise[ex.id] ?: 0
 
             val beforeSets = ex.sets.size
             val beforeTech = techniqueLabel(ex)
@@ -169,8 +175,20 @@ object UltraFastEngine {
             var wasDensified = false
 
             when {
+                override == false -> {
+                    afterExercise = ex
+                    reason = UltraFastReason.COMPOUND_REDUCED
+                }
+                loggedCount > 0 && (isIsolationEligible(ex, info) || allowDensifyOnProtected) -> {
+                    val target = reduceTarget(beforeSets).coerceAtLeast(loggedCount)
+                    if (target < beforeSets) {
+                        afterExercise = ex.copy(sets = ex.sets.take(target))
+                        wasReduced = true
+                    }
+                    reason = UltraFastReason.COMPOUND_REDUCED
+                }
                 (isProtected || isDanger) && !allowDensifyOnProtected -> {
-                    val target = reduceTarget(beforeSets)
+                    val target = reduceTarget(beforeSets).coerceAtLeast(loggedCount)
                     if (target < beforeSets) {
                         afterExercise = ex.copy(sets = ex.sets.take(target))
                         wasReduced = true
@@ -190,7 +208,7 @@ object UltraFastEngine {
                     reason = UltraFastReason.ISOLATION_DENSIFIED
                 }
                 else -> {
-                    val target = reduceTarget(beforeSets)
+                    val target = reduceTarget(beforeSets).coerceAtLeast(loggedCount)
                     if (target < beforeSets) {
                         afterExercise = ex.copy(sets = ex.sets.take(target))
                         wasReduced = true
@@ -200,6 +218,25 @@ object UltraFastEngine {
             }
 
             afterExercise = halveRest(afterExercise)
+            val customTarget = customSetCounts[ex.id]
+            if (customTarget != null && customTarget > 0) {
+                afterExercise = if (wasDensified) {
+                    val proto = afterExercise.sets.firstOrNull()
+                    if (proto == null) {
+                        afterExercise
+                    } else {
+                        afterExercise.copy(
+                            sets = List(customTarget.coerceIn(1, 6)) { index ->
+                                if (index == 0) proto else proto.copy(id = UUID.randomUUID().toString())
+                            },
+                        )
+                    }
+                } else {
+                    val keep = customTarget.coerceAtLeast(loggedCount).coerceAtLeast(1)
+                    val source = if (keep <= ex.sets.size) ex.sets.take(keep) else afterExercise.sets
+                    afterExercise.copy(sets = source)
+                }
+            }
             transformed += afterExercise
             perExerciseChanges += UltraFastExerciseChange(
                 exerciseId = ex.id,

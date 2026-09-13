@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +22,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,6 +47,7 @@ internal fun GuidedTechniquePanel(
     onSkipTechnique: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var confirmSkipTechnique by remember { mutableStateOf(false) }
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
@@ -150,7 +156,7 @@ internal fun GuidedTechniquePanel(
                 }
             }
 
-            TextButton(onClick = onSkipTechnique) {
+            TextButton(onClick = { confirmSkipTechnique = true }) {
                 Text(
                     "Saltar técnica y registrar solo la serie",
                     style = MaterialTheme.typography.labelSmall,
@@ -158,5 +164,23 @@ internal fun GuidedTechniquePanel(
                 )
             }
         }
+    }
+    if (confirmSkipTechnique) {
+        AlertDialog(
+            onDismissRequest = { confirmSkipTechnique = false },
+            title = { Text("¿Registrar solo la serie principal?") },
+            text = { Text("Las sub-series de drop o rest-pause quedarán descartadas.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirmSkipTechnique = false
+                        onSkipTechnique()
+                    },
+                ) { Text("Sí, solo la serie") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmSkipTechnique = false }) { Text("Seguir con la técnica") }
+            },
+        )
     }
 }

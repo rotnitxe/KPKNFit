@@ -28,6 +28,9 @@ import com.example.kpkn.services.workout.WorkoutVoiceExerciseAliasMatcher
 import com.example.kpkn.services.workout.WorkoutVoiceForegroundService
 import com.example.kpkn.services.workout.WorkoutVoicePermissionHelper
 import com.example.kpkn.services.workout.WorkoutVoiceRuntime
+import com.example.kpkn.services.workout.WorkoutVoiceModelFailedPolicy
+import com.example.kpkn.services.workout.VoiceHostResumeAction
+import com.example.kpkn.services.workout.resolveVoiceHostResumeAction
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -452,11 +455,33 @@ class WorkoutVoiceCommandHandler(
 
     fun onVoiceHostResumed() {
         if (!getState().voiceSessionEnabled) return
-        if (!voiceController.isEnabled()) {
-            enableVoice()
-        } else if (voiceController.getStage() == VoicePipelineStage.ERROR_RECOVERY) {
-            voiceController.enable()
-            updateState { it.copy(voiceSessionState = voiceController.state.value) }
+        val capability = WorkoutVoicePermissionHelper.checkVoiceCapability(appContext)
+        when (
+            resolveVoiceHostResumeAction(
+                voiceSessionEnabled = true,
+                controllerEnabled = voiceController.isEnabled(),
+                stage = voiceController.getStage(),
+                hasAudioPermission = capability.canUseVoice,
+            )
+        ) {
+            VoiceHostResumeAction.NONE -> Unit
+            VoiceHostResumeAction.DISABLE_PERMISSION -> {
+                disableVoice()
+                updateState {
+                    it.copy(
+                        voiceSessionState = VoiceSessionState(
+                            stage = VoicePipelineStage.ERROR_RECOVERY,
+                            errorMessage = WorkoutVoiceModelFailedPolicy.MIC_PERMISSION_MESSAGE,
+                        ),
+                    )
+                }
+                voiceController.speakFeedbackUpdated(WorkoutVoiceModelFailedPolicy.MIC_PERMISSION_MESSAGE)
+            }
+            VoiceHostResumeAction.ENABLE -> enableVoice()
+            VoiceHostResumeAction.REENABLE_RECOVERY -> {
+                voiceController.enable()
+                updateState { it.copy(voiceSessionState = voiceController.state.value) }
+            }
         }
     }
 
@@ -669,7 +694,7 @@ class WorkoutVoiceCommandHandler(
                 else voiceController.speakFeedbackUpdated("No hay un cardio pausado para reanudar.")
             }
             is VoiceSessionCommand.QueryCardioStatus -> {
-                voiceController.speakFeedbackUpdated(ports.cardioStatusSpeech() ?: "No hay un cardio activo.")
+                voiceController.speakAnnouncement(ports.cardioStatusSpeech() ?: "No hay un cardio activo.")
             }
             is VoiceSessionCommand.StartTimedSet -> startTimedSet()
             is VoiceSessionCommand.StopTimedSet -> stopTimedSet()
@@ -756,7 +781,12 @@ class WorkoutVoiceCommandHandler(
         stopTimedSet()
         val pending = pendingExerciseNames()
         if (pending.isEmpty()) {
-            ports.finishUpToCurrentPoint()
+            if (getState().showFinishSheet) {
+                ports.finalizeVoiceSession()
+            } else {
+                ports.finishUpToCurrentPoint()
+                voiceController.speakAnnouncement("Abro el resumen. Di sesión terminada para guardar.")
+            }
         } else {
             voiceController.speakFeedbackUpdated("Quedan ${pending.size} ejercicios: ${pending.joinToString(", ")}. Di continuar con un ejercicio o dejar hasta acá.")
             WorkoutVoiceDiagnosticLogger.event("finish_pending_guard", mapOf("pendingCount" to pending.size, "pendingNames" to pending))
@@ -1342,7 +1372,11 @@ class WorkoutVoiceCommandHandler(
             ports.visibleExercises(state).firstOrNull { it.id == confirmationTarget.exerciseId }
         } else {
             ports.visibleExercises(state).getOrNull(state.currentExerciseIdx)
-        } ?: return
+        }
+        if (exercise == null) {
+            voiceController.speakFeedbackUpdated("Ese ejercicio ya no está.")
+            return
+        }
         val acceptedInterpretation = if (exercise.trackRom) {
             interpretation
         } else {

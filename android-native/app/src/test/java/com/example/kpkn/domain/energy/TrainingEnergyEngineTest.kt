@@ -535,4 +535,30 @@ class TrainingEnergyEngineTest {
             equipment = "Barra",
         )))
     }
+
+    @Test
+    fun lbsDisplayUnitDoesNotRescaleCanonicalKilograms() {
+        val exercises = listOf(
+            buildCompletedExercise(
+                "Sentadilla Trasera Barra Alta",
+                sets(1, 100.0, 8, 8.0),
+                "quads_sentadilla_trasera_barra_alta",
+            ),
+        )
+        val kg = TrainingEnergyEngine.estimateLiveSession(exercises, buildSettings())
+        val lbs = TrainingEnergyEngine.estimateLiveSession(
+            exercises,
+            Settings(userVitals = UserVitals(weight = 80.0), weightUnit = WeightUnit.LBS),
+        )
+        val plannedKg = TrainingEnergyEngine.estimatePlannedSession(
+            heavyLegSession(withWeights = true),
+            buildSettings(),
+        )
+        val plannedLbs = TrainingEnergyEngine.estimatePlannedSession(
+            heavyLegSession(withWeights = true),
+            Settings(userVitals = UserVitals(weight = 80.0), weightUnit = WeightUnit.LBS),
+        )
+        assertEquals(kg.totalKcal.mid, lbs.totalKcal.mid)
+        assertEquals(plannedKg.totalKcal.mid, plannedLbs.totalKcal.mid)
+    }
 }

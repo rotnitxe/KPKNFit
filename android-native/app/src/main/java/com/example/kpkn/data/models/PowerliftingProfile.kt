@@ -29,4 +29,7 @@ data class PowerliftingProfile(
     val squatTM: Double? = null,
     val benchTM: Double? = null,
     val deadliftTM: Double? = null,
+    val overhead1RM: Double? = null,
+    val overheadE1RM: Double? = null,
+    val overheadTM: Double? = null,
 )

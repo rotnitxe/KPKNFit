@@ -45,3 +45,6 @@ fun isSetDoneWithSides(
         completedSets.containsKey(key)
     }
 }
+
+fun Exercise.isSetDone(completedSets: Map<String, *>, setIdx: Int): Boolean =
+    isSetDoneWithSides(completedSets, id, setIdx, expectedSidesForSetIndex(setIdx))

@@ -101,6 +101,10 @@ data class WorkoutTag(
     val createdAtIso: String = "",
     val lastUsedAtIso: String = "",
     val usageCount: Int = 0,
+    val normalizedName: String = "",
+    val historyResetAtIso: String? = null,
+    val ownsUntaggedHistory: Boolean = false,
+    val isDefault: Boolean = false,
 )
 
 @Serializable

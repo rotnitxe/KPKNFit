@@ -76,7 +76,8 @@ object WorkoutVoiceCommandParser {
 
     private val FINISH_SESSION_KEYWORDS = setOf(
         "finalizar sesion", "finalizar entrenamiento", "terminar sesion",
-        "terminar entrenamiento", "acabar sesion", "finalizar", "terminar",
+        "terminar entrenamiento", "acabar sesion", "sesion terminada",
+        "guardar sesion", "guardar entrenamiento",
     )
     private val START_CARDIO_KEYWORDS = setOf("iniciar cardio", "empieza cardio", "comenzar cardio")
     private val FINISH_CARDIO_KEYWORDS = setOf("finalizar cardio", "terminar cardio", "acabar cardio")

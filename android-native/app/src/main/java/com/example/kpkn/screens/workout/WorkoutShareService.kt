@@ -27,6 +27,8 @@ import java.io.File
 import java.io.FileOutputStream
 import java.util.Locale
 import kotlin.math.abs
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 object WorkoutShareService {
 
@@ -36,7 +38,7 @@ object WorkoutShareService {
         val detail: String,
     )
 
-    fun shareToInstagramStory(
+    suspend fun shareToInstagramStory(
         context: Context,
         sessionName: String,
         completedExercises: List<CompletedExercise> = emptyList(),
@@ -49,76 +51,90 @@ object WorkoutShareService {
         previousBestEstimated1RM: Double? = null,
         currentBestEstimated1RM: Double? = null,
     ) {
-        runCatching {
-            val bitmap = renderMinimalStoryCard(
-                context = context,
-                sessionName = sessionName,
-                completedExercises = completedExercises,
-                durationMinutes = durationMinutes,
-                totalVolume = totalVolume,
-                totalSets = totalSets,
-                previousTotalSets = previousTotalSets,
-                previousVolume = previousVolume,
-                previousDurationMinutes = previousDurationMinutes,
-                previousBestEstimated1RM = previousBestEstimated1RM,
-                currentBestEstimated1RM = currentBestEstimated1RM,
-            )
-            val shareDir = File(context.cacheDir, "shares").apply { mkdirs() }
-            val file = File(shareDir, "workout-story-${System.currentTimeMillis()}.png")
-            FileOutputStream(file).use { out ->
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+        val appContext = context.applicationContext
+        val prepared = withContext(Dispatchers.IO) {
+            runCatching {
+                val bitmap = renderMinimalStoryCard(
+                    context = appContext,
+                    sessionName = sessionName,
+                    completedExercises = completedExercises,
+                    durationMinutes = durationMinutes,
+                    totalVolume = totalVolume,
+                    totalSets = totalSets,
+                    previousTotalSets = previousTotalSets,
+                    previousVolume = previousVolume,
+                    previousDurationMinutes = previousDurationMinutes,
+                    previousBestEstimated1RM = previousBestEstimated1RM,
+                    currentBestEstimated1RM = currentBestEstimated1RM,
+                )
+                val shareDir = File(appContext.cacheDir, "shares").apply { mkdirs() }
+                val file = File(shareDir, "workout-story-${System.currentTimeMillis()}.png")
+                FileOutputStream(file).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                }
+                FileProvider.getUriForFile(
+                    appContext,
+                    "${appContext.packageName}.fileprovider",
+                    file,
+                )
             }
+        }
+        prepared.fold(
+            onSuccess = { uri ->
+                withContext(Dispatchers.Main) {
+                    launchShareIntents(context, uri)
+                }
+            },
+            onFailure = { error ->
+                if (error !is ActivityNotFoundException) {
+                    error.printStackTrace()
+                }
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        context,
+                        "No se pudo abrir la pantalla para compartir.",
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+            },
+        )
+    }
 
-            val uri: Uri = FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.fileprovider",
-                file,
+    private fun launchShareIntents(context: Context, uri: Uri) {
+        val instagramIntent = Intent("com.instagram.share.ADD_TO_STORY").apply {
+            setDataAndType(uri, "image/png")
+            setPackage(INSTAGRAM_PACKAGE)
+            clipData = ClipData.newRawUri("workout_story", uri)
+            putExtra("source_application", context.packageName)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            if (context !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+
+        var sharedDirectly = false
+        try {
+            context.grantUriPermission(
+                INSTAGRAM_PACKAGE,
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION,
             )
+            context.startActivity(instagramIntent)
+            sharedDirectly = true
+        } catch (_: Exception) {
+            // Instagram is not installed or failed to launch. Fallback.
+        }
 
-            val instagramIntent = Intent("com.instagram.share.ADD_TO_STORY").apply {
-                setDataAndType(uri, "image/png")
-                setPackage(INSTAGRAM_PACKAGE)
+        if (!sharedDirectly) {
+            val fallback = Intent(Intent.ACTION_SEND).apply {
+                type = "image/png"
+                putExtra(Intent.EXTRA_STREAM, uri)
                 clipData = ClipData.newRawUri("workout_story", uri)
-                putExtra("source_application", context.packageName)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 if (context !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
-
-            var sharedDirectly = false
-            try {
-                context.grantUriPermission(
-                    INSTAGRAM_PACKAGE,
-                    uri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
-                )
-                context.startActivity(instagramIntent)
-                sharedDirectly = true
-            } catch (_: Exception) {
-                // Instagram is not installed or failed to launch. Fallback.
+            val chooser = Intent.createChooser(fallback, "Compartir entrenamiento").apply {
+                if (context !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
-
-            if (!sharedDirectly) {
-                val fallback = Intent(Intent.ACTION_SEND).apply {
-                    type = "image/png"
-                    putExtra(Intent.EXTRA_STREAM, uri)
-                    clipData = ClipData.newRawUri("workout_story", uri)
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    if (context !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                val chooser = Intent.createChooser(fallback, "Compartir entrenamiento").apply {
-                    if (context !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                context.startActivity(chooser)
-            }
-        }.onFailure { error ->
-            if (error !is ActivityNotFoundException) {
-                error.printStackTrace()
-            }
-            Toast.makeText(
-                context,
-                "No se pudo abrir la pantalla para compartir.",
-                Toast.LENGTH_SHORT,
-            ).show()
+            context.startActivity(chooser)
         }
     }
 

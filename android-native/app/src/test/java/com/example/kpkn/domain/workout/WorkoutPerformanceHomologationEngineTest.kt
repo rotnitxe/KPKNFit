@@ -422,6 +422,49 @@ class WorkoutPerformanceHomologationEngineTest {
         )
         val result = WorkoutPerformanceHomologationEngine.evaluate(entry, null)
         assertNull(result.outcome.estimatedRm)
-        assertEquals(45.0, result.outcome.augeEquivalentLoad, 0.001)
+        assertEquals(55.0, result.outcome.augeEquivalentLoad, 0.001)
+    }
+
+    @Test
+    fun canonicalLoadUsesHomologatedKilograms() {
+        fun entry(mode: LoadModeV2, logged: Double?, body: Double?) = SetEntryV2(
+            exerciseId = "ex",
+            setIndex = 0,
+            loadMode = mode,
+            unitMode = UnitModeV2.REPS,
+            plannedTarget = 8.0,
+            actualValue = 8.0,
+            loggedLoad = logged,
+            bodyWeight = body,
+            contextKey = "ex",
+        )
+        assertEquals(
+            100.0,
+            WorkoutPerformanceHomologationEngine.computeNormalizedLoad(
+                entry(LoadModeV2.LOAD, 100.0, 80.0),
+            ),
+            0.001,
+        )
+        assertEquals(
+            80.0,
+            WorkoutPerformanceHomologationEngine.computeNormalizedLoad(
+                entry(LoadModeV2.BODYWEIGHT, 0.0, 80.0),
+            ),
+            0.001,
+        )
+        assertEquals(
+            100.0,
+            WorkoutPerformanceHomologationEngine.computeNormalizedLoad(
+                entry(LoadModeV2.LASTRE, 20.0, 80.0),
+            ),
+            0.001,
+        )
+        assertEquals(
+            55.0,
+            WorkoutPerformanceHomologationEngine.computeNormalizedLoad(
+                entry(LoadModeV2.ASSISTED, 25.0, 80.0),
+            ),
+            0.001,
+        )
     }
 }

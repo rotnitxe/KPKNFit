@@ -176,29 +176,25 @@ object TrainingEnergyEngine {
     fun resolvePlannedExternalLoadKg(
         exercise: Exercise,
         set: ExerciseSet,
-        weightUnit: WeightUnit,
+        @Suppress("UNUSED_PARAMETER") weightUnit: WeightUnit,
     ): ResolvedPlannedLoad {
         set.weight?.takeIf { it > 0.0 }?.let { raw ->
-            val kg = if (weightUnit == WeightUnit.LBS) raw / 2.2046226218 else raw
-            return ResolvedPlannedLoad(kg, ResolvedLoadSource.EXPLICIT_WEIGHT)
+            return ResolvedPlannedLoad(raw, ResolvedLoadSource.EXPLICIT_WEIGHT)
         }
 
         val reference = resolveReferenceCapacity(exercise)
         if (reference != null && reference > 0.0) {
-            val refKg = if (weightUnit == WeightUnit.LBS) reference / 2.2046226218 else reference
             set.targetPercentageRM?.takeIf { it > 0.0 }?.let { pct ->
                 return ResolvedPlannedLoad(
-                    externalLoadKg = refKg * pct / 100.0,
+                    externalLoadKg = reference * pct / 100.0,
                     source = ResolvedLoadSource.PERCENT_1RM,
                 )
             }
             calculateWeightFrom1RMAndIntensity(reference, set)?.takeIf { it > 0.0 }?.let { raw ->
-                val kg = if (weightUnit == WeightUnit.LBS) raw / 2.2046226218 else raw
-                return ResolvedPlannedLoad(kg, ResolvedLoadSource.ONE_RM_INTENSITY)
+                return ResolvedPlannedLoad(raw, ResolvedLoadSource.ONE_RM_INTENSITY)
             }
             calculateSuggestedLoad(exercise, set)?.takeIf { it > 0.0 }?.let { raw ->
-                val kg = if (weightUnit == WeightUnit.LBS) raw / 2.2046226218 else raw
-                return ResolvedPlannedLoad(kg, ResolvedLoadSource.SUGGESTED_FROM_1RM)
+                return ResolvedPlannedLoad(raw, ResolvedLoadSource.SUGGESTED_FROM_1RM)
             }
         }
 
@@ -266,11 +262,7 @@ object TrainingEnergyEngine {
         val setScores = mutableListOf<SetEnergyScore>()
         val contributions = mutableListOf<ExerciseEnergyContribution>()
         val notes = mutableListOf<String>()
-        val userWeight = when {
-            userBodyWeightKg == null -> null
-            weightUnit == WeightUnit.LBS -> userBodyWeightKg / 2.2046226218
-            else -> userBodyWeightKg
-        }
+        val userWeight = userBodyWeightKg
         if (userWeight == null) {
             notes.add("Peso corporal no disponible — confianza baja")
         }
@@ -333,17 +325,14 @@ object TrainingEnergyEngine {
                     val rpeMult = AugeFatigueEngine.calculateRpeMultiplier(effectiveRpe)
                     val effectiveLoadRaw = set.homologatedResultV3?.augeEquivalentLoad
                         ?: set.weight
-                    val effectiveLoad = if (weightUnit == WeightUnit.LBS) {
-                        effectiveLoadRaw / 2.2046226218
-                    } else {
-                        effectiveLoadRaw
-                    }
+                    val effectiveLoad = effectiveLoadRaw
                     val effectiveReps = set.effectiveRepEquivalent()
                     val loadForKcal = effectiveLoad + (userWeight ?: 0.0) * bodyweightPart
                     if (loadForKcal > 0.0) setsWithResolvableLoad++
 
-                    val activeKcal = if (loadForKcal > 0.0) {
-                        estimateActiveSetKcal(
+                    val activeKcal = when {
+                        (set.calories ?: 0.0) > 0.0 -> set.calories ?: 0.0
+                        loadForKcal > 0.0 -> estimateActiveSetKcal(
                             effectiveLoadKg = loadForKcal,
                             effectiveReps = effectiveReps,
                             efc = efc,
@@ -351,8 +340,7 @@ object TrainingEnergyEngine {
                             rpeMultiplier = rpeMult,
                             densityMultiplier = densityMult,
                         )
-                    } else {
-                        0.0
+                        else -> 0.0
                     }
                     val restKcal = estimateRestOverheadKcal(restSeconds, efc, rpeMult)
 

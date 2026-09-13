@@ -8,6 +8,8 @@ import com.example.kpkn.data.models.ProgramRunState
 import com.example.kpkn.data.models.ProgramRunStatus
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
+import com.example.kpkn.data.models.AutoregulationMode
+import com.example.kpkn.data.models.AutoregulationProposal
 import com.example.kpkn.data.models.PendingProgramAction
 import com.example.kpkn.data.models.PendingProgramActionType
 import com.example.kpkn.data.models.OneRmResolution
@@ -40,6 +42,7 @@ object ProgramProgressEngine {
         val activeState: ActiveProgramState?,
         val advancedCycle: Boolean = false,
         val advancedWeek: Boolean = false,
+        val autoregulationProposals: List<AutoregulationProposal> = emptyList(),
     )
 
     fun resolveCurrentWeekInstances(program: Program, cycleNumber: Int): List<WeekInstance> =
@@ -189,6 +192,8 @@ object ProgramProgressEngine {
         weekInstanceId: String,
         logs: List<WorkoutLog>,
         transitionContext: BlockTransitionEngine.TransitionContext? = null,
+        weeklySignals: WeeklyAutoregulationSignals? = null,
+        compositionMetadata: ExerciseCompositionMetadataProvider? = null,
     ): ProgressAdvanceResult {
         if (program.structure == ProgramStructure.COMPLEX) {
             return advanceComplexAfterSessionComplete(
@@ -198,6 +203,8 @@ object ProgramProgressEngine {
                 weekInstanceId = weekInstanceId,
                 logs = logs,
                 transitionContext = transitionContext ?: BlockTransitionEngine.TransitionContext(),
+                weeklySignals = weeklySignals,
+                compositionMetadata = compositionMetadata,
             )
         }
         if (!program.isSimpleProgram) return ProgressAdvanceResult(program, activeState)
@@ -501,12 +508,15 @@ object ProgramProgressEngine {
         weekInstanceId: String,
         logs: List<WorkoutLog>,
         transitionContext: BlockTransitionEngine.TransitionContext,
+        weeklySignals: WeeklyAutoregulationSignals? = null,
+        compositionMetadata: ExerciseCompositionMetadataProvider? = null,
     ): ProgressAdvanceResult {
         if (
             program.runState?.status == ProgramRunStatus.BREAK ||
             program.runState?.status == ProgramRunStatus.PAUSED ||
             program.runState?.status == ProgramRunStatus.COMPLETED ||
-            program.runState?.pendingAction != null
+            (program.runState?.pendingAction != null &&
+                program.runState?.pendingAction?.type != PendingProgramActionType.CONFIRM_AUTOREGULATION)
         ) {
             return ProgressAdvanceResult(program, activeState)
         }
@@ -581,10 +591,21 @@ object ProgramProgressEngine {
                 blockId = nextLocation?.blockId ?: block.id,
                 mesocycleId = nextLocation?.mesocycleId,
                 completedSessionIds = emptySet(),
-                pendingAction = null,
+                pendingAction = program.runState?.pendingAction?.takeIf {
+                    it.type != PendingProgramActionType.CONFIRM_AUTOREGULATION
+                },
+            )
+            val advanced = program.copy(runState = updatedRun)
+            val regulated = applyWeeklyAutoregulation(
+                program = advanced,
+                completedWeek = location.week,
+                nextWeekId = nextWeek.id,
+                logs = logs,
+                weeklySignals = weeklySignals,
+                compositionMetadata = compositionMetadata,
             )
             return ProgressAdvanceResult(
-                program = program.copy(runState = updatedRun),
+                program = regulated.program,
                 activeState = activeState?.copy(
                     currentWeekId = nextWeek.id,
                     currentWeekInstanceId = nextWeek.id,
@@ -597,6 +618,7 @@ object ProgramProgressEngine {
                     programRunId = updatedRun.runId,
                 ),
                 advancedWeek = true,
+                autoregulationProposals = regulated.proposals,
             )
         }
 
@@ -710,8 +732,16 @@ object ProgramProgressEngine {
             pendingAction = null,
         )
         working = working.copy(runState = updatedRun)
-        return ProgressAdvanceResult(
+        val regulated = applyWeeklyAutoregulation(
             program = working,
+            completedWeek = location.week,
+            nextWeekId = nextWeek.id,
+            logs = logs,
+            weeklySignals = weeklySignals,
+            compositionMetadata = compositionMetadata,
+        )
+        return ProgressAdvanceResult(
+            program = regulated.program,
             activeState = activeState?.copy(
                 currentWeekId = nextWeek.id,
                 currentWeekInstanceId = nextWeek.id,
@@ -724,7 +754,52 @@ object ProgramProgressEngine {
                 programRunId = updatedRun.runId,
             ),
             advancedWeek = true,
+            autoregulationProposals = regulated.proposals,
         )
+    }
+
+    private fun applyWeeklyAutoregulation(
+        program: Program,
+        completedWeek: ProgramWeek,
+        nextWeekId: String?,
+        logs: List<WorkoutLog>,
+        weeklySignals: WeeklyAutoregulationSignals?,
+        compositionMetadata: ExerciseCompositionMetadataProvider?,
+    ): AutoregulationEvaluation {
+        val recipe = program.sourceRecipe ?: return AutoregulationEvaluation(emptyList(), program)
+        if (program.autoregulationMode == AutoregulationMode.OFF) {
+            return AutoregulationEvaluation(emptyList(), program)
+        }
+        val signals = weeklySignals ?: WeeklyAutoregulationSignals()
+        val proposals = ProgramAutoregulationEngine.evaluate(
+            program = program,
+            completedWeek = completedWeek,
+            logs = logs,
+            recipe = recipe,
+            signals = signals,
+        )
+        if (proposals.isEmpty()) return AutoregulationEvaluation(emptyList(), program)
+        return ProgramAutoregulationEngine.apply(
+            program = program,
+            nextWeekId = nextWeekId,
+            proposals = proposals,
+            recipe = recipe,
+            executedWeekIds = setOf(completedWeek.id),
+            metadata = compositionMetadata,
+        )
+    }
+
+    fun resolvePendingAutoregulation(
+        program: Program,
+        accept: Boolean,
+        metadata: ExerciseCompositionMetadataProvider? = null,
+    ): ProgressAdvanceResult {
+        val resolved = ProgramAutoregulationEngine.resolvePending(
+            program = program,
+            accept = accept,
+            metadata = metadata,
+        )
+        return ProgressAdvanceResult(program = resolved, activeState = null)
     }
 
     private fun markLoopOccurrenceCompletedIfNeeded(

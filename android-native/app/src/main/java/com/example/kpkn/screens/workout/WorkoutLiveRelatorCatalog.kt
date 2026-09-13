@@ -46,6 +46,7 @@ internal object WorkoutLiveRelatorCatalog {
         RelatorSpeechBucket.CAUTION_FAILED_SET -> cautionFailedSetVariants(snapshot)
         RelatorSpeechBucket.CONCEPT_CUE -> snapshot.conceptCueOrNull()?.lines.orEmpty()
             .ifEmpty { situateWorkingVariants(snapshot) }
+        RelatorSpeechBucket.TAG_BEST_PROGRESS -> tagBestProgressVariants(snapshot)
     }
 
     fun idleFirstWithHistory(snapshot: LiveRelatorSnapshot): String = situateWorking(snapshot)
@@ -731,6 +732,17 @@ internal object WorkoutLiveRelatorCatalog {
         "Dropset seguido: recorta unos 5 kg en {ex} y sigue.",
         "No hay pausa. Quita 5 kg y cierra {ex} con forma.",
     )
+
+    private fun tagBestProgressVariants(snapshot: LiveRelatorSnapshot): List<String> {
+        val rawName = snapshot.tagProgressHint?.tagName?.trim().orEmpty()
+        if (rawName.isEmpty()) return situateWorkingVariants(snapshot)
+        val tag = if (rawName.length > 24) rawName.take(23) + "…" else rawName
+        return listOf(
+            "En \"$tag\" es donde mejor progresas, trata de hacerla más seguido.",
+            "Tu mejor curva está en \"$tag\". Priorízala cuando puedas.",
+            "\"$tag\" te está rindiendo más. Vale la pena repetirla.",
+        )
+    }
 
     private fun prCopy(snapshot: LiveRelatorSnapshot, starred: Boolean): String {
         val hint = snapshot.prHint ?: return situateWorking(snapshot)

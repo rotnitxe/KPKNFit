@@ -52,6 +52,7 @@ object BaseLoadPolicy {
         if (loadMode != LoadModeV2.LOAD) return null
         if (activeTagId.isNullOrBlank()) return null
         val base = taggedProfileBaseLoadKg?.takeIf { it > 0.0 } ?: return null
+        if (engineSuggestedKg <= 0.0) return null
         if (engineSuggestedKg >= base) return null
         val label = tagDisplayName?.takeIf { it.isNotBlank() } ?: activeTagId
         return FloorResult(

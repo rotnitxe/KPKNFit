@@ -2,7 +2,13 @@ package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
+import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.domain.workout.WorkoutTagResolver
+import com.example.kpkn.domain.workout.completionKeysForSet
+import com.example.kpkn.domain.workout.expectedSidesForSetIndex
+import com.example.kpkn.domain.workout.isStackedIntensityTechnique
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -75,6 +81,88 @@ internal fun workoutSetKey(exerciseId: String, setIdx: Int, side: String? = null
     else -> "${exerciseId}_${setIdx}"
 }
 
+internal fun remapCompletedSetsForUnilateralToggle(
+    exerciseId: String,
+    setCount: Int,
+    completed: Map<String, CompletedSet>,
+    toUnilateral: Boolean,
+): Map<String, CompletedSet> {
+    val result = completed.filterKeys { !it.startsWith("${exerciseId}_") }.toMutableMap()
+    for (idx in 0 until setCount.coerceAtLeast(0)) {
+        val bilateral = workoutSetKey(exerciseId, idx)
+        val left = workoutSetKey(exerciseId, idx, "left")
+        val right = workoutSetKey(exerciseId, idx, "right")
+        if (toUnilateral) {
+            val source = completed[bilateral] ?: completed[left] ?: completed[right] ?: continue
+            result[left] = source
+            result[right] = source
+        } else {
+            val leftSet = completed[left]
+            val rightSet = completed[right]
+            val source = when {
+                leftSet != null && rightSet != null ->
+                    if (completedSetWork(leftSet) >= completedSetWork(rightSet)) leftSet else rightSet
+                leftSet != null -> leftSet
+                rightSet != null -> rightSet
+                else -> completed[bilateral]
+            } ?: continue
+            result[bilateral] = source
+        }
+    }
+    return result
+}
+
+internal fun <T> remapIndexKeyedMapForUnilateralToggle(
+    exerciseId: String,
+    setCount: Int,
+    values: Map<String, T>,
+    toUnilateral: Boolean,
+): Map<String, T> {
+    val result = values.filterKeys { !it.startsWith("${exerciseId}_") }.toMutableMap()
+    for (idx in 0 until setCount.coerceAtLeast(0)) {
+        val bilateral = workoutSetKey(exerciseId, idx)
+        val left = workoutSetKey(exerciseId, idx, "left")
+        val right = workoutSetKey(exerciseId, idx, "right")
+        if (toUnilateral) {
+            val source = values[bilateral] ?: values[left] ?: values[right] ?: continue
+            result[left] = source
+            result[right] = source
+        } else {
+            val source = values[left] ?: values[right] ?: values[bilateral] ?: continue
+            result[bilateral] = source
+        }
+    }
+    return result
+}
+
+internal fun remapOmittedKeysForUnilateralToggle(
+    exerciseId: String,
+    setCount: Int,
+    omitted: Set<String>,
+    toUnilateral: Boolean,
+): Set<String> {
+    val result = omitted.filterNot { it.startsWith("${exerciseId}_") }.toMutableSet()
+    for (idx in 0 until setCount.coerceAtLeast(0)) {
+        val bilateral = workoutSetKey(exerciseId, idx)
+        val left = workoutSetKey(exerciseId, idx, "left")
+        val right = workoutSetKey(exerciseId, idx, "right")
+        if (toUnilateral) {
+            if (bilateral in omitted || left in omitted || right in omitted) {
+                result += left
+                result += right
+            }
+        } else if (bilateral in omitted || left in omitted || right in omitted) {
+            result += bilateral
+        }
+    }
+    return result
+}
+
+private fun completedSetWork(set: CompletedSet): Double {
+    val reps = set.reps.takeIf { it > 0 } ?: set.timeSeconds ?: 0
+    return set.weight * reps
+}
+
 /**
  * Parses `"exerciseId_setIdx"` / `"exerciseId_setIdx_L|R"`.
  * Matches from the right so exerciseIds with underscores stay intact.
@@ -84,6 +172,46 @@ internal data class ParsedCompletedSetKey(
     val setIdx: Int,
     val side: String?,
 )
+
+internal fun logicalWorkingSetCount(
+    exercise: Exercise,
+    completedSets: Map<String, com.example.kpkn.data.models.CompletedSet>,
+): Int = exercise.sets.indices.count { idx ->
+    val keys = com.example.kpkn.domain.workout.completionKeysForSet(
+        exercise.id,
+        idx,
+        exercise.expectedSidesForSetIndex(idx),
+    )
+    keys.isNotEmpty() && keys.all { key ->
+        val completed = completedSets[key] ?: return@all false
+        !completed.skipped && !completed.isWarmup
+    }
+}
+
+internal fun isStackedTechniqueStillOpen(
+    exercise: Exercise,
+    setIdx: Int,
+    completedSets: Map<String, CompletedSet>,
+): Boolean {
+    val planned = exercise.sets.getOrNull(setIdx) ?: return false
+    if (!planned.isStackedIntensityTechnique()) return false
+    val keys = com.example.kpkn.domain.workout.completionKeysForSet(
+        exercise.id,
+        setIdx,
+        exercise.expectedSidesForSetIndex(setIdx),
+    )
+    val logged = keys.mapNotNull(completedSets::get)
+    if (logged.isEmpty() || logged.any { it.skipped }) return false
+    return (planned.isDropSet && logged.all { it.dropSets.isEmpty() }) ||
+        (planned.isRestPause && logged.all { it.restPauses.isEmpty() })
+}
+
+internal fun loggedWorkingSetCounts(
+    exercises: List<Exercise>,
+    completedSets: Map<String, CompletedSet>,
+): Map<String, Int> = exercises.associate { exercise ->
+    exercise.id to logicalWorkingSetCount(exercise, completedSets)
+}
 
 internal fun parseCompletedSetKey(key: String): ParsedCompletedSetKey? {
     val unilateral = Regex("""^(.*)_(\d+)_(L|R|left|right)$""", RegexOption.IGNORE_CASE).matchEntire(key)
@@ -101,6 +229,61 @@ internal fun parseCompletedSetKey(key: String): ParsedCompletedSetKey? {
         setIdx = bilateral.groupValues[2].toInt(),
         side = null,
     )
+}
+
+internal fun <T> remapIndexKeyedMap(
+    previous: Session,
+    next: Session,
+    keys: Map<String, T>,
+): Map<String, T> {
+    if (keys.isEmpty()) return keys
+    val nextById = next.allExercises().associateBy { it.id }
+    val prevById = previous.allExercises().associateBy { it.id }
+    val result = LinkedHashMap<String, T>(keys.size)
+    for ((key, value) in keys) {
+        val remapped = remapIndexKeyedKey(key, prevById, nextById) ?: continue
+        result[remapped] = value
+    }
+    return result
+}
+
+internal fun remapIndexKeyedSet(
+    previous: Session,
+    next: Session,
+    keys: Set<String>,
+): Set<String> {
+    if (keys.isEmpty()) return keys
+    val nextById = next.allExercises().associateBy { it.id }
+    val prevById = previous.allExercises().associateBy { it.id }
+    return keys.mapNotNull { key -> remapIndexKeyedKey(key, prevById, nextById) }.toSet()
+}
+
+internal fun pruneExerciseIdSet(
+    ids: Set<String>,
+    liveExerciseIds: Set<String>,
+): Set<String> = ids.filterTo(mutableSetOf()) { it in liveExerciseIds }
+
+internal fun <T> pruneExerciseIdMap(
+    values: Map<String, T>,
+    liveExerciseIds: Set<String>,
+): Map<String, T> = values.filterKeys { it in liveExerciseIds }
+
+private fun remapIndexKeyedKey(
+    key: String,
+    prevById: Map<String, Exercise>,
+    nextById: Map<String, Exercise>,
+): String? {
+    val parsed = parseCompletedSetKey(key)
+    if (parsed == null) {
+        val owner = prevById.keys.firstOrNull { id -> key == id || key.startsWith("${id}_") }
+        return if (owner != null && owner !in nextById) null else key
+    }
+    val prevExercise = prevById[parsed.exerciseId] ?: return null
+    val nextExercise = nextById[parsed.exerciseId] ?: return null
+    val setId = prevExercise.sets.getOrNull(parsed.setIdx)?.id ?: return null
+    val newIdx = nextExercise.sets.indexOfFirst { it.id == setId }
+    if (newIdx < 0) return null
+    return workoutSetKey(parsed.exerciseId, newIdx, parsed.side)
 }
 
 internal fun workoutSetContextKey(exerciseId: String, setIdx: Int, tagId: String?): String {
@@ -187,12 +370,19 @@ internal fun quickLoadOptionsFor(
     suggestedLoadMode: LoadModeV2?,
     previousSessionFirstSetWeight: Double?,
     loadIncrementKg: Double,
+    previousSessionTagLabel: String? = null,
 ): List<QuickLoadChipOption> {
     val increment = loadIncrementKg.takeIf { it > 0.0 } ?: 2.5
     return if (isBodyweightLoadSpectrum(loadMode) || isBodyweightLoadSpectrum(suggestedLoadMode ?: loadMode)) {
         bodyweightSpectrumQuickLoadOptions(suggestedWeight, suggestedLoadMode, increment)
     } else {
-        externalLoadQuickLoadOptions(currentWeightText, suggestedWeight, previousSessionFirstSetWeight, increment)
+        externalLoadQuickLoadOptions(
+            currentWeightText,
+            suggestedWeight,
+            previousSessionFirstSetWeight,
+            increment,
+            previousSessionTagLabel,
+        )
     }
 }
 
@@ -222,6 +412,7 @@ private fun externalLoadQuickLoadOptions(
     suggestedWeight: Double?,
     previousSessionFirstSetWeight: Double?,
     increment: Double,
+    previousSessionTagLabel: String? = null,
 ): List<QuickLoadChipOption> {
     val anterior = previousSessionFirstSetWeight?.takeIf { it > 0.0 } ?: 0.0
     val suggested = suggestedWeight?.takeIf { it > 0.0 } ?: 0.0
@@ -231,7 +422,12 @@ private fun externalLoadQuickLoadOptions(
         else -> 0.0
     }
     return listOf(
-        QuickLoadChipOption("Anterior", anterior, isAuge = false, targetLoadMode = LoadModeV2.LOAD),
+        QuickLoadChipOption(
+            WorkoutTagResolver.anteriorChipLabel(previousSessionTagLabel),
+            anterior,
+            isAuge = false,
+            targetLoadMode = LoadModeV2.LOAD,
+        ),
         QuickLoadChipOption("Sugerido", suggested, isAuge = true, targetLoadMode = LoadModeV2.LOAD),
         QuickLoadChipOption(
             label = "+${increment.toTrimmedNumberString()}",

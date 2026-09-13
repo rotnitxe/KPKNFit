@@ -286,6 +286,7 @@ private fun CockpitOverviewPage(
             CockpitSectionTitle(icon = Icons.Default.Star, title = "Ejercicios estrella")
             starExercises.forEach { exercise ->
                 val goal = exercise.goal1RM?.takeIf { it > 0 } ?: return@forEach
+                // All tags of this starred exercise count toward the same 1RM goal.
                 val bestE1rm = completedSets
                     .filterKeys { key ->
                         (key.startsWith("${exercise.id}_") || key == exercise.id) &&

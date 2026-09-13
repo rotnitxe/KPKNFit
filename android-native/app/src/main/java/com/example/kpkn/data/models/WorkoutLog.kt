@@ -26,7 +26,8 @@ data class WorkoutLog(
     val environmentTags: List<String> = emptyList(), // e.g. "gym", "casa", "cansado", "buen sueño"
     val stillPresentDiscomfortIds: List<String> = emptyList(),
     val planDeviations: List<PlanDeviation> = emptyList(), // deviations from planned session
-    val exerciseTags: Map<String, String> = emptyMap(),    // exerciseId → tag used this session
+    val exerciseTags: Map<String, String> = emptyMap(),    // exerciseId → tag name used this session
+    val exerciseTagIds: Map<String, String> = emptyMap(),  // exerciseId → tag UUID used this session
     val exerciseNotes: Map<String, String> = emptyMap(),   // exerciseId → note
     val exercisePhotos: Map<String, List<String>> = emptyMap(), // exerciseId → local paths (max 2)
     val sessionMilestones: List<SessionMilestone> = emptyList(),
@@ -163,6 +164,7 @@ data class CompletedSet(
     val debt: Double = 0.0,
     val contextProfileId: String? = null,
     val tagId: String? = null,
+    val tagName: String? = null,
     val subTagIds: List<String> = emptyList(),
     val setupProfileId: String? = null,
     val machineBrand: String? = null,
@@ -274,7 +276,20 @@ data class OngoingWorkoutState(
     val voiceTimedSet: VoiceTimedSetState? = null,
     val voiceExerciseQueue: List<String> = emptyList(),
     val voicePendingFeedbackExerciseIds: Set<String> = emptySet(),
+    val postExerciseFeedbackByExerciseId: Map<String, PostExerciseFeedback> = emptyMap(),
+    val planDeviations: List<PlanDeviation> = emptyList(),
+    val showFinishSheet: Boolean = false,
+    val finishResumeSnapshot: com.example.kpkn.screens.workout.FinishResumeSnapshot? = null,
+    val godModeUndoStack: List<com.example.kpkn.screens.workout.GodModeUndoSnapshot> = emptyList(),
+    val pendingVolumeAdvances: List<MuscleAdvance> = emptyList(),
+    val showVolumeAdvanceModal: Boolean = false,
+    val volumeAdvanceHandled: Boolean = false,
+    val archivedCompletedExercises: List<CompletedExercise> = emptyList(),
+    val logAlreadyWrittenId: String? = null,
 )
+
+fun OngoingWorkoutState.sameOngoingIdentity(programId: String, sessionId: String): Boolean =
+    this.programId == programId && session.id == sessionId
 
 @Serializable
 data class MobilityTotalTimerState(
@@ -283,6 +298,7 @@ data class MobilityTotalTimerState(
     val remainingSeconds: Int,
     val isRunning: Boolean = false,
     val updatedAtMs: Long = 0L,
+    val endsAtMs: Long = 0L,
 )
 
 @Serializable
@@ -306,6 +322,7 @@ data class CardioTimerState(
     val distanceKm: Double? = null,
     val averageHeartRate: Int? = null,
     val lastInfoAnnouncedAtMs: Long = 0L,
+    val endsAtMs: Long = 0L,
 )
 
 @Serializable

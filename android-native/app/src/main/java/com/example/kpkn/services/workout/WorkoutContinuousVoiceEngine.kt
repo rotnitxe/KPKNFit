@@ -71,6 +71,13 @@ class WorkoutContinuousVoiceEngine internal constructor(
         capacity = 32,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
+
+    private fun enqueueLifecycle(command: EngineCommand) {
+        if (commands.trySend(command).isSuccess) return
+        scope?.launch {
+            runCatching { commands.send(command) }
+        }
+    }
     private val queuedGrammarKey = AtomicLong(Long.MIN_VALUE)
     private val generationCounter = AtomicLong(0L)
     private val actorRunning = AtomicBoolean(false)
@@ -250,7 +257,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
         this.holdMicRouteAcrossPause = holdMicRouteAcrossPause
         ensureActor(actorScope)
         if (activeRequested) {
-            commands.trySend(
+            enqueueLifecycle(
                 EngineCommand.Resume(
                     generation = generationCounter.get(),
                     holdMicRouteAcrossPause = holdMicRouteAcrossPause,
@@ -262,7 +269,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
         activeRequested = true
         discardPcmOnly = false
         micBusy = false
-        commands.trySend(
+        enqueueLifecycle(
             EngineCommand.Start(
                 generation = generation,
                 holdMicRouteAcrossPause = holdMicRouteAcrossPause,
@@ -281,13 +288,17 @@ class WorkoutContinuousVoiceEngine internal constructor(
     }
 
     override fun pause() {
+        pause(releaseMic = !holdMicRouteAcrossPause)
+    }
+
+    fun pause(releaseMic: Boolean) {
         if (!activeRequested) return
         discardPcmOnly = true
         _rmsLevel.value = 0f
-        commands.trySend(
+        enqueueLifecycle(
             EngineCommand.Pause(
                 generation = generationCounter.get(),
-                releaseMic = !holdMicRouteAcrossPause,
+                releaseMic = releaseMic,
                 acknowledgement = null,
             ),
         )
@@ -339,7 +350,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
         fallbackQueued.set(false)
         resumeJob?.cancel()
         resumeJob = null
-        commands.trySend(EngineCommand.Stop(generation = generation, acknowledgement = null))
+        enqueueLifecycle(EngineCommand.Stop(generation = generation, acknowledgement = null))
         if (actorJob?.isActive != true) {
             publishStoppedState()
         }
@@ -432,6 +443,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
         var gateAssumedLogged = false
         var routeMismatchAttempts = 0
         var rapidFailures = 0
+        var modelFailedNativeAttempted = false
         var slowProbeMode = false
         var musicAecEnabled = false
         var lastHeartbeatAtMs = 0L
@@ -540,6 +552,16 @@ class WorkoutContinuousVoiceEngine internal constructor(
             nextOpenAtMs = if (immediate) now else now + RAPID_RETRY_DELAYS_MS.first()
         }
 
+        fun abortOpenIfNoMicPermission(error: Exception? = null): Boolean {
+            val denied = error is SecurityException || WorkoutVoicePermissionHelper.needsPermission(context)
+            if (!denied) return false
+            releaseRecord()
+            captureDesired = false
+            _captureState.value = VoiceCaptureState.ERROR_RECOVERY
+            _errors.tryEmit(WorkoutVoiceModelFailedPolicy.MIC_PERMISSION_MESSAGE)
+            return true
+        }
+
         fun scheduleAfterFailure(now: Long) {
             releaseRecord()
             if (rapidFailures < MAX_RAPID_RECOVERY_ATTEMPTS) {
@@ -590,7 +612,8 @@ class WorkoutContinuousVoiceEngine internal constructor(
             }
             val candidate = try {
                 audioRecordFactory.create(bufferBytes, audioSource)
-            } catch (_: Exception) {
+            } catch (error: Exception) {
+                if (abortOpenIfNoMicPermission(error)) return false
                 scheduleAfterFailure(now)
                 return false
             }
@@ -611,8 +634,9 @@ class WorkoutContinuousVoiceEngine internal constructor(
             }
             try {
                 candidate.startRecording()
-            } catch (_: Exception) {
+            } catch (error: Exception) {
                 runCatching { candidate.release() }
+                if (abortOpenIfNoMicPermission(error)) return false
                 scheduleAfterFailure(now)
                 return false
             }
@@ -948,7 +972,18 @@ class WorkoutContinuousVoiceEngine internal constructor(
                 is EngineCommand.ModelFailed -> {
                     if (!running || command.generation != actorGeneration) return
                     _captureState.value = VoiceCaptureState.ERROR_RECOVERY
-                    _errors.emit(command.message)
+                    if (
+                        WorkoutVoiceModelFailedPolicy.shouldAttemptNativeFallback(
+                            nativeAvailable = nativeRecognizer.isAvailable(),
+                            alreadyAttempted = modelFailedNativeAttempted,
+                        )
+                    ) {
+                        modelFailedNativeAttempted = true
+                        beginFallback(command.generation, "repetir", announcePrompt = true)
+                    } else {
+                        captureDesired = false
+                        _errors.emit(WorkoutVoiceModelFailedPolicy.MODEL_UNAVAILABLE_MESSAGE)
+                    }
                 }
 
                 is EngineCommand.RecordingConfig -> {

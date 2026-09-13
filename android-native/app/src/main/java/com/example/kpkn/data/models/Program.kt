@@ -55,7 +55,13 @@ data class Program(
     val runState: ProgramRunState? = null,
     val loopOccurrences: List<LoopOccurrence> = emptyList(),
     val powerliftingProfile: PowerliftingProfile? = null,
+    val sourceRecipe: com.example.kpkn.data.protocols.TrainingPlanRecipe? = null,
+    val sourceProtocolId: String? = null,
+    val autoregulationMode: AutoregulationMode = AutoregulationMode.OFF,
 )
+
+@Serializable
+enum class AutoregulationMode { OFF, PROPOSE, AUTO }
 
 enum class ProgramMode { POWERLIFTING, HYPERTROPHY, POWERBUILDING }
 enum class ProgramStructure { SIMPLE, COMPLEX }

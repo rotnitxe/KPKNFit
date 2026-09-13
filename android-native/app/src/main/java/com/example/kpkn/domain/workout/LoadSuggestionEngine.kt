@@ -100,8 +100,9 @@ object LoadSuggestionEngine {
         activeTag: String?,
         baseEntryTag: String?,
         techniqueSignal: Int,
+        applySemanticTagScale: Boolean = true,
     ): Suggestion? {
-        val scale = if (activeTag != baseEntryTag) {
+        val scale = if (applySemanticTagScale && activeTag != baseEntryTag) {
             tagMultiplier(activeTag) / tagMultiplier(baseEntryTag)
         } else {
             1.0

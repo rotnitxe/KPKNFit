@@ -116,6 +116,7 @@ internal enum class RelatorSpeechBucket {
     ASSIST_CONFIRM,
     CAUTION_FAILED_SET,
     CONCEPT_CUE,
+    TAG_BEST_PROGRESS,
 }
 
 internal data class LiveRelatorSnapshot(
@@ -163,6 +164,7 @@ internal data class LiveRelatorSnapshot(
     val historyLastSet: RelatorSessionSetMemory? = null,
     val discomfortHint: RelatorDiscomfortHint? = null,
     val prHint: RelatorPrHint? = null,
+    val tagProgressHint: RelatorTagProgressHint? = null,
     val isDropsetFollowUp: Boolean = false,
     val failedSetCaution: RelatorFailedSetCaution? = null,
     val assistAck: RelatorAssistAck? = null,
@@ -215,6 +217,7 @@ internal object WorkoutLiveRelator {
         val extra = when (bucket) {
             RelatorSpeechBucket.CONCEPT_CUE -> snapshot.conceptCueOrNull()?.id
             RelatorSpeechBucket.ASSIST_CONFIRM -> snapshot.assistAck?.kind?.name
+            RelatorSpeechBucket.TAG_BEST_PROGRESS -> snapshot.tagProgressHint?.tagName
             else -> null
         }
         val variants = WorkoutLiveRelatorCatalog.variantsFor(bucket, snapshot)
@@ -310,6 +313,7 @@ internal fun LiveRelatorSnapshot.speechBucket(): RelatorSpeechBucket {
         }
         assistOffer?.takeIf { it.kind != RelatorAssistKind.MOBILITY }?.let { return it.kind.speechBucket }
         if (idleCycle > 0 && discomfortHint != null) return RelatorSpeechBucket.IDLE_DISCOMFORT
+        if (idleCycle > 0 && tagProgressHint != null) return RelatorSpeechBucket.TAG_BEST_PROGRESS
         return RelatorSpeechBucket.IDLE_REST
     }
 
@@ -371,6 +375,7 @@ internal fun LiveRelatorSnapshot.speechBucket(): RelatorSpeechBucket {
             RelatorSpeechBucket.TISSUE_DAY
         }
     }
+    if (idleCycle > 0 && tagProgressHint != null) return RelatorSpeechBucket.TAG_BEST_PROGRESS
     if (shouldSpeakConcept()) return RelatorSpeechBucket.CONCEPT_CUE
     return situateWorkingBucket()
 }

@@ -48,7 +48,13 @@ object SessionIntensityEngine {
         var failureFlag = false
         var techniquesFlag = false
         val exerciseAverages = effectiveExercises.map { exercise ->
-            val workingSets = exercise.sets.filter { !it.isWarmup && !it.skipped && it.weight > 0 && it.reps > 0 }
+            val workingSets = exercise.sets.filter { set ->
+                !set.isWarmup && !set.skipped && (
+                    (set.weight > 0 && set.reps > 0) ||
+                        ((set.timeSeconds ?: 0) > 0) ||
+                        (set.weight <= 0.0 && set.reps > 0)
+                    )
+            }
             if (workingSets.isEmpty()) return@map null
 
             var exFailure = false

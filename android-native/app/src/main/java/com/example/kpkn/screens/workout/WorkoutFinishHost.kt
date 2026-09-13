@@ -263,15 +263,15 @@ internal fun FinishWorkoutSheet(
     }
 
     var showMuscleSetsBreakdown by remember { mutableStateOf(false) }
-    var additionalDiscomfortNote by remember { mutableStateOf("") }
-    var notes by remember(initialSessionNotes) { mutableStateOf(initialSessionNotes) }
-    var selectedDiscomforts by remember {
+    var additionalDiscomfortNote by rememberSaveable { mutableStateOf("") }
+    var notes by rememberSaveable(initialSessionNotes) { mutableStateOf(initialSessionNotes) }
+    var selectedDiscomforts by rememberSaveable {
         mutableStateOf(
             postExerciseFeedbackByExerciseId
                 .values
                 .flatMap { it.discomfortIds }
                 .filter { it != "none" }
-                .toSet(),
+                .distinct(),
         )
     }
     var showDiscomfortAccordion by remember { mutableStateOf(false) }
@@ -279,7 +279,7 @@ internal fun FinishWorkoutSheet(
     var discomfortStillPresent by remember {
         mutableStateOf(selectedDiscomforts.associateWith { true })
     }
-    var shareToStory by remember { mutableStateOf(false) }
+    var shareToStory by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(voiceFinalNotes) {
         if (voiceFinalNotes != null) {
@@ -309,8 +309,8 @@ internal fun FinishWorkoutSheet(
         }
     }
 
-    val totalSets = completedSets.values.count { !it.isWarmup }
-    val totalVolume = completedSets.values.filter { !it.isWarmup }.sumOf { it.weight * it.reps }
+    val totalSets = logicalSetCountFromCompleted(completedExercises)
+    val totalVolume = sessionTonnage(completedExercises)
     val allSets = remember(completedSets) {
         completedSets.values
             .filter { !it.isWarmup }

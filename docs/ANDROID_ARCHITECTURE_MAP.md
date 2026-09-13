@@ -169,12 +169,28 @@ graph TD
 *   `NutritionRecoveryEngine.kt` — nutrition's contribution to recovery.
 *   `SessionIntensityEngine.kt` / `SessionMuscleFilter.kt` / `AugeClassifiers.kt` / `AugeMuscleNormalization.kt` / `ExerciseFatigueIndex.kt` / `AugeUtils.kt`.
 
+#### Live session volume contract (Android 2026-09-12; iOS/backend follow-up)
+
+Do **not** port this in the current Android-only wave. The next iOS/backend AUGE port must use the same units:
+
+*   **Logical set:** one planned `setIdx`. Left and right are halves of that set. Surplus, finish “Series: N”, and AUGE set-count use logical sets. Roadmap/pager still show two physical slots.
+*   **Canonical load (kg):** `LOAD` = logged kg; `BODYWEIGHT` = `userVitals.weight` (already kg); `LASTRE` = BW + extra; `ASSISTED` = `max(BW − assistance, 0)`. Never divide by 2.204 because settings say pounds — that unit is UI/voice only.
+*   **Builder:** `screens/workout/WorkoutCompletedExercises.kt` (`toCompletedExercises`, `sessionTonnage`, `logicalSetCount`) is the single source for live drain, finish log, and share.
+
 ### 3.2 Nutrition Engine (`domain/nutrition/`)
 
-*   **Macro Calculators (`MacroCalculator.kt`):** Energy formula: $\text{Calories} = (\text{Protein} \times 4.0) + (\text{Carbs} \times 4.0) + (\text{Fats} \times 9.0)$. Checks for deviation thresholds (default $5\%$) via `MacroValidator.kt`.
+The current description contract is [nutrition interpretation revision 2](contracts/nutrition_interpretation_v2.md).
+Food identity/attributes, eaten grams and the nutrient profile's reference weight are
+separate concerns. A V2 interpretation per resolved mention feeds editing and saving;
+an omitted household portion is estimated, while material identity/preparation doubts
+require an explicit response. Current text overrides meal templates and personal
+priors. See the [September reliability audit](audits/2026-09-nutrition-reliability/README.md)
+for regression evidence and validation status.
+
+*   **Macro Calculators (`MacroCalculator.kt`, `NutrientBasis.kt`):** Scale the source nutrient profile using its reference weight and the grams consumed. Distinguish genuine per-serving values from per-100-g values and convert volume references consistently. Atwater-style checks are plausibility diagnostics, not replacements for declared source energy.
 *   **Heuristic Parser (`FoodParser.kt` + `data/food/FoodDescriptionParser.kt`):** Takes natural user input (e.g. "platano con una cucharada de avena") and breaks it down:
     *   Checks for cooking methods (boiled, fried, baked) and applies specific calorie scaling factors (`CookingFactors.kt`, `CookingMethodParser.kt`).
-    *   Extracts quantities and maps subjective words ("taza", "unidad", "rebanada", "plato") to raw grams using `SubjectivePortionEngine.kt` (+ `SemanticPortionRetriever.kt`).
+    *   Extracts quantities and maps household measures ("taza", "unidad", "rebanada", "plato") to consumed grams using `SubjectivePortionEngine.kt` and `HouseholdPortions.kt`, preserving declared raw/cooked state. The semantic retriever does not supply authoritative eaten weights.
     *   Fuzzy match database queries using phonetic index codes in Spanish (`PhoneticEs.kt`), `TextNormalizer.kt`, `FoodIndex.kt`, `SmartFoodResolver.kt`, `FoodCombinationParser.kt`.
     *   Offline semantic dataset: compiled asset `food_data/dataset_knowledge.bin` (19,405 examples) loaded by `DatasetKnowledgeStore.kt` into `SemanticPortionRetriever.kt`; context priors via `ContextDetector.kt`. Fallback: `NutritionHeuristicEstimator.kt`. Dataset never overwrites verified USDA/OFF macros.
 

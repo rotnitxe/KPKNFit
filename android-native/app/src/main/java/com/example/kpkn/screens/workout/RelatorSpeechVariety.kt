@@ -58,6 +58,7 @@ internal val RelatorSpeechBucket.silencesWhenExhausted: Boolean
         RelatorSpeechBucket.ASSIST_CONFIRM,
         RelatorSpeechBucket.CAUTION_FAILED_SET,
         RelatorSpeechBucket.IDLE_DISCOMFORT,
+        RelatorSpeechBucket.TAG_BEST_PROGRESS,
         -> false
         else -> true
     }

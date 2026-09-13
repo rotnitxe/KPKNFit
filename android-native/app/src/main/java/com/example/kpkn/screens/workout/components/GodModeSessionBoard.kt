@@ -499,7 +499,7 @@ private fun ExerciseBoardRow(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    "${exercise.sets.size} series",
+                    if (exercise.sets.size == 1) "1 serie" else "${exercise.sets.size} series",
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
                     color = Color.White.copy(alpha = 0.55f),
                 )

@@ -376,13 +376,14 @@ internal fun WorkoutTagListOverlay(
 
 @Composable
 internal fun WorkoutCreateTagOverlay(
-    onCreate: (name: String, setup: TagSetupInput?) -> Unit,
+    onCreate: (name: String, setup: TagSetupInput?) -> CreateTagResult,
     onDismiss: () -> Unit,
 ) {
     var newTagName by remember { mutableStateOf("") }
     var newMachineBrand by remember { mutableStateOf("") }
     var newBaseLoad by remember { mutableStateOf("") }
     var newSetupNotes by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     KpknAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Nueva etiqueta", fontWeight = FontWeight.Black) },
@@ -390,9 +391,19 @@ internal fun WorkoutCreateTagOverlay(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 WorkoutTagFilledTextField(
                     value = newTagName,
-                    onValueChange = { newTagName = it },
+                    onValueChange = {
+                        newTagName = it
+                        errorMessage = null
+                    },
                     label = "Nombre de la etiqueta",
                 )
+                errorMessage?.let { message ->
+                    Text(
+                        message,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
                 Text(
                     "Set-up de máquina (opcional)",
                     style = MaterialTheme.typography.labelSmall,
@@ -424,7 +435,15 @@ internal fun WorkoutCreateTagOverlay(
                             baseLoadKg = newBaseLoad.replace(',', '.').toDoubleOrNull(),
                             setupNotes = newSetupNotes,
                         )
-                        onCreate(newTagName, setup.takeIf { it.hasContent })
+                        when (val result = onCreate(newTagName, setup.takeIf { it.hasContent })) {
+                            is CreateTagResult.Created -> Unit
+                            is CreateTagResult.Duplicate -> {
+                                errorMessage = "Ya existe una etiqueta con el nombre «${result.existingName}»."
+                            }
+                            CreateTagResult.InvalidName -> {
+                                errorMessage = "El nombre no es válido."
+                            }
+                        }
                     }
                 },
                 enabled = newTagName.isNotBlank() || newMachineBrand.isNotBlank(),
@@ -441,8 +460,9 @@ internal fun WorkoutCreateTagOverlay(
 internal fun WorkoutTagManagerModal(
     tag: WorkoutTag,
     exerciseId: String,
-    onRename: (String) -> Unit,
+    onRename: (String) -> RenameTagResult,
     onDelete: () -> Unit,
+    onResetHistory: () -> Unit,
     onAddSubTag: (String, SubTagCategory) -> Unit,
     onRemoveSubTag: (String) -> Unit,
     onToggleSubTagActive: (String) -> Unit,
@@ -456,7 +476,9 @@ internal fun WorkoutTagManagerModal(
     onSaveSetup: (TagSetupInput) -> Unit = {},
 ) {
     var editName by remember { mutableStateOf(tag.name) }
+    var renameError by remember { mutableStateOf<String?>(null) }
     var showAddSubTag by remember { mutableStateOf(false) }
+    var showResetConfirm by remember { mutableStateOf(false) }
     var newSubTagName by remember { mutableStateOf("") }
     var newSubTagCategory by remember { mutableStateOf(SubTagCategory.LIBRE) }
     var brand by remember(tag.id, machineBrand) { mutableStateOf(machineBrand) }
@@ -481,9 +503,25 @@ internal fun WorkoutTagManagerModal(
                 )
 
                 if (editName != tag.name) {
-                    TextButton(onClick = { onRename(editName) }) {
+                    TextButton(onClick = {
+                        when (val result = onRename(editName)) {
+                            RenameTagResult.Success -> renameError = null
+                            is RenameTagResult.Duplicate -> {
+                                renameError = "Ya existe una etiqueta con el nombre «${result.existingName}»."
+                            }
+                            RenameTagResult.InvalidName -> renameError = "El nombre no es válido."
+                            RenameTagResult.NotFound -> renameError = "No se encontró la etiqueta."
+                        }
+                    }) {
                         Text("Guardar nombre")
                     }
+                }
+                renameError?.let { message ->
+                    Text(
+                        message,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
                 }
 
                 HorizontalDivider()
@@ -604,6 +642,10 @@ internal fun WorkoutTagManagerModal(
 
                 HorizontalDivider()
 
+                TextButton(onClick = { showResetConfirm = true }) {
+                    Text("Reiniciar historial")
+                }
+
                 TextButton(
                     onClick = onDelete,
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
@@ -626,7 +668,36 @@ internal fun WorkoutTagManagerModal(
             Button(onClick = onDismiss) { Text("Cerrar") }
         },
     )
+
+    if (showResetConfirm) {
+        KpknAlertDialog(
+            onDismissRequest = { showResetConfirm = false },
+            title = { Text("Reiniciar historial", fontWeight = FontWeight.Black) },
+            text = {
+                Text(
+                    "Se ignorarán las cargas anteriores de «${tag.name}» para sugerencias y PRs de esta etiqueta. Los registros de sesión no se borran.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onResetHistory()
+                        showResetConfirm = false
+                    },
+                ) { Text("Reiniciar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showResetConfirm = false }) { Text("Cancelar") }
+            },
+        )
+    }
 }
+
+internal fun resolveSetupCurrentSet(
+    currentSet: ExerciseSet?,
+    sets: List<ExerciseSet>,
+): ExerciseSet? = currentSet ?: sets.firstOrNull()
 
 @Composable
 internal fun ExerciseSetupSheetContent(
@@ -657,17 +728,26 @@ internal fun ExerciseSetupSheetContent(
 
         HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
 
-        WorkoutExerciseSetupContent(
-            exercise = exercise,
-            currentSet = currentSet ?: exercise.sets.first(),
-            profiles = profiles,
-            activeProfileId = activeProfileId,
-            onSelectProfile = onSelectProfile,
-            onSaveProfile = onSaveProfile,
-            onUpdateExercise = onUpdateExercise,
-            onUpdateSet = onUpdateSet,
-            sessionAccentColor = sessionAccentColor
-        )
+        val setupSet = resolveSetupCurrentSet(currentSet, exercise.sets)
+        if (setupSet == null) {
+            Text(
+                "Este ejercicio no tiene series.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            WorkoutExerciseSetupContent(
+                exercise = exercise,
+                currentSet = setupSet,
+                profiles = profiles,
+                activeProfileId = activeProfileId,
+                onSelectProfile = onSelectProfile,
+                onSaveProfile = onSaveProfile,
+                onUpdateExercise = onUpdateExercise,
+                onUpdateSet = onUpdateSet,
+                sessionAccentColor = sessionAccentColor
+            )
+        }
 
         Button(
             onClick = onDismiss,
@@ -677,4 +757,36 @@ internal fun ExerciseSetupSheetContent(
             Text("Listo")
         }
     }
+}
+
+internal data class PendingUntaggedAdoption(
+    val exerciseId: String,
+    val tagId: String,
+    val tagName: String,
+    val sessionCount: Int,
+)
+
+@Composable
+internal fun WorkoutUntaggedAdoptionDialog(
+    pending: PendingUntaggedAdoption,
+    onAdopt: () -> Unit,
+    onReject: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    KpknAlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Historial sin etiqueta", fontWeight = FontWeight.Black) },
+        text = {
+            Text(
+                "Hay ${pending.sessionCount} sesión${if (pending.sessionCount == 1) "" else "es"} sin etiqueta en este ejercicio. ¿Quieres asignar esos kilos a «${pending.tagName}»? Si no, se crea la etiqueta Default para ese historial y «${pending.tagName}» empieza en 0 kg.",
+                style = MaterialTheme.typography.bodySmall,
+            )
+        },
+        confirmButton = {
+            Button(onClick = onAdopt) { Text("Usar historial") }
+        },
+        dismissButton = {
+            TextButton(onClick = onReject) { Text("Dejar limpia") }
+        },
+    )
 }

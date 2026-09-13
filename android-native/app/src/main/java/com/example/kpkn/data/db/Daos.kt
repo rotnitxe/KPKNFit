@@ -138,6 +138,18 @@ interface WorkoutV2Dao {
     @Query("DELETE FROM workout_context_profiles WHERE id = :profileId")
     suspend fun deleteContextProfile(profileId: String)
 
+    @Query("SELECT * FROM workout_tags WHERE exerciseKey = :exerciseKey ORDER BY lastUsedAt DESC")
+    suspend fun getWorkoutTagsForExercise(exerciseKey: String): List<WorkoutTagEntity>
+
+    @Query("SELECT * FROM workout_tags")
+    suspend fun getAllWorkoutTags(): List<WorkoutTagEntity>
+
+    @Upsert
+    suspend fun upsertWorkoutTag(entity: WorkoutTagEntity)
+
+    @Query("DELETE FROM workout_tags WHERE id = :tagId")
+    suspend fun deleteWorkoutTag(tagId: String)
+
     @Query("SELECT * FROM workout_replacement_decisions WHERE programId = :programId ORDER BY createdAt DESC")
     suspend fun getReplacementDecisions(programId: String): List<WorkoutReplacementDecisionEntity>
 

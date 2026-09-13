@@ -350,7 +350,7 @@ class WorkoutSessionRulesTest {
         assertEquals("Sugerido", chips[1].label)
         assertEquals(0.0, chips[1].weight, 0.001)
         assertEquals(LoadModeV2.BODYWEIGHT, chips[1].targetLoadMode)
-        assertEquals("+2.5", chips[2].label)
+        assertEquals("+2,5", chips[2].label)
         assertEquals(2.5, chips[2].weight, 0.001)
         assertEquals(LoadModeV2.LASTRE, chips[2].targetLoadMode)
     }
@@ -385,7 +385,7 @@ class WorkoutSessionRulesTest {
         assertEquals(75.0, chips[0].weight, 0.001)
         assertEquals("Sugerido", chips[1].label)
         assertEquals(80.0, chips[1].weight, 0.001)
-        assertEquals("+2.5", chips[2].label)
+        assertEquals("+2,5", chips[2].label)
         assertEquals(82.5, chips[2].weight, 0.001)
     }
 
@@ -410,7 +410,7 @@ class WorkoutSessionRulesTest {
     fun assisted_chip_selection_sets_assisted_mode() {
         val chip = QuickLoadChipOption("Asist.", 2.5, false, LoadModeV2.ASSISTED)
         assertEquals(LoadModeV2.ASSISTED, loadModeAfterChipSelection(chip))
-        assertEquals("2.5", weightTextAfterChipSelection(chip))
+        assertEquals("2,5", weightTextAfterChipSelection(chip))
     }
 
     @Test
