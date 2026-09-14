@@ -41,9 +41,33 @@ data class SessionEditorRuleDefaults(
     val hasIsolationOverrides: Boolean
         get() = isolationRestSeconds != null || isolationReps != null ||
             isolationRpe != null || isolationIntensityType != null
+
+    fun toPersisted(): SessionPersistedRuleDefaults = SessionPersistedRuleDefaults(
+        setCount = setCount,
+        reps = reps,
+        rpe = rpe,
+        normalRestSeconds = normalRestSeconds,
+        betweenSidesRestSeconds = betweenSidesRestSeconds,
+        supersetBetweenRestSeconds = supersetBetweenRestSeconds,
+        supersetRoundRestSeconds = supersetRoundRestSeconds,
+        applyToNewItems = applyToNewItems,
+    )
+
+    companion object {
+        fun fromPersisted(persisted: SessionPersistedRuleDefaults): SessionEditorRuleDefaults =
+            SessionEditorRuleDefaults(
+                setCount = persisted.setCount,
+                reps = persisted.reps,
+                rpe = persisted.rpe,
+                normalRestSeconds = persisted.normalRestSeconds,
+                betweenSidesRestSeconds = persisted.betweenSidesRestSeconds,
+                supersetBetweenRestSeconds = persisted.supersetBetweenRestSeconds,
+                supersetRoundRestSeconds = persisted.supersetRoundRestSeconds,
+                applyToNewItems = persisted.applyToNewItems,
+            )
+    }
 }
 
-@Deprecated("Subsistema legacy: limits guardados solo en draft local, validateBeforeSave no-op. No bloquean guardado.", level = DeprecationLevel.WARNING)
 @Serializable
 data class SessionEditorRuleLimits(
     val maxRPE: Double? = null,

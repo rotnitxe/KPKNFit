@@ -163,6 +163,17 @@ private fun calculateAssistedLoadFromPr(
     return prAssistance * (targetFactor / prFactor)
 }
 
+/** Lastre kg from a lastre PR (kg × metric), never treating that PR weight as a barbell 1RM. */
+private fun calculateLastreLoadFromPr(
+    prLastre: Double,
+    prMetric: Double,
+    targetMetric: Double,
+): Double {
+    if (prLastre <= 0.0 || prMetric <= 0.0 || targetMetric <= 0.0) return 0.0
+    val capacity = calculateGeneralizedCapacity(prLastre, prMetric)
+    return calculateLoadFromGeneralizedCapacity(capacity, targetMetric)
+}
+
 private fun plannedMetricForMode(set: ExerciseSet, trainingMode: TrainingMode): Double? = when (trainingMode) {
     TrainingMode.TIME -> set.targetDuration?.toDouble()
     TrainingMode.SOLO_RPE -> null
@@ -239,15 +250,23 @@ fun resolveReferenceCapacity(
 fun calculateSuggestedLoad(exercise: Exercise, set: ExerciseSet): Double? {
     val loadMode = set.loadModeV2 ?: LoadModeV2.LOAD
     if (loadMode == LoadModeV2.BODYWEIGHT) return 0.0
-    if (loadMode == LoadModeV2.ASSISTED) {
+    if (loadMode == LoadModeV2.ASSISTED || loadMode == LoadModeV2.LASTRE) {
         val pr = exercise.prFor1RM ?: return null
         val targetMetric = effectiveMetricForSuggestion(set, exercise.trainingMode) ?: return null
-        val suggestedAssistance = calculateAssistedLoadFromPr(
-            prAssistance = pr.weight,
-            prMetric = pr.reps.toDouble(),
-            targetMetric = targetMetric,
-        )
-        return if (suggestedAssistance > 0.0) roundSuggestedLoad(suggestedAssistance) else null
+        val suggested = if (loadMode == LoadModeV2.ASSISTED) {
+            calculateAssistedLoadFromPr(
+                prAssistance = pr.weight,
+                prMetric = pr.reps.toDouble(),
+                targetMetric = targetMetric,
+            )
+        } else {
+            calculateLastreLoadFromPr(
+                prLastre = pr.weight,
+                prMetric = pr.reps.toDouble(),
+                targetMetric = targetMetric,
+            )
+        }
+        return if (suggested > 0.0) roundSuggestedLoad(suggested) else null
     }
 
     val referenceCapacity = resolveReferenceCapacity(exercise) ?: return null
@@ -283,15 +302,23 @@ fun calculateSuggestedLoad(
 ): Double? {
     val loadMode = set.loadModeV2 ?: LoadModeV2.LOAD
     if (loadMode == LoadModeV2.BODYWEIGHT) return 0.0
-    if (loadMode == LoadModeV2.ASSISTED) {
+    if (loadMode == LoadModeV2.ASSISTED || loadMode == LoadModeV2.LASTRE) {
         val pr = exercise.prFor1RM ?: return null
         val targetMetric = effectiveMetricForSuggestion(set, exercise.trainingMode) ?: return null
-        val suggestedAssistance = calculateAssistedLoadFromPr(
-            prAssistance = pr.weight,
-            prMetric = pr.reps.toDouble(),
-            targetMetric = targetMetric,
-        )
-        return if (suggestedAssistance > 0.0) roundSuggestedLoad(suggestedAssistance) else null
+        val suggested = if (loadMode == LoadModeV2.ASSISTED) {
+            calculateAssistedLoadFromPr(
+                prAssistance = pr.weight,
+                prMetric = pr.reps.toDouble(),
+                targetMetric = targetMetric,
+            )
+        } else {
+            calculateLastreLoadFromPr(
+                prLastre = pr.weight,
+                prMetric = pr.reps.toDouble(),
+                targetMetric = targetMetric,
+            )
+        }
+        return if (suggested > 0.0) roundSuggestedLoad(suggested) else null
     }
 
     val referenceCapacity = resolveReferenceCapacity(exercise, history) ?: return null
@@ -633,11 +660,10 @@ fun calculateSessionTimeBreakdown(
             return@forEach
         }
 
-        val sets = exercise.sets.ifEmpty {
-            List(3) { com.example.kpkn.data.models.ExerciseSet(id = "placeholder_$it") }
-        }
+        val sets = exercise.sets
+        if (sets.isEmpty()) return@forEach
 
-        sets.forEach { set ->
+        sets.forEachIndexed { setIndex, set ->
             // ── Ejecución de la serie principal ──────────────────────────────
             val setExecSec = when (exercise.trainingMode) {
                 TrainingMode.TIME -> set.targetDuration ?: averageWorkSeconds
@@ -650,8 +676,10 @@ fun calculateSessionTimeBreakdown(
                 it.type == com.example.kpkn.data.models.TechniqueType.DROP_SET
             }
             val dropCount = drops.sumOf { technique ->
-                technique.params["weightPcts"]?.split(",")?.size ?: 3
-            }.coerceAtLeast(if (set.isDropSet && set.dropSets.isEmpty()) 3 else 0)
+                technique.params["weightPcts"]?.split(",")?.filter { it.isNotBlank() }?.size
+                    ?: technique.params["count"]?.toIntOrNull()
+                    ?: 1
+            }.coerceAtLeast(if (set.isDropSet && drops.isEmpty()) 1 else 0)
             executionSec += dropCount * 6
 
             // ── Rest-pause programados ────────────────────────────────────────
@@ -694,7 +722,9 @@ fun calculateSessionTimeBreakdown(
                 var roundRest = 0
                 for (r in 0 until rounds) {
                     intraRest += group.roundRestBetweenExercises?.get(r) ?: group.restBetweenExercises
-                    roundRest += group.roundRestAfterSuperset?.get(r) ?: group.restAfterSuperset
+                    if (r < rounds - 1) {
+                        roundRest += group.roundRestAfterSuperset?.get(r) ?: group.restAfterSuperset
+                    }
                 }
                 restSec += intraRest * (group.exerciseOrder.size - 1)
                 restSec += roundRest
@@ -702,7 +732,7 @@ fun calculateSessionTimeBreakdown(
             }
             // Para miembros adicionales del superset no se añade descanso individual
         } else {
-            restSec += exerciseRestSec * sets.size
+            restSec += exerciseRestSec * (sets.size - 1).coerceAtLeast(0)
         }
     }
 
@@ -718,7 +748,7 @@ fun calculateSessionTimeBreakdown(
         // sessions may still carry synthetic ExerciseSet rows, so do not let
         // those legacy rows leak into editor/time summaries.
         totalSetCount    = exercises.sumOf { exercise ->
-            if (exercise.cardioDetails != null) 0 else exercise.sets.size.coerceAtLeast(1)
+            if (exercise.cardioDetails != null) 0 else exercise.sets.size
         },
     )
 }

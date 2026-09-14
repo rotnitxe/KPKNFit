@@ -108,7 +108,7 @@ class SessionEditorRulesEngineTest {
     }
 
     @Test
-    fun validateBeforeSave_ignores_legacy_rigid_limits() {
+    fun validateBeforeSave_rigid_rpe_limit_blocks() {
         val draft = Session(
             id = "session-3",
             name = "Sesion",
@@ -129,12 +129,11 @@ class SessionEditorRulesEngineTest {
             exerciseIndex = exerciseIndex,
         )
 
-        assertNull(result.blockingError)
-        assertTrue(result.warnings.isEmpty())
+        assertEquals("Hay series por encima del RPE máximo (8).", result.blockingError)
     }
 
     @Test
-    fun validateBeforeSave_ignores_legacy_flexible_limits() {
+    fun validateBeforeSave_flexible_rpe_limit_warns() {
         val draft = Session(
             id = "session-4",
             name = "Sesion",
@@ -156,11 +155,11 @@ class SessionEditorRulesEngineTest {
         )
 
         assertNull(result.blockingError)
-        assertTrue(result.warnings.isEmpty())
+        assertTrue(result.warnings.any { it.contains("RPE máximo") })
     }
 
     @Test
-    fun validateBeforeSave_ignores_legacy_weekly_volume_limit() {
+    fun validateBeforeSave_rigid_weekly_volume_limit_blocks() {
         val draft = Session(
             id = "session-a",
             name = "Sesion A",
@@ -201,8 +200,8 @@ class SessionEditorRulesEngineTest {
             exerciseIndex = exerciseIndex,
         )
 
-        assertNull(result.blockingError)
-        assertTrue(result.warnings.isEmpty())
+        assertNotNull(result.blockingError)
+        assertTrue(result.blockingError!!.contains("semana"))
     }
 
     @Test

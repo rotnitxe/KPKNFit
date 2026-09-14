@@ -146,6 +146,8 @@ internal fun TemplateCatalogBrowser(
     exerciseIndex: Map<String, ExerciseMuscleInfo>,
     /** Archived USER templates stay out of application results but remain manageable. */
     archivedUserTemplates: List<SessionTemplate> = emptyList(),
+    templatesReady: Boolean = true,
+    corruptTemplateIds: List<String> = emptyList(),
     onArchiveUserTemplate: (String) -> Unit = {},
     onRestoreUserTemplate: (String) -> Unit = {},
     onDeleteUserTemplate: (String) -> Unit = {},
@@ -172,6 +174,7 @@ internal fun TemplateCatalogBrowser(
     val rowBg = if (glassDark) Color.White.copy(alpha = 0.06f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
     var templateBeingEdited by remember { mutableStateOf<SessionTemplate?>(null) }
     var showSaveDialog by remember { mutableStateOf(false) }
+    var pendingDeleteId by remember { mutableStateOf<String?>(null) }
 
     // Keep first paint independent from the expensive AUGE/ring calculation.
     // Duration and difficulty filters already have metadata fallbacks; detailed
@@ -255,11 +258,28 @@ internal fun TemplateCatalogBrowser(
                             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
                         ) { Text("Guardar sesión") }
                     }
-                    if (visibleUserTemplates.isEmpty() && archivedUserTemplates.isEmpty()) {
+                    if (!templatesReady) {
+                        Text(
+                            "Cargando plantillas…",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = mutedColor,
+                        )
+                    } else if (visibleUserTemplates.isEmpty() && archivedUserTemplates.isEmpty()) {
                         Text(
                             "Todavía no tienes plantillas guardadas.",
                             style = MaterialTheme.typography.bodySmall,
                             color = mutedColor,
+                        )
+                    }
+                    if (corruptTemplateIds.isNotEmpty()) {
+                        Text(
+                            if (corruptTemplateIds.size == 1) {
+                                "Hay 1 plantilla ilegible en cuarentena. No se aplicará hasta reparar el archivo."
+                            } else {
+                                "Hay ${corruptTemplateIds.size} plantillas ilegibles en cuarentena. No se aplicarán hasta reparar el archivo."
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFFFBBF24),
                         )
                     }
                     visibleUserTemplates.forEach { template ->
@@ -269,7 +289,7 @@ internal fun TemplateCatalogBrowser(
                             mutedColor = mutedColor,
                             onArchive = onArchiveUserTemplate,
                             onRestore = onRestoreUserTemplate,
-                            onDelete = onDeleteUserTemplate,
+                            onDelete = { pendingDeleteId = it },
                             onEdit = { templateBeingEdited = it },
                         )
                     }
@@ -280,7 +300,7 @@ internal fun TemplateCatalogBrowser(
                             mutedColor = mutedColor,
                             onArchive = onArchiveUserTemplate,
                             onRestore = onRestoreUserTemplate,
-                            onDelete = onDeleteUserTemplate,
+                            onDelete = { pendingDeleteId = it },
                             onEdit = { templateBeingEdited = it },
                         )
                     }
@@ -423,6 +443,33 @@ internal fun TemplateCatalogBrowser(
                 }
             }
         }
+    }
+    pendingDeleteId?.let { id ->
+        val pendingName = (templates + archivedUserTemplates).firstOrNull { it.id == id }?.name
+        AlertDialog(
+            onDismissRequest = { pendingDeleteId = null },
+            title = { Text("Borrar plantilla", fontWeight = FontWeight.Black) },
+            text = {
+                Text(
+                    if (pendingName.isNullOrBlank()) {
+                        "Esta acción es permanente. ¿Eliminar la plantilla?"
+                    } else {
+                        "Esta acción es permanente. ¿Eliminar \"$pendingName\"?"
+                    },
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDeleteUserTemplate(id)
+                        pendingDeleteId = null
+                    },
+                ) { Text("Borrar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingDeleteId = null }) { Text("Cancelar") }
+            },
+        )
     }
     templateBeingEdited?.let { template ->
         UserTemplateMetadataDialog(

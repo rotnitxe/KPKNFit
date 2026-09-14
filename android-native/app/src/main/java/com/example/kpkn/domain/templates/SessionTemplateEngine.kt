@@ -255,6 +255,17 @@ object SessionTemplateEngine {
             warmup = cloned.warmup,
             supersetGroups = cloned.supersetGroups,
             origin = SessionOrigin.USER_DRAFT,
+            cardioFirst = cloned.cardioFirst,
+            targetDurationMinutes = cloned.targetDurationMinutes,
+            sessionB = null,
+            sessionC = null,
+            sessionD = null,
+            trainingBackup = null,
+            isMeetDay = false,
+            isCompetitionSession = false,
+            competitionDetails = null,
+            competitionRecordId = null,
+            competitionKeyDateId = null,
         )
     }
 
@@ -386,9 +397,6 @@ object SessionTemplateEngine {
 
         private fun cloneSet(source: ExerciseSet): ExerciseSet = source.copy(
             id = fresh(),
-            // `weight` is an observed/entered execution value in session JSON.
-            // It must never make a copied week look pre-filled or completed.
-            weight = null,
             completedReps = null,
             completedDuration = null,
             completedRPE = null,
@@ -397,8 +405,6 @@ object SessionTemplateEngine {
             isIneffective = false,
             isPartial = false,
             partialReps = null,
-            isDropSet = false,
-            isRestPause = false,
             isChangeOfPlans = false,
             dropSets = emptyList(),
             restPauses = emptyList(),
@@ -410,8 +416,8 @@ object SessionTemplateEngine {
             technicalQuality = null,
             discomfortIds = emptyList(),
             refereeNotes = null,
-            leftTarget = source.leftTarget?.copy(weight = null),
-            rightTarget = source.rightTarget?.copy(weight = null),
+            leftTarget = source.leftTarget,
+            rightTarget = source.rightTarget,
             plannedIntensityTechniques = source.plannedIntensityTechniques.map(::cloneTechnique),
             restAfterSeconds = source.restAfterSeconds,
         )

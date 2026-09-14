@@ -44,6 +44,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,9 +54,9 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -122,6 +124,28 @@ internal fun SessionHero(
     val heroWidthPx = remember { mutableStateOf(0) }
     // Tracks the latest target day so the transition coroutine can wait for the switch.
     val currentDayOfWeek by rememberUpdatedState(activeDayOfWeek)
+    var localName by remember(session.id) { mutableStateOf(session.name) }
+    var localDescription by remember(session.id) { mutableStateOf(session.description.orEmpty()) }
+    val latestOnNameChange = rememberUpdatedState(onNameChange)
+    val latestOnDescriptionChange = rememberUpdatedState(onDescriptionChange)
+    LaunchedEffect(localName, session.id) {
+        if (localName == session.name) return@LaunchedEffect
+        delay(150)
+        latestOnNameChange.value(localName)
+    }
+    LaunchedEffect(localDescription, session.id) {
+        if (localDescription == session.description.orEmpty()) return@LaunchedEffect
+        delay(150)
+        latestOnDescriptionChange.value(localDescription)
+    }
+    DisposableEffect(session.id) {
+        onDispose {
+            if (localName != session.name) latestOnNameChange.value(localName)
+            if (localDescription != session.description.orEmpty()) {
+                latestOnDescriptionChange.value(localDescription)
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -204,8 +228,7 @@ internal fun SessionHero(
                     .matchParentSize()
                     .padding(horizontal = 10.dp, vertical = 12.dp)
                     .clip(HeroPillShape)
-                    .background(glowColor.copy(alpha = 0.16f))
-                    .blur(28.dp),
+                    .background(glowColor.copy(alpha = 0.16f)),
             )
             Box(
                 modifier = Modifier
@@ -269,14 +292,20 @@ internal fun SessionHero(
                             verticalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
                             val titleFontSize = when {
-                                session.name.length < 15 -> 34.sp
-                                session.name.length < 25 -> 28.sp
+                                localName.length < 15 -> 34.sp
+                                localName.length < 25 -> 28.sp
                                 else -> 22.sp
                             }
                             BasicTextField(
-                                value = session.name,
-                                onValueChange = onNameChange,
-                                modifier = Modifier.fillMaxWidth(),
+                                value = localName,
+                                onValueChange = { localName = it },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .onFocusChanged { focus ->
+                                        if (!focus.isFocused && localName != session.name) {
+                                            onNameChange(localName)
+                                        }
+                                    },
                                 singleLine = true,
                                 textStyle = MaterialTheme.typography.displaySmall.copy(
                                     fontSize = titleFontSize,
@@ -286,7 +315,7 @@ internal fun SessionHero(
                                 cursorBrush = SolidColor(Color.White),
                                 decorationBox = { innerTextField ->
                                     Box(modifier = Modifier.fillMaxWidth()) {
-                                        if (session.name.isBlank()) {
+                                        if (localName.isBlank()) {
                                             Text(
                                                 "Nueva sesión",
                                                 color = Color.White.copy(alpha = 0.55f),
@@ -299,9 +328,15 @@ internal fun SessionHero(
                                 },
                             )
                             BasicTextField(
-                                value = session.description.orEmpty(),
-                                onValueChange = onDescriptionChange,
-                                modifier = Modifier.fillMaxWidth(),
+                                value = localDescription,
+                                onValueChange = { localDescription = it },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .onFocusChanged { focus ->
+                                        if (!focus.isFocused && localDescription != session.description.orEmpty()) {
+                                            onDescriptionChange(localDescription)
+                                        }
+                                    },
                                 singleLine = true,
                                 maxLines = 1,
                                 textStyle = MaterialTheme.typography.bodyMedium.copy(
@@ -311,7 +346,7 @@ internal fun SessionHero(
                                 cursorBrush = SolidColor(Color.White),
                                 decorationBox = { innerTextField ->
                                     Box(modifier = Modifier.fillMaxWidth()) {
-                                        if (session.description.isNullOrBlank()) {
+                                        if (localDescription.isBlank()) {
                                             Text(
                                                 "Añadir descripción",
                                                 color = Color.White.copy(alpha = 0.45f),
@@ -526,7 +561,7 @@ private fun HeroSolidActionIcon(
         color = DarkEditorChip,
     ) {
         Box(
-            modifier = Modifier.size(36.dp),
+            modifier = Modifier.size(48.dp),
             contentAlignment = Alignment.Center,
         ) {
             Icon(

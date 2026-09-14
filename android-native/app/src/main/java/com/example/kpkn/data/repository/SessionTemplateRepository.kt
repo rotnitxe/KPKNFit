@@ -11,6 +11,7 @@ import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplatePublicationStatus
 import com.example.kpkn.data.sessions.SessionTemplateSourceType
 import com.example.kpkn.domain.templates.SessionTemplateQualityRules
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import java.time.Instant
 
 /**
@@ -42,12 +44,15 @@ import java.time.Instant
  */
 class SessionTemplateRepository private constructor(context: Context) {
 
-    private val db = KpknDatabase.getInstance(context)
+    private val appContext = context.applicationContext
+    private var db = KpknDatabase.getInstance(appContext)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _userTemplates = MutableStateFlow<List<SessionTemplate>>(emptyList())
     private val _isReady = MutableStateFlow(false)
     private val templateWriteMutex = Mutex()
+    private val _corruptTemplateIds = MutableStateFlow<List<String>>(emptyList())
+    val corruptTemplateIds: StateFlow<List<String>> = _corruptTemplateIds.asStateFlow()
 
     /** Live list of user-created templates (excludes archived ones in [allTemplates]). */
     val userTemplates: StateFlow<List<SessionTemplate>> = _userTemplates.asStateFlow()
@@ -79,23 +84,25 @@ class SessionTemplateRepository private constructor(context: Context) {
         .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
     init {
-        scope.launch {
+        scope.launch { refreshFromStorage() }
+    }
+
+    suspend fun refreshFromStorage() {
+        db = KpknDatabase.getInstance(appContext)
+        templateWriteMutex.withLock {
+            val corrupt = mutableListOf<String>()
             val persisted = db.sessionTemplateDao().getAll().mapNotNull {
                 it.toSessionTemplateOrNull() ?: run {
                     Log.w("SessionTemplateRepo", "Descartada plantilla corrupta id=${it.id}")
+                    corrupt += it.id
                     null
                 }
             }
-            // A save may happen while Room is hydrating. In-memory writes win so
-            // a late hydration cannot erase a just-created user template.
-            _userTemplates.update { current ->
-                (current + persisted.filterNot { disk -> current.any { it.id == disk.id } })
-            }
+            _corruptTemplateIds.value = corrupt
+            _userTemplates.value = persisted
             _isReady.value = true
         }
     }
-
-    // ─── Read ─────────────────────────────────────────────────────────────────
 
     fun getById(id: String): SessionTemplate? =
         SESSION_TEMPLATES_SYSTEM.firstOrNull { it.id == id }
@@ -126,11 +133,13 @@ class SessionTemplateRepository private constructor(context: Context) {
             "Only USER templates can be saved via SessionTemplateRepository."
         }
         return runCatching {
-            templateWriteMutex.withLock {
-                db.sessionTemplateDao().upsert(template.toEntity())
-                // Publish only after durable success; a failed DAO write must
-                // not leave a phantom template in the editor flow.
-                _userTemplates.update { current -> mergeUserTemplate(current, template) }
+            withContext(NonCancellable) {
+                templateWriteMutex.withLock {
+                    db.sessionTemplateDao().upsert(template.toEntity())
+                    // Publish only after durable success; a failed DAO write must
+                    // not leave a phantom template in the editor flow.
+                    _userTemplates.update { current -> mergeUserTemplate(current, template) }
+                }
             }
         }.onFailure { Log.e("SessionTemplateRepo", "upsert fallo id=${template.id}", it) }
     }
@@ -149,9 +158,11 @@ class SessionTemplateRepository private constructor(context: Context) {
 
     suspend fun deleteUserTemplateNow(id: String): Result<Unit> = runCatching {
         if (SESSION_TEMPLATES_SYSTEM.any { it.id == id }) return@runCatching
-        templateWriteMutex.withLock {
-            db.sessionTemplateDao().delete(id)
-            _userTemplates.update { it.filterNot { template -> template.id == id } }
+        withContext(NonCancellable) {
+            templateWriteMutex.withLock {
+                db.sessionTemplateDao().delete(id)
+                _userTemplates.update { it.filterNot { template -> template.id == id } }
+            }
         }
     }.onFailure { Log.e("SessionTemplateRepo", "delete fallo id=$id", it) }
 

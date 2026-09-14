@@ -13,6 +13,7 @@ import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.workout.SupersetRules
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -25,15 +26,15 @@ fun SessionEditorViewModel.clearSnackbarMessage() {
 fun SessionEditorViewModel.setMainSessionForDay(sessionId: String) {
     val state = currentUiState
     val program = repository.getProgramById(programId) ?: return
+    val day = state.dayOfWeek ?: return
     val updated = program.macrocycles.map { macro ->
         macro.copy(blocks = macro.blocks.map { block ->
             block.copy(mesocycles = block.mesocycles.map { meso ->
                 meso.copy(weeks = meso.weeks.map { week ->
-                    val day = state.dayOfWeek ?: return@map week
-                    val daySessions = week.sessions.filter { it.dayOfWeek == day }
-                    if (daySessions.isEmpty() || week.id != state.weekId) return@map week
-                    week.copy(sessions = week.sessions.map { s ->
-                        s.copy(isMainSession = s.id == sessionId)
+                    if (week.id != state.weekId) return@map week
+                    week.copy(sessions = week.sessions.map { session ->
+                        if (session.dayOfWeek != day) session
+                        else session.copy(isMainSession = session.id == sessionId)
                     })
                 })
             })
@@ -85,11 +86,7 @@ fun SessionEditorViewModel.selectRoadmapDay(dayOfWeek: Int): SessionEditorSaveRe
 fun SessionEditorViewModel.createSessionForDay(dayOfWeek: Int): SessionEditorSaveResult {
     val state = currentUiState
     if (state.hasUnsavedChanges) {
-        val ok = kotlinx.coroutines.runBlocking(Dispatchers.IO) { persistRecoverableSession(state) }
-        if (!ok) {
-            updateUi { it.copy(snackbarMessage = "Error al guardar el borrador de la sesión actual") }
-            return SessionEditorSaveResult(success = false, message = "")
-        }
+        persistRecoverableSession(state)
     }
 
     val existingOnDay = state.weekSessions.firstOrNull { it.dayOfWeek == dayOfWeek }
@@ -246,10 +243,15 @@ internal fun SessionEditorViewModel.switchToSession(
             pendingSessionSwitchId = null,
             sheet = SessionEditorSheet.NONE,
             localDraftHistory = TrainedSessionVersionStore.getInstance(getApplication()).loadForSession(resolvedSession.id),
-            ruleDefaults = persistedDraft?.ruleDefaults ?: it.ruleDefaults,
+            ruleDefaults = persistedDraft?.ruleDefaults
+                ?: resolvedSession.persistedRuleDefaults?.let(SessionEditorRuleDefaults::fromPersisted)
+                ?: resolvedSession.inferredEditorRuleDefaults(),
             partRuleDefaults = persistedDraft?.partRuleDefaults ?: emptyMap(),
-            ruleLimits = persistedDraft?.ruleLimits ?: it.ruleLimits,
+            ruleLimits = persistedDraft?.ruleLimits ?: SessionEditorRuleLimits(),
             selectedExercisesIds = persistedDraft?.selectedExercisesIds.orEmpty(),
+            availableVariants = computeAvailableVariants(resolvedSession),
+            activeVariant = WeekVariant.A,
+            pendingTransferToDays = persistedDraft?.pendingTransferToDays,
             strengthSpaceCommitted = false,
             cardioSpacePlacement = null,
         )
@@ -261,7 +263,10 @@ internal fun SessionEditorViewModel.switchToSession(
 fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScope.SESSION_ONLY, skipRefresh: Boolean = false): SessionEditorSaveResult {
     val state = currentUiState
     val rawDraft = state.session ?: return SessionEditorSaveResult(false, "No hay una sesión activa para guardar.")
-    val draft = rawDraft.normalizeSession().copy(lastModifiedAtMs = System.currentTimeMillis())
+    val draft = rawDraft.normalizeSession().copy(
+        lastModifiedAtMs = System.currentTimeMillis(),
+        persistedRuleDefaults = state.ruleDefaults.toPersisted(),
+    )
     val program = repository.getProgramById(programId) ?: return SessionEditorSaveResult(false, "No pudimos encontrar el programa activo.")
     if (state.weekId.isBlank()) return SessionEditorSaveResult(false, "No pudimos identificar la semana para guardar.")
 
@@ -294,25 +299,37 @@ fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScop
     val pendingMesoIndex = state.pendingMesoIndex
     val effectiveScope = if (state.isSimpleProgram) SessionSaveScope.SESSION_ONLY else scope
 
-    val updatedProgram = if (effectiveScope == SessionSaveScope.MESOCYCLE) applySessionToMesocycle(program, state, draft) else {
-        program.updateWeekSessions(state.macroIndex, state.mesoIndex, state.weekId) { sessions ->
-            val replaced = sessions.map { if (it.id == draft.id) draft else it }
-            if (replaced.none { it.id == draft.id }) normalizeMainSessions(replaced + draft) else normalizeMainSessions(replaced)
+    val trainedSessionIds = trainedSessionIdsForMesocycleGuard()
+    var wroteTargetWeek = false
+    val pendingTransfer = state.pendingTransferToDays
+    val mutateOk = kotlinx.coroutines.runBlocking(Dispatchers.IO + NonCancellable) {
+        repository.mutateProgramNow(programId) { current ->
+            val updatedProgram = if (effectiveScope == SessionSaveScope.MESOCYCLE) {
+                applySessionToMesocycle(current, state, draft, trainedSessionIds)
+            } else {
+                current.updateWeekSessions(state.macroIndex, state.mesoIndex, state.weekId) { sessions ->
+                    val replaced = sessions.map { if (it.id == draft.id) draft else it }
+                    if (replaced.none { it.id == draft.id }) normalizeMainSessions(replaced + draft) else normalizeMainSessions(replaced)
+                }
+            }
+            wroteTargetWeek = updatedProgram.containsSessionInWeek(state.weekId, draft.id)
+            if (!wroteTargetWeek) return@mutateProgramNow null
+            if (pendingTransfer != null) {
+                applyPendingTransfersToProgram(
+                    program = updatedProgram,
+                    pending = pendingTransfer.copy(sourceSession = draft),
+                    cloneDayOptions = state.cloneDayOptions,
+                )
+            } else {
+                updatedProgram
+            }
         }
     }
-
-    val pendingTransfer = state.pendingTransferToDays
-    val programWithTransfers = if (pendingTransfer != null) {
-        applyPendingTransfersToProgram(
-            program = updatedProgram,
-            pending = pendingTransfer,
-            cloneDayOptions = state.cloneDayOptions,
-        )
-    } else {
-        updatedProgram
+    if (!mutateOk || !wroteTargetWeek) {
+        persistDraft(state.copy(session = draft, pendingTransferToDays = pendingTransfer))
+        return SessionEditorSaveResult(false, "No pudimos guardar la sesión en la semana indicada.")
     }
 
-    repository.updateProgram(programWithTransfers)
     clearPersistedDraft(
         weekId = state.weekId,
         macroIndex = state.macroIndex,
@@ -327,6 +344,7 @@ fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScop
     updateUi {
         it.copy(
             originalSession = draft,
+            session = draft,
             hasUnsavedChanges = false,
             isNewSession = false,
             sheet = SessionEditorSheet.NONE,
@@ -340,9 +358,10 @@ fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScop
             pendingMacroIndex = null,
             pendingMesoIndex = null,
             pendingTransferToDays = null,
-            roadmapOptions = buildRoadmapOptions(programWithTransfers),
-            cloneDayOptions = buildCloneDayOptions(programWithTransfers, currentSessionId = draft.id),
-            cloneSourceOptions = buildCloneSourceOptions(programWithTransfers, currentSessionId = draft.id),
+            availableVariants = computeAvailableVariants(draft),
+            roadmapOptions = buildRoadmapOptions(repository.getProgramById(programId) ?: program),
+            cloneDayOptions = buildCloneDayOptions(repository.getProgramById(programId) ?: program, currentSessionId = draft.id),
+            cloneSourceOptions = buildCloneSourceOptions(repository.getProgramById(programId) ?: program, currentSessionId = draft.id),
         )
     }
     if (!skipRefresh) {
@@ -396,7 +415,20 @@ internal fun detectChangedFields(previous: Session, current: Session): List<Stri
     return changes
 }
 
-internal fun SessionEditorViewModel.applySessionToMesocycle(program: Program, state: SessionEditorUiState, draft: Session): Program {
+internal fun SessionEditorViewModel.trainedSessionIdsForMesocycleGuard(): Set<String> {
+    val logs = repository.history.value
+    val trainedStore = TrainedSessionVersionStore.getInstance(getApplication())
+    val fromLogs = logs.map { it.sessionId }.toSet()
+    val fromVersions = currentUiState.weekSessions.map { it.id }.filter { trainedStore.loadForSession(it).isNotEmpty() }
+    return fromLogs + fromVersions
+}
+
+internal fun SessionEditorViewModel.applySessionToMesocycle(
+    program: Program,
+    state: SessionEditorUiState,
+    draft: Session,
+    trainedSessionIds: Set<String> = emptySet(),
+): Program {
     return program.copy(
         macrocycles = program.macrocycles.mapIndexed { macroIndex, macro ->
             if (macroIndex != state.macroIndex) return@mapIndexed macro
@@ -407,16 +439,30 @@ internal fun SessionEditorViewModel.applySessionToMesocycle(program: Program, st
                     globalMesoIndex += 1
                     if (!matchesMeso) return@map meso
                     meso.copy(weeks = meso.weeks.map { week ->
-                        val cloneForWeek = if (week.id == state.weekId) draft else com.example.kpkn.domain.templates.SessionTemplateEngine.cloneSessionContent(draft).copy(id = UUID.randomUUID().toString())
                         val updatedSessions = week.sessions.toMutableList()
-                        val sameDayIndex = updatedSessions.indexOfFirst { it.dayOfWeek == draft.dayOfWeek && it.isMainSession == draft.isMainSession }
-                        when {
-                            updatedSessions.any { it.id == cloneForWeek.id } -> {
-                                val replaceIndex = updatedSessions.indexOfFirst { it.id == cloneForWeek.id }
-                                updatedSessions[replaceIndex] = cloneForWeek
+                        if (week.id == state.weekId) {
+                            val existingIndex = updatedSessions.indexOfFirst { it.id == draft.id }
+                            val sameDayIndex = updatedSessions.indexOfFirst { it.dayOfWeek == draft.dayOfWeek }
+                            when {
+                                existingIndex >= 0 -> updatedSessions[existingIndex] = draft
+                                sameDayIndex >= 0 -> updatedSessions[sameDayIndex] = draft.copy(id = updatedSessions[sameDayIndex].id)
+                                else -> updatedSessions.add(draft)
                             }
-                            sameDayIndex >= 0 -> updatedSessions[sameDayIndex] = cloneForWeek.copy(id = updatedSessions[sameDayIndex].id)
-                            else -> updatedSessions.add(cloneForWeek)
+                        } else {
+                            val sameDayIndex = updatedSessions.indexOfFirst { it.dayOfWeek == draft.dayOfWeek }
+                            if (sameDayIndex >= 0) {
+                                val existingId = updatedSessions[sameDayIndex].id
+                                if (existingId in trainedSessionIds) return@map week
+                                updatedSessions[sameDayIndex] = com.example.kpkn.domain.templates.SessionTemplateEngine
+                                    .cloneSessionContent(draft)
+                                    .copy(id = existingId)
+                            } else {
+                                updatedSessions.add(
+                                    com.example.kpkn.domain.templates.SessionTemplateEngine
+                                        .cloneSessionContent(draft)
+                                        .copy(id = UUID.randomUUID().toString()),
+                                )
+                            }
                         }
                         week.copy(sessions = normalizeMainSessions(updatedSessions))
                     })

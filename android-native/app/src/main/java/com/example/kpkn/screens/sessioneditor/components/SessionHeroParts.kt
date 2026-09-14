@@ -87,7 +87,7 @@ internal fun HeroGlassIconButton(
         color = DarkEditorChip,
     ) {
         Box(
-            modifier = Modifier.size(36.dp),
+            modifier = Modifier.size(48.dp),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -127,7 +127,7 @@ internal fun HeroActionIcon(
         ),
     ) {
         Box(
-            modifier = Modifier.size(36.dp),
+            modifier = Modifier.size(48.dp),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -273,7 +273,7 @@ internal fun SessionHeroActionChip(
 ) {
     Surface(
         modifier = Modifier
-            .height(36.dp)
+            .height(48.dp)
             .clip(RoundedCornerShape(999.dp))
             .clickable { onClick() },
         shape = RoundedCornerShape(999.dp),

@@ -1,10 +1,16 @@
 package com.example.kpkn.screens.sessioneditor
 
+import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.Macrocycle
+import com.example.kpkn.data.models.Mesocycle
+import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SessionEditorSessionHelpersTest {
@@ -62,5 +68,78 @@ class SessionEditorSessionHelpersTest {
         val program = session("s1", modifiedAt = 1L)
         val resolved = resolveNewestSession(existing = program, fallback = program, persistedDraft = null)
         assertSame(program, resolved)
+    }
+
+    @Test
+    fun restoreExerciseSetAtRound_padsGapsBeforeInserting() {
+        val existing = listOf(ExerciseSet(id = "s0", targetReps = 8))
+        val restored = ExerciseSet(id = "s2", targetReps = 6)
+        val result = restoreExerciseSetAtRound(existing, roundIndex = 2, restored)
+        assertEquals(3, result.size)
+        assertEquals("s0", result[0].id)
+        assertTrue(result[1].isEmptySlot)
+        assertEquals("s2", result[2].id)
+        assertEquals(6, result[2].targetReps)
+    }
+
+    @Test
+    fun updateWeekSessions_usesGlobalMesoIndexAcrossBlocks() {
+        val program = Program(
+            id = "p",
+            name = "P",
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "macro",
+                    name = "Macro",
+                    blocks = listOf(
+                        Block(
+                            id = "b1",
+                            name = "B1",
+                            mesocycles = listOf(
+                                Mesocycle(
+                                    id = "meso0",
+                                    name = "M0",
+                                    weeks = listOf(
+                                        ProgramWeek(
+                                            id = "w0",
+                                            name = "W0",
+                                            sessions = listOf(Session(id = "s0", name = "Keep")),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                        Block(
+                            id = "b2",
+                            name = "B2",
+                            mesocycles = listOf(
+                                Mesocycle(
+                                    id = "meso1",
+                                    name = "M1",
+                                    weeks = listOf(
+                                        ProgramWeek(
+                                            id = "w1",
+                                            name = "W1",
+                                            sessions = listOf(Session(id = "s1", name = "Old")),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val updated = program.updateWeekSessions(
+            macroIndex = 0,
+            mesoIndex = 1,
+            weekId = "w1",
+        ) { sessions ->
+            sessions.map { if (it.id == "s1") it.copy(name = "Saved") else it }
+        }
+        val week0 = updated.macrocycles[0].blocks[0].mesocycles[0].weeks[0]
+        val week1 = updated.macrocycles[0].blocks[1].mesocycles[0].weeks[0]
+        assertEquals("Keep", week0.sessions.single().name)
+        assertEquals("Saved", week1.sessions.single().name)
     }
 }

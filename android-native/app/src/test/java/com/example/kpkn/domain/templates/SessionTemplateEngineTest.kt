@@ -333,7 +333,7 @@ class SessionTemplateEngineTest {
         assertTrue(clone.exercises.single().cardioDetails!!.intervalBlocks.single().id != "interval")
         assertTrue(clone.sessionB?.id != "variant-b")
         val clonedSet = clonedFirst.sets.single()
-        assertEquals(null, clonedSet.weight)
+        assertEquals(120.0, clonedSet.weight)
         assertEquals(null, clonedSet.completedReps)
         assertEquals(null, clonedSet.completedRPE)
         assertFalse(clonedSet.isFailure)
@@ -384,7 +384,7 @@ class SessionTemplateEngineTest {
     }
 
     @Test
-    fun `cloned unilateral targets do not retain working weights`() {
+    fun `cloned unilateral targets keep planned weights`() {
         val source = makeTargetSession(
             exercises = listOf(
                 makeExercise(
@@ -401,9 +401,69 @@ class SessionTemplateEngineTest {
         val clonedSet = SessionTemplateEngine.cloneForTemplateStorage(source)
             .exercises.single().sets.single()
 
-        assertEquals(null, clonedSet.weight)
-        assertEquals(null, clonedSet.leftTarget?.weight)
-        assertEquals(null, clonedSet.rightTarget?.weight)
+        assertEquals(40.0, clonedSet.weight)
+        assertEquals(20.0, clonedSet.leftTarget?.weight)
+        assertEquals(22.0, clonedSet.rightTarget?.weight)
+    }
+
+    @Test
+    fun `cloneSet keeps planned drop and rest-pause flags`() {
+        val source = makeTargetSession(
+            exercises = listOf(
+                makeExercise(
+                    sets = listOf(
+                        makeSet("flagged").copy(
+                            weight = 80.0,
+                            isDropSet = true,
+                            isRestPause = true,
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val clonedSet = SessionTemplateEngine.cloneSessionContent(source).exercises.single().sets.single()
+        assertEquals(80.0, clonedSet.weight)
+        assertTrue(clonedSet.isDropSet)
+        assertTrue(clonedSet.isRestPause)
+        assertTrue(clonedSet.dropSets.isEmpty())
+        assertTrue(clonedSet.restPauses.isEmpty())
+    }
+
+    @Test
+    fun `applyReplace copies cardioFirst and duration and clears meet variants`() {
+        val template = makeTemplate(
+            exercises = listOf(makeExercise(id = "tpl-ex", name = "Template Exercise")),
+        ).let {
+            it.copy(
+                session = it.session.copy(
+                    cardioFirst = true,
+                    targetDurationMinutes = 75,
+                ),
+            )
+        }
+        val target = makeTargetSession(
+            exercises = listOf(makeExercise(id = "existing-ex1", name = "Existing Exercise")),
+        ).copy(
+            name = "Keep my name",
+            cardioFirst = false,
+            targetDurationMinutes = 40,
+            sessionB = Session(id = "b", name = "B"),
+            isMeetDay = true,
+            isCompetitionSession = true,
+        )
+
+        val result = SessionTemplateEngine.applyTemplate(
+            template = template,
+            targetSession = target,
+            mode = SessionTemplateApplyMode.REPLACE,
+        )
+
+        assertEquals(true, result.cardioFirst)
+        assertEquals(75, result.targetDurationMinutes)
+        assertEquals("Keep my name", result.name)
+        assertEquals(null, result.sessionB)
+        assertFalse(result.isMeetDay)
+        assertFalse(result.isCompetitionSession)
     }
 
     @Test

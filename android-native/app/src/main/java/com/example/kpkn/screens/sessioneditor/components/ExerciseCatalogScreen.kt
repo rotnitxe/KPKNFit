@@ -87,12 +87,17 @@ internal fun ExerciseCatalogScreen(
             // Calling onDismiss after it would overwrite that result as canceled.
             dismissAfterMultiSelect = false,
             opaqueSurface = true,
-            initialCatalogDefinitionId = request.targetExerciseId?.let { targetId ->
-                catalog.firstOrNull { it.id == targetId }?.catalogDefinitionId
-            },
-            initialCatalogConfigurationId = request.targetExerciseId?.let { targetId ->
-                catalog.firstOrNull { it.id == targetId }?.catalogConfigurationId
-            },
+            initialCatalogDefinitionId = request.targetCatalogDefinitionId
+                ?: request.targetExerciseId?.let { targetId ->
+                    catalog.firstOrNull { it.id.equals(targetId, ignoreCase = true) }?.catalogDefinitionId
+                        ?: catalog.firstOrNull { it.catalogDefinitionId == targetId }?.catalogDefinitionId
+                        ?: catalog.firstOrNull { it.catalogConfigurationId.equals(targetId, ignoreCase = true) }?.catalogDefinitionId
+                },
+            initialCatalogConfigurationId = request.targetCatalogConfigurationId
+                ?: request.targetExerciseId?.let { targetId ->
+                    catalog.firstOrNull { it.id.equals(targetId, ignoreCase = true) }?.catalogConfigurationId
+                        ?: catalog.firstOrNull { it.catalogConfigurationId.equals(targetId, ignoreCase = true) }?.catalogConfigurationId
+                },
             targetGroupName = request.targetGroupName,
         )
     }

@@ -23,27 +23,35 @@ object CardioCueRules {
         val changed = prev?.currentIndex != curr.currentIndex
         if (!changed || curr.currentBlock == null) return CardioCuePlan()
         val block = curr.currentBlock
-        val config = hiit
-        val speech = if (config?.voiceCuesEnabled != false) {
+        val voiceEnabled = hiit?.voiceCuesEnabled ?: true
+        val beepsEnabled = hiit?.beepsEnabled ?: true
+        val vibrationEnabled = hiit?.vibrationEnabled ?: true
+        val speech = if (voiceEnabled) {
             val target = CardioPrescriptionFormatter.targetBits(block)?.let { " · $it" } ?: ""
             when (block.type) {
                 CardioBlockType.WORK -> {
                     val suffix = if (curr.currentIndex >= curr.totalBlocks - 2) " · Última ronda" else ""
-                    "¡Sprint! ${block.durationSeconds} segundos$target$suffix"
+                    val workLabel = when (hiit?.protocol) {
+                        com.example.kpkn.data.models.HiitProtocol.HIIT,
+                        com.example.kpkn.data.models.HiitProtocol.SIT,
+                        -> "¡Sprint!"
+                        else -> "Trabajo"
+                    }
+                    "$workLabel ${block.durationSeconds} segundos$target$suffix"
                 }
-                CardioBlockType.RECOVER -> if (config?.restNature == HiitRestNature.PASSIVE) "Descanso, alto total" else "Descanso activo, muévete suave"
+                CardioBlockType.RECOVER -> if (hiit?.restNature == HiitRestNature.PASSIVE) "Descanso, alto total" else "Descanso activo, muévete suave"
                 CardioBlockType.WARMUP -> "Calentamiento ${block.durationSeconds} segundos$target"
                 CardioBlockType.COOLDOWN -> "Vuelta a la calma$target"
             }
         } else null
-        val vibration = if (config?.vibrationEnabled != false) {
+        val vibration = if (vibrationEnabled) {
             when (block.type) {
                 CardioBlockType.WORK -> VibCue.DOUBLE_WORK
                 CardioBlockType.RECOVER, CardioBlockType.WARMUP, CardioBlockType.COOLDOWN -> VibCue.SHORT_TICK
             }
         } else null
         return CardioCuePlan(
-            phaseChangeTone = config?.beepsEnabled != false,
+            phaseChangeTone = beepsEnabled,
             vibration = vibration,
             speech = speech,
         )
@@ -54,8 +62,10 @@ object CardioCueRules {
         blockType: CardioBlockType,
         hiit: CardioHiitConfig?,
     ): CardioCuePlan {
-        val beeps = if (hiit?.beepsEnabled != false && remainingInBlock in 1..3) listOf(remainingInBlock) else emptyList()
-        val vibration = if (hiit?.vibrationEnabled != false && remainingInBlock == 1) VibCue.SHORT_TICK else null
+        val beepsEnabled = hiit?.beepsEnabled ?: true
+        val vibrationEnabled = hiit?.vibrationEnabled ?: true
+        val beeps = if (beepsEnabled && remainingInBlock in 1..3) listOf(remainingInBlock) else emptyList()
+        val vibration = if (vibrationEnabled && remainingInBlock == 1) VibCue.SHORT_TICK else null
         return CardioCuePlan(countdownBeeps = beeps, vibration = vibration)
     }
 }

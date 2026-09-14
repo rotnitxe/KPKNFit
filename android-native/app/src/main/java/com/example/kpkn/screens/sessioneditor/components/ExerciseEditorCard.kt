@@ -48,6 +48,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -270,6 +271,10 @@ internal fun ExerciseEditorCard(
         ) {
             if (enableDrag) {
                 var handleWindowOrigin by remember(exercise.id) { mutableStateOf(Offset.Zero) }
+                val latestOnDragStart = rememberUpdatedState(onDragStart)
+                val latestOnDrag = rememberUpdatedState(onDrag)
+                val latestOnDragEnd = rememberUpdatedState(onDragEnd)
+                val latestOnDragCancel = rememberUpdatedState(onDragCancel)
                 Box(
                     modifier = Modifier
                         .padding(start = 4.dp)
@@ -283,20 +288,19 @@ internal fun ExerciseEditorCard(
                             detectDragGesturesAfterLongPress(
                                 onDragStart = { offset ->
                                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    // Window-space pointer (F1/N4) — not handle-local.
-                                    onDragStart(handleWindowOrigin + offset)
+                                    latestOnDragStart.value(handleWindowOrigin + offset)
                                 },
                                 onDragCancel = {
                                     haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    onDragCancel()
+                                    latestOnDragCancel.value()
                                 },
                                 onDragEnd = {
                                     haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    onDragEnd()
+                                    latestOnDragEnd.value()
                                 },
                                 onDrag = { change, dragAmount ->
                                     change.consume()
-                                    onDrag(Offset(dragAmount.x, dragAmount.y))
+                                    latestOnDrag.value(Offset(dragAmount.x, dragAmount.y))
                                 },
                             )
                         },
@@ -601,8 +605,7 @@ internal fun ExerciseEditorCard(
                                     draft.copy(
                                         restTime = primary,
                                         restBetweenSidesSeconds = if (draft.isEffectivelyUnilateral()) {
-                                            // Preservar valor existente si UI no editó lado (superseg: side==null)
-                                            side?.takeIf { it > 0 } ?: draft.restBetweenSidesSeconds
+                                            side ?: draft.restBetweenSidesSeconds
                                         } else {
                                             side?.takeIf { it > 0 }
                                         },
@@ -624,7 +627,7 @@ internal fun ExerciseEditorCard(
                     Box {
                         IconButton(
                             onClick = { showExerciseOptionsMenu = true },
-                            modifier = Modifier.size(36.dp),
+                            modifier = Modifier.size(48.dp),
                         ) {
                             Icon(
                                 Icons.Default.MoreVert,

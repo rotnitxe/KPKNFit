@@ -92,7 +92,7 @@ internal fun CompactRestBundleButton(
     }
     Surface(
         modifier = modifier
-            .height(40.dp)
+            .height(48.dp)
             .clip(RoundedCornerShape(999.dp))
             .clickable { showPicker = true },
         shape = RoundedCornerShape(999.dp),
@@ -165,7 +165,7 @@ internal fun CompactRestPickerButton(
     
     Surface(
         modifier = modifier
-            .height(40.dp)
+            .height(48.dp)
             .clip(RoundedCornerShape(999.dp))
             .clickable { showPicker = true },
         color = DarkEditorChip,
@@ -221,7 +221,7 @@ internal fun CompactModeSelector(
         Surface(
         modifier = Modifier
             .then(if (modifier !== Modifier) Modifier.fillMaxWidth() else Modifier)
-            .height(40.dp)
+            .height(48.dp)
             .clip(RoundedCornerShape(999.dp))
             .clickable { showMenu = true },
             color = if (accentTinted) accentColor.copy(alpha = 0.15f) else DarkEditorChip,
@@ -285,7 +285,7 @@ internal fun CompactGoalTrackingButton(
 ) {
     Surface(
         modifier = Modifier
-            .height(40.dp)
+            .height(48.dp)
             .clip(RoundedCornerShape(999.dp))
             .combinedClickable(
                 onClick = { onOpenSheet?.invoke() ?: onToggle() },
@@ -319,7 +319,7 @@ internal fun UnilateralModeSelector(
     Box {
         Surface(
             modifier = Modifier
-                .height(40.dp)
+                .height(48.dp)
                 .clip(RoundedCornerShape(999.dp))
                 .clickable { showMenu = true },
             color = if (isUnilateral) DarkEditorChipSelected else DarkEditorChip,
@@ -369,7 +369,7 @@ internal fun SideOrderChip(
     }
     Surface(
         modifier = Modifier
-            .height(40.dp)
+            .height(48.dp)
             .clip(RoundedCornerShape(999.dp))
             .clickable { onToggle() },
         color = DarkEditorChip,
@@ -842,7 +842,7 @@ internal fun AddSetGhostCard(onAddSet: () -> Unit, modifier: Modifier = Modifier
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.45f)),
                     contentAlignment = Alignment.Center,

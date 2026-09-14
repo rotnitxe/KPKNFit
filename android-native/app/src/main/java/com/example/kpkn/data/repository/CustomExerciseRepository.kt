@@ -8,6 +8,7 @@ import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.toEntity
 import com.example.kpkn.data.db.toExerciseMuscleInfo
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -26,17 +27,24 @@ object CustomExerciseRepository {
     @Volatile
     private var initialized = false
     private lateinit var db: KpknDatabase
+    private lateinit var appContext: Context
 
     fun initialize(context: Context) {
+        appContext = context.applicationContext
+        db = KpknDatabase.getInstance(appContext)
         if (initialized) return
-        db = KpknDatabase.getInstance(context.applicationContext)
         initialized = true
-        scope.launch {
-            val saved = runCatching { db.customExerciseDao().getAll().map { it.toExerciseMuscleInfo().copy(isCustom = true) } }
-                .getOrDefault(emptyList())
-            _customExercises.value = saved
-            setCustomExerciseOverlay(saved)
-        }
+        scope.launch { refreshFromStorage() }
+    }
+
+    suspend fun refreshFromStorage() {
+        if (!::appContext.isInitialized) return
+        db = KpknDatabase.getInstance(appContext)
+        val saved = runCatching {
+            db.customExerciseDao().getAll().map { it.toExerciseMuscleInfo().copy(isCustom = true) }
+        }.getOrDefault(emptyList())
+        _customExercises.value = saved
+        setCustomExerciseOverlay(saved)
     }
 
     fun upsert(exercise: ExerciseMuscleInfo) {
@@ -59,7 +67,7 @@ object CustomExerciseRepository {
         if (!initialized) return
         _customExercises.update { list -> list.filterNot { it.id.equals(exerciseId, ignoreCase = true) } }
         removeCustomExerciseOverlay(exerciseId)
-        scope.launch {
+        scope.launch(NonCancellable) {
             runCatching { db.customExerciseDao().delete(exerciseId) }
         }
     }

@@ -75,7 +75,6 @@ internal fun SessionEditorListItem(
     exerciseDropTargetPartId: String?,
     exerciseDropTargetIndex: Int?,
     draggingPartId: String?,
-    draggingPartOffsetY: Float,
     partDropTargetId: String?,
     pendingAutoExpandExerciseId: String?,
     onPendingAutoExpandHandled: (String) -> Unit,
@@ -117,7 +116,7 @@ internal fun SessionEditorListItem(
                     onChangeColor = { viewModel.updatePartColor(part.id, it) },
                     onRemove = { keepExercises -> viewModel.removePart(part.id, keepExercises) },
                     isDragging = draggingPartId == part.id,
-                    dragOffsetY = if (draggingPartId == part.id) draggingPartOffsetY else 0f,
+                    dragOffsetY = if (draggingPartId == part.id) dragController.draggingPartOffsetY else 0f,
                     isDropTarget = isDropTargetBefore,
                     onBoundsChange = { rect -> dragController.registerPartBoundsDuringDrag(part.id, rect) },
                     onContentBoundsChange = { rect -> dragController.setPartContentBounds(part.id, rect) },
@@ -152,15 +151,11 @@ internal fun SessionEditorListItem(
             val exercise = session.exercises.firstOrNull { it.id == listItem.exerciseId } ?: return
             val itemHeight = (dragController.frozenExerciseBounds["__loose__|${exercise.id}"]
                 ?: dragController.exerciseBounds["__loose__|${exercise.id}"])?.height ?: 88f
-            val shiftY by animateFloatAsState(
-                targetValue = if (draggingExerciseId != null) {
+            val shiftY = if (draggingExerciseId != null) {
                     dragController.calculateProjectedShift(session, "__loose__", listItem.indexInLoose, exercise.id, itemHeight)
                 } else {
                     0f
-                },
-                animationSpec = spring(dampingRatio = 0.82f, stiffness = 700f),
-                label = "looseDnDShift",
-            )
+                }
             val isLooseInsertBefore = exerciseDropTargetPartId == "__loose__" &&
                 exerciseDropTargetIndex == listItem.indexInLoose &&
                 draggingExerciseId != null &&
@@ -219,15 +214,11 @@ internal fun SessionEditorListItem(
             val isCardioSpace = part.isCardioPart()
             val itemHeight = (dragController.frozenExerciseBounds["${part.id}|${exercise.id}"]
                 ?: dragController.exerciseBounds["${part.id}|${exercise.id}"])?.height ?: 88f
-            val shiftY by animateFloatAsState(
-                targetValue = if (draggingExerciseId != null) {
+            val shiftY = if (draggingExerciseId != null) {
                     dragController.calculateProjectedShift(session, part.id, listItem.indexInPart, exercise.id, itemHeight)
                 } else {
                     0f
-                },
-                animationSpec = spring(dampingRatio = 0.82f, stiffness = 700f),
-                label = "partDnDShift",
-            )
+                }
             val containerBackground = if (isCardioSpace) {
                 Brush.verticalGradient(
                     listOf(
@@ -309,15 +300,11 @@ internal fun SessionEditorListItem(
             val firstId = supersetMembers.first().id
             val itemHeight = (dragController.frozenExerciseBounds["__loose__|$firstId"]
                 ?: dragController.exerciseBounds["__loose__|$firstId"])?.height ?: 88f
-            val looseSupersetShiftY by animateFloatAsState(
-                targetValue = if (draggingExerciseId != null) {
+            val looseSupersetShiftY = if (draggingExerciseId != null) {
                     dragController.calculateProjectedShift(session, "__loose__", listItem.indexInLoose, firstId, itemHeight)
                 } else {
                     0f
-                },
-                animationSpec = spring(dampingRatio = 0.82f, stiffness = 700f),
-                label = "looseSupersetDnDShift",
-            )
+                }
             val isLooseSupersetInsertBefore = exerciseDropTargetPartId == "__loose__" &&
                 exerciseDropTargetIndex == listItem.indexInLoose &&
                 draggingExerciseId != null &&
@@ -364,6 +351,7 @@ internal fun SessionEditorListItem(
                         projectedShiftFor = projectedShiftFor,
                         viewModel = viewModel,
                         shiftYForBounds = looseSupersetShiftY,
+                        collapsedPartIds = uiState.collapsedPartIds,
                     )
                 }
             }
@@ -380,15 +368,11 @@ internal fun SessionEditorListItem(
             val firstId = supersetMembers.first().id
             val itemHeight = (dragController.frozenExerciseBounds["${part.id}|$firstId"]
                 ?: dragController.exerciseBounds["${part.id}|$firstId"])?.height ?: 88f
-            val partSupersetShiftY by animateFloatAsState(
-                targetValue = if (draggingExerciseId != null) {
+            val partSupersetShiftY = if (draggingExerciseId != null) {
                     dragController.calculateProjectedShift(session, part.id, listItem.indexInPart, firstId, itemHeight)
                 } else {
                     0f
-                },
-                animationSpec = spring(dampingRatio = 0.82f, stiffness = 700f),
-                label = "partSupersetDnDShift",
-            )
+                }
             val isPartSupersetInsertBefore = exerciseDropTargetPartId == part.id &&
                 exerciseDropTargetIndex == listItem.indexInPart &&
                 draggingExerciseId != null &&
@@ -437,6 +421,7 @@ internal fun SessionEditorListItem(
                         projectedShiftFor = projectedShiftFor,
                         viewModel = viewModel,
                         shiftYForBounds = partSupersetShiftY,
+                        collapsedPartIds = uiState.collapsedPartIds,
                     )
                 }
             }
@@ -459,15 +444,11 @@ internal fun SessionEditorListItem(
             val isCardioSpace = part.isCardioPart()
             val partAccent = remember(part.color) { resolvePartAccent(part.color) }
             val footerShape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
-            val footerShiftY by animateFloatAsState(
-                targetValue = if (draggingExerciseId != null) {
+            val footerShiftY = if (draggingExerciseId != null) {
                     dragController.projectedFooterShiftFor(part.id, part.exercises.size)
                 } else {
                     0f
-                },
-                animationSpec = spring(dampingRatio = 0.82f, stiffness = 700f),
-                label = "partAddFooterDnDShift",
-            )
+                }
             val isDropTargetAtEnd = exerciseDropTargetPartId == part.id &&
                 exerciseDropTargetIndex != null &&
                 exerciseDropTargetIndex >= part.exercises.size &&
@@ -984,6 +965,7 @@ private fun LooseSupersetItem(
     projectedShiftFor: (String, Int, String) -> Float,
     viewModel: SessionEditorViewModel,
     shiftYForBounds: Float = 0f,
+    collapsedPartIds: Set<String> = emptySet(),
 ) {
     val partId = "__loose__"
     val accentHex = resolveExerciseAccentHex(session, partColor = null)
@@ -1032,6 +1014,7 @@ private fun LooseSupersetItem(
                 if (member.sets.size < nextRound) viewModel.addSet(null, member.id)
             }
         },
+        onReorderMembers = { order -> viewModel.updateSupersetOrder(supersetGroup.id, order) },
     ) {
         // Each member exposes its own handle. The group header still drags the
         // complete block, while a member handle can leave/join another group.
@@ -1066,7 +1049,7 @@ private fun LooseSupersetItem(
                             exerciseId = member.id,
                             pointerStartWindow = pointerWindow,
                             session = session,
-                            collapsedPartIds = emptySet(),
+                            collapsedPartIds = collapsedPartIds,
                             dragScope = ExerciseDragScope.INDIVIDUAL,
                         )
                     },
@@ -1133,6 +1116,7 @@ private fun PartSupersetItem(
     projectedShiftFor: (String, Int, String) -> Float,
     viewModel: SessionEditorViewModel,
     shiftYForBounds: Float = 0f,
+    collapsedPartIds: Set<String> = emptySet(),
 ) {
     val accentHex = resolveExerciseAccentHex(session, part.color)
     val coverAccentHex = resolveCoverAccentId(session.background)
@@ -1180,6 +1164,7 @@ private fun PartSupersetItem(
                 if (member.sets.size < nextRound) viewModel.addSet(part.id, member.id)
             }
         },
+        onReorderMembers = { order -> viewModel.updateSupersetOrder(supersetGroup.id, order) },
     ) {
         // The header drags the complete block; each member handle can opt into
         // an individual move to leave or join another group.
@@ -1214,7 +1199,7 @@ private fun PartSupersetItem(
                             exerciseId = member.id,
                             pointerStartWindow = pointerWindow,
                             session = session,
-                            collapsedPartIds = emptySet(),
+                            collapsedPartIds = collapsedPartIds,
                             dragScope = ExerciseDragScope.INDIVIDUAL,
                         )
                     },

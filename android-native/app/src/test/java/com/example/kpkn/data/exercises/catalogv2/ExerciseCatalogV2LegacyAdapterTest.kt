@@ -5,6 +5,8 @@ import com.example.kpkn.domain.exercises.catalogv2.CatalogEvidenceV2
 import com.example.kpkn.domain.exercises.catalogv2.CatalogReviewStatusV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseBodyRegionV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
+import com.example.kpkn.data.exercises.catalogv2.toLegacySelection
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseSelectionV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseDefinitionKindV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseDefinitionV2
@@ -88,5 +90,10 @@ class ExerciseCatalogV2LegacyAdapterTest {
         assertEquals("curl_free", row.performanceProfileId)
         assertEquals("Bíceps", row.involvedMuscles.first().muscle)
         assertTrue(row.catalogOptionAxes.isNullOrEmpty())
+
+        val selected = catalog.toLegacySelection(
+            ExerciseSelectionV2("curl", "curl__dumbbells", "test"),
+        )
+        assertEquals("curl__dumbbells", selected?.id)
     }
 }

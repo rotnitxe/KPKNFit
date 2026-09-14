@@ -650,6 +650,12 @@ class SessionEditorDragControllerTest {
             session = session.moveExerciseForMultiStep(from, exId, to, idx)
         }
         controller.pruneBounds(session, emptySet())
+        controller.looseContentBounds = Rect(0f, 0f, 300f, 200f)
+        controller.exerciseBounds["__loose__|e2"] = Rect(0f, 0f, 300f, 100f)
+        controller.partBounds["p1"] = Rect(0f, 220f, 300f, 270f)
+        controller.exerciseBounds["p1|e3"] = Rect(0f, 270f, 300f, 370f)
+        controller.exerciseBounds["p1|e1"] = Rect(0f, 370f, 300f, 470f)
+        controller.registerPartFooterBounds("p1", Rect(0f, 470f, 300f, 520f))
 
         controller.beginExerciseDrag("__loose__", "e2", Offset(0f, 50f), session = session)
         controller.updateExerciseDrag(Offset(0f, 300f), session)
@@ -1269,5 +1275,29 @@ class SessionEditorDragControllerTest {
         assertEquals(Rect(0f, 150f, 300f, 190f), geometry["header|p2"])
         assertEquals(Rect(0f, 190f, 300f, 270f), geometry["p2|e9"])
         assertEquals(Rect(0f, 270f, 300f, 310f), geometry["footer|p2"])
+    }
+
+    @Test
+    fun dropAfterSupersetBlock_usesFullMemberSpan() {
+        val controller = SessionEditorDragController()
+        val session = Session(
+            id = "s1",
+            name = "T",
+            exercises = listOf(
+                Exercise(id = "e0", name = "Solo"),
+                Exercise(id = "m1", name = "M1", supersetGroupRef = "g1"),
+                Exercise(id = "m2", name = "M2", supersetGroupRef = "g1"),
+                Exercise(id = "m3", name = "M3", supersetGroupRef = "g1"),
+            ),
+            supersetGroups = listOf(SupersetGroup(id = "g1", exerciseOrder = listOf("m1", "m2", "m3"))),
+        )
+        controller.looseContentBounds = Rect(0f, 0f, 200f, 800f)
+        controller.exerciseBounds["__loose__|e0"] = Rect(0f, 0f, 100f, 80f)
+        controller.exerciseBounds["__loose__|m1"] = Rect(0f, 80f, 100f, 380f)
+        assertTrue(controller.beginExerciseDrag("__loose__", "e0", pointerStartWindow = Offset(10f, 40f), session = session))
+        // Delta, not absolute Y: pointer lands below the collapsed block midline
+        // but still inside the loose union (0–380).
+        controller.updateExerciseDrag(Offset(0f, 280f), session)
+        assertEquals(4, controller.exerciseDropTargetIndex)
     }
 }

@@ -16,10 +16,6 @@ import kotlinx.coroutines.withContext
 import com.example.kpkn.domain.workout.SupersetRules
 import java.util.UUID
 
-fun SessionEditorViewModel.openTemplates() {
-    openSheet(SessionEditorSheet.TEMPLATES)
-}
-
 /** Updates the free-text filter in the template browser. */
 fun SessionEditorViewModel.setTemplateSearchQuery(query: String) {
     updateUi { it.copy(templateSearchQuery = query) }
@@ -68,7 +64,9 @@ fun SessionEditorViewModel.cancelTemplateApply() {
 /** Durable USER-template lifecycle commands exposed to the editor catalog. */
 fun SessionEditorViewModel.archiveUserTemplate(id: String) {
     viewModelScope.launch {
-        val result = withContext(Dispatchers.IO) { templateRepository.archiveUserTemplateNow(id) }
+        val result = withContext(Dispatchers.IO + kotlinx.coroutines.NonCancellable) {
+            templateRepository.archiveUserTemplateNow(id)
+        }
         updateUi { it.copy(snackbarMessage = if (result.isSuccess) "Plantilla archivada." else "No se pudo archivar la plantilla.") }
     }
 }
@@ -82,7 +80,9 @@ fun SessionEditorViewModel.restoreUserTemplate(id: String) {
 
 fun SessionEditorViewModel.deleteUserTemplate(id: String) {
     viewModelScope.launch {
-        val result = withContext(Dispatchers.IO) { templateRepository.deleteUserTemplateNow(id) }
+        val result = withContext(Dispatchers.IO + kotlinx.coroutines.NonCancellable) {
+            templateRepository.deleteUserTemplateNow(id)
+        }
         updateUi { it.copy(snackbarMessage = if (result.isSuccess) "Plantilla eliminada." else "No se pudo eliminar la plantilla.") }
     }
 }

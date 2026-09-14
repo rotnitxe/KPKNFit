@@ -1095,8 +1095,12 @@ private fun ColumnScope.CatalogReadyContent(
                 exactInfo(catalog, definition, resolvedConfigurationId)
             }
             val isSelected = definition.id in selectedRows.value ||
-                selectedConfigurationId?.let { it in selectedExercisesIds } == true ||
-                effectiveExerciseInfo?.id?.let { it in selectedExercisesIds } == true
+                selectedConfigurationId?.let { it in selectedRows.value } == true ||
+                effectiveExerciseInfo?.id?.let { it in selectedRows.value } == true ||
+                selectedRows.value.values.any { info ->
+                    info.catalogDefinitionId == definition.id &&
+                        (info.catalogConfigurationId == resolvedConfigurationId || info.id == resolvedConfigurationId)
+                }
             val isExpanded = expandedDefinitionId == definition.id
             val hasOptions = definition.optionAxes.isNotEmpty()
             val selectBringIntoView = remember(definition.id) { BringIntoViewRequester() }
@@ -1117,7 +1121,8 @@ private fun ColumnScope.CatalogReadyContent(
                     .mapNotNull { it.selectedOptions[firstAxis] }
                     .distinct()
             }
-            val selectOption: (axis: String, value: String) -> Unit = { axis, value ->
+            val selectOption: (axis: String, value: String) -> Unit = select@{ axis, value ->
+                if (axis == "implement" && value.equals("default", ignoreCase = true)) return@select
                 val newDraft = draftAfterAxisSelection(
                     definition = definition,
                     selectedOptions = selectedOptions,
@@ -1130,7 +1135,9 @@ private fun ColumnScope.CatalogReadyContent(
                         ?: bestMatchingConfigurationId(definition, newDraft, default)
                     val info = exactInfo(catalog, definition, nextConfigId)
                     if (info != null) {
-                        selectedRows.value = selectedRows.value + (definition.id to info)
+                        val key = info.catalogConfigurationId?.takeIf { it.isNotBlank() } ?: info.id
+                        selectedRows.value = selectedRows.value
+                            .filterKeys { it != definition.id } + (key to info)
                     }
                 }
             }
@@ -1164,7 +1171,10 @@ private fun ColumnScope.CatalogReadyContent(
                             {
                                 haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                 if (isSelected) {
-                                    val next = selectedRows.value - definition.id
+                                    val next = selectedRows.value.filterKeys { key ->
+                                        key != definition.id &&
+                                            selectedRows.value[key]?.catalogDefinitionId != definition.id
+                                    }
                                     selectedRows.value = next
                                     onSelectionChange(next.values.toList())
                                 } else {
@@ -1173,7 +1183,8 @@ private fun ColumnScope.CatalogReadyContent(
                                         if (editingExisting) {
                                             onSelect(info)
                                         } else {
-                                            val next = selectedRows.value + (definition.id to info)
+                                            val key = info.catalogConfigurationId?.takeIf { it.isNotBlank() } ?: info.id
+                                            val next = selectedRows.value.filterKeys { it != definition.id } + (key to info)
                                             selectedRows.value = next
                                             onSelectionChange(next.values.toList())
                                         }
@@ -1407,7 +1418,10 @@ private fun ColumnScope.CatalogReadyContent(
                         Button(
                             onClick = {
                                 if (isSelected) {
-                                    val next = selectedRows.value - definition.id
+                                    val next = selectedRows.value.filterKeys { key ->
+                                        key != definition.id &&
+                                            selectedRows.value[key]?.catalogDefinitionId != definition.id
+                                    }
                                     selectedRows.value = next
                                     onSelectionChange(next.values.toList())
                                 } else {
@@ -1416,7 +1430,8 @@ private fun ColumnScope.CatalogReadyContent(
                                         if (editingExisting) {
                                             onSelect(info)
                                         } else {
-                                            val next = selectedRows.value + (definition.id to info)
+                                            val key = info.catalogConfigurationId?.takeIf { it.isNotBlank() } ?: info.id
+                                            val next = selectedRows.value.filterKeys { it != definition.id } + (key to info)
                                             selectedRows.value = next
                                             onSelectionChange(next.values.toList())
                                         }
@@ -2738,7 +2753,10 @@ internal fun restoreSelectedCatalogRows(
             )
         }
         val info = exactInfo(catalog, definition, configurationId) ?: previousInfo
-        if (info != null) restored[definition.id] = info
+        if (info != null) {
+            val key = info.catalogConfigurationId?.takeIf { it.isNotBlank() } ?: info.id
+            restored[key] = info
+        }
     }
     return restored
 }

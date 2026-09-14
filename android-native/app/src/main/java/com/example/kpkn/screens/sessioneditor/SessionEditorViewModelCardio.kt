@@ -72,16 +72,15 @@ fun SessionEditorViewModel.addCardioToPart(item: CardioCatalogItem) {
     if (targetExerciseId != null) {
         updateExercise(targetPartId, targetExerciseId) { current ->
             val existingDetails = current.cardioDetails
-            val newDetails = CardioDetails(
+            val newDetails = existingDetails?.copy(
                 type = item.type,
-                intensity = existingDetails?.intensity ?: com.example.kpkn.data.models.CardioIntensity.MEDIA,
-                intensityLevel = existingDetails?.intensityLevel,
-                targetDurationSeconds = existingDetails?.targetDurationSeconds ?: (20 * 60),
-                targetDistanceKm = if (item.supportsDistance) existingDetails?.targetDistanceKm else null,
                 requiresGps = item.requiresGps,
                 supportsDistance = item.supportsDistance,
-                intervalBlocks = existingDetails?.intervalBlocks ?: emptyList(),
-                intervalRounds = existingDetails?.intervalRounds ?: 1,
+                targetDistanceKm = if (item.supportsDistance) existingDetails.targetDistanceKm else null,
+            ) ?: CardioDetails(
+                type = item.type,
+                requiresGps = item.requiresGps,
+                supportsDistance = item.supportsDistance,
             )
             // Keep targetDuration synced when intervals exist
             val synced = if (newDetails.hasIntervals()) newDetails.copy(targetDurationSeconds = newDetails.totalIntervalSeconds()) else newDetails

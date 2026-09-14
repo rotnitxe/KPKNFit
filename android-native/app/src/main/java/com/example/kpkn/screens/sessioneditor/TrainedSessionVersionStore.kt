@@ -25,12 +25,13 @@ class TrainedSessionVersionStore(context: Context) {
     fun loadForSession(sessionId: String): List<SessionDraftSnapshot> {
         if (sessionId.isBlank()) return emptyList()
         val raw = prefs.getString(keyFor(sessionId), null) ?: return emptyList()
-        return try {
-            json.decodeFromString<List<PersistedTrainedVersion>>(raw).map { it.toSnapshot() }
-        } catch (_: Exception) {
-            emptyList()
-        }
+        return decodeSnapshots(raw).getOrDefault(emptyList())
     }
+
+    private fun decodeSnapshots(raw: String): Result<List<SessionDraftSnapshot>> =
+        runCatching {
+            json.decodeFromString<List<PersistedTrainedVersion>>(raw).map { it.toSnapshot() }
+        }
 
     /**
      * Appends a trained version when [session] structure differs from the last saved one.
@@ -43,7 +44,14 @@ class TrainedSessionVersionStore(context: Context) {
         reason: String = "Sesión entrenada",
     ): List<SessionDraftSnapshot> {
         if (sessionId.isBlank()) return emptyList()
-        val current = loadForSession(sessionId)
+        val raw = prefs.getString(keyFor(sessionId), null)
+        val current = if (raw == null) {
+            emptyList()
+        } else {
+            val decoded = decodeSnapshots(raw)
+            if (decoded.isFailure) return emptyList()
+            decoded.getOrDefault(emptyList())
+        }
         val last = current.lastOrNull()
         if (last != null && structuralEquals(last.session, session)) {
             return current
@@ -71,7 +79,7 @@ class TrainedSessionVersionStore(context: Context) {
 
     private fun persist(sessionId: String, snapshots: List<SessionDraftSnapshot>) {
         val encoded = snapshots.map { PersistedTrainedVersion.from(it) }
-        prefs.edit().putString(keyFor(sessionId), json.encodeToString(encoded)).apply()
+        prefs.edit().putString(keyFor(sessionId), json.encodeToString(encoded)).commit()
     }
 
     companion object {

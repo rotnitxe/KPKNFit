@@ -44,7 +44,7 @@ class ExerciseDatabaseResolutionTest {
     }
 
     @Test
-    fun resolves_by_name_without_accents_when_id_is_stale() {
+    fun does_not_resolve_by_name_when_id_is_stale() {
         val resolved = resolveCatalogExerciseInfoInIndex(
             index = index,
             catalogConfigurationId = null,
@@ -53,11 +53,11 @@ class ExerciseDatabaseResolutionTest {
             exerciseName = "Extension de Triceps",
         )
 
-        assertEquals(custom.id, resolved?.id)
+        assertNull(resolved)
     }
 
     @Test
-    fun resolves_by_alias_without_accents_when_id_is_stale() {
+    fun does_not_resolve_by_alias_when_id_is_stale() {
         val resolved = resolveCatalogExerciseInfoInIndex(
             index = index,
             catalogConfigurationId = null,
@@ -66,7 +66,7 @@ class ExerciseDatabaseResolutionTest {
             exerciseName = "Jalon de triceps",
         )
 
-        assertEquals(custom.id, resolved?.id)
+        assertNull(resolved)
     }
 
     @Test

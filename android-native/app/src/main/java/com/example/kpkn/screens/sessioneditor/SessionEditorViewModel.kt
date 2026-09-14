@@ -76,6 +76,7 @@ internal data class PersistedSessionEditorDraft(
     val ruleLimits: SessionEditorRuleLimits = SessionEditorRuleLimits(),
     val selectedExercisesIds: Set<String> = emptySet(),
     val savedAtMs: Long = System.currentTimeMillis(),
+    val pendingTransferToDays: PendingTransferToDays? = null,
 )
 
 
@@ -119,6 +120,8 @@ class SessionEditorViewModel(
     val allTemplates: StateFlow<List<SessionTemplate>> = templateRepository.allTemplates
     /** User-owned templates, including archived entries for explicit management. */
     val userTemplates: StateFlow<List<SessionTemplate>> = templateRepository.userTemplates
+    val templatesReady: StateFlow<Boolean> = templateRepository.isReady
+    val corruptTemplateIds: StateFlow<List<String>> = templateRepository.corruptTemplateIds
     internal val exerciseIndex: Map<String, ExerciseMuscleInfo>
         get() = catalogExerciseIndex()
     private var augeJob: Job? = null
@@ -257,6 +260,7 @@ class SessionEditorViewModel(
             partRuleDefaults = state.partRuleDefaults,
             ruleLimits = state.ruleLimits,
             selectedExercisesIds = state.selectedExercisesIds,
+            pendingTransferToDays = state.pendingTransferToDays,
         )
         val key = draftStorageKey(
             weekId = state.weekId,
@@ -265,23 +269,18 @@ class SessionEditorViewModel(
             sessionId = session.id,
         )
         return runCatching {
-            draftPrefs.edit().putString(key, draftJson.encodeToString(payload)).apply()
-        }.isSuccess
+            draftPrefs.edit().putString(key, draftJson.encodeToString(payload)).commit()
+        }.getOrDefault(false)
     }
 
     internal fun persistRecoverableSession(state: SessionEditorUiState = _uiState.value): Boolean {
         val session = state.session?.ensureModifiedTimestamp() ?: return false
-        val draftOk = persistDraft(state.copy(session = session))
-        if (state.weekId.isNotBlank()) {
-            repository.upsertSessionInProgram(
-                programId = programId,
-                weekId = state.weekId,
-                macroIndex = state.macroIndex,
-                mesoIndex = state.mesoIndex,
+        return persistDraft(
+            state.copy(
                 session = session,
-            )
-        }
-        return draftOk
+                hasUnsavedChanges = true,
+            ),
+        )
     }
 
     internal fun clearPersistedDraft(
@@ -296,16 +295,16 @@ class SessionEditorViewModel(
             mesoIndex = mesoIndex,
             sessionId = sessionId,
         )
-        draftPrefs.edit().remove(key).apply()
+        draftPrefs.edit().remove(key).commit()
     }
 
     fun saveDraftForExit() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val ok = persistRecoverableSession()
-            if (ok) {
-                _uiState.update { it.copy(hasUnsavedChanges = false) }
-            }
-        }
+        persistRecoverableSession()
+    }
+
+    override fun onCleared() {
+        persistRecoverableSession()
+        super.onCleared()
     }
 
     fun retryLoadSession() {
@@ -322,7 +321,16 @@ class SessionEditorViewModel(
             mesoIndex = state.mesoIndex,
             sessionId = session.id,
         )
-        _uiState.update { it.copy(pendingTransferToDays = null) }
+        val restored = state.originalSession
+        _uiState.update {
+            it.copy(
+                session = restored,
+                pendingTransferToDays = null,
+                hasUnsavedChanges = false,
+                activeVariant = WeekVariant.A,
+                availableVariants = restored?.let(::computeAvailableVariants) ?: listOf(WeekVariant.A),
+            )
+        }
         textHistoryBaseline = null
         textHistoryDebounceJob?.cancel()
     }
@@ -427,30 +435,9 @@ class SessionEditorViewModel(
                 session = draft.ensureModifiedTimestamp(),
             )
         }
-        val resolvedRuleDefaults = persistedDraft?.ruleDefaults ?: run {
-            val exercises = draft.allExercises()
-            if (exercises.isEmpty()) SessionEditorRuleDefaults() else {
-                val restValues = exercises.mapNotNull { it.restTime }.sorted()
-                val medianRest = if (restValues.isEmpty()) 90 else restValues[restValues.size / 2]
-                val sideValues = exercises.mapNotNull { it.restBetweenSidesSeconds }.sorted()
-                val medianSide = if (sideValues.isEmpty()) 0 else sideValues[sideValues.size / 2]
-                val avgSets = exercises.map { it.sets.size.coerceAtLeast(1) }.average().takeIf { it.isFinite() }?.roundToInt()?.coerceIn(1, 6) ?: 3
-                val avgReps = exercises.flatMap { it.sets }.mapNotNull { it.plannedRepAnchor() }.average().takeIf { it.isFinite() }?.roundToInt()?.coerceIn(1, 30) ?: 10
-                val avgRpe = exercises.flatMap { it.sets }.mapNotNull { it.targetRPE }.average().takeIf { it.isFinite() }?.coerceIn(1.0, 10.0) ?: 8.0
-                val supersetGroups = draft.allSupersetGroups()
-                val avgBetween = supersetGroups.map { it.restBetweenExercises }.average().takeIf { it.isFinite() }?.roundToInt()?.coerceIn(0, 600) ?: 60
-                val avgRound = supersetGroups.map { it.restAfterSuperset }.average().takeIf { it.isFinite() }?.roundToInt()?.coerceIn(0, 600) ?: 120
-                SessionEditorRuleDefaults(
-                    setCount = avgSets,
-                    reps = avgReps,
-                    rpe = avgRpe,
-                    normalRestSeconds = medianRest.coerceIn(0, 600),
-                    betweenSidesRestSeconds = medianSide.coerceIn(0, 300),
-                    supersetBetweenRestSeconds = avgBetween,
-                    supersetRoundRestSeconds = avgRound,
-                )
-            }
-        }
+        val resolvedRuleDefaults = persistedDraft?.ruleDefaults
+            ?: draft.persistedRuleDefaults?.let(SessionEditorRuleDefaults::fromPersisted)
+            ?: draft.inferredEditorRuleDefaults()
         val resolvedPartRuleDefaults = persistedDraft?.partRuleDefaults ?: emptyMap()
         val resolvedRuleLimits = persistedDraft?.ruleLimits ?: SessionEditorRuleLimits()
         val loadedFromDraft = persistedDraft != null && persistedDraft.session != existing
@@ -535,6 +522,9 @@ class SessionEditorViewModel(
             competitionMovementIds = competitionMovementIds,
             competitionKeyDaysInWeek = competitionKeyDaysInWeek,
             selectedExercisesIds = persistedDraft?.selectedExercisesIds.orEmpty(),
+            availableVariants = computeAvailableVariants(draft),
+            activeVariant = WeekVariant.A,
+            pendingTransferToDays = persistedDraft?.pendingTransferToDays,
         )
     }
 
@@ -581,7 +571,7 @@ class SessionEditorViewModel(
         val variant = state.activeVariant
         if (variant == WeekVariant.A) {
             val current = state.session ?: return
-            val transformed = transform(current)
+            val transformed = transform(current).normalizeSession()
             if (transformed == current) return
             val updated = transformed.copy(lastModifiedAtMs = System.currentTimeMillis())
             _uiState.update { s ->
@@ -593,7 +583,7 @@ class SessionEditorViewModel(
             }
         } else {
             val currentVariant = state.activeVariantSession ?: return
-            val transformedVariant = transform(currentVariant)
+            val transformedVariant = transform(currentVariant).normalizeSession()
             if (transformedVariant == currentVariant) return
             val updatedVariant = transformedVariant.copy(lastModifiedAtMs = System.currentTimeMillis())
             val base = state.session ?: return
@@ -849,9 +839,39 @@ class SessionEditorViewModel(
 
     /** Text edits: debounce autosave; no AUGE recalc for name/description. */
     private fun updateSessionTextField(transform: (Session) -> Session) {
-        if (_uiState.value.activeVariantSession == null) return
-        // Names/descriptions belong to the active variant just like exercises.
-        updateSession(reason = "Texto de sesión", transform = transform)
+        val state = _uiState.value
+        val variant = state.activeVariant
+        if (variant == WeekVariant.A) {
+            val current = state.session ?: return
+            val updated = transform(current)
+            if (updated == current) return
+            _uiState.update { s ->
+                s.copy(
+                    session = updated,
+                    dayOfWeek = updated.dayOfWeek ?: s.dayOfWeek,
+                    hasUnsavedChanges = updated != s.originalSession,
+                )
+            }
+        } else {
+            val currentVariant = state.activeVariantSession ?: return
+            val updatedVariant = transform(currentVariant)
+            if (updatedVariant == currentVariant) return
+            val base = state.session ?: return
+            val updatedBase = when (variant) {
+                WeekVariant.B -> base.copy(sessionB = updatedVariant)
+                WeekVariant.C -> base.copy(sessionC = updatedVariant)
+                WeekVariant.D -> base.copy(sessionD = updatedVariant)
+                else -> base
+            }
+            _uiState.update { s ->
+                s.copy(
+                    session = updatedBase,
+                    dayOfWeek = updatedVariant.dayOfWeek ?: s.dayOfWeek,
+                    hasUnsavedChanges = updatedBase != s.originalSession,
+                )
+            }
+        }
+        scheduleAutoSave()
         textHistoryDebounceJob?.cancel()
         textHistoryDebounceJob = viewModelScope.launch {
             delay(800)

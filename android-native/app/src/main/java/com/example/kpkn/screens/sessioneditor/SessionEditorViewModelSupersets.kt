@@ -166,12 +166,16 @@ fun SessionEditorViewModel.createSupersetGroupFromDraft() {
     val draft = currentUiState.supersetDraft ?: return
     val targetIds = draft.exerciseIds.distinct()
     if (targetIds.size < 2) return
-    val groupId = UUID.randomUUID().toString()
     val anchorPartId = draft.partId ?: currentUiState.supersetManagerPartId
 
     updateSession { session ->
         val existingIds = session.allExercises().map { it.id }.toSet()
         if (!targetIds.all { it in existingIds }) return@updateSession session
+        val groupId = session.allExercises()
+            .filter { it.id in targetIds }
+            .mapNotNull { it.supersetGroupRefOrLegacyId() }
+            .firstOrNull { id -> session.allSupersetGroups().any { it.id == id } }
+            ?: UUID.randomUUID().toString()
 
         SupersetRules.createSuperset(
             session = session,

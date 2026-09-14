@@ -87,6 +87,8 @@ import com.example.kpkn.ui.components.KpknAlertDialog
 internal fun TemplatesSheet(
     templates: List<SessionTemplate>,
     archivedUserTemplates: List<SessionTemplate> = emptyList(),
+    templatesReady: Boolean = true,
+    corruptTemplateIds: List<String> = emptyList(),
     searchQuery: String,
     applyDecision: SessionTemplateApplyDecision?,
     onSearchChange: (String) -> Unit,
@@ -170,6 +172,8 @@ internal fun TemplatesSheet(
                     searchQuery = searchQuery,
                     onSelectTemplate = onSelectTemplate,
                     archivedUserTemplates = archivedUserTemplates,
+                    templatesReady = templatesReady,
+                    corruptTemplateIds = corruptTemplateIds,
                     onArchiveUserTemplate = onArchiveUserTemplate,
                     onRestoreUserTemplate = onRestoreUserTemplate,
                     onDeleteUserTemplate = onDeleteUserTemplate,

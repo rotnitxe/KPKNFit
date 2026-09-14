@@ -248,9 +248,78 @@ object SessionEditorRulesEngine {
         if (draft.name.isBlank()) {
             return SessionRulesValidationResult(blockingError = "La sesión debe tener un nombre antes de guardar.")
         }
-        // Editor rules are defaults-only. Legacy limit fields may exist in old drafts,
-        // but they intentionally do not block saves or emit warnings from this sheet.
-        return SessionRulesValidationResult()
+        val warnings = mutableListOf<String>()
+        fun fail(message: String): SessionRulesValidationResult {
+            return if (ruleLimits.rigidLimits) {
+                SessionRulesValidationResult(blockingError = message, warnings = warnings)
+            } else {
+                warnings += message
+                SessionRulesValidationResult(warnings = warnings)
+            }
+        }
+
+        ruleLimits.maxRPE?.let { maxRpe ->
+            val over = draft.allExercises().flatMap { it.sets }.mapNotNull { it.targetRPE }.filter { it > maxRpe }
+            if (over.isNotEmpty()) {
+                val result = fail("Hay series por encima del RPE máximo (${maxRpe.toInt()}).")
+                if (result.blockingError != null) return result
+            }
+        }
+        ruleLimits.maxExercisesPerMuscle?.let { maxCount ->
+            val byMuscle = mutableMapOf<String, Int>()
+            draft.allExercises().forEach { exercise ->
+                val info = exerciseIndex[exercise.catalogConfigurationId?.lowercase()]
+                    ?: exerciseIndex[exercise.exerciseDbId?.lowercase()]
+                    ?: exerciseIndex[exercise.exerciseId?.lowercase()]
+                val primary = info?.let(::resolvePrimaryMuscle) ?: return@forEach
+                byMuscle[primary] = (byMuscle[primary] ?: 0) + 1
+            }
+            byMuscle.forEach { (muscle, count) ->
+                if (count > maxCount) {
+                    val result = fail("$muscle tiene $count ejercicios (máximo $maxCount).")
+                    if (result.blockingError != null) return result
+                }
+            }
+        }
+        val catalog = exerciseIndex.values.toList()
+        ruleLimits.maxVolumePerMuscleSession?.let { maxVol ->
+            val volume = VolumeCalculator.calculateMuscleVolume(listOf(draft), catalog)
+            volume.forEach { (muscle, sets) ->
+                if (sets > maxVol) {
+                    val result = fail("$muscle tiene ${"%.1f".format(sets)} series (máximo ${"%.0f".format(maxVol)}).")
+                    if (result.blockingError != null) return result
+                }
+            }
+        }
+        ruleLimits.maxVolumePerMuscleWeekly?.let { maxVol ->
+            val week = if (weekSessions.any { it.id == draft.id }) {
+                weekSessions.map { if (it.id == draft.id) draft else it }
+            } else {
+                weekSessions + draft
+            }
+            val volume = VolumeCalculator.calculateMuscleVolume(week, catalog)
+            volume.forEach { (muscle, sets) ->
+                if (sets > maxVol) {
+                    val result = fail("$muscle tiene ${"%.1f".format(sets)} series en la semana (máximo ${"%.0f".format(maxVol)}).")
+                    if (result.blockingError != null) return result
+                }
+            }
+        }
+        ruleLimits.maxSamePatternPerSession?.let { maxPattern ->
+            val byPattern = mutableMapOf<String, Int>()
+            draft.allExercises().forEach { exercise ->
+                val info = resolveExerciseInfo(exercise, exerciseIndex) ?: return@forEach
+                val pattern = info.force?.trim()?.takeIf { it.isNotEmpty() } ?: return@forEach
+                byPattern[pattern] = (byPattern[pattern] ?: 0) + 1
+            }
+            byPattern.forEach { (pattern, count) ->
+                if (count > maxPattern) {
+                    val result = fail("Hay $count ejercicios de patrón $pattern (máximo $maxPattern).")
+                    if (result.blockingError != null) return result
+                }
+            }
+        }
+        return SessionRulesValidationResult(warnings = warnings)
     }
 
     private fun adjustExerciseIntensity(

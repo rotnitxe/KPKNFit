@@ -74,6 +74,7 @@ object CardioTimerEngine {
     fun start(state: CardioTimerState, nowMs: Long): CardioTimerState = state.copy(
         status = CardioExecutionStatus.RUNNING,
         updatedAtMs = nowMs,
+        endsAtMs = nowMs + state.remainingSeconds * 1000L,
     )
 
     fun pause(state: CardioTimerState, nowMs: Long): CardioTimerState = state.copy(
@@ -93,9 +94,21 @@ object CardioTimerEngine {
 
     fun tick(state: CardioTimerState, elapsedSeconds: Int = 1, nowMs: Long): CardioTimerState {
         if (state.status != CardioExecutionStatus.RUNNING) return state
-        val seconds = elapsedSeconds.coerceAtLeast(0)
-        val elapsed = (state.elapsedSeconds + seconds).coerceAtMost(state.totalSeconds)
-        val remaining = (state.remainingSeconds - seconds).coerceAtLeast(0)
+        if (state.totalSeconds <= 0) {
+            val elapsed = state.elapsedSeconds + elapsedSeconds.coerceAtLeast(0)
+            return state.copy(
+                elapsedSeconds = elapsed,
+                remainingSeconds = 0,
+                status = CardioExecutionStatus.RUNNING,
+                updatedAtMs = nowMs,
+            )
+        }
+        val remaining = if (state.endsAtMs > 0L) {
+            ((state.endsAtMs - nowMs) / 1000L).toInt().coerceAtLeast(0)
+        } else {
+            (state.remainingSeconds - elapsedSeconds.coerceAtLeast(0)).coerceAtLeast(0)
+        }
+        val elapsed = (state.totalSeconds - remaining).coerceIn(0, state.totalSeconds)
         return state.copy(
             elapsedSeconds = elapsed,
             remainingSeconds = remaining,

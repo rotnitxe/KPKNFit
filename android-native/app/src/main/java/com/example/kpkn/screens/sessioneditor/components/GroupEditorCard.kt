@@ -144,6 +144,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -419,6 +420,10 @@ internal fun GroupEditorCard(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     var handleWindowOrigin by remember(part.id) { mutableStateOf(Offset.Zero) }
+                    val latestOnDragStart = rememberUpdatedState(onDragStart)
+                    val latestOnDrag = rememberUpdatedState(onDrag)
+                    val latestOnDragEnd = rememberUpdatedState(onDragEnd)
+                    val latestOnDragCancel = rememberUpdatedState(onDragCancel)
                     Box(
                         modifier = Modifier
                             .padding(start = 4.dp)
@@ -432,19 +437,19 @@ internal fun GroupEditorCard(
                                 detectDragGesturesAfterLongPress(
                                     onDragStart = { offset ->
                                         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        onDragStart(cardBoundsInWindow, handleWindowOrigin + offset)
+                                        latestOnDragStart.value(cardBoundsInWindow, handleWindowOrigin + offset)
                                     },
                                     onDragCancel = {
                                         haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                        onDragCancel()
+                                        latestOnDragCancel.value()
                                     },
                                     onDragEnd = {
                                         haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                        onDragEnd()
+                                        latestOnDragEnd.value()
                                     },
                                     onDrag = { change, dragAmount ->
                                         change.consume()
-                                        onDrag(dragAmount.y)
+                                        latestOnDrag.value(dragAmount.y)
                                     }
                                 )
                             },

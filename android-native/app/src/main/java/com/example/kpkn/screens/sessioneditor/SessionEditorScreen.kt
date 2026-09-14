@@ -156,6 +156,8 @@ fun SessionEditorScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val allTemplates by viewModel.allTemplates.collectAsStateWithLifecycle()
     val userTemplates by viewModel.userTemplates.collectAsStateWithLifecycle()
+    val templatesReady by viewModel.templatesReady.collectAsStateWithLifecycle()
+    val corruptTemplateIds by viewModel.corruptTemplateIds.collectAsStateWithLifecycle()
     val archivedUserTemplates = remember(userTemplates) { userTemplates.filter { it.isArchived } }
     val session = uiState.activeVariantSession ?: uiState.session
     val listState = rememberLazyListState()
@@ -244,6 +246,9 @@ fun SessionEditorScreen(
             val targetGroupName = uiState.pickerTargetPartId?.let { pid ->
                 uiState.session?.parts?.firstOrNull { it.id == pid }?.name
             }
+            val targetExercise = targetExerciseId?.let { id ->
+                uiState.session?.allExercises()?.firstOrNull { it.id == id }
+            }
             catalogRequestInFlight = true
             val request = CatalogLaunchRequest(
                 origin = if (targetExerciseId == null) {
@@ -257,6 +262,9 @@ fun SessionEditorScreen(
                     CatalogSelectionMode.REPLACEMENT
                 },
                 targetExerciseId = targetExerciseId,
+                targetCatalogDefinitionId = targetExercise?.catalogDefinitionId,
+                targetCatalogConfigurationId = targetExercise?.catalogConfigurationId
+                    ?: targetExercise?.exerciseDbId,
                 targetGroupName = targetGroupName,
                 selectedExerciseIds = uiState.selectedExercisesIds.toList(),
                 initialQuery = uiState.searchQuery,
@@ -560,8 +568,13 @@ fun SessionEditorScreen(
     }
 
     BackHandler(enabled = !showDiscardDialog && uiState.sheet == SessionEditorSheet.NONE) {
-        viewModel.saveDraftForExit()
-        onBack()
+        focusManager.clearFocus(force = true)
+        if (uiState.hasUnsavedChanges) {
+            showDiscardDialog = true
+        } else {
+            viewModel.saveDraftForExit()
+            onBack()
+        }
     }
     BackHandler(enabled = uiState.sheet == SessionEditorSheet.AUGE) {
         viewModel.closeSheet()
@@ -655,7 +668,6 @@ fun SessionEditorScreen(
             .fillMaxSize()
             .onGloballyPositioned { editorRootBounds = it.boundsInWindow() },
     ) {
-        Box(modifier = Modifier.fillMaxSize().hazeSource(state = hazeState)) {
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) { KpknSnackbar(it) } },
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -666,6 +678,7 @@ fun SessionEditorScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .imePadding()
+                .hazeSource(state = hazeState)
                 .onGloballyPositioned { lazyColumnWindowBounds = it.boundsInWindow() },
             contentPadding = PaddingValues(bottom = padding.calculateBottomPadding() + contentBottomPadding),
         ) {
@@ -750,7 +763,6 @@ fun SessionEditorScreen(
                     exerciseDropTargetPartId = exerciseDropTargetPartId,
                     exerciseDropTargetIndex = exerciseDropTargetIndex,
                     draggingPartId = draggingPartId,
-                    draggingPartOffsetY = dragController.draggingPartOffsetY,
                     partDropTargetId = partDropTargetId,
                     pendingAutoExpandExerciseId = pendingAutoExpandExerciseId,
                     onPendingAutoExpandHandled = { exerciseId ->
@@ -777,7 +789,6 @@ fun SessionEditorScreen(
             }
         }
         }
-        } // hazeSource — content behind glass overlays (dock + assistant FAB)
 
         AnimatedVisibility(
             visible = showCompactHero,
@@ -905,6 +916,8 @@ fun SessionEditorScreen(
                 onConfirmApplyTemplate = viewModel::confirmTemplateApply,
                 onCancelTemplateApply = viewModel::cancelTemplateApply,
                 archivedUserTemplates = archivedUserTemplates,
+                templatesReady = templatesReady,
+                corruptTemplateIds = corruptTemplateIds,
                 onArchiveUserTemplate = viewModel::archiveUserTemplate,
                 onRestoreUserTemplate = viewModel::restoreUserTemplate,
                 onDeleteUserTemplate = viewModel::deleteUserTemplate,
@@ -1005,6 +1018,7 @@ fun SessionEditorScreen(
             }
         },
         onSave = { saveScope ->
+            focusManager.clearFocus(force = true)
             val hasPendingSwitch = uiState.pendingSessionSwitchId != null
             val saveResult = viewModel.saveSession(saveScope)
             if (saveResult.success && !hasPendingSwitch) {
@@ -1101,6 +1115,8 @@ fun SessionEditorScreen(
         onCancelTemplateApply = viewModel::cancelTemplateApply,
         onTemplateSearchChange = viewModel::setTemplateSearchQuery,
         archivedUserTemplates = archivedUserTemplates,
+        templatesReady = templatesReady,
+        corruptTemplateIds = corruptTemplateIds,
         onArchiveUserTemplate = viewModel::archiveUserTemplate,
         onRestoreUserTemplate = viewModel::restoreUserTemplate,
         onDeleteUserTemplate = viewModel::deleteUserTemplate,
@@ -1154,6 +1170,7 @@ fun SessionEditorScreen(
                     }
                     Button(
                         onClick = {
+                            focusManager.clearFocus(force = true)
                             val result = viewModel.saveSession()
                             scope.launch {
                                 if (result.success) {

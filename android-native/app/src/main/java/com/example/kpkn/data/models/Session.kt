@@ -3,6 +3,18 @@ package com.example.kpkn.data.models
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class SessionPersistedRuleDefaults(
+    val setCount: Int = 3,
+    val reps: Int = 10,
+    val rpe: Double = 8.0,
+    val normalRestSeconds: Int = 90,
+    val betweenSidesRestSeconds: Int = 0,
+    val supersetBetweenRestSeconds: Int = 60,
+    val supersetRoundRestSeconds: Int = 120,
+    val applyToNewItems: Boolean = false,
+)
+
+@Serializable
 data class Session(
     val id: String,
     val name: String,
@@ -44,6 +56,8 @@ data class Session(
     val origin: SessionOrigin = SessionOrigin.USER_DRAFT,
     /** Whether cardio exercises are positioned before strength exercises. */
     val cardioFirst: Boolean = false,
+    /** Editor rule defaults that must survive save/reload and MESOCYCLE clones. */
+    val persistedRuleDefaults: SessionPersistedRuleDefaults? = null,
 ) {
     fun allSupersetGroups(): List<SupersetGroup> {
         val local = supersetGroups.ifEmpty { legacySupersetGroups() }
@@ -352,6 +366,8 @@ data class CardioDetails(
     val targetDistanceKm: Double? = null,
     val requiresGps: Boolean = false,
     val supportsDistance: Boolean = true,
+    /** Keep the screen awake for any cardio protocol, not only HIIT. */
+    val keepScreenOn: Boolean = true,
     /** 0 delegates to [CardioCalorieEngine] type defaults; explicit values remain supported. */
     val metBase: Double = 0.0,
     val intensityLevel: Int? = null,
@@ -540,6 +556,7 @@ data class UnilateralTarget(
     val targetRPE: Double? = null,
     val targetRIR: Int? = null,
     val intensityMode: IntensityMode? = null,
+    val intensityModeOverride: UnilateralIntensityMode? = null,
 )
 
 @Serializable

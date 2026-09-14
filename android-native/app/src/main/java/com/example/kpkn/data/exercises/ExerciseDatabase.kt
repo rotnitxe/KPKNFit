@@ -65,6 +65,8 @@ fun initializeExerciseDatabase(context: Context) {
             .mapValues { (_, value) -> normalizeExerciseLabels(value) }
         exerciseDatabaseByIdCache = (exercises.associateBy { it.id.lowercase() } + v2ConfigurationLookupCache)
         VariantGroupIndex.rebuild(exercises)
+        com.example.kpkn.domain.training.CompositionMetadataHolder.current =
+            com.example.kpkn.data.exercises.catalogv2.CatalogCompositionMetadataProvider.fromCatalog(v2Catalog)
         exerciseCatalogInitialized = true
         _exerciseCatalogReady.value = true
     }
@@ -173,16 +175,7 @@ internal fun resolveCatalogExerciseInfoInIndex(
             val canonicalId = catalogSearchRedirects()[id] ?: id
             index[canonicalId]?.let { return it }
         }
-
-    val normalizedName = normalizeCatalogSearchText(exerciseName.orEmpty())
-    if (normalizedName.isBlank()) return null
-    index[normalizedName]?.let { return it }
-    return index.values.firstOrNull { info ->
-        normalizeCatalogSearchText(info.name) == normalizedName ||
-            info.alias.orEmpty()
-                .split(',')
-                .any { normalizeCatalogSearchText(it) == normalizedName }
-    }
+    return null
 }
 
 /**

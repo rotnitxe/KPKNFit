@@ -1,5 +1,8 @@
 package com.example.kpkn.screens.sessioneditor
 
+import com.example.kpkn.data.models.*
+import kotlinx.serialization.Serializable
+
 enum class SessionEditorSheet {
     NONE,
     EXERCISE_PICKER,
@@ -18,8 +21,6 @@ enum class SessionEditorSheet {
     SUPERSERIE_MANAGER,
     SUPERSET_CREATOR,
     RELATIONSHIP_PICKER,
-    /** Session template browser/picker. Opened from the Templates FAB. */
-    TEMPLATES,
 }
 
 data class SupersetDraft(
@@ -106,17 +107,19 @@ data class ProgramExerciseCandidate(
     val partName: String?,
 )
 
+@Serializable
 enum class SessionCloneApplyMode {
     APPEND,
     REPLACE,
 }
 
 /** Queued copy of [sourceSession] onto other days; flushed on save. */
+@Serializable
 data class PendingTransferToDays(
     val targetKeys: Set<String>,
-    val selectedExerciseIds: Set<String>?,
+    val selectedExerciseIds: Set<String>? = null,
     val applyMode: SessionCloneApplyMode,
-    val sourceSession: com.example.kpkn.data.models.Session,
+    val sourceSession: Session,
 )
 
 enum class SessionSaveScope {

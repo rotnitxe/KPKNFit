@@ -123,7 +123,7 @@ internal fun Exercise.withSessionEditorDefaults(
         }
         return copy(
             restTime = safeRest,
-            restBetweenSidesSeconds = defaults.betweenSidesRestSeconds.takeIf { it > 0 },
+            restBetweenSidesSeconds = defaults.betweenSidesRestSeconds.coerceAtLeast(0),
             sets = nextSets,
         )
     }
@@ -148,24 +148,35 @@ internal fun createBlankExercise(): Exercise {
     )
 }
 
+internal fun Session.inferredEditorRuleDefaults(): SessionEditorRuleDefaults {
+    val sessionExercises = allExercises()
+    if (sessionExercises.isEmpty()) return SessionEditorRuleDefaults()
+    val restValues = sessionExercises.mapNotNull { it.restTime }.sorted()
+    val medianRest = if (restValues.isEmpty()) 90 else restValues[restValues.size / 2]
+    val sideValues = sessionExercises.mapNotNull { it.restBetweenSidesSeconds }.sorted()
+    val medianSide = if (sideValues.isEmpty()) 0 else sideValues[sideValues.size / 2]
+    val avgSets = sessionExercises.map { it.sets.size.coerceAtLeast(1) }.average().takeIf { it.isFinite() }?.roundToInt()?.coerceIn(1, 6) ?: 3
+    val avgReps = sessionExercises.flatMap { it.sets }.mapNotNull { it.plannedRepAnchor() }.average().takeIf { it.isFinite() }?.roundToInt()?.coerceIn(1, 30) ?: 10
+    val avgRpe = sessionExercises.flatMap { it.sets }.mapNotNull { it.targetRPE }.average().takeIf { it.isFinite() }?.coerceIn(1.0, 10.0) ?: 8.0
+    val supersetGroups = allSupersetGroups()
+    val avgBetween = supersetGroups.map { it.restBetweenExercises }.average().takeIf { it.isFinite() }?.roundToInt()?.coerceIn(0, 600) ?: 60
+    val avgRound = supersetGroups.map { it.restAfterSuperset }.average().takeIf { it.isFinite() }?.roundToInt()?.coerceIn(0, 600) ?: 120
+    return SessionEditorRuleDefaults(
+        setCount = avgSets,
+        reps = avgReps,
+        rpe = avgRpe,
+        normalRestSeconds = medianRest.coerceIn(0, 600),
+        betweenSidesRestSeconds = medianSide.coerceIn(0, 300),
+        supersetBetweenRestSeconds = avgBetween,
+        supersetRoundRestSeconds = avgRound,
+    )
+}
+
 internal fun Session.transformExercises(transform: (Exercise) -> Exercise): Session {
-    var applied = false
-
-    fun updateExercise(exercise: Exercise): Exercise {
-        if (applied) return exercise
-        val updated = transform(exercise)
-        if (updated != exercise) {
-            applied = true
-        }
-        return updated
-    }
-
-    val updatedParts = parts.map { part ->
-        part.copy(exercises = part.exercises.map(::updateExercise))
-    }
-    val updatedExercises = exercises.map(::updateExercise)
-
-    return copy(parts = updatedParts, exercises = updatedExercises)
+    return copy(
+        parts = parts.map { part -> part.copy(exercises = part.exercises.map(transform)) },
+        exercises = exercises.map(transform),
+    )
 }
 
 internal data class LocatedSession(
@@ -352,24 +363,74 @@ internal fun <T> moveItem(list: List<T>, targetId: String, direction: Int, key: 
     return mutable
 }
 
+internal fun restoreExerciseSetAtRound(
+    sets: List<ExerciseSet>,
+    roundIndex: Int,
+    restored: ExerciseSet,
+): List<ExerciseSet> {
+    val safeIndex = roundIndex.coerceAtLeast(0)
+    val next = sets.toMutableList()
+    while (next.size < safeIndex) {
+        val padFrom = next.lastOrNull() ?: restored
+        next += padFrom.copy(id = UUID.randomUUID().toString(), isEmptySlot = true)
+    }
+    if (safeIndex < next.size) {
+        next[safeIndex] = restored
+    } else {
+        next.add(restored)
+    }
+    return next
+}
+
+/**
+ * Updates sessions of [weekId]. [mesoIndex] is the **global** mesocycle index
+ * inside the macro (blocks flattened), matching [findWeek] / [upsertSessionInWeek].
+ * If that pair does not contain [weekId], fall back to locating the week by id.
+ */
 internal fun Program.updateWeekSessions(
     macroIndex: Int,
     mesoIndex: Int,
     weekId: String,
     transform: (List<Session>) -> List<Session>,
-): Program = copy(
-    macrocycles = macrocycles.mapIndexed { currentMacroIndex, macro ->
-        if (currentMacroIndex != macroIndex) return@mapIndexed macro
-        macro.copy(blocks = macro.blocks.map { block ->
-            block.copy(mesocycles = block.mesocycles.mapIndexed { currentMesoIndex, meso ->
-                if (currentMesoIndex != mesoIndex) return@mapIndexed meso
-                meso.copy(weeks = meso.weeks.map { week ->
-                    if (week.id != weekId) week else week.copy(sessions = transform(week.sessions))
+): Program {
+    var matchedExact = false
+    val exact = copy(
+        macrocycles = macrocycles.mapIndexed { currentMacroIndex, macro ->
+            if (currentMacroIndex != macroIndex) return@mapIndexed macro
+            var globalMesoIndex = 0
+            macro.copy(blocks = macro.blocks.map { block ->
+                block.copy(mesocycles = block.mesocycles.map { meso ->
+                    val currentGlobalMeso = globalMesoIndex++
+                    if (currentGlobalMeso != mesoIndex) {
+                        meso
+                    } else {
+                        meso.copy(weeks = meso.weeks.map { week ->
+                            if (week.id != weekId) {
+                                week
+                            } else {
+                                matchedExact = true
+                                week.copy(sessions = transform(week.sessions))
+                            }
+                        })
+                    }
                 })
             })
-        })
+        },
+    )
+    if (matchedExact) return exact
+    return updateWeekById(weekId) { week -> week.copy(sessions = transform(week.sessions)) }
+}
+
+internal fun Program.containsSessionInWeek(weekId: String, sessionId: String): Boolean =
+    macrocycles.any { macro ->
+        macro.blocks.any { block ->
+            block.mesocycles.any { meso ->
+                meso.weeks.any { week ->
+                    week.id == weekId && week.sessions.any { it.id == sessionId }
+                }
+            }
+        }
     }
-)
 
 internal fun Session.normalizeSession(): Session {
     val normalizedBackground = background ?: SessionBackground(SessionBackgroundType.COLOR, DEFAULT_SESSION_BACKGROUND, SessionBackgroundStyle(0f, 0.92f))

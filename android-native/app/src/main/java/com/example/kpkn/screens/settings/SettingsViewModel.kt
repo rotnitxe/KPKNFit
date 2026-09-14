@@ -30,6 +30,9 @@ import com.example.kpkn.data.repository.BodyProgressRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.NutritionCalibrationRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.repository.SessionTemplateRepository
+import com.example.kpkn.data.repository.CustomExerciseRepository
+import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.services.nutrition.NutritionNotificationManager
 import com.example.kpkn.services.diagnostics.KpknDiagnosticStorage
 import com.example.kpkn.services.workout.WorkoutReminderManager
@@ -225,6 +228,8 @@ class SettingsViewModel : ViewModel() {
             sleepLogsExtended = augeRepository.getAllSleepLogsExtended(),
             postSessionFeedback = augeRepository.getPostSessionFeedbacks(),
             adaptiveCache = augeRepository.getAdaptiveCache(),
+            sessionTemplates = SessionTemplateRepository.getInstance(appContext).userTemplates.value,
+            customExercises = CustomExerciseRepository.customExercises.value,
         )
     }
 
@@ -296,6 +301,8 @@ class SettingsViewModel : ViewModel() {
                     payload.dailyGoalSnapshots.forEach {
                         db.nutritionDao().insertDailyGoalSnapshot(it.toEntity())
                     }
+                    payload.sessionTemplates.forEach { db.sessionTemplateDao().upsert(it.toEntity()) }
+                    payload.customExercises.forEach { db.customExerciseDao().upsert(it.toEntity()) }
                 }
 
                 val bodyRepository = BodyProgressRepository.getInstance(context.applicationContext)
@@ -320,6 +327,8 @@ class SettingsViewModel : ViewModel() {
 
                 programRepository.refreshData()
                 nutritionRepository.refreshData(context)
+                SessionTemplateRepository.getInstance(context.applicationContext).refreshFromStorage()
+                CustomExerciseRepository.refreshFromStorage()
             }.onSuccess {
                 withContext(Dispatchers.Main) {
                     onSuccess()
@@ -369,6 +378,8 @@ class SettingsViewModel : ViewModel() {
                 programRepository.updateSettings { Settings() }
                 programRepository.refreshData()
                 nutritionRepository.refreshData(context)
+                SessionTemplateRepository.getInstance(context.applicationContext).refreshFromStorage()
+                CustomExerciseRepository.refreshFromStorage()
 
                 val workoutReminder = WorkoutReminderManager(context)
                 val nutritionReminder = NutritionNotificationManager(context)
@@ -409,6 +420,8 @@ class SettingsViewModel : ViewModel() {
                 DatabaseBackupHelper.restoreSnapshot(context, file)
                 programRepository.refreshData()
                 nutritionRepository.refreshData(context)
+                SessionTemplateRepository.getInstance(context.applicationContext).refreshFromStorage()
+                CustomExerciseRepository.refreshFromStorage()
             }.onSuccess {
                 withContext(Dispatchers.Main) {
                     onSuccess()
@@ -458,6 +471,8 @@ private data class SettingsExportPayload(
     val sleepLogsExtended: List<com.example.kpkn.data.models.SleepLogExtended> = emptyList(),
     val postSessionFeedback: List<com.example.kpkn.data.models.PostSessionFeedback>,
     val adaptiveCache: com.example.kpkn.data.models.AugeAdaptiveCache? = null,
+    val sessionTemplates: List<SessionTemplate> = emptyList(),
+    val customExercises: List<com.example.kpkn.data.models.ExerciseMuscleInfo> = emptyList(),
 )
 
 @Serializable
@@ -499,4 +514,4 @@ private data class LearnedResolutionBackup(
     )
 }
 
-private const val EXPORT_SCHEMA_VERSION = 3
+private const val EXPORT_SCHEMA_VERSION = 4

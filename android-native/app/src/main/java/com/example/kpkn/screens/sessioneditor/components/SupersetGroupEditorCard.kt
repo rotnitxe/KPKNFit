@@ -45,6 +45,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -71,6 +72,7 @@ import com.example.kpkn.screens.sessioneditor.resolvePartAccent
 import com.example.kpkn.screens.sessioneditor.exerciseCardBrush
 import com.example.kpkn.screens.sessioneditor.DarkEditorSurface
 import com.example.kpkn.screens.sessioneditor.DarkChoiceChip
+import com.example.kpkn.screens.sessioneditor.restoreExerciseSetAtRound
 import com.example.kpkn.ui.components.KpknAlertConfirmButton
 import com.example.kpkn.ui.components.KpknAlertDismissButton
 import com.example.kpkn.ui.components.KpknAlertDialog
@@ -110,6 +112,7 @@ internal fun SupersetGroupEditorCard(
     onDissolve: (String) -> Unit,
     onDeleteGroup: (String) -> Unit = {},
     onAddRound: () -> Unit,
+    onReorderMembers: (List<String>) -> Unit = {},
     content: @Composable ColumnScope.() -> Unit,
 ) {
     var expanded by rememberSaveable(group.id) { mutableStateOf(false) }
@@ -152,6 +155,10 @@ internal fun SupersetGroupEditorCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             var handleWindowOrigin by remember(group.id) { mutableStateOf(Offset.Zero) }
+            val latestOnDragStart = rememberUpdatedState(onDragStart)
+            val latestOnDrag = rememberUpdatedState(onDrag)
+            val latestOnDragEnd = rememberUpdatedState(onDragEnd)
+            val latestOnDragCancel = rememberUpdatedState(onDragCancel)
             Box(
                 modifier = Modifier
                     .padding(start = 4.dp)
@@ -164,19 +171,19 @@ internal fun SupersetGroupEditorCard(
                         detectDragGestures(
                             onDragStart = { offset ->
                                 haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                onDragStart(handleWindowOrigin + offset)
+                                latestOnDragStart.value(handleWindowOrigin + offset)
                             },
                             onDragCancel = {
                                 haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                                onDragCancel()
+                                latestOnDragCancel.value()
                             },
                             onDragEnd = {
                                 haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                                onDragEnd()
+                                latestOnDragEnd.value()
                             },
                             onDrag = { change, dragAmount ->
                                 change.consume()
-                                onDrag(Offset(dragAmount.x, dragAmount.y))
+                                latestOnDrag.value(Offset(dragAmount.x, dragAmount.y))
                             },
                         )
                     },
@@ -291,6 +298,41 @@ internal fun SupersetGroupEditorCard(
                             ) {
                                 Icon(Icons.Default.Close, contentDescription = "Quitar de superserie", modifier = Modifier.size(14.dp))
                             }
+                            val orderIndex = exercises.indexOfFirst { it.id == exercise.id }
+                            if (orderIndex > 0) {
+                                IconButton(
+                                    onClick = {
+                                        val ids = exercises.map { it.id }.toMutableList()
+                                        val moved = ids.removeAt(orderIndex)
+                                        ids.add(orderIndex - 1, moved)
+                                        onReorderMembers(ids)
+                                    },
+                                    modifier = Modifier.size(24.dp),
+                                ) {
+                                    Icon(
+                                        Icons.Default.KeyboardArrowUp,
+                                        contentDescription = "Subir en el orden",
+                                        modifier = Modifier.size(14.dp),
+                                    )
+                                }
+                            }
+                            if (orderIndex >= 0 && orderIndex < exercises.lastIndex) {
+                                IconButton(
+                                    onClick = {
+                                        val ids = exercises.map { it.id }.toMutableList()
+                                        val moved = ids.removeAt(orderIndex)
+                                        ids.add(orderIndex + 1, moved)
+                                        onReorderMembers(ids)
+                                    },
+                                    modifier = Modifier.size(24.dp),
+                                ) {
+                                    Icon(
+                                        Icons.Default.KeyboardArrowDown,
+                                        contentDescription = "Bajar en el orden",
+                                        modifier = Modifier.size(14.dp),
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -347,9 +389,10 @@ internal fun SupersetGroupEditorCard(
                 onRestoreSet = { exerciseId, roundIndex ->
                     onUpdateExercise(exerciseId) { current ->
                         val template = current.sets.getOrNull((roundIndex - 1).coerceAtLeast(0))
-                        val restored = template?.copy(id = UUID.randomUUID().toString())
+                            ?: current.sets.lastOrNull()
+                        val restored = template?.copy(id = UUID.randomUUID().toString(), isEmptySlot = false)
                             ?: ExerciseSet(id = UUID.randomUUID().toString(), targetReps = 8)
-                        current.copy(sets = current.sets.toMutableList().apply { add(roundIndex, restored) })
+                        current.copy(sets = restoreExerciseSetAtRound(current.sets, roundIndex, restored))
                     }
                 },
                 onAddRound = onAddRound,
@@ -409,6 +452,7 @@ internal fun SupersetGroupEditorCard(
                     Text("Disolver", fontWeight = FontWeight.Bold)
                 }
             }
+            content()
         }
         }
     }

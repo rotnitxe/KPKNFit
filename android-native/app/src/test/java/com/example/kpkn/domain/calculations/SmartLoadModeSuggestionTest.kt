@@ -67,4 +67,24 @@ class SmartLoadModeSuggestionTest {
         assertTrue((heavierTarget ?: 0.0) > 20.0)
         assertTrue((easierTarget ?: 0.0) < 20.0)
     }
+
+    @Test
+    fun lastreSuggestionDoesNotTreatPrWeightAsBarbellOneRm() {
+        val exercise = Exercise(
+            id = "dip-lastre",
+            name = "Fondo con lastre",
+            prFor1RM = PrReference(weight = 100.0, reps = 8),
+        )
+        val suggested = calculateSuggestedLoad(
+            exercise,
+            ExerciseSet(
+                id = "set-8",
+                targetReps = 8,
+                loadModeV2 = LoadModeV2.LASTRE,
+            ),
+        )
+        val epleyAsIfOneRm = calculateWeightFrom1RM(100.0, 8)
+        assertTrue((suggested ?: 0.0) > 90.0)
+        assertTrue((suggested ?: 0.0) > epleyAsIfOneRm + 5.0)
+    }
 }

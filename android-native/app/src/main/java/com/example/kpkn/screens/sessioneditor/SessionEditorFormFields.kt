@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.sessioneditor
 
 import android.widget.NumberPicker
+import com.example.kpkn.domain.training.RepRangeParser
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -130,7 +131,7 @@ internal fun isCommitableEditorInput(raw: String, keyboardType: KeyboardType): B
         KeyboardType.Decimal -> trimmed.safeDoubleOrNull() != null
         KeyboardType.Ascii -> trimmed.safeIntOrNull() != null ||
             trimmed.safeDoubleOrNull() != null ||
-            trimmed.contains('-') || trimmed.contains('–')
+            RepRangeParser.isCompleteInput(trimmed)
         else -> false
     }
 }
@@ -404,7 +405,7 @@ internal fun CompactCatalogFilterChip(
     FilterChip(
         selected = selected,
         onClick = onClick,
-        modifier = modifier.height(28.dp),
+        modifier = modifier.height(48.dp),
         label = {
             Text(
                 label,

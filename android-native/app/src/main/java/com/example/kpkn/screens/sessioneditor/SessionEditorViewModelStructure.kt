@@ -317,11 +317,12 @@ fun SessionEditorViewModel.replaceExerciseInPart(partId: String?, exerciseId: St
 }
 
 fun SessionEditorViewModel.removeExercise(partId: String?, exerciseId: String) = updateSession { session ->
-    if (partId == null) {
+    val stripped = if (partId == null) {
         session.copy(exercises = session.exercises.filterNot { ex -> ex.id == exerciseId })
     } else {
         session.copy(parts = session.parts.map { if (it.id == partId) it.copy(exercises = it.exercises.filterNot { ex -> ex.id == exerciseId }) else it })
     }
+    stripped.normalizeSession()
 }
 
 fun SessionEditorViewModel.moveExercise(partId: String?, exerciseId: String, direction: Int) = updateSession { session ->
@@ -409,7 +410,10 @@ fun SessionEditorViewModel.addSet(partId: String?, exerciseId: String, side: Str
         "left" -> nextSet.copy(leftTarget = nextSet.leftTarget ?: defaultSideTarget, rightTarget = null)
         "right" -> nextSet.copy(leftTarget = null, rightTarget = nextSet.rightTarget ?: defaultSideTarget)
         else -> if (exercise.isEffectivelyUnilateral()) {
-            nextSet.copy(leftTarget = null, rightTarget = null)
+            nextSet.copy(
+                leftTarget = nextSet.leftTarget ?: defaultSideTarget,
+                rightTarget = nextSet.rightTarget ?: defaultSideTarget,
+            )
         } else {
             nextSet
         }

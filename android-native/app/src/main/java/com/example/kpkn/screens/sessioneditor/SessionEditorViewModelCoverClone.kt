@@ -84,7 +84,8 @@ fun SessionEditorViewModel.cloneCurrentSessionToTargets(
         return SessionEditorSaveResult(false, "Selecciona al menos un ejercicio para transferencia parcial.")
     }
     val state = currentUiState
-    val source = state.session ?: return SessionEditorSaveResult(false, "No hay sesión origen activa.")
+    val source = state.activeVariantSession ?: state.session
+        ?: return SessionEditorSaveResult(false, "No hay sesión origen activa.")
     val targets = state.cloneDayOptions.filter { it.key in targetKeys && !it.isCurrentSessionDay }
     if (targets.isEmpty()) return SessionEditorSaveResult(false, "No se encontraron destinos válidos.")
 

@@ -408,6 +408,8 @@ internal fun SessionEditorSheets(
     onCancelTemplateApply: () -> Unit,
     onTemplateSearchChange: (String) -> Unit,
     archivedUserTemplates: List<SessionTemplate> = emptyList(),
+    templatesReady: Boolean = true,
+    corruptTemplateIds: List<String> = emptyList(),
     onArchiveUserTemplate: (String) -> Unit = {},
     onRestoreUserTemplate: (String) -> Unit = {},
     onDeleteUserTemplate: (String) -> Unit = {},
@@ -694,22 +696,6 @@ internal fun SessionEditorSheets(
                         onQuickActionCreateSuperset()
                     }
                 },
-            )
-            SessionEditorSheet.TEMPLATES -> TemplatesSheet(
-                templates = allTemplates,
-                archivedUserTemplates = archivedUserTemplates,
-                searchQuery = uiState.templateSearchQuery,
-                applyDecision = uiState.templateApplyDecision,
-                onSearchChange = onTemplateSearchChange,
-                onSelectTemplate = onSelectTemplate,
-                onConfirmApplyTemplate = onConfirmApplyTemplate,
-                onCancelApply = onCancelTemplateApply,
-                onDismiss = onDismiss,
-                onArchiveUserTemplate = onArchiveUserTemplate,
-                onRestoreUserTemplate = onRestoreUserTemplate,
-                onDeleteUserTemplate = onDeleteUserTemplate,
-                onEditUserTemplate = onEditUserTemplate,
-                onSaveCurrentTemplate = onSaveCurrentTemplate,
             )
             SessionEditorSheet.NONE -> Unit
         }

@@ -44,4 +44,16 @@ class CardioCueRulesTest {
         assertEquals(null, cue.speech)
         assertTrue(CardioCueRules.countdownCue(2, CardioBlockType.WORK, quiet).countdownBeeps.isEmpty())
     }
+
+    @Test
+    fun nonHiitIntervalsSayWorkInsteadOfSprint() {
+        val z2 = details.copy(hiit = null)
+        val previous = CardioIntervalEngine.progressAt(z2, 0)!!
+        val current = CardioIntervalEngine.progressAt(z2, 10)!!
+        val cue = CardioCueRules.transitionCue(previous, current, z2.hiit)
+        assertTrue(cue.speech!!.startsWith("Trabajo"))
+        assertFalse(cue.speech!!.contains("Sprint"))
+        assertTrue(cue.phaseChangeTone)
+        assertEquals(listOf(3), CardioCueRules.countdownCue(3, CardioBlockType.WORK, null).countdownBeeps)
+    }
 }

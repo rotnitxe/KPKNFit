@@ -23,7 +23,7 @@ class SessionEditorRulesEngineValidationTest {
     }
 
     @Test
-    fun validateBeforeSave_namedSessionPassesWithoutLegacyLimitWarnings() {
+    fun validateBeforeSave_namedSessionPassesWithoutLimits() {
         val draft = Session(
             id = "s1",
             name = "Push",
@@ -46,7 +46,7 @@ class SessionEditorRulesEngineValidationTest {
         val result = SessionEditorRulesEngine.validateBeforeSave(
             draft = draft,
             weekSessions = listOf(draft),
-            ruleLimits = SessionEditorRuleLimits(maxRPE = 8.0, rigidLimits = true),
+            ruleLimits = SessionEditorRuleLimits(),
             exerciseIndex = emptyMap(),
         )
         assertNull(result.blockingError)

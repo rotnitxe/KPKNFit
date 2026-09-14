@@ -632,21 +632,16 @@ class SessionEditorDragController {
     ): List<SectionZone> {
         val groupedPartsForDrag = groupedParts ?: session.parts.filterNot { it.isUncategorizedPart() }
         val sections = mutableListOf<SectionZone>()
-
-        if (!isDraggingCardio) {
-            val looseRect = frozenLooseContentBounds
-                ?: looseContentBounds
-                ?: unionRects(frozenExerciseBounds.filterKeys { it.startsWith("$LOOSE_PART_ID|") }.values)
-            if (looseRect != null) {
-                sections.add(SectionZone(LOOSE_PART_ID, looseRect))
-            }
-            groupedPartsForDrag.filterNot { it.isCardioPart() }.forEach { part ->
-                resolvePartZone(part.id)?.let { sections.add(SectionZone(part.id, it)) }
-            }
-        } else {
-            groupedPartsForDrag.filter { it.isCardioPart() }.forEach { part ->
-                resolvePartZone(part.id)?.let { sections.add(SectionZone(part.id, it)) }
-            }
+        val looseRect = frozenLooseContentBounds
+            ?: looseContentBounds
+            ?: unionRects(frozenExerciseBounds.filterKeys { it.startsWith("$LOOSE_PART_ID|") }.values)
+        if (looseRect != null && (!isDraggingCardio || session.exercises.any { it.isCardio })) {
+            sections.add(SectionZone(LOOSE_PART_ID, looseRect))
+        }
+        groupedPartsForDrag.forEach { part ->
+            if (isDraggingCardio && part.isCardioPart().not() && part.exercises.none { it.isCardio }) return@forEach
+            if (!isDraggingCardio && part.isCardioPart()) return@forEach
+            resolvePartZone(part.id)?.let { sections.add(SectionZone(part.id, it)) }
         }
 
         val sorted = sections.sortedBy { it.bounds.top }
@@ -777,7 +772,13 @@ class SessionEditorDragController {
                 } else if (pointerY >= lastBoundary) {
                     val lastExId = candidateEntries.last().key.substringAfter("|")
                     val lastIdx = targetList.indexOfFirst { it.id == lastExId }
-                    val idx = if (lastIdx >= 0) lastIdx + 1 else targetList.size
+                    val lastGroupId = targetList.getOrNull(lastIdx)?.supersetGroupRefOrLegacyId()
+                    val span = if (lastIdx >= 0 && lastGroupId != null) {
+                        targetList.drop(lastIdx).takeWhile { it.supersetGroupRefOrLegacyId() == lastGroupId }.size
+                    } else {
+                        1
+                    }
+                    val idx = if (lastIdx >= 0) lastIdx + span else targetList.size
                     newDropTargetKey = null
                     newDropTargetIndex = idx
                 } else {
@@ -1102,6 +1103,7 @@ class SessionEditorDragController {
         lastExerciseDragSession = null
         lastExerciseDragGroupedParts = null
         collapsedPartIdsForDrag = emptySet()
+        clearBounds()
         notifyUiStateChanged()
     }
 
@@ -1208,6 +1210,7 @@ class SessionEditorDragController {
         frozenPartDragBounds = emptyMap()
         lastPartDragGroupedParts = null
         accumulatedScrollPx = 0f
+        clearBounds()
         notifyUiStateChanged()
     }
 

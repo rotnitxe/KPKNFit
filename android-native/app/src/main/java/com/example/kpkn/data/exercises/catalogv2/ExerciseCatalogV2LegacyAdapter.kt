@@ -118,7 +118,7 @@ fun ExerciseCatalogV2.toLegacySelection(selection: com.example.kpkn.domain.exerc
                 familyId = family.id,
                 catalogRevision = catalogRevision,
                 configuration = configuration,
-                legacyId = definition.id,
+                legacyId = configuration.id,
             )
         }
     }.firstOrNull()
