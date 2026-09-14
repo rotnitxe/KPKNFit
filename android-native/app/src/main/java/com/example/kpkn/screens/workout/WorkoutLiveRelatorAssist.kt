@@ -25,9 +25,22 @@ enum class RelatorAssistActionKind {
     HALVE_SETS,
     PREVIEW_ULTRAFAST,
     ADD_MOBILITY,
+    APPLY_SUGGESTED_LOAD,
+    ADJUST_LOAD,
+    START_REST,
+    EXTEND_REST,
+    SKIP_REMAINING_WARMUPS,
+    OPEN_REPLACE,
+    OPEN_READINESS,
+    OPEN_TECHNIQUE,
+    OPEN_HISTORY,
+    /** F3 cables capture UI. */
+    CAPTURE_MEDIA,
+    /** F3 cables album sheet. */
+    OPEN_ALBUM,
 }
 
-internal data class RelatorAssistAction(
+data class RelatorAssistAction(
     val kind: RelatorAssistActionKind,
     val label: String,
     val exerciseId: String = "",
@@ -35,12 +48,25 @@ internal data class RelatorAssistAction(
     val side: String = "",
     val mobilityId: String = "",
     val span: String = "",
+    val weightKg: Double? = null,
+    val restSeconds: Int? = null,
+    val loadDeltaPercent: Double? = null,
 )
 
 data class RelatorAssistAck(
     val kind: RelatorAssistActionKind,
     val applied: Boolean,
     val detail: String = "",
+)
+
+/**
+ * UI-only hook for relator actions that already have sheets in Compose
+ * ([OPEN_REPLACE], [OPEN_READINESS], [CAPTURE_MEDIA], [OPEN_ALBUM]).
+ * Collect [WorkoutViewModel.relatorUiHook].
+ */
+data class RelatorUiHook(
+    val kind: RelatorAssistActionKind,
+    val exerciseId: String = "",
 )
 
 internal data class RelatorAssistOffer(

@@ -79,7 +79,7 @@ class WorkoutSetRecorder(
         fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?)
         fun persistLoadModeToProfile(exerciseId: String, loadMode: LoadModeV2)
         fun registerManualLoadOverride(exerciseId: String, setIdx: Int, side: String?, load: Double)
-        fun refreshLoadSuggestions(state: WorkoutUiState)
+        fun refreshLoadSuggestions(state: WorkoutUiState, onlyExerciseId: String? = null)
         suspend fun persistOngoingStateAndAwait()
         fun nextSet(stopRest: Boolean = true)
         fun nextIncompleteStepAfter(state: WorkoutUiState): WorkoutStep?
@@ -499,7 +499,7 @@ class WorkoutSetRecorder(
             if (weight > 0.0) {
                 ports.registerManualLoadOverride(exercise.id, targetSetIdx, resolvedSide, weight)
             }
-            ports.refreshLoadSuggestions(getState())
+            ports.refreshLoadSuggestions(getState(), onlyExerciseId = exercise.id)
             ports.persistOngoingStateAndAwait()
 
             KpknDiagnosticLogger.event(

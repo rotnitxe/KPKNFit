@@ -56,6 +56,11 @@
 -keep class androidx.compose.material.icons.** { *; }
 -keep class androidx.navigation.** { *; }
 
+# ── ML Kit Pose (F5 offline trajectory) ─────────────────────────────────────
+-keep class com.google.mlkit.vision.pose.** { *; }
+-keep class com.google.mlkit.vision.common.** { *; }
+-dontwarn com.google.mlkit.**
+
 # ── Vosk / JNA ───────────────────────────────────────────────────────────────
 -dontwarn java.awt.**
 -keep class com.sun.jna.** { *; }

@@ -14,8 +14,21 @@ import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.workout.BaseLoadPolicy
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
 import com.example.kpkn.data.models.WorkoutContextProfile
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+
+internal fun mergeIncrementalLoadSuggestions(
+    previous: Map<String, WorkoutLoadSuggestionUi>,
+    rebuilt: Map<String, WorkoutLoadSuggestionUi>,
+    onlyExerciseId: String?,
+): Map<String, WorkoutLoadSuggestionUi> {
+    if (onlyExerciseId.isNullOrBlank()) return rebuilt
+    val prefix = "${onlyExerciseId}_"
+    return previous.filterKeys { !it.startsWith(prefix) } + rebuilt
+}
 
 internal data class SessionExerciseSetSnapshot(
     val setIndex: Int,
@@ -26,11 +39,12 @@ internal data class SessionExerciseSetSnapshot(
  * Contextual load suggestions, refresh, and auto-regulation weight adapter.
  */
 class WorkoutLoadSuggestionController(
-    private val performanceRangeStore: PerformanceRangeStore,
+    private val performanceRangeStore: PerformanceRangeStore? = null,
     private val scope: CoroutineScope,
     private val getState: () -> WorkoutUiState,
     private val updateState: ((WorkoutUiState) -> WorkoutUiState) -> Unit,
     private val ports: Ports,
+    private val computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
     interface Ports {
         fun visibleExercises(state: WorkoutUiState): List<Exercise>
@@ -58,11 +72,28 @@ class WorkoutLoadSuggestionController(
     fun refreshLoadSuggestions(
         state: WorkoutUiState = getState(),
         trackPulses: Boolean = true,
+        onlyExerciseId: String? = null,
     ) {
-        val exercises = ports.visibleExercises(state)
+        if (onlyExerciseId != null) {
+            applyLoadSuggestionRefresh(state, trackPulses, onlyExerciseId)
+            return
+        }
+        scope.launch(computeDispatcher) {
+            applyLoadSuggestionRefresh(getState(), trackPulses, onlyExerciseId = null)
+        }
+    }
+
+    private fun applyLoadSuggestionRefresh(
+        state: WorkoutUiState,
+        trackPulses: Boolean,
+        onlyExerciseId: String?,
+    ) {
+        val exercises = ports.visibleExercises(state).let { list ->
+            if (onlyExerciseId != null) list.filter { it.id == onlyExerciseId } else list
+        }
         val previousSuggestions = state.loadSuggestions
         val nowMs = System.currentTimeMillis()
-        val suggestions = buildMap {
+        val rebuilt = buildMap {
             exercises.forEach { exercise ->
                 exercise.sets.indices.forEach { setIdx ->
                     if (ports.isSetDone(state.completedSets, exercise.id, setIdx, exercise.isEffectivelyUnilateral())) return@forEach
@@ -80,6 +111,7 @@ class WorkoutLoadSuggestionController(
                 }
             }
         }
+        val suggestions = mergeIncrementalLoadSuggestions(previousSuggestions, rebuilt, onlyExerciseId)
         val pulseTokens = if (!trackPulses) {
             emptyMap()
         } else {
@@ -305,8 +337,8 @@ class WorkoutLoadSuggestionController(
             ?: 1.0
 
         val exerciseDbId = ports.canonicalExerciseKey(exercise)
-        val performanceRangeData = performanceRangeStore.getCached(exerciseDbId)
-        performanceRangeStore.prefetchIfMissing(exerciseDbId, scope)
+        val performanceRangeData = performanceRangeStore?.getCached(exerciseDbId)
+        performanceRangeStore?.prefetchIfMissing(exerciseDbId, scope)
 
         val plannedFallback = plannedWorkingWeightForSet(exercise, setIdx)
         val baseWorkingWeight = listOfNotNull(

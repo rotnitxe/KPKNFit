@@ -319,7 +319,7 @@ internal fun WorkoutStructureSheetsHost(
         request?.let(open)
     }
     if (state.exerciseContextExerciseId != null) {
-        val exerciseId = state.exerciseContextExerciseId!!
+        val exerciseId = state.exerciseContextExerciseId ?: return
         val contextExercise = visibleExercises.firstOrNull { it.id == exerciseId }
         // Prefer the member flag, but fall back to SupersetGroup.exerciseOrder
         // for legacy sessions whose JSON contains the group table before the
@@ -961,8 +961,9 @@ internal fun WorkoutStructureSheetsHost(
                 ) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (draftExercise.cardioDetails != null) {
+                        val cardioDetails = draftExercise.cardioDetails ?: return@Column
                         CardioEditorCard(
-                            details = draftExercise.cardioDetails!!,
+                            details = cardioDetails,
                             accentColor = sessionAccentColor,
                             exerciseName = draftExercise.name,
                             onChange = { details ->
@@ -1265,7 +1266,7 @@ internal fun WorkoutStructureSheetsHost(
     }
 
     if (!useFullPageCatalog && state.addCatalogToSupersetGroupId != null) {
-        val targetGroupId = state.addCatalogToSupersetGroupId!!
+        val targetGroupId = state.addCatalogToSupersetGroupId ?: return
         val programRepository = remember(context) { com.example.kpkn.data.repository.ProgramRepository.getInstance() }
         val workoutLogs by programRepository.history.collectAsStateWithLifecycle()
         KpknSheet(
@@ -1318,7 +1319,7 @@ internal fun WorkoutStructureSheetsHost(
     }
 
     if (!useFullPageCatalog && state.addExerciseAfterId != null) {
-        val targetExerciseId = state.addExerciseAfterId!!
+        val targetExerciseId = state.addExerciseAfterId ?: return
         val programRepository = remember(context) { com.example.kpkn.data.repository.ProgramRepository.getInstance() }
         val workoutLogs by programRepository.history.collectAsStateWithLifecycle()
         KpknSheet(
@@ -1390,15 +1391,17 @@ internal fun WorkoutStructureSheetsHost(
                 editingExisting = true,
                 onSearch = { state.replaceSearchQuery = it },
                 onSelect = { info ->
-                    val target = state.replaceTargetExerciseId!!
-                    state.showReplaceExercisePicker = false
-                    state.replaceTargetExerciseId = null
-                    viewModel.replaceExercise(
-                        exerciseId = target,
-                        replacement = info,
-                        deferPersistencePrompt = true,
-                    )
-                    viewModel.revealReplacementPersistencePrompt(target)
+                    val target = state.replaceTargetExerciseId
+                    if (target != null) {
+                        state.showReplaceExercisePicker = false
+                        state.replaceTargetExerciseId = null
+                        viewModel.replaceExercise(
+                            exerciseId = target,
+                            replacement = info,
+                            deferPersistencePrompt = true,
+                        )
+                        viewModel.revealReplacementPersistencePrompt(target)
+                    }
                 },
                 onMultiSelect = { emptyList() },
                 onOpenExerciseDetail = { dbId -> onNavigateToWikiLab(dbId) },
@@ -1539,7 +1542,7 @@ internal fun WorkoutStructureSheetsHost(
     }
 
     if (state.showReplaceCardioPicker && state.replaceCardioTargetExerciseId != null) {
-        val targetId = state.replaceCardioTargetExerciseId!!
+        val targetId = state.replaceCardioTargetExerciseId ?: return
         com.example.kpkn.ui.components.KpknSheet(
             onDismissRequest = {
                 state.showReplaceCardioPicker = false

@@ -11,7 +11,7 @@ This document provides a comprehensive technical mapping of the native Android K
 
 *   **Language:** Kotlin 2.2.10 (native Android)
 *   **UI Framework:** Jetpack Compose (BOM 2025.07.00, Material 3) + Haze (glassmorphism)
-*   **Database:** Room 2.7.1 (SQLite) with FTS4 full-text search — database **version 25**
+*   **Database:** Room 2.7.1 (SQLite) with FTS4 full-text search — database **version 26**
 *   **Concurrency:** Kotlin Coroutines & Flows (reactive UI updates)
 *   **Dependency Injection:** Manual constructor injection orchestrated in `MainActivity.kt` (no Hilt/Dagger overhead)
 *   **Build:** Single module `:app`; product flavors `base` (minSdk 24) and `health` (minSdk 26, adds Health Connect); `compileSdk 36`, `targetSdk 35`
@@ -22,7 +22,7 @@ This document provides a comprehensive technical mapping of the native Android K
 
 ## 🗄️ 2. Database Schema & Data Persistence
 
-KPKN Fit uses a **local-first (offline-first)** data architecture. The Room database is defined in `data/db/KpknDatabase.kt` (**version 25**, `exportSchema = true`). Most complex objects are serialized to JSON strings using Kotlinx Serialization and stored directly in a `data` text column. Recetas de programa (`TrainingPlanRecipe`), TM/`PowerliftingProfile` y `autoregulationMode` viven en el JSON de `ProgramEntity` (sin bump de columnas).
+KPKN Fit uses a **local-first (offline-first)** data architecture. The Room database is defined in `data/db/KpknDatabase.kt` (**version 26**, `exportSchema = true`). Most complex objects are serialized to JSON strings using Kotlinx Serialization and stored directly in a `data` text column. Recetas de programa (`TrainingPlanRecipe`), TM/`PowerliftingProfile` y `autoregulationMode` viven en el JSON de `ProgramEntity` (sin bump de columnas). Unified workout photos/videos live in `workout_media` (`WorkoutMediaEntity`) plus private files under `filesDir/workout_media`.
 
 ### 2.1 SQLite Table Definitions
 
@@ -40,6 +40,7 @@ KPKN Fit uses a **local-first (offline-first)** data architecture. The Room data
 | `workout_global_performance` | `WorkoutGlobalPerformanceEntity` | `globalKey` (String) | None | Serialized `GlobalPerformanceStateV3` JSON string. |
 | `workout_context_profiles` | `WorkoutContextProfileEntity` | `id` (String) | `exerciseKey`, `lastUsedAt` | Serialized `WorkoutContextProfile` JSON string. |
 | `workout_replacement_decisions` | `WorkoutReplacementDecisionEntity` | `id` (String) | None | Serialized `ExerciseReplacementDecisionV2` JSON string. |
+| `workout_media` | `WorkoutMediaEntity` | `id` (String) | `workoutLogId`, `canonicalExerciseId`, `createdAtMs`, `isPr` | Unified session photos/videos (Room v26). File bytes stay in `filesDir/workout_media`; `WorkoutLog.exercisePhotos`/`sessionPhotos` remain read-only JSON. |
 | `auge_wellbeing` | `WellbeingEntity` | `id` (String UUID) | `date` | Serialized `DailyWellbeingLog` JSON string (stores manual overrides, sleep hours, DOMS, stress). |
 | `auge_sleep` | `SleepLogEntity` | `id` (String UUID) | `date` | Serialized `SleepLog` JSON string. |
 | `auge_sleep_extended` | `SleepLogExtendedEntity` | `id` (String UUID) | `date` | Serialized `SleepLogExtended` JSON string. |

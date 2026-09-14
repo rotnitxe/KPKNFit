@@ -2,6 +2,7 @@ package com.example.kpkn.screens.workout.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
@@ -365,79 +366,6 @@ private fun FeedbackExtraStepperRow(
     }
 }
 
-@Suppress("unused")
-@Composable
-private fun QuickLoadChips(
-    currentWeightText: String,
-    onChipSelected: (QuickLoadChipOption) -> Unit,
-    loadMode: LoadModeV2,
-    suggestedWeight: Double?,
-    suggestedLoadMode: LoadModeV2?,
-    previousSessionFirstSetWeight: Double?,
-    accentColor: Color,
-    loadIncrementKg: Double,
-    modifier: Modifier = Modifier,
-) {
-    val options = quickLoadOptionsFor(
-        loadMode = loadMode,
-        currentWeightText = currentWeightText,
-        suggestedWeight = suggestedWeight,
-        suggestedLoadMode = suggestedLoadMode,
-        previousSessionFirstSetWeight = previousSessionFirstSetWeight,
-        loadIncrementKg = loadIncrementKg,
-    )
-
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        options.forEach { option ->
-            Surface(
-                onClick = { onChipSelected(option) },
-                shape = RoundedCornerShape(12.dp),
-                color = if (option.isAuge) accentColor.copy(alpha = 0.14f) else MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.74f),
-                border = BorderStroke(
-                    1.dp,
-                    if (option.isAuge) accentColor.copy(alpha = 0.52f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f),
-                ),
-                modifier = Modifier.weight(1f)
-            ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 5.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(1.dp, Alignment.CenterVertically),
-                ) {
-                    Text(
-                        text = option.label,
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 10.sp),
-                        color = if (option.isAuge) accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Text(
-                        text = buildString {
-                            append(option.weight.toTrimmedNumberString())
-                            when (option.targetLoadMode) {
-                                LoadModeV2.LASTRE -> append(" lastre")
-                                LoadModeV2.ASSISTED -> append(" asist.")
-                                LoadModeV2.BODYWEIGHT -> append(" kg")
-                                else -> append(" kg")
-                            }
-                        },
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold, fontSize = 9.sp),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-        }
-    }
-}
-
 @Composable
 private fun IntegratedLoadInput(
     value: String,
@@ -560,38 +488,46 @@ private fun IntegratedLoadInput(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(1.dp),
                     ) {
-                        Text(
-                            text = option.label,
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 9.sp,
-                            ),
-                            color = if (option.isAuge) {
-                                accentColor
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        val chipUnit = when (option.targetLoadMode) {
-                            LoadModeV2.LASTRE -> " lastre"
-                            LoadModeV2.ASSISTED -> " asist."
-                            else -> ""
+                        if (LoadSuggestionDisplayPolicy.chipShowsNumberOnly(option.isAuge)) {
+                            Text(
+                                text = option.weight.toTrimmedNumberString(),
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 10.sp,
+                                ),
+                                color = accentColor,
+                                maxLines = 1,
+                            )
+                        } else {
+                            Text(
+                                text = option.label,
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 9.sp,
+                                ),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            val chipUnit = when (option.targetLoadMode) {
+                                LoadModeV2.LASTRE -> " lastre"
+                                LoadModeV2.ASSISTED -> " asist."
+                                else -> ""
+                            }
+                            Text(
+                                text = if (option.targetLoadMode == LoadModeV2.BODYWEIGHT && option.weight <= 0.0) {
+                                    "0 kg"
+                                } else {
+                                    "${option.weight.toTrimmedNumberString()}$chipUnit"
+                                },
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 10.sp,
+                                ),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.82f),
+                                maxLines = 1,
+                            )
                         }
-                        Text(
-                            text = if (option.targetLoadMode == LoadModeV2.BODYWEIGHT && option.weight <= 0.0) {
-                                "0 kg"
-                            } else {
-                                "${option.weight.toTrimmedNumberString()}$chipUnit"
-                            },
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.Black,
-                                fontSize = 10.sp,
-                            ),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.82f),
-                            maxLines = 1,
-                        )
                     }
                 }
             }
@@ -837,6 +773,7 @@ internal fun SetInputCardV2(
     recordActionHolder: RecordActionHolder,
     recordFabHolder: RecordFabHolder? = null,
     isActivePage: Boolean = true,
+    isSettledPage: Boolean = true,
     initialDraft: WorkoutSetDraft? = null,
     onDraftChange: (WorkoutSetDraft, String?) -> Unit = { _, _ -> },
     onExecutionError: (() -> Unit)? = null,
@@ -872,6 +809,10 @@ internal fun SetInputCardV2(
     onRestPause: (() -> Unit)? = null,
     onDeleteSet: (() -> Unit)? = null,
     onOmitSet: (() -> Unit)? = null,
+    mediaCapture: com.example.kpkn.screens.workout.WorkoutMediaCaptureController? = null,
+    openMediaFace: Boolean = false,
+    onMediaFaceConsumed: () -> Unit = {},
+    sessionMilestones: List<com.example.kpkn.data.models.SessionMilestone> = emptyList(),
 ) {
     val context = LocalContext.current
     val isNarrowScreen = LocalLivePagerShouldReflow.current
@@ -1137,7 +1078,6 @@ internal fun SetInputCardV2(
     LaunchedEffect(loadMode) {
         if (loadMode != LoadModeV2.ASSISTED) showBodyWeightPrompt = false
     }
-    val ghostSuggestedWeightText = suggestedWeightText?.takeIf { weightText.isBlank() }
     var reachedFailure by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
         mutableStateOf(
             initialDraft?.reachedFailure ?: (
@@ -1201,6 +1141,12 @@ internal fun SetInputCardV2(
     }
     var adjustmentsTab by remember(exercise.id, setIndex, sideKey) { mutableIntStateOf(-1) }
     var cardFace by remember(exercise.id, setIndex, sideKey) { mutableStateOf(SetCardFace.Front) }
+    LaunchedEffect(openMediaFace) {
+        if (openMediaFace) {
+            cardFace = SetCardFace.ExerciseMedia
+            onMediaFaceConsumed()
+        }
+    }
     var setNoteText by remember(exercise.id, setIndex, sideKey) {
         mutableStateOf(initialDraft?.notes.orEmpty())
     }
@@ -1299,7 +1245,8 @@ internal fun SetInputCardV2(
             }
         }
     }
-    LaunchedEffect(guidedPhase) {
+    LaunchedEffect(guidedPhase, isSettledPage) {
+        if (!isSettledPage) return@LaunchedEffect
         val phase = guidedPhase
         if (phase is GuidedTechniquePhase.RestPauseCountdown) {
             var left = phase.secondsLeft
@@ -1572,6 +1519,12 @@ internal fun SetInputCardV2(
     val timerTargetSeconds = plannedTarget ?: valueText.toIntOrNull() ?: 0
     val isPrGlobal = lastHomologatedResultV3?.isGlobalPr == true
     val isPrContext = lastHomologatedResultV3?.isContextPr == true
+    val isPrSeries = LiveSetPrPolicy.isPrSeries(
+        lastHomologatedResultV3 = lastHomologatedResultV3,
+        sessionCompletedSet = sessionCompletedSet,
+        exerciseId = exercise.id,
+        milestones = sessionMilestones,
+    )
 
     LaunchedEffect(exercise.id, setIndex, plannedTarget) {
         timerRunning = false
@@ -1589,7 +1542,8 @@ internal fun SetInputCardV2(
             onRmWeightConsumed?.invoke()
         }
     }
-    LaunchedEffect(timerRunning, timerRemainingSeconds) {
+    LaunchedEffect(timerRunning, timerRemainingSeconds, isSettledPage) {
+        if (!isSettledPage) return@LaunchedEffect
         if (timerRunning && timerRemainingSeconds > 0) {
             kotlinx.coroutines.delay(1000)
             timerRemainingSeconds -= 1
@@ -1613,7 +1567,7 @@ internal fun SetInputCardV2(
     var frontHeightPx by remember { mutableIntStateOf(0) }
     val flipRotation by animateFloatAsState(
         targetValue = if (cardFace != SetCardFace.Front) 180f else 0f,
-        animationSpec = tween(durationMillis = 420),
+        animationSpec = if (isSettledPage) tween(durationMillis = 420) else snap(),
         label = "setCardFlip",
     )
 
@@ -1784,17 +1738,11 @@ internal fun SetInputCardV2(
                                 updateActiveWeightText(typed)
                             },
                             label = loadFieldLabel,
-                            placeholder = when {
-                                reportWeightText.isNotBlank() -> null
-                                loadMode == LoadModeV2.BODYWEIGHT -> "Peso corporal"
-                                !ghostSuggestedWeightText.isNullOrBlank() -> ghostSuggestedWeightText
-                                !plannedWeightGhost.isNullOrBlank() -> plannedWeightGhost
-                                else -> when (loadMode) {
-                                    LoadModeV2.LASTRE -> "Ej: 10"
-                                    LoadModeV2.ASSISTED -> "Ej: 20"
-                                    else -> null
-                                }
-                            },
+                            placeholder = LoadSuggestionDisplayPolicy.cardPlaceholderKg(
+                                weightText = reportWeightText,
+                                loadMode = loadMode,
+                                ghostOrPlannedKg = plannedWeightGhost,
+                            ),
                             options = quickLoadOptionsFor(
                                 loadMode = loadMode,
                                 currentWeightText = reportWeightText,
@@ -2604,11 +2552,7 @@ internal fun SetInputCardV2(
                         } else {
                             plannedValueGhost
                         }
-                        val weightGhost = when {
-                            !ghostSuggestedWeightText.isNullOrBlank() -> ghostSuggestedWeightText.orEmpty()
-                            !plannedWeightGhost.isNullOrBlank() -> plannedWeightGhost.orEmpty()
-                            else -> ""
-                        }
+                        val weightGhost = plannedWeightGhost.orEmpty()
                         if (!isTimeMode && !isFailedSet) {
                             val repsMax = buildRepsCarouselMax(
                                 currentValue = rawReportedValueText.toIntOrNull() ?: valueGhost.toIntOrNull() ?: 0,
@@ -2772,6 +2716,15 @@ internal fun SetInputCardV2(
                     SetCardFace.ExerciseMedia -> SetCardExerciseMediaBack(
                         exercise = exercise,
                         onFlipBack = { cardFace = SetCardFace.Front },
+                        isSettledPage = isSettledPage,
+                        setIndex = setIndex,
+                        side = activeSide ?: selectedSide,
+                        weightKg = reportWeightText.replace(',', '.').toDoubleOrNull()
+                            ?: sessionCompletedSet?.weight?.takeIf { it > 0.0 },
+                        reps = reportValueText.toDoubleOrNull()?.roundToInt()
+                            ?: sessionCompletedSet?.reps?.takeIf { it > 0 },
+                        isPr = isPrSeries,
+                        mediaCapture = mediaCapture,
                     )
                     else -> SetCardTechniqueBack(
                     currentSet = currentSet,
@@ -2807,6 +2760,8 @@ internal fun SetInputCardV2(
                         restPauseEnabled = enabled
                         if (enabled) dropSetEnabled = false
                     },
+                    showPrMediaShortcut = LiveSetPrPolicy.shouldShowMediaShortcut(isPrSeries),
+                    onOpenPrMedia = { cardFace = SetCardFace.ExerciseMedia },
                     onCompleteTechniques = { drops, pauses ->
                         dropSetEnabled = drops.isNotEmpty() || dropSetEnabled
                         dropSets = drops.map { DropSetEntry(weight = it.weight, reps = it.reps) }.ifEmpty {

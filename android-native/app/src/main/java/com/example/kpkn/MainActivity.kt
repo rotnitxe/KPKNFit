@@ -6,6 +6,7 @@ import android.Manifest
 import android.app.AlarmManager
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.os.Build
 import android.widget.Toast
@@ -90,6 +91,9 @@ import com.example.kpkn.screens.nutrition.NutritionCalibrationScreen
 import com.example.kpkn.screens.nutrition.NutritionWizardScreen
 import com.example.kpkn.screens.nutrition.NutritionViewModel
 import com.example.kpkn.screens.profile.ProfileScreen
+import com.example.kpkn.screens.albums.WorkoutAlbumDetailScreen
+import com.example.kpkn.screens.albums.WorkoutAlbumsScreen
+import com.example.kpkn.screens.albums.WorkoutMediaViewerScreen
 import com.example.kpkn.screens.programdetail.ProgramDetailScreen
 import com.example.kpkn.screens.programs.ProgramCreationRequests
 import com.example.kpkn.screens.programs.ProgramsScreen
@@ -159,8 +163,15 @@ class MainActivity : ComponentActivity() {
             com.example.kpkn.data.repository.AugeRepository.getInstance(this@MainActivity)
             com.example.kpkn.data.repository.NutritionRepository.init(this@MainActivity)
             com.example.kpkn.data.repository.CustomExerciseRepository.initialize(this@MainActivity)
+            com.example.kpkn.data.repository.WorkoutMediaRepository.init(this@MainActivity)
             com.example.kpkn.data.migrations.clearLegacyLearnPreferencesOnce(this@MainActivity)
         }.onFailure { logKpknError("MainActivity", "Error initializing repositories", it) }
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            runCatching {
+                com.example.kpkn.data.repository.WorkoutMediaRepository.getInstance().importLegacyIfNeeded()
+            }.onFailure { logKpknError("MainActivity", "Error importing workout media", it) }
+        }
 
         lifecycleScope.launch(Dispatchers.IO) {
             // 2. Initialize Exercise Database
@@ -1154,6 +1165,7 @@ private fun KPKNNavGraph(
                         launchSingleTop = true
                     }
                 },
+                onOpenAlbums = { navController.navigate(KpknRoute.WorkoutAlbums.route) },
             )
         }
         composable(KpknRoute.CompetitionDetail.route) { backStack ->
@@ -1277,6 +1289,42 @@ private fun KPKNNavGraph(
                         launchSingleTop = true
                     }
                 },
+                onOpenAlbums = { navController.navigate(KpknRoute.WorkoutAlbums.route) },
+            )
+        }
+        composable(KpknRoute.WorkoutAlbums.route) {
+            WorkoutAlbumsScreen(
+                onBack = { navController.popBackStack() },
+                onOpenAlbum = { albumKey ->
+                    navController.navigate(KpknRoute.WorkoutAlbumDetail.create(albumKey))
+                },
+            )
+        }
+        composable(
+            route = KpknRoute.WorkoutAlbumDetail.route,
+            arguments = listOf(navArgument(KpknRoute.WorkoutAlbumDetail.ARG_ALBUM_KEY) { type = NavType.StringType }),
+        ) { backStack ->
+            val albumKey = backStack.arguments
+                ?.getString(KpknRoute.WorkoutAlbumDetail.ARG_ALBUM_KEY)
+                .orEmpty()
+            WorkoutAlbumDetailScreen(
+                albumKey = Uri.decode(albumKey),
+                onBack = { navController.popBackStack() },
+                onOpenMedia = { mediaId ->
+                    navController.navigate(KpknRoute.WorkoutMediaViewer.create(mediaId))
+                },
+            )
+        }
+        composable(
+            route = KpknRoute.WorkoutMediaViewer.route,
+            arguments = listOf(navArgument(KpknRoute.WorkoutMediaViewer.ARG_MEDIA_ID) { type = NavType.StringType }),
+        ) { backStack ->
+            val mediaId = backStack.arguments
+                ?.getString(KpknRoute.WorkoutMediaViewer.ARG_MEDIA_ID)
+                .orEmpty()
+            WorkoutMediaViewerScreen(
+                mediaId = Uri.decode(mediaId),
+                onBack = { navController.popBackStack() },
             )
         }
         composable(KpknRoute.ProgramDetail.route) { backStack ->

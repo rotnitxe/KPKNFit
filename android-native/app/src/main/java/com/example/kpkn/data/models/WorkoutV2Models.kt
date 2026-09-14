@@ -11,6 +11,8 @@ data class WorkoutFeatureFlags(
     val workoutV2ContextMenu: Boolean = true,
     val workoutV2HeaderWidgets: Boolean = true,
     val workoutV3UnifiedFlow: Boolean = true,
+    /** Offline ML Kit pose trajectory after recording. Default off; no live analysis. */
+    val poseTrajectoryEnabled: Boolean = false,
 )
 
 @Serializable

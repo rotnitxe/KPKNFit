@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
@@ -47,6 +48,7 @@ import com.example.kpkn.data.models.RestPauseData
 import com.example.kpkn.data.models.TechniqueType
 import com.example.kpkn.screens.sessioneditor.components.DropSetPlanDefaults
 import com.example.kpkn.screens.sessioneditor.components.RestPausePlanDefaults
+import com.example.kpkn.screens.workout.LiveSetPrPolicy
 import com.example.kpkn.screens.workout.toTrimmedNumberString
 
 internal data class TechniqueCheckRow(
@@ -79,6 +81,8 @@ internal fun SetCardTechniqueBack(
     initialRestPauseEnabled: Boolean = false,
     onDropEnabledChange: (Boolean) -> Unit = {},
     onRestPauseEnabledChange: (Boolean) -> Unit = {},
+    showPrMediaShortcut: Boolean = false,
+    onOpenPrMedia: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val plannedGuide = remember(currentSet) { currentSet.resolvePlannedTechniqueGuide() }
@@ -152,7 +156,35 @@ internal fun SetCardTechniqueBack(
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.88f),
+                    modifier = Modifier.weight(1f),
                 )
+                if (showPrMediaShortcut && onOpenPrMedia != null) {
+                    Surface(
+                        onClick = onOpenPrMedia,
+                        shape = RoundedCornerShape(12.dp),
+                        color = sessionAccentColor.copy(alpha = 0.18f),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Icon(
+                                Icons.Default.PhotoCamera,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                                tint = sessionAccentColor,
+                            )
+                            Text(
+                                text = LiveSetPrPolicy.SHORTCUT_LABEL,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = sessionAccentColor,
+                                maxLines = 1,
+                            )
+                        }
+                    }
+                }
             }
 
             Column(

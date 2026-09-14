@@ -187,6 +187,7 @@ internal data class RelatorResolution(
     val actions: List<RelatorAssistAction> = emptyList(),
     val fingerprint: String? = null,
     val spokenConceptId: String? = null,
+    val topic: String? = null,
 )
 
 internal object WorkoutLiveRelator {

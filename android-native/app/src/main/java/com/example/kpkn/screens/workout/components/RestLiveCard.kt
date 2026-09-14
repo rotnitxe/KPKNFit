@@ -44,6 +44,7 @@ import com.example.kpkn.screens.sessioneditor.contentOn
 import com.example.kpkn.screens.workout.PendingRestSuggestion
 import com.example.kpkn.screens.workout.RestTimerKind
 import com.example.kpkn.screens.workout.WorkoutRestModalState
+import com.example.kpkn.screens.workout.restLiveCardExerciseName
 import java.util.Locale
 
 /**
@@ -64,6 +65,13 @@ internal fun RestLiveCard(
     onSkip: () -> Unit,
     onUseAdaptive: (() -> Unit)?,
     onExpand: (() -> Unit)?,
+    isAdaptiveActive: Boolean = false,
+    skipExerciseLabel: String? = null,
+    onSkipExercise: (() -> Unit)? = null,
+    relatorText: String? = null,
+    relatorPhaseKey: String = "",
+    relatorActions: List<com.example.kpkn.screens.workout.RelatorAssistAction> = emptyList(),
+    onRelatorAction: (com.example.kpkn.screens.workout.RelatorAssistAction) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val safeTotal = totalSeconds.coerceAtLeast(1)
@@ -110,7 +118,7 @@ internal fun RestLiveCard(
                     )
                     if (!restState?.exerciseName.isNullOrBlank()) {
                         Text(
-                            text = restState!!.exerciseName,
+                            text = restLiveCardExerciseName(restState).orEmpty(),
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Bold,
                             color = Color.White.copy(alpha = 0.72f),
@@ -144,6 +152,17 @@ internal fun RestLiveCard(
                         }
                     }
                 }
+            }
+
+            if (!relatorText.isNullOrBlank()) {
+                com.example.kpkn.screens.workout.WorkoutLiveRelatorLine(
+                    text = relatorText,
+                    phaseKey = relatorPhaseKey,
+                    actions = relatorActions,
+                    onAction = onRelatorAction,
+                    accentColor = sessionAccentColor,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
 
             Text(
@@ -184,7 +203,7 @@ internal fun RestLiveCard(
                     sessionAccentColor = sessionAccentColor,
                 )
 
-                if (pendingRestSuggestion != null && onUseAdaptive != null) {
+                if (pendingRestSuggestion != null && onUseAdaptive != null && !isAdaptiveActive) {
                     OutlinedButton(
                         onClick = onUseAdaptive,
                         modifier = Modifier
@@ -226,6 +245,30 @@ internal fun RestLiveCard(
                                 maxLines = 1,
                             )
                         }
+                    }
+                }
+
+                if (onSkipExercise != null) {
+                    OutlinedButton(
+                        onClick = onSkipExercise,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .defaultMinSize(minWidth = 0.dp, minHeight = 36.dp)
+                            .height(40.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                        shape = WorkoutUiTokens.InnerCardShape,
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color.White.copy(alpha = 0.7f),
+                        ),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.16f)),
+                    ) {
+                        Text(
+                            text = skipExerciseLabel ?: "Saltar series restantes e ir al siguiente ejercicio",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     }
                 }
             }
@@ -292,6 +335,7 @@ internal fun RestLiveCard(
                     }
                 }
             }
+
         }
     }
 }

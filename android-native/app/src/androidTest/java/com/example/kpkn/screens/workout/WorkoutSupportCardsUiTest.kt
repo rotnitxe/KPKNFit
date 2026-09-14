@@ -22,43 +22,6 @@ class WorkoutSupportCardsUiTest {
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun live_guidance_card_shows_apply_and_coach_action_labels() {
-        composeRule.setContent {
-            MaterialTheme {
-                WorkoutLiveGuidanceCard(
-                    weightSuggestion = WeightSuggestion(
-                        suggestedWeight = 82.5,
-                        reason = "Sube un poco: la serie previa salio comoda.",
-                    ),
-                    autoRegulation = SetAutoRegulation(
-                        exerciseId = "squat",
-                        nextSetIdx = 2,
-                        adjustmentFactor = 1.04,
-                        adjustedWeight = 82.5,
-                        reason = "Recuperacion estable y ejecucion limpia.",
-                    ),
-                    coachMessage = CoachMessage(
-                        key = "coach-1",
-                        title = "Momentum controlado",
-                        body = "Mantienes margen para empujar una progresion corta sin romper tecnica.",
-                        severity = CoachSeverity.SUCCESS,
-                        action = CoachAction.STAY_THE_COURSE,
-                    ),
-                    currentWeightText = "80",
-                    onApplySuggestedLoad = {},
-                )
-            }
-        }
-
-        composeRule.onNodeWithText("Ajuste en vivo").assertExists()
-        composeRule.onNodeWithText("Carga sugerida").assertExists()
-        composeRule.onNodeWithText("82.5 kg").assertExists()
-        composeRule.onNodeWithText("Usar").assertExists()
-        composeRule.onNodeWithText("Mantener rumbo").assertExists()
-        composeRule.onNodeWithText("Momentum controlado").assertExists()
-    }
-
-    @Test
     fun continuity_card_shows_feedback_actions_and_next_step() {
         composeRule.setContent {
             MaterialTheme {

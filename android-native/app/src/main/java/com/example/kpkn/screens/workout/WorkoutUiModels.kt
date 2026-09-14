@@ -259,7 +259,6 @@ data class WorkoutUiState(
     val amrapCalibrationMessage: String? = null,
     val targetDurationMinutes: Int? = null,
     val customTargetDurationMinutes: Int? = null,
-    val sessionTimeRemainingSeconds: Int? = null,
     val pacingAlertMessage: String? = null,
     val recordingSetKey: String? = null,
     val coachPaceAlert: String? = null,
@@ -290,6 +289,12 @@ data class WorkoutUiState(
     val sessionMissingFromProgram: Boolean = false,
     val logAlreadyWrittenId: String? = null,
     val archivedCompletedExercises: List<CompletedExercise> = emptyList(),
+    /** Protocol / block / recipe context for Relator 2.0. Null = sesión suelta. */
+    val livePlanContext: LivePlanContext? = null,
+    /** Veredicto diario AUGE (`calculateDailyReadiness` vía snapshot). */
+    val dailyReadiness: AugeReadinessVerdict? = null,
+    /** Wellbeing de hoy (`getTodayWellbeing`), no solo sleepQuality del sheet. */
+    val todayWellbeing: DailyWellbeingLog? = null,
 )
 
 data class SeriesTypeTarget(
@@ -320,6 +325,26 @@ fun godModeUndoStackAfterRevert(
     if (index !in stack.indices) return stack
     return stack.take(index)
 }
+
+/**
+ * Plan/protocol slice copied into the live god-state so Relator 2.0 can speak
+ * T1/AMRAP/semana de bloque without scanning [Program] from Compose.
+ */
+data class LivePlanContext(
+    val sourceProtocolId: String? = null,
+    val sourceProtocolName: String? = null,
+    val mode: ProgramMode? = null,
+    val trainingPhase: TrainingPhase? = null,
+    val goals: ProgramGoals? = null,
+    val autoregulationMode: AutoregulationMode = AutoregulationMode.OFF,
+    val blockGoal: BlockGoal? = null,
+    val blockProgressionScheme: BlockProgressionScheme? = null,
+    val blockName: String? = null,
+    val weekIndexInBlock: Int? = null,
+    val weeksInBlock: Int? = null,
+    val progression: com.example.kpkn.data.protocols.ProgressionRule? = null,
+    val autoregulationHooks: List<com.example.kpkn.data.protocols.AutoregulationHook> = emptyList(),
+)
 
 data class WorkoutSessionSummary(
     val intensityDescriptor: String,

@@ -47,7 +47,7 @@ All Android build and test commands must be run from the `android-native/` subdi
 All app code lives in `android-native/app/src/main/java/com/example/kpkn/`:
 
 *   **Entry points:** `KpknApplication.kt`, `MainActivity.kt` (NavHost + manual DI).
-*   **Data layer:** `data/db/` (Room, `KpknDatabase` **v20**), `data/repository/`, `data/models/`, plus loaders (`data/exercises/`, `data/food/`, `data/wikilab/`...).
+*   **Data layer:** `data/db/` (Room, `KpknDatabase` **v26**), `data/repository/`, `data/models/`, plus loaders (`data/exercises/`, `data/food/`, `data/wikilab/`...).
 *   **Domain engines (pure Kotlin):** `domain/auge/`, `domain/nutrition/`, `domain/training/`, `domain/workout/`, `domain/exercises/`, `domain/sessionassistant/`, `domain/biomechanics/`, `domain/calculations/`.
 *   **UI screens:** `screens/<feature>/` (`home`, `workout`, `nutrition`, `programs`, `programdetail`, `sessioneditor`, `settings`, `auge`, `wikilab`, `learn`, `profile`, `competitions`).
 *   **Navigation:** `navigation/Navigation.kt` (all `KpknRoute` routes), deep links in `navigation/DeepLinkRouter.kt`.

@@ -136,7 +136,7 @@ internal fun WorkoutSessionOverlaysHost(
     }
 
     if (uiState.showHistorySheet && uiState.historySheetExerciseDbId != null) {
-        val historyDbId = uiState.historySheetExerciseDbId!!
+        val historyDbId = historySheetDbId(uiState.showHistorySheet, uiState.historySheetExerciseDbId) ?: return
         val historyExercise = visibleExercises.firstOrNull { exercise ->
             historyDbId in identityKeysForExercise(exercise) ||
                 exercise.exerciseDbId == historyDbId ||

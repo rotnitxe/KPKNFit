@@ -32,7 +32,7 @@ class WorkoutStepNavigator(
             preferredSide: String? = null,
         ): WorkoutEditingState?
         fun stopRestTimer()
-        /** Cursor-only moves should pass [immediate]=false to avoid main-thread runBlocking ANRs. */
+        /** Cursor-only moves should pass [immediate]=false so they ride the draft debounce instead of the immediate coalesce window. */
         fun persistOngoingState(immediate: Boolean = true)
         suspend fun persistOngoingStateAndAwait()
         fun refreshLoadSuggestions(state: WorkoutUiState)

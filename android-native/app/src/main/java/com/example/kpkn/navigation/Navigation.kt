@@ -122,6 +122,15 @@ sealed class KpknRoute(val route: String) {
     object SettingsData : KpknRoute("settings/data")
     object SettingsDiagnostics : KpknRoute("settings/diagnostics")
     object Profile : KpknRoute("profile")
+    object WorkoutAlbums : KpknRoute("profile/albums")
+    object WorkoutAlbumDetail : KpknRoute("profile/albums/{albumKey}") {
+        fun create(albumKey: String) = "profile/albums/${Uri.encode(albumKey)}"
+        const val ARG_ALBUM_KEY = "albumKey"
+    }
+    object WorkoutMediaViewer : KpknRoute("media/{mediaId}") {
+        fun create(mediaId: String) = "media/${Uri.encode(mediaId)}"
+        const val ARG_MEDIA_ID = "mediaId"
+    }
 
     // ─── Nutrition Sub-screens ────────────────────────────────────────
     object NutritionWizard : KpknRoute("nutrition/wizard?mode={mode}&planId={planId}") {

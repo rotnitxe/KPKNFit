@@ -128,6 +128,23 @@ fun SettingsScreen(
                 Toast.makeText(context, "No se pudo configurar la ruta: ${error.message ?: "error desconocido"}", Toast.LENGTH_LONG).show()
             }
     }
+    val mediaZipLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip"),
+    ) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        viewModel.exportWorkoutMediaZip(
+            context,
+            uri,
+            onSuccess = { count ->
+                Toast.makeText(
+                    context,
+                    if (count == 0) "No había medios para exportar" else "ZIP exportado ($count archivos)",
+                    Toast.LENGTH_LONG,
+                ).show()
+            },
+            onError = { error -> Toast.makeText(context, "No se pudo exportar: $error", Toast.LENGTH_LONG).show() },
+        )
+    }
     val diagnosticsExportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/zip"),
     ) { uri ->
@@ -194,6 +211,18 @@ fun SettingsScreen(
                             if (!systemPermissionState.exactAlarmOk) PermissionGuideHelper.openExactAlarmSettings(context)
                             else PermissionGuideHelper.openBatteryOptimizationSettings(context)
                         },
+                    )
+                }
+            }
+            item {
+                SettingsBlockTitle("Datos")
+                SettingsCard {
+                    SettingsActionRow(
+                        icon = Icons.Default.Folder,
+                        title = "Exportar álbumes (ZIP)",
+                        description = "Copia las fotos y vídeos privados de entrenamiento a un archivo ZIP.",
+                        actionLabel = "Exportar",
+                        onClick = { mediaZipLauncher.launch("kpkn-workout-media.zip") },
                     )
                 }
             }

@@ -132,11 +132,14 @@ internal fun WorkoutV2Body(
     onReplaceExercise: (String) -> Unit = {},
     requestLiveTagList: Boolean = false,
     onRequestLiveTagListConsumed: () -> Unit = {},
+    skipExerciseLabel: String? = null,
+    onSkipExercise: (() -> Unit)? = null,
 ) {
     val allUserTags by viewModel.allUserTags.collectAsStateWithLifecycle()
     val cardioGpsState by viewModel.cardioGpsState.collectAsStateWithLifecycle()
     val cardioHealthState by viewModel.cardioHealthState.collectAsStateWithLifecycle()
     val restTimerRemaining by viewModel.restTimerRemaining.collectAsStateWithLifecycle()
+    val openMediaFaceExerciseId by viewModel.mediaCapture.requestOpenMediaFaceExerciseId.collectAsStateWithLifecycle()
     val workingRestActive = uiState.isRestTimerRunning &&
         uiState.restModalState != null &&
         uiState.restModalState?.kind != RestTimerKind.WARMUP
@@ -209,13 +212,14 @@ internal fun WorkoutV2Body(
     var pendingTechnique by remember {
         mutableStateOf<Pair<com.example.kpkn.domain.sessionassistant.SeriesTechnique, Pair<String, Int>>?>(null)
     }
-    var settledRelatorPhase by remember { mutableStateOf<RelatorPhase?>(null) }
     var warmupWeightDrafts by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
 
     LaunchedEffect(currentExercise?.id) {
         warmupWeightDrafts = emptyMap()
-        settledRelatorPhase = null
         recordActionHolder.action = null
+    }
+    LaunchedEffect(warmupWeightDrafts) {
+        viewModel.updateRelatorWarmupDrafts(warmupWeightDrafts)
     }
 
     DisposableEffect(Unit) {
@@ -239,25 +243,7 @@ internal fun WorkoutV2Body(
             uiState.readinessAdjustments["${ex.id}_${uiState.currentSetIdx}"]
         }
         val sessionTimeRemainingSeconds by viewModel.sessionTimeRemainingSeconds.collectAsStateWithLifecycle()
-        val relatorSnapshot = rememberLiveRelatorSnapshot(
-            uiState = uiState,
-            viewModel = viewModel,
-            currentExercise = currentExercise,
-            currentSet = currentSet,
-            visibleExercises = visibleExercises,
-            headerExerciseName = headerExerciseName,
-            catalogV2 = catalogV2,
-            gender = settings.userVitals.gender,
-            activeSide = activeSide,
-            showingPostExerciseCard = showingPostExerciseCard,
-            isMobilityActive = isMobilityActive,
-            isWarmupActive = isWarmupActive,
-            workingRestActive = workingRestActive,
-            settledRelatorPhase = settledRelatorPhase,
-            warmupWeightDrafts = warmupWeightDrafts,
-            sessionTimeRemainingSeconds = sessionTimeRemainingSeconds,
-        )
-        val relatorResolution = rememberLiveRelatorLine(relatorSnapshot)
+        val relatorResolution by viewModel.relatorResolution.collectAsStateWithLifecycle()
         val density = LocalDensity.current
         var headerHeightPx by remember { mutableIntStateOf(0) }
         val windowAdaptForRelator = LocalViewportAdapt.current
@@ -562,12 +548,17 @@ internal fun WorkoutV2Body(
                         val cardioDetails = currentExercise.cardioDetails
                         Box(modifier = Modifier.fillMaxSize()) {
                             if (cardioDetails != null) {
-                                CardioLiveCard(
+                                CardioTimerTickReader(viewModel) { tickRemaining, tickElapsed ->
+                                    CardioLiveCard(
                                     modifier = Modifier.fillMaxSize(),
                                     details = cardioDetails,
                                     completedSet = uiState.completedSets["${currentExercise.id}_0"],
                                     accentColor = sessionAccentColor,
-                                    executionState = uiState.cardioTimerState?.takeIf { it.exerciseId == currentExercise.id },
+                                    executionState = overlayCardioTimerTick(
+                                        uiState.cardioTimerState?.takeIf { it.exerciseId == currentExercise.id },
+                                        tickRemaining,
+                                        tickElapsed,
+                                    ),
                                     liveHeartRateBpm = cardioHealthState.heartRateBpm.takeIf { cardioHealthState.exerciseId == currentExercise.id },
                                     onStartTimer = {
                                         val isLibre = !cardioDetails.hasIntervals() && cardioDetails.targetDurationSeconds == null
@@ -589,7 +580,8 @@ internal fun WorkoutV2Body(
                                     onRecord = { duration, distance, heartRate ->
                                         viewModel.recordCardioSetUsingGps(duration, distance, heartRate)
                                     },
-                                )
+                                    )
+                                }
                             } else {
                                 Column(
                                     modifier = Modifier
@@ -693,8 +685,9 @@ internal fun WorkoutV2Body(
                         val list = mutableListOf<WorkoutSetSwipePage>()
                         // Continuous carousel: [MOV phase?][APR phase?][working…][REST?]
                         if (prepMobilityMembers.isNotEmpty()) {
-                            val first = prepMobilityMembers.first()
-                            val firstMobility = first.mobilitySeries.firstOrNull()
+                            val first = firstPrepMemberOrNull(prepMobilityMembers)
+                            val firstMobility = first?.mobilitySeries?.firstOrNull()
+                            if (first != null) {
                             list.add(
                                 WorkoutSetSwipePage(
                                     type = LivePageType.MOBILITY,
@@ -706,10 +699,12 @@ internal fun WorkoutV2Body(
                                     },
                                 ),
                             )
+                            }
                         }
                         if (prepWarmupMembers.isNotEmpty()) {
-                            val first = prepWarmupMembers.first()
-                            val firstWarmup = first.warmupSets.firstOrNull()
+                            val first = firstPrepMemberOrNull(prepWarmupMembers)
+                            val firstWarmup = first?.warmupSets?.firstOrNull()
+                            if (first != null) {
                             list.add(
                                 WorkoutSetSwipePage(
                                     type = LivePageType.WARMUP,
@@ -721,6 +716,7 @@ internal fun WorkoutV2Body(
                                     },
                                 ),
                             )
+                            }
                         }
                         if (pagerSupersetMembers.size > 1) {
                             val rounds = pagerSupersetMembers.maxOfOrNull { it.sets.size }?.coerceAtLeast(1) ?: 1
@@ -883,9 +879,14 @@ internal fun WorkoutV2Body(
                         val pagerState = rememberPagerState(initialPage = activeSwipePageIndex, pageCount = { totalSetPages })
                         val pagerSyncCoordinator = remember(pagerScopeKey) { WorkoutPagerSyncCoordinator() }
 
-                        SideEffect {
+                        LaunchedEffect(
+                            pagerState.settledPage,
+                            showingPostExerciseCard,
+                            workingRestActive,
+                            currentExercise.isCardio,
+                            setPagerPages,
+                        ) {
                             val settledPage = setPagerPages.getOrNull(pagerState.settledPage)
-                            settledRelatorPhase = settledPage?.type.toRelatorPhase()
                             recordFabHolder.visible = shouldShowWorkoutRecordFab(
                                 pageType = settledPage?.type,
                                 showingPostExerciseCard = showingPostExerciseCard,
@@ -1511,7 +1512,7 @@ internal fun WorkoutV2Body(
                             // Keep the side peeks symmetric, with a small extra
                             // breathing gap between cards (~20% over the old 12.dp).
                             pageSpacing = 14.dp,
-                            beyondViewportPageCount = 2,
+                            beyondViewportPageCount = 1,
                             key = { index ->
                                 val page = setPagerPages.getOrNull(index)
                                 val pageExerciseId = page?.exerciseId ?: currentExercise.id
@@ -1552,6 +1553,7 @@ internal fun WorkoutV2Body(
                         ) {
                         val pageExercise = pageSpec.exerciseId?.let { id -> visibleExercises.firstOrNull { it.id == id } } ?: currentExercise
                         val isActivePage = page == pagerState.settledPage
+                        val isSettledPage = isActivePage
                         Box(modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
                         Box(modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
                         when (pageSpec.type) {
@@ -1567,14 +1569,19 @@ internal fun WorkoutV2Body(
                                         )
                                     }
                                 }
-                                val firstMobilityEx = prepMobilityMembers.firstOrNull() ?: pageExercise
+                                val firstMobilityEx = firstPrepMemberOrNull(prepMobilityMembers) ?: pageExercise
                                 val globalTimerKey = WorkoutStepRules.mobilityGlobalTimerKey(firstMobilityEx.id)
                                 val globalTimer = uiState.mobilityTotalTimerState?.takeIf { it.stepKey == globalTimerKey }
                                 val totalMinutes = prepMobilityMembers.maxOfOrNull { it.mobilityConfig?.totalMinutes ?: 1 } ?: 1
+                                MobilityTimerTickReader(viewModel) { tickRemaining ->
                                 com.example.kpkn.screens.workout.components.MobilityPhaseLiveCard(
                                     items = mobilityItems,
                                     completedStepKeys = uiState.mobilityCompletedExerciseIds,
-                                    remainingSeconds = globalTimer?.remainingSeconds ?: (totalMinutes * 60),
+                                    remainingSeconds = if (globalTimer?.isRunning == true) {
+                                        tickRemaining
+                                    } else {
+                                        globalTimer?.remainingSeconds ?: (totalMinutes * 60)
+                                    },
                                     totalMinutes = totalMinutes,
                                     isTimerRunning = globalTimer?.isRunning == true,
                                     sessionAccentColor = sessionAccentColor,
@@ -1628,6 +1635,7 @@ internal fun WorkoutV2Body(
                                     isActivePage = isActivePage,
                                     modifier = Modifier.fillMaxWidth().fillMaxHeight(),
                                 )
+                                }
                             }
                             LivePageType.WARMUP -> {
                                 val showBadges = prepWarmupMembers.size > 1
@@ -1719,16 +1727,23 @@ internal fun WorkoutV2Body(
                             }
                             LivePageType.CARDIO -> {
                                 val completed = uiState.completedSets["${pageExercise.id}_0"]
+                                val cardioDetails = cardioDetailsOrNull(pageExercise)
+                                if (cardioDetails != null) {
+                                CardioTimerTickReader(viewModel) { tickRemaining, tickElapsed ->
                                 CardioLiveCard(
-                                    details = pageExercise.cardioDetails!!,
+                                    details = cardioDetails,
                                     completedSet = completed,
                                     accentColor = sessionAccentColor,
-                                    executionState = uiState.cardioTimerState?.takeIf { it.exerciseId == pageExercise.id },
+                                    executionState = overlayCardioTimerTick(
+                                        uiState.cardioTimerState?.takeIf { it.exerciseId == pageExercise.id },
+                                        tickRemaining,
+                                        tickElapsed,
+                                    ),
                                     liveHeartRateBpm = cardioHealthState.heartRateBpm.takeIf { cardioHealthState.exerciseId == pageExercise.id },
                                     onStartTimer = {
                                         viewModel.startCardioTimer(
                                             pageExercise.id,
-                                            pageExercise.cardioDetails?.effectiveDurationSeconds() ?: 1,
+                                            cardioDetails.effectiveDurationSeconds(),
                                         )
                                     },
                                     onPauseTimer = viewModel::pauseCardioTimer,
@@ -1746,6 +1761,8 @@ internal fun WorkoutV2Body(
                                     },
                                     modifier = Modifier.fillMaxSize(),
                                 )
+                                }
+                                }
                             }
                             LivePageType.REST -> {
                                 if (shouldRenderRestLiveCard(uiState.isRestMinimized)) {
@@ -1764,6 +1781,13 @@ internal fun WorkoutV2Body(
                                     onSkip = { viewModel.stopRestTimer() },
                                     onUseAdaptive = { viewModel.resolvePendingRestSuggestion(useAdaptive = true) },
                                     onExpand = { viewModel.toggleRestMinimized() },
+                                    isAdaptiveActive = isAdaptiveRestActive(restState, uiState.pendingRestSuggestion),
+                                    skipExerciseLabel = skipExerciseLabel,
+                                    onSkipExercise = onSkipExercise,
+                                    relatorText = relatorResolution.text,
+                                    relatorPhaseKey = relatorResolution.phaseKey,
+                                    relatorActions = relatorResolution.actions,
+                                    onRelatorAction = { viewModel.performRelatorAssist(it) },
                                     modifier = Modifier.fillMaxWidth().fillMaxHeight(),
                                 )
                                 }
@@ -1791,9 +1815,19 @@ internal fun WorkoutV2Body(
                                         )
                                     }
                                 }
-                                val activeWeightSuggestion = if (!isActivePage) {
-                                    null
-                                } else {
+                                val activeWeightSuggestion = remember(
+                                    isActivePage,
+                                    targetExercise.id,
+                                    activeSetIndex,
+                                    uiState.exerciseTags[targetExercise.id],
+                                    uiState.loadSuggestions,
+                                    uiState.completedSets,
+                                    uiState.currentAutoRegulation,
+                                    uiState.sleepQuality,
+                                ) {
+                                    if (!isActivePage) {
+                                        null
+                                    } else {
                                     val baseWeightSuggestion = viewModel.getWeightSuggestionWithAutoRegulation(
                                         targetExercise,
                                         activeSetIndex,
@@ -1819,6 +1853,7 @@ internal fun WorkoutV2Body(
                                             )
                                         } ?: suggestion
                                     }
+                                    }
                                 }
                                 val sessionCompletedSet = uiState.completedSets[
                                     if (targetIsUnilateral) {
@@ -1832,16 +1867,23 @@ internal fun WorkoutV2Body(
                                     }
                                 ]
                                 if (targetExercise.isCardio) {
+                                    val cardioDetails = cardioDetailsOrNull(targetExercise)
+                                    if (cardioDetails != null) {
+                                    CardioTimerTickReader(viewModel) { tickRemaining, tickElapsed ->
                                     CardioLiveCard(
-                                        details = targetExercise.cardioDetails!!,
+                                        details = cardioDetails,
                                         completedSet = sessionCompletedSet,
                                         accentColor = sessionAccentColor,
-                                        executionState = uiState.cardioTimerState?.takeIf { it.exerciseId == targetExercise.id },
+                                        executionState = overlayCardioTimerTick(
+                                            uiState.cardioTimerState?.takeIf { it.exerciseId == targetExercise.id },
+                                            tickRemaining,
+                                            tickElapsed,
+                                        ),
                                         liveHeartRateBpm = cardioHealthState.heartRateBpm.takeIf { cardioHealthState.exerciseId == targetExercise.id },
                                         onStartTimer = {
                                             viewModel.startCardioTimer(
                                                 targetExercise.id,
-                                                targetExercise.cardioDetails?.effectiveDurationSeconds() ?: 1,
+                                                cardioDetails.effectiveDurationSeconds(),
                                             )
                                         },
                                         onPauseTimer = viewModel::pauseCardioTimer,
@@ -1859,6 +1901,8 @@ internal fun WorkoutV2Body(
                                         },
                                         modifier = Modifier.fillMaxSize(),
                                     )
+                                    }
+                                    }
                                 } else {
                                     Box(
                                         modifier = Modifier
@@ -1912,6 +1956,7 @@ internal fun WorkoutV2Body(
                                     persistedLoadModeByExercise = uiState.persistedLoadModeByExercise,
                                     amrapCalibrationMessage = uiState.amrapCalibrationMessage,
                                     isActivePage = isActivePage,
+                                    isSettledPage = isSettledPage,
                                     initialDraft = viewModel.getSetDraft(targetExercise.id, activeSetIndex, cardSide),
                                     onDraftChange = { draft, side ->
                                         viewModel.updateSetDraft(targetExercise.id, activeSetIndex, side, draft)
@@ -2026,6 +2071,14 @@ internal fun WorkoutV2Body(
                                     onOmitSet = {
                                         viewModel.omitSet(targetExercise.id, activeSetIndex)
                                     },
+                                    mediaCapture = viewModel.mediaCapture,
+                                    openMediaFace = isSettledPage && openMediaFaceExerciseId == targetExercise.id,
+                                    onMediaFaceConsumed = { viewModel.mediaCapture.consumeOpenMediaFace() },
+                                    sessionMilestones = uiState.sessionMilestones,
+                                    lastHomologatedResultV3 = sessionCompletedSet?.homologatedResultV3
+                                        ?: uiState.lastHomologatedResultV3?.takeIf {
+                                            uiState.setJustLoggedKey?.startsWith("${targetExercise.id}_$activeSetIndex") == true
+                                        },
                                         )
                                     }
                                 }
@@ -2062,7 +2115,7 @@ internal fun WorkoutV2Body(
             } // BoxWithConstraints body
         } // header + body Column
 
-        if (!relatorResolution.text.isNullOrBlank() && headerHeightPx > 0) {
+        if (!relatorResolution.text.isNullOrBlank() && headerHeightPx > 0 && !workingRestActive) {
             WorkoutLiveRelatorLine(
                 text = relatorResolution.text,
                 phaseKey = relatorResolution.phaseKey,
@@ -2182,7 +2235,8 @@ internal fun WorkoutV2Body(
                 )
             }
         }
-        if (!showingPostExerciseCard && !uiState.imbalanceNotice.isNullOrBlank()) {
+        if (!showingPostExerciseCard) {
+        imbalanceNoticeText(uiState.imbalanceNotice)?.let { notice ->
             Surface(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -2193,7 +2247,7 @@ internal fun WorkoutV2Body(
                 color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.72f),
             ) {
                 Text(
-                    text = uiState.imbalanceNotice!!,
+                    text = notice,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onErrorContainer,
@@ -2201,19 +2255,12 @@ internal fun WorkoutV2Body(
                 )
             }
         }
-    } // outer Box
+        }
+    }
 }
 
 
 internal enum class LivePageType { CARDIO, NORMAL, WARMUP, MOBILITY, REST }
-
-private fun LivePageType?.toRelatorPhase(): RelatorPhase = when (this) {
-    LivePageType.MOBILITY -> RelatorPhase.MOBILITY
-    LivePageType.WARMUP -> RelatorPhase.WARMUP
-    LivePageType.REST -> RelatorPhase.REST
-    LivePageType.NORMAL -> RelatorPhase.WORKING
-    LivePageType.CARDIO, null -> RelatorPhase.HIDDEN
-}
 
 internal data class WorkoutSetSwipePage(
     val type: LivePageType,

@@ -86,7 +86,8 @@ class SetExecutionCardUiTest {
         }
 
         composeRule.onNodeWithText("Carga sugerida").assertDoesNotExist()
-        composeRule.onNodeWithText("Sugerida").assertExists()
+        composeRule.onNodeWithText("Sugerida").assertDoesNotExist()
+        composeRule.onNodeWithText("82,5").assertExists()
     }
 
     @Test

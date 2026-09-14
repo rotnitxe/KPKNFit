@@ -167,6 +167,36 @@ internal object WorkoutLiveRelatorCatalog {
                     "Esa serie ya no se puede omitir.",
                     "Omitir no aplicó. Seguimos con lo que toca.",
                 )
+                RelatorAssistActionKind.APPLY_SUGGESTED_LOAD,
+                RelatorAssistActionKind.ADJUST_LOAD,
+                -> listOf(
+                    "No pude cambiar la carga ahora.",
+                    "Ese ajuste de kilos no aplicó.",
+                    "La carga se quedó como estaba.",
+                )
+                RelatorAssistActionKind.START_REST,
+                RelatorAssistActionKind.EXTEND_REST,
+                -> listOf(
+                    "No pude tocar el descanso ahora.",
+                    "El timer no aceptó ese cambio.",
+                    "Descanso igual. Seguimos.",
+                )
+                RelatorAssistActionKind.SKIP_REMAINING_WARMUPS -> listOf(
+                    "No pude saltar las aprox ahora.",
+                    "El calentamiento no se pudo recortar.",
+                    "Aprox igual. Sigue la rampa.",
+                )
+                RelatorAssistActionKind.OPEN_REPLACE,
+                RelatorAssistActionKind.OPEN_READINESS,
+                RelatorAssistActionKind.OPEN_TECHNIQUE,
+                RelatorAssistActionKind.OPEN_HISTORY,
+                RelatorAssistActionKind.CAPTURE_MEDIA,
+                RelatorAssistActionKind.OPEN_ALBUM,
+                -> listOf(
+                    "Esa pantalla no se abrió ahora.",
+                    "No pude abrir esa vista. Reintenta.",
+                    "El atajo no aplicó. Seguimos aquí.",
+                )
             }
         } else {
             when (ack.kind) {
@@ -214,6 +244,58 @@ internal object WorkoutLiveRelatorCatalog {
                     "Añado esa movilidad a {ex}. Un momento para la articulación y seguimos.",
                     "Movilidad añadida a {ex}. Un momento y seguimos.",
                     "Sumé esa movilidad. {ex} queda más protegido.",
+                )
+                RelatorAssistActionKind.APPLY_SUGGESTED_LOAD -> listOf(
+                    "Carga sugerida puesta en {ex}.",
+                    "Aplico esos kilos en {ex}.",
+                    "Dejo la sugerencia en {ex}.",
+                )
+                RelatorAssistActionKind.ADJUST_LOAD -> listOf(
+                    "Ajusto la carga de {ex}.",
+                    "Recorto kilos en {ex} según readiness.",
+                    "Cambio el peso de {ex}.",
+                )
+                RelatorAssistActionKind.START_REST -> listOf(
+                    "Arranco el descanso.",
+                    "Timer de recobro en marcha.",
+                    "Pausa. Deja que corra el timer.",
+                )
+                RelatorAssistActionKind.EXTEND_REST -> listOf(
+                    "Alargo el descanso un poco.",
+                    "Más recobro. El timer suma.",
+                    "Extra de pausa puesto.",
+                )
+                RelatorAssistActionKind.SKIP_REMAINING_WARMUPS -> listOf(
+                    "Salto las aprox que quedan.",
+                    "Calentamiento recortado. A trabajo.",
+                    "Aprox fuera. Entras a {ex}.",
+                )
+                RelatorAssistActionKind.OPEN_REPLACE -> listOf(
+                    "Abro sustitución de {ex}.",
+                    "Cambio de ejercicio a la vista.",
+                    "Sustituye {ex} si el cuerpo pide otra cosa.",
+                )
+                RelatorAssistActionKind.OPEN_READINESS -> listOf(
+                    "Abro readiness.",
+                    "Mira el veredicto de hoy.",
+                    "Readiness a la vista.",
+                )
+                RelatorAssistActionKind.OPEN_TECHNIQUE -> listOf(
+                    "Abro técnica de {ex}.",
+                    "Cues de {ex} a la vista.",
+                    "Revisa el gesto de {ex}.",
+                )
+                RelatorAssistActionKind.OPEN_HISTORY -> listOf(
+                    "Abro historial de {ex}.",
+                    "Las marcas previas de {ex}.",
+                    "Historial a la vista.",
+                )
+                RelatorAssistActionKind.CAPTURE_MEDIA,
+                RelatorAssistActionKind.OPEN_ALBUM,
+                -> listOf(
+                    "Eso queda para el álbum (F3).",
+                    "Medios: el atajo queda listo para F3.",
+                    "Foto/álbum: F3 lo cablea.",
                 )
             }
         }

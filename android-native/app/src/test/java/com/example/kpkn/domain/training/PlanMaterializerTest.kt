@@ -173,4 +173,56 @@ class PlanMaterializerTest {
         assertEquals(tm * 0.90, monday.sets.first().weight ?: -1.0, 0.001)
         assertEquals(tm * 0.72, wednesday.sets.first().weight ?: -1.0, 0.001)
     }
+
+    @Test
+    fun materialize_persists_optional_slot_role_top_set_and_load_basis() {
+        val recipe = TrainingPlanRecipe(
+            id = "opt-fields",
+            weeks = listOf(
+                weekRecipe(
+                    1,
+                    0,
+                    "Bloque",
+                    BlockGoal.INTENSIFICATION,
+                    listOf(
+                        com.example.kpkn.data.protocols.DayRecipe(
+                            label = "Dia",
+                            slots = listOf(
+                                slot(
+                                    "t1",
+                                    SlotRole.T1_MAIN,
+                                    CatalogIds.SQ_LOW,
+                                    listOf(
+                                        com.example.kpkn.data.protocols.SetRecipe(
+                                            reps = 5,
+                                            percent = 75.0,
+                                            isTopSet = true,
+                                            loadBasis = LoadBasis.PERCENT_TM,
+                                        ),
+                                    ),
+                                    180,
+                                    LiftSlot.SQUAT,
+                                    technique = com.example.kpkn.data.protocols.TechniqueModifier.PAUSE_2S,
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val program = PlanMaterializer.materialize(
+            Program(id = "p", name = "Opt"),
+            recipe,
+            CatalogCompositionTestSupport.metadata,
+            SeqIds(),
+            profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0),
+            strict = false,
+        )
+        val exercise = program.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
+            .sessions.first().exercises.first()
+        assertEquals(SlotRole.T1_MAIN, exercise.slotRole)
+        assertEquals(com.example.kpkn.data.protocols.TechniqueModifier.PAUSE_2S, exercise.techniqueModifier)
+        assertTrue(exercise.sets.first().isTopSet)
+        assertEquals(LoadBasis.PERCENT_TM, exercise.sets.first().loadBasis)
+    }
 }

@@ -37,9 +37,12 @@ android {
         rootProject.file("keystore.properties").takeIf { it.isFile }
             ?.inputStream()?.use { load(it) }
     }
+    val releaseStoreFile = releaseSigningProperties.getProperty("storeFile")
+        ?.let { rootProject.file(it) }
+        ?.takeIf { it.isFile }
     signingConfigs {
         create("release") {
-            storeFile = releaseSigningProperties.getProperty("storeFile")?.let { rootProject.file(it) }
+            storeFile = releaseStoreFile
             storePassword = releaseSigningProperties.getProperty("storePassword")
             keyAlias = releaseSigningProperties.getProperty("keyAlias")
             keyPassword = releaseSigningProperties.getProperty("keyPassword")
@@ -54,7 +57,9 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("release")
+            if (releaseStoreFile != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -66,8 +71,11 @@ android {
             }
         }
         debug {
-            // El debug también usa la firma de release para evitar conflictos de instalación
-            signingConfig = signingConfigs.getByName("release")
+            // Misma firma que release cuando hay keystore local, para no pelear
+            // con una APK ya instalada. Sin keystore.properties, firma debug de Android.
+            if (releaseStoreFile != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
     
@@ -94,9 +102,13 @@ android {
         }
     }
 
-    // Esquemas Room exportados como assets de androidTest para MigrationTestHelper
+    // Esquemas Room exportados como assets para MigrationTestHelper (androidTest + JVM)
     sourceSets {
         getByName("androidTest").assets.srcDir("$projectDir/schemas")
+        getByName("test").assets.srcDir("$projectDir/schemas")
+        maybeCreate("testBaseDebug").assets.srcDir("$projectDir/schemas")
+        maybeCreate("testBase").assets.srcDir("$projectDir/schemas")
+        maybeCreate("testDebug").assets.srcDir("$projectDir/schemas")
     }
 }
 
@@ -144,12 +156,17 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:1.4.2")
     implementation("androidx.camera:camera-view:1.4.2")
     implementation("androidx.camera:camera-video:1.4.2")
+    implementation("androidx.media3:media3-exoplayer:1.5.1")
+    implementation("androidx.media3:media3-ui:1.5.1")
+    // Bundled base pose model; applies to both healthConnect flavors (base + health).
+    implementation("com.google.mlkit:pose-detection:18.0.0-beta5")
     implementation(libs.vosk.android)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
     testImplementation("org.robolectric:robolectric:4.12.2")
     testImplementation("androidx.test:core:1.6.1")
+    testImplementation(libs.androidx.room.testing)
     // Health Connect dependency - only for health flavor
     "healthImplementation"(libs.androidx.health.connect.client)
     

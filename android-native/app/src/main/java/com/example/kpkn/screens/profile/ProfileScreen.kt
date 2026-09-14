@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Settings
@@ -190,6 +191,7 @@ fun ProfileScreen(
     onNavigateToSettings: () -> Unit = {},
     onOpenCompetition: (String) -> Unit = {},
     onCreateCompetition: () -> Unit = {},
+    onOpenAlbums: () -> Unit = {},
     viewModel: ProfileViewModel = viewModel { ProfileViewModel() },
 ) {
     val context = LocalContext.current
@@ -290,6 +292,7 @@ fun ProfileScreen(
             }
 
             StarredExercisesCard(state.starredExercises)
+            ProfileAlbumsCard(onOpenAlbums = onOpenAlbums)
             ProfileCompetitionsArchive(
                 onOpenCompetition = onOpenCompetition,
                 onCreateCompetition = onCreateCompetition,
@@ -456,6 +459,20 @@ private fun StarredExercisesCard(exercises: List<StarredExerciseProgress>) {
                 }
                 if (index < exercises.lastIndex) Spacer(Modifier.height(14.dp))
             }
+        }
+    }
+}
+
+@Composable
+private fun ProfileAlbumsCard(onOpenAlbums: () -> Unit) {
+    ProfileCard(title = "Álbumes de entrenamiento", icon = Icons.Default.PhotoLibrary) {
+        Text(
+            "Fotos y vídeos de tus series, agrupados por sesión.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        TextButton(onClick = onOpenAlbums, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
+            Text("Ver álbumes")
         }
     }
 }

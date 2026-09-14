@@ -2164,6 +2164,31 @@ private fun tagShowsMatchWarning(tag: ResolvedTag): Boolean {
 }
 
 @Composable
+private fun ClarificationChoiceChip(
+    label: String,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
+    val alpha = if (enabled) 1f else 0.4f
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = Color.White.copy(alpha = 0.10f),
+        modifier = Modifier
+            .alpha(alpha)
+            .clickable(enabled = enabled, onClick = onClick),
+    ) {
+        Text(
+            text = label,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
 private fun TagCard(
     tag: ResolvedTag,
     nutritionRepo: NutritionRepository,
@@ -2193,9 +2218,11 @@ private fun TagCard(
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (tag.isExcluded) MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.4f)
-            else if (tag.isResolved) MaterialTheme.colorScheme.surfaceContainer
-            else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
+            containerColor = if (tag.isExcluded) {
+                MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.4f)
+            } else {
+                MaterialTheme.colorScheme.surfaceContainer
+            },
         ),
     ) {
         Column(modifier = Modifier.padding(12.dp).then(
@@ -2253,58 +2280,124 @@ private fun TagCard(
 
             if (showClarification) {
                 tag.interpretationV2?.pendingQuestions?.firstOrNull()?.let { question ->
-                    Surface(color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(12.dp)) {
-                        Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(when (question) {
-                                is ClarificationRequest.Identity -> when (question.requestId) {
-                                    "composition" -> "¿Qué llevaba la ensalada?"
-                                    "tortilla_composition" -> "¿De qué era la tortilla?"
-                                    "cut" -> "¿Qué corte comiste?"
-                                    else -> "¿Qué alimento era?"
-                                }
-                                is ClarificationRequest.WeightState -> if (tag.clarificationKind == CookingStateResolver.ClarificationKind.DRY_VS_COOKED) "¿La cantidad era seca o ya cocida?" else "¿La cantidad era en crudo o cocida?"
-                                is ClarificationRequest.Oil -> "¿Cuánto aceite tenía?"
-                                is ClarificationRequest.Portion -> if (question.requestId == "package_portion") "¿Consumiste todo el envase o una porción?" else "¿Qué porción fue?"
-                            }, fontWeight = FontWeight.Bold)
-                            if (tag.unresolvedDeclaredAmount) {
-                                Text("No pudimos recuperar la medida que escribiste. Revisa la cantidad antes de guardar.")
-                                TextButton(onClick = { if (!tag.isExpanded) onToggleExpanded() }) { Text("Revisar cantidad") }
-                            }
-                            when (question) {
-                                is ClarificationRequest.Identity -> {
+                    val prompt = foodClarificationPrompt(
+                        question = question,
+                        matchedName = tag.interpretationV2?.canonicalIdentity ?: tag.foodItem?.name,
+                        unresolvedDeclaredAmount = tag.unresolvedDeclaredAmount,
+                        dryVsCooked = tag.clarificationKind == CookingStateResolver.ClarificationKind.DRY_VS_COOKED,
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.12f), thickness = 1.dp)
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            prompt.title,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        prompt.detail?.let { detail ->
+                            Text(
+                                detail,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        prompt.reviewAmountLabel?.let { label ->
+                            ClarificationChoiceChip(label) { if (!tag.isExpanded) onToggleExpanded() }
+                        }
+                        when (question) {
+                            is ClarificationRequest.Identity -> {
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                                ) {
                                     question.candidateIds.zip(question.candidateLabels).take(4).forEach { (id, label) ->
-                                        OutlinedButton(onClick = {
+                                        ClarificationChoiceChip(label) {
                                             when {
                                                 id == NutritionInterpretationBridge.VEGETABLE_COMPOSITION_ID -> onCompositionConfirmed()
                                                 question.requestId == "cut" -> onCutClarification(id)
-                                                else -> ((tag.reviewCandidates + foodDatabase).firstOrNull { it.id == id } ?: findStaticFoodById(id))?.let { onResolve(it, null) }
-                                            }
-                                        }, modifier = Modifier.fillMaxWidth()) { Text(label) }
-                                    }
-                                    if (question.requestId == "tortilla_composition") {
-                                        listOf("maíz", "huevo", "papas").forEach { composition ->
-                                            OutlinedButton(onClick = { onDeclaredComposition(composition) }, modifier = Modifier.fillMaxWidth()) {
-                                                Text("De $composition")
+                                                else -> ((tag.reviewCandidates + foodDatabase).firstOrNull { it.id == id }
+                                                    ?: findStaticFoodById(id))?.let { onResolve(it, null) }
                                             }
                                         }
                                     }
-                                    TextButton(onClick = { showMatchCorrection = true; if (!tag.isExpanded) onToggleExpanded() }) { Text(if (question.requestId == "composition") "Elegir otro tipo de ensalada" else "Elegir otro alimento") }
-                                }
-                                is ClarificationRequest.WeightState -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    OutlinedButton(onClick = { onCookingClarification(false) }, modifier = Modifier.weight(1f)) { Text(if (tag.clarificationKind == CookingStateResolver.ClarificationKind.DRY_VS_COOKED) "Seco" else "Crudo") }
-                                    OutlinedButton(onClick = { onCookingClarification(true) }, modifier = Modifier.weight(1f)) { Text("Cocido") }
-                                }
-                                is ClarificationRequest.Oil -> question.options.forEach { option ->
-                                    TextButton(onClick = { onOilLevelChange(option) }) { Text(option.replaceFirstChar { it.uppercase() }) }
-                                }
-                                is ClarificationRequest.Portion -> if (question.options.isNotEmpty()) {
-                                    question.options.forEach { option ->
-                                        OutlinedButton(onClick = { onPortionOption(option) }, modifier = Modifier.fillMaxWidth()) { Text(option.label) }
+                                    if (question.requestId == "tortilla_composition") {
+                                        listOf("maíz", "huevo", "papas").forEach { composition ->
+                                            ClarificationChoiceChip("De $composition") {
+                                                onDeclaredComposition(composition)
+                                            }
+                                        }
                                     }
-                                } else Row { PortionPreset.entries.take(3).forEach { preset -> TextButton(onClick = { onPortionChange(preset) }) { Text(preset.name) } } }
+                                    prompt.pickOtherLabel?.let { label ->
+                                        ClarificationChoiceChip(label) {
+                                            showMatchCorrection = true
+                                            if (!tag.isExpanded) onToggleExpanded()
+                                        }
+                                    }
+                                    ClarificationChoiceChip(
+                                        prompt.unsureLabel,
+                                        enabled = logged != null && !tag.unresolvedDeclaredAmount,
+                                        onClick = onUnsure,
+                                    )
+                                }
                             }
-                            TextButton(onClick = onUnsure, enabled = logged != null && !tag.unresolvedDeclaredAmount, modifier = Modifier.fillMaxWidth()) {
-                                Text("No estoy seguro; usar estimación")
+                            is ClarificationRequest.WeightState -> {
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                                ) {
+                                    ClarificationChoiceChip(
+                                        if (tag.clarificationKind == CookingStateResolver.ClarificationKind.DRY_VS_COOKED) "Seco" else "Crudo",
+                                    ) { onCookingClarification(false) }
+                                    ClarificationChoiceChip("Cocido") { onCookingClarification(true) }
+                                    ClarificationChoiceChip(
+                                        prompt.unsureLabel,
+                                        enabled = logged != null && !tag.unresolvedDeclaredAmount,
+                                        onClick = onUnsure,
+                                    )
+                                }
+                            }
+                            is ClarificationRequest.Oil -> {
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                                ) {
+                                    question.options.forEach { option ->
+                                        ClarificationChoiceChip(option.replaceFirstChar { it.uppercase() }) {
+                                            onOilLevelChange(option)
+                                        }
+                                    }
+                                    ClarificationChoiceChip(
+                                        prompt.unsureLabel,
+                                        enabled = logged != null && !tag.unresolvedDeclaredAmount,
+                                        onClick = onUnsure,
+                                    )
+                                }
+                            }
+                            is ClarificationRequest.Portion -> {
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                                ) {
+                                    if (question.options.isNotEmpty()) {
+                                        question.options.forEach { option ->
+                                            ClarificationChoiceChip(option.label) { onPortionOption(option) }
+                                        }
+                                    } else {
+                                        PortionPreset.entries.take(3).forEach { preset ->
+                                            ClarificationChoiceChip(preset.name) { onPortionChange(preset) }
+                                        }
+                                    }
+                                    ClarificationChoiceChip(
+                                        prompt.unsureLabel,
+                                        enabled = logged != null && !tag.unresolvedDeclaredAmount,
+                                        onClick = onUnsure,
+                                    )
+                                }
                             }
                         }
                     }

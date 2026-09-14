@@ -165,6 +165,7 @@ import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.VoiceCaptureModeDialog
 import com.example.kpkn.screens.workout.components.WorkoutRoadmapBar
 import com.example.kpkn.screens.workout.components.WorkoutSessionCockpit
+import com.example.kpkn.screens.workout.components.WorkoutSessionAlbumSheet
 import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import com.example.kpkn.ui.components.kpknGlassOrFallback
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
@@ -259,6 +260,11 @@ fun WorkoutScreen(
         onResult = viewModel::completeVoiceDiagnosticExport,
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val sessionMedia by viewModel.mediaCapture.sessionMedia.collectAsStateWithLifecycle()
+    val showSessionAlbumSheet by viewModel.mediaCapture.showSessionAlbumSheet.collectAsStateWithLifecycle()
+    LaunchedEffect(uiState.session?.id, uiState.startTimeMs) {
+        viewModel.syncLegacySessionPhotosIntoMedia()
+    }
     val onToggleVoice: () -> Unit = {
         if (uiState.voiceSessionEnabled) {
             viewModel.toggleVoiceSession()
@@ -333,7 +339,17 @@ fun WorkoutScreen(
             unresolvedDiscomfortIdsFrom(uiState.postExerciseFeedbackByExerciseId.values)
         }
     }
-    LaunchedEffect(augeSnapshot.batteries, perMuscle, augeSnapshot.articular, unresolvedDiscomfortIds) {
+    LaunchedEffect(
+        augeSnapshot.batteries,
+        perMuscle,
+        augeSnapshot.articular,
+        unresolvedDiscomfortIds,
+        uiState.session?.id,
+        todayWellbeing,
+        augeSnapshot.readiness,
+        augeSnapshot.isLoading,
+    ) {
+        viewModel.bindDailyRelatorSignals(augeSnapshot, todayWellbeing)
         if (augeSnapshot.isLoading) return@LaunchedEffect
         val state = uiState
         if (state.session != null && (state.exerciseReadinessMap.isEmpty() || augeSnapshot.batteries.muscular > 0)) {
@@ -528,15 +544,52 @@ fun WorkoutScreen(
         } else {
             currentExercise?.sets?.lastIndex?.let { uiState.currentSetIdx < it } == true
         }
+    val skipExerciseLabel = if (isInsideSupersetRound && !isLastExerciseInSupersetRound) {
+        "Saltar ronda"
+    } else {
+        currentExercise?.let(::displayWorkoutExerciseName)?.let { exerciseName ->
+            "Saltar series restantes de $exerciseName e ir al siguiente ejercicio"
+        }
+    }
+    val onSkipExerciseFromRest: (() -> Unit)? = if (canSkipCurrentExerciseOnRestFinish) {
+        if (isInsideSupersetRound && !isLastExerciseInSupersetRound) {
+            { viewModel.skipCurrentSupersetRound() }
+        } else {
+            { viewModel.deferSkipRemainingCurrentExercise() }
+        }
+    } else {
+        null
+    }
     val activeTag = currentExercise?.let { uiState.exerciseTags[it.id] }
     val activeTagDisplay = activeTag?.let { tag ->
         workoutTagDisplayTitle(tag, currentExercise?.let { viewModel.activeContextProfile(it.id)?.machineBrand })
     }
-    val ghostSet = currentExercise?.let {
-        viewModel.getGhostForSet(it.id, uiState.currentSetIdx, it.exerciseDbId ?: it.exerciseId, activeTag)
+    val ghostSet = remember(
+        currentExercise?.id,
+        currentExercise?.exerciseDbId,
+        currentExercise?.exerciseId,
+        uiState.currentSetIdx,
+        activeTag,
+    ) {
+        currentExercise?.let {
+            viewModel.getGhostForSet(it.id, uiState.currentSetIdx, it.exerciseDbId ?: it.exerciseId, activeTag)
+        }
     }
-    val weightSuggestion = currentExercise?.let {
-        viewModel.getWeightSuggestionWithAutoRegulation(it, uiState.currentSetIdx, activeTag)
+    val weightSuggestion = remember(
+        currentExercise?.id,
+        uiState.currentSetIdx,
+        activeTag,
+        uiState.loadSuggestions,
+        uiState.completedSets,
+        uiState.currentAutoRegulation,
+        uiState.sleepQuality,
+        uiState.readinessNeuralOverride,
+        uiState.readinessMuscularOverride,
+        uiState.readinessSpinalOverride,
+    ) {
+        currentExercise?.let {
+            viewModel.getWeightSuggestionWithAutoRegulation(it, uiState.currentSetIdx, activeTag)
+        }
     }
 
     val recordActionHolder = remember { RecordActionHolder() }
@@ -752,7 +805,7 @@ fun WorkoutScreen(
     }
 
     LaunchedEffect(restTimerRemaining, uiState.isRestTimerRunning) {
-        if (uiState.isRestTimerRunning && restTimerRemaining <= 0) {
+        if (RestStuckAtZeroPolicy.shouldComplete(uiState.isRestTimerRunning, restTimerRemaining)) {
             viewModel.completeRestIfStuckAtZero()
         }
     }
@@ -1016,6 +1069,8 @@ fun WorkoutScreen(
             },
             requestLiveTagList = structureSheets.requestLiveTagList,
             onRequestLiveTagListConsumed = { structureSheets.requestLiveTagList = false },
+            skipExerciseLabel = skipExerciseLabel,
+            onSkipExercise = onSkipExerciseFromRest,
             )
             if (roadmapSelecting) {
                 Box(
@@ -1202,16 +1257,19 @@ fun WorkoutScreen(
                 sessionNotes = uiState.sessionNotes,
                 sessionSavedNotes = uiState.sessionSavedNotes,
                 sessionPhotos = uiState.sessionPhotos,
+                sessionMedia = sessionMedia,
                 sessionChecklist = uiState.sessionChecklist,
                 onSessionNotesChange = { viewModel.setSessionNotes(it) },
                 onSaveSessionNote = { viewModel.saveSessionNote(it) },
                 onAddSessionPhoto = { viewModel.addSessionPhoto(it) },
                 onRemoveSessionPhoto = { viewModel.removeSessionPhoto(it) },
+                onRemoveSessionMedia = { viewModel.removeSessionMedia(it) },
                 onAddChecklistItem = { viewModel.addSessionChecklistItem(it) },
                 onToggleChecklistItem = { viewModel.toggleSessionChecklistItem(it) },
                 onRemoveChecklistItem = { viewModel.removeSessionChecklistItem(it) },
                 sessionAccentColor = sessionAccentColor,
                 bodyWeight = viewModel.currentBodyWeight(),
+                poseOverlayEnabled = uiState.featureFlags.poseTrajectoryEnabled,
             )
         }
     }
@@ -1221,6 +1279,49 @@ fun WorkoutScreen(
             structureSheets.editSheetExerciseId = exId
             viewModel.clearPendingEditSheetExerciseId()
         }
+    }
+
+    val relatorUiHook by viewModel.relatorUiHook.collectAsStateWithLifecycle()
+    LaunchedEffect(relatorUiHook) {
+        val hook = relatorUiHook ?: return@LaunchedEffect
+        when (hook.kind) {
+            RelatorAssistActionKind.OPEN_REPLACE -> {
+                val exercise = visibleExercises.firstOrNull { it.id == hook.exerciseId }
+                    ?: currentExercise
+                val id = exercise?.id ?: hook.exerciseId
+                if (id.isNotBlank()) {
+                    structureSheets.replaceTargetExerciseId = id
+                    structureSheets.replaceSearchQuery =
+                        if (exercise?.catalogDefinitionId == null) exercise?.name.orEmpty() else ""
+                    structureSheets.showReplaceExercisePicker = true
+                }
+            }
+            RelatorAssistActionKind.OPEN_READINESS -> {
+                readinessSheetDismissed = false
+            }
+            RelatorAssistActionKind.OPEN_TECHNIQUE -> {
+                if (hook.exerciseId.isNotBlank()) {
+                    structureSheets.editSheetExerciseId = hook.exerciseId
+                }
+            }
+            RelatorAssistActionKind.CAPTURE_MEDIA -> {
+                viewModel.mediaCapture.requestOpenMediaFace(hook.exerciseId)
+            }
+            RelatorAssistActionKind.OPEN_ALBUM -> {
+                viewModel.mediaCapture.openAlbumSheet()
+            }
+            else -> Unit
+        }
+        viewModel.consumeRelatorUiHook()
+    }
+
+    if (showSessionAlbumSheet) {
+        WorkoutSessionAlbumSheet(
+            media = sessionMedia,
+            onDismiss = { viewModel.mediaCapture.dismissAlbumSheet() },
+            onDelete = { viewModel.removeSessionMedia(it) },
+            poseOverlayEnabled = uiState.featureFlags.poseTrajectoryEnabled,
+        )
     }
 
     }
@@ -1269,22 +1370,8 @@ fun WorkoutScreen(
             lastCompletedSets = currentRoundCompletedSets,
             sessionAccentColor = sessionAccentColor,
             hazeState = overlayHazeState,
-            skipExerciseLabel = if (isInsideSupersetRound && !isLastExerciseInSupersetRound) {
-                "Saltar ronda"
-            } else {
-                currentExercise?.let(::displayWorkoutExerciseName)?.let { exerciseName ->
-                    "Saltar series restantes de $exerciseName e ir al siguiente ejercicio"
-                }
-            },
-            onSkipExercise = if (canSkipCurrentExerciseOnRestFinish) {
-                if (isInsideSupersetRound && !isLastExerciseInSupersetRound) {
-                    { viewModel.skipCurrentSupersetRound() }
-                } else {
-                    { viewModel.deferSkipRemainingCurrentExercise() }
-                }
-            } else {
-                null
-            },
+            skipExerciseLabel = skipExerciseLabel,
+            onSkipExercise = onSkipExerciseFromRest,
             postExerciseFeedbackContent = if (isShowingFeedback) {
                 {
                     WorkoutPostExerciseFeedbackContent(

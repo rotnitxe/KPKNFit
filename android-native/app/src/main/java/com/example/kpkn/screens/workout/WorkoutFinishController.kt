@@ -62,6 +62,8 @@ class WorkoutFinishController(
     /** Test seam; production supplies WorkoutRecordingGate.awaitIdle. */
     private val awaitRecordingIdle: suspend (Long) -> Boolean = { true },
     private val persistOngoing: suspend () -> Unit = {},
+    private val workoutMediaRepository: com.example.kpkn.data.repository.WorkoutMediaRepository? = null,
+    private val mediaSessionKey: () -> String = { "" },
 ) {
     fun finish(
         notes: String,
@@ -390,6 +392,18 @@ class WorkoutFinishController(
                     volumeAdvanceHandled = state.volumeAdvanceHandled,
                 )
                 repository.finalizeWorkout(log, clearOngoing = !keepOngoingForVolume)
+                runCatching {
+                    val key = mediaSessionKey()
+                    val mediaRepo = workoutMediaRepository
+                    if (mediaRepo != null && key.isNotBlank()) {
+                        mediaRepo.attachToLog(key, log.id)
+                        mediaRepo.markPrFlags(
+                            sessionKey = key,
+                            completedSets = state.completedSets,
+                            milestones = log.sessionMilestones,
+                        )
+                    }
+                }
                 KpknDiagnosticLogger.event(
                     namespace = "auge",
                     name = "post_persisted_auto",

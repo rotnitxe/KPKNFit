@@ -74,6 +74,7 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.SessionChecklistItem
 import com.example.kpkn.data.models.SessionEnergySummary
 import com.example.kpkn.data.models.SessionMilestone
+import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.screens.workout.WorkoutRmCalcContent
 import com.example.kpkn.screens.workout.sessionCalorieStatus
@@ -100,17 +101,20 @@ fun WorkoutSessionCockpit(
     sessionNotes: String,
     sessionSavedNotes: List<com.example.kpkn.data.models.SessionSavedNote> = emptyList(),
     sessionPhotos: List<String>,
+    sessionMedia: List<WorkoutMedia> = emptyList(),
     sessionChecklist: List<SessionChecklistItem>,
     onSessionNotesChange: (String) -> Unit,
     onSaveSessionNote: (String) -> Unit = {},
     onAddSessionPhoto: (Uri) -> Unit,
     onRemoveSessionPhoto: (String) -> Unit,
+    onRemoveSessionMedia: (String) -> Unit = {},
     onAddChecklistItem: (String) -> Unit,
     onToggleChecklistItem: (String) -> Unit,
     onRemoveChecklistItem: (String) -> Unit,
     sessionAccentColor: Color,
     bodyWeight: Double? = null,
     modifier: Modifier = Modifier,
+    poseOverlayEnabled: Boolean = false,
 ) {
     val pages = CockpitPage.entries
     val pagerState = rememberPagerState(pageCount = { pages.size })
@@ -200,9 +204,12 @@ fun WorkoutSessionCockpit(
                 )
                 CockpitPage.Photos -> CockpitPhotosPage(
                     sessionPhotos = sessionPhotos,
+                    sessionMedia = sessionMedia,
                     onAddPhoto = onAddSessionPhoto,
                     onRemovePhoto = onRemoveSessionPhoto,
+                    onRemoveMedia = onRemoveSessionMedia,
                     sessionAccentColor = sessionAccentColor,
+                    poseOverlayEnabled = poseOverlayEnabled,
                 )
                 CockpitPage.Tools -> CockpitToolsPage(
                     liveEnergySummary = liveEnergySummary,
@@ -335,12 +342,16 @@ private fun CockpitOverviewPage(
 @Composable
 private fun CockpitPhotosPage(
     sessionPhotos: List<String>,
+    sessionMedia: List<WorkoutMedia>,
     onAddPhoto: (Uri) -> Unit,
     onRemovePhoto: (String) -> Unit,
+    onRemoveMedia: (String) -> Unit,
     sessionAccentColor: Color,
+    poseOverlayEnabled: Boolean = false,
 ) {
     val context = LocalContext.current
     var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
+    var preview by remember { mutableStateOf<WorkoutMedia?>(null) }
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) onAddPhoto(uri)
     }
@@ -384,19 +395,36 @@ private fun CockpitPhotosPage(
             }
             TextButton(
                 onClick = { galleryLauncher.launch("image/*") },
-                enabled = sessionPhotos.size < 8,
             ) {
                 Icon(Icons.Default.PhotoLibrary, contentDescription = null, tint = sessionAccentColor)
                 Spacer(Modifier.size(6.dp))
                 Text("Galería")
             }
         }
-        if (sessionPhotos.isEmpty()) {
+        if (sessionMedia.isEmpty() && sessionPhotos.isEmpty()) {
             Text(
-                "Fotos generales de la sesión (hasta 8).",
+                "Fotos y vídeos de la sesión.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
             )
+        } else if (sessionMedia.isNotEmpty()) {
+            sessionMedia.forEach { item ->
+                Box {
+                    WorkoutMediaThumb(
+                        media = item,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(140.dp),
+                        onClick = { preview = item },
+                    )
+                    IconButton(
+                        onClick = { onRemoveMedia(item.id) },
+                        modifier = Modifier.align(Alignment.TopEnd),
+                    ) {
+                        Icon(Icons.Default.Close, contentDescription = "Quitar foto", tint = Color.White)
+                    }
+                }
+            }
         } else {
             sessionPhotos.forEach { path ->
                 Box {
@@ -418,6 +446,13 @@ private fun CockpitPhotosPage(
                 }
             }
         }
+    }
+    preview?.let { item ->
+        WorkoutMediaPreviewDialog(
+            media = item,
+            onDismiss = { preview = null },
+            poseOverlayEnabled = poseOverlayEnabled,
+        )
     }
 }
 

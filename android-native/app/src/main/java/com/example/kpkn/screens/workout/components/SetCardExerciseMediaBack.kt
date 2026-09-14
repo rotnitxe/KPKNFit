@@ -7,16 +7,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.video.FileOutputOptions
-import androidx.camera.video.Quality
-import androidx.camera.video.QualitySelector
 import androidx.camera.video.Recorder
-import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
-import androidx.camera.video.VideoRecordEvent
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -34,6 +28,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Collections
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Videocam
@@ -62,15 +57,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import coil.compose.AsyncImage
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.WorkoutMedia
+import com.example.kpkn.screens.workout.WorkoutMediaCaptureController
+import com.example.kpkn.screens.workout.WorkoutMediaCaptureRequest
 
 @Composable
 internal fun SetCardExerciseMediaBack(
     exercise: Exercise,
     onFlipBack: () -> Unit,
     modifier: Modifier = Modifier,
+    isSettledPage: Boolean = true,
+    setIndex: Int = 0,
+    side: String? = null,
+    weightKg: Double? = null,
+    reps: Int? = null,
+    isPr: Boolean = false,
+    mediaCapture: WorkoutMediaCaptureController? = null,
 ) {
     val context = LocalContext.current
     val exerciseKey = exercise.catalogDefinitionId
@@ -86,85 +91,60 @@ internal fun SetCardExerciseMediaBack(
                 ?: exercise.selectedAspects?.values?.firstOrNull(),
         )
     }
-    var userFiles by remember(exerciseKey) {
-        mutableStateOf(ExerciseUserMediaStore.list(context, exerciseKey))
+    val emptyMedia = remember { kotlinx.coroutines.flow.MutableStateFlow(emptyList<WorkoutMedia>()) }
+    val idleRecording = remember { kotlinx.coroutines.flow.MutableStateFlow(false) }
+    val idleError = remember { kotlinx.coroutines.flow.MutableStateFlow<String?>(null) }
+    val idleBind = remember { kotlinx.coroutines.flow.MutableStateFlow(0) }
+    val sessionMedia by (mediaCapture?.sessionMedia ?: emptyMedia).collectAsStateWithLifecycle()
+    val recording by (mediaCapture?.isRecording ?: idleRecording).collectAsStateWithLifecycle()
+    val captureError by (mediaCapture?.captureError ?: idleError).collectAsStateWithLifecycle()
+    val bindGeneration by (mediaCapture?.bindGeneration ?: idleBind).collectAsStateWithLifecycle()
+    val exerciseFiles = remember(sessionMedia, exercise.id, exerciseKey) {
+        sessionMedia.filter { item ->
+            item.exerciseId == exercise.id ||
+                item.canonicalExerciseId == exerciseKey ||
+                item.exerciseId == exerciseKey
+        }
     }
     var cameraReady by remember { mutableStateOf(false) }
-    var recording by remember { mutableStateOf(false) }
-    var captureError by remember { mutableStateOf<String?>(null) }
-    val imageCapture = remember { ImageCapture.Builder().build() }
-    val recorder = remember {
-        Recorder.Builder().setQualitySelector(QualitySelector.from(Quality.SD)).build()
-    }
-    val videoCapture = remember { VideoCapture.withOutput(recorder) }
-    var activeRecording by remember { mutableStateOf<Recording?>(null) }
+    var previewMedia by remember { mutableStateOf<WorkoutMedia?>(null) }
+    val captureRequest = WorkoutMediaCaptureRequest(
+        exerciseId = exercise.id,
+        canonicalExerciseId = exercise.canonicalExerciseId ?: exercise.exerciseDbId ?: exerciseKey,
+        exerciseName = exercise.name,
+        setIndex = setIndex,
+        side = side,
+        weightKg = weightKg,
+        reps = reps,
+        isPr = isPr,
+    )
 
-    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    val galleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
         uri ?: return@rememberLauncherForActivityResult
-        runCatching {
-            val dest = ExerciseUserMediaStore.newPhotoFile(context, exerciseKey)
-            context.contentResolver.openInputStream(uri)?.use { input ->
-                dest.outputStream().use { output -> input.copyTo(output) }
-            }
-        }
-        userFiles = ExerciseUserMediaStore.list(context, exerciseKey)
+        mediaCapture?.ingestUri(uri, captureRequest)
     }
 
-    fun refresh() {
-        userFiles = ExerciseUserMediaStore.list(context, exerciseKey)
-    }
-
-    fun takePhoto() {
-        val file = ExerciseUserMediaStore.newPhotoFile(context, exerciseKey)
-        val options = ImageCapture.OutputFileOptions.Builder(file).build()
-        imageCapture.takePicture(
-            options,
-            ContextCompat.getMainExecutor(context),
-            object : ImageCapture.OnImageSavedCallback {
-                override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                    captureError = null
-                    refresh()
-                }
-
-                override fun onError(exception: ImageCaptureException) {
-                    captureError = "No se pudo guardar la foto"
-                }
-            },
-        )
+    val audioLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        mediaCapture?.toggleVideo(granted, captureRequest)
     }
 
     fun toggleVideo() {
+        if (mediaCapture == null) return
         if (recording) {
-            activeRecording?.stop()
-            activeRecording = null
-            recording = false
+            mediaCapture.stopVideo()
             return
         }
-        val file = ExerciseUserMediaStore.newVideoFile(context, exerciseKey)
-        val pending = videoCapture.output
-            .prepareRecording(context, FileOutputOptions.Builder(file).build())
-            .apply {
-                if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
-                    PackageManager.PERMISSION_GRANTED
-                ) {
-                    withAudioEnabled()
-                }
-            }
-            .start(ContextCompat.getMainExecutor(context)) { event ->
-                if (event is VideoRecordEvent.Finalize) {
-                    recording = false
-                    activeRecording = null
-                    if (event.hasError()) {
-                        captureError = "No se pudo guardar el vídeo"
-                        file.delete()
-                    } else {
-                        captureError = null
-                        refresh()
-                    }
-                }
-            }
-        activeRecording = pending
-        recording = true
+        val audioGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
+            PackageManager.PERMISSION_GRANTED
+        if (!audioGranted) {
+            audioLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            return
+        }
+        mediaCapture.toggleVideo(true, captureRequest)
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -182,10 +162,9 @@ internal fun SetCardExerciseMediaBack(
             permissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
-    DisposableEffect(Unit) {
-        onDispose {
-            activeRecording?.stop()
-            activeRecording = null
+    LaunchedEffect(isSettledPage) {
+        if (!isSettledPage) {
+            mediaCapture?.stopIfRecording()
         }
     }
 
@@ -221,7 +200,20 @@ internal fun SetCardExerciseMediaBack(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.88f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
                 )
+                IconButton(
+                    onClick = { mediaCapture?.openAlbumSheet() },
+                    modifier = Modifier.size(32.dp),
+                    enabled = mediaCapture != null,
+                ) {
+                    Icon(
+                        Icons.Default.Collections,
+                        contentDescription = "Álbum",
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.78f),
+                    )
+                }
             }
 
             Text(
@@ -264,10 +256,14 @@ internal fun SetCardExerciseMediaBack(
                     .clip(RoundedCornerShape(14.dp))
                     .background(Color.Black),
             ) {
-                if (cameraReady) {
+                if (cameraReady && isSettledPage && mediaCapture != null) {
                     InCardCameraPreview(
-                        imageCapture = imageCapture,
-                        videoCapture = videoCapture,
+                        imageCapture = mediaCapture.imageCapture,
+                        videoCapture = mediaCapture.videoCapture,
+                        bindCamera = isSettledPage,
+                        isRecording = recording,
+                        bindGeneration = bindGeneration,
+                        onBindFailed = { mediaCapture.fallbackVideoCaptureToSd() },
                         modifier = Modifier.fillMaxSize(),
                     )
                 } else {
@@ -297,45 +293,49 @@ internal fun SetCardExerciseMediaBack(
                 MediaActionChip(
                     text = "Foto",
                     icon = { Icon(Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(14.dp)) },
-                    onClick = { takePhoto() },
+                    onClick = { mediaCapture?.takePhoto(captureRequest) },
                     modifier = Modifier.weight(1f),
-                    enabled = cameraReady,
+                    enabled = cameraReady && mediaCapture != null,
                 )
                 MediaActionChip(
                     text = if (recording) "Parar" else "Vídeo",
                     icon = { Icon(Icons.Default.Videocam, contentDescription = null, modifier = Modifier.size(14.dp)) },
                     onClick = { toggleVideo() },
                     modifier = Modifier.weight(1f),
-                    enabled = cameraReady,
+                    enabled = cameraReady && mediaCapture != null,
                     selected = recording,
                 )
                 MediaActionChip(
                     text = "Galería",
                     icon = { Icon(Icons.Default.PhotoLibrary, contentDescription = null, modifier = Modifier.size(14.dp)) },
-                    onClick = { galleryLauncher.launch("image/*") },
+                    onClick = { galleryLauncher.launch(arrayOf("image/*", "video/*")) },
                     modifier = Modifier.weight(1f),
+                    enabled = mediaCapture != null,
                 )
             }
 
-            if (userFiles.isNotEmpty()) {
+            if (exerciseFiles.isNotEmpty()) {
                 LazyRow(
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    items(userFiles, key = { it.absolutePath }) { file ->
-                        AsyncImage(
-                            model = file,
-                            contentDescription = file.name,
-                            modifier = Modifier
-                                .size(56.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(WorkoutUiTokens.setInnerHighestColor()),
-                            contentScale = ContentScale.Crop,
+                    items(exerciseFiles, key = { it.id }) { item ->
+                        WorkoutMediaThumb(
+                            media = item,
+                            modifier = Modifier.size(56.dp),
+                            onClick = { previewMedia = item },
                         )
                     }
                 }
             }
         }
+    }
+    previewMedia?.let { item ->
+        WorkoutMediaPreviewDialog(
+            media = item,
+            onDismiss = { previewMedia = null },
+            poseOverlayEnabled = mediaCapture?.isPoseTrajectoryEnabled() == true,
+        )
     }
 }
 
@@ -380,10 +380,15 @@ private fun InCardCameraPreview(
     imageCapture: ImageCapture,
     videoCapture: VideoCapture<Recorder>,
     modifier: Modifier = Modifier,
+    bindCamera: Boolean = true,
+    isRecording: Boolean = false,
+    bindGeneration: Int = 0,
+    onBindFailed: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var previewView by remember { mutableStateOf<PreviewView?>(null) }
+    val recordingRef = rememberUpdatedRecording(isRecording)
     AndroidView(
         modifier = modifier,
         factory = { ctx ->
@@ -398,13 +403,14 @@ private fun InCardCameraPreview(
             }
         },
     )
-    DisposableEffect(previewView, lifecycleOwner, imageCapture, videoCapture) {
+    DisposableEffect(previewView, lifecycleOwner, imageCapture, videoCapture, bindCamera, bindGeneration) {
+        if (!bindCamera) return@DisposableEffect onDispose { }
         val view = previewView ?: return@DisposableEffect onDispose { }
         val providerFuture = ProcessCameraProvider.getInstance(context)
         val listener = Runnable {
             val provider = runCatching { providerFuture.get() }.getOrNull() ?: return@Runnable
             val preview = Preview.Builder().build().also { it.surfaceProvider = view.surfaceProvider }
-            runCatching {
+            val bound = runCatching {
                 provider.unbindAll()
                 provider.bindToLifecycle(
                     lifecycleOwner,
@@ -414,10 +420,21 @@ private fun InCardCameraPreview(
                     videoCapture,
                 )
             }
+            if (bound.isFailure) {
+                onBindFailed()
+            }
         }
         providerFuture.addListener(listener, ContextCompat.getMainExecutor(context))
         onDispose {
+            if (recordingRef()) return@onDispose
             runCatching { providerFuture.get().unbindAll() }
         }
     }
+}
+
+@Composable
+private fun rememberUpdatedRecording(isRecording: Boolean): () -> Boolean {
+    val latest = remember { mutableStateOf(isRecording) }
+    latest.value = isRecording
+    return { latest.value }
 }

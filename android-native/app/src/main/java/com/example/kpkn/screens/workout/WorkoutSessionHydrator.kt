@@ -3,6 +3,7 @@ package com.example.kpkn.screens.workout
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.OngoingWorkoutState
+import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SetDrain
@@ -94,6 +95,7 @@ class WorkoutSessionHydrator(
         var foundWeekId = ""
         var foundMacroIdx = 0
         var foundMesoIdx = 0
+        var foundBlock: Block? = null
 
         outer@ for ((macroIdx, macro) in program.macrocycles.withIndex()) {
             var mesoOffset = 0
@@ -107,6 +109,7 @@ class WorkoutSessionHydrator(
                             foundWeekId = week.id
                             foundMacroIdx = macroIdx
                             foundMesoIdx = flattenedMesoIdx
+                            foundBlock = block
                             break@outer
                         }
                     }
@@ -387,6 +390,7 @@ class WorkoutSessionHydrator(
                 archivedCompletedExercises = resumedState?.archivedCompletedExercises.orEmpty(),
                 logAlreadyWrittenId = resumedState?.logAlreadyWrittenId,
                 sessionMissingFromProgram = sessionMissingFromProgram,
+                livePlanContext = buildLivePlanContext(program, foundWeekId, foundBlock),
             )
         }
 
@@ -579,4 +583,36 @@ internal fun resolveHydrationSession(
     if (foundInProgram != null) return foundInProgram to false
     val snapSession = matching?.session ?: return null
     return snapSession to true
+}
+
+internal fun buildLivePlanContext(
+    program: Program,
+    weekId: String,
+    foundBlock: Block? = null,
+): LivePlanContext {
+    val block = foundBlock ?: program.macrocycles
+        .asSequence()
+        .flatMap { it.blocks.asSequence() }
+        .firstOrNull { candidate ->
+            candidate.mesocycles.any { meso -> meso.weeks.any { it.id == weekId } }
+        }
+    val weeks = block?.mesocycles.orEmpty().flatMap { it.weeks }
+    val weekIndex = weeks.indexOfFirst { it.id == weekId }.takeIf { it >= 0 }
+    val protocolName = program.sourceProtocolId
+        ?.let { id -> com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.firstOrNull { it.id == id }?.name }
+    return LivePlanContext(
+        sourceProtocolId = program.sourceProtocolId,
+        sourceProtocolName = protocolName,
+        mode = program.mode,
+        trainingPhase = program.trainingPhase,
+        goals = program.goals,
+        autoregulationMode = program.autoregulationMode,
+        blockGoal = block?.goal,
+        blockProgressionScheme = block?.progressionScheme,
+        blockName = block?.name,
+        weekIndexInBlock = weekIndex?.plus(1),
+        weeksInBlock = weeks.size.takeIf { it > 0 },
+        progression = program.sourceRecipe?.progression,
+        autoregulationHooks = program.sourceRecipe?.autoregulationHooks.orEmpty(),
+    )
 }

@@ -332,6 +332,10 @@ data class Exercise(
     val catalogConfigurationId: String? = null,
     val performanceProfileId: String? = null,
     val occurrenceId: String? = null,
+    /** Optional recipe slot; default null keeps pre-F2 JSON valid. */
+    val slotRole: com.example.kpkn.data.protocols.SlotRole? = null,
+    /** Optional recipe technique; default null keeps pre-F2 JSON valid. */
+    val techniqueModifier: com.example.kpkn.data.protocols.TechniqueModifier? = null,
 )
 
 @Serializable
@@ -614,6 +618,10 @@ data class ExerciseSet(
     val plannedIntensityTechniques: List<PlannedTechnique> = emptyList(),
     /** Session JSON override for rest after this set. Null = use exercise/session default. */
     val restAfterSeconds: Int? = null,
+    /** Optional recipe flag; default false keeps pre-F2 JSON valid. */
+    val isTopSet: Boolean = false,
+    /** Optional recipe load basis; default null keeps pre-F2 JSON valid. */
+    val loadBasis: com.example.kpkn.data.protocols.LoadBasis? = null,
 )
 
 enum class IntensityMode { RPE, RIR, FAILURE, AMRAP, LOAD, SOLO_RM }

@@ -103,6 +103,8 @@ data class Settings(
     val gymName: String? = null,
 
     val workoutFeatureFlags: WorkoutFeatureFlags = WorkoutFeatureFlags(),
+    /** One-shot import of legacy photo silos into `workout_media` (Room v26). */
+    val workoutMediaLegacyImportDone: Boolean = false,
     val workoutV2HeaderWidgetsBySession: Map<String, WorkoutHeaderWidgets> = emptyMap(),
 
     val aiFallbackEnabled: Boolean = true,
@@ -125,6 +127,11 @@ data class Settings(
     val quarantinedProgramIds: List<String> = emptyList(),
     /** Respaldo del JSON crudo de filas corruptas (id → data). */
     val quarantinedProgramBackups: Map<String, String> = emptyMap(),
+    /**
+     * Relator 2.0 long-term memory (concepts shown, per-exercise counters, openers).
+     * JSON of [com.example.kpkn.domain.relator.RelatorLongTermMemory]; null = empty.
+     */
+    val relatorMemoryJson: String? = null,
 )
 
 enum class CalorieGoalObjective { DEFICIT, MAINTENANCE, SURPLUS }

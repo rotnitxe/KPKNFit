@@ -207,7 +207,7 @@ class AprendeCatalogAuditTest {
         assertTrue(prepopulate.contains("APRENDE_CONTENT_REVISION = \"conceptos-clave-v2-2026-08-23\""))
         assertTrue(prepopulate.contains("currentRevision != APRENDE_CONTENT_REVISION"))
         assertTrue(prepopulate.contains("putString(APRENDE_CONTENT_PREF_KEY, APRENDE_CONTENT_REVISION)"))
-        assertTrue(database.contains("version = 25"))
+        assertTrue(database.contains("version = 26"))
     }
 
     private fun collectExerciseRefs(element: JsonElement): List<String> = when (element) {

@@ -58,8 +58,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         PerformanceRangeEntity::class,
         PerformanceSnapshotEntity::class,
         AugeAdaptiveCacheEntity::class,
+        WorkoutMediaEntity::class,
     ],
-    version = 25,
+    version = 26,
     exportSchema = true,
 )
 abstract class KpknDatabase : RoomDatabase() {
@@ -79,6 +80,7 @@ abstract class KpknDatabase : RoomDatabase() {
     abstract fun learnedResolutionDao(): LearnedResolutionDao
     abstract fun performanceRangeDao(): PerformanceRangeDao
     abstract fun performanceSnapshotDao(): PerformanceSnapshotDao
+    abstract fun workoutMediaDao(): WorkoutMediaDao
 
     companion object {
         @Volatile private var INSTANCE: KpknDatabase? = null
@@ -647,6 +649,46 @@ abstract class KpknDatabase : RoomDatabase() {
             }
         }
 
+        // v26: unified workout photos/videos (private filesDir/workout_media).
+        val MIGRATION_25_26 = object : Migration(25, 26) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `workout_media` (
+                        `id` TEXT NOT NULL,
+                        `kind` TEXT NOT NULL,
+                        `filePath` TEXT NOT NULL,
+                        `thumbPath` TEXT,
+                        `createdAtMs` INTEGER NOT NULL,
+                        `sessionKey` TEXT,
+                        `workoutLogId` TEXT,
+                        `programId` TEXT,
+                        `sessionId` TEXT,
+                        `sessionName` TEXT,
+                        `exerciseId` TEXT,
+                        `canonicalExerciseId` TEXT,
+                        `exerciseName` TEXT,
+                        `setIndex` INTEGER,
+                        `side` TEXT,
+                        `weightKg` REAL,
+                        `reps` INTEGER,
+                        `isPr` INTEGER NOT NULL,
+                        `durationMs` INTEGER,
+                        `width` INTEGER,
+                        `height` INTEGER,
+                        `caption` TEXT,
+                        `poseTrackPath` TEXT,
+                        PRIMARY KEY(`id`)
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_workout_media_workoutLogId` ON `workout_media` (`workoutLogId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_workout_media_canonicalExerciseId` ON `workout_media` (`canonicalExerciseId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_workout_media_createdAtMs` ON `workout_media` (`createdAtMs`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_workout_media_isPr` ON `workout_media` (`isPr`)")
+            }
+        }
+
         fun getInstance(context: Context): KpknDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -679,6 +721,7 @@ abstract class KpknDatabase : RoomDatabase() {
                     MIGRATION_22_23,
                     MIGRATION_23_24,
                     MIGRATION_24_25,
+                    MIGRATION_25_26,
                 )
                 .build()
                 .also { INSTANCE = it }

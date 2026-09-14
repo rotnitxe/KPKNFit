@@ -1263,7 +1263,7 @@ internal fun WorkoutSetPager(
                 ) {
                     AddSetStepperButton(
                         accent = accent,
-                        onClick = onAddSet!!,
+                        onClick = { invokeAddSetAction(onAddSet) },
                     )
                 }
             }

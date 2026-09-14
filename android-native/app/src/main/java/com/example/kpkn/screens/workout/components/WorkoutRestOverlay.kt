@@ -35,7 +35,7 @@ import com.example.kpkn.screens.workout.*
  * Rest timer overlay focused on countdown controls and the last completed set.
  */
 @Composable
-fun RestTimerOverlay(
+internal fun RestTimerOverlay(
     state: WorkoutRestModalState,
     remainingSeconds: Int,
     hazeState: HazeState,
@@ -55,6 +55,10 @@ fun RestTimerOverlay(
     postExerciseFeedbackContent: (@Composable () -> Unit)? = null,
     feedbackExerciseCount: Int = 0,
     onMinimize: (() -> Unit)? = null,
+    relatorText: String? = null,
+    relatorPhaseKey: String = "",
+    relatorActions: List<RelatorAssistAction> = emptyList(),
+    onRelatorAction: (RelatorAssistAction) -> Unit = {},
 ) {
     val totalSeconds = state.activeSeconds.coerceAtLeast(1)
     val timerProgress = (remainingSeconds.toFloat() / totalSeconds).coerceIn(0f, 1f)
@@ -93,6 +97,10 @@ fun RestTimerOverlay(
                     postExerciseFeedbackContent = postExerciseFeedbackContent ?: {},
                     feedbackExerciseCount = feedbackExerciseCount,
                     showTimerChrome = remainingSeconds > 0,
+                    relatorText = relatorText,
+                    relatorPhaseKey = relatorPhaseKey,
+                    relatorActions = relatorActions,
+                    onRelatorAction = onRelatorAction,
                 )
             } else {
                 NormalRestContent(
@@ -114,6 +122,10 @@ fun RestTimerOverlay(
                     onUseAdaptive = onUseAdaptive,
                     onMinimize = onMinimize,
                     onWarmupEffort = onWarmupEffort,
+                    relatorText = relatorText,
+                    relatorPhaseKey = relatorPhaseKey,
+                    relatorActions = relatorActions,
+                    onRelatorAction = onRelatorAction,
                 )
             }
         }
@@ -134,6 +146,10 @@ private fun FeedbackContent(
     postExerciseFeedbackContent: @Composable () -> Unit,
     feedbackExerciseCount: Int = 0,
     showTimerChrome: Boolean = true,
+    relatorText: String? = null,
+    relatorPhaseKey: String = "",
+    relatorActions: List<RelatorAssistAction> = emptyList(),
+    onRelatorAction: (RelatorAssistAction) -> Unit = {},
 ) {
     val scrollState = rememberScrollState()
     Column(
@@ -145,6 +161,14 @@ private fun FeedbackContent(
             .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        RestOverlayRelatorLine(
+            text = relatorText,
+            phaseKey = relatorPhaseKey,
+            actions = relatorActions,
+            onAction = onRelatorAction,
+            accentColor = sessionAccentColor,
+        )
+
         // ─── ADAPTIVE REST SUGGESTION AT TOP ───
         if (pendingRestSuggestion != null && !isAdaptiveActive && onUseAdaptive != null) {
             OutlinedButton(
@@ -306,6 +330,10 @@ private fun NormalRestContent(
     onUseAdaptive: (() -> Unit)?,
     onMinimize: (() -> Unit)? = null,
     onWarmupEffort: ((Double) -> Unit)? = null,
+    relatorText: String? = null,
+    relatorPhaseKey: String = "",
+    relatorActions: List<RelatorAssistAction> = emptyList(),
+    onRelatorAction: (RelatorAssistAction) -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -318,6 +346,14 @@ private fun NormalRestContent(
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         Spacer(Modifier.height(10.dp))
+
+        RestOverlayRelatorLine(
+            text = relatorText,
+            phaseKey = relatorPhaseKey,
+            actions = relatorActions,
+            onAction = onRelatorAction,
+            accentColor = sessionAccentColor,
+        )
 
         if (onMinimize != null) {
             Row(
@@ -727,6 +763,25 @@ private fun NormalRestContent(
 
         Spacer(Modifier.height(16.dp))
     }
+}
+
+@Composable
+private fun RestOverlayRelatorLine(
+    text: String?,
+    phaseKey: String,
+    actions: List<RelatorAssistAction>,
+    onAction: (RelatorAssistAction) -> Unit,
+    accentColor: Color,
+) {
+    if (text.isNullOrBlank()) return
+    WorkoutLiveRelatorLine(
+        text = text,
+        phaseKey = phaseKey,
+        actions = actions,
+        onAction = onAction,
+        accentColor = accentColor,
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 @Composable

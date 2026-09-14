@@ -320,6 +320,8 @@ object PlanMaterializer {
             catalogConfigurationId = slot.lift.configurationId,
             performanceProfileId = meta?.performanceProfileId ?: slot.lift.configurationId,
             occurrenceId = idProvider.newId(),
+            slotRole = slot.role,
+            techniqueModifier = slot.technique,
             warmupSets = if (warmups.isNotEmpty()) {
                 warmups.map { set ->
                     WarmupSetDefinition(
@@ -369,6 +371,8 @@ object PlanMaterializer {
             weight = weight,
             isAmrap = set.amrap,
             restAfterSeconds = slot.restSeconds,
+            isTopSet = set.isTopSet,
+            loadBasis = set.loadBasis,
         )
     }
 

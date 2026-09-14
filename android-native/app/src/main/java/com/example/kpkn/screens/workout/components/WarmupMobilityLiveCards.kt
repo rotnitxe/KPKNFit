@@ -72,6 +72,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.Constraints
 import com.example.kpkn.data.models.WarmupSetDefinition
 import com.example.kpkn.screens.sessioneditor.contentOn
+import com.example.kpkn.screens.workout.inlineRestRemainingOrNull
 import com.example.kpkn.screens.workout.toTrimmedNumberString
 import com.example.kpkn.ui.adapt.LiveViewportPolicyMath
 import kotlin.math.roundToInt
@@ -103,7 +104,6 @@ internal fun MobilityPhaseLiveCard(
     isActivePage: Boolean = false,
 ) {
     val showExerciseBadge = items.map { it.exerciseId }.distinct().size > 1
-    val showInlineRest = inlineRestRemainingSeconds != null && (inlineRestTotalSeconds ?: 0) > 0
     DisposableEffect(isActivePage, items, completedStepKeys) {
         if (isActivePage && recordActionHolder != null) {
             recordActionHolder.action = {
@@ -141,9 +141,10 @@ internal fun MobilityPhaseLiveCard(
             )
         },
         footer = {
-            if (showInlineRest) {
+            val remaining = inlineRestRemainingOrNull(inlineRestRemainingSeconds, inlineRestTotalSeconds)
+            if (remaining != null) {
                 PrepInlineRestBar(
-                    remainingSeconds = inlineRestRemainingSeconds!!.coerceAtLeast(0),
+                    remainingSeconds = remaining.coerceAtLeast(0),
                     totalSeconds = (inlineRestTotalSeconds ?: 1).coerceAtLeast(1),
                     sessionAccentColor = sessionAccentColor,
                     onSkip = onSkipInlineRest ?: {},
@@ -194,7 +195,6 @@ internal fun WarmupPhaseLiveCard(
     isActivePage: Boolean = false,
     onWeightDraft: ((row: WarmupPhaseRow, text: String) -> Unit)? = null,
 ) {
-    val showInlineRest = inlineRestRemainingSeconds != null && (inlineRestTotalSeconds ?: 0) > 0
     DisposableEffect(isActivePage, rows) {
         if (isActivePage && recordActionHolder != null) {
             recordActionHolder.action = {
@@ -229,9 +229,10 @@ internal fun WarmupPhaseLiveCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                if (showInlineRest) {
+                val remaining = inlineRestRemainingOrNull(inlineRestRemainingSeconds, inlineRestTotalSeconds)
+                if (remaining != null) {
                     PrepInlineRestBar(
-                        remainingSeconds = inlineRestRemainingSeconds!!.coerceAtLeast(0),
+                        remainingSeconds = remaining.coerceAtLeast(0),
                         totalSeconds = (inlineRestTotalSeconds ?: 1).coerceAtLeast(1),
                         sessionAccentColor = sessionAccentColor,
                         onSkip = onSkipInlineRest ?: {},

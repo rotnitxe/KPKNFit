@@ -24,10 +24,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -57,60 +55,11 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
 
 internal val WorkoutLiveRelatorSlotHeight = 36.dp
 internal val WorkoutLiveRelatorFontSp = 13.sp
 internal const val WorkoutLiveRelatorMaxLines = 2
 private val RelatorLineHeightSp = 16.sp
-
-@Composable
-internal fun rememberLiveRelatorLine(snapshot: LiveRelatorSnapshot): RelatorResolution {
-    var idleCycle by remember { mutableIntStateOf(0) }
-    val parentKey = snapshot.parentContextKey.ifBlank { snapshot.setKey }
-    LaunchedEffect(parentKey, snapshot.setKey, snapshot.phase) {
-        idleCycle = 0
-        while (true) {
-            delay(RELATOR_IDLE_ROTATE_MS)
-            idleCycle++
-        }
-    }
-    val speechSession = remember(snapshot.sessionSpeechKey.ifBlank { "session" }) {
-        RelatorSpeechSession()
-    }
-    val live = snapshot.copy(idleCycle = idleCycle)
-    var shown by remember(snapshot.sessionSpeechKey.ifBlank { "session" }) {
-        mutableStateOf(speechSession.resolve(live.copy(lastChangedField = RelatorChangedField.NONE)))
-    }
-    if (!live.lastChangedField.isReaction) {
-        val idle = speechSession.resolve(live)
-        SideEffect { shown = idle }
-        return idle
-    }
-    LaunchedEffect(
-        live.phase,
-        live.parentContextKey,
-        live.setKey,
-        live.lastChangedField,
-        live.enteredWeightRaw,
-        live.enteredReps,
-        live.enteredIntensity,
-        live.dropSetCount,
-        live.reachedFailure,
-        live.warmupIsLastIncomplete,
-        live.visible,
-        live.idleCycle,
-        live.assistOffer?.stickyKey,
-        live.assistAck?.kind,
-        live.assistAck?.applied,
-        live.assistAck?.detail,
-        live.failedSetCaution?.stickyKey,
-    ) {
-        delay(RELATOR_DEBOUNCE_MS)
-        shown = speechSession.resolve(live, previousText = shown.text)
-    }
-    return shown
-}
 
 @Composable
 internal fun WorkoutLiveRelatorLine(

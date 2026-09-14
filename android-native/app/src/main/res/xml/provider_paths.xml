@@ -9,4 +9,7 @@
     <cache-path
         name="workout_camera"
         path="workout_camera/" />
+    <files-path
+        name="workout_media"
+        path="workout_media/" />
 </paths>

@@ -28,18 +28,23 @@ class WorkoutPersistenceController(
     private val persistDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO,
 ) {
     private var debounceJob: Job? = null
+    private var immediateCoalesceJob: Job? = null
     private val persistMutex = Mutex()
 
     /**
-     * - immediate=true (default): enqueue an IO write of the **latest** state. Does not block Main.
+     * - immediate=true (default): enqueue an IO write of the **latest** state. Consecutive
+     *   immediate calls within [IMMEDIATE_COALESCE_MS] collapse to one write. Does not block Main.
      * - immediate=false: debounced drafts; the write reads [getState] when it fires, not the capture.
+     * Durable waits use [persistAndAwait] (after a recorded set), not immediate=true.
      */
     fun persist(state: WorkoutUiState = getState(), immediate: Boolean = true) {
         if (buildOngoingUpdate(state) == null) return
         if (immediate) {
             debounceJob?.cancel()
             debounceJob = null
-            scope.launch(persistDispatcher) {
+            if (immediateCoalesceJob?.isActive == true) return
+            immediateCoalesceJob = scope.launch(persistDispatcher) {
+                delay(IMMEDIATE_COALESCE_MS)
                 persistFreshLocked()
             }
         } else {
@@ -55,12 +60,15 @@ class WorkoutPersistenceController(
     suspend fun persistAndAwait(state: WorkoutUiState = getState()) {
         debounceJob?.cancel()
         debounceJob = null
+        immediateCoalesceJob?.cancel()
+        immediateCoalesceJob = null
         persistFreshLocked()
     }
 
     suspend fun flushForBackgroundSuspend() {
         withTimeoutOrNull(1_500L) {
             debounceJob?.join()
+            immediateCoalesceJob?.join()
             persistFreshLocked()
             flushPendingWrites()
         }
@@ -205,5 +213,6 @@ class WorkoutPersistenceController(
 
     companion object {
         const val DRAFT_DEBOUNCE_MS = 350L
+        const val IMMEDIATE_COALESCE_MS = 150L
     }
 }

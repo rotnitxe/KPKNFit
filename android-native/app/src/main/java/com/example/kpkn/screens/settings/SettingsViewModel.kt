@@ -434,6 +434,25 @@ class SettingsViewModel : ViewModel() {
         }
     }
 
+    fun exportWorkoutMediaZip(
+        context: Context,
+        destination: Uri,
+        onSuccess: (Int) -> Unit,
+        onError: (String) -> Unit,
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                context.contentResolver.openOutputStream(destination)?.use { output ->
+                    com.example.kpkn.data.media.WorkoutMediaZipExporter.writeZip(context.filesDir, output)
+                } ?: error("No se pudo abrir el archivo de destino")
+            }.onSuccess { count ->
+                withContext(Dispatchers.Main) { onSuccess(count) }
+            }.onFailure { error ->
+                withContext(Dispatchers.Main) { onError(error.message ?: "Error desconocido") }
+            }
+        }
+    }
+
     fun getSnapshots(context: Context): List<File> {
         return DatabaseBackupHelper.listSnapshots(context)
     }

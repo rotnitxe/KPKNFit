@@ -22,7 +22,7 @@
 
 ## Critical Systems
 
-- Room database: `android-native/app/src/main/java/com/example/kpkn/data/db/KpknDatabase.kt`, current version **v25**. Recipes/TM/autoregulation live in `ProgramEntity` JSON (no extra tables).
+- Room database: `android-native/app/src/main/java/com/example/kpkn/data/db/KpknDatabase.kt`, current version **v26**. Recipes/TM/autoregulation live in `ProgramEntity` JSON (no extra tables). Workout media: `workout_media` + `filesDir/workout_media`.
 - AUGE engines: `android-native/app/src/main/java/com/example/kpkn/domain/auge/`.
 - Nutrition parsing: `domain/nutrition/`, `data/food/`, and `data/remote/ExternalAiService.kt`.
 - Voice: `services/workout/`, Vosk assets, foreground service, TTS, and AIDL service boundary.
