@@ -1,0 +1,387 @@
+{
+  "tests": 570,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "suites": 53,
+  "variant": "BaseDebug",
+  "scope": [
+    "domain.nutrition.*",
+    "data.food.*",
+    "data.repository.Nutrition*",
+    "screens.nutrition.NutritionViewModelTest"
+  ],
+  "suiteResults": [
+    {
+      "name": "com.example.kpkn.data.food.BrandedCatalogIntegrityTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.data.food.BrandedSnackCatalogIntegrityTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.data.food.FoodCatalogProvenanceTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.data.repository.NutritionDurableSaveTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.CaffeineLimitEngineTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.ContainerFamilyPortionTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.ContextDetectorTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.CookingFactorsTest",
+      "tests": "22",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.CookingPortionPrecisionTest",
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.CookingStateRegressionTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.CreatineSaturationEngineTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.DatasetExploitationTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.DatasetKnowledgeIntegrationTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.DatasetVocabularyTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.EverydayMealCorpusTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.FluencyGoldenCorpusTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.FoodCombinationParserTest",
+      "tests": "17",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.FoodDatabaseResolutionTest",
+      "tests": "19",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.FoodIdentityReliabilityTest",
+      "tests": "13",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.FoodIndexTest",
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.FoodInterpretationV2Test",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.FoodParserCookingTest",
+      "tests": "19",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.FoodParserTest",
+      "tests": "46",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.FoodTemplateMatcherRobustnessTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.FoodTemplateMatcherTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.GoldenCorpusTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.HouseholdPortionsOperationalTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.IndependentNutritionCorpusTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.LanguageBindingCorpusTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.LastResortSplitterTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.MacroCalculatorTest",
+      "tests": "26",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.MealLanguageCompilerTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.NaturalLanguageReliabilityTest",
+      "tests": "19",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.NutritionCalculationsTest",
+      "tests": "29",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.NutritionCalibrationEngineTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.NutritionCalibrationWizardTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.NutritionClarificationContractTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.NutritionEnergyEngineTest",
+      "tests": "17",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.NutritionHeuristicEstimatorTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.NutritionHistoryTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.NutritionLatamMatchingTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.NutritionLoggerReliabilityTest",
+      "tests": "20",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.NutritionMetricsContractTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.NutritionQaRegressionTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.NutritionResolutionConsistencyTest",
+      "tests": "17",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.PhoneticEsTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.ReservedNaturalMealCorpusTest",
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.ResolutionGoldenCorpusTest",
+      "tests": "21",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.StapleOntologyTest",
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.SubjectivePortionEngineTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.SystematicModeContractTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.domain.nutrition.TextNormalizerTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.kpkn.screens.nutrition.NutritionViewModelTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ]
+}

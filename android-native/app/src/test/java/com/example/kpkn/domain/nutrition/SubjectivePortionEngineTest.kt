@@ -16,7 +16,7 @@ class SubjectivePortionEngineTest {
             val before = resolveGrams("una taza de avena")!!
             SubjectivePortionEngine.applyUtensilOverrides(mapOf("taza" to 300.0))
             val after = resolveGrams("una taza de avena")!!
-            assertEquals(before * 300.0 / 250.0, after, 0.01)
+            assertEquals(before * 300.0 / 240.0, after, 0.01)
         } finally {
             SubjectivePortionEngine.applyUtensilOverrides(original)
         }
@@ -28,7 +28,7 @@ class SubjectivePortionEngineTest {
         try {
             SubjectivePortionEngine.applyUtensilOverrides(mapOf("taza" to -5.0, "vaso" to 0.0))
             // Sin categoría el engine usa MIXED (densidad 0.8).
-            assertEquals(40.0, resolveGrams("una taza de avena")!!, 0.01)
+            assertEquals(81.0, resolveGrams("una taza de avena")!!, 0.01)
             assertEquals(200.0, resolveGrams("un vaso de agua")!!, 0.01)
         } finally {
             SubjectivePortionEngine.applyUtensilOverrides(original)
@@ -40,7 +40,7 @@ class SubjectivePortionEngineTest {
         val original = SubjectivePortionEngine.currentUtensilOverrides()
         try {
             SubjectivePortionEngine.applyUtensilOverrides(emptyMap())
-            assertEquals(40.0, resolveGrams("una taza de avena")!!, 0.01)
+            assertEquals(81.0, resolveGrams("una taza de avena")!!, 0.01)
             assertEquals(12.0, resolveGrams("una cucharada de aceite")!!, 0.01)
             assertEquals(4.0, resolveGrams("una cucharadita de azúcar")!!, 0.01)
         } finally {

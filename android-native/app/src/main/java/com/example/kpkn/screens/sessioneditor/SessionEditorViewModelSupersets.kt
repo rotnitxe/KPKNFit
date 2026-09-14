@@ -304,18 +304,6 @@ fun SessionEditorViewModel.moveSupersetGroupToPart(groupId: String, targetPartId
     SupersetRules.moveGroup(session, groupId, targetPartId, targetIndex)
 }
 
-@Deprecated("El orden de supersets lo define la posición del primer miembro en visibleExercises (WorkoutStepRules); usa moveSupersetGroupToPart")
-fun SessionEditorViewModel.moveSupersetGroupToIndex(groupId: String, targetIndex: Int) = updateSession { session ->
-    val currentIndex = session.supersetGroups.indexOfFirst { it.id == groupId }
-    if (currentIndex == -1) return@updateSession session
-    val safeTarget = targetIndex.coerceIn(0, session.supersetGroups.lastIndex)
-    if (currentIndex == safeTarget) return@updateSession session
-    val mutable = session.supersetGroups.toMutableList()
-    val moved = mutable.removeAt(currentIndex)
-    mutable.add(safeTarget, moved)
-    session.copy(supersetGroups = mutable.toList())
-}
-
 fun SessionEditorViewModel.triggerQuickActionCreateSuperset() {
     val state = currentUiState
     val exerciseId = state.quickActionsExerciseId ?: return

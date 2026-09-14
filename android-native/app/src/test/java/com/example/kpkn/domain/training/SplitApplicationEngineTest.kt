@@ -483,7 +483,7 @@ class SplitApplicationEngineTest {
     }
 
     @Test
-    fun prebuilt_specialized_without_exact_recipe_is_rejected_before_mutation() {
+    fun prebuilt_texas_with_published_recipes_is_available() {
         val texas = SPLIT_TEMPLATES.first { it.id == "texas_method" }
         val program = programWithWeeks(listOf(ProgramWeek("w1", "Semana 1")))
         val request = SplitApplicationRequest(
@@ -497,10 +497,10 @@ class SplitApplicationEngineTest {
         )
 
         val reasons = SplitApplicationEngine.prebuiltUnavailabilityReasons(request)
-        assertTrue("Texas sin receta exacta debe quedar bloqueado", reasons.isNotEmpty())
-        val error = runCatching { SplitApplicationEngine.apply(request) }.exceptionOrNull()
-        assertTrue("El gate PREBUILT debe rechazar la publicación", error is IllegalArgumentException)
-        assertTrue(error?.message?.contains("No se puede generar el split") == true)
+        assertTrue("Texas con recetas publicadas debe poder aplicarse en PREBUILT", reasons.isEmpty())
+        val applied = SplitApplicationEngine.apply(request)
+        assertTrue(applied.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
+            .any { week -> week.sessions.isNotEmpty() })
     }
 
     @Test

@@ -125,8 +125,8 @@ class ExercisePickerSelectedRowsRestoreTest {
             ),
             draftByDefinition = emptyMap(),
         )
-        assertEquals("t_bar_row__machine__medium", chosen.getValue("t_bar_row").catalogConfigurationId)
-        assertNotEquals(firstCatalogId, chosen.getValue("t_bar_row").catalogConfigurationId)
+        assertEquals("t_bar_row__machine__medium", row(chosen).catalogConfigurationId)
+        assertNotEquals(firstCatalogId, row(chosen).catalogConfigurationId)
     }
 
     @Test
@@ -138,7 +138,7 @@ class ExercisePickerSelectedRowsRestoreTest {
             previous = emptyMap(),
             draftByDefinition = emptyMap(),
         )
-        assertEquals("t_bar_row__t_bar__medium", restored.getValue("t_bar_row").catalogConfigurationId)
+        assertEquals("t_bar_row__t_bar__medium", row(restored).catalogConfigurationId)
     }
 
     @Test
@@ -152,6 +152,14 @@ class ExercisePickerSelectedRowsRestoreTest {
             initialCatalogDefinitionId = "t_bar_row",
             initialCatalogConfigurationId = "t_bar_row__machine__medium",
         )
-        assertEquals("t_bar_row__machine__medium", restored.getValue("t_bar_row").catalogConfigurationId)
+        assertEquals("t_bar_row__machine__medium", row(restored).catalogConfigurationId)
     }
+
+    private fun row(restored: Map<String, ExerciseMuscleInfo>): ExerciseMuscleInfo =
+        restored["t_bar_row"]
+            ?: restored.values.first { info ->
+                info.catalogDefinitionId == "t_bar_row" ||
+                    info.id == "t_bar_row" ||
+                    info.catalogConfigurationId?.startsWith("t_bar_row") == true
+            }
 }

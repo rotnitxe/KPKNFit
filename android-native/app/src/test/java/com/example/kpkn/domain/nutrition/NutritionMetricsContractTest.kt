@@ -17,7 +17,7 @@ import kotlin.system.measureTimeMillis
  *
  * Umbrales del plan (medidos en CI sobre el pipeline real, sin Room):
  *  - precision@1 de identidad ≥ 95%
- *  - alias cotidianos de aproximación quedan AUTO con ficha genérica
+ *  - un alias de aproximación no certifica otra identidad
  *  - error mediano de gramos ≤ 15%
  *  - idempotencia 3/3 (mismo input → mismo resultado)
  *  - p95 de resolución completa < 50 ms
@@ -80,9 +80,9 @@ class NutritionMetricsContractTest {
         // Casos curados de la auditoría (IT1/IT2)
         IdentityCase("papas fritas", "papa", expectedId = "gen021f", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("manjar", "manjar", expectedId = "gen109", expectedStatus = FoodResolutionStatus.AUTO),
-        IdentityCase("torta", "torta", expectedId = "gen019", expectedStatus = FoodResolutionStatus.AUTO),
-        IdentityCase("café con leche", "café con leche", expectedId = "gen016", expectedStatus = FoodResolutionStatus.AUTO),
-        IdentityCase("quesadilla", "quesadilla", expectedStatus = FoodResolutionStatus.AUTO),
+        IdentityCase("torta", "torta", expectedStatus = FoodResolutionStatus.NEEDS_REVIEW),
+        IdentityCase("café con leche", "café con leche", expectedStatus = FoodResolutionStatus.NEEDS_REVIEW),
+        IdentityCase("quesadilla", "quesadilla", expectedStatus = FoodResolutionStatus.NEEDS_REVIEW),
         IdentityCase("fideos", "fideos", expectedId = "gen040h", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("200g pollo a la plancha", "pollo", expectedId = "gen003c", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("salmón al horno", "salmon", expectedId = "gen009h", expectedStatus = FoodResolutionStatus.AUTO),
@@ -112,20 +112,20 @@ class NutritionMetricsContractTest {
         IdentityCase("jugo de naranja", "jugo de naranja", expectedId = "gen103", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("zanahoria", "zanahoria", expectedId = "gen024", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("brócoli", "brócoli", expectedId = "gen022", expectedStatus = FoodResolutionStatus.AUTO),
-        IdentityCase("pollo al horno", "pollo", expectedId = "gen003h", expectedStatus = FoodResolutionStatus.AUTO),
+        IdentityCase("pollo al horno", "pollo", expectedId = "gen003h", expectedStatus = FoodResolutionStatus.NEEDS_CONFIRMATION),
         IdentityCase("choclo", "choclo", expectedId = "gen071", expectedStatus = FoodResolutionStatus.AUTO),
         // Sustituciones que deben quedar en revisión
         IdentityCase("ensalada", "ensalada", expectedId = "gen066", expectedStatus = FoodResolutionStatus.AUTO),
-        IdentityCase("milanesa", "milanesa", expectedId = "gen093", expectedStatus = FoodResolutionStatus.AUTO),
-        IdentityCase("batido", "batido", expectedId = "gen016", expectedStatus = FoodResolutionStatus.AUTO),
-        IdentityCase("choripán", "choripán", expectedId = "cl001", expectedStatus = FoodResolutionStatus.AUTO),
-        IdentityCase("galletas", "galletas", expectedId = "gen019", expectedStatus = FoodResolutionStatus.AUTO),
+        IdentityCase("milanesa", "milanesa", expectedStatus = FoodResolutionStatus.NEEDS_REVIEW),
+        IdentityCase("batido", "batido", expectedStatus = FoodResolutionStatus.NEEDS_REVIEW),
+        IdentityCase("choripán", "choripán", expectedStatus = FoodResolutionStatus.NEEDS_REVIEW),
+        IdentityCase("galletas", "galletas", expectedStatus = FoodResolutionStatus.NEEDS_REVIEW),
         // BUGS detectados en el baseline (expectativas de identidad correctas)
         IdentityCase("pan integral", "pan integral", nameContains = "integral"),
         IdentityCase("queso fresco", "queso fresco", expectedId = "gen084", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("sopa", "sopa", nameContains = "sopa"),
         IdentityCase("cereal", "cereal", expectedStatus = FoodResolutionStatus.AUTO),
-        IdentityCase("once", "once", expectedStatus = FoodResolutionStatus.AUTO),
+        IdentityCase("once", "once", expectedStatus = FoodResolutionStatus.NEEDS_REVIEW),
         IdentityCase("porotos", "poroto", nameContains = "poroto"),
         IdentityCase("arroz integral", "arroz integral", nameContains = "integral"),
     )
@@ -141,6 +141,8 @@ class NutritionMetricsContractTest {
                 first.tag == case.expectedTag &&
                 (case.expectedId == null || first.foodItem?.id == case.expectedId) &&
                 (case.expectedStatus == null || first.resolutionStatus == case.expectedStatus) &&
+                (case.expectedStatus != FoodResolutionStatus.NEEDS_REVIEW ||
+                    (first.foodItem == null && first.loggedFood?.foodName?.contains(case.expectedTag, ignoreCase = true) == true)) &&
                 (case.nameContains == null || first.foodItem?.name?.contains(case.nameContains, ignoreCase = true) == true)
             if (ok) {
                 hits++
@@ -157,25 +159,15 @@ class NutritionMetricsContractTest {
     }
 
     @Test
-    fun `E16 sustituciones cotidianas quedan AUTO con ficha generica`() = runBlocking {
-        val misses = mutableListOf<String>()
-        val required = listOf("torta", "ensalada", "quesadilla", "galletas", "once", "cafe con leche")
-        for (alias in required) {
-            val first = resolve(alias).firstOrNull()
-            if (first?.resolutionStatus != FoodResolutionStatus.AUTO ||
-                first.loggedFood == null ||
-                first.hasMaterialQuestion()
-            ) {
-                misses += "$alias → status=${first?.resolutionStatus} id=${first?.foodItem?.id}"
-            }
+    fun `E16 rejected approximations preserve user identity and useful estimate`() = runBlocking {
+        val required = listOf("torta", "quesadilla", "galletas", "once", "café con leche")
+        for (query in required) {
+            val tag = resolve(query).single()
+            assertEquals(query, null, tag.foodItem)
+            assertTrue(query, tag.hasMaterialQuestion())
+            assertTrue(query, tag.loggedFood?.foodName?.contains(query, ignoreCase = true) == true)
+            assertTrue(query, (tag.loggedFood?.amount ?: 0.0) > 0.0)
         }
-        for (alias in FOOD_ALIASES_APPROXIMATION.sorted()) {
-            val first = resolve(alias).firstOrNull() ?: continue
-            if (first.foodItem != null && first.resolutionStatus != FoodResolutionStatus.AUTO) {
-                misses += "$alias → status=${first.resolutionStatus} id=${first.foodItem?.id}"
-            }
-        }
-        assertTrue("alias cotidianos deben AUTO: $misses", misses.isEmpty())
     }
 
     // ─── Corpus de gramos (sin dependencia del dataset semántico) ─────────────

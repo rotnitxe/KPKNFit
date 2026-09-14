@@ -35,18 +35,21 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen012", name = "Lentejas (cocidas)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 116.0, protein = 9.0, carbs = 20.0, fats = 0.4),
     FoodItem(id = "gen013", name = "Garbanzos (cocidos)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 139.0, protein = 7.0, carbs = 26.0, fats = 2.4),
     FoodItem(id = "gen014", name = "Palta (Aguacate)", servingSize = 100.0, unit = "g", calories = 160.0, protein = 2.0, carbs = 9.0, fats = 15.0),
-    FoodItem(id = "gen015", name = "Aceite de Oliva", servingSize = 100.0, unit = "ml", calories = 884.0, protein = 0.0, carbs = 0.0, fats = 100.0),
-    FoodItem(id = "gen016", name = "Leche Entera", brand = "Genérico", servingSize = 100.0, unit = "ml", calories = 61.0, protein = 3.2, carbs = 4.8, fats = 3.3),
+    // USDA SR Legacy records in data/usdaFoodsOffline.json: 171413 (oil),
+    // 171265 (whole milk). Values per 100 g; milk macros rounded to one decimal.
+    // unit="ml" is a display/household measure, never the nutrient denominator.
+    FoodItem(id = "gen015", name = "Aceite de Oliva", servingSize = 100.0, unit = "ml", nutritionBasis = "PER_100G_AS_SOLD", source = "USDA SR Legacy (rounded)", sourceRecordId = "171413", calories = 884.0, protein = 0.0, carbs = 0.0, fats = 100.0),
+    FoodItem(id = "gen016", name = "Leche Entera", brand = "Genérico", servingSize = 100.0, unit = "ml", nutritionBasis = "PER_100G_AS_SOLD", source = "USDA SR Legacy (rounded)", sourceRecordId = "171265", calories = 61.0, protein = 3.2, carbs = 4.8, fats = 3.3),
     FoodItem(id = "gen017", name = "Yogurt Griego Natural", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 97.0, protein = 9.0, carbs = 3.9, fats = 5.0),
     FoodItem(id = "gen018", name = "Queso Cottage", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 98.0, protein = 11.0, carbs = 3.4, fats = 4.3),
     FoodItem(id = "gen019", name = "Pan Blanco", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 265.0, protein = 9.0, carbs = 49.0, fats = 3.2),
-    FoodItem(id = "gen020", name = "Pan Integral", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 247.0, protein = 13.0, carbs = 41.0, fats = 3.4),
+    FoodItem(id = "gen020", name = "Pan Integral", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 265.0, protein = 9.5, carbs = 45.0, fats = 4.2, nutritionBasis = "PER_100G_AS_SOLD"),
     FoodItem(id = "gen021", name = "Papa (cocida)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 87.0, protein = 1.9, carbs = 20.0, fats = 0.1),
     FoodItem(id = "gen022", name = "Brócoli (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 35.0, protein = 2.4, carbs = 7.2, fats = 0.4),
     FoodItem(id = "gen023", name = "Espinaca (cruda)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 23.0, protein = 2.9, carbs = 3.6, fats = 0.4),
     FoodItem(id = "gen024", name = "Zanahoria (cruda)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 41.0, protein = 0.9, carbs = 10.0, fats = 0.2),
     FoodItem(id = "gen025", name = "Almendras", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 579.0, protein = 21.0, carbs = 22.0, fats = 49.0),
-    FoodItem(id = "gen026", name = "Tomate", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 18.0, protein = 0.9, carbs = 3.9, fats = 0.2),
+    FoodItem(id = "gen026", name = "Tomate", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 18.0, protein = 0.9, carbs = 3.9, fats = 0.2, source = "USDA SR Legacy (rounded)", sourceRecordId = "170457", nutritionBasis = "PER_100G_AS_SOLD"),
     FoodItem(id = "gen027", name = "Cebolla", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 40.0, protein = 1.1, carbs = 9.0, fats = 0.1),
     FoodItem(id = "gen028", name = "Lomo de Cerdo (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 242.0, protein = 27.0, carbs = 0.0, fats = 14.0),
     FoodItem(id = "gen029", name = "Atún en lata (agua)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 116.0, protein = 26.0, carbs = 0.0, fats = 1.0),
@@ -68,7 +71,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen044", name = "Merluza (cocida)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 94.0, protein = 19.0, carbs = 0.0, fats = 1.2,
         micronutrients = listOf(Micronutrient("Selenio", 36.5, "µg"), Micronutrient("Potasio", 256.0, "mg"))),
     FoodItem(id = "gen045", name = "Pavo (pechuga cocida)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 135.0, protein = 30.0, carbs = 0.0, fats = 0.7),
-    FoodItem(id = "gen046", name = "Leche Descremada", brand = "Genérico", servingSize = 100.0, unit = "ml", calories = 34.0, protein = 3.4, carbs = 5.0, fats = 0.1,
+    FoodItem(id = "gen046", name = "Leche Descremada", brand = "Genérico", servingSize = 100.0, unit = "ml", nutritionBasis = "PER_100G_AS_SOLD", source = "USDA SR Legacy (rounded)", sourceRecordId = "171269", calories = 34.0, protein = 3.4, carbs = 5.0, fats = 0.1,
         micronutrients = listOf(Micronutrient("Calcio", 122.0, "mg"))),
     FoodItem(id = "gen047", name = "Queso Cheddar", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 403.0, protein = 25.0, carbs = 1.3, fats = 33.0),
     FoodItem(id = "gen048", name = "Miel", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 304.0, protein = 0.0, carbs = 82.0, fats = 0.0),
@@ -100,7 +103,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen064", name = "Salsa de Tomate", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 32.0, protein = 1.6, carbs = 7.2, fats = 0.4),
     FoodItem(id = "gen065", name = "Mayonesa", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 680.0, protein = 1.1, carbs = 0.6, fats = 75.0),
     // ─── Verduras ────────────────────────────────────────────────────────────
-    FoodItem(id = "gen066", name = "Lechuga", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 15.0, protein = 1.4, carbs = 2.9, fats = 0.2, searchAliases = listOf("lechuga", "ensalada verde")),
+    FoodItem(id = "gen066", name = "Lechuga", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 15.0, protein = 1.4, carbs = 2.9, fats = 0.2, source = "USDA SR Legacy (rounded)", sourceRecordId = "169249", nutritionBasis = "PER_100G_AS_SOLD", searchAliases = listOf("lechuga", "ensalada verde")),
     FoodItem(id = "gen067", name = "Repollo", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 25.0, protein = 1.3, carbs = 5.8, fats = 0.1, searchAliases = listOf("repollo", "col", "cabbage")),
     FoodItem(id = "gen068", name = "Coliflor", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 25.0, protein = 1.9, carbs = 5.0, fats = 0.3),
     FoodItem(id = "gen069", name = "Apio", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 16.0, protein = 0.7, carbs = 3.0, fats = 0.2),
@@ -160,7 +163,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen003t", name = "Trutro de Pollo (crudo)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 177.0, protein = 19.7, carbs = 0.0, fats = 10.9, cookingWeightFactor = 0.75, searchAliases = listOf("trutro de pollo", "trutro", "muslo de pollo", "muslo", "pierna de pollo")),
     FoodItem(id = "gen003tc", name = "Trutro de Pollo (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 195.0, protein = 24.0, carbs = 0.0, fats = 10.2, searchAliases = listOf("trutro cocido", "muslo cocido", "pierna cocida")),
     FoodItem(id = "gen003a", name = "Ala de Pollo (cocida)", brand = "Genérico", servingSize = 80.0, unit = "u", calories = 203.0, protein = 18.0, carbs = 0.0, fats = 14.0, searchAliases = listOf("ala de pollo", "alitas", "alita", "ala")),
-    FoodItem(id = "gen003e", name = "Pollo Entero (asado)", brand = "Genérico", servingSize = 200.0, unit = "g", calories = 165.0, protein = 27.0, carbs = 0.0, fats = 6.0, searchAliases = listOf("pollo entero", "pollo asado entero")),
+    FoodItem(id = "gen003e", name = "Pollo Entero (asado)", brand = "Genérico", servingSize = 200.0, unit = "g", calories = 165.0, protein = 27.0, carbs = 0.0, fats = 6.0, nutritionBasis = "PER_100G_COOKED", searchAliases = listOf("pollo entero", "pollo asado entero")),
     // Vacuno
     FoodItem(id = "gen010p", name = "Carne Molida (plancha)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 228.0, protein = 26.0, carbs = 0.0, fats = 10.5, searchAliases = listOf("carne a la plancha")),
     FoodItem(id = "gen010f", name = "Carne Molida (frita)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 293.0, protein = 25.0, carbs = 0.0, fats = 15.4, searchAliases = listOf("carne frita")),
@@ -256,7 +259,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen131", name = "Sushi", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 150.0, protein = 6.0, carbs = 25.0, fats = 3.0, searchAliases = listOf("sushi")),
     FoodItem(id = "gen132", name = "Donut", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 420.0, protein = 5.0, carbs = 51.0, fats = 22.0, searchAliases = listOf("donut", "dona", "donuts", "donas")),
     // E16: identidad faltante detectada por el contrato de métricas (baseline 87%)
-    FoodItem(id = "gen133", name = "Pan Integral", brand = "Genérico", servingSize = 50.0, unit = "u", calories = 265.0, protein = 9.5, carbs = 45.0, fats = 4.2, searchAliases = listOf("pan integral", "pan de molde integral", "pan centeno")),
+    FoodItem(id = "gen133", name = "Pan Integral", brand = "Genérico", servingSize = 50.0, unit = "u", calories = 265.0, protein = 9.5, carbs = 45.0, fats = 4.2, nutritionBasis = "PER_100G_AS_SOLD", searchAliases = listOf("pan integral", "pan de molde integral", "pan centeno")),
     FoodItem(id = "gen134", name = "Sopa (casera)", brand = "Genérico", servingSize = 250.0, unit = "ml", calories = 42.0, protein = 2.0, carbs = 4.0, fats = 1.5, searchAliases = listOf("sopa", "sopa casera", "caldo", "sopa de verduras", "sopa de pollo")),
     FoodItem(id = "gen135", name = "Porotos (cocidos)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 140.0, protein = 8.5, carbs = 25.0, fats = 0.5, searchAliases = listOf("porotos", "poroto", "porotos cocidos", "porotos negros", "frijoles", "frijol")),
     FoodItem(id = "gen136", name = "Arroz Integral (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 123.0, protein = 2.7, carbs = 26.0, fats = 0.9, searchAliases = listOf("arroz integral", "arroz integral cocido")),
@@ -627,8 +630,8 @@ private val AMBIGUOUS_STATE_ALIASES = setOf(
 private val foodByExactName: Map<String, FoodItem> by lazy {
     val allFoods = ALL_FOODS
     buildMap {
-        allFoods.forEach { food ->
-            put(food.name.lowercase(), food)
+        allFoods.sortedBy { it.id }.forEach { food ->
+            putIfAbsent(food.name.lowercase(), food)
             food.searchAliases.forEach { alias -> putIfAbsent(alias.lowercase(), food) }
         }
         // Pre-resolver todos los aliases del mapa FOOD_ALIASES
@@ -665,7 +668,11 @@ fun findFoodExactByNormalized(text: String): FoodItem? {
     if (stripped != normalized) foodByExactName[stripped]?.let { return it }
     val strippedAlias = stripAccents(alias)
     if (strippedAlias != stripped) foodByExactName[strippedAlias]?.let { return it }
-    return null
+    // Agreement errors ("papa fritas") retain the same exact lexical identity.
+    val agreementKey = stripped.split(' ').joinToString(" ") { it.removeSuffix("s") }
+    return foodByExactName.entries.firstOrNull { (key, _) ->
+        stripAccents(key).split(' ').joinToString(" ") { it.removeSuffix("s") } == agreementKey
+    }?.value
 }
 
 fun findFoodByNormalized(text: String): FoodItem? {

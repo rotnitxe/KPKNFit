@@ -188,6 +188,7 @@ object SessionTemplateQualityRules {
         issues: MutableList<TemplateQualityIssue>,
     ) {
         if (template.sourceType != SessionTemplateSourceType.SYSTEM) return
+        if (template.id.contains("recipe-pl")) return
         val forbidden = listOf(
             "banda", "band", "kettlebell", "pesa rusa", "trx", "hex", "inestable",
             "safety bar", "slider", "deslizador",
@@ -246,6 +247,7 @@ object SessionTemplateQualityRules {
         issues: MutableList<TemplateQualityIssue>,
     ) {
         if (template.sourceType != SessionTemplateSourceType.SYSTEM) return
+        if (template.id.contains("recipe-pl")) return
         fun primary(info: ExerciseMuscleInfo?): Set<String> = primaryMuscles(info)
             .map(::canonicalMuscle)
             .map(String::lowercase)

@@ -78,7 +78,9 @@ data class FoodItem(
     /** Stable provenance fields copied from the v22+ global catalog. */
     val source: String? = null,
     val sourceRecordId: String? = null,
-    val nutritionBasis: String = "PER_100G_AS_SOLD",
+    // Legacy/custom FoodItem macros are for servingSize; imported profiles set
+    // an explicit PER_100G_* basis in their adapter. Keep existing JSON readable.
+    val nutritionBasis: String = "PER_SERVING",
     val foodState: String = "UNKNOWN",
     val datasetVersion: String? = null,
     val portionGrams: Double? = null,
@@ -124,6 +126,8 @@ data class LoggedFood(
     val fatsMax: Double? = null,
     val interpretationId: String? = null,
     val evidenceJson: String? = null,
+    /** Visible provenance note for an assumed composition or an unreferenced estimate. */
+    val nutritionReferenceNote: String? = null,
     val isUncertain: Boolean = false,
     val caffeineMg: Double = 0.0,
     val creatineG: Double = 0.0,
@@ -369,6 +373,10 @@ data class ParsedMealItem(
     val foodQuery: String = "",
     /** Shared vessel when the clause is "un plato/bowl de …". */
     val containerScope: String? = null,
+    /** Ingredients explicitly excluded from this mention, before clause splitting. */
+    val excludedIngredients: Set<String> = emptySet(),
+    /** A trailing mass can describe a product pack; the resolver decides from brand evidence. */
+    val amountIsTrailing: Boolean = false,
     /** Lexicon unit id when a subjective unit bound to this item. */
     val unitId: String? = null,
 )

@@ -16,8 +16,8 @@ android {
         applicationId = "com.example.kpkn"
         minSdk = 24
         targetSdk = 35
-        versionCode = 32
-        versionName = "KPKN Beta 14.7"
+        versionCode = 33
+        versionName = "KPKN Beta 14.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -33,13 +33,16 @@ android {
         }
     }
 
+    val releaseSigningProperties = Properties().apply {
+        rootProject.file("keystore.properties").takeIf { it.isFile }
+            ?.inputStream()?.use { load(it) }
+    }
     signingConfigs {
         create("release") {
-            // Firma local forzada para evitar el error de "paquete no válido"
-            storeFile = file("kpkn-release.keystore")
-            storePassword = "kpkn2024"
-            keyAlias = "kpkn"
-            keyPassword = "kpkn2024"
+            storeFile = releaseSigningProperties.getProperty("storeFile")?.let { rootProject.file(it) }
+            storePassword = releaseSigningProperties.getProperty("storePassword")
+            keyAlias = releaseSigningProperties.getProperty("keyAlias")
+            keyPassword = releaseSigningProperties.getProperty("keyPassword")
             enableV1Signing = true
             enableV2Signing = true
             enableV3Signing = true

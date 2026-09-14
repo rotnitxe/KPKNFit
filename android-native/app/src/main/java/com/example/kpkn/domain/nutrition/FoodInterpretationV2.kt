@@ -1,12 +1,17 @@
 package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.food.findFoodByNormalized
+import com.example.kpkn.data.food.findStaticFoodById
 import com.example.kpkn.data.models.AmountIntent
 import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.data.models.NutritionCalibrationProfile as StoredNutritionCalibrationProfile
 import com.example.kpkn.data.models.ParsedMealItem
 import com.example.kpkn.data.models.PORTION_MULTIPLIERS
 import com.example.kpkn.data.models.PortionPreset
+import com.example.kpkn.data.models.LoggedFood
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.put
 import com.example.kpkn.domain.nutrition.FoodInterpretationV2Engine.Companion.DEFAULT_DATASET_VERSION
 import java.security.MessageDigest
 import java.util.UUID
@@ -205,6 +210,9 @@ data class FoodInterpretationV2(
     val isConfirmedEstimate: Boolean = false,
     val isUncertain: Boolean = false,
     val queryFingerprint: String? = null,
+    /** User's unit remains evidence; observedGrams always stores canonical eaten mass. */
+    val declaredUnitId: String? = null,
+    val nutritionReferenceNote: String? = null,
 )
 
 /** Aliases keep the contract discoverable from the domain package. */
@@ -256,6 +264,102 @@ class FoodInterpretationV2Engine(
 
     private val drafts = linkedMapOf<String, Draft>()
 
+    /** The logger supplies a resolved mention. Never parse the meal a second time. */
+    fun interpretResolved(
+        tag: ResolvedTag,
+        questions: List<ClarificationRequest> = emptyList(),
+    ): FoodInterpretationV2 {
+        val food = tag.foodItem
+        val logged = tag.loggedFood
+        val estimate = tag.nutritionEstimate
+        val grams = tag.amountGrams ?: logged?.amount ?: tag.baseAmountGrams ?: 100.0
+        val vague = tag.amountIntent == AmountIntent.UNSPECIFIED || tag.amountIntent == AmountIntent.INFERRED_CONTEXT
+        val minGrams = (tag.portionMinGrams ?: if (vague) grams * 0.75 else grams).coerceAtMost(grams)
+        val maxGrams = (tag.portionMaxGrams ?: if (vague) grams * 1.25 else grams).coerceAtLeast(grams)
+        val source = when (tag.nutritionSource) {
+            NutritionSourceKind.HEURISTIC_ESTIMATE -> FoodSource.HEURISTIC
+            NutritionSourceKind.DATASET_ESTIMATE -> FoodSource.DATASET_SEMANTIC
+            NutritionSourceKind.EXTERNAL_ESTIMATE -> FoodSource.HEURISTIC
+            NutritionSourceKind.USER_PROVIDED -> FoodSource.MANUAL
+            else -> food?.source.toFoodSource()
+        }
+        val basis = if (tag.nutrientsManuallyEdited) NutritionBasis.PER_SERVING else food?.nutritionBasis.toNutritionBasis(tag.foodState)
+        val uncertain = tag.isUncertain || vague || minGrams != maxGrams || questions.isNotEmpty() ||
+            source in setOf(FoodSource.HEURISTIC, FoodSource.DATASET_SEMANTIC)
+        val sourceId = food?.sourceRecordId ?: food?.id
+        val sourceState = food?.let(FoodIdentity::stateFor) ?: FoodState.UNKNOWN
+        val convertsWeightBasis = food != null && ((sourceState == FoodState.RAW && tag.foodState == FoodState.COOKED) ||
+            (sourceState == FoodState.COOKED && tag.foodState == FoodState.RAW)) &&
+            (tag.stateConversion != null || tag.cookingMethod != null)
+        val conversion = if (convertsWeightBasis) "weight_basis:${sourceState.name}->${tag.foodState.name};yield=${cookingWeightYield(food!!)};source=${food.id}" else null
+        val calculatedName = if (convertsWeightBasis) {
+            val stem = food!!.name.replace(Regex("\\b(?:crud[oa]s?|sec[oa]s?|cocid[oa]s?|hidratad[oa]s?|asad[oa]s?|frit[oa]s?)\\b", RegexOption.IGNORE_CASE), "")
+                .replace(Regex("\\(\\s*\\)"), "").replace(Regex("\\s+"), " ").trim()
+            "$stem (${if (tag.foodState == FoodState.RAW) "crudo" else "cocido"}, estimado)"
+        } else food?.name ?: logged?.foodName
+        fun minimum(value: Double?, explicit: Double?) = explicit ?: (value ?: 0.0) * minGrams / grams.coerceAtLeast(1.0)
+        fun maximum(value: Double?, explicit: Double?) = explicit ?: (value ?: 0.0) * maxGrams / grams.coerceAtLeast(1.0)
+        return FoodInterpretationV2(
+            draftId = tag.id, canonicalIdentity = calculatedName,
+            canonicalFamily = tag.canonicalFamily, selectedCandidateId = food?.id,
+            source = source, sourceRecordId = sourceId,
+            datasetVersion = food?.datasetVersion ?: datasetVersion,
+            sourceQuality = when {
+                tag.nutrientsManuallyEdited -> "manual_override"
+                estimate?.isUnmatchedFallback == true -> "unmatched_estimate"
+                estimate != null -> "composition_estimate"
+                food == null -> "estimated"
+                food.qualityFlags.isEmpty() -> "catalog"
+                else -> "flagged"
+            },
+            nutritionBasis = basis,
+            weightBasis = when (tag.foodState) {
+                FoodState.RAW -> WeightBasis.RAW
+                FoodState.COOKED, FoodState.HYDRATED -> WeightBasis.COOKED
+                else -> WeightBasis.AS_SERVED
+            },
+            observedGrams = grams, baseAmountGrams = tag.baseAmountGrams ?: grams,
+            portionMinGrams = minGrams, portionMaxGrams = maxGrams,
+            preparation = tag.cookingMethod?.name, oilProfile = tag.oilLevel.takeIf { tag.oilApplied },
+            oilGrams = tag.appliedOilGrams ?: if (tag.oilApplied) oilGramsForLevel(tag.oilLevel) else null,
+            oilMinGrams = if (tag.needsOilClarification) 0.0 else null,
+            oilMaxGrams = if (tag.needsOilClarification) oilGramsForLevel("abundante") else null,
+            calories = logged?.calories ?: 0.0,
+            caloriesMin = minimum(logged?.calories, logged?.caloriesMin),
+            caloriesMax = maximum(logged?.calories, logged?.caloriesMax),
+            proteinGrams = logged?.protein ?: 0.0,
+            proteinMinGrams = minimum(logged?.protein, logged?.proteinMin),
+            proteinMaxGrams = maximum(logged?.protein, logged?.proteinMax),
+            carbsGrams = logged?.carbs ?: 0.0,
+            carbsMinGrams = minimum(logged?.carbs, logged?.carbsMin),
+            carbsMaxGrams = maximum(logged?.carbs, logged?.carbsMax),
+            fatGrams = logged?.fats ?: 0.0,
+            fatMinGrams = minimum(logged?.fats, logged?.fatsMin),
+            fatMaxGrams = maximum(logged?.fats, logged?.fatsMax),
+            identityConfidence = tag.resolutionConfidence ?: if (food == null) 0.0 else 1.0,
+            portionConfidence = if (vague) 0.55 else 1.0,
+            stateConfidence = if (tag.stateAssumed) 0.65 else 1.0,
+            oilConfidence = if (tag.needsOilClarification) 0.35 else 1.0,
+            pendingQuestions = questions,
+            evidence = listOf(FoodEvidence(source, sourceId, food?.datasetVersion ?: datasetVersion, basis, food?.qualityFlags.orEmpty())) +
+                estimate?.referenceFoodIds.orEmpty().mapNotNull(::findStaticFoodById).map { it.toEvidence(datasetVersion) },
+            stageEvidence = listOf(
+                InterpretationStageEvidence(InterpretationStage.IDENTITY, if (questions.any { it is ClarificationRequest.Identity }) "needs_review" else "resolved", tag.resolutionConfidence ?: 0.0, sourceId),
+                InterpretationStageEvidence(InterpretationStage.PORTION, if (vague) "habitual_estimate" else "declared", if (vague) 0.55 else 1.0, sourceId),
+                InterpretationStageEvidence(InterpretationStage.STATE_AND_BASIS, if (tag.stateAssumed) "assumed_as_eaten" else "resolved", if (tag.stateAssumed) 0.65 else 1.0, sourceId),
+                InterpretationStageEvidence(InterpretationStage.MACROS, if (food == null) "estimated" else "calculated", if (food == null) 0.35 else 1.0, sourceId),
+            ),
+            transformations = listOfNotNull("portion:${tag.amountIntent.name}", tag.cookingMethod?.let { "preparation:${it.name}" }, conversion, "manual:nutrients".takeIf { tag.nutrientsManuallyEdited },
+                estimate?.assumption, "composition:confirmed".takeIf { "composition" in tag.confirmedDimensions }),
+            isConfirmedEstimate = false,
+            isUncertain = uncertain || convertsWeightBasis,
+            declaredUnitId = tag.unitId,
+            nutritionReferenceNote = estimate?.let {
+                it.assumption + if (it.isUnmatchedFallback || it.requiresCompositionClarification) " Rango orientativo; composición sin confirmar." else ""
+            },
+        )
+    }
+
     override fun interpret(
         text: String,
         context: InterpretationContext,
@@ -275,6 +379,7 @@ class FoodInterpretationV2Engine(
         val draftId = UUID.randomUUID().toString()
         val result = buildResult(draftId, text, item, food, calibration)
         drafts[draftId] = Draft(text, context, calibration, result, item, food)
+        while (drafts.size > 128) drafts.remove(drafts.keys.first())
         return result
     }
 
@@ -390,7 +495,7 @@ class FoodInterpretationV2Engine(
             isConfirmedEstimate = draft.result.source == FoodSource.MANUAL ||
                 draft.result.source == FoodSource.HEURISTIC,
         )
-        draft.result = finalized
+        drafts.remove(draftId)
         return finalized
     }
 
@@ -488,10 +593,10 @@ class FoodInterpretationV2Engine(
         val macros = if (food != null) {
             val grams = observed
             NutritionMacroRange(
-                calories = food.calories * grams / food.servingSize.coerceAtLeast(1.0),
-                proteinGrams = food.protein * grams / food.servingSize.coerceAtLeast(1.0),
-                carbsGrams = food.carbs * grams / food.servingSize.coerceAtLeast(1.0),
-                fatGrams = food.fats * grams / food.servingSize.coerceAtLeast(1.0),
+                calories = food.calories * grams / NutrientBasis.grams(food),
+                proteinGrams = food.protein * grams / NutrientBasis.grams(food),
+                carbsGrams = food.carbs * grams / NutrientBasis.grams(food),
+                fatGrams = food.fats * grams / NutrientBasis.grams(food),
             )
         } else NutritionMacroRange(0.0, 0.0, 0.0, 0.0)
         val rangeMin = if (portionIsVague) portionOptions.minOfOrNull { it.minGrams } ?: observed else observed
@@ -646,3 +751,95 @@ private fun FoodItem.toEvidence(datasetVersion: String): FoodEvidence = FoodEvid
 private fun fingerprint(text: String): String = MessageDigest.getInstance("SHA-256")
     .digest(FoodIdentity.normalize(text).toByteArray())
     .joinToString("") { "%02x".format(it) }
+
+/** User-confirmed dimensions only; a draft or accepted estimate cannot create a habit. */
+data class FoodLearningConfirmation(
+    val query: String,
+    val foodId: String,
+    val family: String,
+    val dimensions: Set<String>,
+    val portionGrams: Double? = null,
+    val cookingMethod: String? = null,
+    val weightBasis: WeightBasis = WeightBasis.UNKNOWN,
+    val oilGramsPer100: Double? = null,
+)
+
+fun FoodInterpretationV2.canFinalize(): Boolean = pendingQuestions.none { it.material } &&
+    observedGrams?.let { it.isFinite() && it > 0.0 } == true &&
+    listOf(calories, proteinGrams, carbsGrams, fatGrams).all { it.isFinite() && it >= 0.0 } &&
+    calories <= 10000.0 && proteinGrams <= 1000.0 && carbsGrams <= 1000.0 && fatGrams <= 1000.0
+
+/** Persist the same result that the card displays, including its source and interval. */
+fun FoodInterpretationV2.toLoggedFood(reference: LoggedFood): LoggedFood = reference.copy(
+    foodName = canonicalIdentity ?: reference.foodName,
+    amount = observedGrams ?: reference.amount,
+    unit = "g",
+    calories = calories, protein = proteinGrams, carbs = carbsGrams, fats = fatGrams,
+    caloriesMin = caloriesMin, caloriesMax = caloriesMax,
+    proteinMin = proteinMinGrams, proteinMax = proteinMaxGrams,
+    carbsMin = carbsMinGrams, carbsMax = carbsMaxGrams,
+    fatsMin = fatMinGrams, fatsMax = fatMaxGrams,
+    interpretationId = draftId, isUncertain = isUncertain,
+    nutritionReferenceNote = nutritionReferenceNote,
+    evidenceJson = buildJsonObject {
+        put("source", source.name)
+        put("sourceRecordId", sourceRecordId)
+        put("selectedCandidateId", selectedCandidateId)
+        put("datasetVersion", datasetVersion)
+        put("sourceQuality", sourceQuality)
+        put("nutritionBasis", nutritionBasis.name)
+        put("weightBasis", weightBasis.name)
+        put("identityConfidence", identityConfidence)
+        put("portionConfidence", portionConfidence)
+        put("stateConfidence", stateConfidence)
+        put("oilConfidence", oilConfidence)
+        put("declaredUnitId", declaredUnitId)
+        put("transformations", transformations.joinToString("|"))
+        put("nutritionReferenceNote", nutritionReferenceNote)
+        put("references", buildJsonArray {
+            evidence.forEach { item -> add(buildJsonObject {
+                put("source", item.source.name)
+                put("sourceRecordId", item.sourceRecordId)
+                put("datasetVersion", item.datasetVersion)
+                put("nutritionBasis", item.nutritionBasis.name)
+            }) }
+        })
+    }.toString(),
+)
+
+fun ResolvedTag.confirmedLearning(): FoodLearningConfirmation? {
+    // Unsure explicitly clears dimensions. Estimated portions alone must not suppress
+    // an identity the user actually selected.
+    if (confirmedDimensions.isEmpty() || isExcluded || (explicitDecision && isUncertain && confirmedDimensions.isEmpty())) return null
+    val food = foodItem ?: return null
+    return FoodLearningConfirmation(
+        query = foodQuery.ifBlank { tag }, foodId = food.id,
+        family = food.id, dimensions = confirmedDimensions,
+        portionGrams = amountGrams.takeIf { "portion" in confirmedDimensions },
+        cookingMethod = cookingMethod?.name?.takeIf { "state" in confirmedDimensions },
+        weightBasis = interpretationV2?.weightBasis ?: WeightBasis.UNKNOWN,
+        oilGramsPer100 = if ("oil" in confirmedDimensions) (appliedOilGrams ?: oilGramsForLevel(oilLevel)) * 100.0 / (amountGrams ?: 100.0).coerceAtLeast(1.0) else null,
+    )
+}
+
+fun rescaleEstimatedFood(base: LoggedFood, grams: Double): LoggedFood {
+    val factor = grams / base.amount.coerceAtLeast(1.0)
+    return base.copy(
+        amount = grams, calories = base.calories * factor, protein = base.protein * factor,
+        carbs = base.carbs * factor, fats = base.fats * factor,
+        fiber = base.fiber * factor, sugar = base.sugar * factor, sodiumMg = base.sodiumMg * factor,
+        caloriesMin = null, caloriesMax = null, proteinMin = null, proteinMax = null,
+        carbsMin = null, carbsMax = null, fatsMin = null, fatsMax = null,
+    )
+}
+
+/** A manual nutrient correction becomes the density for all later size changes. */
+fun ResolvedTag.rebaseManualNutrients(): ResolvedTag {
+    val edited = loggedFood ?: return this
+    val anchorGrams = baseAmountGrams ?: edited.amount
+    return copy(
+        baseLoggedFood = rescaleEstimatedFood(edited, anchorGrams),
+        nutrientsManuallyEdited = true,
+        nutritionSource = NutritionSourceKind.USER_PROVIDED,
+    )
+}

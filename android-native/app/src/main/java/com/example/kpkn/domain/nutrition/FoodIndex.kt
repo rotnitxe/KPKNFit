@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.db.GlobalFoodEntity
+import com.example.kpkn.data.db.toFoodItem
 import com.example.kpkn.data.models.FoodItem
 import java.text.Normalizer
 import java.util.concurrent.ConcurrentHashMap
@@ -29,6 +30,8 @@ class FoodIndex {
         val normalizedAliases: Set<String> = emptySet(),
         val canonicalFamily: String? = null,
         val state: FoodState = FoodState.UNKNOWN,
+        /** Curated inclusion is independent of the nutrient source label (e.g. USDA). */
+        val isCuratedCatalog: Boolean = false,
     )
 
     // Main food storage
@@ -91,40 +94,24 @@ class FoodIndex {
         val queryTokens = tokenize(normalizedQuery)
         if (queryTokens.isEmpty()) return emptySet()
 
-        val localExact = exactMatches(normalizedQuery).filter { it.source == "LOCAL" }
-        if (localExact.isNotEmpty()) {
-            return localExact.map { it.foodId }.toSet()
-        }
+        val exact = exactMatches(normalizedQuery).mapTo(mutableSetOf()) { it.foodId }
 
         val family = FoodIdentity.familyFor(query)
         val familyLocal = if (family != null) {
-            foods.values.filter { it.source == "LOCAL" && it.canonicalFamily == family }
+            foods.values.filter { it.isCuratedCatalog && it.canonicalFamily == family }
                 .map { it.foodId }
                 .toSet()
         } else {
             emptySet()
         }
         val aliasLocal = FoodIdentity.queryAliases(query).flatMap { alias ->
-            exactMatches(alias).filter { it.source == "LOCAL" }.map { it.foodId }
+            exactMatches(alias).filter { it.isCuratedCatalog }.map { it.foodId }
         }.toSet()
         val householdHits = familyLocal + aliasLocal
-        if (householdHits.isNotEmpty() && family != null) {
-            return householdHits
-        }
-
-        val candidates = mutableSetOf<String>()
+        val candidates = (exact + householdHits).toMutableSet()
 
         for (token in queryTokens) {
             tokenIndex[token]?.let { candidates.addAll(it) }
-        }
-
-        val shortHeadNoun = queryTokens.size == 1 && queryTokens[0].length >= 5
-        if (shortHeadNoun && candidates.isNotEmpty()) {
-            val localOnly = localSubset(candidates)
-            if (localOnly.isNotEmpty()) return localOnly
-            if (householdHits.isNotEmpty()) return householdHits
-            if (family != null) return emptySet()
-            return candidates
         }
 
         for (token in queryTokens) {
@@ -141,17 +128,23 @@ class FoodIndex {
             }
         }
 
-        val localFuzzy = localSubset(candidates)
-        if (localFuzzy.isNotEmpty()) return localFuzzy
-        if (householdHits.isNotEmpty()) return householdHits
-        if (family != null) return emptySet()
         return candidates
     }
 
     private fun localSubset(ids: Set<String>): Set<String> =
-        ids.mapNotNull { foods[it] }.filter { it.source == "LOCAL" }.map { it.foodId }.toSet()
+        ids.mapNotNull { foods[it] }.filter { it.isCuratedCatalog }.map { it.foodId }.toSet()
 
     fun getFood(foodId: String): IndexedFood? = foods[foodId]
+
+    fun brandHintFor(query: String): String? {
+        val padded = " ${normalizeSearch(query)} "
+        return foods.values.mapNotNull { it.brand }.distinct()
+            .filter { normalizeSearch(it) !in setOf("generico", "generica", "local", "off", "usda") }
+            // A source may mistakenly put a food class in its brand column (OFF: brand=Avena).
+            .filterNot { FoodIdentity.contentTokens(it).size == 1 && FoodIdentity.familyFor(it) != null }
+            .filter { " ${normalizeSearch(it)} " in padded }
+            .maxByOrNull { it.length }
+    }
 
     /** E16/IT2: indexa un alimento custom/estático añadido en runtime sin
      *  reconstruir el índice (idempotente por foodId). El resolver debe ver
@@ -172,7 +165,7 @@ class FoodIndex {
             .sortedWith(
                 // C12: desempate determinista — el orden de iteración de un
                 // ConcurrentHashMap no es estable entre procesos/dispositivos.
-                compareByDescending<IndexedFood> { it.source == "LOCAL" }
+                compareByDescending<IndexedFood> { it.isCuratedCatalog }
                     .thenByDescending { it.sourcePriority }
                     .thenBy { it.foodId },
             )
@@ -227,13 +220,19 @@ class FoodIndex {
             normalizedAliases = normalizedAliases,
             canonicalFamily = FoodIdentity.familyFor(food),
             state = FoodIdentity.stateFor(food),
-            calories = food.calories,
-            protein = food.protein,
-            carbs = food.carbs,
-            fats = food.fats,
-            fiber = food.carbBreakdown?.fiber ?: 0.0,
+            calories = food.calories * 100.0 / NutrientBasis.grams(food),
+            protein = food.protein * 100.0 / NutrientBasis.grams(food),
+            carbs = food.carbs * 100.0 / NutrientBasis.grams(food),
+            fats = food.fats * 100.0 / NutrientBasis.grams(food),
+            fiber = (food.carbBreakdown?.fiber ?: 0.0) * 100.0 / NutrientBasis.grams(food),
             sourcePriority = food.sourcePriority,
-            source = "LOCAL",
+            isCuratedCatalog = !food.isCustom && !food.isAiInferred && NutrientBasis.isVerified(food) &&
+                NutrientBasis.source(food) !in setOf(NutritionSourceKind.HEURISTIC_ESTIMATE, NutritionSourceKind.DATASET_ESTIMATE, NutritionSourceKind.EXTERNAL_ESTIMATE),
+            source = when {
+                food.isAiInferred -> "AI_ESTIMATE"
+                food.isCustom -> "USER"
+                else -> food.source ?: "LOCAL"
+            },
         )
     }
 
@@ -255,6 +254,7 @@ class FoodIndex {
         val phoneticTokens = tokens.associateWith { PhoneticEs.encode(it) }
         val normalizedAliases = allNames.map(::normalizeSearch).filter { it.isNotBlank() }.toSet()
 
+        val denominator = NutrientBasis.grams(food.toFoodItem())
         return IndexedFood(
             foodId = food.foodId,
             name = food.name,
@@ -265,12 +265,14 @@ class FoodIndex {
             phoneticTokens = phoneticTokens,
             normalizedAliases = normalizedAliases,
             canonicalFamily = FoodIdentity.familyFor(food.name + " " + allNames.joinToString(" ")),
-            state = FoodIdentity.stateFor(food.name + " " + allNames.joinToString(" ")),
-            calories = food.calories,
-            protein = food.protein,
-            carbs = food.carbs,
-            fats = food.fats,
-            fiber = food.fiber,
+            state = runCatching { FoodState.valueOf(food.foodState) }.getOrNull()
+                ?.takeUnless { it == FoodState.UNKNOWN }
+                ?: FoodIdentity.stateFor(food.name + " " + allNames.joinToString(" ")),
+            calories = food.calories * 100.0 / denominator,
+            protein = food.protein * 100.0 / denominator,
+            carbs = food.carbs * 100.0 / denominator,
+            fats = food.fats * 100.0 / denominator,
+            fiber = food.fiber * 100.0 / denominator,
             sourcePriority = food.sourcePriority,
             source = food.source,
         )

@@ -7,6 +7,7 @@ import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.ActiveProgramState
+import com.example.kpkn.data.models.AutoregulationProposal
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.BlockProgressionScheme
@@ -77,7 +78,7 @@ import java.util.Locale
 import kotlin.math.ceil
 import kotlin.math.floor
 
-enum class StructureSubTab { SEMANA, SPLIT, MACROCICLO, LOOPS, VOLUMEN }
+enum class StructureSubTab { SEMANA, MACROCICLO, VOLUMEN }
 
 enum class VolumeAdjustmentResult { SUCCESS, REQUIRES_CALIBRATION, NO_WEEK_SELECTED, NO_ADJUSTABLE_VOLUME }
 
@@ -100,6 +101,7 @@ data class BlockTransitionBanner(
     val message: String,
     val nextBlockId: String? = null,
     val requiresExplicitConfirmation: Boolean = false,
+    val pendingType: PendingProgramActionType? = null,
 )
 
 data class WeekCopyConflict(
@@ -441,10 +443,12 @@ class ProgramDetailViewModel(
                             kind = when (action.type) {
                                 PendingProgramActionType.CONFIRM_DELOAD -> BlockTransitionEngine.DecisionKind.INSERT_DELOAD
                                 PendingProgramActionType.CONFIRM_1RM_TEST -> BlockTransitionEngine.DecisionKind.PROPOSE_1RM_TEST
+                                PendingProgramActionType.CONFIRM_AUTOREGULATION -> BlockTransitionEngine.DecisionKind.HOLD_INCOMPLETE
                             },
                             message = action.message,
                             nextBlockId = action.nextBlockId,
                             requiresExplicitConfirmation = true,
+                            pendingType = action.type,
                         )
                     }
                 }
@@ -454,8 +458,7 @@ class ProgramDetailViewModel(
     // ─── Actions ──────────────────────────────────────────────────────────
 
     fun setStructureSubTab(tab: StructureSubTab) {
-        val resolved = if (tab == StructureSubTab.LOOPS) StructureSubTab.MACROCICLO else tab
-        _uiState.update { it.copy(structureSubTab = resolved) }
+        _uiState.update { it.copy(structureSubTab = tab) }
     }
 
     fun setMacrocycleRoadmapExpanded(expanded: Boolean) {
@@ -543,22 +546,6 @@ class ProgramDetailViewModel(
 
     fun addProgramCopy(copy: Program) {
         repository.addProgram(ProgramCalendarEngine.materializeWeekDates(copy))
-    }
-
-    /**
-     * Prefer [calendarizeSimpleCycle] / [applySimpleCalendarizedBreak] / [recoverCyclicProgram].
-     * Kept as a thin wrapper so legacy callers don't leave half-migrated calendar state.
-     */
-    @Deprecated(
-        message = "Use calendarizeSimpleCycle() or applySimpleCalendarizedBreak() / recoverCyclicProgram()",
-        replaceWith = ReplaceWith("calendarizeSimpleCycle()"),
-    )
-    fun setSimpleDatedCalendarization(enabled: Boolean) {
-        if (enabled) {
-            calendarizeSimpleCycle()
-        } else {
-            recoverCyclicProgram()
-        }
     }
 
     fun markVolumeSetupPromptSeen() {
@@ -932,39 +919,65 @@ class ProgramDetailViewModel(
         _blockTransitionBanner.value = null
     }
 
-    fun publishBlockTransition(decision: BlockTransitionEngine.TransitionDecision) {
-        if (decision.kind == BlockTransitionEngine.DecisionKind.HOLD_INCOMPLETE) return
-        if (decision.kind == BlockTransitionEngine.DecisionKind.INSERT_DELOAD) {
-            val current = program.value ?: return
-            val run = current.runState ?: com.example.kpkn.data.models.ProgramRunState(
-                runId = ProgramProgressEngine.newRunId(),
-            )
-            val gated = (decision.updatedProgram ?: current).copy(
-                runState = run.copy(
-                    pendingAction = com.example.kpkn.data.models.PendingProgramAction(
-                        type = PendingProgramActionType.CONFIRM_DELOAD,
-                        message = decision.message,
-                        nextBlockId = decision.nextBlockId,
-                    ),
-                ),
-            )
-            repository.updateProgram(gated)
-            return
-        }
-        _blockTransitionBanner.value = BlockTransitionBanner(
-            kind = decision.kind,
-            message = decision.message,
-            nextBlockId = decision.nextBlockId,
-            requiresExplicitConfirmation = decision.kind == BlockTransitionEngine.DecisionKind.PROPOSE_1RM_TEST,
-        )
-        decision.updatedProgram?.let { repository.updateProgram(it) }
-    }
-
     /** Accepts the persisted AUGE deload proposal and moves the cursor into it. */
     fun acceptPendingDeload() = resolvePendingDeload(accept = true)
 
     /** Rejects the persisted AUGE deload proposal and removes its generated block. */
     fun rejectPendingDeload() = resolvePendingDeload(accept = false)
+
+    fun acceptAutoregulation(proposal: AutoregulationProposal? = null) {
+        val current = program.value ?: return
+        val result = ProgramProgressEngine.resolvePendingAutoregulation(current, accept = true, only = proposal)
+        if (result.program != current) updateProgram(result.program)
+        if (result.program.runState?.pendingAction?.type != PendingProgramActionType.CONFIRM_AUTOREGULATION) {
+            _blockTransitionBanner.value = null
+        }
+    }
+
+    fun rejectAutoregulation() {
+        val current = program.value ?: return
+        val result = ProgramProgressEngine.resolvePendingAutoregulation(current, accept = false)
+        if (result.program != current) updateProgram(result.program)
+        _blockTransitionBanner.value = null
+    }
+
+    fun setAutoregulationMode(mode: com.example.kpkn.data.models.AutoregulationMode) {
+        val current = program.value ?: return
+        if (current.autoregulationMode == mode) return
+        updateProgram(current.copy(autoregulationMode = mode))
+    }
+
+    fun updatePowerliftingProfile(profile: com.example.kpkn.data.models.PowerliftingProfile) {
+        val current = program.value ?: return
+        val hydrated = com.example.kpkn.domain.training.TrainingMaxResolver.hydrateProfile(
+            profile,
+            current.sourceRecipe?.trainingMaxPercent ?: 0.90,
+        )
+        updateProgram(current.copy(powerliftingProfile = hydrated))
+    }
+
+    fun rematerializePending() {
+        val current = program.value ?: return
+        val recipe = current.sourceRecipe ?: return
+        var working = current
+        val pendingBlocks = current.macrocycles.flatMap { it.blocks }.filter { it.materializationPending }
+        pendingBlocks.forEach { block ->
+            block.mesocycles.flatMap { it.weeks }.forEach { week ->
+                working = com.example.kpkn.domain.training.PlanMaterializer.rematerializeWeek(
+                    program = working,
+                    weekId = week.id,
+                    recipe = recipe,
+                    executedWeekIds = emptySet(),
+                )
+            }
+        }
+        working = working.copy(
+            macrocycles = working.macrocycles.map { macro ->
+                macro.copy(blocks = macro.blocks.map { it.copy(materializationPending = false) })
+            },
+        )
+        updateProgram(working)
+    }
 
     private fun resolvePendingDeload(accept: Boolean) {
         val current = program.value ?: return

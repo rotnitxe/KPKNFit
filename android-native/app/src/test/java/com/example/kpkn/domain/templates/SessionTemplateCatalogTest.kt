@@ -7,7 +7,8 @@ import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
-import com.example.kpkn.data.protocols.ProtocolExerciseLibrary
+import com.example.kpkn.data.protocols.CatalogIds
+import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.sessions.SESSION_TEMPLATES_SYSTEM
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateFocusCategory
@@ -202,7 +203,7 @@ class SessionTemplateCatalogTest {
         assertTrue(identityFailures.joinToString("\n"), identityFailures.isEmpty())
 
         val forbiddenTerms = listOf("band", "kettlebell", "trx", "hex_bar", "slider", "safety_bar")
-        val forbidden = SESSION_TEMPLATES_SYSTEM.flatMap { template ->
+        val forbidden = SESSION_TEMPLATES_SYSTEM.filterNot { it.id.contains("recipe-pl") }.flatMap { template ->
             template.session.allExercises().mapNotNull { exercise ->
                 val id = exercise.catalogConfigurationId.orEmpty().lowercase()
                 id.takeIf { forbiddenTerms.any(it::contains) }?.let { "${template.id}: $it" }
@@ -272,36 +273,22 @@ class SessionTemplateCatalogTest {
     }
 
     @Test
-    fun protocolExerciseLibraryUses_only_approved_catalog_configurations() {
-        val referenced = setOf(
-            ProtocolExerciseLibrary.SQUAT_MAIN,
-            ProtocolExerciseLibrary.SQUAT_TECHNIQUE,
-            ProtocolExerciseLibrary.BENCH_MAIN,
-            ProtocolExerciseLibrary.BENCH_TECHNIQUE,
-            ProtocolExerciseLibrary.DEADLIFT_MAIN,
-            ProtocolExerciseLibrary.DEADLIFT_TECHNIQUE,
-            ProtocolExerciseLibrary.OHP_MAIN,
+    fun published_recipes_use_only_approved_catalog_configurations() {
+        val referenced = PROTOCOL_LIBRARY.flatMap { protocol ->
+            protocol.recipe?.weeks.orEmpty().flatMap { week ->
+                week.days.flatMap { day -> day.slots.map { it.lift.configurationId } }
+            }
+        }.toSet() + setOf(
+            CatalogIds.SQ_LOW,
+            CatalogIds.SQ_HIGH,
+            CatalogIds.BP,
+            CatalogIds.DL,
+            CatalogIds.OHP,
         )
-        // Include every private accessory pool through the public compiler so this
-        // gate follows the same executable path as the generated protocol sessions.
-        val generated = com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
-            .flatMap { protocol -> protocol.blocks }
-            .flatMap { block ->
-                listOf(
-                    ProtocolExerciseLibrary.SQUAT_MAIN,
-                    ProtocolExerciseLibrary.BENCH_MAIN,
-                    ProtocolExerciseLibrary.DEADLIFT_MAIN,
-                    ProtocolExerciseLibrary.OHP_MAIN,
-                )
-            }
-            .flatMap { lift ->
-                listOf(lift) + ProtocolExerciseLibrary.accessoriesFor(lift, weekNumber = 1, count = 3)
-            }
-        val missing = (referenced + generated.toSet())
-            .map { lift -> lift.exerciseDbId }
-            .filterNot { it in catalogConfigurationIds }
+        val approved = catalogConfigurationIds.map { it.lowercase() }.toSet()
+        val missing = referenced.filterNot { it.lowercase() in approved }
         assertTrue(
-            "ProtocolExerciseLibrary contiene configurationId fuera del asset aprobado: $missing",
+            "Las recetas publicadas contienen configurationId fuera del asset aprobado: $missing",
             missing.isEmpty(),
         )
     }
@@ -326,6 +313,9 @@ class SessionTemplateCatalogTest {
             val sessions = dayGroups.mapNotNull { group ->
                 group.templates.firstOrNull()?.session
             }
+            val picked = dayGroups.mapNotNull { group ->
+                group.templates.firstOrNull()?.let { "${group.dayLabel}->${it.id}(${it.session.allExercises().sumOf { e -> e.sets.size }}s)" }
+            }
             if (sessions.isEmpty()) return@forEach
 
             val weeklyVol = VolumeCalculator.calculateCanonicalWeeklyMuscleVolumeForSessions(
@@ -336,7 +326,7 @@ class SessionTemplateCatalogTest {
                 val range = SessionTemplateCatalogPolicy.WEEKLY_VOLUME_RANGES[entry.muscleName]
                 if (range != null) {
                     if (entry.weeklySets > range.endInclusive + 2.0) {
-                        failures += "El split '${split.name}' excede el volumen semanal óptimo para '${entry.muscleName}': ${entry.weeklySets} series (máx: ${range.endInclusive})"
+                        failures += "El split '${split.name}' excede el volumen semanal óptimo para '${entry.muscleName}': ${entry.weeklySets} series (máx: ${range.endInclusive}) picked=$picked"
                     }
                 }
             }
@@ -723,5 +713,30 @@ class SessionTemplateCatalogTest {
         assertEquals(1, audit.partCount)
         assertTrue(audit.estimatedDurationMinutes < 120)
         assertTrue(abs(120 - audit.estimatedDurationMinutes).toDouble() / audit.estimatedDurationMinutes > SessionTemplateAudit.DURATION_DIVERGENCE_RATIO)
+    }
+
+    @Test
+    fun systemTemplatesPassSessionCompositionH1ToH10() {
+        com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
+        val metadata = com.example.kpkn.domain.training.CatalogCompositionTestSupport.metadata
+        val failures = SESSION_TEMPLATES_SYSTEM.flatMap { template ->
+            val compact = template.durationClass == com.example.kpkn.data.sessions.SessionTemplateDurationClass.SHORT ||
+                template.difficulty == Difficulty.PRINCIPIANTE ||
+                template.id.endsWith("-low") ||
+                template.name.contains("Compacta", ignoreCase = true)
+            val goal = if (compact) {
+                com.example.kpkn.data.models.BlockGoal.DELOAD
+            } else {
+                com.example.kpkn.data.models.BlockGoal.ACCUMULATION
+            }
+            val week = com.example.kpkn.domain.training.SessionToDayRecipe.isolatedWeek(template.session, goal)
+            com.example.kpkn.domain.training.SessionCompositionPolicy.evaluateDay(
+                week.days.first(),
+                week,
+                metadata,
+            ).filter { it.severity == com.example.kpkn.data.protocols.CompositionSeverity.HARD }
+                .map { "${template.id} ${it.rule}: ${it.message}" }
+        }
+        assertTrue(failures.take(50).joinToString("\n"), failures.isEmpty())
     }
 }

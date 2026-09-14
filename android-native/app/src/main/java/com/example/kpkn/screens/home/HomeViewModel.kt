@@ -64,8 +64,34 @@ import java.util.UUID
 
     private val _feedbacks = MutableStateFlow<List<PostSessionFeedback>>(emptyList())
     val feedbacks: StateFlow<List<PostSessionFeedback>> = _feedbacks.asStateFlow()
-
     private var loadFeedbacksJob: Job? = null
+
+    private val _showCreateProgramSheet = MutableStateFlow(false)
+    val showCreateProgramSheet: StateFlow<Boolean> = _showCreateProgramSheet.asStateFlow()
+    private val _pendingProgramName = MutableStateFlow<String?>(null)
+    val pendingProgramName: StateFlow<String?> = _pendingProgramName.asStateFlow()
+
+    fun openCreateProgramSheet(preferredName: String? = null) {
+        _pendingProgramName.value = preferredName?.trim()?.takeIf { it.isNotEmpty() }
+        _showCreateProgramSheet.value = true
+    }
+
+    fun dismissCreateProgramSheet() {
+        _showCreateProgramSheet.value = false
+    }
+
+    fun onProgramCreated(programId: String, activate: Boolean) {
+        val name = _pendingProgramName.value
+        if (!name.isNullOrBlank()) {
+            repository.getProgramById(programId)?.let { repository.updateProgram(it.copy(name = name)) }
+        }
+        _showCreateProgramSheet.value = false
+        _pendingProgramName.value = null
+        if (activate) {
+            repository.startProgram(programId)
+            repository.updateSettings { it.copy(onboardingProgramDone = true) }
+        }
+    }
 
     val programs = repository.programs
     val ongoingWorkout = repository.ongoingWorkout
@@ -168,45 +194,10 @@ import java.util.UUID
         repository.updateSettings { it.copy(username = trimmed, onboardingNameDone = true) }
     }
 
-    /** Crea el primer programa con el nombre elegido (fallback "Mi programa") y lo activa de inmediato. */
+    /** Abre la hoja de plantillas/protocolos con el nombre elegido en onboarding. */
     fun createOnboardingProgram(name: String): String {
-        val programId = UUID.randomUUID().toString()
-        val cleanName = name.trim().ifBlank { "Mi programa" }
-        val program = Program(
-            id = programId,
-            name = cleanName,
-            coverImage = "gradient://ember",
-            structure = ProgramStructure.SIMPLE,
-            macrocycles = listOf(
-                Macrocycle(
-                    id = UUID.randomUUID().toString(),
-                    name = "Macrociclo base",
-                    blocks = listOf(
-                        Block(
-                            id = UUID.randomUUID().toString(),
-                            name = "Ciclo base",
-                            mesocycles = listOf(
-                                Mesocycle(
-                                    id = UUID.randomUUID().toString(),
-                                    name = "Mesociclo 1",
-                                    weeks = listOf(
-                                        ProgramWeek(
-                                            id = UUID.randomUUID().toString(),
-                                            name = "Semana 1",
-                                        ),
-                                    ),
-                                ),
-                            ),
-                        ),
-                    ),
-                ),
-            ),
-        )
-        repository.addProgram(program)
-        // Activación inmediata para que el flujo sea fluido sin pasar por Entreno
-        repository.startProgram(programId)
-        repository.updateSettings { it.copy(onboardingProgramDone = true) }
-        return programId
+        openCreateProgramSheet(name.trim().ifBlank { "Mi programa" })
+        return ""
     }
 
     fun markProgramDone() {

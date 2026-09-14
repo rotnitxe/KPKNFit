@@ -71,9 +71,9 @@ class AprendeCatalogAuditTest {
         assertEquals(0, report.duplicateVariantRationaleCount)
         assertEquals(0, report.desynchronizedMetadataCount)
         assertEquals(0, report.reverseLinkConsistencyIssueCount)
-        assertEquals("4556cc912446360ad590d863bcf73460862a6a2904140a9db705555accc0f6ec", report.sourceSha256)
-        assertTrue(report.unmappedMuscleIds.isEmpty())
-        assertTrue(report.unmappedPatternIds.isEmpty())
+        assertEquals("57c2a362ffcc8cdb57bbe4e9b95f34f112ad103093604eca69db000cd9b22aa1", report.sourceSha256)
+        assertTrue("músculos sin puente: ${report.unmappedMuscleIds}", report.unmappedMuscleIds.isEmpty())
+        assertTrue("patrones sin puente: ${report.unmappedPatternIds}", report.unmappedPatternIds.isEmpty())
         assertTrue(report.unknownJointIds.isEmpty())
         assertTrue(report.invalidLegacyMappings.isEmpty())
         assertEquals(21, AprendeOntology.catalogMuscleToWikiLab.size)
@@ -204,10 +204,10 @@ class AprendeCatalogAuditTest {
             File("app/src/main/java/com/example/kpkn/data/db/KpknDatabase.kt"),
         ).first { it.exists() }.readText()
 
-        assertTrue(prepopulate.contains("APRENDE_CONTENT_REVISION = \"conceptos-clave-v1-2026-08-22\""))
+        assertTrue(prepopulate.contains("APRENDE_CONTENT_REVISION = \"conceptos-clave-v2-2026-08-23\""))
         assertTrue(prepopulate.contains("currentRevision != APRENDE_CONTENT_REVISION"))
         assertTrue(prepopulate.contains("putString(APRENDE_CONTENT_PREF_KEY, APRENDE_CONTENT_REVISION)"))
-        assertTrue(database.contains("version = 23"))
+        assertTrue(database.contains("version = 25"))
     }
 
     private fun collectExerciseRefs(element: JsonElement): List<String> = when (element) {

@@ -154,7 +154,7 @@ object HouseholdPortions {
             "tomate" -> 80.0
             "palta" -> 80.0
             else -> {
-                food?.let { getContextualDefaultServingSize(it) }
+                food?.let { NutrientBasis.massForServingUnits(it, getContextualDefaultServingSize(it)) }
                     ?: 100.0
             }
         }
@@ -185,9 +185,12 @@ object HouseholdPortions {
         datasetHint: Double? = null,
         query: String? = null,
         explicitKilogram: Boolean = false,
+        unitId: String? = null,
     ): Double {
         val qty = quantity.coerceAtLeast(0.01)
         val parsed = parsedGrams?.takeIf { it.isFinite() && it > 0.0 }
+        // A resolved vessel/slice/count already includes its quantity and fraction.
+        if (unitId != null && parsed != null && intent == AmountIntent.RESOLVED_SUBJECTIVE) return parsed
         when (intent) {
             AmountIntent.EXPLICIT_MASS -> {
                 return parsed ?: (defaultGrams(food, query) * qty)
@@ -238,8 +241,9 @@ object HouseholdPortions {
         val grams = when (context.shape) {
             InferredMealContext.Shape.MAIN_PLATE -> when (role) {
                 "starch" -> 220.0 * factor
-                "protein" -> if (blob.contains("huevo")) 100.0 else 140.0 * factor
-                else -> 90.0 * factor
+                "protein" -> if (blob.contains("huevo")) unitGrams(food, query) else 140.0 * factor
+                // A dry cereal or dairy portion has its own prior; it is not a generic side dish.
+                else -> if (hasClassDefault(food, query)) defaultGrams(food, query) else 90.0 * factor
             }
             InferredMealContext.Shape.BREAKFAST_BOWL -> when {
                 blob.contains("avena") -> 40.0
@@ -270,8 +274,13 @@ object HouseholdPortions {
         return capEnergyDenseGuess(food, query, grams, role).coerceIn(8.0, MAX_ITEM_GRAMS_WITHOUT_KG)
     }
 
+    fun isWholeDish(query: String): Boolean = Regex("""\b(?:sandwich|completo|hamburguesa|torta|quesadilla)\b""")
+        .containsMatchIn(FoodIdentity.normalize(query))
+
     fun heuristicDishGrams(query: String, context: ContextDetector.ContextResult? = null): Double {
         val blob = FoodIdentity.normalize(query)
+        // A whole mixed dish keeps a meal portion even if its name includes cheese/oil.
+        if (isWholeDish(query)) return 250.0
         if (isNoodleDish(blob)) return 320.0
         val raw = when (context?.shape) {
             InferredMealContext.Shape.WRAP -> 120.0
@@ -415,7 +424,7 @@ object HouseholdPortions {
         explicitKilogram: Boolean,
     ): Boolean {
         if (explicitKilogram) return true
-        val serving = food.servingSize.coerceAtLeast(1.0)
+        val serving = NutrientBasis.grams(food)
         val kcal = food.calories * grams / serving
         return kcal <= MAX_ITEM_KCAL_WITHOUT_KG && grams <= MAX_ITEM_GRAMS_WITHOUT_KG
     }
@@ -441,7 +450,9 @@ object HouseholdPortions {
     }
 
     fun isHouseholdIdentity(food: FoodItem, brandHint: String? = null): Boolean {
-        if (isGlobalSku(food)) return !brandHint.isNullOrBlank()
+        // Generic USDA composition profiles are valid household foods. OFF SKUs
+        // remain available to explicit product searches without inferring pack mass.
+        if (isGlobalSku(food)) return !brandHint.isNullOrBlank() || !looksLikePackName(food.name)
         return true
     }
 
@@ -456,10 +467,12 @@ object HouseholdPortions {
         brandHint: String?,
         explicitKilogram: Boolean,
         amountIntent: AmountIntent,
+        identityAccepted: Boolean = true,
     ): FoodResolutionStatus {
         if (food == null || !isHouseholdIdentity(food, brandHint)) return FoodResolutionStatus.NO_RESOLVED
         if (!FoodIdentity.hasPlausibleMacros(food)) return FoodResolutionStatus.NO_RESOLVED
         if (!grams.isFinite() || grams <= 0.0) return FoodResolutionStatus.NO_RESOLVED
+        if (!identityAccepted) return FoodResolutionStatus.NEEDS_CONFIRMATION
         val massOk = explicitKilogram ||
             amountIntent == AmountIntent.EXPLICIT_MASS ||
             itemKcalIsPlausible(food, grams, explicitKilogram)

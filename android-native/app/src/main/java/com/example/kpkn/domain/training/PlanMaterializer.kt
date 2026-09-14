@@ -213,9 +213,9 @@ object PlanMaterializer {
         startDay: Int,
     ): ProgramWeek {
         val sessions = week.days.mapIndexed { index, day ->
-            val dayOfWeek = day.weekday
+            val dayOfWeek = rotateWeekday(day.weekday, startDay)
                 ?: trainingDays?.getOrNull(index)
-                ?: ((startDay - 1 + index) % 7 + 1)
+                ?: ((startDay - 1 + index).mod(7) + 1)
             materializeDay(day, dayOfWeek, week, recipe, metadata, idProvider, profile)
         }
         return ProgramWeek(
@@ -237,7 +237,7 @@ object PlanMaterializer {
         profile: PowerliftingProfile?,
     ): Session {
         val exercises = day.slots.map { slot ->
-            materializeSlot(slot, recipe, metadata, idProvider, profile)
+            materializeSlot(slot, week, recipe, metadata, idProvider, profile)
         }
         val parts = groupParts(day, exercises, idProvider)
         return Session(
@@ -273,6 +273,7 @@ object PlanMaterializer {
 
     private fun materializeSlot(
         slot: SlotRecipe,
+        week: WeekRecipe,
         recipe: TrainingPlanRecipe,
         metadata: ExerciseCompositionMetadataProvider,
         idProvider: IdProvider,
@@ -284,12 +285,14 @@ object PlanMaterializer {
         }
         val tm = slot.lift.liftSlot?.let { TrainingMaxResolver.trainingMax(profile, it, recipe.trainingMaxPercent) }
         val oneRm = slot.lift.liftSlot?.let { TrainingMaxResolver.oneRm(profile, it) }
-        val usesPercent = slot.sets.any { it.percent != null }
-        val reference = when (slot.sets.firstOrNull()?.loadBasis) {
+        val working = slot.sets.filter { !it.isWarmup }
+        val warmups = slot.sets.filter { it.isWarmup }
+        val usesPercent = working.any { it.percent != null } || warmups.any { it.percent != null }
+        val reference = when (working.firstOrNull()?.loadBasis ?: slot.sets.firstOrNull()?.loadBasis) {
             LoadBasis.PERCENT_1RM, LoadBasis.PERCENT_DESIRED_MAX -> oneRm
             else -> tm
         }
-        val sets = slot.sets.map { set -> materializeSet(set, slot, reference, idProvider) }
+        val sets = working.map { set -> materializeSet(set, slot, week, reference, idProvider) }
         val cues = buildList {
             addAll(meta?.let { emptyList() } ?: emptyList())
             slot.technique?.let { add(it.executionCue()) }
@@ -317,7 +320,16 @@ object PlanMaterializer {
             catalogConfigurationId = slot.lift.configurationId,
             performanceProfileId = meta?.performanceProfileId ?: slot.lift.configurationId,
             occurrenceId = idProvider.newId(),
-            warmupSets = if (slot.role == SlotRole.T1_MAIN && usesPercent) {
+            warmupSets = if (warmups.isNotEmpty()) {
+                warmups.map { set ->
+                    WarmupSetDefinition(
+                        idProvider.newId(),
+                        set.percent ?: 40.0,
+                        set.reps ?: 5,
+                        restBetween = 60,
+                    )
+                }
+            } else if (slot.role == SlotRole.T1_MAIN && usesPercent) {
                 listOf(
                     WarmupSetDefinition(idProvider.newId(), 40.0, 5, restBetween = 60),
                     WarmupSetDefinition(idProvider.newId(), 55.0, 3, restBetween = 90),
@@ -332,10 +344,11 @@ object PlanMaterializer {
     private fun materializeSet(
         set: SetRecipe,
         slot: SlotRecipe,
+        week: WeekRecipe,
         tm: Double?,
         idProvider: IdProvider,
     ): ExerciseSet {
-        val percent = set.percent
+        val percent = resolvePercent(set, slot, week)
         val weight = percent?.let { TrainingMaxResolver.loadKg(it, tm) }
         val range = if (set.repsMin != null && set.repsMax != null) RepRange(set.repsMin, set.repsMax) else null
         val mode = when {
@@ -357,5 +370,31 @@ object PlanMaterializer {
             isAmrap = set.amrap,
             restAfterSeconds = slot.restSeconds,
         )
+    }
+
+    private fun resolvePercent(set: SetRecipe, slot: SlotRecipe, week: WeekRecipe): Double? {
+        val raw = set.percent ?: return null
+        if (set.loadBasis != LoadBasis.PERCENT_OF_TOP_SET) return raw
+        if (set.isTopSet) return raw
+        val sameLift = week.days.flatMap { day ->
+            day.slots.filter { it.lift.liftSlot != null && it.lift.liftSlot == slot.lift.liftSlot }
+        }
+        val top = sameLift.flatMap { it.sets }.firstOrNull { it.isTopSet }?.percent ?: 100.0
+        val isVolume = slot.sets.none { it.isTopSet } && slot.sets.count { !it.isWarmup } >= 5
+        if (isVolume) return raw / 100.0 * top
+        val volumeSlot = sameLift.firstOrNull { candidate ->
+            candidate.sets.none { it.isTopSet } && candidate.sets.count { !it.isWarmup } >= 5
+        }
+        val volumeFactor = volumeSlot?.sets?.firstOrNull { !it.isWarmup }?.percent ?: 90.0
+        val volumeResolved = volumeFactor / 100.0 * top
+        return raw / 100.0 * volumeResolved
+    }
+
+    /** Receta weekday 1-7 relativa al lunes; [startDay] rota el microciclo sin reordenar días. */
+    private fun rotateWeekday(recipeDay: Int?, startDay: Int): Int? {
+        if (recipeDay == null) return null
+        val safeRecipe = recipeDay.coerceIn(1, 7)
+        val safeStart = startDay.coerceIn(1, 7)
+        return ((safeStart - 1) + (safeRecipe - 1)).mod(7) + 1
     }
 }

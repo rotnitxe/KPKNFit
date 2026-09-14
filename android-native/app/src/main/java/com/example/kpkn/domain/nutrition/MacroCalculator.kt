@@ -66,6 +66,14 @@ fun getContextualDefaultServingSize(food: FoodItem): Double {
     }
 }
 
+fun cookingWeightYield(food: FoodItem): Double = when {
+        food.cookingWeightFactor != null && food.cookingWeightFactor > 0.0 -> food.cookingWeightFactor
+        food.name.lowercase().contains("soya") || food.name.lowercase().contains("soja") || food.name.lowercase().contains("pvt") -> 3.5
+        food.name.lowercase().contains("arroz") || food.name.lowercase().contains("pasta") || food.name.lowercase().contains("fideo") || food.name.lowercase().contains("lenteja") || food.name.lowercase().contains("garbanzo") || food.name.lowercase().contains("poroto") || food.name.lowercase().contains("avena") || food.name.lowercase().contains("quinoa") -> 2.2
+        food.name.lowercase().contains("pollo") || food.name.lowercase().contains("carne") || food.name.lowercase().contains("pavo") || food.name.lowercase().contains("cerdo") || food.name.lowercase().contains("pescado") || food.name.lowercase().contains("salmón") || food.name.lowercase().contains("vacuno") || food.name.lowercase().contains("bife") || food.name.lowercase().contains("espinaca") || food.name.lowercase().contains("acelga") || food.name.lowercase().contains("champiñón") -> 0.75
+        else -> 1.0
+    }
+
 /**
  * Escala una ficha a la porción pedida.
  *
@@ -86,7 +94,7 @@ fun scaleFoodByPortion(
 ): LoggedFood {
     val multiplier = PORTION_MULTIPLIERS[portion] ?: 1.0
     val baseServing = if (amountGrams != null) food.servingSize else getContextualDefaultServingSize(food)
-    val baseGrams = amountGrams ?: (baseServing * quantity * multiplier)
+    val baseGrams = amountGrams ?: NutrientBasis.massForServingUnits(food, baseServing * quantity * multiplier)
     val grams = if (amountGrams != null) baseGrams else baseGrams * portionAdjustment
 
     // --- AJUSTE DE COCCIÓN / HIDRATACIÓN CULINARIA ---
@@ -95,13 +103,7 @@ fun scaleFoodByPortion(
     val userRequestIsCooked = cookingMethod != null && cookingMethod != CookingMethod.CRUDO
     val userRequestIsRaw = cookingMethod == CookingMethod.CRUDO
 
-    val rawToCookedFactor = when {
-        food.cookingWeightFactor != null && food.cookingWeightFactor > 0.0 -> food.cookingWeightFactor
-        food.name.lowercase().contains("soya") || food.name.lowercase().contains("soja") || food.name.lowercase().contains("pvt") -> 3.5
-        food.name.lowercase().contains("arroz") || food.name.lowercase().contains("pasta") || food.name.lowercase().contains("fideo") || food.name.lowercase().contains("lenteja") || food.name.lowercase().contains("garbanzo") || food.name.lowercase().contains("poroto") || food.name.lowercase().contains("avena") || food.name.lowercase().contains("quinoa") -> 2.2
-        food.name.lowercase().contains("pollo") || food.name.lowercase().contains("carne") || food.name.lowercase().contains("pavo") || food.name.lowercase().contains("cerdo") || food.name.lowercase().contains("pescado") || food.name.lowercase().contains("salmón") || food.name.lowercase().contains("vacuno") || food.name.lowercase().contains("bife") || food.name.lowercase().contains("espinaca") || food.name.lowercase().contains("acelga") || food.name.lowercase().contains("champiñón") -> 0.75
-        else -> 1.0
-    }
+    val rawToCookedFactor = cookingWeightYield(food)
 
     // El rendimiento solo convierte entre bases distintas: crudo→cocido (o el
     // retorno cocido→crudo). Si la ficha ya está en la base pedida, los gramos
@@ -116,7 +118,7 @@ fun scaleFoodByPortion(
         else -> grams
     }
 
-    val ratio = if (food.servingSize > 0) finalGrams / food.servingSize else 1.0
+    val ratio = finalGrams / NutrientBasis.grams(food)
 
     fun extractMicronutrientAmount(vararg names: String): Double {
         val lowered = names.map { it.lowercase() }
@@ -160,7 +162,8 @@ fun scaleFoodByPortion(
 
     val effectivePortion = if (amountGrams != null) null else portion
 
-    val resolvedUnit = if (isLikelyLiquid(food.name, food.category)) "ml" else food.unit
+    // New calculated entries carry canonical mass. Historical logs are never rescaled.
+    val resolvedUnit = "g"
 
     return LoggedFood(
         id = java.util.UUID.randomUUID().toString(),

@@ -13,7 +13,11 @@ class AprendeOntologyTest {
         assertEquals(21, AprendeOntology.catalogMuscleToWikiLab.size)
         assertEquals(64, AprendeOntology.catalogPatternToWikiLab.size)
         assertTrue(AprendeOntology.catalogMuscleToWikiLab.values.all { it in APRENDE_MUSCLE_IDS })
-        assertTrue(AprendeOntology.catalogPatternToWikiLab.values.all { it in APRENDE_PATTERN_IDS })
+        assertTrue(
+            AprendeOntology.catalogPatternToWikiLab.values
+                .filterNotNull()
+                .all { it in APRENDE_PATTERN_IDS },
+        )
         assertTrue(AprendeOntology.wikiLabJointIds.isNotEmpty())
     }
 
@@ -44,6 +48,12 @@ class AprendeOntologyTest {
         val APRENDE_PATTERN_IDS = setOf(
             "horizontal-push", "horizontal-pull", "vertical-push", "vertical-pull", "squat",
             "hinge", "lunge", "extension", "anti-extension", "anti-rotation", "rotation", "carry", "jump",
+            "ankle-dorsiflexion", "diagonal-push", "knee-flexion", "elbow-extension", "elbow-flexion",
+            "hip-abduction", "hip-adduction", "hip-extension", "hip-flexion", "horizontal-abduction",
+            "isometric-grip", "knee-extension", "lateral-knee-dominant", "lateral-trunk-flexion",
+            "neck-extension", "neck-flexion", "neck-lateral-flexion", "pinch-grip", "plantar-flexion",
+            "scapular-depression", "scapular-elevation", "shoulder-abduction", "shoulder-flexion",
+            "spinal-extension", "spinal-flexion", "trunk-flexion", "wrist-extension", "wrist-flexion",
         )
         val APRENDE_MUSCLE_IDS = setOf(
             "recto-abdominal", "aductores", "bíceps", "pantorrillas", "deltoides",

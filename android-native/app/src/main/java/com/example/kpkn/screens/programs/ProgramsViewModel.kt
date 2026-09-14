@@ -3,14 +3,18 @@ package com.example.kpkn.screens.programs
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.programs.resolveProgramTemplate
+import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.SessionTemplateRepository
 import com.example.kpkn.data.sessions.SessionTemplate
+import com.example.kpkn.domain.training.ProgramAutoregulationEngine
+import com.example.kpkn.domain.training.ProgramProtocolEngine
 import com.example.kpkn.domain.training.ProgramTemplateEngine
 import java.util.UUID
 import kotlinx.coroutines.flow.StateFlow
@@ -218,6 +222,52 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
             generationTemplates = generationTemplates.value.takeIf { it.isNotEmpty() },
         )
         repository.addProgram(result.program)
+        return programId
+    }
+
+    fun estimatedProfileFromHistory(): PowerliftingProfile? {
+        val fromLogs = ProgramAutoregulationEngine.collectE1rmFromHistory(repository.history.value)
+        val fromPrograms = programs.value.mapNotNull { it.powerliftingProfile }
+        fun best(slot: com.example.kpkn.data.protocols.LiftSlot, fromProfile: (PowerliftingProfile) -> Double?): Double? {
+            val logged = fromLogs[slot]
+            val profileMax = fromPrograms.mapNotNull(fromProfile).maxOrNull()
+            return listOfNotNull(logged, profileMax).maxOrNull()?.takeIf { it > 0.0 }
+        }
+        val squat = best(com.example.kpkn.data.protocols.LiftSlot.SQUAT) { it.squat1RM ?: it.squatE1RM }
+        val bench = best(com.example.kpkn.data.protocols.LiftSlot.BENCH) { it.bench1RM ?: it.benchE1RM }
+        val deadlift = best(com.example.kpkn.data.protocols.LiftSlot.DEADLIFT) { it.deadlift1RM ?: it.deadliftE1RM }
+        val overhead = best(com.example.kpkn.data.protocols.LiftSlot.OVERHEAD) { it.overhead1RM ?: it.overheadE1RM }
+        if (squat == null && bench == null && deadlift == null && overhead == null) return null
+        return PowerliftingProfile(
+            squat1RM = squat,
+            squatE1RM = squat,
+            bench1RM = bench,
+            benchE1RM = bench,
+            deadlift1RM = deadlift,
+            deadliftE1RM = deadlift,
+            overhead1RM = overhead,
+            overheadE1RM = overhead,
+        )
+    }
+
+    fun createProgramFromProtocol(
+        protocolId: String,
+        profile: PowerliftingProfile? = null,
+        preferredName: String? = null,
+    ): String {
+        val protocol = PROTOCOL_LIBRARY.first { it.id == protocolId }
+        val programId = UUID.randomUUID().toString()
+        val base = Program(
+            id = programId,
+            name = preferredName?.trim()?.takeIf { it.isNotEmpty() } ?: protocol.name,
+            coverImage = "gradient://ember",
+            structure = ProgramStructure.COMPLEX,
+            mode = ProgramMode.POWERLIFTING,
+            powerliftingProfile = profile,
+            selectedSplitId = protocol.defaultSplit,
+        )
+        val applied = ProgramProtocolEngine.applyProtocol(base, protocol)
+        repository.addProgram(applied)
         return programId
     }
 

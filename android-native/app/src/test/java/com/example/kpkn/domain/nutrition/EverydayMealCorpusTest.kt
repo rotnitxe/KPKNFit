@@ -88,7 +88,7 @@ class EverydayMealCorpusTest {
         assertTrue("$label grams $g not in $grams", g in grams)
         val calories = tag.loggedFood?.calories ?: 0.0
         assertTrue("$label kcal $calories not in $kcal", calories in kcal)
-        assertEquals("$label AUTO", FoodResolutionStatus.AUTO, tag.resolutionStatus)
+        assertEquals("$label AUTO; id=${tag.foodItem?.id}, source=${tag.foodItem?.source}, confidence=${tag.resolutionConfidence}, margin=${tag.resolutionMargin}, query=${tag.foodQuery}", FoodResolutionStatus.AUTO, tag.resolutionStatus)
         assertTrue("$label resolved", tag.isResolved)
         assertFalse("$label material question", tag.hasMaterialQuestion())
         assertNotNull("$label loggedFood", tag.loggedFood)
@@ -107,10 +107,19 @@ class EverydayMealCorpusTest {
         assertSaveableEveryday(resolve("2 panes").single(), "gen019", 190.0..210.0, 500.0..560.0, "2 panes")
         assertSaveableEveryday(resolve("una empanada").single(), "cl001", 160.0..200.0, 400.0..500.0, "una empanada")
         assertSaveableEveryday(resolve("2 sopaipillas").single(), "cl006", 110.0..130.0, 280.0..320.0, "2 sopaipillas")
-        assertSaveableEveryday(resolve("poyo").single(), "gen004", 140.0..160.0, 230.0..280.0, "poyo")
+        val poyo = resolve("poyo").single()
+        assertEquals("gen004", poyo.foodItem?.id)
+        assertTrue(poyo.amountGrams!! in 140.0..160.0)
+        assertTrue(poyo.loggedFood!!.calories in 230.0..280.0)
+        assertTrue(poyo.needsCutClarification)
         assertSaveableEveryday(resolve("arros").single(), "gen005", 100.0..140.0, 130.0..190.0, "arros")
         assertSaveableEveryday(resolve("wevo").single(), "gen007", 40.0..70.0, 60.0..100.0, "wevo")
-        assertSaveableEveryday(resolve("gauda").single(), "gen047", 25.0..40.0, 90.0..160.0, "gauda")
+        val gauda = resolve("gauda").single()
+        assertEquals(null, gauda.foodItem)
+        assertTrue(gauda.hasMaterialQuestion())
+        assertEquals("gauda must retain the Gouda variety", "gouda", FoodIdentity.normalize(gauda.foodQuery))
+        assertEquals("unavailable Gouda must remain visibly estimated", "gouda (estimado)", gauda.loggedFood!!.foodName)
+        assertTrue("incompatible Cheddar must not be offered for Gouda", gauda.reviewCandidates.none { it.id == "gen047" })
         assertSaveableEveryday(resolve("hallula").single(), "cl013", 70.0..90.0, 180.0..240.0, "hallula")
     }
 
@@ -148,14 +157,22 @@ class EverydayMealCorpusTest {
     fun `platos chilenos cotidianos se guardan solos`() = runBlocking {
         assertSaveableEveryday(resolve("completo").single(), "cl002", 150.0..250.0, 300.0..460.0, "completo")
         assertSaveableEveryday(resolve("cazuela").single(), "cl004", 300.0..450.0, 280.0..420.0, "cazuela")
-        assertSaveableEveryday(resolve("once").single(), "gen019", 80.0..120.0, 210.0..320.0, "once")
-        assertSaveableEveryday(resolve("café con leche").single(), "gen016", 180.0..260.0, 90.0..170.0, "café con leche")
+        for (query in listOf("once", "café con leche")) {
+            val estimated = resolve(query).single()
+            assertEquals(null, estimated.foodItem)
+            assertTrue(estimated.hasMaterialQuestion())
+            assertNotNull(estimated.loggedFood)
+            assertTrue(estimated.loggedFood!!.foodName.contains(query, ignoreCase = true))
+        }
         val mixed = resolve("arroz con pollo")
         assertEquals(2, mixed.size)
         val arroz = mixed.single { it.tag.contains("arroz", ignoreCase = true) }
         val pollo = mixed.single { it.tag.contains("pollo", ignoreCase = true) }
         assertSaveableEveryday(arroz, "gen005", 180.0..280.0, 230.0..380.0, "arroz con pollo / arroz")
-        assertSaveableEveryday(pollo, "gen004", 120.0..180.0, 200.0..320.0, "arroz con pollo / pollo")
+        assertEquals("gen004", pollo.foodItem?.id)
+        assertTrue(pollo.amountGrams!! in 120.0..180.0)
+        assertTrue(pollo.loggedFood!!.calories in 200.0..320.0)
+        assertTrue(pollo.hasMaterialQuestion())
         assertTrue("pollo protein", (pollo.loggedFood?.protein ?: 0.0) in 35.0..60.0)
         val hallullaQueso = resolve("hallulla con queso")
         assertEquals(2, hallullaQueso.size)
@@ -273,7 +290,7 @@ class EverydayMealCorpusTest {
         inferred.forEach { tag ->
             val grams = tag.amountGrams ?: tag.loggedFood?.amount ?: 0.0
             assertTrue("${tag.tag} inferred grams $grams", grams > 20.0)
-            assertTrue(tag.isResolved)
+            assertTrue(tag.isResolved || tag.hasMaterialQuestion())
             assertNotNull(tag.loggedFood)
         }
 

@@ -16,6 +16,7 @@ private const val TEMPLATE_EXECUTION_SECONDS_PER_SET = 45
 private const val TEMPLATE_MIN_DURATION_MINUTES = 10
 private const val V3_DEFAULT_SETUP_SECONDS = 30
 private const val LOW_VOLUME_MIN_SETS = 8
+private const val ACCUMULATION_MIN_SETS = 10
 private const val LOW_VOLUME_MAX_SETS = 12
 private const val LOW_VOLUME_TARGET_SETS_PER_EXERCISE = 2
 /** Must match the approved exercise_catalog_v2.json asset (identidad V2 de ejercicios). */
@@ -29,6 +30,7 @@ internal const val SESSION_TEMPLATE_PACKAGE_REVISION = "v4-approved-2026-08-21-a
  * during template construction instead of silently falling back to a parent.
  */
 private val TEMPLATE_PERFORMANCE_PROFILE_BY_CONFIGURATION = mapOf(
+    "back_encogimientos__barbell" to "back_encogimientos__barbell",
     "back_encogimientos__dumbbells" to "back_encogimientos__dumbbells",
     "back_extension_lumbar__default" to "back_extension_lumbar__machine__extension_lumbar",
     "belt_squat__bilateral" to "belt_squat__machine__sentadilla_belt_squat",
@@ -142,6 +144,21 @@ private val TEMPLATE_PERFORMANCE_PROFILE_BY_CONFIGURATION = mapOf(
     "triceps_patada__dumbbells__bilateral" to "triceps_patada__dumbbells__patada_de_triceps",
     "triceps_patada__dumbbells__unilateral" to "triceps_patada__dumbbells__patada_de_triceps",
     "triceps_pushdown__bilateral__cable" to "triceps_pushdown__cable__bilateral",
+    "conventional_row__barbell" to "conventional_row__barbell__remo_convencional",
+    "incline_bench_press__barbell" to "incline_bench_press__barbell__press_inclinado",
+    "incline_bench_press__dumbbells" to "incline_bench_press__dumbbells__press_inclinado",
+    "core_rueda_abdominal__default" to "core_rueda_abdominal__ab_wheel__rueda_abdominal",
+    "biceps_curl_bayesian__cable__supinated" to "biceps_curl_bayesian__cable__supinated",
+    "hammer_curl__dumbbells" to "hammer_curl__dumbbells",
+    "hams_peso_muerto_convencional_deficit__default" to "hams_peso_muerto_convencional_deficit__barbell__peso_muerto_convencional_en_deficit",
+    "forearms_paseo_del_granjero__hex_bar" to "forearms_paseo_del_granjero__hex_bar",
+    "seated_leg_curl__bilateral__machine" to "seated_leg_curl__machine__curl_isquios",
+    "quads_sentadilla_cajon__default" to "quads_sentadilla_cajon__barbell__sentadilla_a_cajon",
+    "glute_ham_raise__default" to "glute_ham_raise",
+    "walking_lunge__dumbbells" to "walking_lunge__dumbbells__zancada",
+    "lateral_raise_super_rom__cable" to "lateral_raise_super_rom__cable",
+    "rear_delt_raise__dumbbells" to "rear_delt_raise__dumbbells",
+    "jm_press__barbell" to "jm_press__barbell",
 )
 
 /**
@@ -156,6 +173,15 @@ private fun canonicalTemplateExerciseName(
     @Suppress("UNUSED_PARAMETER") configurationId: String,
     rawName: String,
 ): String = rawName.trim().ifBlank { configurationId.replace("__", " · ") }
+
+internal fun systemTemplatePerformanceProfileId(configurationId: String): String =
+    templatePerformanceProfileId(configurationId)
+
+internal fun systemTemplateDefinitionId(configurationId: String): String =
+    v3CatalogDefinitionId(configurationId)
+
+internal fun systemTemplateDisplayName(configurationId: String): String =
+    spanishConfigurationDisplayName(configurationId)
 
 private fun templatePerformanceProfileId(configurationId: String): String =
     TEMPLATE_PERFORMANCE_PROFILE_BY_CONFIGURATION[configurationId]
@@ -734,8 +760,8 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                         nSets("ch1e1", 3, 8, 8.0), restTime = 150, damageProfile = DamageProfile.STRETCH),
                     ex("ch1-ex2", "Press de Hombros Sentado en Máquina", "seated_shoulder_press__barbell",
                         nSets("ch1e2", 4, 10, 7.5), restTime = 90),
-                    ex("ch1-ex3", "Press de Banca con Mancuernas", "bench_press__dumbbells",
-                        nSets("ch1e3", 3, 10, 7.5), restTime = 120, damageProfile = DamageProfile.STRETCH),
+                    ex("ch1-ex3", "Aperturas Planas con Mancuernas", "flat_chest_fly__dumbbells",
+                        nSets("ch1e3", 3, 12, 8.0), restTime = 90, damageProfile = DamageProfile.STRETCH),
                     ex("ch1-ex4", "Cruce de Poleas en Polea Alta", "tren_superior_cruce_poleas__high",
                         nSets("ch1e4", 2, 12, 8.5), restTime = 90, damageProfile = DamageProfile.SQUEEZE),
                 )),
@@ -838,14 +864,12 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                         nSets("cba1e1", 3, 8, 8.0), restTime = 120),
                     ex("cba1-ex2", "Remo Pendlay con Barra Recta", "pendlay_row__barbell",
                         nSets("cba1e2", 3, 8, 8.0), restTime = 120),
-                    ex("cba1-ex3", "Press de Banca con Mancuernas", "bench_press__dumbbells",
-                        nSets("cba1e3", 2, 10, 7.5), restTime = 120),
-                    ex("cba1-ex4", "Pullover en Polea Alta", "lying_pullover__dumbbells",
-                        nSets("cba1e4", 2, 12, 8.0), restTime = 90),
-                    ex("cba1-ex5", "Aperturas Planas con Mancuernas", "flat_chest_fly__dumbbells",
-                        nSets("cba1e5", 2, 12, 8.5), restTime = 90),
-                    ex("cba1-ex6", "Remo en Polea", "conventional_row__cable",
-                        nSets("cba1e6", 4, 12, 7.5), restTime = 90),
+                    ex("cba1-ex4", "Remo en Polea", "conventional_row__cable",
+                        nSets("cba1e4", 4, 12, 7.5), restTime = 90),
+                    ex("cba1-ex5", "Pullover en Polea Alta", "lying_pullover__dumbbells",
+                        nSets("cba1e5", 2, 12, 8.0), restTime = 90),
+                    ex("cba1-ex6", "Aperturas Planas con Mancuernas", "flat_chest_fly__dumbbells",
+                        nSets("cba1e6", 2, 12, 8.5), restTime = 90),
                 )),
             ),
         ),
@@ -880,7 +904,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             parts = listOf(
                 part("p-saa-1", "Hombros", "#4A1942", listOf(
                     ex("saa1-ex1", "Press de Hombros Sentado con Barra Recta", "seated_shoulder_press__barbell",
-                        nSets("saa1e1", 4, 10, 7.5), restTime = 90),
+                        nSets("saa1e1", 4, 10, 7.5), restTime = 120),
                 )),
                 part("p-saa-2", "Brazos", "#5B2A86", listOf(
                     ex("saa2-ex1", "Curl Bayesian", "biceps_curl_bayesian__dumbbells__supinated",
@@ -926,7 +950,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             parts = listOf(
                 part("p-sag-1", "Hombros", "#4A1942", listOf(
                     ex("sag1-ex1", "Press de Hombros Sentado en Máquina", "seated_shoulder_press__barbell",
-                        nSets("sag1e1", 3, 10, 7.0), restTime = 90),
+                        nSets("sag1e1", 3, 10, 7.0), restTime = 120),
                     ex("sag1-ex2", "Elevaciones Laterales de Pie en Máquina", "seated_lateral_raise__machine",
                         nSets("sag1e2", 3, 15, 7.5), restTime = 60),
                 )),
@@ -1017,11 +1041,9 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             parts = listOf(
                 part("p-gp-1", "Activación y Rango", "#4A1942", listOf(
                     ex("gp1-ex1", "Hip Thrust Unilateral con Mancuerna", "hip_thrust__bilateral__barbell",
-                        nSets("gp1e1", 3, 12, 8.0), restTime = 105),
+                        nSets("gp1e1", 3, 12, 8.0), restTime = 120),
                     ex("gp1-ex2", "Curl Femoral Sentado en Máquina", "curl_isquios_con_sliders__default",
                         nSets("gp1e2", 4, 12, 8.0), restTime = 90),
-                    ex("gp1-ex3", "Hiperextensión a 45º", "glutes_hiperextension_45__plate",
-                        nSets("gp1e3", 3, 12, 8.0), restTime = 90),
                 )),
                 part("p-gp-2", "Aislamiento Estético", "#5B2A86", listOf(
                     ex("gp2-ex1", "Patada de Glúteo en Polea", "glutes_patada_gluteo__cable",
@@ -1062,7 +1084,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             parts = listOf(
                 part("p-ulg-1", "Empuje y Tirón", "#1B4965", listOf(
                     ex("ulg1-ex1", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente__default",
-                        nSets("ulg1e1", 4, 10, 6.5), restTime = 90),
+                        nSets("ulg1e1", 4, 10, 6.5), restTime = 120),
                     ex("ulg1-ex2", "Jalón al Pecho en Máquina (Agarre Cerrado)", "lat_pulldown__bilateral__machine",
                         nSets("ulg1e2", 4, 10, 7.0), restTime = 90),
                 )),
@@ -1474,7 +1496,7 @@ private fun independentTemplate(
 }
 
 /**
- * Variante de alta frecuencia: conserva ~8–12 series (2 por ejercicio por defecto),
+ * Variante de alta frecuencia: conserva ~10–12 series (suelo H6 de acumulación),
  * sin recortar a 1 serie. Duración se deriva del contenido vía [finalizedTemplate].
  */
 private fun lowVolumeSplitTemplate(
@@ -1489,7 +1511,7 @@ private fun lowVolumeSplitTemplate(
     estimatedDurationMinutes: Int? = null,
 ): SessionTemplate {
     val source = SESSION_TEMPLATES_BASE.first { it.id == sourceId }
-    val maxSets = LOW_VOLUME_MIN_SETS // 8 series: caben en 8–12 y no revientan splits de alta frecuencia
+    val maxSets = LOW_VOLUME_MIN_SETS // 8 series compactas para no reventar splits de alta frecuencia
 
     var session = mapSessionExercises(source.session) { exercise ->
         val kept = exercise.sets.take(LOW_VOLUME_TARGET_SETS_PER_EXERCISE)
@@ -1498,7 +1520,7 @@ private fun lowVolumeSplitTemplate(
 
     val sourceById = source.session.allExercises().associateBy { it.id }
 
-    // Subir hasta 8 series añadiendo de a una serie (sin saltar a 3 en todos a la vez).
+    // Subir hasta el suelo H6 añadiendo de a una serie (sin saltar a 3 en todos a la vez).
     var growGuard = 0
     while (sessionTotalSets(session) < LOW_VOLUME_MIN_SETS && growGuard < 24) {
         var added = false
@@ -1541,6 +1563,7 @@ private fun lowVolumeSplitTemplate(
         estimatedDurationMinutes = estimatedDurationMinutes,
         weeklyVolumePolicyId = "high_freq_low",
         session = session,
+        durationClass = SessionTemplateDurationClass.SHORT,
     )
 }
 
@@ -1850,17 +1873,13 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             id = "tpl-calves-focus",
             name = "Pantorrillas · Enfoque",
             parts = listOf(
-                part("p-cal-1", "Gemelos de pie", "#1F3A2E", listOf(
+                part("p-cal-1", "Gemelos y cobertura", "#1F3A2E", listOf(
                     ex("cal1-ex1", "Elevación de Talones de Pie en Máquina", "calf_raise__bilateral__machine",
-                        nSets("cale1", 2, 12, 8.5), restTime = 75),
-                    ex("cal1-ex2", "Elevación de Talones de Pie con Mancuernas", "calf_raise__bilateral__machine",
-                        nSets("cale2", 2, 15, 8.5), restTime = 60),
-                )),
-                part("p-cal-2", "Sóleo y variantes", "#244B3C", listOf(
-                    ex("cal2-ex1", "Elevación de Talones Sentado en Máquina", "calf_raise__bilateral__machine",
-                        nSets("cale3", 3, 15, 8.5), restTime = 60),
-                    ex("cal2-ex2", "Elevación de Talones en Prensa a 45º", "calf_raise__bilateral__machine",
-                        nSets("cale4", 3, 12, 8.0), restTime = 75),
+                        nSets("cale1", 3, 12, 8.5), restTime = 75),
+                    ex("cal1-ex2", "Tibial Anterior", "calves_tibial_anterior__default",
+                        nSets("cale2", 3, 15, 8.0), restTime = 60),
+                    ex("cal1-ex3", "Press Pallof en Polea", "core_press_pallof__default",
+                        nSets("cale3", 3, 12, 7.5), restTime = 60),
                 )),
             ),
         ),
@@ -1922,17 +1941,13 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             id = "tpl-forearms-focus",
             name = "Antebrazos · Grip",
             parts = listOf(
-                part("p-fa-1", "Flexores / extensores", "#5B2A86", listOf(
+                part("p-fa-1", "Muñeca y cobertura", "#5B2A86", listOf(
                     ex("fa1-ex1", "Curl de Muñeca Sentado con Barra Recta", "forearms_curl_muneca_sentado__barbell",
                         nSets("fae1", 3, 15, 8.0), restTime = 60),
-                    ex("fa1-ex2", "Extensión de Muñeca con Barra EZ", "forearms_curl_muneca_inverso_sentado__ez_bar",
-                        nSets("fae2", 3, 15, 8.0), restTime = 60),
-                    ex("fa1-ex3", "Curl de Muñeca Sentado con Mancuernas", "forearms_curl_muneca_sentado__barbell",
+                    ex("fa1-ex2", "Face Pull en Polea", "deltoides_face_pull__default",
+                        nSets("fae2", 3, 15, 7.5), restTime = 60),
+                    ex("fa1-ex3", "Curl Predicador en Máquina", "preacher_curl__machine",
                         nSets("fae3", 3, 12, 8.0), restTime = 60),
-                )),
-                part("p-fa-2", "Agarre", "#1F3A2E", listOf(
-                    ex("fa2-ex1", "Enrollamiento de Muñeca con Rodillo y Cuerda", "forearms_enrollamiento_muneca_rodillo__default",
-                        nSets("fae4", 3, 10, 8.0), restTime = 75),
                 )),
             ),
         ),
@@ -1958,17 +1973,13 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             id = "tpl-adductors-focus",
             name = "Aductores · Enfoque",
             parts = listOf(
-                part("p-ad-1", "Aducción primaria", "#7F1D1D", listOf(
-                    ex("ad1-ex1", "Aducción de Cadera Sentado en Máquina", "hip_adduction__seated__machine__bilateral",
-                        nSets("ade1", 3, 12, 8.5), restTime = 75),
-                    ex("ad1-ex2", "Aducción de Cadera de Pie en Polea", "hip_adduction__standing__cable__unilateral",
-                        nSets("ade2", 3, 12, 8.5), restTime = 60),
-                )),
-                part("p-ad-2", "Estabilidad", "#244B3C", listOf(
-                    ex("ad2-ex1", "Plancha Copenhague", "copenhagen_plank__default",
-                        nSets("ade3", 3, 20, 7.5), restTime = 75),
-                    ex("ad2-ex2", "Aducción de Cadera Sentado en Máquina", "hip_adduction__seated__machine__bilateral",
-                        nSets("ade4", 2, 15, 8.0), restTime = 60),
+                part("p-ad-1", "Cadera y cobertura", "#7F1D1D", listOf(
+                    ex("ad1-ex1", "Prensa de Piernas Horizontal en Máquina", "quads_prensa_piernas__bilateral",
+                        nSets("ade1", 3, 10, 7.5), restTime = 120),
+                    ex("ad1-ex2", "Aducción de Cadera Sentado en Máquina", "hip_adduction__seated__machine__bilateral",
+                        nSets("ade2", 3, 12, 8.5), restTime = 75),
+                    ex("ad1-ex3", "Press Pallof en Polea", "core_press_pallof__default",
+                        nSets("ade3", 3, 12, 7.5), restTime = 60),
                 )),
             ),
         ),
@@ -2037,8 +2048,6 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
                         nSets("pae1", 3, 6, 8.5), restTime = 180),
                     ex("pa1-ex2", "Press de Hombros Sentado en Máquina", "seated_shoulder_press__barbell",
                         nSets("pae2", 2, 8, 7.5), restTime = 120),
-                    ex("pa1-ex3", "Press de Banca con Mancuernas", "bench_press__dumbbells",
-                        nSets("pae3", 3, 8, 8.5), restTime = 120),
                     ex("pa1-ex4", "Elevaciones Laterales Super ROM con Mancuernas", "lateral_raise_super_rom__dumbbells",
                         nSets("pae4", 2, 12, 8.0), restTime = 60),
                     ex("pa1-ex5", "Aperturas Inclinadas con Mancuernas", "incline_chest_fly__dumbbells",
@@ -2269,10 +2278,8 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
                         nSets("ube1", 2, 10, 7.0), restTime = 120),
                     ex("ub1-ex2", "Remo en Máquina", "conventional_row__machine",
                         nSets("ube2", 2, 10, 7.0), restTime = 90),
-                    ex("ub1-ex3", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente__default",
-                        nSets("ube3", 2, 12, 7.0), restTime = 90),
                     ex("ub1-ex4", "Jalón al Pecho en Máquina (Agarre Cerrado)", "lat_pulldown__bilateral__machine",
-                        nSets("ube4", 2, 12, 7.0), restTime = 75),
+                        nSets("ube4", 2, 12, 7.0), restTime = 90),
                 )),
                 part("p-ub-2", "Accesorios", "#5B2A86", listOf(
                     ex("ub2-ex1", "Elevaciones Laterales de Pie en Máquina", "seated_lateral_raise__machine",
@@ -2505,8 +2512,6 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
                         nSets("ucie1", 2, 8, 8.0), restTime = 150),
                     ex("uci1-ex2", "Press de Hombros Sentado en Máquina", "seated_shoulder_press__barbell",
                         nSets("ucie2", 2, 10, 7.5), restTime = 90),
-                    ex("uci1-ex3", "Press de Banca con Mancuernas", "bench_press__dumbbells",
-                        nSets("ucie3", 2, 10, 7.5), restTime = 120),
                     ex("uci1-ex4", "Cruce de Poleas en Polea Alta", "tren_superior_cruce_poleas__high",
                         nSets("ucie4", 2, 12, 8.5), restTime = 90),
                     ex("uci1-ex5", "Extensión de Tríceps Overhead en Polea", "overhead_triceps__barbell",
@@ -2692,13 +2697,11 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             parts = listOf(
                 part("p-udb-1", "Delts máquina", "#4A1942", listOf(
                     ex("udb1-ex1", "Press de Hombros Sentado en Máquina", "seated_shoulder_press__barbell",
-                        nSets("udbe1", 2, 10, 7.0), restTime = 90),
+                        nSets("udbe1", 2, 10, 7.0), restTime = 120),
                     ex("udb1-ex2", "Elevaciones Laterales de Pie en Máquina", "seated_lateral_raise__machine",
                         nSets("udbe2", 2, 12, 7.5), restTime = 60),
                     ex("udb1-ex3", "Extensión de Tríceps Overhead en Máquina", "overhead_triceps__machine",
                         nSets("udbe3", 2, 12, 7.5), restTime = 75),
-                    ex("udb1-ex4", "Elevaciones Laterales Sentado en Máquina", "seated_lateral_raise__machine",
-                        nSets("udbe4", 2, 15, 7.5), restTime = 60),
                 )),
             ),
         ),
@@ -3141,7 +3144,7 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             parts = listOf(
                 part("p-td-1", "Densidad", "#1B4965", listOf(
                     ex("td1-ex1", "Press de Banca con Mancuernas", "bench_press__dumbbells",
-                        nSets("tde1", 3, 8, 8.5), restTime = 90),
+                        nSets("tde1", 3, 8, 8.5), restTime = 120),
                     ex("td1-ex2", "Remo con Pecho Apoyado con Mancuernas", "chest_supported_row__dumbbells__medium",
                         nSets("tde2", 3, 8, 8.5), restTime = 90),
                     ex("td1-ex3", "Elevaciones Laterales de Pie con Mancuernas", "standing_lateral_raise__dumbbells",
@@ -3356,6 +3359,21 @@ private val V3_DISPLAY_NAMES = mapOf(
     "triceps_pushdown__bilateral__cable" to "Extensión de Tríceps en Polea",
     "calf_raise__bilateral__machine" to "Elevación de Talones en Máquina",
     "calves_tibial_anterior__default" to "Elevación de Tibial Anterior",
+    "conventional_row__barbell" to "Remo Convencional con Barra",
+    "glute_ham_raise__default" to "Elevación glúteo-femoral",
+    "core_rueda_abdominal__default" to "Rueda Abdominal",
+    "forearms_paseo_del_granjero__hex_bar" to "Paseo del Granjero con Barra Hexagonal",
+    "jm_press__barbell" to "Press JM con Barra",
+    "hams_peso_muerto_convencional_deficit__default" to "Peso Muerto en Déficit",
+    "seated_leg_curl__bilateral__machine" to "Curl Femoral Sentado en Máquina",
+    "biceps_curl_bayesian__cable__supinated" to "Curl Bayesian en Polea",
+    "incline_bench_press__barbell" to "Press Inclinado con Barra",
+    "incline_bench_press__dumbbells" to "Press Inclinado con Mancuernas",
+    "hammer_curl__dumbbells" to "Curl Martillo con Mancuernas",
+    "rear_delt_raise__dumbbells" to "Pájaros con Mancuernas",
+    "lateral_raise_super_rom__cable" to "Elevaciones Laterales Super ROM en Polea",
+    "walking_lunge__dumbbells" to "Zancadas Caminando con Mancuernas",
+    "quads_sentadilla_cajon__default" to "Sentadilla a Cajón",
 )
 
 // Algunas configuraciones conservan un prefijo histórico distinto al id de
@@ -3646,46 +3664,33 @@ private fun heavyV3Conflict(
         (previous.movementPattern.isNotBlank() && previous.movementPattern == current.movementPattern)
     )
 
+private fun looksLikeFinisherConfiguration(configurationId: String?): Boolean {
+    val id = configurationId.orEmpty().lowercase()
+    return listOf(
+        "calf", "tibial", "pallof", "plancha", "crunch", "core_",
+        "forearm", "muneca", "wrist", "granjero", "encogimiento",
+    ).any { id.contains(it) }
+}
+
 /**
- * Greedy stable interleave for the one-part V3 sessions. It preserves the
- * focus exercise first, then prefers another primary muscle and a different
- * movement pattern. This prevents the old fixture's adjacent bench/squat
- * overloads while retaining all approved configurations.
+ * Greedy stable interleave for the one-part V3 sessions.  Compounds stay
+ * before isolations and finishers so H1 (T1/T2 → aislamiento → core) holds.
  */
 private fun rebalanceV3ExerciseOrder(exercises: List<Exercise>): List<Exercise> {
     if (exercises.size < 2) return exercises
     val catalog = catalogExerciseIndex()
-    val indexed = exercises.mapIndexed { index, exercise ->
-        Triple(index, exercise, v3ExerciseSignals(exercise, catalog))
+    val compounds = mutableListOf<Exercise>()
+    val isolations = mutableListOf<Exercise>()
+    val finishers = mutableListOf<Exercise>()
+    exercises.forEach { exercise ->
+        val id = exercise.catalogConfigurationId ?: exercise.exerciseDbId
+        when {
+            looksLikeFinisherConfiguration(id) -> finishers += exercise
+            looksLikeIsolationConfiguration(id) -> isolations += exercise
+            else -> compounds += exercise
+        }
     }
-    val remaining = indexed.toMutableList()
-    val result = mutableListOf<Triple<Int, Exercise, V3ExerciseSignals>>()
-    result += remaining.removeAt(0)
-
-    while (remaining.isNotEmpty()) {
-        val previous = result.last().third
-        val previousPrevious = result.dropLast(1).lastOrNull()?.third
-        val next = remaining.minWithOrNull(
-            compareBy<Triple<Int, Exercise, V3ExerciseSignals>> { candidate ->
-                val signal = candidate.third
-                var score = 0
-                if (signal.primaryMuscles.intersect(previous.primaryMuscles).isNotEmpty()) score += 100
-                if (previousPrevious != null &&
-                    signal.primaryMuscles.intersect(previousPrevious.primaryMuscles).isNotEmpty()
-                ) score += 45
-                if (heavyV3Conflict(previous, signal)) score += 120
-                if (signal.primaryMuscles.isEmpty()) score -= 5
-                score
-            }.thenBy { it.first }
-        ) ?: remaining.first()
-        remaining.remove(next)
-        result += next
-    }
-
-    var balanced = result.map { it.second }
-    // If a source fixture contains only one primary muscle, ordering cannot
-    // break a three-exercise streak. Remove the least useful trailing item
-    // only when the session remains inside the minimum volume contract.
+    var balanced = compounds + isolations + finishers
     while (true) {
         val signals = balanced.map { v3ExerciseSignals(it, catalog) }
         val streakIndex = signals.windowed(3).indexOfFirst { window ->
@@ -3700,6 +3705,46 @@ private fun rebalanceV3ExerciseOrder(exercises: List<Exercise>): List<Exercise> 
         balanced = balanced.toMutableList().also { it.removeAt(removable) }
     }
     return balanced
+}
+
+private fun looksLikeSpeedSession(vararg texts: String): Boolean {
+    val blob = texts.joinToString(" ").lowercase()
+    return blob.contains("velocidad") || blob.contains("dinámic") || blob.contains("dinamico") ||
+        blob.contains("de lower") || blob.contains("explosiv")
+}
+
+/** H9 floors from SessionCompositionPolicy, kept local so this catalog file stays data-layer. */
+private fun applyRoleRestFloors(exercises: List<Exercise>, speedFirst: Boolean): List<Exercise> {
+    if (exercises.isEmpty()) return exercises
+    val compoundIndexes = exercises.mapIndexedNotNull { index, exercise ->
+        val id = exercise.catalogConfigurationId ?: exercise.exerciseDbId
+        index.takeIf { !looksLikeIsolationConfiguration(id) }
+    }
+    val t1 = compoundIndexes.firstOrNull()
+    val t2 = compoundIndexes.drop(1).firstOrNull()
+    return exercises.mapIndexed { index, exercise ->
+        val isolation = looksLikeIsolationConfiguration(exercise.catalogConfigurationId ?: exercise.exerciseDbId)
+        val floor = when {
+            speedFirst && index == 0 -> 45
+            index == t1 -> 180
+            index == t2 -> 120
+            isolation -> 45
+            else -> 90
+        }
+        val rest = maxOf(exercise.restTime ?: 90, floor)
+        if (exercise.restTime == rest) exercise else exercise.copy(restTime = rest)
+    }
+}
+
+private fun looksLikeIsolationConfiguration(configurationId: String?): Boolean {
+    val id = configurationId.orEmpty().lowercase()
+    return listOf(
+        "fly", "apertura", "face_pull", "pull_apart", "rear_delt", "lateral_raise",
+        "pullover", "pushdown", "leg_curl", "extension_cuadriceps", "curl", "crunch",
+        "pallof", "encogimiento", "calf", "patada", "kickback", "abduction", "adduction",
+        "tibial", "frog", "sissy", "puente_gluteos", "hiperextension", "reverse_hyper",
+        "escapular", "scapular",
+    ).any { id.contains(it) }
 }
 
 private fun inferredV3PrimaryMuscles(configurationId: String): List<String> {
@@ -3753,17 +3798,29 @@ private fun rebuildV3Template(template: SessionTemplate, index: Int): SessionTem
         normalizedExercises.map(::normalizeV3LegacyIntensity),
     )
     if (volumeCappedExercises.isEmpty()) return null
-    val balancedExercises = rebalanceV3ExerciseOrder(volumeCappedExercises)
-    val totalSets = balancedExercises.sumOf { it.sets.size }
+    val balancedExercises = applyRoleRestFloors(
+        rebalanceV3ExerciseOrder(volumeCappedExercises),
+        speedFirst = looksLikeSpeedSession(template.name, template.session.name),
+    )
+    val paddedExercises = if (isCompactV3Template(template)) {
+        balancedExercises
+    } else {
+        padPublishedWorkingSets(
+            "sys-v3-" + template.id.removePrefix("sys-"),
+            balancedExercises,
+            template.difficulty,
+        )
+    }
+    val totalSets = paddedExercises.sumOf { it.sets.size }
     if (totalSets < LOW_VOLUME_MIN_SETS) return null
-    val isLow = template.id.endsWith("-low") || template.name.contains("Compacta", ignoreCase = true)
-    if (totalSets !in if (isLow) 8..12 else 8..22) return null
+    val isLow = isCompactV3Template(template)
+    if (totalSets !in if (isLow) 8..12 else ACCUMULATION_MIN_SETS..22) return null
     val v3Id = "sys-v3-" + template.id.removePrefix("sys-")
     val session = template.session.copy(
         id = "session-$v3Id",
         name = spanishTemplateText(template.session.name),
         description = template.session.description?.let(::spanishTemplateText),
-        parts = listOf(v3Part(v3Id, 0, "Trabajo principal", balancedExercises)),
+        parts = listOf(v3Part(v3Id, 0, "Trabajo principal", paddedExercises)),
         exercises = emptyList(),
     )
     return template.copy(
@@ -3772,9 +3829,9 @@ private fun rebuildV3Template(template: SessionTemplate, index: Int): SessionTem
         description = spanishTemplateText(template.description),
         muscleGroupsSummary = spanishTemplateText(template.muscleGroupsSummary),
         session = session,
-        exerciseCount = balancedExercises.size,
+        exerciseCount = paddedExercises.size,
         partCount = 1,
-        estimatedDurationMinutes = estimateV3Duration(balancedExercises),
+        estimatedDurationMinutes = estimateV3Duration(paddedExercises),
         sortOrder = index,
         splitDayLabels = template.splitDayLabels.map(::spanishTemplateText),
         shortDescription = spanishTemplateText(template.shortDescription),
@@ -3818,7 +3875,11 @@ private fun v3Template(
     equipmentBias: SessionTemplateEquipmentBias = SessionTemplateEquipmentBias.MIXED,
     weeklyVolumePolicyId: String? = null,
 ): SessionTemplate {
-    val parts = exercises.mapIndexed { index, group ->
+    val speedFirst = looksLikeSpeedSession(name)
+    val floored = exercises.mapIndexed { index, group ->
+        applyRoleRestFloors(group, speedFirst = speedFirst && index == 0)
+    }
+    val parts = floored.mapIndexed { index, group ->
         v3Part(id, index, if (index == 0) "Trabajo principal" else "Accesorios", group)
     }
     val allExercises = parts.flatMap { it.exercises }
@@ -3933,7 +3994,7 @@ private fun safePowerliftingTemplates(): List<SessionTemplate> {
     val classicDay2 = pl(
         "sys-v3-pl-classic-2", "Peso Muerto", "Clásico 4 · Peso muerto", "Isquiosurales",
         listOf(
-            listOf(v3Exercise("pl-classic-2", "principal", "conventional_deadlift__bilateral__barbell", 3, 4, 7.5, 240, isCompetitionLift = true)),
+            listOf(v3Exercise("pl-classic-2", "principal", "conventional_deadlift__bilateral__barbell", 4, 4, 7.5, 240, isCompetitionLift = true)),
             listOf(v3Exercise("pl-classic-2", "jalon", "lat_pulldown__bilateral__cable", 3, 8, 7.5, 120),
                 v3Exercise("pl-classic-2", "femoral", "lying_leg_curl__bilateral__machine", 3, 10, 7.5, 90)),
         ),
@@ -3944,8 +4005,10 @@ private fun safePowerliftingTemplates(): List<SessionTemplate> {
         "sys-v3-pl-classic-4", "Banca Volumen", "Clásico 4 · Banca", "Pectorales",
         listOf(
             listOf(v3Exercise("pl-classic-4", "principal", "bench_press__barbell", 4, 6, 7.5, 180, isCompetitionLift = true)),
-            listOf(v3Exercise("pl-classic-4", "triceps", "triceps_pushdown__bilateral__cable", 3, 10, 7.5, 90),
-                v3Exercise("pl-classic-4", "remo", "conventional_row__machine", 3, 8, 7.5, 120)),
+            listOf(
+                v3Exercise("pl-classic-4", "remo", "conventional_row__machine", 3, 8, 7.5, 120),
+                v3Exercise("pl-classic-4", "triceps", "triceps_pushdown__bilateral__cable", 3, 10, 7.5, 90),
+            ),
         ),
         splitIds = listOf("pl_classic_4"),
         difficulty = Difficulty.INTERMEDIO,
@@ -3953,9 +4016,9 @@ private fun safePowerliftingTemplates(): List<SessionTemplate> {
     val classicDay5 = pl(
         "sys-v3-pl-classic-5", "Sentadilla/Peso Muerto", "Clásico 4 · Técnica", "Cuádriceps",
         listOf(
-            listOf(v3Exercise("pl-classic-5", "principal", "low_bar_back_squat__barbell", 3, 4, 7.0, 210, isCompetitionLift = true)),
+            listOf(v3Exercise("pl-classic-5", "principal", "low_bar_back_squat__barbell", 4, 4, 7.0, 210, isCompetitionLift = true)),
             listOf(v3Exercise("pl-classic-5", "bisagra", "conventional_deadlift__bilateral__barbell", 3, 3, 7.0, 210),
-                v3Exercise("pl-classic-5", "core", "core_press_pallof__default", 2, 12, 7.0, 60)),
+                v3Exercise("pl-classic-5", "core", "core_press_pallof__default", 3, 12, 7.0, 60)),
         ),
         splitIds = listOf("pl_classic_4"),
         difficulty = Difficulty.INTERMEDIO,
@@ -3963,14 +4026,15 @@ private fun safePowerliftingTemplates(): List<SessionTemplate> {
     val recovery = pl(
         "sys-v3-pl-recuperacion", "Día Recuperación", "Recuperación técnica", "Pectorales",
         listOf(
-            listOf(v3Exercise("pl-rec", "sentadilla", "quads_prensa_piernas__bilateral", 2, 8, 6.5, 120)),
+            listOf(v3Exercise("pl-rec", "sentadilla", "quads_prensa_piernas__bilateral", 3, 8, 6.5, 180)),
             listOf(
-                v3Exercise("pl-rec", "banca", "bench_press__machine", 2, 8, 6.5, 120),
-                v3Exercise("pl-rec", "remo", "chest_supported_row__machine__medium", 2, 10, 7.0, 90),
+                v3Exercise("pl-rec", "banca", "bench_press__machine", 3, 8, 6.5, 120),
+                v3Exercise("pl-rec", "remo", "chest_supported_row__machine__medium", 3, 10, 7.0, 90),
                 v3Exercise("pl-rec", "femoral", "seated_leg_curl__unilateral__machine", 2, 10, 7.0, 75),
             ),
         ),
-    )
+        splitIds = listOf("texas_method", "madcow_5x5"),
+    ).copy(splitDayLabels = listOf("Día Recuperación", "Recuperación (Light)"))
     return listOf(sbd1, sbd2, sbd3, classicDay1, classicDay2, classicDay4, classicDay5, recovery)
 }
 
@@ -4034,10 +4098,10 @@ private fun expandedCommonTemplates(): List<SessionTemplate> {
                 ),
             )
             SessionTemplateFocusCategory.ISQUIOS, SessionTemplateFocusCategory.CADENA_POSTERIOR -> listOf(
-                listOf(v3Exercise(id, "principal", if (index % 2 == 0) "romanian_deadlift__bilateral__dumbbells" else "lying_leg_curl__bilateral__machine", 3, 8, 7.5, 150)),
+                listOf(v3Exercise(id, "principal", "romanian_deadlift__bilateral__dumbbells", 3, 8, 7.5, 150)),
                 listOf(
-                    v3Exercise(id, "gluteo", "hip_thrust__bilateral__machine", 2, 10, 8.0, 90),
-                    v3Exercise(id, "femoral", "standing_leg_curl__unilateral__cable", 2, 12, 8.0, 75),
+                    v3Exercise(id, "gluteo", "hip_thrust__bilateral__machine", 2, 10, 8.0, 120),
+                    v3Exercise(id, "femoral", "lying_leg_curl__bilateral__machine", 2, 12, 8.0, 75),
                     v3Exercise(id, "abduccion", "hip_abduction__seated__machine__bilateral", 2, 12, 8.0, 60),
                     v3Exercise(id, "lumbar", "back_extension_lumbar__default", 2, 12, 7.5, 75),
                 ),
@@ -4046,19 +4110,17 @@ private fun expandedCommonTemplates(): List<SessionTemplate> {
                 listOf(v3Exercise(id, "principal", "hip_thrust__bilateral__machine", 3, 8, 7.5, 150)),
                 listOf(
                     v3Exercise(id, "unilateral", "bulgarian_split_squat__smith_machine", 2, 8, 7.5, 105),
-                    v3Exercise(id, "posterior", "romanian_deadlift__bilateral__dumbbells", 2, 10, 7.5, 120),
-                    // Una serie de abducción completa la sesión sin superar
-                    // el tope de ocho series directas de glúteo en nivel
-                    // intermedio.
+                    v3Exercise(id, "femoral", "lying_leg_curl__bilateral__machine", 2, 12, 8.0, 75),
                     v3Exercise(id, "abduccion", "hip_abduction__standing__cable__unilateral", 1, 12, 8.0, 60),
+                    v3Exercise(id, "cobertura", "triceps_pushdown__bilateral__cable", 2, 12, 8.0, 60),
                 ),
             )
             SessionTemplateFocusCategory.HOMBROS -> listOf(
                 listOf(v3Exercise(id, "principal", if (index % 2 == 0) "seated_shoulder_press__machine" else "seated_shoulder_press__barbell", 3, 8, 7.5, 135)),
                 listOf(
+                    v3Exercise(id, "triceps", "crossbody_triceps__cable__bilateral", 2, 10, 8.0, 60),
                     v3Exercise(id, "lateral", "standing_lateral_raise__machine", 2, 12, 8.0, 60),
                     v3Exercise(id, "posterior", "deltoides_face_pull__default", 2, 12, 8.0, 60),
-                    v3Exercise(id, "triceps", "crossbody_triceps__cable__bilateral", 2, 10, 8.0, 60),
                 ),
             )
             SessionTemplateFocusCategory.BRAZOS -> listOf(
@@ -4071,24 +4133,31 @@ private fun expandedCommonTemplates(): List<SessionTemplate> {
             SessionTemplateFocusCategory.CORE -> listOf(
                 listOf(v3Exercise(id, "pallof", "core_press_pallof__default", 3, 12, 7.5, 60)),
                 listOf(
+                    v3Exercise(id, "face", "deltoides_face_pull__default", 2, 15, 7.5, 60),
                     v3Exercise(id, "crunch", "core_crunch_maquina__default", 3, 12, 8.0, 60),
                     v3Exercise(id, "plancha", "core_plancha__default", 2, 10, 7.5, 60),
                 ),
             )
             SessionTemplateFocusCategory.PANTORRILLAS -> listOf(
-                listOf(v3Exercise(id, "gemelo", "calf_raise__bilateral__machine", 4, 12, 8.0, 60)),
-                listOf(v3Exercise(id, "tibial", "calves_tibial_anterior__default", 4, 15, 8.0, 60)),
+                listOf(v3Exercise(id, "gemelo", "calf_raise__bilateral__machine", 3, 12, 8.0, 60)),
+                listOf(
+                    v3Exercise(id, "tibial", "calves_tibial_anterior__default", 3, 15, 8.0, 60),
+                    v3Exercise(id, "core", "core_press_pallof__default", 2, 12, 7.5, 60),
+                ),
             )
             SessionTemplateFocusCategory.ADUCTORES -> listOf(
-                listOf(v3Exercise(id, "aductor", "hip_adduction__seated__machine__bilateral", 4, 12, 8.0, 60)),
+                listOf(v3Exercise(id, "rodilla", "quads_prensa_piernas__bilateral", 3, 10, 7.5, 120)),
                 listOf(
+                    v3Exercise(id, "aductor", "hip_adduction__seated__machine__bilateral", 3, 12, 8.0, 60),
                     v3Exercise(id, "core", "core_press_pallof__default", 2, 12, 7.5, 60),
-                    v3Exercise(id, "aductor_aux", "hip_adduction__seated__machine__bilateral", 2, 15, 7.5, 60),
                 ),
             )
             SessionTemplateFocusCategory.ANTEBRAZOS -> listOf(
-                listOf(v3Exercise(id, "curl", "forearms_curl_muneca_sentado__dumbbells", 4, 12, 8.0, 60)),
-                listOf(v3Exercise(id, "reverse", "forearms_curl_muneca_inverso_sentado__ez_bar", 4, 12, 8.0, 60)),
+                listOf(v3Exercise(id, "curl", "forearms_curl_muneca_sentado__dumbbells", 3, 12, 8.0, 60)),
+                listOf(
+                    v3Exercise(id, "face", "deltoides_face_pull__default", 2, 15, 7.5, 60),
+                    v3Exercise(id, "biceps", "preacher_curl__machine", 3, 12, 8.0, 60),
+                ),
             )
             SessionTemplateFocusCategory.FULL_BODY, SessionTemplateFocusCategory.CADENA_ANTERIOR, SessionTemplateFocusCategory.RECUPERACION -> listOf(
                 listOf(v3Exercise(id, "rodilla", if (index % 2 == 0) "quads_prensa_piernas__bilateral" else "quads_sentadilla_copa__default", 2, 8, if (difficulty == Difficulty.PRINCIPIANTE) 6.5 else 7.0, 135)),
@@ -4187,24 +4256,20 @@ private fun highFrequencyCommonTemplates(): List<SessionTemplate> {
             SessionTemplateFocusCategory.CADENA_ANTERIOR -> listOf(
                 listOf(v3Exercise(id, "rodilla", "quads_prensa_piernas__bilateral", 2, 8, 7.0, 120)),
                 listOf(
-                    // Mantener el foco anterior sin convertir cada día en una
-                    // sesión de cuádriceps: la prensa ya cubre el patrón
-                    // pesado y la extensión queda en una sola serie.
-                    v3Exercise(id, "extension", "quads_extension_cuadriceps__machine__bilateral", 1, 12, 7.5, 75),
                     v3Exercise(id, "press", "bench_press__machine", 1, 8, 7.0, 120),
                     v3Exercise(id, "hombro", "seated_shoulder_press__machine", 1, 8, 7.0, 120),
+                    v3Exercise(id, "extension", "quads_extension_cuadriceps__machine__bilateral", 1, 12, 7.5, 75),
                     v3Exercise(id, "lateral", "standing_lateral_raise__machine", 1, 12, 7.5, 60),
-                    v3Exercise(id, "pantorrilla", "calf_raise__bilateral__machine", 1, 12, 7.5, 60),
                     v3Exercise(id, "pecho_aux", "flat_chest_fly__machine", 1, 12, 7.5, 75),
+                    v3Exercise(id, "pantorrilla", "calf_raise__bilateral__machine", 1, 12, 7.5, 60),
                 ),
             )
             SessionTemplateFocusCategory.CADENA_POSTERIOR -> listOf(
-                listOf(v3Exercise(id, "femoral", "lying_leg_curl__bilateral__machine", 2, 10, 7.0, 90)),
+                listOf(v3Exercise(id, "cadera", "hip_thrust__bilateral__machine", 2, 10, 7.5, 120)),
                 listOf(
-                    v3Exercise(id, "cadera", "hip_thrust__bilateral__machine", 1, 10, 7.5, 90),
-                    v3Exercise(id, "lumbar", "back_extension_lumbar__default", 3, 12, 7.0, 75),
-                    v3Exercise(id, "abduccion", "hip_abduction__seated__machine__bilateral", 1, 12, 7.5, 60),
-                    v3Exercise(id, "pantorrilla", "calf_raise__bilateral__machine", 1, 12, 7.5, 60),
+                    v3Exercise(id, "femoral", "lying_leg_curl__bilateral__machine", 2, 10, 7.0, 90),
+                    v3Exercise(id, "lumbar", "back_extension_lumbar__default", 2, 12, 7.0, 75),
+                    v3Exercise(id, "pantorrilla", "calf_raise__bilateral__machine", 2, 12, 7.5, 60),
                 ),
             )
             SessionTemplateFocusCategory.HOMBROS -> listOf(
@@ -4289,8 +4354,8 @@ private fun highFrequencyCommonTemplates(): List<SessionTemplate> {
             exercises = listOf(
                 listOf(v3Exercise(pushQuadId, "press", "bench_press__machine", 1, 8, 7.0, 120)),
                 listOf(
-                    v3Exercise(pushQuadId, "apertura", "flat_chest_fly__machine", 1, 12, 7.5, 75),
                     v3Exercise(pushQuadId, "rodilla", "quads_prensa_piernas__bilateral", 2, 8, 7.0, 120),
+                    v3Exercise(pushQuadId, "apertura", "flat_chest_fly__machine", 1, 12, 7.5, 75),
                     v3Exercise(pushQuadId, "femoral", "lying_leg_curl__bilateral__machine", 1, 10, 7.5, 90),
                     v3Exercise(pushQuadId, "lateral", "standing_lateral_raise__machine", 1, 12, 7.5, 60),
                     v3Exercise(pushQuadId, "triceps", "triceps_pushdown__bilateral__cable", 2, 12, 7.5, 60),
@@ -4338,7 +4403,10 @@ private fun buildV3SystemTemplates(legacy: List<SessionTemplate>): List<SessionT
     val specialized = safePowerliftingTemplates()
     val expanded = expandedCommonTemplates()
     val highFrequency = highFrequencyCommonTemplates()
-    val all = (generic + specialized + expanded + highFrequency)
+    val recipePl = plRecipeSessionTemplates()
+    val all = (generic + specialized + expanded + highFrequency + recipePl)
+        .map(::applyPublishedComposition)
+        .map(::enforceCompositionRestFloors)
         .map(::localizeV3TemplateEditorialText)
         .filter { it.id.startsWith("sys-v3-") }
         .distinctBy { it.id }
@@ -4348,3 +4416,114 @@ private fun buildV3SystemTemplates(legacy: List<SessionTemplate>): List<SessionT
     }
     return all.sortedBy { it.sortOrder }
 }
+
+private fun applyPublishedComposition(template: SessionTemplate): SessionTemplate {
+    if (template.id.contains("recipe-pl")) return template
+    val ordered = rebalanceV3ExerciseOrder(template.session.allExercises())
+    if (ordered.size < 2) return template
+    val bumped = ordered.mapIndexed { index, exercise ->
+        val id = exercise.catalogConfigurationId ?: exercise.exerciseDbId
+        val isolation = looksLikeIsolationConfiguration(id)
+        val finisher = looksLikeFinisherConfiguration(id)
+        val floor = when {
+            !isolation && !finisher && index == 0 -> 120
+            !isolation && !finisher -> 90
+            else -> 45
+        }
+        exercise.copy(restTime = (exercise.restTime ?: 0).coerceAtLeast(floor))
+    }
+    val padded = if (isCompactV3Template(template)) {
+        bumped
+    } else {
+        padPublishedWorkingSets(template.id, bumped, template.difficulty)
+    }
+    val part = template.session.parts.firstOrNull()?.copy(exercises = padded)
+        ?: SessionPart(id = "${template.id}-main", name = "Trabajo", color = "#153B50", exercises = padded)
+    return template.copy(
+        session = template.session.copy(parts = listOf(part), exercises = emptyList()),
+        exerciseCount = padded.size,
+        partCount = 1,
+    )
+}
+
+private fun isCompactV3Template(template: SessionTemplate): Boolean =
+    template.durationClass == SessionTemplateDurationClass.SHORT ||
+        template.difficulty == Difficulty.PRINCIPIANTE ||
+        template.id.endsWith("-low") ||
+        template.name.contains("Compacta", ignoreCase = true)
+
+/**
+ * H6 de acumulación exige ≥10 series en sesiones STANDARD. No se usa en
+ * dosis compactas (SHORT) para no reventar el volumen semanal de splits x5/x6.
+ */
+private fun padPublishedWorkingSets(
+    templateId: String,
+    exercises: List<Exercise>,
+    difficulty: Difficulty,
+): List<Exercise> {
+    val current = exercises.sumOf { it.sets.size }
+    val missing = ACCUMULATION_MIN_SETS - current
+    if (missing <= 0 || exercises.isEmpty()) return exercises
+    val cap = when (difficulty) {
+        Difficulty.PRINCIPIANTE -> 6
+        Difficulty.INTERMEDIO -> 8
+        Difficulty.AVANZADO -> 10
+    }
+    fun muscleSetsOf(list: List<Exercise>): Map<String, Int> {
+        val totals = mutableMapOf<String, Int>()
+        list.forEach { exercise ->
+            inferredV3PrimaryMuscles(exercise.catalogConfigurationId.orEmpty()).forEach { muscle ->
+                totals[muscle] = (totals[muscle] ?: 0) + exercise.sets.size
+            }
+        }
+        return totals
+    }
+    val result = exercises.toMutableList()
+    repeat(missing) {
+        val totals = muscleSetsOf(result)
+        val hostIndex = result.indices.reversed().firstOrNull { index ->
+            val exercise = result[index]
+            if (exercise.sets.isEmpty()) return@firstOrNull false
+            val id = exercise.catalogConfigurationId.orEmpty().lowercase()
+            if (listOf("glute", "hip_thrust", "hip_abduction", "bulgarian", "romanian").any { it in id }) {
+                return@firstOrNull false
+            }
+            val muscles = inferredV3PrimaryMuscles(exercise.catalogConfigurationId.orEmpty())
+            muscles.isNotEmpty() &&
+                "gluteus_maximus" !in muscles &&
+                muscles.all { muscle -> (totals[muscle] ?: 0) < cap }
+        }
+        if (hostIndex == null) return@repeat
+        val host = result[hostIndex]
+        result[hostIndex] = host.copy(
+            sets = host.sets + host.sets.last().copy(id = "$templateId-${host.id}-h6-$it"),
+        )
+    }
+    return result
+}
+
+private fun enforceCompositionRestFloors(template: SessionTemplate): SessionTemplate {
+    if (!template.id.contains("recipe-pl")) return template
+    val speed = template.name.contains("velocidad", ignoreCase = true) ||
+        template.name.contains("dinámic", ignoreCase = true) ||
+        template.name.contains("dinamico", ignoreCase = true)
+    var index = 0
+    fun bump(exercise: Exercise): Exercise {
+        val floor = when {
+            speed && index == 0 -> 45
+            index == 0 -> 180
+            index == 1 -> 120
+            else -> 90
+        }
+        index += 1
+        val rest = (exercise.restTime ?: 0).coerceAtLeast(floor)
+        return if (rest == exercise.restTime) exercise else exercise.copy(restTime = rest)
+    }
+    val session = template.session
+    val next = session.copy(
+        exercises = session.exercises.map(::bump),
+        parts = session.parts.map { part -> part.copy(exercises = part.exercises.map(::bump)) },
+    )
+    return template.copy(session = next)
+}
+

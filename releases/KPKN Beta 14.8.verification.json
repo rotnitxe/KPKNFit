@@ -1,0 +1,42 @@
+{
+  "apk": "/home/rotnitxe/KPKNFit/releases/KPKN Beta 14.8.apk",
+  "bytes": 182579326,
+  "sha256": "56ae6478214684028c5bfceee97cc6bd0390fb2330e1f481a239f4d55edf3c1d",
+  "package": "com.example.kpkn",
+  "versionName": "KPKN Beta 14.8",
+  "versionCode": 33,
+  "debuggable": false,
+  "abis": [
+    "arm64-v8a",
+    "armeabi-v7a"
+  ],
+  "build": "assembleBaseRelease assembleBaseDebug BUILD SUCCESSFUL in 10m 43s",
+  "signature": "Verifies\nVerified using v1 scheme (JAR signing): false\nVerified using v2 scheme (APK Signature Scheme v2): true\nVerified using v3 scheme (APK Signature Scheme v3): true\nVerified using v3.1 scheme (APK Signature Scheme v3.1): false\nVerified using v4 scheme (APK Signature Scheme v4): false\nVerified for SourceStamp: false\nNumber of signers: 1\nSigner #1 certificate DN: CN=KPKN Fit, O=KPKN, C=CL\nSigner #1 certificate SHA-256 digest: b55b4970e079c4e51eb6662c7ffd6f9664377f304ee7065159ba4be0a4031f3a\nSigner #1 certificate SHA-1 digest: a4ea9fbbf60a5b2afd1c0e637e33a0437bbeefbc\nSigner #1 certificate MD5 digest: ab879ce96636db1063297ef9a7371278\nSigner #1 key algorithm: RSA\nSigner #1 key size (bits): 4096\nSigner #1 public key SHA-256 digest: 9e2c2b016742c2f2b65e0a6535163d250221ff323872d09a56f83632c73e1895\nSigner #1 public key SHA-1 digest: b880805dda743085968352496139472e4ce9e45e\nSigner #1 public key MD5 digest: 9578aa894560d98bc07a0a1136021cdb\n",
+  "zipalign16k": true,
+  "tests": {
+    "task": "testBaseDebugUnitTest --tests *.SessionTemplateCatalogTest",
+    "result": "BUILD SUCCESSFUL in 1m 13s",
+    "suite": {
+      "name": "com.example.kpkn.domain.templates.SessionTemplateCatalogTest",
+      "tests": "24",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-09-12T05:44:55.901Z",
+      "hostname": "rotnitxe-OMEN-by-HP-Laptop-16-c0xxx",
+      "time": "0.999"
+    }
+  },
+  "emulator": {
+    "device": "Pixel 9 Pro",
+    "system": "Android 15 API35 x86_64 with ARM translation",
+    "installation": "adb install --no-incremental -r: Success",
+    "launch": "MainActivity Status ok, 1339ms",
+    "installedVersionCode": 33,
+    "installedVersionName": "KPKN Beta 14.8",
+    "debuggable": false,
+    "crashBuffer": "empty",
+    "visualCheck": "Home and onboarding displayed",
+    "state": "Release left open for user"
+  }
+}

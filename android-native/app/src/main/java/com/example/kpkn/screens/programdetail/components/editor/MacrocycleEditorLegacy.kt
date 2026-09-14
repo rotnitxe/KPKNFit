@@ -727,6 +727,13 @@ fun MacrocycleEditorLegacy(
                             color = MaterialTheme.colorScheme.error,
                         )
                     }
+                    if (program.structure == ProgramStructure.SIMPLE) {
+                        Text(
+                            "Se convertirá a programa avanzado (COMPLEX) para poder aplicar el protocolo.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
                 }
             },
             confirmButton = {
@@ -918,10 +925,10 @@ private fun MacrocycleToolbar(
                     )
                 }
             } else {
-                OutlinedButton(onClick = onOpenLibrary) { Text("Plantillas") }
                 OutlinedButton(onClick = onOpenKeyDates) { Text("Fechas clave") }
                 OutlinedButton(onClick = onToggleRoadmap) { Text(if (showRoadmap) "Ocultar roadmap" else "Roadmap") }
             }
+            OutlinedButton(onClick = onOpenLibrary) { Text("Plantillas") }
         }
     }
 }

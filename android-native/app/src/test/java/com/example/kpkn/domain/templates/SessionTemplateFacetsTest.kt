@@ -2,6 +2,7 @@ package com.example.kpkn.domain.templates
 
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.sessions.SESSION_TEMPLATES_SYSTEM
+import com.example.kpkn.data.sessions.SessionTemplateFocusCategory
 import com.example.kpkn.domain.exercises.ExerciseCatalogRegion
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -72,7 +73,11 @@ class SessionTemplateFacetsTest {
 
     @Test
     fun fullBodyDetectsFullOrMultipleRegions() {
-        val full = facets("sys-v3-fullbody-base")
+        val fullId = SESSION_TEMPLATES_SYSTEM.first {
+            it.focusCategory == SessionTemplateFocusCategory.FULL_BODY &&
+                (it.id.contains("full") || it.tags.contains(com.example.kpkn.data.sessions.SessionTemplateTag.CUERPO_COMPLETO))
+        }.id
+        val full = facets(fullId)
         val hasFullFlag = ExerciseCatalogRegion.FULL in full.regions
         val hasUpperAndLower =
             ExerciseCatalogRegion.UPPER in full.regions && ExerciseCatalogRegion.LOWER in full.regions

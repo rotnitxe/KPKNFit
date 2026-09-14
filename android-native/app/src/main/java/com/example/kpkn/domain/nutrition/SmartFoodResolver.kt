@@ -6,7 +6,8 @@ import com.example.kpkn.data.db.NutritionDao
 import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.data.food.findFoodByNormalized
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.text.Normalizer
 
@@ -57,7 +58,8 @@ class SmartFoodResolver(
     enum class Decision { AUTO_SELECT, NEEDS_REVIEW, UNRESOLVED }
 
     // In-memory cache for fast lookups (backed by LearnedResolutionDao)
-    private val learnedCache = mutableMapOf<String, LearnedEntry>()
+    private val learnedCache = java.util.concurrent.ConcurrentHashMap<String, LearnedEntry>()
+    private val learningMutex = Mutex()
 
     /** E16/IT2: tope de memoria aprendida — al superarlo se poda la DB. */
     private val LEARNED_EXPIRATION_THRESHOLD = 600
@@ -77,7 +79,9 @@ class SmartFoodResolver(
     /**
      * Preload learned resolutions from database for fast in-memory lookups.
      */
-    suspend fun preloadLearned() {
+    suspend fun preloadLearned() = learningMutex.withLock { preloadLearnedUnlocked() }
+
+    private suspend fun preloadLearnedUnlocked() {
         if (learnedDao == null) return
         withContext(Dispatchers.IO) {
             try {
@@ -94,7 +98,7 @@ class SmartFoodResolver(
                     )
                 }
             } catch (e: Exception) {
-                android.util.Log.w("SmartFoodResolver", "preloadLearned failed", e)
+                if (e is kotlinx.coroutines.CancellationException) throw e
             }
         }
     }
@@ -113,7 +117,8 @@ class SmartFoodResolver(
         contextHint: String? = null,
         stateHint: FoodState? = null,
     ): ResolutionResult = withContext(Dispatchers.Default) {
-        val first = attemptResolve(query, brandHint, contextHint, stateHint)
+        val effectiveBrand = brandHint ?: foodIndex.brandHintFor(query)
+        val first = attemptResolve(query, effectiveBrand, contextHint, stateHint)
         if (first.decision == Decision.AUTO_SELECT) {
             return@withContext first
         }
@@ -123,7 +128,7 @@ class SmartFoodResolver(
         // en singular y se queda con el mejor puntaje. Nunca empeora un resultado.
         val singular = singularizeQuery(query)
         if (singular != null) {
-            val retry = attemptResolve(singular, brandHint, contextHint, stateHint)
+            val retry = attemptResolve(singular, effectiveBrand, contextHint, stateHint)
             val firstScore = first.candidates.firstOrNull()?.score ?: 0.0
             val retryScore = retry.candidates.firstOrNull()?.score ?: 0.0
             if (retryScore > firstScore) {
@@ -155,7 +160,7 @@ class SmartFoodResolver(
         val repairedTokens = FoodIndex.tokenize(repairedNormalized)
 
         // Check learned resolutions first (v3 family|unit|query, then v2)
-        val learned = lookupLearned(query, normalizedQuery, brandHint)
+        val learned = lookupLearned(query, normalizedQuery, brandHint, stateHint)
         val ontologyId = FoodStapleOntology.resolveFoodId(query)
             ?: FoodStapleOntology.resolveFoodId(repairedQuery).takeIf { repairedQuery != query }
         val stapleId = when {
@@ -164,8 +169,8 @@ class SmartFoodResolver(
                 FoodStapleOntology.isKnownCutForFamily(query, learned.foodId) -> learned.foodId
             else -> ontologyId
         }
-        stapleId?.let { id ->
-            foodIndex.getFood(id)?.let { indexed ->
+        stapleId?.takeIf { brandHint.isNullOrBlank() }?.let { id ->
+            foodIndex.getFood(id)?.takeIf { FoodIdentity.matchesDeclaredIdentity(query, it.name, it.normalizedAliases) }?.let { indexed ->
                 val candidate = ResolutionCandidate(
                     foodId = indexed.foodId,
                     name = indexed.name,
@@ -202,7 +207,7 @@ class SmartFoodResolver(
                     emptyList()
                 }
             }
-            .filter { it.source == "LOCAL" }
+            .filter { it.isCuratedCatalog && hasPlausibleMacros(it) && FoodIdentity.matchesDeclaredIdentity(query, it.name, it.normalizedAliases, brandHint, it.brand) }
         if (exactLocalMatches.isNotEmpty() && !FoodIdentity.isAmbiguousStateQuery(query)) {
             val exactCandidates = exactLocalMatches.take(4).map { food ->
                 ResolutionCandidate(
@@ -233,20 +238,6 @@ class SmartFoodResolver(
         }
 
         // D6: tokens que el dataset asocia con la descripción completa
-        if (FoodIdentity.isAmbiguousStateQuery(query)) {
-            val stateCandidateIds = foodIndex.getAllFoods()
-                .filter {
-                    it.source == "LOCAL" &&
-                        it.canonicalFamily == "pasta" &&
-                        it.state != FoodState.UNKNOWN &&
-                        FoodIdentity.isPlainPastaVariant(it.name + " " + it.normalizedAliases.joinToString(" "))
-                }
-                .map { it.foodId }
-                .toSet()
-            if (stateCandidateIds.isNotEmpty()) {
-                return scoreAndRank(query, normalizedQuery, queryTokens, stateCandidateIds, brandHint, learned, coTokens = null, stateHint = stateHint)
-            }
-        }
         val coTokens = SemanticPortionRetriever.rankingTokens(query, contextHint)
 
         // Get candidate food IDs from index
@@ -308,78 +299,36 @@ class SmartFoodResolver(
      * Record a learned resolution (user confirmed or corrected a match).
      * Persists to DB and updates in-memory cache.
      */
-    fun recordLearned(query: String, brandHint: String?, foodId: String, portionGrams: Double?, cookingMethod: String?) {
-        val v2Key = buildLearnedKey(FoodIndex.normalizeSearch(query), brandHint)
-        writeLearned(v2Key, foodId, portionGrams, cookingMethod)
-        val identity = SubjectivePortionLexicon.foodSpanAfterUnit(query)
-        val identityNorm = FoodIndex.normalizeSearch(identity)
-        if (identityNorm.isNotBlank() && identityNorm != FoodIndex.normalizeSearch(query)) {
-            writeLearned(buildLearnedKey(identityNorm, brandHint), foodId, portionGrams, cookingMethod)
-        }
-        val v3Key = buildV3LearnedKey(query)
-        if (v3Key != null) {
-            writeLearned(v3Key, foodId, portionGrams, cookingMethod)
-        }
-    }
-
-    private fun writeLearned(key: String, foodId: String, portionGrams: Double?, cookingMethod: String?) {
-        val existing = learnedCache[key]
-        val newCount = (existing?.count ?: 0) + 1
-        learnedCache[key] = LearnedEntry(
-            foodId = foodId,
-            portionGrams = portionGrams ?: existing?.portionGrams,
-            cookingMethod = cookingMethod ?: existing?.cookingMethod,
-            count = newCount,
-            weightBasis = existing?.weightBasis ?: when (cookingMethod?.uppercase()) {
-                "CRUDO" -> "RAW"
-                null -> null
-                else -> "COOKED"
-            },
-            preparation = cookingMethod ?: existing?.preparation,
-        )
-        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-            try {
-                learnedDao?.upsert(
-                    com.example.kpkn.data.db.LearnedResolutionEntity(
-                        id = key,
-                        queryKey = key,
-                        foodId = foodId,
-                        portionGrams = portionGrams,
-                        cookingMethod = cookingMethod,
-                        count = newCount,
-                        lastUsedAt = System.currentTimeMillis(),
-                        createdAt = existing?.let { 0L } ?: System.currentTimeMillis(),
-                        weightBasis = cookingMethod?.let {
-                            if (it.equals("CRUDO", ignoreCase = true)) "RAW" else "COOKED"
-                        },
-                        preparation = cookingMethod,
-                        lastConfirmedAt = System.currentTimeMillis(),
-                    )
-                )
-                if (learnedCache.size > LEARNED_EXPIRATION_THRESHOLD) {
-                    learnedDao?.prune(LEARNED_PRUNE_KEEP)
-                    learnedCache.clear()
-                    preloadLearned()
-                }
-            } catch (e: Exception) {
-                android.util.Log.w("SmartFoodResolver", "recordLearned persist failed", e)
+    suspend fun recordLearned(query: String, brandHint: String?, foodId: String, portionGrams: Double?, cookingMethod: String?) = learningMutex.withLock {
+        val keys = linkedSetOf(buildLearnedKey(FoodIndex.normalizeSearch(query), brandHint))
+        buildV3LearnedKey(query)?.let(keys::add)
+        for (key in keys) {
+            val existing = learnedCache[key]?.takeIf { it.foodId == foodId }
+            val next = LearnedEntry(foodId, portionGrams ?: existing?.portionGrams,
+                cookingMethod ?: existing?.cookingMethod, (existing?.count ?: 0) + 1,
+                cookingMethod?.let { if (it.equals("CRUDO", true)) "RAW" else "COOKED" } ?: existing?.weightBasis,
+                cookingMethod ?: existing?.preparation)
+            withContext(Dispatchers.IO) {
+                learnedDao?.upsert(com.example.kpkn.data.db.LearnedResolutionEntity(
+                    id = key, queryKey = key, foodId = foodId, portionGrams = next.portionGrams,
+                    cookingMethod = next.cookingMethod, count = next.count,
+                    lastUsedAt = System.currentTimeMillis(), createdAt = System.currentTimeMillis(),
+                    weightBasis = next.weightBasis, preparation = next.preparation,
+                    lastConfirmedAt = System.currentTimeMillis(),
+                ))
             }
+            learnedCache[key] = next
+        }
+        if (learnedCache.size > LEARNED_EXPIRATION_THRESHOLD) {
+            withContext(Dispatchers.IO) { learnedDao?.prune(LEARNED_PRUNE_KEEP) }
+            learnedCache.clear()
+            preloadLearnedUnlocked()
         }
     }
 
-    /**
-     * E16/IT2: invalidación total del aprendizaje (botón "olvidar" en la UI).
-     * Borra la DB y el cache en memoria; el aprendizaje se reinicia desde cero.
-     */
-    fun clearLearned() {
+    suspend fun clearLearned() = learningMutex.withLock {
+        withContext(Dispatchers.IO) { learnedDao?.prune(0) }
         learnedCache.clear()
-        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-            try {
-                learnedDao?.prune(0)
-            } catch (e: Exception) {
-                android.util.Log.w("SmartFoodResolver", "clearLearned failed", e)
-            }
-        }
     }
 
     // ─── Scoring ──────────────────────────────────────────────────────────
@@ -397,6 +346,7 @@ class SmartFoodResolver(
         val rankedCandidates = candidateIds.mapNotNull { foodId ->
             val food = foodIndex.getFood(foodId) ?: return@mapNotNull null
             if (!hasPlausibleMacros(food)) return@mapNotNull null
+            if (!FoodIdentity.matchesDeclaredIdentity(originalQuery, food.name, food.normalizedAliases, brandHint, food.brand)) return@mapNotNull null
             val score = computeScore(food, normalizedQuery, queryTokens, brandHint, learned, coTokens, stateHint)
             val trace = buildTrace(food, normalizedQuery, queryTokens, brandHint)
 
@@ -423,7 +373,7 @@ class SmartFoodResolver(
             .mapNotNull { (_, sameIdentity) ->
                 sameIdentity.maxWithOrNull(
                     compareBy<ResolutionCandidate> { it.score }
-                        .thenBy { it.source == "LOCAL" }
+                        .thenBy { foodIndex.getFood(it.foodId)?.isCuratedCatalog == true }
                         .thenBy { it.brand != null }
                         .thenBy { it.foodId },
                 )
@@ -433,7 +383,7 @@ class SmartFoodResolver(
                 // empates exactos ("atún" agua vs aceite, "cazuela") no dependan del
                 // orden de almacenamiento de la DB ni de la iteración del mapa.
                 compareByDescending<ResolutionCandidate> { it.score }
-                    .thenByDescending { it.source == "LOCAL" }
+                    .thenByDescending { foodIndex.getFood(it.foodId)?.isCuratedCatalog == true }
                     .thenBy { it.foodId },
             )
 
@@ -463,20 +413,25 @@ class SmartFoodResolver(
             }
         val baseTopScore = winner.score - learnedBoostApplied - datasetBoostApplied
         val firstRealRival = top.drop(1).firstOrNull { rival -> isRealIdentityRival(originalQuery, winner, rival) }
-        val gapOk = firstRealRival == null || winner.score - firstRealRival.score >= SAFE_GAP
-        val plainLocalWinner = winner.source == "LOCAL" &&
+        val materialRival = firstRealRival?.let {
+            kotlin.math.abs(winner.calories - it.calories) >= 50.0 ||
+                kotlin.math.abs(winner.protein - it.protein) >= 5.0 ||
+                kotlin.math.abs(winner.fats - it.fats) >= 5.0
+        } == true
+        val gapOk = firstRealRival == null || !materialRival || winner.score - firstRealRival.score >= SAFE_GAP
+        val localWinner = foodIndex.getFood(winner.foodId)?.isCuratedCatalog == true
+        val plainLocalWinner = localWinner &&
             FoodIdentity.isPlainSimpleFood(originalQuery, winner.name) &&
             baseTopScore >= 0.70
-        val localWinner = winner.source == "LOCAL"
 
         val decision = when {
             FoodIdentity.isAmbiguousStateQuery(originalQuery) && stateHint == null ->
                 Decision.NEEDS_REVIEW
-            learned != null && baseTopScore >= LEARNED_AUTO_THRESHOLD -> Decision.AUTO_SELECT
-            plainLocalWinner -> Decision.AUTO_SELECT
+            learned != null && learned.foodId == winner.foodId && baseTopScore >= LEARNED_AUTO_THRESHOLD && gapOk -> Decision.AUTO_SELECT
+            plainLocalWinner && gapOk -> Decision.AUTO_SELECT
             localWinner && baseTopScore >= 0.70 && gapOk -> Decision.AUTO_SELECT
             localWinner && HouseholdPortions.looksLikePackName(winner.name).not() &&
-                FoodIdentity.isPlainSimpleFood(originalQuery, winner.name) -> Decision.AUTO_SELECT
+                FoodIdentity.isPlainSimpleFood(originalQuery, winner.name) && gapOk -> Decision.AUTO_SELECT
             baseTopScore >= HIGH_THRESHOLD && gapOk -> Decision.AUTO_SELECT
             top.first().score >= MEDIUM_THRESHOLD -> Decision.NEEDS_REVIEW
             else -> Decision.NEEDS_REVIEW
@@ -544,7 +499,7 @@ class SmartFoodResolver(
         val foodIsPlain = FoodIdentity.isPlainSimpleFood(normalizedQuery, food.name)
         if (queryFamily != null && queryFamily == food.canonicalFamily) {
             score += 0.22
-            if (food.source == "LOCAL") score += 0.12
+            if (food.isCuratedCatalog) score += 0.12
             if (foodIsPlain) score += 0.10
         }
         if (queryFamily != null && food.canonicalFamily != null && queryFamily != food.canonicalFamily) {
@@ -636,7 +591,7 @@ class SmartFoodResolver(
 
         // 7. Household identity beats supermarket SKUs on unbranded queries.
         if (brandHint.isNullOrBlank()) {
-            if (food.source == "LOCAL") {
+            if (food.isCuratedCatalog) {
                 score += 0.16
             } else {
                 score -= 0.12
@@ -713,13 +668,7 @@ class SmartFoodResolver(
     }
 
     private fun candidateIdentityKey(candidate: ResolutionCandidate, brandHint: String?): String {
-        val familyOrName = candidate.canonicalFamily ?: FoodIdentity.normalize(candidate.name)
-        val brandKey = if (brandHint.isNullOrBlank()) {
-            ""
-        } else {
-            FoodIdentity.normalize(candidate.brand.orEmpty())
-        }
-        return "${familyOrName}:${candidate.state.name}:${brandKey}"
+        return "${FoodIdentity.normalize(candidate.name)}:${candidate.state}:${FoodIdentity.normalize(candidate.brand.orEmpty())}"
     }
 
     /**
@@ -897,11 +846,14 @@ class SmartFoodResolver(
         originalQuery: String,
         normalizedQuery: String,
         brandHint: String?,
+        stateHint: FoodState?,
     ): LearnedEntry? {
+        fun compatible(entry: LearnedEntry): Boolean = stateHint == null || entry.weightBasis == null ||
+            entry.weightBasis == stateHint.name
         buildV3LearnedKey(originalQuery)?.let { key ->
-            learnedCache[key]?.let { return it }
+            learnedCache[key]?.takeIf(::compatible)?.let { return it }
         }
-        return learnedCache[buildLearnedKey(normalizedQuery, brandHint)]
+        return learnedCache[buildLearnedKey(normalizedQuery, brandHint)]?.takeIf(::compatible)
     }
 
     private fun buildV3LearnedKey(query: String): String? {

@@ -31,12 +31,9 @@ sealed class KpknRoute(val route: String) {
 
     // ─── Detail screens ─────────────────────────────────────────────────
 
-    object ProgramDetail : KpknRoute("program/{programId}?tab={tab}") {
-        fun create(programId: String, tab: String? = null): String =
-            if (tab == null) "program/$programId" else "program/$programId?tab=$tab"
+    object ProgramDetail : KpknRoute("program/{programId}") {
+        fun create(programId: String): String = "program/$programId"
         const val ARG_PROGRAM_ID = "programId"
-        const val ARG_TAB = "tab"
-        const val TAB_ANALYTICS = "analytics"
     }
 
     object SessionEditor : KpknRoute("session-editor/{programId}/{sessionId}?weekId={weekId}&macroIndex={macroIndex}&mesoIndex={mesoIndex}&dayOfWeek={dayOfWeek}") {

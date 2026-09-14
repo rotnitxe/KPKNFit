@@ -753,4 +753,32 @@ class ProgramDetailViewModelTest {
         val factory = ProgramDetailViewModel.factory("prog1")
         assertNotNull(factory)
     }
+
+    @Test
+    fun acceptAutoregulation_clears_pending_confirm_action() {
+        val id = nextId()
+        val seeded = makeProgram(id).copy(
+            runState = ProgramRunState(
+                runId = "run",
+                pendingAction = PendingProgramAction(
+                    type = PendingProgramActionType.CONFIRM_AUTOREGULATION,
+                    message = "AUGE propone bajar TM",
+                    proposals = listOf(
+                        AutoregulationProposal(
+                            kind = AutoregulationProposalKind.ADJUST_TM,
+                            liftSlot = "SQUAT",
+                            percentDelta = -2.5,
+                            explanation = "AMRAP corto",
+                        ),
+                    ),
+                ),
+            ),
+        )
+        repository.addProgram(seeded)
+        val vm = ProgramDetailViewModel(id)
+        assertEquals(PendingProgramActionType.CONFIRM_AUTOREGULATION, vm.program.value?.runState?.pendingAction?.type)
+        vm.acceptAutoregulation()
+        assertNull(repository.getProgramById(id)?.runState?.pendingAction)
+        assertNull(vm.blockTransitionBanner.value)
+    }
 }

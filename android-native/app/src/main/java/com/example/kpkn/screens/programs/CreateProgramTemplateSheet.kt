@@ -29,6 +29,9 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.programs.PROGRAM_TEMPLATES
 import com.example.kpkn.data.programs.ProgramTemplateOption
+import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
+import com.example.kpkn.data.protocols.Protocol
+import com.example.kpkn.data.protocols.isVisibleForApplication
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.KpknSheetLightChip
 import com.example.kpkn.ui.components.KpknSheetTokens
@@ -39,10 +42,12 @@ fun CreateProgramTemplateSheet(
     onDismiss: () -> Unit,
     onCreateBlank: () -> Unit,
     onCreateFromTemplate: (ProgramTemplateOption) -> Unit,
+    onSelectProtocol: (Protocol) -> Unit = {},
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val simpleTemplates = remember { PROGRAM_TEMPLATES.filter { it.type == ProgramStructure.SIMPLE } }
     val advancedTemplates = remember { PROGRAM_TEMPLATES.filter { it.type == ProgramStructure.COMPLEX } }
+    val protocols = remember { PROTOCOL_LIBRARY.filter { it.isVisibleForApplication } }
 
     KpknSheet(onDismissRequest = onDismiss) {
         Column(
@@ -53,7 +58,7 @@ fun CreateProgramTemplateSheet(
         ) {
             Text("Nuevo programa", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Color.White)
             Text(
-                "Elige una plantilla Simple o Avanzada, o crea un programa vacío.",
+                "Elige Simple, Avanzado o un protocolo citado, o crea un programa vacío.",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White.copy(alpha = 0.65f),
             )
@@ -73,8 +78,13 @@ fun CreateProgramTemplateSheet(
                     modifier = Modifier.weight(1f),
                     onClick = { selectedTab = 1 },
                 )
+                KpknSheetLightChip(
+                    label = "PROTOCOLOS",
+                    selected = selectedTab == 2,
+                    modifier = Modifier.weight(1f),
+                    onClick = { selectedTab = 2 },
+                )
             }
-            val templates = if (selectedTab == 0) simpleTemplates else advancedTemplates
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -82,33 +92,81 @@ fun CreateProgramTemplateSheet(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                templates.forEach { template ->
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onCreateFromTemplate(template) },
-                        shape = RoundedCornerShape(16.dp),
-                        color = KpknSheetTokens.Panel,
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                when (selectedTab) {
+                    2 -> protocols.forEach { protocol ->
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onSelectProtocol(protocol) },
+                            shape = RoundedCornerShape(16.dp),
+                            color = KpknSheetTokens.Panel,
                         ) {
-                            Text(
-                                "${template.emoji} ${template.name}",
-                                fontWeight = FontWeight.Black,
-                                color = Color.White,
-                            )
-                            Text(
-                                template.description,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.White.copy(alpha = 0.75f),
-                            )
-                            Text(
-                                "${template.weeks} semanas · ${template.blockNames.size} bloque(s)",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.White.copy(alpha = 0.55f),
-                            )
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Text(
+                                    "${protocol.emoji} ${protocol.name}",
+                                    fontWeight = FontWeight.Black,
+                                    color = Color.White,
+                                )
+                                Text(
+                                    protocol.author,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White.copy(alpha = 0.7f),
+                                )
+                                Text(
+                                    protocol.description,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.White.copy(alpha = 0.75f),
+                                )
+                                val level = protocol.fidelitySpec?.claimedLevel ?: protocol.recipe?.claimedLevel
+                                val source = protocol.source.primaryReference ?: protocol.author
+                                val days = protocol.recipe?.daysPerWeek ?: protocol.sessionCategories.size
+                                val weeks = protocol.recipe?.weeks?.size ?: protocol.blocks.sumOf { it.weeks }
+                                Text(
+                                    listOfNotNull(
+                                        level?.let { "Nivel $it" },
+                                        source,
+                                        "$weeks sem · $days d/sem",
+                                    ).joinToString(" · "),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.White.copy(alpha = 0.55f),
+                                )
+                            }
+                        }
+                    }
+                    else -> {
+                        val templates = if (selectedTab == 0) simpleTemplates else advancedTemplates
+                        templates.forEach { template ->
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onCreateFromTemplate(template) },
+                                shape = RoundedCornerShape(16.dp),
+                                color = KpknSheetTokens.Panel,
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                                ) {
+                                    Text(
+                                        "${template.emoji} ${template.name}",
+                                        fontWeight = FontWeight.Black,
+                                        color = Color.White,
+                                    )
+                                    Text(
+                                        template.description,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.White.copy(alpha = 0.75f),
+                                    )
+                                    Text(
+                                        "${template.weeks} semanas · ${template.blockNames.size} bloque(s)",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.White.copy(alpha = 0.55f),
+                                    )
+                                }
+                            }
                         }
                     }
                 }

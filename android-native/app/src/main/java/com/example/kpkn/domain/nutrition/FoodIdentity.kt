@@ -34,6 +34,7 @@ enum class NutritionSourceKind {
     EXTERNAL_ESTIMATE,
     DATASET_ESTIMATE,
     HEURISTIC_ESTIMATE,
+    USER_PROVIDED,
 }
 
 data class FoodResolutionMetadata(
@@ -84,8 +85,7 @@ object FoodIdentity {
             .trim()
     }
 
-    // FIX NUT-01: hallulla/marraqueta are regional names for same Chilean bread.
-    // Grouping them collapses duplicate OFF rows before SAFE_GAP check and allows AUTO.
+    // Related breads share portion priors; their identities remain distinct.
     private val BREAD_CHILENO_WORDS = setOf(
         "hallulla", "hallullas", "hallula", "hallulas", "halulla", "halullas",
         "allulla", "allullas",
@@ -157,6 +157,19 @@ object FoodIdentity {
         return COMPOUND_PRODUCT_MARKERS.any { padded.contains(it) }
     }
 
+    /** A complete mixed-dish profile cannot stand in for a recipe with ingredients removed. */
+    fun matchesExclusions(food: FoodItem, excludedIngredients: Set<String>): Boolean {
+        if (excludedIngredients.isEmpty()) return true
+        val name = normalize(food.name)
+        val mixed = isCompoundProduct(name) || food.tags.any { normalize(it) == "preparacion" }
+        return excludedIngredients.all { excluded ->
+            val ingredient = normalize(excluded).removePrefix("sin ")
+            val explicitAbsence = (listOf(name) + food.searchAliases.map(::normalize))
+                .any { it.contains("sin $ingredient") }
+            explicitAbsence || (!mixed && !name.contains(ingredient))
+        }
+    }
+
     /**
      * True when [query] is a short head-noun and [foodName] is that same simple food
      * (possibly with state/cut qualifiers), not a mixed dish or branded compound.
@@ -191,6 +204,10 @@ object FoodIdentity {
         val normalized = normalize(value)
         val tokens = normalized.split(" ").filter { it.isNotBlank() }
         return when {
+            Regex("\\b(?:pasta|crema|mantequilla) de (?:mani|cacahuete|almendra|avellana|sesamo)s?\\b").containsMatchIn(normalized) ->
+                "untable_" + normalized.substringAfter(" de ").substringBefore(' ').removeSuffix("s").replace("cacahuete", "mani")
+            Regex("\\bpasta de (?:tomate|ajo)\\b").containsMatchIn(normalized) -> "pasta_concentrada"
+            tokens.contains("pavo") -> "pavo"
             normalized.contains("salsa de tomate") || normalized == "salsa tomate" -> "salsa_de_tomate"
             normalized.contains("ketchup") || normalized.contains("catsup") -> "ketchup"
             BREAD_CHILENO_WORDS.any { normalized.contains(it) } -> "pan_chileno"
@@ -243,6 +260,7 @@ object FoodIdentity {
     fun isStateSensitive(value: String): Boolean {
         val normalized = normalize(value)
         val tokens = normalized.split(' ').toSet()
+        if (familyFor(value)?.startsWith("untable_") == true) return false
         return familyFor(value) == "pasta" ||
             tokens.any { it in STATE_SENSITIVE_WORDS }
     }
@@ -254,6 +272,10 @@ object FoodIdentity {
     /** Search terms used when a family alias has no direct row of its own. */
     fun queryAliases(value: String): List<String> {
         val family = familyFor(value) ?: return emptyList()
+        if (family.startsWith("untable_")) {
+            val base = family.removePrefix("untable_")
+            return listOf("pasta", "crema", "mantequilla").map { "$it de $base" }
+        }
         val state = stateFor(value)
         return when (family) {
             "pasta" -> when (state) {
@@ -270,12 +292,15 @@ object FoodIdentity {
     /** Extra phrases indexed for the curated rows, without assigning plain fideos a state. */
     fun aliasesForFood(food: FoodItem): List<String> {
         val family = familyFor(food)
+        if (family?.startsWith("untable_") == true) return queryAliases(food.name)
         if (family == "pasta") return when (stateFor(food)) {
             FoodState.RAW -> listOf("fideos secos", "tallarines secos")
             FoodState.COOKED, FoodState.HYDRATED -> listOf("tallarines cocidos")
             FoodState.UNKNOWN -> emptyList()
         }
-        if (family == "pan_chileno") return listOf("hallulla", "marraqueta", "pan batido", "pan frances")
+        if (FoodStapleOntology.isKnownCutForFamily("carne", food.id)) return listOf("carne")
+        if (FoodStapleOntology.isKnownCutForFamily("pollo", food.id)) return listOf("pollo")
+        if (family == "pan_chileno" && normalize(food.name).contains("marraqueta")) return listOf("pan batido", "pan frances")
         return emptyList()
     }
 
@@ -299,14 +324,69 @@ object FoodIdentity {
 
     /** Stable grouping key used to collapse duplicate catalog rows. */
     fun canonicalKey(food: FoodItem): String {
-        val family = familyFor(food)
-        val state = stateFor(food)
-        if (family != null) {
-            return "$family:${state.name.lowercase()}"
-        }
-        val name = normalize(food.name).replace(STATE_SUFFIX, "").trim()
-        return name.ifBlank { food.id }
+        return "${normalize(food.name)}:${stateFor(food)}:${normalize(food.brand.orEmpty())}"
     }
+
+    /** This name spans a flatbread and egg/potato dishes; an alias cannot choose its composition. */
+    fun requiresDeclaredComposition(query: String): Boolean = normalize(query) == "tortilla"
+
+    /** Constraints declared in a food mention are not optional ranking bonuses. */
+    fun declaredAttributes(value: String): Set<String> {
+        val normalized = normalize(value)
+        return buildSet {
+            Regex("\\bsin (?:azucar|lactosa|gluten|sal)\\b").findAll(normalized).forEach { add(it.value) }
+            Regex("\\b(?:descremad[oa]|desnatad[oa]|semidescremad[oa]|integral|vegetal|vegano|vegana)\\b")
+                .findAll(normalized).forEach { add(it.value.replace("desnat", "descrem").replace("descremado", "descremada")) }
+        }
+    }
+
+    fun matchesDeclaredIdentity(query: String, name: String, aliases: Collection<String> = emptyList(), brandHint: String? = null, brand: String? = null): Boolean {
+        val q = normalize(query)
+        val n = normalize(name)
+        // A brand-only alias is useful for product search, never proof of food identity.
+        val identityAliases = aliases.filterNot { normalize(it) == normalize(brand.orEmpty()) }
+        val searchable = normalize((listOf(name) + identityAliases).joinToString(" "))
+        if (!declaredAttributes(searchable).containsAll(declaredAttributes(q))) return false
+        val species = setOf("pollo", "pavo", "cerdo", "vacuno", "salmon", "merluza")
+        val requestedSpecies = contentTokens(q).filter { it in species }.toSet()
+        val candidateSpecies = contentTokens(searchable).filter { it in species }.toSet()
+        if (requestedSpecies.isNotEmpty() && candidateSpecies.isNotEmpty() && requestedSpecies.intersect(candidateSpecies).isEmpty()) return false
+        val queryFamily = familyFor(q)
+        val candidateFamily = familyFor(n)
+        if (queryFamily != null && candidateFamily != null && queryFamily != candidateFamily) return false
+        if (!brandHint.isNullOrBlank() && !normalize(brand.orEmpty()).replace(" ", "").contains(normalize(brandHint).replace(" ", ""))) return false
+        if (isCompoundProduct(q) && !isCompoundProduct(n) && contentTokens(q).size > contentTokens(n).size) return false
+        if (!isCompoundProduct(q) && (queryFamily != null || contentTokens(q).size == 1)) {
+            val exactAlias = identityAliases.any { normalize(it) == q }
+            val queryHead = headToken(q)
+            val brandTokens = contentTokens(brand.orEmpty()).toSet()
+            val head = contentTokens(n).dropWhile { it != queryHead && it in brandTokens }.firstOrNull()
+            val sameHead = head?.removeSuffix("s") == queryHead?.removeSuffix("s")
+            val headFamily = familyFor(head.orEmpty())
+            val compatibleFamilyHead = queryFamily != null && headFamily == queryFamily
+            // Attributes such as "sin lactosa" do not relax the head-noun constraint.
+            if (queryFamily != null && headFamily != null && queryFamily != headFamily && head !in PLAIN_FOOD_EXTRA_TOKENS) return false
+            if (!exactAlias && !sameHead && !compatibleFamilyHead && head !in PLAIN_FOOD_EXTRA_TOKENS) return false
+            if (isCompoundProduct(n) && !exactAlias) return false
+        }
+        // A transformed or flavoured product cannot silently stand in for its plain ingredient.
+        val materialForms = listOf("condensad", "evaporad", "sabor ", "azucarad", "endulzad", "en polvo")
+        val impliedPowder = FoodStapleOntology.isProteinSupplementContext(q)
+        if (materialForms.any { form -> n.contains(form) && !q.contains(form) && !(form == "en polvo" && impliedPowder) }) return false
+        val candidateTokens = contentTokens(searchable + " " + brand.orEmpty()).toSet()
+        val required = contentTokens(q).filterNot { token ->
+            token.toDoubleOrNull() != null || stateFor(token) != FoodState.UNKNOWN ||
+                token in setOf("sin", "g", "gr", "kg", "ml", "litro", "litros", "unidad", "unidades")
+        }
+        if (required.any { token -> candidateTokens.none { candidate ->
+            candidate == token || candidate.removeSuffix("s") == token.removeSuffix("s") ||
+                (candidate.length >= 4 && token.length >= 4 && PhoneticEs.encode(candidate) == PhoneticEs.encode(token))
+        } }) return false
+        return true
+    }
+
+    fun matchesDeclaredIdentity(query: String, food: FoodItem, brandHint: String? = null): Boolean =
+        matchesDeclaredIdentity(query, food.name, food.searchAliases + aliasesForFood(food), brandHint, food.brand)
 
     /** Reject obviously broken rows before they become a nutrition authority. */
     fun hasPlausibleMacros(food: FoodItem): Boolean {

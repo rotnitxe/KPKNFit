@@ -146,14 +146,14 @@ class FluencyGoldenCorpusTest {
     }
 
     @Test
-    fun `torta se guarda como ficha generica de pan`() = runBlocking {
-        val tags = resolve("torta")
-        assertEquals("gen019", tags.single().foodItem?.id)
-        assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
-        assertTrue(tags.single().isResolved)
-        assertFalse(tags.single().hasMaterialQuestion())
-        val grams = tags.single().amountGrams ?: 0.0
-        assertTrue("torta grams $grams", grams in 80.0..120.0)
+    fun `torta conserva plato y estimación pendiente`() = runBlocking {
+        val tag = resolve("torta").single()
+        assertEquals(null, tag.foodItem)
+        assertEquals(FoodResolutionStatus.NEEDS_REVIEW, tag.resolutionStatus)
+        assertTrue(tag.hasMaterialQuestion())
+        assertNotNull(tag.loggedFood)
+        assertTrue(tag.loggedFood!!.foodName.contains("torta", ignoreCase = true))
+        assertTrue(tag.amountGrams!! in 150.0..350.0)
     }
 
     @Test
@@ -179,7 +179,7 @@ class FluencyGoldenCorpusTest {
         assertTrue((arroz.loggedFood?.calories ?: 0.0) in 230.0..380.0)
         assertTrue((pollo.loggedFood?.calories ?: 0.0) in 200.0..320.0)
         assertEquals(FoodResolutionStatus.AUTO, arroz.resolutionStatus)
-        assertEquals(FoodResolutionStatus.AUTO, pollo.resolutionStatus)
+        assertEquals(FoodResolutionStatus.NEEDS_CONFIRMATION, pollo.resolutionStatus)
     }
 
     @Test

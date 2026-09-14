@@ -278,23 +278,23 @@ class MacroCalculatorTest {
     }
 
     @Test
-    fun `liquid food uses ml unit`() {
+    fun `liquid food retains canonical gram unit`() {
         val food = FoodItem(
             id = "leche", name = "Leche entera", servingSize = 200.0, unit = "g",
             calories = 62.0, protein = 3.2, carbs = 4.8, fats = 3.4,
         )
         val logged = scaleFoodByPortion(food, amountGrams = 200.0)
-        assertEquals("ml", logged.unit)
+        assertEquals("g", logged.unit)
     }
 
     @Test
-    fun `liquid food bebida uses ml unit`() {
+    fun `liquid beverage retains canonical gram unit`() {
         val food = FoodItem(
             id = "bebida", name = "Bebida energética", servingSize = 250.0, unit = "g",
             calories = 45.0, protein = 0.0, carbs = 11.0, fats = 0.0,
         )
         val logged = scaleFoodByPortion(food, amountGrams = 250.0)
-        assertEquals("ml", logged.unit)
+        assertEquals("g", logged.unit)
     }
 
     @Test

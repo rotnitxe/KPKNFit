@@ -44,9 +44,7 @@ class SessionPrefillBridgeTest {
 
     @Test
     fun prefillIfEmpty_is_noop_when_program_already_has_sessions() {
-        val protocol = com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.first { it.id == "531-base" }.copy(
-            publicationStatus = com.example.kpkn.data.protocols.ProtocolPublicationStatus.KPKN_NATIVE,
-        )
+        val protocol = com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.first { it.id == "wendler-531-bbb" }
         val populated = ProgramProtocolEngine.applyProtocol(Program(id = "p", name = "P"), protocol)
         val split = SPLIT_TEMPLATES.first { it.id == "ul_x4" }
 

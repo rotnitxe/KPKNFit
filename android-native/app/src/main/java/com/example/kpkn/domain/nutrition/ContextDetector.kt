@@ -110,6 +110,8 @@ object ContextDetector {
         description: String,
         mealType: MealType? = null,
         foodTags: List<String> = emptyList(),
+        /** Parsed consumed mentions may supply food semantics independently of the occasion text. */
+        shapeDescription: String = description,
     ): ContextResult {
         val lower = description.lowercase()
         val detected = mutableListOf<MealContext>()
@@ -120,7 +122,7 @@ object ContextDetector {
             }
         }
 
-        val shape = InferredMealContext.inferShape(description, foodTags)
+        val shape = InferredMealContext.inferShape(shapeDescription, foodTags)
         val decision = InferredMealContext.combine(detected, mealType, shape)
         val primary = decision.context
         val confidence = when {

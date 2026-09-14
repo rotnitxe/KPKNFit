@@ -77,6 +77,8 @@ data class SetRecipe(
     val amrap: Boolean = false,
     val isTopSet: Boolean = false,
     val loadBasis: LoadBasis = LoadBasis.PERCENT_TM,
+    /** No cuenta como serie efectiva en H5b/H6/H8/W2. */
+    val isWarmup: Boolean = false,
 )
 
 @Serializable

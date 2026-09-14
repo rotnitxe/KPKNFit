@@ -56,7 +56,9 @@ object SubjectivePortionEngine {
         "cucharadita" to 5.0,
         "cucharada" to 15.0,
         "cucharon" to 90.0,
-        "taza" to 250.0,
+        // FDA household measures: cup 240 ml, tablespoon 15 ml, teaspoon 5 ml.
+        // https://www.fda.gov/regulatory-information/search-fda-guidance-documents/guidance-industry-guidelines-determining-metric-equivalents-household-measures
+        "taza" to 240.0,
         "vaso" to 250.0,
         "plato" to 250.0,
         "plato_hondo" to 400.0,
@@ -87,10 +89,10 @@ object SubjectivePortionEngine {
         // Tazas
         Triple(Regex("""\b(un|una|1)\s+tazas?\s+rebosantes?\b""", RegexOption.IGNORE_CASE), 280.0, "taza_rebosante"),
         Triple(Regex("""\b(un|una|1)\s+tazas?\s+de\s+desayuno\b""", RegexOption.IGNORE_CASE), 200.0, "taza_desayuno"),
-        Triple(Regex("""\b(un|una|1)\s+tazas?\b""", RegexOption.IGNORE_CASE), 250.0, "taza"),
-        Triple(Regex("""\bmedia\s+taza\b""", RegexOption.IGNORE_CASE), 125.0, "media_taza"),
-        Triple(Regex("""\bun\s+cuarto\s+de\s+taza\b""", RegexOption.IGNORE_CASE), 62.5, "cuarto_taza"),
-        Triple(Regex("""\bun\s+tercio\s+de\s+taza\b""", RegexOption.IGNORE_CASE), 83.0, "tercio_taza"),
+        Triple(Regex("""\b(un|una|1)\s+tazas?\b""", RegexOption.IGNORE_CASE), 240.0, "taza"),
+        Triple(Regex("""\bmedia\s+taza\b""", RegexOption.IGNORE_CASE), 120.0, "media_taza"),
+        Triple(Regex("""\bun\s+cuarto\s+de\s+taza\b""", RegexOption.IGNORE_CASE), 60.0, "cuarto_taza"),
+        Triple(Regex("""\bun\s+tercio\s+de\s+taza\b""", RegexOption.IGNORE_CASE), 80.0, "tercio_taza"),
         Triple(Regex("""\b(un|una|1)\s+tacitas?\s+de\s+caf[ée]\b""", RegexOption.IGNORE_CASE), 60.0, "tacita_cafe"),
 
         // Vasos y copas
@@ -249,7 +251,7 @@ object SubjectivePortionEngine {
         Triple(Regex("""\b(\d+(?:[.,]\d+)?)\s+scoops?\s+generosos?\b""", RegexOption.IGNORE_CASE), 40.0, "scoops_generosos"),
         Triple(Regex("""\bun\s+scoop\b""", RegexOption.IGNORE_CASE), 30.0, "scoop"),
         Triple(Regex("""\b(\d+(?:[.,]\d+)?)\s+scoops?\b""", RegexOption.IGNORE_CASE), 30.0, "scoops"),
-        Triple(Regex("""\buna\s+medida\s+(?:de\s+)?(?:prote[ií]na|suplemento)\b""", RegexOption.IGNORE_CASE), 30.0, "medida_proteina"),
+        Triple(Regex("""\b(?:un|una|1)\s+medidas?\s+(?:de\s+)?(?:prote[ií]na|suplemento)\b""", RegexOption.IGNORE_CASE), 30.0, "medida_proteina"),
     )
 
     // ─── Pan/Masas ──────────────────────────────────────────────────────────
@@ -365,21 +367,43 @@ object SubjectivePortionEngine {
 
         val foodName = extractFoodName(lower)
 
+        // Match the utensil once and apply its count afterwards. Fractional
+        // legacy patterns encoded the fraction in baseMl, which family remaps
+        // subsequently erased (half a cup of milk became a full cup).
+        val quantityPrefix = Regex(
+            """^((?:un|1)\s+cuarto\s+de|(?:un|1)\s+tercio\s+de|media|medio|mitad\s+de|\d+(?:[.,]\d+)?(?:/\d+)?|un|una)\s+(?:de\s+)?""",
+        ).find(lower)
+        val utensilCount = quantityPrefix?.groupValues?.get(1)?.let { amount ->
+            when (amount) {
+                "un cuarto de", "1 cuarto de" -> 0.25
+                "un tercio de", "1 tercio de" -> 1.0 / 3.0
+                "media", "medio", "mitad de" -> 0.5
+                "un", "una" -> 1.0
+                else -> if ('/' in amount) {
+                    val parts = amount.split('/').mapNotNull { it.toDoubleOrNull() }
+                    if (parts.size == 2 && parts[1] > 0.0) parts[0] / parts[1] else null
+                } else amount.replace(',', '.').toDoubleOrNull()
+            }
+        }
+        val utensilExpression = if (utensilCount != null) {
+            "una " + lower.substring(quantityPrefix.range.last + 1)
+        } else lower
+
         // Utensils first — never let dataset priors override a cup/spoon match.
         for ((pattern, baseMl, source) in UTENSIL_PATTERNS) {
-            val match = pattern.find(lower) ?: continue
-            val qty = match.groupValues.getOrNull(1)?.replace(",", ".")?.toDoubleOrNull() ?: 1.0
+            val match = pattern.find(utensilExpression) ?: continue
+            val qty = utensilCount ?: match.groupValues.getOrNull(1)?.replace(",", ".")?.toDoubleOrNull() ?: 1.0
             val category = foodCategory ?: FoodDensityCategory.MIXED
             val effectiveMl = utensilOverrides[source] ?: baseMl
-            val volumeGrams = effectiveMl * qty * category.densityGPerMl
+            val volumeGrams = massFromVolumeMl(effectiveMl, foodName ?: lower, category)
             val grams = remapUtensilGrams(
                 source = source,
                 baseMl = baseMl,
                 effectiveMl = effectiveMl,
-                qty = qty,
+                qty = 1.0,
                 volumeGrams = volumeGrams,
                 foodHint = foodName ?: lower,
-            )
+            ) * qty
             return PortionResult(
                 grams = grams,
                 confidence = 0.75,
@@ -406,9 +430,12 @@ object SubjectivePortionEngine {
         }
 
         // Scoops as absolute grams (protein scoop ≈ 30 g, not stdPortion × 30)
+        val scoopExpression = if (utensilCount != null) {
+            "1 " + lower.substring(quantityPrefix.range.last + 1)
+        } else lower
         for ((pattern, baseGrams, source) in SCOOP_PATTERNS) {
-            val match = pattern.find(lower) ?: continue
-            val qty = match.groupValues.getOrNull(1)?.replace(",", ".")?.toDoubleOrNull() ?: 1.0
+            val match = pattern.find(scoopExpression) ?: continue
+            val qty = utensilCount ?: match.groupValues.getOrNull(1)?.replace(",", ".")?.toDoubleOrNull() ?: 1.0
             return PortionResult(
                 grams = baseGrams * qty,
                 confidence = 0.80,
@@ -513,9 +540,12 @@ object SubjectivePortionEngine {
      * Auto-detect food density category from food name.
      */
     fun detectDensityCategory(foodName: String): FoodDensityCategory {
-        val lower = foodName.lowercase()
+        val lower = foodName.lowercase().replace(
+            Regex("""\bsin\s+(?:az[uú]car|lactosa|gluten)\b"""), "",
+        )
 
         return when {
+            lower.contains("leche") || lower.contains("bebida de avena") -> FoodDensityCategory.DAIRY
             lower.contains("aceite") || lower.contains("mantequilla") || lower.contains("manteca") || lower.contains("ghee") || lower.contains("margarina") || lower.contains("mayonesa") || lower.contains("mayo") -> FoodDensityCategory.FAT
             lower.contains("azúcar") || lower.contains("azucar") || lower.contains("harina") || lower.contains("cacao") || lower.contains("canela") -> FoodDensityCategory.POWDER
             lower.contains("arroz") || lower.contains("pasta") || lower.contains("quinoa") || lower.contains("avena") || lower.contains("lenteja") || lower.contains("garbanzo") || lower.contains("poroto") -> FoodDensityCategory.GRAIN
@@ -528,6 +558,28 @@ object SubjectivePortionEngine {
             else -> FoodDensityCategory.MIXED
         }
     }
+
+    /**
+     * Shared conversion for measured volumes and the reference of ml-based food
+     * records. Category densities are estimates, not food composition data.
+     * USDA Food Buying Guide gives 81 g per 240 ml cup of dry rolled/quick oats:
+     * https://foodbuyingguide.fns.usda.gov/AltText/Grains_Grams_Conversions1
+     */
+    fun densityGramsPerMl(foodTag: String, category: FoodDensityCategory? = null): Double {
+        val normalized = FoodIdentity.normalize(foodTag)
+        if (normalized.contains("avena") &&
+            !Regex("""\b(?:leche|bebida|galleta\w*|pan|barrita\w*|batido)\b""").containsMatchIn(normalized) &&
+            !normalized.contains("cocid") && !normalized.contains("hidrat")) {
+            return 81.0 / 240.0
+        }
+        return (category ?: detectDensityCategory(foodTag)).densityGPerMl
+    }
+
+    fun massFromVolumeMl(
+        volumeMl: Double,
+        foodTag: String,
+        category: FoodDensityCategory? = null,
+    ): Double = volumeMl * densityGramsPerMl(foodTag, category)
 
     // ─── Internal ──────────────────────────────────────────────────────────
 
@@ -554,8 +606,8 @@ object SubjectivePortionEngine {
     private val PALTA_MARKERS = listOf("palta", "aguacate", "avocado")
 
     /**
-     * Plato/bowl/taza leave the utensil, but grams follow the food family:
-     * dry oats are a serving, cooked rice stays a plate, yogurt a bowl.
+     * A cup is a volume measure; a bowl/plate is a variable household portion.
+     * Their shared food family must not turn a measured cup into one serving.
      */
     private fun remapUtensilGrams(
         source: String,
@@ -574,16 +626,16 @@ object SubjectivePortionEngine {
         val isDryCereal = DRY_CEREAL_MARKERS.any { blob.contains(it) } &&
             !blob.contains("cocid") &&
             !blob.contains("hidrat")
+        if (isTaza) return volumeGrams
         if (isDryCereal) {
             val serving = when {
                 blob.contains("granola") -> 30.0
-                isTaza -> 40.0
                 else -> 50.0
             }
             return (serving * qty * volumeScale).coerceIn(8.0, 80.0)
         }
         val isDairy = DAIRY_MARKERS.any { blob.contains(it) }
-        if (isDairy && (source == "bol" || source == "tazon" || isTaza)) {
+        if (isDairy && (source == "bol" || source == "tazon")) {
             return (180.0 * qty * volumeScale).coerceIn(120.0, 220.0)
         }
         val isCookedGrain = COOKED_GRAIN_MARKERS.any { blob.contains(it) }

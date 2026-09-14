@@ -52,12 +52,12 @@ class StapleOntologyTest {
     }
 
     @Test
-    fun `arroz con pollo mantiene pechuga por defecto sin chip`() = runBlocking {
+    fun `arroz con pollo conserva pechuga estimada y pide corte material`() = runBlocking {
         val tags = resolve("arroz con pollo")
         assertEquals(2, tags.size)
         val pollo = tags.single { it.tag.contains("pollo") }
         assertEquals("gen004", pollo.foodItem?.id)
-        assertFalse(pollo.needsCutClarification)
+        assertTrue(pollo.needsCutClarification)
     }
 
     @Test
@@ -69,11 +69,14 @@ class StapleOntologyTest {
     }
 
     @Test
-    fun `quesadilla usa lonja de queso no 100g`() = runBlocking {
-        val tags = resolve("quesadilla")
-        assertEquals("gen047", tags.single().foodItem?.id)
-        val grams = tags.single().amountGrams ?: 0.0
-        assertTrue("quesadilla $grams g", grams in 25.0..40.0)
+    fun `quesadilla conserva plato y estimación pendiente`() = runBlocking {
+        val tag = resolve("quesadilla").single()
+        assertEquals(null, tag.foodItem)
+        assertEquals(FoodResolutionStatus.NEEDS_REVIEW, tag.resolutionStatus)
+        assertTrue(tag.hasMaterialQuestion())
+        assertNotNull(tag.loggedFood)
+        assertTrue(tag.loggedFood!!.foodName.contains("quesadilla", ignoreCase = true))
+        assertTrue(tag.amountGrams!! in 150.0..350.0)
     }
 
     @Test
@@ -85,7 +88,10 @@ class StapleOntologyTest {
     @Test
     fun `whey scoop resuelve suplemento`() = runBlocking {
         val tags = resolve("whey")
-        assertEquals("gen105", tags.single().foodItem?.id)
+        assertEquals("unbranded whey must keep the generic supplement, not an arbitrary brand: ${tags.single()}", "gen105", tags.single().foodItem?.id)
+        assertEquals("Genérico", tags.single().foodItem?.brand)
+        assertTrue("whey already declares a supplement form", FoodIdentity.matchesDeclaredIdentity("whey", "Proteína en Polvo (Whey)", listOf("whey")))
+        assertFalse("plain milk does not declare powder", FoodIdentity.matchesDeclaredIdentity("leche", "Leche en Polvo"))
         val grams = tags.single().amountGrams ?: 0.0
         assertTrue(grams in 25.0..35.0)
     }
@@ -133,12 +139,16 @@ class StapleOntologyTest {
     }
 
     @Test
-    fun `carne pide corte y no colapsa a molida`() = runBlocking {
+    fun `carne mantiene corte y pregunta solo ante diferencia material`() = runBlocking {
         val tags = resolve("carne")
         assertEquals("gen093", tags.single().foodItem?.id)
-        assertTrue(tags.single().needsCutClarification)
-        assertTrue(tags.single().stapleCutOptions.any { it.label.contains("Molida", ignoreCase = true) })
-        assertTrue(tags.single().stapleCutOptions.any { it.label.contains("Bistec", ignoreCase = true) })
+        assertFalse(tags.single().needsCutClarification)
+        val larger = resolve("carne grande").single()
+        assertEquals("gen093", larger.foodItem?.id)
+        assertTrue(larger.amountGrams!! > tags.single().amountGrams!!)
+        assertTrue(larger.needsCutClarification)
+        assertTrue(larger.stapleCutOptions.any { it.label.contains("Molida", ignoreCase = true) })
+        assertTrue(larger.stapleCutOptions.any { it.label.contains("Bistec", ignoreCase = true) })
     }
 
     @Test

@@ -33,21 +33,24 @@ object CookingStateResolver {
     )
 
     fun isDbFoodRaw(food: FoodItem): Boolean {
+        if (food.foodState != "UNKNOWN") return FoodIdentity.stateFor(food) == FoodState.RAW
         val blob = (food.name + " " + food.searchAliases.joinToString(" ")).lowercase()
         return blob.contains("(crudo)") || blob.contains("cruda") || blob.contains("crudo") ||
             blob.contains("(seca)") || blob.contains("(seco)") ||
             Regex("""\bsec(?:o|a|os|as)\b""").containsMatchIn(blob) ||
-            blob.contains("deshidratad")
+            blob.contains("deshidratad") || FoodIdentity.stateFor(food) == FoodState.RAW
     }
 
     fun isDbFoodCooked(food: FoodItem): Boolean {
+        if (food.foodState != "UNKNOWN") return FoodIdentity.stateFor(food) in setOf(FoodState.COOKED, FoodState.HYDRATED)
         val blob = (food.name + " " + food.searchAliases.joinToString(" ")).lowercase()
         return blob.contains("(cocido)") || blob.contains("cocida") || blob.contains("cocido") ||
             blob.contains("cocinad") ||
             blob.contains("hidratada/cocida") || blob.contains("hidratad") ||
             blob.contains("(frita)") || blob.contains("(frito)") ||
             blob.contains("(plancha)") || blob.contains("(horno)") ||
-            blob.contains("(vapor)") || blob.contains("(parrilla)")
+            blob.contains("(vapor)") || blob.contains("(parrilla)") ||
+            FoodIdentity.stateFor(food) in setOf(FoodState.COOKED, FoodState.HYDRATED)
     }
 
     fun isAlreadyPreparedForMethod(food: FoodItem, method: CookingMethod?): Boolean {
@@ -115,7 +118,9 @@ object CookingStateResolver {
                 "$tag $suffix",
             )
             for (q in queries) {
-                findFoodByNormalized(q)?.let { return it }
+                findFoodByNormalized(q)?.takeIf {
+                    isAlreadyPreparedForMethod(it, method) && FoodIdentity.matchesDeclaredIdentity(tag, it)
+                }?.let { return it }
             }
         }
         return null
@@ -128,7 +133,8 @@ object CookingStateResolver {
             .replace(Regex("""\s+(?:cocid[oa]|frit[oa]|plancha|horno|asad[oa]|hidratad[oa])"""), "")
             .trim()
         if (rawName.isBlank() || rawName == foodName) return null
-        return findFoodByNormalized(rawName)
+        return listOf("$rawName (cruda)", "$rawName (crudo)", rawName)
+            .firstNotNullOfOrNull { query -> findFoodByNormalized(query)?.takeIf(::isDbFoodRaw) }
     }
 
     fun findDryOrCookedVariant(tag: String, wantCooked: Boolean): FoodItem? {
@@ -211,7 +217,7 @@ object CookingStateResolver {
         return when (kind) {
             ClarificationKind.DRY_VS_COOKED -> {
                 val assumed = when {
-                    food != null && isDbFoodRaw(food) && assumedDefault(tag, food) == FoodState.RAW -> "seco"
+                    food != null && (isDbFoodRaw(food) || assumedDefault(tag, food) == FoodState.RAW) -> "seco"
                     else -> "cocido"
                 }
                 "Asumí ${tag.trim()} $assumed — cambia si era lo contrario."
@@ -229,6 +235,7 @@ object CookingStateResolver {
     fun assumedDefault(tag: String, food: FoodItem?): FoodState? {
         if (FoodIdentity.stateFor(tag) != FoodState.UNKNOWN) return null
         val family = FoodIdentity.familyFor(tag)
+        if (family?.startsWith("untable_") == true || family == "pasta_concentrada") return null
         if (family in setOf("salsa_de_tomate", "ketchup", "pizza", "sopa", "jugo")) return null
         val blob = FoodIdentity.normalize(tag + " " + (food?.name ?: ""))
         val avenaIsDryVessel = blob.contains("avena") &&
@@ -265,7 +272,7 @@ object CookingStateResolver {
         } else {
             findDryOrCookedVariant(tag, false)
         }
-        if (fromTag != null) return fromTag
+        if (fromTag != null && FoodIdentity.matchesDeclaredIdentity(tag, fromTag) && (if (wantCooked) isDbFoodCooked(fromTag) else isDbFoodRaw(fromTag))) return fromTag
         val baseName = food?.name?.replace(Regex("""\s*\([^)]*\)"""), "")?.trim().orEmpty()
         if (baseName.isNotBlank()) {
             val fromName = if (wantCooked) {
@@ -273,9 +280,9 @@ object CookingStateResolver {
             } else {
                 findDryOrCookedVariant(baseName, false) ?: food?.let(::findRawVariant)
             }
-            if (fromName != null) return fromName
+            if (fromName != null && FoodIdentity.matchesDeclaredIdentity(tag, fromName) && (if (wantCooked) isDbFoodCooked(fromName) else isDbFoodRaw(fromName))) return fromName
         }
-        return food
+        return null
     }
 
     fun shouldApplyOil(food: FoodItem?, method: CookingMethod?): Boolean {

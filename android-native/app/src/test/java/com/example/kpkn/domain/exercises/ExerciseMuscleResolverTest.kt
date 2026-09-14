@@ -77,7 +77,7 @@ class ExerciseMuscleResolverTest {
     }
 
     @Test
-    fun name_equality_is_the_last_resort() {
+    fun stale_id_does_not_fall_back_to_display_name() {
         val resolved = ExerciseMuscleResolver.resolveCatalogInfo(
             exercise(
                 configurationId = null,
@@ -86,6 +86,6 @@ class ExerciseMuscleResolverTest {
             ),
             snapshotIndex,
         )
-        assertEquals(definitionInfo.id, resolved?.id)
+        assertNull(resolved)
     }
 }

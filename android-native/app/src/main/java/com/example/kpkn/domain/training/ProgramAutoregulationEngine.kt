@@ -129,22 +129,28 @@ object ProgramAutoregulationEngine {
         program: Program,
         accept: Boolean,
         metadata: ExerciseCompositionMetadataProvider? = null,
+        only: AutoregulationProposal? = null,
     ): Program {
         val action = program.runState?.pendingAction ?: return program
         if (action.type != PendingProgramActionType.CONFIRM_AUTOREGULATION) return program
-        val cleared = program.copy(runState = program.runState?.copy(pendingAction = null))
-        if (!accept) return cleared
-        val recipe = program.sourceRecipe ?: return cleared
+        val remaining = if (only == null) emptyList() else action.proposals.filterNot { it == only }
+        val nextPending = if (remaining.isEmpty()) null else action.copy(proposals = remaining)
+        if (!accept) {
+            return program.copy(runState = program.runState?.copy(pendingAction = nextPending))
+        }
+        val recipe = program.sourceRecipe ?: return program.copy(runState = program.runState?.copy(pendingAction = nextPending))
         val executed = program.runState?.weekId?.let { setOf(it) }.orEmpty()
-        val provider = metadata ?: runCatching { CompositionMetadataHolder.resolve() }.getOrNull() ?: return cleared
-        return applyMutations(
-            program = cleared,
+        val provider = metadata ?: runCatching { CompositionMetadataHolder.resolve() }.getOrNull()
+            ?: return program.copy(runState = program.runState?.copy(pendingAction = nextPending))
+        val applied = applyMutations(
+            program = program.copy(runState = program.runState?.copy(pendingAction = nextPending)),
             nextWeekId = action.targetWeekId,
-            proposals = action.proposals,
+            proposals = if (only == null) action.proposals else listOf(only),
             recipe = recipe,
             executedWeekIds = executed,
             metadata = provider,
         )
+        return applied
     }
 
     fun collectAmrapHits(week: ProgramWeek, logs: List<WorkoutLog>): List<AmrapHit> {
@@ -185,6 +191,18 @@ object ProgramAutoregulationEngine {
         val weekLogs = logs.filter { it.weekId == week.id || it.weekInstanceId == week.id }
         val acc = mutableMapOf<LiftSlot, Double>()
         weekLogs.flatMap { it.completedExercises }.forEach { exercise ->
+            val slot = liftSlotFor(exercise.catalogConfigurationId ?: exercise.exerciseDbId) ?: return@forEach
+            exercise.sets.filter { !it.isWarmup && it.weight > 0 && it.reps > 0 }.forEach { set ->
+                val e1 = calculateHybrid1RM(set.weight, set.reps, isAmrap = set.amrapPerformed)
+                acc[slot] = maxOf(acc[slot] ?: 0.0, e1)
+            }
+        }
+        return acc.filterValues { it > 0.0 }
+    }
+
+    fun collectE1rmFromHistory(logs: List<WorkoutLog>): Map<LiftSlot, Double> {
+        val acc = mutableMapOf<LiftSlot, Double>()
+        logs.flatMap { it.completedExercises }.forEach { exercise ->
             val slot = liftSlotFor(exercise.catalogConfigurationId ?: exercise.exerciseDbId) ?: return@forEach
             exercise.sets.filter { !it.isWarmup && it.weight > 0 && it.reps > 0 }.forEach { set ->
                 val e1 = calculateHybrid1RM(set.weight, set.reps, isAmrap = set.amrapPerformed)

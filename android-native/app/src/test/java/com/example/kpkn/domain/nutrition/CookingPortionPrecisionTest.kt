@@ -41,8 +41,8 @@ class CookingPortionPrecisionTest {
         val item = parsed.items.single()
         assertEquals(AmountIntent.RESOLVED_SUBJECTIVE, item.amountIntent)
         assertNotNull(item.amountGrams)
-        // 250 ml × GRAIN density 0.85
-        assertEquals(212.5, item.amountGrams!!, 1.0)
+        // Unified FDA cup: 240 ml × estimated GRAIN density 0.85 g/ml.
+        assertEquals(204.0, item.amountGrams!!, 0.1)
     }
 
     @Test

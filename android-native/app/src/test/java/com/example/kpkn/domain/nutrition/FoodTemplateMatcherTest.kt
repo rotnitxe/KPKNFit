@@ -12,7 +12,8 @@ class FoodTemplateMatcherTest {
         description: String = "avena 100g · leche 250ml · huevo · 480 kcal",
         foods: List<Triple<String, Double, Double>> = listOf(
             Triple("avena", 100.0, 1.0),
-            Triple("leche", 250.0, 1.0),
+            // 250 ml milk = 257.5 canonical grams at the shared density 1.03.
+            Triple("leche", 257.5, 1.0),
             Triple("huevo", 60.0, 1.0),
         ),
     ) = MealTemplate(

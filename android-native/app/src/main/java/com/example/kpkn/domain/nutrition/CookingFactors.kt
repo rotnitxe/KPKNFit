@@ -150,6 +150,7 @@ fun oilGramsForLevelInCategory(
 ): Double {
     val base = category.mediumGrams
     val levelPer100g = when (oilLevel.lowercase()) {
+        "sin aceite", "none", "zero", "cero" -> 0.0
         "poco" -> 3.0
         "abundante" -> base * 2.2
         else -> base

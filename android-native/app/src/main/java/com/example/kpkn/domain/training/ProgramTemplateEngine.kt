@@ -71,7 +71,8 @@ object ProgramTemplateEngine {
         // only as a transient fallback made later block/week edits resolve a
         // different schedule than the one the athlete first received.
         val selectedSplitId = when {
-            trackKey == "powerlifting" -> "pl_sbd_x3"
+            template.defaultSplit != null -> template.defaultSplit
+            trackKey == "powerlifting" -> "pl_classic_4"
             trackKey == "powerbuilding" -> "ppl_ul"
             trackKey == "culturismo" ||
                 trackKey == "bodybuilding" ||
@@ -85,7 +86,34 @@ object ProgramTemplateEngine {
         }
         val scheduledDraft = draft.copy(
             selectedSplitId = selectedSplitId,
+            sourceRecipe = template.recipe,
+            structureTemplateId = template.id,
         )
+        if (template.recipe != null) {
+            val materializerProfile = PlanMaterializer.hydrateProfile(
+                scheduledDraft,
+                scheduledDraft.powerliftingProfile,
+                template.recipe.trainingMaxPercent,
+            )
+            val materialized = PlanMaterializer.materialize(
+                program = scheduledDraft,
+                recipe = template.recipe,
+                idProvider = idProvider,
+                profile = materializerProfile,
+                sourceProtocolId = template.id,
+            ).copy(
+                selectedSplitId = selectedSplitId,
+                structureTemplateId = template.id,
+                mode = scheduledDraft.mode,
+            )
+            val executable = hydrateProgramGoals(materialized).alignTemporalMetadata()
+            if (applySplitPrefill) ProgramExecutionContract.requireExecutable(executable)
+            return ApplyResult(
+                program = executable,
+                strategy = strategy,
+                createdCopy = strategy == ApplyStrategy.CREATE_DRAFT_COPY,
+            )
+        }
         val materializationSplit = SessionPrefillBridge.resolveSplit(
             scheduledDraft,
             fallbackTrackLabel = template.trackLabel,
@@ -140,6 +168,7 @@ object ProgramTemplateEngine {
     private fun hydrateProgramGoals(program: Program): Program {
         val goals = program.goals ?: return program
         fun referenceFor(exercise: Exercise): Double? {
+            if (exercise.reference1RM != null && exercise.reference1RM > 0.0) return exercise.reference1RM
             val id = listOfNotNull(
                 exercise.catalogConfigurationId,
                 exercise.canonicalExerciseId,

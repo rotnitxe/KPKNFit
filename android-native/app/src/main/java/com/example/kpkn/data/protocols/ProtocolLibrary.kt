@@ -23,6 +23,9 @@ data class Protocol(
     val source: ProtocolSource = ProtocolSource(),
     /** Explicit ordered day recipes for KPKN-native protocols. */
     val dayRecipes: List<ProtocolDayRecipe> = emptyList(),
+    val recipe: TrainingPlanRecipe? = null,
+    val fidelitySpec: ProtocolFidelitySpec? = null,
+    val exemptions: List<RecipeCompositionExemption> = emptyList(),
 )
 
 @Serializable
@@ -54,11 +57,12 @@ data class ProtocolSource(
     val catalogRevision: String? = null,
     val approvedBy: String? = null,
     val evidenceUrl: String? = null,
+    val disclaimer: String? = null,
 )
 
 /**
  * A publishable protocol must say what each training day actually contains.
- * Configuration IDs are resolved by [ProtocolExerciseLibrary], never inferred
+ * Configuration IDs come from [CatalogIds] / the day recipe, never inferred
  * from a localized day label.
  */
 @Serializable
@@ -72,7 +76,8 @@ data class ProtocolDayRecipe(
 )
 
 val Protocol.isVisibleForApplication: Boolean
-    get() = publicationStatus != ProtocolPublicationStatus.HIDDEN_UNVERIFIED
+    get() = publicationStatus != ProtocolPublicationStatus.HIDDEN_UNVERIFIED &&
+        recipe?.weeks?.isNotEmpty() == true
 
 @Serializable
 data class ProtocolBlock(
@@ -342,60 +347,37 @@ private val LEGACY_PROTOCOL_INDEX: List<Protocol> = listOf(
     ),
 )
 
-private val KPKN_NATIVE_SBD = Protocol(
-    id = "kpkn-native-sbd-4",
-    name = "KPKN SBD · 4 días",
-    emoji = "🏋️",
-    description = "Protocolo KPKN nativo de cuatro días: especificidad SBD, volumen base, intensificación, pico y taper con recetas explícitas.",
-    author = "KPKN Fit",
-    tags = listOf("powerlifting", "sbd", "kpkn-native", "intermedio"),
-    sessionCategories = listOf("Principal de competición", "Accesorios específicos"),
-    blocks = listOf(
-        ProtocolBlock("Base", 4, "Acumulación", 65, 75, 1.20),
-        ProtocolBlock("Intensificación", 4, "Intensificación", 75, 87, 0.95),
-        ProtocolBlock("Peak", 2, "Peak", 85, 95, 0.65),
-        ProtocolBlock("Taper", 1, "Taper", 70, 90, 0.35),
-    ),
-    defaultSplit = "pl_classic_4",
-    publicationStatus = ProtocolPublicationStatus.KPKN_NATIVE,
-    kind = ProtocolKind.FIXED_PROGRAM,
-    source = ProtocolSource(
-        definitionId = "kpkn-native-sbd-4",
-        revision = "2026-08-21",
-        primaryReference = "KPKN Native SBD v4",
-        primaryUrl = "https://kpkn.fit/protocols/kpkn-native-sbd-4",
-        variant = "4-day SBD",
-        version = "v4",
-        reviewedAt = "2026-08-21",
-        catalogRevision = "v4-approved-2026-08-21-a",
-        approvedBy = "KPKN Editorial",
-    ),
-    dayRecipes = listOf(
-        ProtocolDayRecipe(
-            dayLabel = "Sentadilla/Banca",
-            focus = "Sentadilla de competición",
-            mainLiftConfigurationId = "low_bar_back_squat__barbell",
-            accessoryExerciseConfigurationIds = listOf("bench_press__barbell", "chest_supported_row__dumbbells__wide"),
-        ),
-        ProtocolDayRecipe(
-            dayLabel = "Peso Muerto",
-            focus = "Peso muerto de competición",
-            mainLiftConfigurationId = "conventional_deadlift__bilateral__barbell",
-            accessoryExerciseConfigurationIds = listOf("bench_press__barbell", "romanian_deadlift__bilateral__barbell"),
-        ),
-        ProtocolDayRecipe(
-            dayLabel = "Banca Volumen",
-            focus = "Press banca de competición",
-            mainLiftConfigurationId = "bench_press__barbell",
-            accessoryExerciseConfigurationIds = listOf("triceps_pushdown__bilateral__cable", "chest_supported_row__dumbbells__wide"),
-        ),
-        ProtocolDayRecipe(
-            dayLabel = "Sentadilla/Peso Muerto",
-            focus = "Técnica SBD",
-            mainLiftConfigurationId = "low_bar_back_squat__barbell",
-            accessoryExerciseConfigurationIds = listOf("conventional_deadlift__bilateral__barbell", "bench_press__barbell"),
-        ),
-    ),
+private val KPKN_NATIVE_SBD = com.example.kpkn.data.protocols.definitions.KpknNativeSbd4.definition
+
+private val VERIFIED_PROTOCOL_LIBRARY: List<Protocol> = listOf(
+    com.example.kpkn.data.protocols.definitions.TexasMethodProtocols.threeDay,
+    com.example.kpkn.data.protocols.definitions.TexasMethodFourDay.definition,
+    com.example.kpkn.data.protocols.definitions.WendlerProtocols.bbb,
+    com.example.kpkn.data.protocols.definitions.WendlerProtocols.fsl,
+    com.example.kpkn.data.protocols.definitions.MadcowProtocol.definition,
+    com.example.kpkn.data.protocols.definitions.NSunsProtocol.definition,
+    com.example.kpkn.data.protocols.definitions.GzclProtocols.gzclp,
+    com.example.kpkn.data.protocols.definitions.GzclProtocols.jackedAndTan,
+    com.example.kpkn.data.protocols.definitions.GzclProtocols.rippler,
+    com.example.kpkn.data.protocols.definitions.GzclProtocols.uhf9,
+    com.example.kpkn.data.protocols.definitions.JuggernautProtocol.definition,
+    com.example.kpkn.data.protocols.definitions.RemainingVerifiedProtocols.sheiko,
+    com.example.kpkn.data.protocols.definitions.RemainingVerifiedProtocols.smolov,
+    com.example.kpkn.data.protocols.definitions.RemainingVerifiedProtocols.smolovJr,
+    com.example.kpkn.data.protocols.definitions.RemainingVerifiedProtocols.candito,
+    com.example.kpkn.data.protocols.definitions.RemainingVerifiedProtocols.coan,
+    com.example.kpkn.data.protocols.definitions.ClassicPlProtocols.korte,
+    com.example.kpkn.data.protocols.definitions.ClassicPlProtocols.cube,
+    com.example.kpkn.data.protocols.definitions.ClassicPlProtocols.lilliebridge,
+    com.example.kpkn.data.protocols.definitions.ClassicPlProtocols.westside,
+    com.example.kpkn.data.protocols.definitions.ClassicPlProtocols.calgary,
+    com.example.kpkn.data.protocols.definitions.ClassicPlProtocols.tsa,
+    com.example.kpkn.data.protocols.definitions.BodybuildingProtocols.phul,
+    com.example.kpkn.data.protocols.definitions.BodybuildingProtocols.phat,
+    com.example.kpkn.data.protocols.definitions.KpknNativeHypertrophyProtocols.ppl,
+    com.example.kpkn.data.protocols.definitions.KpknNativeHypertrophyProtocols.rpStyle,
+    com.example.kpkn.data.protocols.definitions.KpknNativeAutoregFrameworks.rts,
+    com.example.kpkn.data.protocols.definitions.KpknNativeAutoregFrameworks.sbs,
 )
 
 /**
@@ -405,6 +387,12 @@ private val KPKN_NATIVE_SBD = Protocol(
  * misleading to a powerlifter.  A future verified definition must opt in by
  * declaring [ProtocolPublicationStatus.VERIFIED] in its own source file.
  */
-val PROTOCOL_LIBRARY: List<Protocol> = listOf(KPKN_NATIVE_SBD) + LEGACY_PROTOCOL_INDEX.map { legacy ->
-    legacy.copy(publicationStatus = ProtocolPublicationStatus.HIDDEN_UNVERIFIED)
+val PROTOCOL_LIBRARY: List<Protocol> = run {
+    val published = listOf(KPKN_NATIVE_SBD) + VERIFIED_PROTOCOL_LIBRARY
+    val publishedIds = published.map { it.id }.toSet()
+    val hiddenLegacy = LEGACY_PROTOCOL_INDEX.map { legacy ->
+        val id = if (legacy.id in publishedIds) "${legacy.id}-hidden" else legacy.id
+        legacy.copy(id = id, publicationStatus = ProtocolPublicationStatus.HIDDEN_UNVERIFIED)
+    }
+    published + hiddenLegacy
 }

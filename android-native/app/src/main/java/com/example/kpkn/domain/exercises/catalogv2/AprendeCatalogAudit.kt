@@ -169,7 +169,9 @@ fun auditAprendeCatalog(
             AprendeOntology.wikiLabMuscleId(sourceId)?.let { it in wikiLabMuscleIds } != true
         }.toSet(),
         unmappedPatternIds = patternIds.filter { sourceId ->
-            AprendeOntology.wikiLabPatternId(sourceId)?.let { it in wikiLabPatternIds } != true
+            if (!AprendeOntology.catalogPatternToWikiLab.containsKey(sourceId)) return@filter true
+            val mapped = AprendeOntology.catalogPatternToWikiLab.getValue(sourceId) ?: return@filter false
+            mapped !in wikiLabPatternIds
         }.toSet(),
         unknownJointIds = jointIds - wikiLabJointIds,
         invalidLegacyMappings = invalidLegacy,

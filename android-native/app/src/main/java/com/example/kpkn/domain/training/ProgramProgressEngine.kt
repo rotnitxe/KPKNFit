@@ -287,9 +287,21 @@ object ProgramProgressEngine {
                 weekInstanceId = next.instanceId,
                 weekId = next.templateWeekId,
                 completedSessionIds = emptySet(),
+                pendingAction = workingProgram.runState?.pendingAction?.takeIf {
+                    it.type != PendingProgramActionType.CONFIRM_AUTOREGULATION
+                },
+            )
+            val advanced = workingProgram.copy(runState = updatedRun)
+            val regulated = applyWeeklyAutoregulation(
+                program = advanced,
+                completedWeek = canonicalWeek,
+                nextWeekId = next.templateWeekId,
+                logs = logs,
+                weeklySignals = weeklySignals,
+                compositionMetadata = compositionMetadata,
             )
             return ProgressAdvanceResult(
-                program = workingProgram.copy(runState = updatedRun),
+                program = regulated.program,
                 activeState = activeState?.copy(
                     currentWeekId = next.instanceId,
                     currentWeekInstanceId = next.instanceId,
@@ -300,8 +312,10 @@ object ProgramProgressEngine {
                     currentMacrocycleId = location?.macrocycleId,
                     currentBlockId = location?.blockId,
                     currentMesocycleId = location?.mesocycleId,
+                    programRunId = (regulated.program.runState ?: updatedRun).runId,
                 ),
                 advancedWeek = true,
+                autoregulationProposals = regulated.proposals,
             )
         }
 
@@ -793,11 +807,13 @@ object ProgramProgressEngine {
         program: Program,
         accept: Boolean,
         metadata: ExerciseCompositionMetadataProvider? = null,
+        only: AutoregulationProposal? = null,
     ): ProgressAdvanceResult {
         val resolved = ProgramAutoregulationEngine.resolvePending(
             program = program,
             accept = accept,
             metadata = metadata,
+            only = only,
         )
         return ProgressAdvanceResult(program = resolved, activeState = null)
     }

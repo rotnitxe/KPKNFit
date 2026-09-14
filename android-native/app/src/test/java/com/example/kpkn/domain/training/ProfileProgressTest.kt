@@ -100,6 +100,52 @@ class ProfileProgressTest {
         assertEquals(100, progress?.percent)
     }
 
+    @Test
+    fun `starred exercise 1RM aggregates every tag of the same lift`() {
+        val program = starredProgram(goal1RM = 150.0)
+        val smith = WorkoutLog(
+            id = "log-smith",
+            programId = "program",
+            sessionId = "session",
+            sessionName = "Día A",
+            date = "2026-08-22T10:00:00Z",
+            durationMinutes = 60,
+            completedExercises = listOf(
+                CompletedExercise(
+                    exerciseId = "bench",
+                    exerciseName = "Press banca",
+                    canonicalExerciseId = "bench",
+                    sets = listOf(CompletedSet(id = "s1", weight = 80.0, reps = 5, tagId = "uuid-smith", tagName = "Smith")),
+                ),
+            ),
+            exerciseTags = mapOf("bench" to "Smith"),
+            exerciseTagIds = mapOf("bench" to "uuid-smith"),
+        )
+        val libre = WorkoutLog(
+            id = "log-libre",
+            programId = "program",
+            sessionId = "session",
+            sessionName = "Día A",
+            date = "2026-08-29T10:00:00Z",
+            durationMinutes = 60,
+            completedExercises = listOf(
+                CompletedExercise(
+                    exerciseId = "bench",
+                    exerciseName = "Press banca",
+                    canonicalExerciseId = "bench",
+                    sets = listOf(CompletedSet(id = "s2", weight = 110.0, reps = 3, tagId = "uuid-libre", tagName = "Libre")),
+                ),
+            ),
+            exerciseTags = mapOf("bench" to "Libre"),
+            exerciseTagIds = mapOf("bench" to "uuid-libre"),
+        )
+
+        val result = buildStarredExerciseProgress(listOf(program), listOf(smith, libre))
+        assertEquals(1, result.size)
+        assertEquals(121.0, result.single().bestEstimated1RM!!, 0.01)
+        assertEquals(2, result.single().sessions)
+    }
+
     private fun starredProgram(goal1RM: Double? = 100.0): Program = Program(
         id = "program",
         name = "Rutina",

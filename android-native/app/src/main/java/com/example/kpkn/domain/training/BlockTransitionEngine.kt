@@ -320,9 +320,10 @@ object BlockTransitionEngine {
     fun detectOvertrained(
         program: Program,
         logs: List<WorkoutLog>,
+        feedbacks: List<com.example.kpkn.data.models.PostSessionFeedback> = emptyList(),
     ): List<String> = OvertrainingDetector.detectOvertrainedMuscles(
         program = program,
         historyLogs = logs,
-        feedbacks = emptyList(),
+        feedbacks = feedbacks,
     )
 }

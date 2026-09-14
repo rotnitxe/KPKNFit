@@ -91,6 +91,7 @@ import com.example.kpkn.screens.nutrition.NutritionWizardScreen
 import com.example.kpkn.screens.nutrition.NutritionViewModel
 import com.example.kpkn.screens.profile.ProfileScreen
 import com.example.kpkn.screens.programdetail.ProgramDetailScreen
+import com.example.kpkn.screens.programs.ProgramCreationRequests
 import com.example.kpkn.screens.programs.ProgramsScreen
 import com.example.kpkn.screens.programs.ProgramsViewModel
 import com.example.kpkn.screens.sessioneditor.SessionEditorScreen
@@ -1445,42 +1446,8 @@ private fun KPKNNavGraph(
 }
 
 private fun createProgramAndOpen(navController: androidx.navigation.NavHostController) {
-    val repository = ProgramRepository.getInstance()
-    val nextNumber = repository.programs.value.count { it.name.startsWith("Nuevo programa") } + 1
-    val programId = UUID.randomUUID().toString()
-    repository.addProgram(
-        Program(
-            id = programId,
-            name = "Nuevo programa $nextNumber",
-            coverImage = "gradient://ember",
-            structure = ProgramStructure.SIMPLE,
-            macrocycles = listOf(
-                Macrocycle(
-                    id = UUID.randomUUID().toString(),
-                    name = "Macrociclo 1",
-                    blocks = listOf(
-                        Block(
-                            id = UUID.randomUUID().toString(),
-                            name = "Bloque 1",
-                            mesocycles = listOf(
-                                Mesocycle(
-                                    id = UUID.randomUUID().toString(),
-                                    name = "Mesociclo 1",
-                                    weeks = listOf(
-                                        ProgramWeek(
-                                            id = UUID.randomUUID().toString(),
-                                            name = "Semana 1",
-                                        )
-                                    ),
-                                )
-                            ),
-                        )
-                    ),
-                )
-            ),
-        )
-    )
-    navController.navigate(KpknRoute.ProgramDetail.create(programId))
+    ProgramCreationRequests.openSheet = true
+    navController.navigate(KpknRoute.Training.route) { launchSingleTop = true }
 }
 
 @Composable

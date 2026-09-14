@@ -277,7 +277,7 @@ class NutritionResolutionConsistencyTest {
     }
 
     @Test
-    fun `unknown macro estimate is saveable`() = runBlocking {
+    fun `unknown macro estimate requires explicit acceptance`() = runBlocking {
         val candidate = SmartFoodResolver.ResolutionCandidate(
             foodId = "dataset_unknown_food",
             name = "Alimento desconocido",
@@ -317,10 +317,10 @@ class NutritionResolutionConsistencyTest {
             ),
         )
 
-        assertTrue(tags.single().isResolved)
-        assertEquals(FoodResolutionStatus.NO_RESOLVED, tags.single().resolutionStatus)
+        assertFalse(tags.single().isResolved)
+        assertEquals(FoodResolutionStatus.NEEDS_REVIEW, tags.single().resolutionStatus)
         assertNotNull(tags.single().loggedFood)
-        assertFalse(tags.single().hasMaterialQuestion())
+        assertTrue(tags.single().hasMaterialQuestion())
     }
 
     @Test
@@ -373,8 +373,8 @@ class NutritionResolutionConsistencyTest {
 
         val result = SmartFoodResolver(noOpNutritionDao(), index).resolve("fideos")
 
-        assertEquals(SmartFoodResolver.Decision.AUTO_SELECT, result.decision)
-        assertEquals("gen040", result.resolvedFoodId)
+        assertEquals(SmartFoodResolver.Decision.NEEDS_REVIEW, result.decision)
+        assertTrue(result.resolvedFoodId in setOf("gen040", "gen040h", "gen040c"))
         assertTrue(result.candidates.isNotEmpty())
         assertTrue(result.candidates.all { it.source == "LOCAL" })
         assertFalse(result.candidates.any { it.foodId.startsWith("global") })
@@ -417,7 +417,7 @@ class NutritionResolutionConsistencyTest {
     }
 
     @Test
-    fun `A1 approximation alias torta autoconfirms generic bread`() = runBlocking {
+    fun `A1 approximation alias cannot replace a cake with bread`() = runBlocking {
         val panBlanco = findFoodExactByNormalized("pan blanco")
         assertNotNull(panBlanco)
         val port = RecordingPort(staticFood = panBlanco, staticExact = true)
@@ -436,10 +436,11 @@ class NutritionResolutionConsistencyTest {
         )
 
         val tag = tags.single()
-        assertTrue("la aproximación cotidiana se auto-guarda", tag.isResolved)
-        assertEquals(FoodResolutionStatus.AUTO, tag.resolutionStatus)
-        assertNotNull(tag.foodItem)
-        assertFalse(tag.hasMaterialQuestion())
+        assertFalse(tag.isResolved)
+        assertEquals(FoodResolutionStatus.NEEDS_REVIEW, tag.resolutionStatus)
+        assertEquals(null, tag.foodItem)
+        assertTrue(tag.hasMaterialQuestion())
+        assertTrue(tag.loggedFood!!.foodName.contains("torta"))
     }
 
     @Test

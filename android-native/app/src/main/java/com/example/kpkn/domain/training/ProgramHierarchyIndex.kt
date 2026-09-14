@@ -180,10 +180,14 @@ object ProgramExecutionContract {
                 add(ProgramExecutionIssue.PendingMaterialization("El bloque '${block.name}' requiere materializar su nueva prescripción."))
             }
             val phase = phaseOf(block)
-            if (phase != null && previousPhase > phase) {
-                add(ProgramExecutionIssue.PhaseOrder("El bloque '${block.name}' retrocede de fase ($previousPhase→$phase)."))
+            if (phase != null && phase == 4) {
+                // Descarga/taper intermedio (p. ej. TSA sem 5) es una pausa, no un techo de fase.
+            } else {
+                if (phase != null && previousPhase > phase) {
+                    add(ProgramExecutionIssue.PhaseOrder("El bloque '${block.name}' retrocede de fase ($previousPhase→$phase)."))
+                }
+                if (phase != null) previousPhase = phase
             }
-            if (phase != null) previousPhase = phase
 
             block.mesocycles.forEach { meso ->
                 if (meso.weeks.isEmpty()) {

@@ -3,6 +3,7 @@ package com.example.kpkn.domain.workout
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.LoadModeV2
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class LoadSuggestionEngineTest {
@@ -49,6 +50,40 @@ class LoadSuggestionEngineTest {
         // Legacy truncates via (w*2).toLong()/2 — IEEE 100*1.025 can snap to 102.0
         assertEquals(102.0, suggestion!!.suggestedWeight, 0.0)
         assertEquals("Última sesión", suggestion.reason)
+    }
+
+    @Test
+    fun structuredUserTagDoesNotApplySemanticMultiplier() {
+        val set = CompletedSet(id = "1", weight = 100.0, reps = 8)
+        val scaled = LoadSuggestionEngine.suggestFromLastWorkingSet(
+            lastSet = set,
+            targetReps = 8,
+            loadMode = LoadModeV2.LOAD,
+            activeTag = "PR",
+            baseEntryTag = null,
+            techniqueSignal = 0,
+            applySemanticTagScale = true,
+        )
+        val isolated = LoadSuggestionEngine.suggestFromLastWorkingSet(
+            lastSet = set,
+            targetReps = 8,
+            loadMode = LoadModeV2.LOAD,
+            activeTag = "PR",
+            baseEntryTag = null,
+            techniqueSignal = 0,
+            applySemanticTagScale = false,
+        )
+        val untagged = LoadSuggestionEngine.suggestFromLastWorkingSet(
+            lastSet = set,
+            targetReps = 8,
+            loadMode = LoadModeV2.LOAD,
+            activeTag = null,
+            baseEntryTag = null,
+            techniqueSignal = 0,
+            applySemanticTagScale = true,
+        )
+        assertTrue((scaled?.suggestedWeight ?: 0.0) > (isolated?.suggestedWeight ?: 0.0))
+        assertEquals(untagged!!.suggestedWeight, isolated!!.suggestedWeight, 0.0)
     }
 
     @Test

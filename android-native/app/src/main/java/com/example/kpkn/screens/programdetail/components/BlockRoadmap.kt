@@ -317,6 +317,8 @@ fun BlockRoadmap(
                             BlockGoal.PEAK,
                             BlockGoal.DELOAD,
                             BlockGoal.TAPER,
+                            BlockGoal.DENSITY,
+                            BlockGoal.CUSTOM,
                         ).forEach { goal ->
                             val selected = draftGoal == goal
                             Surface(
@@ -337,6 +339,7 @@ fun BlockRoadmap(
                     Text("Progresión", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         listOf(
+                            BlockProgressionScheme.NONE,
                             BlockProgressionScheme.PERCENT_RM,
                             BlockProgressionScheme.LINEAR_LOAD,
                             BlockProgressionScheme.UNDULATING,

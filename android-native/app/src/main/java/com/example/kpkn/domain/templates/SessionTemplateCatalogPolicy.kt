@@ -154,16 +154,39 @@ object SessionTemplateCatalogPolicy {
         // A specialised split has a recipe contract. A label similarity, a
         // generic SBD card or an unrelated hypertrophy session is never an
         // acceptable fallback for Westside/Texas/Smolov/Sheiko-style days.
-        if (specializedSplit) return exact.sortedBy { it.sortOrder }
+        if (specializedSplit) {
+            if (exact.isNotEmpty()) return exact.sortedBy { it.sortOrder }
+            val definition = SPLIT_TEMPLATES.firstOrNull { it.id == splitId }
+                ?.effectiveDayDefinitions()
+                ?.firstOrNull { it.label.equals(dayLabel, ignoreCase = true) }
+            val foci = definition?.foci.orEmpty()
+            val byArchetype = eligible.filter { template ->
+                template.splitIds.contains(splitId) && template.splitIds.isNotEmpty() && run {
+                    val archetypes = template.dayArchetypes
+                    foci.any { focus ->
+                        when (focus) {
+                            "SQUAT" -> "PL_SQUAT" in archetypes
+                            "BENCH" -> archetypes.any { it.startsWith("PL_BENCH") }
+                            "DEADLIFT" -> "PL_DEADLIFT" in archetypes
+                            else -> false
+                        }
+                    }
+                }
+            }
+            return byArchetype.sortedBy { it.sortOrder }
+        }
         val sameSplitArchetype = eligible.filter { template ->
             template.splitIds.contains(splitId) &&
                 templateArchetype(template) == dayArchetype
         }
         val sharedArchetype = eligible.filter { template ->
-            template.splitIds.isNotEmpty() && templateArchetype(template) == dayArchetype
+            template.splitIds.isNotEmpty() &&
+                templateArchetype(template) == dayArchetype &&
+                (specializedSplit || !isPowerliftingTemplate(template))
         }
         val independentArchetype = eligible.filter { template ->
             !specializedSplit && template.splitIds.isEmpty() && template.focusCategory != null &&
+                template.focusCategory != SessionTemplateFocusCategory.POWERLIFTING &&
                 template.focusCategory in focusCategoriesFor(dayLabel)
         }
 

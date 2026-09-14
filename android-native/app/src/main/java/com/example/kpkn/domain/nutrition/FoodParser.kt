@@ -18,7 +18,7 @@ private const val GRAM_UNITS = "g|gr|gramos?|kg|kilos?|ml|mililitros?|l|litros?|
 
 private val GRAM_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*(?:$GRAM_UNITS)\b(?:\s+de)?\s*""", RegexOption.IGNORE_CASE)
 
-private val COMMA_OR_PLUS = Regex("""(?:,\s*|;\s*|\s+\+\s+|\s*[\r\n]+\s*)""")
+private val COMMA_OR_PLUS = Regex("""(?:(?<!\d),\s*|,(?!\d)\s*|;\s*|\s*\+\s*|\s*[\r\n]+\s*)""")
 private val CONNECTOR_Y = Regex("""\s+(?:y|e|mas|más)\s+""", RegexOption.IGNORE_CASE)
 private val CONNECTOR_CON = Regex("""\s+con\s+""", RegexOption.IGNORE_CASE)
 
@@ -39,7 +39,7 @@ private val PROTECTED_ENTITIES = listOf(
     "hamburguesa con queso", "hamburguesas con queso",
     "papas fritas con mayonesa", "papa fritas con mayonesa",
     "papas con mayo",
-)
+) + TextNormalizer.numberWordFoodNames
 
 private val LITERAL_QUANTITIES = mapOf(
     "un" to 1.0, "una" to 1.0, "uno" to 1.0, "dos" to 2.0, "tres" to 3.0,
@@ -112,6 +112,7 @@ private val COOKING_PATTERNS = listOf(
 )
 
 private val REFERENCE_PATTERNS = listOf(
+    Pair(Regex("""\b(\d+(?:[.,]\d+)?|un|una|medio|media)\s+(scoops?)(?:\s+generosos?)?\s+(?:de\s+)?(.+)""", RegexOption.IGNORE_CASE), "scoop"),
     Pair(Regex("""\b(\d+(?:[.,]\d+)?)\s+(cucharadas?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "tablespoon"),
     Pair(Regex("""\b(un|una|media|1)\s+(cucharada)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "tablespoon"),
     Pair(Regex("""\b(dos|tres)\s+(cucharadas?)\s+de\s+(.+)""", RegexOption.IGNORE_CASE), "tablespoon"),
@@ -143,7 +144,7 @@ private val REFERENCE_PATTERNS = listOf(
 // Precompiled Regex patterns for optimization
 private val GROUP_PATTERN = Regex("^(.+?)\\s*\\((.+)\\)\\s*$")
 private val STARTS_WITH_DIGIT = Regex("""^\d""")
-private val NEGATION_PATTERN = Regex("""\b(?:sin|menos|no)\b""", RegexOption.IGNORE_CASE)
+private val NEGATION_PATTERN = Regex("""\b(?:sin|menos|no|ni)\b""", RegexOption.IGNORE_CASE)
 private val GRAM_UNIT_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*($GRAM_UNITS)\b""", RegexOption.IGNORE_CASE)
 private val KG_LITER_PATTERN = Regex("kg|kilos?|l$|litros?")
 private val OZ_PATTERN = Regex("oz|onzas?")
@@ -163,6 +164,19 @@ private val LEADING_ARTICLE_PATTERN = Regex("^(?:el|la|los|las)\\s+")
 private val PORTION_PREFIX_PATTERN = Regex("^(?:platos?|porciones?|porción|tazas?|vasos?|boles?|bowls?|fuentes?)\\s+de\\s+")
 private val ARTICLE_PORTION_PREFIX_PATTERN = Regex("^(?:un|una|unos|unas)\\s+(?:platos?|porciones?|porción|tazas?|vasos?|boles?|bowls?|fuentes?)\\s+de\\s+")
 private val TRAILING_DE_PATTERN = Regex("\\s+de\\s+$")
+private val STANDALONE_QUANTITY = Regex(
+    """^(?:\d+(?:[.,]\d+)?|${LITERAL_QUANTITIES.keys.joinToString("|") { Regex.escape(it) }})$""",
+    RegexOption.IGNORE_CASE,
+)
+private val COUNT_PREFIX = Regex(
+    """^(?:\d+(?:[.,]\d+)?|${LITERAL_QUANTITIES.keys.joinToString("|") { Regex.escape(it) }})\s+(.+)$""",
+    RegexOption.IGNORE_CASE,
+)
+private val ELLIPTICAL_MEASURE = Regex("""^(\S+)\s+de\s+(.+)$""", RegexOption.IGNORE_CASE)
+private val INHERITABLE_VESSEL = Regex(
+    """\b(cucharaditas?|cucharadas?|tazas?|vasos?|copas?|platos?|bol(?:es)?|bowls?|tazon|tazones|tazón)\b""",
+    RegexOption.IGNORE_CASE,
+)
 
 private val PROTECTED_ENTITY_PHRASES = (PROTECTED_ENTITIES + staticFoodPhrases() + listOf("salsa de tomate"))
     .distinct()
@@ -214,10 +228,8 @@ fun parseMealDescription(
     val trimmed = normalized.trim()
     if (trimmed.isEmpty()) return ParsedMealDescription(rawDescription = description)
 
-    val fragments = splitByListConnectors(trimmed)
+    val fragments = splitMentionFragments(trimmed)
     val items = mutableListOf<ParsedMealItem>()
-    val seen = mutableSetOf<String>()
-    val globalPortion = extractGlobalPortion(trimmed)
 
     for (frag in fragments) {
         // D1: retrieval POR FRAGMENTO con confianza por ítem. El retrieval de la
@@ -225,19 +237,19 @@ fun parseMealDescription(
         // priors buenos por el gate global; cada fragmento recibe el suyo.
         // Si el snapshot no está instalado (tests), se cae al retrieval provisto.
         val fragRetrieval = retrievalResult
-        val parsed = parseFragment(frag, fragRetrieval) ?: continue
-        val key = canonicalTagKey(parsed.tag)
-        if (key !in seen) {
-            seen.add(key)
-            items.add(parsed.copy(portion = if (parsed.portion == PortionPreset.MEDIUM && globalPortion != PortionPreset.MEDIUM) globalPortion else parsed.portion))
+        val parsed = parseFragment(frag.text, fragRetrieval, frag.excludedIngredients) ?: continue
+        // Only add amounts whose meaning is already known. Separate mentions with
+        // omitted amounts must reach context inference separately; cooking and
+        // exclusions belong to the mention, not merely its food name.
+        val idx = items.indexOfFirst { canCombineMeasuredMentions(it, parsed) }
+        if (idx < 0) {
+            items.add(parsed)
         } else {
-            val idx = items.indexOfFirst { canonicalTagKey(it.tag) == key }
-            if (idx >= 0) {
-                items[idx] = items[idx].copy(
-                    quantity = items[idx].quantity + parsed.quantity,
-                    amountGrams = items[idx].amountGrams?.let { a -> a + (parsed.amountGrams ?: 0.0) },
-                )
-            }
+            val previous = items[idx]
+            items[idx] = previous.copy(
+                quantity = previous.quantity + parsed.quantity,
+                amountGrams = previous.amountGrams!! + parsed.amountGrams!!,
+            )
         }
     }
 
@@ -254,6 +266,17 @@ fun parseMealDescription(
     )
 }
 
+private fun canCombineMeasuredMentions(a: ParsedMealItem, b: ParsedMealItem): Boolean =
+    a.amountGrams != null && b.amountGrams != null &&
+        a.amountIntent != AmountIntent.UNSPECIFIED && a.amountIntent == b.amountIntent &&
+        canonicalTagKey(a.tag) == canonicalTagKey(b.tag) &&
+        a.cookingMethod == b.cookingMethod && a.modifierScale == b.modifierScale &&
+        a.portion == b.portion && a.isExcluded == b.isExcluded &&
+        a.brandHint == b.brandHint && a.unitId == b.unitId &&
+        a.excludedIngredients == b.excludedIngredients &&
+        a.amountIsTrailing == b.amountIsTrailing &&
+        !a.isGroup && !b.isGroup
+
 internal fun splitMealFragments(description: String): List<String> = splitByListConnectors(description)
 
 internal fun isWholeProtectedMeal(text: String): Boolean {
@@ -267,8 +290,10 @@ internal fun isWholeProtectedMeal(text: String): Boolean {
 
 private fun isKnownNegationModifier(text: String, negMatch: MatchResult): Boolean {
     val afterNeg = text.substring(negMatch.range.last + 1).trim().lowercase()
+    if (!negMatch.value.equals("sin", ignoreCase = true)) return false
     val firstWord = afterNeg.split("\\s+".toRegex()).firstOrNull() ?: return false
-    return firstWord in listOf("piel", "grasa", "miga", "pieles", "grasas")
+    return firstWord in listOf("piel", "grasa", "miga", "pieles", "grasas") ||
+        Regex("""^(?:lactosa|gluten|az[uú]car(?:es)?)(?:\b|$)""").containsMatchIn(afterNeg)
 }
 
 // ─── Fragment Parser ─────────────────────────────────────────────────────────
@@ -276,6 +301,7 @@ private fun isKnownNegationModifier(text: String, negMatch: MatchResult): Boolea
 private fun parseFragment(
     frag: String,
     retrievalResult: SemanticPortionRetriever.RetrievalResult? = null,
+    excludedIngredients: Set<String> = emptySet(),
 ): ParsedMealItem? {
     var text = frag.trim()
     if (text.isEmpty()) return null
@@ -295,18 +321,24 @@ private fun parseFragment(
     if (groupMatch != null) {
         val groupName = groupMatch.groupValues[1].trim()
         val content = groupMatch.groupValues[2].trim()
-        val subFragments = splitByListConnectors(content)
-        val subItems = subFragments.mapNotNull { parseFragment(it, retrievalResult) }
+        val subFragments = splitMentionFragments(content)
+        val subItems = subFragments.mapNotNull { parseFragment(it.text, retrievalResult, it.excludedIngredients) }
         if (subItems.isNotEmpty()) {
             return ParsedMealItem(tag = groupName, isGroup = true, subItems = subItems)
         }
     }
 
+    // A reference or modifier can consume its size adjective before identity
+    // extraction. Keep the local descriptor, without applying it to other foods
+    // or multiplying an already-resolved utensil amount a second time.
+    val declaredPortion = extractPortionFromFragment(text).first
+
     // Extract grams
     val gramsResult = extractGramsFromFragment(text)
-    var grams = gramsResult.first
-    var working = gramsResult.second
+    var grams = gramsResult.grams
+    var working = gramsResult.foodPart
     var refQuantity: Double? = null
+    var unitId: String? = gramsResult.unitId
     var amountIntent = if (grams != null) AmountIntent.EXPLICIT_MASS else AmountIntent.UNSPECIFIED
 
     // If no grams, try reference (e.g., "1 cucharada de aceite")
@@ -316,6 +348,7 @@ private fun parseFragment(
             grams = refResult.grams
             working = refResult.foodPart
             refQuantity = refResult.quantity
+            unitId = refResult.unitId
             amountIntent = AmountIntent.RESOLVED_SUBJECTIVE
         }
     }
@@ -350,7 +383,8 @@ private fun parseFragment(
     if (foodName.length < 2) return null
 
     // Canonical resolution
-    val shouldSingularize = !catalogPhrase && STARTS_WITH_DIGIT.containsMatchIn(working.trim())
+    val shouldSingularize = !catalogPhrase && !TextNormalizer.startsWithNumberWordFoodName(foodName) &&
+        STARTS_WITH_DIGIT.containsMatchIn(working.trim())
     val canonical = normalizeFoodName(foodName, singularize = shouldSingularize)
     val knownFood = findFoodExactByNormalized(canonical) ?: findFoodByNormalized(canonical)
     val repaired = if (knownFood == null) SemanticPortionRetriever.repairQuery(canonical) else canonical
@@ -363,7 +397,7 @@ private fun parseFragment(
         HouseholdPortions.looksLikeCountExpression(frag) ||
         HouseholdPortions.looksLikeCountExpression(working.trim())
     val householdCountGrams = if (
-        amountIntent != AmountIntent.EXPLICIT_MASS &&
+        amountIntent == AmountIntent.UNSPECIFIED &&
         countable &&
         (expressedCount || isCookieOrCrackerName(canonical))
     ) {
@@ -390,6 +424,7 @@ private fun parseFragment(
         datasetHint = datasetHint,
         query = canonical,
         explicitKilogram = HouseholdPortions.isExplicitKilogram(frag),
+        unitId = unitId,
     )
 
     return ParsedMealItem(
@@ -397,7 +432,8 @@ private fun parseFragment(
         quantity = quantity,
         amountGrams = if (lockedIntent == AmountIntent.UNSPECIFIED) null else resolvedGrams,
         cookingMethod = cookingMethod.first,
-        portion = if (catalogPhrase) PortionPreset.MEDIUM else portionResult.first,
+        portion = if (catalogPhrase) PortionPreset.MEDIUM else
+            portionResult.first.takeUnless { it == PortionPreset.MEDIUM } ?: declaredPortion,
         isFuzzyMatch = false,
         appliedCookingFactor = COOKING_FACTORS[cookingMethod.first]?.kcal ?: 1.0,
         modifierScale = modifierMacros?.let {
@@ -405,13 +441,26 @@ private fun parseFragment(
         },
         isExcluded = isExcluded,
         amountIntent = lockedIntent,
+        unitId = unitId,
+        excludedIngredients = excludedIngredients,
+        amountIsTrailing = gramsResult.amountIsTrailing,
     )
 }
 
 // ─── Split Connectors ────────────────────────────────────────────────────────
 
-private fun splitByListConnectors(description: String): List<String> {
-    var trimmed = description.trim()
+private data class MentionFragment(val text: String, val excludedIngredients: Set<String> = emptySet())
+
+private fun splitByListConnectors(description: String): List<String> =
+    splitMentionFragments(description).map { it.text }
+
+private fun splitMentionFragments(description: String): List<MentionFragment> {
+    // A comma before the exclusion preposition does not detach its modifier:
+    // "completo, sin mayonesa" has the same ingredient scope as the inline form.
+    // Keep sentence/line boundaries and conversational "no" repairs distinct.
+    var trimmed = description.trim().replace(
+        Regex(""",[ \t]*(?=(?:sin|ni)[ \t]+)""", RegexOption.IGNORE_CASE), " ",
+    )
     if (trimmed.isEmpty()) return emptyList()
 
     // Mask protected entities
@@ -428,25 +477,67 @@ private fun splitByListConnectors(description: String): List<String> {
         parts = parts.flatMap { it.split(regex).map { s -> s.trim() }.filter { it.isNotEmpty() } }
     }
     splitBy(COMMA_OR_PLUS)
+    parts = parts.mapIndexed { index, part ->
+        if (index == 0) part else part.replace(Regex("""^(?:con|y|e)\s+""", RegexOption.IGNORE_CASE), "")
+    }
     splitBy(CONNECTOR_Y)
     splitBy(CONNECTOR_CON)
+    splitBy(Regex("""\s+sino\s+""", RegexOption.IGNORE_CASE))
+
+    // Conversational repairs replace the preceding mention, after food-list
+    // segmentation, so "pollo con arroz, perdón, fideos" keeps the chicken.
+    val repairedParts = mutableListOf<String>()
+    var replacedMention: String? = null
+    for (part in parts) {
+        if (part.matches(Regex("""(?:perd[oó]n|digo|mejor dicho)""", RegexOption.IGNORE_CASE))) {
+            if (repairedParts.isNotEmpty()) replacedMention = repairedParts.removeAt(repairedParts.lastIndex)
+        } else {
+            val previous = replacedMention
+            val previousCount = previous?.let(COUNT_PREFIX::matchEntire)
+            val quantityRepair = previous != null && STANDALONE_QUANTITY.matches(part) &&
+                !GRAM_PATTERN.containsMatchIn(previous) &&
+                (previousCount != null || HouseholdPortions.isCountable(null, previous))
+            repairedParts += if (quantityRepair) {
+                // "dos huevos, perdón, uno" changes the count, not the food.
+                val correctedCount = LITERAL_QUANTITIES[part.lowercase()] ?: part.replace(',', '.').toDouble()
+                "$correctedCount ${previousCount?.groupValues?.get(1) ?: previous}"
+            } else part.replace(Regex("""^sino\s+""", RegexOption.IGNORE_CASE), "")
+            replacedMention = null
+        }
+    }
+    // Bind only an adjacent, explicitly stated vessel. This is not general
+    // anaphora: "medio de leche" inherits vaso from "medio vaso de jugo".
+    parts = repairedParts.mapIndexed { index, part ->
+        val omittedVessel = ELLIPTICAL_MEASURE.matchEntire(part)
+        val vessel = if (index > 0) INHERITABLE_VESSEL.find(repairedParts[index - 1])?.value else null
+        if (omittedVessel != null && vessel != null && STANDALONE_QUANTITY.matches(omittedVessel.groupValues[1])) {
+            "${omittedVessel.groupValues[1]} $vessel de ${omittedVessel.groupValues[2]}"
+        } else part
+    }
 
     // Unmask and split negations into separate excluded fragments
-    parts = parts.flatMap { p ->
+    val mentions = parts.flatMap { p ->
         var unmasked = p
         for ((token, original) in masks) {
             unmasked = unmasked.replace(token, original)
         }
-        val negMatch = NEGATION_PATTERN.find(unmasked)
-        if (negMatch != null && !isKnownNegationModifier(unmasked, negMatch)) {
+        unmasked = unmasked.replace(Regex("""^(.+?)\s+no$""", RegexOption.IGNORE_CASE)) {
+            "sin ${it.groupValues[1]}"
+        }
+        val negMatch = NEGATION_PATTERN.findAll(unmasked)
+            .firstOrNull { !isKnownNegationModifier(unmasked, it) }
+        if (negMatch != null) {
             val beforeNeg = unmasked.substring(0, negMatch.range.first).trim()
             val afterNeg = unmasked.substring(negMatch.range.last + 1).trim()
-            val sinFragment = "sin $afterNeg"
-            listOfNotNull(beforeNeg.ifEmpty { null }, sinFragment.ifEmpty { null })
+            val exclusions = afterNeg.split(Regex("""\s+ni\s+""", RegexOption.IGNORE_CASE))
+                .filter { it.isNotBlank() }
+            listOfNotNull(beforeNeg.takeIf { it.isNotBlank() }?.let {
+                MentionFragment(it, exclusions.map(FoodIdentity::normalize).toSet())
+            }) + exclusions.map { MentionFragment("sin $it") }
         } else {
-            listOf(unmasked.trim())
+            listOf(MentionFragment(unmasked.trim()))
         }
-    }.filter { it.isNotEmpty() }
+    }.filter { it.text.isNotEmpty() }
 
     // Split fragments containing multiple explicit measures.
     // B6: la segmentación antigua cortaba DESDE cada medida ("arroz 100g pollo 50g"
@@ -454,11 +545,14 @@ private fun splitByListConnectors(description: String): List<String> {
     // intentan dos interpretaciones y se elige la que deja un alimento por medida:
     //   - Estilo A (alimento precede a la medida):  "arroz 100g pollo 50g" → [arroz 100g][pollo 50g]
     //   - Estilo B (medida precede al alimento):    "100g arroz 50g pollo" → [100g arroz][50g pollo]
-    parts = parts.flatMap { part ->
-        splitMultiMeasure(part)
-    }.filter { it.isNotEmpty() }
-
-    return parts
+    return mentions.flatMap { mention ->
+        val measured = splitMultiMeasure(mention.text)
+        measured.mapIndexed { index, text ->
+            // An inline exclusion modifies its adjacent food, not every food
+            // elsewhere in the meal or in a multiple-measure segment.
+            MentionFragment(text, if (index == measured.lastIndex) mention.excludedIngredients else emptySet())
+        }
+    }.filter { it.text.isNotEmpty() }
 }
 
 /** Divide un fragmento con ≥2 medidas explícitas en fragmentos de una sola medida. */
@@ -488,7 +582,16 @@ private fun splitMultiMeasure(part: String): List<String> {
             part.substring(start, m.range.last + 1)
         }
     )
-    if (styleA.isNotEmpty() && styleA.all { hasFood(it) }) return styleA
+    if (styleA.isNotEmpty() && styleA.all { hasFood(it) }) {
+        val remainder = part.substring(measures.last().range.last + 1).trim()
+        val descriptorOnly = remainder.isNotBlank() && extractPortionFromFragment(
+            extractCookingMethod(remainder).second,
+        ).second.isBlank()
+        if (descriptorOnly) {
+            return styleA.dropLast(1) + "${styleA.last()} $remainder"
+        }
+        return styleA + listOfNotNull(remainder.takeIf { it.isNotBlank() })
+    }
 
     // Estilo B: cada medida toma el texto que la sigue (inicio de la siguiente medida).
     val styleB = cleanFragments(
@@ -511,11 +614,18 @@ private fun splitMultiMeasure(part: String): List<String> {
 
 // ─── Extract Grams ───────────────────────────────────────────────────────────
 
-private fun extractGramsFromFragment(text: String): Pair<Double?, String> {
-    val match = GRAM_PATTERN.find(text) ?: return Pair(null, text)
-    val numMatch = GRAM_UNIT_PATTERN.find(match.value) ?: return Pair(null, text)
+private data class MeasuredAmount(
+    val grams: Double?,
+    val foodPart: String,
+    val unitId: String? = null,
+    val amountIsTrailing: Boolean = false,
+)
 
-    var value = numMatch.groupValues[1].replace(",", ".").toDoubleOrNull() ?: return Pair(null, text)
+private fun extractGramsFromFragment(text: String): MeasuredAmount {
+    val match = GRAM_PATTERN.find(text) ?: return MeasuredAmount(null, text)
+    val numMatch = GRAM_UNIT_PATTERN.find(match.value) ?: return MeasuredAmount(null, text)
+
+    var value = numMatch.groupValues[1].replace(",", ".").toDoubleOrNull() ?: return MeasuredAmount(null, text)
     val unit = numMatch.groupValues[2].lowercase()
 
     value = when {
@@ -526,7 +636,15 @@ private fun extractGramsFromFragment(text: String): Pair<Double?, String> {
     }
 
     val cleaned = text.replace(match.value, " ").replace(MULTISPACE_PATTERN, " ").trim()
-    return Pair(value, cleaned)
+    val isVolume = unit == "ml" || unit == "l" || unit.startsWith("mililitro") || unit.startsWith("litro")
+    return MeasuredAmount(
+        grams = if (isVolume) SubjectivePortionEngine.massFromVolumeMl(value, cleaned) else value,
+        foodPart = cleaned,
+        unitId = if (isVolume) "ml" else null,
+        // The resolver can distinguish a branded package's suffix from eaten
+        // mass without treating every clear "arroz 200 g" as a package.
+        amountIsTrailing = text.substring(0, match.range.first).any { it.isLetter() },
+    )
 }
 
 // ─── Extract Portion Reference ───────────────────────────────────────────────
@@ -535,6 +653,7 @@ private data class ReferenceResult(
     val grams: Double?,
     val quantity: Double,
     val foodPart: String,
+    val unitId: String? = null,
 )
 
 private fun extractReferenceFromFragment(
@@ -572,14 +691,11 @@ private fun extractReferenceFromFragment(
             val gramsPerUnit = getGramsForReference(refType, food)
             kotlin.math.round(gramsPerUnit * qty * 10) / 10.0
         }
-        val dryBreakfast = FoodIdentity.normalize(foodPart).contains("avena") &&
-            refType in setOf("bowl", "cup", "fist")
-        val eaten = if (dryBreakfast) 40.0 * qty else grams
 
         // Return foodPart as the working text so parseFragment can use it as the food name.
         // Using `cleaned` (text with match removed) was wrong: when the reference covers the full
         // fragment (e.g. "una taza de avena") cleaned becomes "" → foodName.length < 2 → null item.
-        return ReferenceResult(eaten, qty, foodPart)
+        return ReferenceResult(grams, qty, foodPart, refType)
     }
     return resolveViaSubjectiveEngine(text, retrievalResult)
 }
@@ -629,8 +745,16 @@ private fun resolveViaSubjectiveEngine(
 
     return ReferenceResult(
         grams = kotlin.math.round(result.grams * 10) / 10.0,
-        quantity = 1.0,
+        // Without "de", the working text still contains the count and the
+        // normal quantity parser will consume it ("2 marraquetas", not 2 × 2).
+        quantity = result.relativeFactor.takeIf {
+            foodPart != text && (result.source.startsWith("lexicon:") ||
+                result.source.startsWith("utensil:") || result.source.startsWith("scoop:") ||
+                result.source.startsWith("bread:"))
+        } ?: 1.0,
         foodPart = foodPart,
+        unitId = result.source.takeUnless { it == "dataset-prior" || it.startsWith("subjective:") }
+            ?.substringAfter(':')?.substringBefore(':'),
     )
 }
 
@@ -704,6 +828,10 @@ private fun parseQuantityMultiplier(text: String): Pair<Double, String> {
             return Pair(base * suffix, rest)
         }
     }
+
+    // The normalizer has already preserved lexicalized food names. Do not undo
+    // that protection by interpreting "tres leches" as three units of milk.
+    if (TextNormalizer.startsWithNumberWordFoodName(trimmed)) return Pair(1.0, trimmed)
 
     // Number: "2 manzanas", "3 huevos"
     val numMatch = NUMBER_QUANTITY_PATTERN.find(trimmed)

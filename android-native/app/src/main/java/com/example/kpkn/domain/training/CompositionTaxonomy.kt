@@ -116,7 +116,15 @@ object CompositionTaxonomy {
 
     fun dominantMuscle(primaryMuscles: List<String>): String? = primaryMuscles.firstOrNull()
 
-    fun muscleGroup(primaryMuscle: String?, movementPatternId: String?): com.example.kpkn.data.programs.KpknMuscleGroup? {
+    fun muscleGroup(
+        primaryMuscle: String?,
+        movementPatternId: String?,
+        configurationId: String? = null,
+    ): com.example.kpkn.data.programs.KpknMuscleGroup? {
+        val id = configurationId.orEmpty().lowercase()
+        if (id.contains("face_pull") || id.contains("rear_delt") || id.contains("pull_apart")) {
+            return com.example.kpkn.data.programs.KpknMuscleGroup.DELT_REAR
+        }
         val pattern = familyOf(movementPatternId)
         return when (primaryMuscle) {
             "pectoralis" -> com.example.kpkn.data.programs.KpknMuscleGroup.CHEST
@@ -148,29 +156,65 @@ object CompositionTaxonomy {
         articulationType: String?,
         configurationId: String? = null,
     ): Boolean {
-        if (articulationType.equals("AISLADO", ignoreCase = true)) return true
         val id = configurationId.orEmpty().lowercase()
         if (id.contains("fly") || id.contains("apertura") || id.contains("face_pull") ||
             id.contains("pull_apart") || id.contains("rear_delt") || id.contains("lateral_raise") ||
             id.contains("pullover") || id.contains("pushdown") || id.contains("leg_curl") ||
-            id.contains("extension_cuadriceps") || id.contains("crunch") || id.contains("pallof")
+            id.contains("extension_cuadriceps") || id.contains("crunch") || id.contains("pallof") ||
+            id.contains("pull_thru") || id.contains("pull-through") || id.contains("pull_through") ||
+            id.contains("shrug") ||
+            id.contains("encogimiento") ||
+            id.contains("patada") ||
+            id.contains("kickback") ||
+            id.contains("abduction") ||
+            id.contains("adduction") ||
+            id.contains("frog") ||
+            id.contains("sissy") ||
+            id.contains("puente_gluteos") ||
+            id.contains("hiperextension") ||
+            id.contains("reverse_hyper") ||
+            id.contains("escapular") ||
+            id.contains("scapular") ||
+            id.contains("glute_ham_raise")
         ) {
             return true
         }
-        return family in setOf(
-            PatternFamily.KNEE_EXTENSION,
-            PatternFamily.KNEE_FLEXION,
-            PatternFamily.ELBOW_EXTENSION,
-            PatternFamily.ELBOW_FLEXION,
-            PatternFamily.SHOULDER_ABDUCTION,
-            PatternFamily.SHOULDER_FLEXION,
+        if (family in setOf(
+                PatternFamily.KNEE_EXTENSION,
+                PatternFamily.KNEE_FLEXION,
+                PatternFamily.ELBOW_EXTENSION,
+                PatternFamily.ELBOW_FLEXION,
+                PatternFamily.SHOULDER_ABDUCTION,
+                PatternFamily.SHOULDER_FLEXION,
+                PatternFamily.CORE,
+                PatternFamily.CALF,
+                PatternFamily.GRIP,
+                PatternFamily.NECK,
+                PatternFamily.SHRUG,
+            )
+        ) {
+            return true
+        }
+        // AISLADO del catálogo no convierte un compuesto de patrón (hip thrust,
+        // GHR, press, remo) en aislamiento. Solo aplica a familias no compuestas.
+        val compoundFamilies = setOf(
+            PatternFamily.SQUAT,
+            PatternFamily.HINGE,
+            PatternFamily.HIP_EXTENSION,
+            PatternFamily.HORIZONTAL_PUSH,
+            PatternFamily.VERTICAL_PUSH,
+            PatternFamily.HORIZONTAL_PULL,
+            PatternFamily.VERTICAL_PULL,
+        )
+        return articulationType.equals("AISLADO", ignoreCase = true) && family !in compoundFamilies
+    }
+
+    fun isFinisherFamily(family: PatternFamily?): Boolean =
+        family in setOf(
             PatternFamily.CORE,
             PatternFamily.CALF,
             PatternFamily.GRIP,
             PatternFamily.NECK,
+            PatternFamily.SHRUG,
         )
-    }
-
-    fun isFinisherFamily(family: PatternFamily?): Boolean =
-        family in setOf(PatternFamily.CORE, PatternFamily.CALF, PatternFamily.GRIP, PatternFamily.NECK)
 }

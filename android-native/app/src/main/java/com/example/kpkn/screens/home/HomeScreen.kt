@@ -50,11 +50,17 @@ import com.example.kpkn.data.models.MealType
 import com.example.kpkn.data.models.NutritionLog
 import com.example.kpkn.data.models.NutritionStatus
 import com.example.kpkn.data.repository.NutritionRepository
+import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.auge.LoadAdvisoryEngine
 import com.example.kpkn.screens.auge.rememberAugeViewModel
 import com.example.kpkn.screens.home.components.WelcomeOnboardingOverlay
 import com.example.kpkn.screens.nutrition.NutritionViewModel
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
+import com.example.kpkn.screens.programs.CreateProgramTemplateSheet
+import com.example.kpkn.screens.programs.ProgramsViewModel
+import com.example.kpkn.screens.programs.ProtocolDetailSheet
+import com.example.kpkn.screens.programs.TrainingMaxWizard
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.ui.theme.AppThemeMode
 import com.example.kpkn.ui.theme.RingBlue
 import com.example.kpkn.ui.theme.RingRed
@@ -96,6 +102,12 @@ fun HomeScreen(
     @Suppress("UNUSED_VARIABLE")
     val unusedTheme = themeMode to onThemeChange
 
+    val programsVm: ProgramsViewModel = viewModel()
+    val showCreateProgramSheet by viewModel.showCreateProgramSheet.collectAsState()
+    val pendingProgramName by viewModel.pendingProgramName.collectAsState()
+    var selectedProtocol by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
+    var protocolForTm by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
+    val openCreate = { viewModel.openCreateProgramSheet() }
     val augeViewModel = rememberAugeViewModel()
     val augePerMuscle by augeViewModel.perMuscle.collectAsState()
     val augeSnapshot by augeViewModel.snapshot.collectAsState()
@@ -247,7 +259,7 @@ fun HomeScreen(
             consumedCalories = uiState.todayNutritionTotals.calories.toInt(),
             onStartWorkout = onStartWorkout,
             onRegisterCompetition = onRegisterCompetition,
-            onCreateProgram = onCreateProgram,
+            onCreateProgram = openCreate,
             onAddMeal = { showFoodLogger = true },
             onNavigateToProfile = onNavigateToProfile,
             hazeState = rootHazeState,
@@ -308,7 +320,7 @@ fun HomeScreen(
                 onResumeWorkout = onResumeWorkout,
                 onEditSession = onEditSession,
                 onNavigateToProgram = onNavigateToProgram,
-                onCreateProgram = onCreateProgram,
+                onCreateProgram = openCreate,
                 onNavigateToCard = onNavigateToCard,
                 onNavigate = { destination ->
                     if (destination == "settings/auge") showAugeRecommendations = true else onNavigate(destination)
@@ -349,6 +361,53 @@ fun HomeScreen(
                 confirmButton = { TextButton(onClick = { showAugeRecommendations = false }) { Text("Cerrar") } },
             )
         }
+        if (showCreateProgramSheet) {
+            CreateProgramTemplateSheet(
+                onDismiss = viewModel::dismissCreateProgramSheet,
+                onCreateBlank = {
+                    val id = programsVm.createBlankProgram()
+                    viewModel.onProgramCreated(id, activate = pendingProgramName != null)
+                    onNavigateToProgram(id)
+                },
+                onCreateFromTemplate = { template ->
+                    val id = programsVm.createProgramFromTemplate(template.id)
+                    viewModel.onProgramCreated(id, activate = pendingProgramName != null)
+                    onNavigateToProgram(id)
+                },
+                onSelectProtocol = { protocol ->
+                    viewModel.dismissCreateProgramSheet()
+                    selectedProtocol = protocol
+                },
+            )
+        }
+        selectedProtocol?.let { protocol ->
+            ProtocolDetailSheet(
+                protocol = protocol,
+                onDismiss = { selectedProtocol = null },
+                onContinue = {
+                    selectedProtocol = null
+                    protocolForTm = protocol
+                },
+            )
+        }
+        protocolForTm?.let { protocol ->
+            TrainingMaxWizard(
+                initial = programsVm.estimatedProfileFromHistory(),
+                trainingMaxPercent = protocol.recipe?.trainingMaxPercent ?: 0.90,
+                onDismiss = {
+                    val id = programsVm.createProgramFromProtocol(protocol.id, preferredName = pendingProgramName)
+                    protocolForTm = null
+                    viewModel.onProgramCreated(id, activate = true)
+                    onNavigateToProgram(id)
+                },
+                onConfirm = { profile ->
+                    val id = programsVm.createProgramFromProtocol(protocol.id, profile, pendingProgramName)
+                    protocolForTm = null
+                    viewModel.onProgramCreated(id, activate = true)
+                    onNavigateToProgram(id)
+                },
+            )
+        }
     }
 }
 
@@ -363,10 +422,7 @@ private fun HomeFoodLoggerHost(
         nutritionRepo = nutritionRepo,
         isOpen = true,
         onDismiss = onDismiss,
-        onSave = { log ->
-            nutritionRepo.addNutritionLog(log)
-            onDismiss()
-        },
+        onSave = { log, confirmations -> nutritionRepo.saveNutritionLog(log, confirmations) },
         foodDatabase = foodDatabase,
         initialDate = LocalDate.now().toString(),
         initialMealType = selectedMealForLogger,
@@ -913,6 +969,10 @@ private fun NutritionTodayGlassOverlay(
                     Text("Aún no registras comidas hoy.", style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.72f))
                 } else {
                     meals.forEachIndexed { index, meal ->
+                        val minKcal = kotlin.math.round(meal.foods.sumOf { it.caloriesMin ?: it.calories }).toInt()
+                        val maxKcal = kotlin.math.round(meal.foods.sumOf { it.caloriesMax ?: it.calories }).toInt()
+                        val hasRange = maxKcal > minKcal
+                        val isEstimate = hasRange || meal.foods.any { it.isUncertain }
                         val mealLabel = when (meal.mealType) {
                             MealType.BREAKFAST -> "Desayuno"
                             MealType.LUNCH -> "Almuerzo"
@@ -929,8 +989,18 @@ private fun NutritionTodayGlassOverlay(
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
+                                meal.foods.mapNotNull { it.nutritionReferenceNote }.distinct().forEach { note ->
+                                    Text(note, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.68f))
+                                }
+                                if (hasRange) {
+                                    Text(
+                                        "Rango estimado: $minKcal–$maxKcal kcal",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.White.copy(alpha = 0.68f),
+                                    )
+                                }
                             }
-                            Text("${meal.foods.sumOf { it.calories }.toInt()} kcal", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, color = Color(0xFF8FB7B8))
+                            Text("${if (isEstimate) "≈ " else ""}${kotlin.math.round(meal.foods.sumOf { it.calories }).toInt()} kcal", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, color = Color(0xFF8FB7B8))
                         }
                         if (index < meals.lastIndex) HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
                     }

@@ -297,13 +297,7 @@ fun NutritionScreen(
             foodLoggerInitialDescription = null
             foodLoggerInitialTab = 0
         },
-        onSave = { log ->
-            viewModel.addLog(log)
-            showFoodLogger = false
-            viewModel.consumeSharedDescription()
-            foodLoggerInitialDescription = null
-            foodLoggerInitialTab = 0
-        },
+        onSave = { log, confirmations -> viewModel.saveLog(log, confirmations) },
         foodDatabase = foodDatabase,
         initialDate = selectedDate,
         initialMealType = selectedMealForLogger,
@@ -1046,6 +1040,10 @@ private fun LogEntry(log: NutritionLog, onDelete: (String) -> Unit) {
     val pro = log.foods.sumOf { it.protein }
     val car = log.foods.sumOf { it.carbs }
     val fat = log.foods.sumOf { it.fats }
+    val minKcal = kotlin.math.round(log.foods.sumOf { it.caloriesMin ?: it.calories }).toInt()
+    val maxKcal = kotlin.math.round(log.foods.sumOf { it.caloriesMax ?: it.calories }).toInt()
+    val hasRange = maxKcal > minKcal
+    val isEstimate = hasRange || log.foods.any { it.isUncertain }
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -1065,10 +1063,20 @@ private fun LogEntry(log: NutritionLog, onDelete: (String) -> Unit) {
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    "${kotlin.math.round(cal).toInt()} kcal · P${kotlin.math.round(pro).toInt()} C${kotlin.math.round(car).toInt()} G${kotlin.math.round(fat).toInt()}",
+                    "${if (isEstimate) "≈ " else ""}${kotlin.math.round(cal).toInt()} kcal · P${kotlin.math.round(pro).toInt()} C${kotlin.math.round(car).toInt()} G${kotlin.math.round(fat).toInt()}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (hasRange) {
+                    Text(
+                        "Rango estimado: $minKcal–$maxKcal kcal",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                log.foods.mapNotNull { it.nutritionReferenceNote }.distinct().forEach { note ->
+                    Text(note, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
                 if (log.notes != null) {
                     Text(
                         log.notes,

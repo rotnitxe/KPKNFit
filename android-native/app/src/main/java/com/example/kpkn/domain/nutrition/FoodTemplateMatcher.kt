@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.models.MealTemplate
+import com.example.kpkn.data.models.AmountIntent
 import java.text.Normalizer
 
 /**
@@ -21,13 +22,18 @@ object FoodTemplateMatcher {
             .replace(Regex("\\p{Mn}+"), "")
         return stripped
             .lowercase()
-            .replace(Regex("[^\\p{L}\\p{Nd}]+"), " ")
+            .replace(Regex("(?<=\\d),(?=\\d)"), ".")
+            .replace(Regex("(?<!\\d)\\.|\\.(?!\\d)"), " ")
+            .replace(Regex("[^\\p{L}\\p{Nd}.]+"), " ")
             .replace(Regex("\\s+"), " ")
             .trim()
     }
 
     /** Devuelve el score [0,1] de coincidencia; 0.0 si no aplica. */
     fun score(template: MealTemplate, normalizedQuery: String): Double {
+        // A meal memory may only match the same complete set of mentions.
+        // Token overlap alone accepts omissions, negations and changed quantities.
+        if (!sameMentions(template, normalizedQuery)) return 0.0
         val templateText = normalizeSearchText(
             buildString {
                 append(template.name)
@@ -61,6 +67,34 @@ object FoodTemplateMatcher {
         } else 0.0
 
         return (tokenOverlap * 0.65) + (foodOverlap * 0.35)
+    }
+
+    private fun sameMentions(template: MealTemplate, query: String): Boolean {
+        if (query.length > MAX_QUERY_CHARS) return false
+        val parsed = parseMealDescription(query)
+        if (parsed.items.any { it.isExcluded || it.excludedIngredients.isNotEmpty() }) return false
+        if (parsed.items.size != template.foods.size || parsed.items.isEmpty()) return false
+        val remaining = template.foods.toMutableList()
+        for (item in parsed.items) {
+            val exact = com.example.kpkn.data.food.findFoodExactByNormalized(item.foodQuery.ifBlank { item.tag })
+            val index = remaining.indexOfFirst { stored ->
+                FoodIdentity.normalize(stored.foodName) == FoodIdentity.normalize(item.tag) ||
+                    (exact != null && com.example.kpkn.data.food.findFoodExactByNormalized(stored.foodName)?.id == exact.id)
+            }
+            if (index < 0) return false
+            val stored = remaining.removeAt(index)
+            if (item.cookingMethod != null && item.cookingMethod != stored.cookingMethod) return false
+            // Counts may reuse the user's size for that same number of pieces.
+            // A utensil or explicit mass still binds its measured grams.
+            val countUnit = item.unitId?.removeSuffix("_n")?.replace('_', ' ')
+            val countOnly = item.amountIntent == AmountIntent.RESOLVED_SUBJECTIVE &&
+                HouseholdPortions.isCountable(exact, item.tag) &&
+                (countUnit == null || FoodIdentity.normalize(countUnit) == FoodIdentity.normalize(item.tag))
+            val storedGrams = if (stored.unit == "ml") SubjectivePortionEngine.massFromVolumeMl(stored.amount, stored.foodName) else stored.amount
+            if (!countOnly && item.amountGrams != null && kotlin.math.abs(item.amountGrams - storedGrams) > 0.1) return false
+            if ((countOnly || item.quantity != 1.0) && kotlin.math.abs(item.quantity - stored.quantity) > 0.001) return false
+        }
+        return remaining.isEmpty()
     }
 
     /**

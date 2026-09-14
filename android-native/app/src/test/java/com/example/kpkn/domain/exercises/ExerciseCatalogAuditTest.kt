@@ -180,7 +180,7 @@ class ExerciseCatalogAuditTest {
         assertEquals(listOf("implement"), byId.getValue("standing_lateral_raise").optionAxes)
         assertEquals(listOf("implement"), byId.getValue("seated_lateral_raise").optionAxes)
         assertEquals(listOf("implement"), byId.getValue("rear_delt_raise").optionAxes)
-        assertEquals(listOf("implement", "laterality"), byId.getValue("katana_extension").optionAxes)
+        assertEquals(listOf("laterality"), byId.getValue("katana_extension").optionAxes)
 
         assertEquals(listOf("implement", "laterality"), byId.getValue("pullover").optionAxes)
         assertEquals(listOf("implement"), byId.getValue("lying_pullover").optionAxes)

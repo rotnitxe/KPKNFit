@@ -334,6 +334,11 @@ class NutritionViewModel : ViewModel() {
 
     // ─── Actions ────────────────────────────────────────────────────────────
 
+    suspend fun saveLog(log: NutritionLog, confirmations: List<com.example.kpkn.domain.nutrition.FoodLearningConfirmation>) {
+        nutritionRepo.saveNutritionLog(log, confirmations)
+        maybePromptCreatineOnboarding(log)
+    }
+
     fun addLog(log: NutritionLog) {
         maybePromptCreatineOnboarding(log)
         nutritionRepo.addNutritionLog(log)

@@ -1,0 +1,287 @@
+{
+  "status": "completed_with_synthetic_profile_and_cleanup",
+  "serial": "emulator-5554",
+  "profile": "fresh_synthetic_profile_after_installation_incident",
+  "finalApk": {
+    "path": "android-native/app/build/outputs/apk/base/debug/app-base-debug.apk",
+    "sha256": "cc8302eddb193d2daeb445d32eb768e4174fdc7c04d322faf8e578d6597630da",
+    "bytes": 253239524
+  },
+  "profileBackupBeforeFinalInstall": {
+    "path": "/tmp/kpkn-nutrition-test-profile-before-unsure-fix-install.tar",
+    "bytes": 3614208,
+    "sha256": "ec06844c54ddcd1016e31204f7a8f882cbde5a320fab5c5b9063be62bb8c22e0"
+  },
+  "observations": [
+    {
+      "case": "half_cup_milk",
+      "stage": "first_post_implementation_apk_before_final_qa_fixes",
+      "visible_evidence": [
+        "media taza de leche",
+        "Leche",
+        "Leche Entera · 124 g",
+        "75 kcal · P 4g · C 6g · G 4g",
+        "Editar leche",
+        "Quitar leche",
+        "75 kcal"
+      ]
+    },
+    {
+      "case": "one_cup_milk",
+      "stage": "first_post_implementation_apk_before_final_qa_fixes",
+      "visible_evidence": [
+        "una taza de leche",
+        "Leche",
+        "Leche Entera · 247 g",
+        "151 kcal · P 8g · C 12g · G 8g",
+        "Editar leche",
+        "Quitar leche",
+        "151 kcal"
+      ]
+    },
+    {
+      "case": "double_cup_milk",
+      "stage": "first_post_implementation_apk_before_final_qa_fixes",
+      "visible_evidence": [
+        "dos tazas de leche",
+        "Leche",
+        "Leche Entera · 494 g",
+        "302 kcal · P 16g · C 24g · G 16g",
+        "Editar leche",
+        "Quitar leche",
+        "302 kcal"
+      ]
+    },
+    {
+      "case": "decimal_mass",
+      "stage": "first_post_implementation_apk_before_final_qa_fixes",
+      "visible_evidence": [
+        "0,5 kg arroz cocido",
+        "Arroz",
+        "Arroz Blanco (cocido) · 500 g",
+        "650 kcal · P 14g · C 140g · G 2g",
+        "Editar arroz",
+        "Quitar arroz",
+        "650 kcal"
+      ]
+    },
+    {
+      "case": "independent_preparations",
+      "stage": "first_post_implementation_apk_before_final_qa_fixes",
+      "visible_evidence": [
+        "100 g pollo frito y 100 g pollo cocido",
+        "Pollo",
+        "Pechuga de Pollo (frita) · 100 g",
+        "223 kcal · P 30g · C 0g · G 11g",
+        "Editar pollo",
+        "Quitar pollo",
+        "Pollo",
+        "Pechuga de Pollo (cocida) · 100 g",
+        "166 kcal · P 32g · C 0g · G 3g",
+        "Editar pollo",
+        "Quitar pollo",
+        "389 kcal"
+      ]
+    },
+    {
+      "case": "pan_integral_basis",
+      "stage": "first_post_implementation_apk_before_final_qa_fixes",
+      "visible_evidence": [
+        "100 g pan integral",
+        "Pan integral",
+        "Pan Integral · 100 g",
+        "265 kcal · P 10g · C 45g · G 4g",
+        "Editar pan integral",
+        "Quitar pan integral",
+        "265 kcal"
+      ]
+    },
+    {
+      "case": "tablespoon_oil",
+      "stage": "first_post_implementation_apk_before_final_qa_fixes",
+      "visible_evidence": [
+        "una cucharada de aceite",
+        "Aceite",
+        "Aceite de Oliva · 14 g",
+        "119 kcal · P 0g · C 0g · G 14g",
+        "Editar aceite",
+        "Quitar aceite",
+        "119 kcal"
+      ]
+    },
+    {
+      "case": "apple_slices",
+      "stage": "first_post_implementation_apk_before_final_qa_fixes",
+      "visible_evidence": [
+        "dos rodajas de manzana",
+        "Manzana",
+        "Manzana · 50 g",
+        "26 kcal · P 0g · C 7g · G 0g",
+        "Editar manzana",
+        "Quitar manzana",
+        "26 kcal"
+      ]
+    },
+    {
+      "case": "uncertain_before_save",
+      "stage": "first_post_implementation_apk_before_final_qa_fixes",
+      "visible_evidence": [
+        "200 g arroz",
+        "Arroz",
+        "Arroz Blanco (cocido) · aprox. 200 g",
+        "≈ 260 kcal · P 5g · C 56g · G 1g",
+        "Rango estimado: 260–720 kcal",
+        "Editar arroz",
+        "Quitar arroz",
+        "260 kcal",
+        "referencia 260–720 kcal"
+      ]
+    },
+    {
+      "case": "cold_reopened_log",
+      "stage": "first_post_implementation_apk_before_final_qa_fixes",
+      "visible_evidence": [
+        " kcal",
+        "2500 kcal meta",
+        "Arroz Blanco (cocido)",
+        "260 kcal"
+      ]
+    },
+    {
+      "case": "historical_install_incident_device_unavailable",
+      "stage": "historical_pre_unsure_fix_recheck",
+      "visible_evidence": [
+        "assembleBaseDebug BUILD SUCCESSFUL",
+        "profile backup verified before replacement",
+        "adb install --no-incremental -r: Success",
+        "post-install adb devices: emulator-5554 absent",
+        "no emulator/qemu process available",
+        "no recovery, reboot, uninstall or data wipe attempted"
+      ]
+    },
+    {
+      "case": "oat_exclusions_and_positive_breakfast",
+      "stage": "final_apk_after_unsure_fix",
+      "visible_evidence": [
+        "avena sin leche ni huevo",
+        "Avena 40 g",
+        "Leche 200 g Excluido",
+        "Huevo 50 g Excluido",
+        "156 kcal",
+        "avena sin huevo ni leche",
+        "Avena 40 g",
+        "Leche 200 g Excluido",
+        "Huevo 50 g Excluido",
+        "desayuno slot + avena con leche y huevo",
+        "Avena 40 g",
+        "Leche 200 g",
+        "Huevo 50 g",
+        "355 kcal"
+      ],
+      "evidenceFiles": [
+        "/tmp/kpkn-qa-oats-exclusions-first-after.xml",
+        "/tmp/kpkn-qa-oats-exclusions-reversed-after.xml",
+        "/tmp/kpkn-qa-breakfast-positive-clean.xml"
+      ]
+    },
+    {
+      "case": "tortilla_composition_choices",
+      "stage": "final_apk_after_unsure_fix",
+      "visible_evidence": [
+        "De huevo -> Tortilla de huevo",
+        "explicit 40 g preserved for tortilla de huevo",
+        "De papas -> Tortilla de papas",
+        "no wheat identity restored"
+      ],
+      "evidenceFiles": [
+        "/tmp/kpkn-qa-tortilla-egg-after.xml",
+        "/tmp/kpkn-qa-tortilla-explicit-egg-after.xml",
+        "/tmp/kpkn-qa-tortilla-potato-after-complete.xml"
+      ]
+    },
+    {
+      "case": "tortilla_unsure_preserves_corrected_identity",
+      "stage": "final_apk_after_unsure_fix",
+      "visible_evidence": [
+        "Tortilla · aprox. 40 g",
+        "Tortilla sin ficha; composición no confirmada",
+        "Rango estimado: 0–360 kcal",
+        "Guardar comida enabled",
+        "reopened Tortilla with the same neutral identity, note and range"
+      ],
+      "evidenceFiles": [
+        "/tmp/kpkn-qa-after-unsure-fix-tortilla-unsure-after.xml",
+        "/tmp/kpkn-qa-after-save-meals-visible.xml",
+        "/tmp/kpkn-qa-reopened-uncertainty.xml"
+      ]
+    },
+    {
+      "case": "rice_size_round_trip",
+      "stage": "final_apk_after_unsure_fix",
+      "visible_evidence": [
+        "Grande: 180 g, 234 kcal, range 176–292",
+        "Pequeño: 72 g, 94 kcal, range 70–118",
+        "Grande again: 180 g, 234 kcal, range 176–292",
+        "no dry/cooked question introduced by size-only edits"
+      ],
+      "evidenceFiles": [
+        "/tmp/kpkn-qa-rice-size-large-after.xml",
+        "/tmp/kpkn-qa-rice-size-small-after.xml",
+        "/tmp/kpkn-qa-rice-size-large-again-after.xml"
+      ]
+    },
+    {
+      "case": "salad_and_unknown_preparation",
+      "stage": "final_apk_after_unsure_fix",
+      "visible_evidence": [
+        "ensalada",
+        "Asumí lechuga y tomate a partes iguales, sin aderezo",
+        "¿Qué llevaba la ensalada?",
+        "Lechuga y tomate, sin aderezo",
+        "100 g preparacion desconocida",
+        "Sin referencia nutricional: valores provisionales de un plato genérico",
+        "Rango estimado: 0–900 kcal",
+        "Unsure retained the note and range before saving"
+      ],
+      "evidenceFiles": [
+        "/tmp/kpkn-qa-salad-natural.xml",
+        "/tmp/kpkn-qa-unknown-100g-final.xml",
+        "/tmp/kpkn-qa-unknown-unsure-after.xml",
+        "/tmp/kpkn-qa-unknown-relaunch-final.xml"
+      ]
+    },
+    {
+      "case": "drag_dismiss_recovery",
+      "stage": "final_apk_after_unsure_fix",
+      "visible_evidence": [
+        "drag handle Arrastra hacia abajo para cerrar",
+        "¿Descartar esta comida?",
+        "Seguir editando",
+        "editor still visible with arroz draft and 180 g result"
+      ],
+      "evidenceFiles": [
+        "/tmp/kpkn-qa-rice-drag-dismiss-after.xml",
+        "/tmp/kpkn-qa-rice-drag-dismiss-continue-after.xml"
+      ]
+    },
+    {
+      "case": "cleanup_preserved_original_synthetic_rice",
+      "stage": "final_apk_after_unsure_fix",
+      "visible_evidence": [
+        "only Arroz Blanco (cocido) remains",
+        "260 kcal",
+        "Rango estimado: 260–720 kcal",
+        "day total 260 kcal"
+      ],
+      "evidenceFiles": [
+        "/tmp/kpkn-qa-cleanup-final.xml"
+      ]
+    }
+  ],
+  "limitations": [
+    "The initial incremental APK replacement reset the former emulator profile; no useful backup found.",
+    "Device QA uses the fresh synthetic profile created after that incident; it does not demonstrate preservation of the former populated profile across an APK upgrade.",
+    "The available Nutrition route required an active plan, so the device pass used a synthetic maintenance plan and synthetic anthropometrics only for QA.",
+    "Write failures and learning/forget are covered by Room/JVM tests, not injected into device UI."
+  ]
+}

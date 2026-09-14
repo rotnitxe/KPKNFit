@@ -1,0 +1,940 @@
+{
+    "corpus": "independent-nutrition-v2",
+    "evidence": "Hand-authored identities and declared catalog basis; quantity ranges and physical equivalences, never DatasetKnowledge labels.",
+    "count": 23,
+    "metrics": {
+        "identity": {
+            "passed": 23,
+            "total": 23,
+            "notEvaluated": 0
+        },
+        "coverage": {
+            "passed": 23,
+            "total": 23,
+            "notEvaluated": 0
+        },
+        "quantity": {
+            "passed": 23,
+            "total": 23,
+            "notEvaluated": 0
+        },
+        "nutrition": {
+            "passed": 14,
+            "total": 14,
+            "notEvaluated": 9
+        },
+        "clarification": {
+            "passed": 23,
+            "total": 23,
+            "notEvaluated": 0
+        }
+    },
+    "nutrientError": {
+        "exactReferenceCount": 4,
+        "meanAbsoluteErrorKcal": 0.1509999999999998,
+        "maxAbsoluteErrorKcal": 0.3960000000000008,
+        "note": "Errors measure source scaling and output rounding for the four documented controls; they do not measure real-world portion error. Interval references remain separate containment checks."
+    },
+    "cases": [
+        {
+            "input": "media taza de leche",
+            "expectedIds": [
+                "gen016"
+            ],
+            "expectedClarifiedMentions": [],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": true,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": "gen016",
+                    "query": "leche",
+                    "excluded": [],
+                    "grams": 123.6,
+                    "kcal": 75.0,
+                    "arithmeticReference": {
+                        "expectedKcal": 75.396,
+                        "basis": "Documented per-100-g profile scaled by independently specified mass; output rounds kcal to integers.",
+                        "absoluteErrorKcal": 0.3960000000000008,
+                        "relativeError": 0.005252268024828914
+                    },
+                    "nutritionReference": {
+                        "kind": "interval",
+                        "kcalMin": 70.0,
+                        "kcalMax": 77.0,
+                        "insideRange": true,
+                        "distanceOutsideRangeKcal": 0.0
+                    },
+                    "status": "AUTO",
+                    "source": "VERIFIED_GLOBAL",
+                    "questions": []
+                }
+            ]
+        },
+        {
+            "input": "una taza de leche",
+            "expectedIds": [
+                "gen016"
+            ],
+            "expectedClarifiedMentions": [],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": true,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": "gen016",
+                    "query": "leche",
+                    "excluded": [],
+                    "grams": 247.2,
+                    "kcal": 151.0,
+                    "arithmeticReference": {
+                        "expectedKcal": 150.792,
+                        "basis": "Documented per-100-g profile scaled by independently specified mass; output rounds kcal to integers.",
+                        "absoluteErrorKcal": 0.2079999999999984,
+                        "relativeError": 0.0013793835216722268
+                    },
+                    "nutritionReference": {
+                        "kind": "interval",
+                        "kcalMin": 140.0,
+                        "kcalMax": 152.0,
+                        "insideRange": true,
+                        "distanceOutsideRangeKcal": 0.0
+                    },
+                    "status": "AUTO",
+                    "source": "VERIFIED_GLOBAL",
+                    "questions": []
+                }
+            ]
+        },
+        {
+            "input": "dos tazas de leche",
+            "expectedIds": [
+                "gen016"
+            ],
+            "expectedClarifiedMentions": [],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": true,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": "gen016",
+                    "query": "leche",
+                    "excluded": [],
+                    "grams": 494.4,
+                    "kcal": 302.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": {
+                        "kind": "interval",
+                        "kcalMin": 280.0,
+                        "kcalMax": 304.0,
+                        "insideRange": true,
+                        "distanceOutsideRangeKcal": 0.0
+                    },
+                    "status": "AUTO",
+                    "source": "VERIFIED_GLOBAL",
+                    "questions": []
+                }
+            ]
+        },
+        {
+            "input": "una rebanada de pan",
+            "expectedIds": [
+                "gen019"
+            ],
+            "expectedClarifiedMentions": [],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": true,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": "gen019",
+                    "query": "pan",
+                    "excluded": [],
+                    "grams": 28.0,
+                    "kcal": 74.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": {
+                        "kind": "interval",
+                        "kcalMin": 50.0,
+                        "kcalMax": 110.0,
+                        "insideRange": true,
+                        "distanceOutsideRangeKcal": 0.0
+                    },
+                    "status": "AUTO",
+                    "source": "CURATED_LOCAL",
+                    "questions": []
+                }
+            ]
+        },
+        {
+            "input": "dos rebanadas de pan",
+            "expectedIds": [
+                "gen019"
+            ],
+            "expectedClarifiedMentions": [],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": true,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": "gen019",
+                    "query": "pan",
+                    "excluded": [],
+                    "grams": 56.0,
+                    "kcal": 148.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": {
+                        "kind": "interval",
+                        "kcalMin": 100.0,
+                        "kcalMax": 220.0,
+                        "insideRange": true,
+                        "distanceOutsideRangeKcal": 0.0
+                    },
+                    "status": "AUTO",
+                    "source": "CURATED_LOCAL",
+                    "questions": []
+                }
+            ]
+        },
+        {
+            "input": "dos rodajas de manzana",
+            "expectedIds": [
+                "gen001"
+            ],
+            "expectedClarifiedMentions": [],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": true,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": "gen001",
+                    "query": "manzana",
+                    "excluded": [],
+                    "grams": 50.0,
+                    "kcal": 26.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": {
+                        "kind": "interval",
+                        "kcalMin": 10.0,
+                        "kcalMax": 37.0,
+                        "insideRange": true,
+                        "distanceOutsideRangeKcal": 0.0
+                    },
+                    "status": "AUTO",
+                    "source": "CURATED_LOCAL",
+                    "questions": []
+                }
+            ]
+        },
+        {
+            "input": "100 g pan integral",
+            "expectedIds": [
+                "gen133"
+            ],
+            "expectedClarifiedMentions": [],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": true,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": "gen133",
+                    "query": "pan integral",
+                    "excluded": [],
+                    "grams": 100.0,
+                    "kcal": 265.0,
+                    "arithmeticReference": {
+                        "expectedKcal": 265.0,
+                        "basis": "Documented per-100-g profile scaled by independently specified mass; output rounds kcal to integers.",
+                        "absoluteErrorKcal": 0.0,
+                        "relativeError": 0.0
+                    },
+                    "nutritionReference": {
+                        "kind": "interval",
+                        "kcalMin": 250.0,
+                        "kcalMax": 280.0,
+                        "insideRange": true,
+                        "distanceOutsideRangeKcal": 0.0
+                    },
+                    "status": "AUTO",
+                    "source": "CURATED_LOCAL",
+                    "questions": []
+                }
+            ]
+        },
+        {
+            "input": "pechuga de pavo",
+            "expectedIds": [
+                "gen045"
+            ],
+            "expectedClarifiedMentions": [],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": null,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": "gen045",
+                    "query": "pechuga de pavo",
+                    "excluded": [],
+                    "grams": 150.0,
+                    "kcal": 202.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": null,
+                    "status": "AUTO",
+                    "source": "CURATED_LOCAL",
+                    "questions": []
+                }
+            ]
+        },
+        {
+            "input": "0,5 kg arroz cocido",
+            "expectedIds": [
+                "gen005"
+            ],
+            "expectedClarifiedMentions": [],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": true,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": "gen005",
+                    "query": "arroz",
+                    "excluded": [],
+                    "grams": 500.0,
+                    "kcal": 650.0,
+                    "arithmeticReference": {
+                        "expectedKcal": 650.0,
+                        "basis": "Documented per-100-g profile scaled by independently specified mass; output rounds kcal to integers.",
+                        "absoluteErrorKcal": 0.0,
+                        "relativeError": 0.0
+                    },
+                    "nutritionReference": {
+                        "kind": "interval",
+                        "kcalMin": 640.0,
+                        "kcalMax": 660.0,
+                        "insideRange": true,
+                        "distanceOutsideRangeKcal": 0.0
+                    },
+                    "status": "AUTO",
+                    "source": "CURATED_LOCAL",
+                    "questions": []
+                }
+            ]
+        },
+        {
+            "input": "pollo frito y pollo cocido",
+            "expectedIds": [
+                "gen003f",
+                "gen004"
+            ],
+            "expectedClarifiedMentions": [
+                0,
+                1
+            ],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": null,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": "gen003f",
+                    "query": "pollo",
+                    "excluded": [],
+                    "grams": 154.0,
+                    "kcal": 343.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": null,
+                    "status": "NEEDS_CONFIRMATION",
+                    "source": "CURATED_LOCAL",
+                    "questions": [
+                        "cut"
+                    ]
+                },
+                {
+                    "id": "gen004",
+                    "query": "pollo",
+                    "excluded": [],
+                    "grams": 154.0,
+                    "kcal": 256.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": null,
+                    "status": "NEEDS_CONFIRMATION",
+                    "source": "CURATED_LOCAL",
+                    "questions": [
+                        "cut"
+                    ]
+                }
+            ]
+        },
+        {
+            "input": "manzana y una taza de leche",
+            "expectedIds": [
+                "gen001",
+                "gen016"
+            ],
+            "expectedClarifiedMentions": [],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": null,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": "gen001",
+                    "query": "manzana",
+                    "excluded": [],
+                    "grams": 220.0,
+                    "kcal": 114.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": null,
+                    "status": "AUTO",
+                    "source": "CURATED_LOCAL",
+                    "questions": []
+                },
+                {
+                    "id": "gen016",
+                    "query": "leche",
+                    "excluded": [],
+                    "grams": 247.2,
+                    "kcal": 151.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": null,
+                    "status": "AUTO",
+                    "source": "VERIFIED_GLOBAL",
+                    "questions": []
+                }
+            ]
+        },
+        {
+            "input": "yogurt sin lactosa",
+            "expectedIds": [
+                null
+            ],
+            "expectedClarifiedMentions": [
+                0
+            ],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": null,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": null,
+                    "query": "yogurt sin lactosa",
+                    "excluded": [],
+                    "grams": 200.0,
+                    "kcal": 194.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": null,
+                    "status": "NEEDS_REVIEW",
+                    "source": "HEURISTIC_ESTIMATE",
+                    "questions": [
+                        "identity"
+                    ]
+                }
+            ]
+        },
+        {
+            "input": "pasta de maní",
+            "expectedIds": [
+                "gen034"
+            ],
+            "expectedClarifiedMentions": [],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": null,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": "gen034",
+                    "query": "pasta de maní",
+                    "excluded": [],
+                    "grams": 10.0,
+                    "kcal": 59.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": null,
+                    "status": "AUTO",
+                    "source": "CURATED_LOCAL",
+                    "questions": []
+                }
+            ]
+        },
+        {
+            "input": "completo italiano sin mayonesa",
+            "expectedIds": [
+                null
+            ],
+            "expectedClarifiedMentions": [
+                0
+            ],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": null,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": null,
+                    "query": "completo italiano",
+                    "excluded": [
+                        "mayonesa"
+                    ],
+                    "grams": 250.0,
+                    "kcal": 400.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": null,
+                    "status": "NEEDS_REVIEW",
+                    "source": "HEURISTIC_ESTIMATE",
+                    "questions": [
+                        "identity"
+                    ]
+                }
+            ]
+        },
+        {
+            "input": "sándwich de jamón y queso sin queso",
+            "expectedIds": [
+                null
+            ],
+            "expectedClarifiedMentions": [
+                0
+            ],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": null,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": null,
+                    "query": "sándwich de jamón y queso",
+                    "excluded": [
+                        "queso"
+                    ],
+                    "grams": 250.0,
+                    "kcal": 600.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": null,
+                    "status": "NEEDS_REVIEW",
+                    "source": "HEURISTIC_ESTIMATE",
+                    "questions": [
+                        "identity"
+                    ]
+                }
+            ]
+        },
+        {
+            "input": "150 g lentejas cocidas y 80 g zanahoria cruda",
+            "expectedIds": [
+                "gen012",
+                "gen024"
+            ],
+            "expectedClarifiedMentions": [],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": true,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": "gen012",
+                    "query": "lenteja",
+                    "excluded": [],
+                    "grams": 150.0,
+                    "kcal": 174.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": {
+                        "kind": "interval",
+                        "kcalMin": 170.0,
+                        "kcalMax": 180.0,
+                        "insideRange": true,
+                        "distanceOutsideRangeKcal": 0.0
+                    },
+                    "status": "AUTO",
+                    "source": "CURATED_LOCAL",
+                    "questions": []
+                },
+                {
+                    "id": "gen024",
+                    "query": "zanahoria",
+                    "excluded": [],
+                    "grams": 80.0,
+                    "kcal": 33.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": {
+                        "kind": "interval",
+                        "kcalMin": 30.0,
+                        "kcalMax": 35.0,
+                        "insideRange": true,
+                        "distanceOutsideRangeKcal": 0.0
+                    },
+                    "status": "AUTO",
+                    "source": "CURATED_LOCAL",
+                    "questions": []
+                }
+            ]
+        },
+        {
+            "input": "100 g tofu y 150 g quinoa cocida",
+            "expectedIds": [
+                "gen041",
+                "gen030"
+            ],
+            "expectedClarifiedMentions": [],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": true,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": "gen041",
+                    "query": "tofu",
+                    "excluded": [],
+                    "grams": 100.0,
+                    "kcal": 76.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": {
+                        "kind": "interval",
+                        "kcalMin": 70.0,
+                        "kcalMax": 80.0,
+                        "insideRange": true,
+                        "distanceOutsideRangeKcal": 0.0
+                    },
+                    "status": "AUTO",
+                    "source": "CURATED_LOCAL",
+                    "questions": []
+                },
+                {
+                    "id": "gen030",
+                    "query": "quinoa",
+                    "excluded": [],
+                    "grams": 150.0,
+                    "kcal": 180.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": {
+                        "kind": "interval",
+                        "kcalMin": 175.0,
+                        "kcalMax": 185.0,
+                        "insideRange": true,
+                        "distanceOutsideRangeKcal": 0.0
+                    },
+                    "status": "AUTO",
+                    "source": "CURATED_LOCAL",
+                    "questions": []
+                }
+            ]
+        },
+        {
+            "input": "100 g brócoli cocido y 30 g nueces",
+            "expectedIds": [
+                "gen022",
+                "gen039"
+            ],
+            "expectedClarifiedMentions": [],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": true,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": "gen022",
+                    "query": "brócoli",
+                    "excluded": [],
+                    "grams": 100.0,
+                    "kcal": 35.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": {
+                        "kind": "interval",
+                        "kcalMin": 30.0,
+                        "kcalMax": 40.0,
+                        "insideRange": true,
+                        "distanceOutsideRangeKcal": 0.0
+                    },
+                    "status": "AUTO",
+                    "source": "CURATED_LOCAL",
+                    "questions": []
+                },
+                {
+                    "id": "gen039",
+                    "query": "nueces",
+                    "excluded": [],
+                    "grams": 30.0,
+                    "kcal": 196.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": {
+                        "kind": "interval",
+                        "kcalMin": 190.0,
+                        "kcalMax": 200.0,
+                        "insideRange": true,
+                        "distanceOutsideRangeKcal": 0.0
+                    },
+                    "status": "AUTO",
+                    "source": "CURATED_LOCAL",
+                    "questions": []
+                }
+            ]
+        },
+        {
+            "input": "240 ml leche descremada",
+            "expectedIds": [
+                "gen046"
+            ],
+            "expectedClarifiedMentions": [],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": true,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": "gen046",
+                    "query": "leche descremada",
+                    "excluded": [],
+                    "grams": 247.20000000000002,
+                    "kcal": 84.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": {
+                        "kind": "interval",
+                        "kcalMin": 78.0,
+                        "kcalMax": 86.0,
+                        "insideRange": true,
+                        "distanceOutsideRangeKcal": 0.0
+                    },
+                    "status": "AUTO",
+                    "source": "VERIFIED_GLOBAL",
+                    "questions": []
+                }
+            ]
+        },
+        {
+            "input": "100 g leche sin gluten",
+            "expectedIds": [
+                null
+            ],
+            "expectedClarifiedMentions": [
+                0
+            ],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": null,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": null,
+                    "query": "leche sin gluten",
+                    "excluded": [],
+                    "grams": 100.0,
+                    "kcal": 62.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": null,
+                    "status": "NEEDS_REVIEW",
+                    "source": "HEURISTIC_ESTIMATE",
+                    "questions": [
+                        "identity"
+                    ]
+                }
+            ]
+        },
+        {
+            "input": "100 g leche de marca inexistente",
+            "expectedIds": [
+                null
+            ],
+            "expectedClarifiedMentions": [
+                0
+            ],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": null,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": null,
+                    "query": "leche de marca inexistente",
+                    "excluded": [],
+                    "grams": 100.0,
+                    "kcal": 62.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": null,
+                    "status": "NEEDS_REVIEW",
+                    "source": "HEURISTIC_ESTIMATE",
+                    "questions": [
+                        "identity"
+                    ]
+                }
+            ]
+        },
+        {
+            "input": "100 g merluza cocida y 50 g palta",
+            "expectedIds": [
+                "gen044",
+                "gen014"
+            ],
+            "expectedClarifiedMentions": [],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": true,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": "gen044",
+                    "query": "merluza",
+                    "excluded": [],
+                    "grams": 100.0,
+                    "kcal": 94.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": {
+                        "kind": "interval",
+                        "kcalMin": 90.0,
+                        "kcalMax": 98.0,
+                        "insideRange": true,
+                        "distanceOutsideRangeKcal": 0.0
+                    },
+                    "status": "AUTO",
+                    "source": "CURATED_LOCAL",
+                    "questions": []
+                },
+                {
+                    "id": "gen014",
+                    "query": "palta",
+                    "excluded": [],
+                    "grams": 50.0,
+                    "kcal": 80.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": {
+                        "kind": "interval",
+                        "kcalMin": 75.0,
+                        "kcalMax": 85.0,
+                        "insideRange": true,
+                        "distanceOutsideRangeKcal": 0.0
+                    },
+                    "status": "AUTO",
+                    "source": "CURATED_LOCAL",
+                    "questions": []
+                }
+            ]
+        },
+        {
+            "input": "20 g crema de maní y una rebanada de pan",
+            "expectedIds": [
+                "gen034",
+                "gen019"
+            ],
+            "expectedClarifiedMentions": [],
+            "identity": true,
+            "coverage": true,
+            "omissions": 0,
+            "additions": 0,
+            "quantity": true,
+            "nutrition": true,
+            "clarification": true,
+            "actual": [
+                {
+                    "id": "gen034",
+                    "query": "crema de maní",
+                    "excluded": [],
+                    "grams": 20.0,
+                    "kcal": 118.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": {
+                        "kind": "interval",
+                        "kcalMin": 110.0,
+                        "kcalMax": 125.0,
+                        "insideRange": true,
+                        "distanceOutsideRangeKcal": 0.0
+                    },
+                    "status": "AUTO",
+                    "source": "CURATED_LOCAL",
+                    "questions": []
+                },
+                {
+                    "id": "gen019",
+                    "query": "pan",
+                    "excluded": [],
+                    "grams": 28.0,
+                    "kcal": 74.0,
+                    "arithmeticReference": null,
+                    "nutritionReference": {
+                        "kind": "interval",
+                        "kcalMin": 50.0,
+                        "kcalMax": 110.0,
+                        "insideRange": true,
+                        "distanceOutsideRangeKcal": 0.0
+                    },
+                    "status": "AUTO",
+                    "source": "CURATED_LOCAL",
+                    "questions": []
+                }
+            ]
+        }
+    ]
+}

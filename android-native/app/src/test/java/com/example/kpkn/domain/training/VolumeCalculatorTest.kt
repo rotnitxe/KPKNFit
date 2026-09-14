@@ -142,7 +142,7 @@ class VolumeCalculatorTest {
     }
 
     @Test
-    fun roleSeparatedVolume_falls_back_to_name_when_no_id_matches() {
+    fun roleSeparatedVolume_does_not_count_when_no_id_matches() {
         val info = ExerciseMuscleInfo(
             id = "legacy_squat_id",
             name = "Sentadilla Profunda",
@@ -160,7 +160,7 @@ class VolumeCalculatorTest {
             exerciseList = listOf(info),
         )
 
-        assertEquals(1.0, result["Cuádriceps"]?.directSets ?: 0.0, 0.01)
+        assertEquals(0.0, result["Cuádriceps"]?.directSets ?: 0.0, 0.01)
     }
 
     @Test

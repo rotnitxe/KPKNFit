@@ -7,7 +7,7 @@ import org.junit.BeforeClass
 import org.junit.Test
 
 /**
- * Invariantes de [PROTOCOL_LIBRARY] + [ProtocolExerciseLibrary] (Fase A).
+ * Invariantes de [PROTOCOL_LIBRARY] (Fase A).
  */
 class ProtocolAuditTest {
 
@@ -19,7 +19,34 @@ class ProtocolAuditTest {
             "juggernaut-base",
             "rts-base",
             "coan-phillipi",
+            "coan-phillipi-dl",
             "smolov-jr",
+            "texas-method-3d",
+            "texas-method-4d",
+            "wendler-531-bbb",
+            "wendler-531-fsl",
+            "madcow-5x5",
+            "gzclp",
+            "gzcl-jt-2",
+            "gzcl-rippler",
+            "gzcl-uhf-9",
+            "juggernaut-2",
+            "sheiko-29-32",
+            "candito-6",
+            "korte-3x3",
+            "cube-method",
+            "lilliebridge",
+            "westside-conjugate",
+            "calgary-16",
+            "tsa-9",
+            "phul-verified",
+            "phat-verified",
+            "kpkn-rts-style",
+            "kpkn-sbs-rtf",
+            "nsuns-531-lp-4d",
+            "kpkn-native-sbd-4",
+            "kpkn-ppl-6",
+            "kpkn-rp-style",
         )
 
         @BeforeClass
@@ -49,19 +76,28 @@ class ProtocolAuditTest {
     }
 
     @Test
-    fun legacyNamedProtocolsAreNotPublishedWithoutExactRecipes() {
-        assertTrue(
-            "La biblioteca histórica no debe publicar aproximaciones genéricas de protocolos de terceros",
-            PROTOCOL_LIBRARY.filterNot { it.id == "kpkn-native-sbd-4" }
-                .all { it.publicationStatus == ProtocolPublicationStatus.HIDDEN_UNVERIFIED },
-        )
+    fun visible_protocols_have_exact_recipes_and_attribution() {
+        val visible = PROTOCOL_LIBRARY.filter { it.isVisibleForApplication }
+        assertTrue(visible.isNotEmpty())
+        visible.forEach { protocol ->
+            assertTrue("${protocol.id} debe tener receta", protocol.recipe != null && protocol.recipe!!.weeks.isNotEmpty())
+            assertTrue("${protocol.id} necesita URL", !protocol.source.primaryUrl.isNullOrBlank())
+            assertTrue("${protocol.id} necesita disclaimer", !protocol.source.disclaimer.isNullOrBlank())
+            assertTrue("${protocol.id} necesita fidelitySpec", protocol.fidelitySpec != null)
+            if (protocol.publicationStatus == ProtocolPublicationStatus.KPKN_NATIVE) {
+                assertTrue("${protocol.id} KPKN_NATIVE no declara exenciones", protocol.exemptions.isEmpty() && protocol.recipe!!.exemptions.isEmpty())
+            }
+        }
+        val hidden = PROTOCOL_LIBRARY.filter { it.publicationStatus == ProtocolPublicationStatus.HIDDEN_UNVERIFIED }
+        assertTrue(hidden.any { it.id == "gzcl-base" })
         val native = PROTOCOL_LIBRARY.single { it.id == "kpkn-native-sbd-4" }
         assertTrue(native.publicationStatus == ProtocolPublicationStatus.KPKN_NATIVE)
-        assertTrue(native.dayRecipes.size == 4)
-        assertTrue(native.dayRecipes.all { it.mainRestSeconds >= 180 })
-        assertTrue(native.dayRecipes.any { it.mainLiftConfigurationId == "low_bar_back_squat__barbell" })
-        assertTrue(native.dayRecipes.any { it.mainLiftConfigurationId == "bench_press__barbell" })
-        assertTrue(native.dayRecipes.any { it.mainLiftConfigurationId == "conventional_deadlift__bilateral__barbell" })
+        val ids = native.recipe!!.weeks.first().days.flatMap { it.slots.filter { slot -> slot.role == SlotRole.T1_MAIN }.map { it.lift.configurationId } }
+        assertTrue(ids.any { it == "low_bar_back_squat__barbell" || it == "high_bar_back_squat__barbell" })
+        assertTrue(ids.any { it == "bench_press__barbell" })
+        assertTrue(native.recipe!!.weeks.any { week ->
+            week.days.any { day -> day.slots.any { it.lift.configurationId == "conventional_deadlift__bilateral__barbell" } }
+        })
     }
 
     @Test
@@ -114,6 +150,7 @@ class ProtocolAuditTest {
             // Orden de goals razonable (acumulación → intensificación → realización).
             val ranks = working.map { goalRank(it.goal) }
             for (i in 1 until ranks.size) {
+                if (ranks[i - 1] == 4) continue // descarga intermedia, p. ej. TSA 9
                 if (ranks[i] + 1 < ranks[i - 1] && ranks[i] != 4) {
                     // Permite mesetas; solo falla si baja más de un escalón (salvo custom).
                     if (ranks[i - 1] - ranks[i] > 1) {
@@ -126,40 +163,22 @@ class ProtocolAuditTest {
     }
 
     @Test
-    fun protocolExerciseLibraryLiftsResolveToCatalogV2() {
+    fun visible_recipe_lifts_resolve_to_catalog_v2() {
         val failures = mutableListOf<String>()
-        val lifts = collectProtocolLifts()
-        assertTrue("No se recolectaron lifts de ProtocolExerciseLibrary", lifts.isNotEmpty())
-        lifts.forEach { lift ->
-            val candidates = listOfNotNull(
-                lift.exerciseDbId.trim().lowercase(),
-                lift.performanceProfileId.trim().lowercase(),
-            )
-            if (candidates.none { it in catalogIds }) {
-                failures += "${lift.name}: ni '${lift.exerciseDbId}' ni '${lift.performanceProfileId}' en catálogo v2"
+        val ids = collectRecipeConfigurationIds()
+        assertTrue("No se recolectaron configurationId de recetas", ids.isNotEmpty())
+        ids.forEach { configurationId ->
+            if (configurationId.lowercase() !in catalogIds) {
+                failures += configurationId
             }
         }
         assertTrue(failures.joinToString("\n"), failures.isEmpty())
     }
 
-    private fun collectProtocolLifts(): List<ProtocolLift> {
-        val out = mutableListOf<ProtocolLift>()
-        out += listOf(
-            ProtocolExerciseLibrary.SQUAT_MAIN,
-            ProtocolExerciseLibrary.LOW_BAR_SQUAT_MAIN,
-            ProtocolExerciseLibrary.SQUAT_TECHNIQUE,
-            ProtocolExerciseLibrary.BENCH_MAIN,
-            ProtocolExerciseLibrary.BENCH_TECHNIQUE,
-            ProtocolExerciseLibrary.DEADLIFT_MAIN,
-            ProtocolExerciseLibrary.DEADLIFT_TECHNIQUE,
-            ProtocolExerciseLibrary.OHP_MAIN,
-        )
-        ProtocolLiftFocus.entries.forEach { focus ->
-            val main = ProtocolExerciseLibrary.mainLiftFor(focus, 0)
-            out += main
-            out += ProtocolExerciseLibrary.techniqueVariantFor(main)
-            out += ProtocolExerciseLibrary.accessoriesFor(main, weekNumber = 1, count = 6)
-        }
-        return out.distinctBy { it.exerciseDbId }
-    }
+    private fun collectRecipeConfigurationIds(): Set<String> =
+        PROTOCOL_LIBRARY.flatMap { protocol ->
+            protocol.recipe?.weeks.orEmpty().flatMap { week ->
+                week.days.flatMap { day -> day.slots.map { it.lift.configurationId } }
+            }
+        }.toSet()
 }

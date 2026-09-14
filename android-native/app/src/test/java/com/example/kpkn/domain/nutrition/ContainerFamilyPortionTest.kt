@@ -23,13 +23,14 @@ class ContainerFamilyPortionTest {
     }
 
     @Test
-    fun `taza de avena es 40g seco y escala con override`() {
+    fun `taza de avena uses USDA rolled oats measure and scales with volume override`() {
         val original = SubjectivePortionEngine.currentUtensilOverrides()
         try {
             SubjectivePortionEngine.applyUtensilOverrides(emptyMap())
-            assertEquals(40.0, grams("una taza de avena"), 0.01)
+            // USDA: https://foodbuyingguide.fns.usda.gov/AltText/Grains_Grams_Conversions1
+            assertEquals(81.0, grams("una taza de avena"), 0.01)
             SubjectivePortionEngine.applyUtensilOverrides(mapOf("taza" to 300.0))
-            assertEquals(48.0, grams("una taza de avena"), 0.01)
+            assertEquals(101.25, grams("una taza de avena"), 0.01)
         } finally {
             SubjectivePortionEngine.applyUtensilOverrides(original)
         }

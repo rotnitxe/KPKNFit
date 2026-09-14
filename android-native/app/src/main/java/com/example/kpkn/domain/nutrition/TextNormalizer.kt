@@ -79,7 +79,9 @@ object TextNormalizer {
     )
 
     // ─── Repeated letters from voice/chat noise ───────────────────────────
-    private val REPEATED_VOWELS = Regex("""([aeiouáéíóúü])\1+""", RegexOption.IGNORE_CASE)
+    // Preserve the lexical double vowel in this household measure before
+    // treating repeated vowels elsewhere as voice/chat noise.
+    private val REPEATED_VOWELS = Regex("""\bscoops?\b|([aeiouáéíóúü])\1+""", RegexOption.IGNORE_CASE)
     private val REPEATED_VOWELS_3_PLUS = Regex("""([aeiouáéíóúü])\1{2,}""", RegexOption.IGNORE_CASE)
     private val REPEATED_LETTERS_3_PLUS = Regex("""([a-záéíóúüñ])\1{2,}""", RegexOption.IGNORE_CASE)
 
@@ -210,16 +212,30 @@ object TextNormalizer {
 
     // B8: nombres de platos que contienen números-palabra. Convertir "tres leches"
     // → "3 leches" rompería el plato; se enmascaran antes de convertNumberWords.
-    private val NUMBER_WORD_PLATES = listOf(
-        "tres leches", "cuatro leches", "mil hojas", "cuatro quesos",
-        "tres quesos", "dos quesos", "cinco quesos",
+    internal val numberWordFoodNames = listOf(
+        "tres leches", "cuatro leches", "mil hojas",
+    )
+
+    // A cheese count only names a recipe when its head is present. Bare
+    // "dos quesos" remains a count; "pizza cuatro quesos" is one recipe name.
+    private val CHEESE_RECIPE_NAME = Regex(
+        """\b(?:pizzas?|pastas?|salsas?)\s+(?:(?:de|a\s+los)\s+)?(?:dos|tres|cuatro|cinco)\s+quesos\b""",
+        RegexOption.IGNORE_CASE,
     )
 
     private val NUMBER_WORD_PLATES_REGEX by lazy {
         Regex(
-            NUMBER_WORD_PLATES.joinToString("|") { "\\b${Regex.escape(it)}\\b" },
+            numberWordFoodNames.joinToString("|") { "\\b${Regex.escape(it)}\\b" } + "|" + CHEESE_RECIPE_NAME.pattern,
             RegexOption.IGNORE_CASE,
         )
+    }
+
+    /** Shared lexical identity: these words name a dish, not its serving count. */
+    internal fun startsWithNumberWordFoodName(text: String): Boolean {
+        val trimmed = text.trim()
+        return CHEESE_RECIPE_NAME.find(trimmed)?.range?.first == 0 || numberWordFoodNames.any { name ->
+            trimmed.equals(name, ignoreCase = true) || trimmed.startsWith("$name ", ignoreCase = true)
+        }
     }
 
     private val SPACES_PATTERN = Regex("\\s+")
@@ -364,6 +380,23 @@ object TextNormalizer {
         var text = input.trim()
         if (text.isEmpty()) return text
 
+        // Decimal commas and written fractions belong to quantities, not lists.
+        text = text.replace(Regex("""(?<=\d),(?=\d)"""), ".")
+        text = text.replace(Regex("""\b(\d+)\s+(\d+)\s*/\s*(\d+)\b""")) { match ->
+            val denominator = match.groupValues[3].toDouble()
+            if (denominator == 0.0) match.value else
+                (match.groupValues[1].toDouble() + match.groupValues[2].toDouble() / denominator).toString()
+        }
+        text = text.replace(Regex("""(?<![\d/])(\d+)\s*/\s*(\d+)(?![\d/])""")) { match ->
+            val denominator = match.groupValues[2].toDouble()
+            if (denominator == 0.0) match.value else
+                (match.groupValues[1].toDouble() / denominator).toString()
+        }
+        // Strip only meal-reporting prefixes. Negation stays attached to the food.
+        text = text.replace(
+            Regex("""(^|[,;\n]\s*)(?:(?:hoy|ayer|reci[eé]n)\s+)?(no\s+)?(?:me\s+)?(?:com[ií]|almorc[eé]|cen[eé]|desayun[eé]|tom[eé]|he\s+comido)\s+""", RegexOption.IGNORE_CASE),
+        ) { it.groupValues[1] + it.groupValues[2] }
+
         // 1. Strip emojis → replace with words
         text = replaceEmojis(text)
 
@@ -400,7 +433,7 @@ object TextNormalizer {
 
         // 8. Collapse repeated vowels (polloooo → pollo). Va DESPUÉS del mapeo EN:
         //    "coffee" tiene "ee" legítimo que el colapso destruiría antes de traducirse.
-        text = REPEATED_VOWELS.replace(text) { it.groupValues[1] }
+        text = REPEATED_VOWELS.replace(text) { it.groupValues[1].ifEmpty { it.value } }
 
         // 9. Expand fractional patterns
         text = expandFractions(text)
@@ -570,12 +603,40 @@ object TextNormalizer {
     }
 
     private fun convertNumberWords(text: String): String {
-        var result = text
+        // A spoken number is one expression: "ciento cincuenta" is 150,
+        // and its internal "y" must never become a food-list connector.
+        val vocabulary = NUMBER_WORDS + mapOf(
+            "once" to 11, "veintiuno" to 21, "veintiun" to 21, "veintiuna" to 21,
+            "veintidos" to 22, "veintidós" to 22, "veintitres" to 23, "veintitrés" to 23,
+            "veinticuatro" to 24, "veinticinco" to 25, "veintiseis" to 26, "veintiséis" to 26,
+            "veintisiete" to 27, "veintiocho" to 28, "veintinueve" to 29,
+        )
+        val wordPattern = vocabulary.keys.sortedByDescending { it.length }.joinToString("|") { Regex.escape(it) }
+        val compound = Regex("""\b(?:$wordPattern)(?:\s+(?:y\s+)?(?:$wordPattern))+(?![\p{L}])""", RegexOption.IGNORE_CASE)
+        var result = compound.replace(text) { match ->
+            val values = match.value.lowercase().split(Regex("""\s+"""))
+                .filter { it != "y" }.mapNotNull(vocabulary::get)
+            // Do not interpret a list of independent counts ("dos y tres") as 5.
+            if (values.first() < 20 && values.first() != 1000 && values.size > 1) {
+                match.value
+            } else {
+                var total = 0
+                var group = 0
+                for (value in values) {
+                    if (value == 1000) { total += group.coerceAtLeast(1) * 1000; group = 0 }
+                    else group += value
+                }
+                (total + group).toString()
+            }
+        }
         val words = text.lowercase().split(SPACES_PATTERN)
         for ((word, regex, numStr) in NUMBER_WORD_REGEX_LIST) {
             if (word in words) {
                 result = result.replace(regex, numStr)
             }
+        }
+        for ((word, number) in vocabulary.filterKeys { it !in NUMBER_WORDS && it != "once" }) {
+            result = result.replace(Regex("""\b${Regex.escape(word)}\b""", RegexOption.IGNORE_CASE), number.toString())
         }
         return result
     }

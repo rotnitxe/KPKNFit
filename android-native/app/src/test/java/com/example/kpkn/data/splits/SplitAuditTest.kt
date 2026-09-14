@@ -182,16 +182,40 @@ class SplitAuditTest {
     @Test
     fun unverified_branded_splits_are_not_publicly_selectable() {
         val hiddenIds = setOf(
-            "texas_method", "smolov_base", "sheiko_3day", "bulgarian_lite",
-            "westside_conjugate", "korte_3x3", "deathbench",
+            "bulgarian_lite", "sheiko_4day", "deathbench_spec", "conjugate_3day",
+            "chinese_hybrid", "coan_split", "bill_starr_5x5",
+        )
+        val publishedPl = setOf(
+            "texas_method", "westside_conjugate", "sheiko_3day", "nsuns_4day",
+            "cube_method", "korte_3x3", "531_bbb", "madcow_5x5", "smolov_base", "pl_hf_bench",
         )
         assertTrue(hiddenIds.all { id -> SPLIT_TEMPLATES.none { it.id == id && it.isVisibleForApplication } })
+        assertTrue(publishedPl.all { id -> SPLIT_TEMPLATES.any { it.id == id && it.isVisibleForApplication } })
         assertTrue(SPLIT_TEMPLATES.any { it.id == "pl_sbd_x3" && it.isVisibleForApplication })
         assertTrue(SPLIT_TEMPLATES.any { it.id == "pl_classic_4" && it.isVisibleForApplication })
     }
 
     @Test
     fun visible_powerlifting_splits_have_exact_day_recipes_and_competition_lifts() {
+        val publishedPl = SPLIT_TEMPLATES.filter {
+            it.isVisibleForApplication && SplitTag.POWERLIFTING in it.tags
+        }
+        assertTrue("Debe haber splits PL publicados", publishedPl.isNotEmpty())
+        publishedPl.forEach { split ->
+            split.pattern.filterNot { it.equals("Descanso", true) }.forEach { dayLabel ->
+                val recipes = SessionTemplateCatalogPolicy.templatesForSplitDay(
+                    split.id,
+                    dayLabel,
+                    SESSION_TEMPLATES_SYSTEM,
+                )
+                assertTrue("${split.id}/$dayLabel debe tener receta exacta", recipes.isNotEmpty())
+                val recipe = recipes.first()
+                assertTrue(
+                    "${split.id}/$dayLabel no puede exponer Smith",
+                    recipe.session.allExercises().none { it.exerciseDbId?.contains("smith", true) == true },
+                )
+            }
+        }
         listOf("pl_sbd_x3", "pl_classic_4").forEach { splitId ->
             val split = SPLIT_TEMPLATES.first { it.id == splitId }
             split.pattern.filterNot { it.equals("Descanso", true) }.forEach { dayLabel ->
@@ -200,11 +224,8 @@ class SplitAuditTest {
                     dayLabel,
                     SESSION_TEMPLATES_SYSTEM,
                 )
-                assertTrue("$splitId/$dayLabel debe tener receta exacta", recipes.isNotEmpty())
-                val recipe = recipes.first()
-                val main = recipe.session.allExercises().first()
+                val main = recipes.first().session.allExercises().first()
                 assertTrue("$splitId/$dayLabel requiere lift de competición", main.isCompetitionLift)
-                assertTrue("$splitId/$dayLabel no puede exponer Smith", recipe.session.allExercises().none { it.exerciseDbId?.contains("smith", true) == true })
                 assertTrue(
                     "$splitId/$dayLabel principal requiere descanso >=180s",
                     (main.restTime ?: 0) >= 180,
@@ -215,11 +236,19 @@ class SplitAuditTest {
 
     @Test
     fun powerlifting_template_difficulty_matches_published_split_contract() {
-        val classic = SESSION_TEMPLATES_SYSTEM.filter { "pl_classic_4" in it.splitIds }
-        val sbd = SESSION_TEMPLATES_SYSTEM.filter { "pl_sbd_x3" in it.splitIds }
-        assertEquals("Clásico 4 debe exponer sus cuatro recetas", 4, classic.size)
+        val classic = SESSION_TEMPLATES_SYSTEM.filter {
+            "pl_classic_4" in it.splitIds && !it.id.contains("recipe-pl")
+        }
+        val sbd = SESSION_TEMPLATES_SYSTEM.filter {
+            "pl_sbd_x3" in it.splitIds && !it.id.contains("recipe-pl")
+        }
+        assertEquals("Clásico 4 debe exponer sus cuatro recetas base", 4, classic.size)
         assertTrue("Clásico 4 es un contrato intermedio", classic.all { it.difficulty == Difficulty.INTERMEDIO })
         assertEquals("SBD x3 debe conservar el contrato avanzado", 3, sbd.size)
         assertTrue("SBD x3 es avanzado", sbd.all { it.difficulty == Difficulty.AVANZADO })
+        assertTrue(
+            "F5 añade arquetipos recipe-pl sobre el clásico 4",
+            SESSION_TEMPLATES_SYSTEM.any { it.id.contains("recipe-pl") && "pl_classic_4" in it.splitIds },
+        )
     }
 }

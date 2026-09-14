@@ -20,6 +20,8 @@ import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -106,5 +108,22 @@ class ProgramsViewModelTest {
         assertEquals(ProgramStructure.SIMPLE, created.structure)
         assertEquals("Macrociclo 1", created.macrocycles.first().name)
         assertEquals("Bloque 1", created.macrocycles.first().blocks.first().name)
+    }
+
+    @Test
+    fun createProgramFromProtocol_materializes_recipe_and_training_max() {
+        com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
+        val vm = ProgramsViewModel(ApplicationProvider.getApplicationContext())
+        val profile = com.example.kpkn.data.models.PowerliftingProfile(
+            squat1RM = 200.0,
+            bench1RM = 140.0,
+            deadlift1RM = 240.0,
+        )
+        val id = vm.createProgramFromProtocol("kpkn-native-sbd-4", profile)
+        val created = ProgramRepository.getInstance().getProgramById(id)!!
+        assertEquals(ProgramStructure.COMPLEX, created.structure)
+        assertNotNull(created.sourceRecipe)
+        assertTrue(created.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.flatMap { it.sessions }.isNotEmpty())
+        assertEquals(180.0, created.powerliftingProfile?.squatTM ?: -1.0, 0.01)
     }
 }

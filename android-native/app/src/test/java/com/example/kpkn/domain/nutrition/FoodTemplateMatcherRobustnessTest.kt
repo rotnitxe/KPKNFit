@@ -18,7 +18,7 @@ class FoodTemplateMatcherRobustnessTest {
         id = "t1",
         name = "3 empanadas",
         foods = listOf(
-            LoggedFood(foodName = "empanada", amount = 1.0, quantity = 3.0),
+            LoggedFood(foodName = "empanada", amount = 540.0, quantity = 3.0),
         ),
     )
 

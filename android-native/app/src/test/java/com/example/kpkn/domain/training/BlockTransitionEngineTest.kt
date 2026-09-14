@@ -161,6 +161,35 @@ class BlockTransitionEngineTest {
     }
 
     @Test
+    fun augeGateRequiresRealReadinessScore() {
+        val program = complexProgram()
+        val logs = completeLogs(program, "b0")
+        val settings = Settings(algorithmSettings = AlgorithmSettings(augeAutoDeload = true))
+        val withoutReadiness = BlockTransitionEngine.evaluate(
+            program = program,
+            completedBlockId = "b0",
+            logs = logs,
+            context = BlockTransitionEngine.TransitionContext(
+                cumulativeFatigue = 90.0,
+                readinessScore = null,
+                settings = settings,
+            ),
+        )
+        assertEquals(BlockTransitionEngine.DecisionKind.ADVANCE_NEXT_BLOCK, withoutReadiness.kind)
+        val withReadiness = BlockTransitionEngine.evaluate(
+            program = program,
+            completedBlockId = "b0",
+            logs = logs,
+            context = BlockTransitionEngine.TransitionContext(
+                cumulativeFatigue = 90.0,
+                readinessScore = 20,
+                settings = settings,
+            ),
+        )
+        assertEquals(BlockTransitionEngine.DecisionKind.INSERT_DELOAD, withReadiness.kind)
+    }
+
+    @Test
     fun autoDeloadScalesAllExecutableSessionVariants() {
         val base = complexProgram()
         val originalWeek = base.macrocycles.first().blocks.first().mesocycles.first().weeks.first()

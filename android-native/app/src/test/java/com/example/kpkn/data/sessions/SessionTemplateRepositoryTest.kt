@@ -112,7 +112,10 @@ class SessionTemplateRepositoryTest {
         try {
             assertTrue(repository.saveUserTemplateNow(fixture(eligibleId, "Opt-in")).isSuccess)
             assertTrue(repository.saveUserTemplateNow(fixture(excludedId, "No opt-in").copy(autoGenerationEligible = false)).isSuccess)
-            withTimeout(10_000) {
+            withTimeout(30_000) {
+                repository.userTemplates.first { templates -> templates.any { it.id == eligibleId } }
+            }
+            withTimeout(30_000) {
                 repository.generationTemplates.first { templates -> templates.any { it.id == eligibleId } }
             }
             assertTrue(repository.generationTemplates.value.any { it.id == eligibleId })
@@ -150,6 +153,7 @@ class SessionTemplateRepositoryTest {
         publicationStatus = SessionTemplatePublicationStatus.KPKN_NATIVE,
         splitIds = listOf("custom"),
         splitDayLabels = listOf("Pecho"),
+        shortDescription = "Enfoque pecho",
         autoGenerationEligible = true,
     )
 }

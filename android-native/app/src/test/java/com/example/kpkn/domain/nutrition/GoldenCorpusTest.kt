@@ -100,19 +100,19 @@ class GoldenCorpusTest {
             ),
         ),
 
+        // Product restrictions stay in the identity. The historical oracle
+        // incorrectly accepted generic milk/bread plus an excluded ingredient.
         // ─── Negación ──────────────────────────────────────────────────────
         GoldenCase(
             "café con leche sin azúcar",
             listOf(
-                Expectation("café con leche"),
-                Expectation("azúcar", excluded = true),
+                Expectation("café con leche sin azúcar"),
             ),
         ),
         GoldenCase(
             "té sin azúcar",
             listOf(
-                Expectation("té"),
-                Expectation("azúcar", excluded = true),
+                Expectation("té sin azúcar"),
             ),
         ),
         GoldenCase(
@@ -267,8 +267,7 @@ class GoldenCorpusTest {
         GoldenCase(
             "coffee without sugar",
             listOf(
-                Expectation("cafe"),
-                Expectation("azucar", excluded = true),
+                Expectation("cafe sin azucar"),
             ),
         ),
         GoldenCase(
@@ -308,7 +307,8 @@ class GoldenCorpusTest {
         GoldenCase(
             "tres leches con crema",
             listOf(
-                Expectation("leches", quantity = 3.0),
+                // Historical oracle mistook the dessert's name for three milks.
+                Expectation("tres leches", quantity = 1.0),
                 Expectation("crema"),
             ),
         ),
@@ -426,13 +426,14 @@ class GoldenCorpusTest {
         GoldenCase("un bol de yogurt", listOf(Expectation("yogurt", gramsPositive = true, intent = AmountIntent.RESOLVED_SUBJECTIVE))),
         GoldenCase("1/4 de taza de avena", listOf(Expectation("avena", quantity = 0.25))),
         GoldenCase("3/4 de taza de leche", listOf(Expectation("leche", quantity = 0.75))),
-        GoldenCase("100 ml de leche", listOf(Expectation("leche", grams = 100.0, intent = AmountIntent.EXPLICIT_MASS))),
+        // Canonical amounts are grams: the old oracle incorrectly treated ml as g.
+        GoldenCase("100 ml de leche", listOf(Expectation("leche", grams = 103.0, intent = AmountIntent.EXPLICIT_MASS))),
         GoldenCase("150 g de carne molida", listOf(Expectation("carne molida", grams = 150.0, intent = AmountIntent.EXPLICIT_MASS))),
         GoldenCase("300 ml de agua", listOf(Expectation("agua", grams = 300.0, intent = AmountIntent.EXPLICIT_MASS))),
         GoldenCase("10 g de almendras", listOf(Expectation("almendras", grams = 10.0, intent = AmountIntent.EXPLICIT_MASS))),
         GoldenCase("50 g de queso", listOf(Expectation("queso", grams = 50.0, intent = AmountIntent.EXPLICIT_MASS))),
         GoldenCase("2 litros de agua", listOf(Expectation("agua", grams = 2000.0, intent = AmountIntent.EXPLICIT_MASS))),
-        GoldenCase("un litro de leche", listOf(Expectation("leche", grams = 1000.0, intent = AmountIntent.EXPLICIT_MASS))),
+        GoldenCase("un litro de leche", listOf(Expectation("leche", grams = 1030.0, intent = AmountIntent.EXPLICIT_MASS))),
         GoldenCase("dos rebanadas de pan", listOf(Expectation("pan", quantity = 2.0, gramsPositive = true, intent = AmountIntent.RESOLVED_SUBJECTIVE))),
         GoldenCase("una tajada de queque", listOf(Expectation("queque", gramsPositive = true, intent = AmountIntent.RESOLVED_SUBJECTIVE))),
         GoldenCase("un puñado de almendras", listOf(Expectation("almendras", gramsPositive = true, intent = AmountIntent.RESOLVED_SUBJECTIVE))),
@@ -508,17 +509,19 @@ class GoldenCorpusTest {
         GoldenCase("juguito de naranja", listOf(Expectation("juguito de naranja"))),
         GoldenCase("pan con queso y tomate", listOf(Expectation("pan con queso"), Expectation("tomate"))),
         GoldenCase("mil hojas", listOf(Expectation("mil hojas"))),
-        GoldenCase("cuatro quesos", listOf(Expectation("quesos", quantity = 4.0))),
-        GoldenCase("dos quesos", listOf(Expectation("quesos", quantity = 2.0))),
+        // Bare cheese expressions are counts. They now normalize exactly like
+        // digit input ("4 quesos" -> canonical "queso"), preserving 4 and 2.
+        GoldenCase("cuatro quesos", listOf(Expectation("queso", quantity = 4.0))),
+        GoldenCase("dos quesos", listOf(Expectation("queso", quantity = 2.0))),
 
         // ─── E15 · Negaciones ───────────────────────────────────────────────
         GoldenCase("arroz sin sal", listOf(Expectation("arroz"), Expectation("sal", excluded = true))),
         GoldenCase("ensalada sin tomate", listOf(Expectation("ensalada"), Expectation("tomate", excluded = true))),
         GoldenCase("pollo sin piel", listOf(Expectation("pollo"))),
-        GoldenCase("queso sin lactosa", listOf(Expectation("queso"), Expectation("lactosa", excluded = true))),
-        GoldenCase("leche sin lactosa", listOf(Expectation("leche"), Expectation("lactosa", excluded = true))),
-        GoldenCase("pan sin gluten", listOf(Expectation("pan"), Expectation("gluten", excluded = true))),
-        GoldenCase("jugo sin azúcar", listOf(Expectation("jugo"), Expectation("azúcar", excluded = true))),
+        GoldenCase("queso sin lactosa", listOf(Expectation("queso sin lactosa"))),
+        GoldenCase("leche sin lactosa", listOf(Expectation("leche sin lactosa"))),
+        GoldenCase("pan sin gluten", listOf(Expectation("pan sin gluten"))),
+        GoldenCase("jugo sin azúcar", listOf(Expectation("jugo sin azúcar"))),
 
         // ─── E15 · Comidas multi-alimento ───────────────────────────────────
         GoldenCase("arroz con pollo y ensalada", listOf(Expectation("arroz"), Expectation("pollo"), Expectation("ensalada"))),
@@ -560,7 +563,8 @@ class GoldenCorpusTest {
         GoldenCase("un vaso de vino", listOf(Expectation("vino", gramsPositive = true, intent = AmountIntent.RESOLVED_SUBJECTIVE))),
         GoldenCase("una barra de chocolate", listOf(Expectation("chocolate", gramsPositive = true, intent = AmountIntent.RESOLVED_SUBJECTIVE))),
         GoldenCase("una cucharadita de miel", listOf(Expectation("miel", gramsPositive = true, intent = AmountIntent.RESOLVED_SUBJECTIVE))),
-        GoldenCase("media cucharadita de sal", listOf(Expectation("sal", gramsPositive = true, intent = AmountIntent.RESOLVED_SUBJECTIVE))),
+        // A half utensil is quantity 0.5; the old oracle silently defaulted to 1.
+        GoldenCase("media cucharadita de sal", listOf(Expectation("sal", quantity = 0.5, gramsPositive = true, intent = AmountIntent.RESOLVED_SUBJECTIVE))),
         GoldenCase("una cucharada de azúcar", listOf(Expectation("azúcar", gramsPositive = true, intent = AmountIntent.RESOLVED_SUBJECTIVE))),
 
         // ─── E15 · Combinaciones sencillas ──────────────────────────────────

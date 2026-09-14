@@ -11,7 +11,7 @@ This document provides a comprehensive technical mapping of the native Android K
 
 *   **Language:** Kotlin 2.2.10 (native Android)
 *   **UI Framework:** Jetpack Compose (BOM 2025.07.00, Material 3) + Haze (glassmorphism)
-*   **Database:** Room 2.7.1 (SQLite) with FTS4 full-text search — database **version 19**
+*   **Database:** Room 2.7.1 (SQLite) with FTS4 full-text search — database **version 25**
 *   **Concurrency:** Kotlin Coroutines & Flows (reactive UI updates)
 *   **Dependency Injection:** Manual constructor injection orchestrated in `MainActivity.kt` (no Hilt/Dagger overhead)
 *   **Build:** Single module `:app`; product flavors `base` (minSdk 24) and `health` (minSdk 26, adds Health Connect); `compileSdk 36`, `targetSdk 35`
@@ -22,7 +22,7 @@ This document provides a comprehensive technical mapping of the native Android K
 
 ## 🗄️ 2. Database Schema & Data Persistence
 
-KPKN Fit uses a **local-first (offline-first)** data architecture. The Room database is defined in `data/db/KpknDatabase.kt` (**version 19**, `exportSchema = false`). Most complex objects are serialized to JSON strings using Kotlinx Serialization and stored directly in a `data` text column.
+KPKN Fit uses a **local-first (offline-first)** data architecture. The Room database is defined in `data/db/KpknDatabase.kt` (**version 25**, `exportSchema = true`). Most complex objects are serialized to JSON strings using Kotlinx Serialization and stored directly in a `data` text column. Recetas de programa (`TrainingPlanRecipe`), TM/`PowerliftingProfile` y `autoregulationMode` viven en el JSON de `ProgramEntity` (sin bump de columnas).
 
 ### 2.1 SQLite Table Definitions
 
@@ -196,7 +196,12 @@ for regression evidence and validation status.
 
 ### 3.3 Training Engine (`domain/training/`)
 
-*   **`LoopEngine.kt`:** Implements the routine progression engine, managing set types (Normal, Warmup, Drop-set, Myo-reps, Failure) and tracking target volume metrics.
+*   **`PlanMaterializer.kt`:** Compiles a `TrainingPlanRecipe` (week → day → slot recipes with %TM/RPE/AMRAP) into an executable `Program`. Strict: visible content must pass `SessionCompositionPolicy` (H1–H10 / S / W / block contracts). Deterministic given the same `IdProvider`. Rotates `startDay` from the recipe weekday.
+*   **`SessionCompositionPolicy.kt` + `CompositionTaxonomy.kt` + `ProgramRecipeValidator.kt`:** Hard rules for session order (T1/T2 compound before isolation/core), pattern/muscle crowding, replacement groups, axial budget, rest floors, and weekly landmarks. Catalog `AISLADO` does **not** turn a compound pattern (hip thrust, squat, hinge, press, row) into an isolation. Third-party protocols may declare matrix 2.2 exemptions; KPKN_NATIVE has none.
+*   **`ProgramAutoregulationEngine.kt`:** Weekly AUGE proposals (`CONFIRM_AUTOREGULATION`) from real `readinessScore`, fatigue, AMRAP vs target and load advisory. Default mode is propose-and-confirm; per-program toggle can auto-apply. Hooked from `ProgramProgressEngine` on COMPLEX block boundaries and SIMPLE week completion. `ProgramRepository.buildTransitionContext` must feed a real readiness score — never `null` in production.
+*   **`ProgramProtocolEngine.kt`:** Applies a visible protocol **only** if it has a day-by-day recipe; delegates to `PlanMaterializer`. Hidden/unverified definitions are rejected. Generic synthesis by day label is gone and must not be reintroduced under a third-party name.
+*   **`ProgramTemplateEngine.kt` / `ProgramProgressEngine.kt` / `BlockProgressionEngine.kt` / `BlockTransitionEngine.kt`:** Advanced templates, week/block advance, and deload/peak gates. `PeriodizationEngine.prescriptionFor` remains for in-block progression diffs of existing sessions, not as the source of published protocol sessions.
+*   **`LoopEngine.kt`:** Routine progression engine (Normal, Warmup, Drop-set, Myo-reps, Failure) and target volume metrics.
 *   **`VolumeCalculator.kt`:** Weekly/per-muscle volume analytics.
 *   **`ProgramCalendarEngine.kt` / `ProgramAnalyticsEngine.kt` / `ProgramDetailHelpers.kt`:** Microcycle calendar and program analytics.
 *   **`SplitApplicationEngine.kt`:** Applies weekly split templates to programs.

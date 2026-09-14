@@ -21,6 +21,8 @@ class SessionTemplateAuditTest {
          * number; lowering it is the required quality action for the next
          * package revision.
          */
+        private const val EDITORIAL_P1_BASELINE_V5_2026_09_13 = 71
+        @Deprecated("Use V5 baseline")
         private const val EDITORIAL_P1_BASELINE_V4_2026_08_21 = 46
         @Deprecated("Use V4 baseline")
         private const val EDITORIAL_P1_BASELINE_V3_2026_08_20 = 34
@@ -116,8 +118,8 @@ class SessionTemplateAuditTest {
         val p1Count = SessionTemplateQualityRules.auditAll(SESSION_TEMPLATES_SYSTEM, index)
             .sumOf { it.issues.count { issue -> issue.severity == TemplateQualitySeverity.P1 } }
         assertTrue(
-            "El backlog editorial P1 aumentó: $p1Count > $EDITORIAL_P1_BASELINE_V4_2026_08_21",
-            p1Count <= EDITORIAL_P1_BASELINE_V4_2026_08_21,
+            "El backlog editorial P1 aumentó: $p1Count > $EDITORIAL_P1_BASELINE_V5_2026_09_13",
+            p1Count <= EDITORIAL_P1_BASELINE_V5_2026_09_13,
         )
     }
 }

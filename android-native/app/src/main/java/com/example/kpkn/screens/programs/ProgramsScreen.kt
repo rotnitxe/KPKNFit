@@ -38,15 +38,16 @@ import com.example.kpkn.ui.components.SwipeToDeleteCard
 import com.example.kpkn.ui.components.icons.DumbbellIcon
 import com.example.kpkn.ui.components.KpknAlertDialog
 
-/**
- * ProgramsScreen — List of training programs (active + inactive).
- * Equivalent to PWA: ProgramsView.tsx
- */
+object ProgramCreationRequests {
+    @Volatile var openSheet: Boolean = false
+}
 @Composable
 fun ProgramsScreen(
     onNavigateToProgram: (String) -> Unit,
     onCreateProgram: () -> Unit,
     viewModel: ProgramsViewModel = viewModel(),
+    openCreateSheetOnStart: Boolean = false,
+    onCreateSheetOpened: () -> Unit = {},
 ) {
     val programs by viewModel.programs.collectAsState()
     val archivedPrograms by viewModel.archivedPrograms.collectAsState()
@@ -56,6 +57,16 @@ fun ProgramsScreen(
     val isFeaturedPaused by viewModel.isFeaturedPaused.collectAsState()
     var menuProgram by remember { mutableStateOf<Program?>(null) }
     var showCreateSheet by remember { mutableStateOf(false) }
+    var selectedProtocol by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
+    var protocolForTm by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
+
+    LaunchedEffect(openCreateSheetOnStart, Unit) {
+        if (openCreateSheetOnStart || ProgramCreationRequests.openSheet) {
+            showCreateSheet = true
+            ProgramCreationRequests.openSheet = false
+            onCreateSheetOpened()
+        }
+    }
 
     if (programs.isEmpty()) {
         EmptyStateView(
@@ -204,6 +215,36 @@ fun ProgramsScreen(
             onCreateFromTemplate = { template ->
                 val id = viewModel.createProgramFromTemplate(template.id)
                 showCreateSheet = false
+                onNavigateToProgram(id)
+            },
+            onSelectProtocol = { protocol ->
+                showCreateSheet = false
+                selectedProtocol = protocol
+            },
+        )
+    }
+    selectedProtocol?.let { protocol ->
+        ProtocolDetailSheet(
+            protocol = protocol,
+            onDismiss = { selectedProtocol = null },
+            onContinue = {
+                selectedProtocol = null
+                protocolForTm = protocol
+            },
+        )
+    }
+    protocolForTm?.let { protocol ->
+        TrainingMaxWizard(
+            initial = viewModel.estimatedProfileFromHistory(),
+            trainingMaxPercent = protocol.recipe?.trainingMaxPercent ?: 0.90,
+            onDismiss = {
+                val id = viewModel.createProgramFromProtocol(protocol.id)
+                protocolForTm = null
+                onNavigateToProgram(id)
+            },
+            onConfirm = { profile ->
+                val id = viewModel.createProgramFromProtocol(protocol.id, profile)
+                protocolForTm = null
                 onNavigateToProgram(id)
             },
         )

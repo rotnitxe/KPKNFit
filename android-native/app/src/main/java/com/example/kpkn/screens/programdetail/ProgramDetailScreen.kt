@@ -36,7 +36,9 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.ringScore
 import com.example.kpkn.data.models.KeyDateType
+import com.example.kpkn.data.models.PendingProgramActionType
 import com.example.kpkn.data.models.isSimpleTemporalProgram
+import com.example.kpkn.screens.programs.TrainingMaxWizard
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.LoopEngine
 import com.example.kpkn.domain.training.ProgramAnalyticsEngine
@@ -105,6 +107,7 @@ fun ProgramDetailScreen(
     var notifiedLoopWeekId by remember { mutableStateOf<String?>(null) }
     var showSplitPage by rememberSaveable { mutableStateOf(false) }
     var showOneRmDialog by rememberSaveable { mutableStateOf(false) }
+    var showTmEditor by rememberSaveable { mutableStateOf(false) }
     var squat1RmText by rememberSaveable { mutableStateOf("") }
     var bench1RmText by rememberSaveable { mutableStateOf("") }
     var deadlift1RmText by rememberSaveable { mutableStateOf("") }
@@ -271,6 +274,7 @@ fun ProgramDetailScreen(
                 onOpenProgram = onOpenProgram,
                 onOpenSplitPage = { showSplitPage = true },
                 onOpenOneRmDialog = { showOneRmDialog = true },
+                onOpenTmEditor = { showTmEditor = true },
             )
         }
         }
@@ -372,6 +376,18 @@ fun ProgramDetailScreen(
             },
         )
     }
+
+    if (showTmEditor) {
+        TrainingMaxWizard(
+            initial = p.powerliftingProfile,
+            confirmLabel = "Guardar TM",
+            onDismiss = { showTmEditor = false },
+            onConfirm = { profile ->
+                viewModel.updatePowerliftingProfile(profile)
+                showTmEditor = false
+            },
+        )
+    }
 }
 
 @Composable
@@ -409,7 +425,7 @@ private fun CompactStructureSubTabs(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             items.forEach { (label, value) ->
-                val selected = structureSubTab == value || (value == StructureSubTab.MACROCICLO && structureSubTab == StructureSubTab.LOOPS)
+                val selected = structureSubTab == value
                 Surface(
                     modifier = Modifier
                         .weight(1f)
@@ -453,6 +469,7 @@ private fun TrainingPanel(
     onOpenProgram: (String) -> Unit = {},
     onOpenSplitPage: () -> Unit = {},
     onOpenOneRmDialog: () -> Unit = {},
+    onOpenTmEditor: () -> Unit = {},
 ) {
     val currentWeekId by viewModel.activeProgramState.collectAsState()
     val editorUiState by viewModel.uiState.collectAsState()
@@ -601,7 +618,14 @@ private fun TrainingPanel(
                         )
                         Column(horizontalAlignment = Alignment.End) {
                             if (banner.requiresExplicitConfirmation) {
-                                if (banner.kind == BlockTransitionEngine.DecisionKind.INSERT_DELOAD) {
+                                if (banner.pendingType == PendingProgramActionType.CONFIRM_AUTOREGULATION) {
+                                    TextButton(onClick = { viewModel.acceptAutoregulation() }) {
+                                        Text("ACEPTAR AUGE")
+                                    }
+                                    TextButton(onClick = { viewModel.rejectAutoregulation() }) {
+                                        Text("RECHAZAR")
+                                    }
+                                } else if (banner.kind == BlockTransitionEngine.DecisionKind.INSERT_DELOAD) {
                                     TextButton(onClick = { viewModel.acceptPendingDeload() }) {
                                         Text("ACEPTAR DESCARGA")
                                     }
@@ -633,6 +657,16 @@ private fun TrainingPanel(
 
             Spacer(modifier = Modifier.height(8.dp))
         }
+
+        AutoregulationControlCard(
+            program = program,
+            onModeChange = { viewModel.setAutoregulationMode(it) },
+            onAccept = { viewModel.acceptAutoregulation() },
+            onAcceptProposal = { viewModel.acceptAutoregulation(it) },
+            onReject = { viewModel.rejectAutoregulation() },
+            onOpenTm = onOpenTmEditor,
+            onRematerialize = { viewModel.rematerializePending() },
+        )
 
         if (structureSubTab == StructureSubTab.SEMANA) {
             TextButton(
@@ -695,7 +729,7 @@ private fun TrainingPanel(
                     },
                 )
             }
-            StructureSubTab.MACROCICLO, StructureSubTab.LOOPS -> MacrocycleEditor(
+            StructureSubTab.MACROCICLO -> MacrocycleEditor(
                 program = program,
                 onUpdateProgram = { viewModel.updateProgram(it) },
                 onFocusWeek = ::focusWeek,
@@ -786,7 +820,6 @@ private fun TrainingPanel(
                     programLogs = progLogs,
                 )
             }
-            else -> {} // SPLIT — movido a botón dentro de Semana
         }
 
         Spacer(modifier = Modifier.height(120.dp))
@@ -1142,6 +1175,85 @@ private fun locateCompetitionWeekDay(program: Program, keyDate: ProgramKeyDate):
         }
     }
     return null
+}
+
+@Composable
+private fun AutoregulationControlCard(
+    program: Program,
+    onModeChange: (com.example.kpkn.data.models.AutoregulationMode) -> Unit,
+    onAccept: () -> Unit,
+    onAcceptProposal: (com.example.kpkn.data.models.AutoregulationProposal) -> Unit,
+    onReject: () -> Unit,
+    onOpenTm: () -> Unit,
+    onRematerialize: () -> Unit,
+) {
+    val mode = program.autoregulationMode
+    val pending = program.runState?.pendingAction
+    val hasAutoregPending = pending?.type == PendingProgramActionType.CONFIRM_AUTOREGULATION
+    val needsRematerialize = program.macrocycles.any { macro ->
+        macro.blocks.any { it.materializationPending }
+    }
+    val tm = program.powerliftingProfile
+    val recipe = program.sourceRecipe
+    if (recipe == null && tm == null && !hasAutoregPending && !needsRematerialize) return
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+    ) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("AUTORREGULACIÓN AUGE", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color.White.copy(alpha = 0.55f))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(
+                    selected = mode == com.example.kpkn.data.models.AutoregulationMode.PROPOSE,
+                    onClick = { onModeChange(com.example.kpkn.data.models.AutoregulationMode.PROPOSE) },
+                    label = { Text("PROPONER") },
+                )
+                FilterChip(
+                    selected = mode == com.example.kpkn.data.models.AutoregulationMode.AUTO,
+                    onClick = { onModeChange(com.example.kpkn.data.models.AutoregulationMode.AUTO) },
+                    label = { Text("AUTO") },
+                )
+                FilterChip(
+                    selected = mode == com.example.kpkn.data.models.AutoregulationMode.OFF,
+                    onClick = { onModeChange(com.example.kpkn.data.models.AutoregulationMode.OFF) },
+                    label = { Text("OFF") },
+                )
+            }
+            if (tm != null) {
+                Text(
+                    "TM: SQ ${tm.squatTM?.let { "%.1f".format(it) } ?: "—"} · BP ${tm.benchTM?.let { "%.1f".format(it) } ?: "—"} · DL ${tm.deadliftTM?.let { "%.1f".format(it) } ?: "—"}",
+                    fontSize = 12.sp,
+                    color = Color.White.copy(alpha = 0.75f),
+                )
+            }
+            TextButton(onClick = onOpenTm) { Text("EDITAR TRAINING MAX") }
+            if (hasAutoregPending) {
+                Text(pending.message, fontSize = 13.sp, color = Color.White.copy(alpha = 0.85f))
+                pending.proposals.forEach { proposal ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            "• ${proposal.explanation}",
+                            fontSize = 12.sp,
+                            color = Color.White.copy(alpha = 0.7f),
+                            modifier = Modifier.weight(1f),
+                        )
+                        TextButton(onClick = { onAcceptProposal(proposal) }) { Text("APLICAR") }
+                    }
+                }
+                Row {
+                    TextButton(onClick = onAccept) { Text("ACEPTAR TODO") }
+                    TextButton(onClick = onReject) { Text("RECHAZAR") }
+                }
+            }
+            if (needsRematerialize) {
+                Text("Hay semanas pendientes de re-materializar.", fontSize = 12.sp, color = Color.White.copy(alpha = 0.7f))
+                TextButton(onClick = onRematerialize) { Text("RE-MATERIALIZAR") }
+            }
+        }
+    }
 }
 
 private fun parseIsoDate(raw: String?): LocalDate? =

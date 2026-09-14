@@ -102,7 +102,19 @@ class BaseLoadPolicyTest {
     }
 
     @Test
-    fun withMirroredBaseLoadWritesBothFields() {
+    fun floorDoesNotApplyWhenEngineSuggestedZero() {
+        assertNull(
+            BaseLoadPolicy.floorForLoadSuggestion(
+                loadMode = LoadModeV2.LOAD,
+                activeTagId = "tag",
+                engineSuggestedKg = 0.0,
+                taggedProfileBaseLoadKg = 20.0,
+            ),
+        )
+    }
+
+    @Test
+    fun mirroredBaseLoadCopiesBarWeight() {
         val setup = BaseLoadPolicy.withMirroredBaseLoad(ExerciseSetupDetails(), 22.5)
         assertEquals(22.5, setup.baseLoadKg!!, 0.001)
         assertEquals(22.5, setup.barWeightKg!!, 0.001)

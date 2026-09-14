@@ -55,7 +55,11 @@ class LanguageBindingCorpusTest {
         assertTrue("arroz plato $riceG", riceG in 180.0..280.0)
         assertTrue("pollo plato $chickenG", chickenG in 120.0..180.0)
         assertFalse(cheese.foodQuery.contains("lamina"))
-        assertTrue(cheese.reviewCandidates.isNotEmpty() || cheese.foodItem != null)
+        assertEquals("unavailable cheese variety remains in the query", "queso gouda", cheese.foodQuery)
+        assertEquals("estimate must preserve the declared variety", "queso gouda (estimado)", cheese.loggedFood!!.foodName)
+        assertEquals("Cheddar is not a substitute for Gouda", null, cheese.foodItem)
+        assertTrue("Gouda without a verified profile requires identity review", cheese.hasMaterialQuestion())
+        assertTrue("incompatible Cheddar must not be offered", cheese.reviewCandidates.none { it.id == "gen047" })
     }
 
     @Test
@@ -103,12 +107,14 @@ class LanguageBindingCorpusTest {
     }
 
     @Test
-    fun identityMapping_isReadOnResolve() = runBlocking {
+    fun identityMapping_cannotChangeDeclaredCheeseVariety() = runBlocking {
         val profile = NutritionCalibrationProfile(
             identityMappings = mapOf("queso gouda" to "gen047"),
         )
         val tags = resolve("láminas de queso gouda", profile)
-        assertEquals("gen047", tags.single().foodItem?.id)
+        assertEquals(null, tags.single().foodItem)
+        assertTrue(tags.single().hasMaterialQuestion())
+        assertTrue(tags.single().loggedFood!!.foodName.contains("gouda", ignoreCase = true))
     }
 
     @Test

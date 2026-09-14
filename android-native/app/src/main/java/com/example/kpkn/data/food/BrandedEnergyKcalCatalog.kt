@@ -119,6 +119,9 @@ object BrandedEnergyKcalCatalog {
         sourcePriority = 90,
         verifiedScore = 0.92,
         nutritionBasis = "PER_SERVING",
+        // This legacy generator mixed sugar grams with an energy multiplier.
+        // Preserve its data for inspection; it is not a verified nutrition profile.
+        qualityFlags = listOf("UNVERIFIED_NUTRIENT_BASIS"),
     )
 
     private fun powder(

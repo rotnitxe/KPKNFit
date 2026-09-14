@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.models.CookingMethod
+import com.example.kpkn.data.models.FoodItem
 
 /**
  * NutritionHeuristicEstimator — Keyword-based macro estimator for foods not in the database.
@@ -10,7 +11,8 @@ import com.example.kpkn.data.models.CookingMethod
  *   - PRO mode but Qwen model not loaded / timeout
  *   - AI returned items without nutritionPer100g for some entries
  *
- * Precision: ±20–30%. Tagged as AnalysisSource.LOCAL_HEURISTIC so the UI shows "Heur. ~".
+ * Keyword profiles are provisional estimates, not a measured accuracy guarantee.
+ * A missing keyword is explicitly distinguished from a referenced composition.
  * Values are per 100g.
  */
 
@@ -20,6 +22,19 @@ data class NutritionProfile(
     val carbs: Double,
     val fats: Double,
 )
+
+/** Density uncertainty is independent of the certainty of the consumed mass. */
+data class NutritionEstimateEvidence(
+    val assumption: String,
+    val referenceFoodIds: List<String> = emptyList(),
+    val referenceSourceRecordIds: List<String> = emptyList(),
+    val minPer100g: NutritionProfile,
+    val maxPer100g: NutritionProfile,
+    val requiresCompositionClarification: Boolean = false,
+    val isUnmatchedFallback: Boolean = false,
+)
+
+data class NutritionEstimate(val profile: NutritionProfile, val evidence: NutritionEstimateEvidence)
 
 // ─── Profiles per 100g ───────────────────────────────────────────────────────
 
@@ -195,6 +210,39 @@ private val KEYWORD_PROFILES: List<Pair<List<String>, NutritionProfile>> = listO
 object NutritionHeuristicEstimator {
     fun estimatePer100g(foodName: String): NutritionProfile {
         return estimateNutritionByKeyword(foodName) ?: MIXED_DISH
+    }
+
+    /** References are injected catalog rows; the mixture is an explicit assumption, never a recipe fact. */
+    fun estimateWithEvidence(foodName: String, referenceFoods: List<FoodItem> = emptyList()): NutritionEstimate {
+        val salad = FoodIdentity.normalize(foodName) == "ensalada"
+        val vegetables = listOf("gen066", "gen026").mapNotNull { id ->
+            referenceFoods.firstOrNull { it.id == id && NutrientBasis.isVerified(it) }
+        }
+        if (salad && vegetables.isNotEmpty()) {
+            val profiles = vegetables.map { food ->
+                val factor = 100.0 / NutrientBasis.grams(food)
+                NutritionProfile(food.calories * factor, food.protein * factor, food.carbs * factor, food.fats * factor)
+            }
+            val central = NutritionProfile(profiles.map { it.calories }.average(), profiles.map { it.protein }.average(),
+                profiles.map { it.carbs }.average(), profiles.map { it.fats }.average())
+            return NutritionEstimate(central, NutritionEstimateEvidence(
+                assumption = "Asumí ${vegetables.joinToString(" y ") { it.name.lowercase() }}${if (vegetables.size > 1) " a partes iguales" else ""}, sin aderezo.",
+                referenceFoodIds = vegetables.map { it.id },
+                referenceSourceRecordIds = vegetables.map { it.sourceRecordId ?: it.id },
+                minPer100g = NutritionProfile(0.0, 0.0, 0.0, 0.0),
+                maxPer100g = NutritionProfile(900.0, 100.0, 100.0, 100.0),
+                requiresCompositionClarification = true,
+            ))
+        }
+        val matched = KEYWORD_PROFILES.any { (words, _) -> words.any { foodName.lowercase().contains(it) } }
+        return NutritionEstimate(estimatePer100g(foodName), NutritionEstimateEvidence(
+            assumption = if (matched) "Perfil provisional por categoría; composición sin confirmar."
+                else "Sin referencia nutricional: valores provisionales de un plato genérico.",
+            // Conservative marginal composition bounds, not an empirical confidence interval.
+            minPer100g = NutritionProfile(0.0, 0.0, 0.0, 0.0),
+            maxPer100g = NutritionProfile(900.0, 100.0, 100.0, 100.0),
+            isUnmatchedFallback = !matched,
+        ))
     }
 }
 

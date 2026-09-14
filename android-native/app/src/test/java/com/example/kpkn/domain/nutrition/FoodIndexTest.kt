@@ -103,7 +103,7 @@ class FoodIndexTest {
     }
 
     @Test
-    fun `search arroz does not open an OFF pack when local family exists`() {
+    fun `search retains an OFF pack for ranking alongside the household candidate`() {
         val rice = FoodItem(
             id = "gen005", name = "Arroz Blanco (cocido)", brand = "Genérico",
             servingSize = 100.0, unit = "g", calories = 130.0, protein = 2.7, carbs = 28.0, fats = 0.3,
@@ -128,11 +128,11 @@ class FoodIndexTest {
         )
         val hits = index.search("arroz")
         assertTrue(hits.contains("gen005"))
-        assertFalse("query sin marca no debe abrir pack OFF", hits.contains("off_arroz_kg"))
+        assertTrue("retrieval must not erase products before identity and brand ranking", hits.contains("off_arroz_kg"))
     }
 
     @Test
-    fun `search with exact local name does not require fuzzy expansion`() {
+    fun `retrieval keeps local exact and other candidates for compatibility filtering`() {
         val tomato = FoodItem(
             id = "gen026", name = "Tomate", brand = "Genérico", servingSize = 100.0, unit = "g",
             calories = 18.0, protein = 0.9, carbs = 3.9, fats = 0.2,
@@ -145,6 +145,8 @@ class FoodIndexTest {
         index.build(globalFoods = emptyList(), staticFoods = listOf(tomato, pizza), staticAliases = emptyMap())
         val hits = index.search("tomate")
         assertTrue(hits.contains("gen026"))
-        assertFalse("exact LOCAL tomate no debe expandir a pizza", hits.contains("off1"))
+        assertTrue("retrieval is not the selection decision", hits.contains("off1"))
+        assertFalse("the resolver must reject the compound as the plain identity",
+            FoodIdentity.matchesDeclaredIdentity("tomate", pizza))
     }
 }

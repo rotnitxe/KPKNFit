@@ -11,6 +11,27 @@ import org.junit.Test
 class LastResortSplitterTest {
 
     @Test
+    fun `fallback preserves decimal measures and repeated mentions`() {
+        assertEquals(listOf("0,5 kg arroz", "arroz"), LastResortSplitter.split("0,5 kg arroz, arroz"))
+        assertEquals(listOf("arroz", "arroz"), LastResortSplitter.split("arroz y arroz"))
+    }
+
+    @Test
+    fun `fallback keeps explicit exclusions separate from consumed food`() {
+        assertEquals(listOf("pollo", "sin arroz", "sin pan"), LastResortSplitter.split("pollo sin arroz ni pan"))
+        assertEquals(listOf("sin arroz", "pollo"), LastResortSplitter.split("no arroz sino pollo"))
+        assertEquals(listOf("sin arroz", "sin pan"), LastResortSplitter.split("sin arroz ni pan"))
+        assertEquals(listOf("pollo", "sin arroz"), LastResortSplitter.split("pollo, sin arroz"))
+    }
+
+    @Test
+    fun `fallback does not turn food attributes into separate ingredients`() {
+        for (text in listOf("leche sin lactosa", "yogurt sin azúcar", "pan sin gluten", "pollo sin piel")) {
+            assertEquals(listOf(text), LastResortSplitter.split(text))
+        }
+    }
+
+    @Test
     fun `splits by connectors y and con`() {
         val result = LastResortSplitter.split("fideos con salsa de tomate y un poco de carne molida")
         assertEquals(listOf("fideos", "salsa de tomate", "un poco de carne molida"), result)

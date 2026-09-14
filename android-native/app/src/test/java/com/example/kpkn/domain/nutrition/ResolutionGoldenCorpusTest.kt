@@ -81,36 +81,36 @@ class ResolutionGoldenCorpusTest {
     }
 
     @Test
-    fun `torta se guarda como pan blanco generico`() = runBlocking {
-        val tags = resolve("torta")
-        assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
-        assertTrue(tags.single().isResolved)
-        assertEquals("gen019", tags.single().foodItem?.id)
-        assertFalse(tags.single().hasMaterialQuestion())
-        val grams = tags.single().amountGrams ?: 0.0
-        assertTrue("torta grams $grams", grams in 80.0..120.0)
+    fun `torta conserva plato y estimación pendiente`() = runBlocking {
+        val tag = resolve("torta").single()
+        assertEquals(null, tag.foodItem)
+        assertEquals(FoodResolutionStatus.NEEDS_REVIEW, tag.resolutionStatus)
+        assertTrue(tag.hasMaterialQuestion())
+        assertNotNull(tag.loggedFood)
+        assertTrue(tag.loggedFood!!.foodName.contains("torta", ignoreCase = true))
+        assertTrue(tag.amountGrams!! in 150.0..350.0)
     }
 
     @Test
-    fun `cafe con leche se guarda sin preguntar`() = runBlocking {
-        val tags = resolve("café con leche")
-        assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
-        assertEquals("gen016", tags.single().foodItem?.id)
-        assertTrue(tags.single().isResolved)
-        val grams = tags.single().amountGrams ?: 0.0
-        assertTrue("café con leche grams $grams", grams in 180.0..260.0)
-        val kcal = tags.single().loggedFood?.calories ?: 0.0
-        assertTrue("café con leche kcal $kcal", kcal in 90.0..170.0)
+    fun `café con leche conserva plato y estimación pendiente`() = runBlocking {
+        val tag = resolve("café con leche").single()
+        assertEquals(null, tag.foodItem)
+        assertEquals(FoodResolutionStatus.NEEDS_REVIEW, tag.resolutionStatus)
+        assertTrue(tag.hasMaterialQuestion())
+        assertNotNull(tag.loggedFood)
+        assertTrue(tag.loggedFood!!.foodName.contains("café con leche", ignoreCase = true))
+        assertTrue(tag.amountGrams!! in 150.0..350.0)
     }
 
     @Test
-    fun `quesadilla se guarda con ficha generica`() = runBlocking {
-        val tags = resolve("quesadilla")
-        assertEquals("gen047", tags.single().foodItem?.id)
-        assertEquals(FoodResolutionStatus.AUTO, tags.single().resolutionStatus)
-        assertTrue(tags.single().isResolved)
-        val grams = tags.single().amountGrams ?: 0.0
-        assertTrue("quesadilla grams $grams", grams in 25.0..40.0)
+    fun `quesadilla conserva plato y estimación pendiente`() = runBlocking {
+        val tag = resolve("quesadilla").single()
+        assertEquals(null, tag.foodItem)
+        assertEquals(FoodResolutionStatus.NEEDS_REVIEW, tag.resolutionStatus)
+        assertTrue(tag.hasMaterialQuestion())
+        assertNotNull(tag.loggedFood)
+        assertTrue(tag.loggedFood!!.foodName.contains("quesadilla", ignoreCase = true))
+        assertTrue(tag.amountGrams!! in 150.0..350.0)
     }
 
     @Test

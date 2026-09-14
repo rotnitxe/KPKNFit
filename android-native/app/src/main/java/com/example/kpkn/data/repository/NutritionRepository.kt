@@ -14,6 +14,9 @@ import com.example.kpkn.domain.nutrition.FoodTemplateMatcher
 import com.example.kpkn.domain.nutrition.SemanticPortionRetriever
 import com.example.kpkn.domain.nutrition.SmartFoodResolver
 import com.example.kpkn.domain.nutrition.SubjectivePortionEngine
+import com.example.kpkn.domain.nutrition.FoodLearningConfirmation
+import com.example.kpkn.domain.nutrition.NutritionCalibrationWizardEngine
+import androidx.room.withTransaction
 import com.example.kpkn.services.nutrition.NutritionNotificationManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -54,6 +57,8 @@ class NutritionRepository private constructor(
     private val appContext = context.applicationContext
     private val repositoryJob = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.IO + repositoryJob)
+    private val foodSaveMutex = Mutex()
+    private val foodCalibration by lazy { NutritionCalibrationRepository.forDatabase(appContext, db) }
     private val foodPrefs by lazy { appContext.getSharedPreferences("nutrition_food_catalog", Context.MODE_PRIVATE) }
 
     // ─── IT3: utensilios configurables (ml por utensilio) ────────────────────
@@ -120,8 +125,63 @@ class NutritionRepository private constructor(
         _nutritionLogs.update { it + log }
         scope.launch { db.nutritionDao().upsertLog(log.toEntity()) }
         captureDailyGoalSnapshot(log.date.take(10))
-        if (log.foods.isNotEmpty()) {
-            rememberMealTemplateFromLog(log)
+    }
+
+    /** Await durable storage before publishing success or teaching a confirmed habit. */
+    suspend fun saveNutritionLog(log: NutritionLog, confirmations: List<FoodLearningConfirmation> = emptyList()) = foodSaveMutex.withLock {
+        require(log.foods.isNotEmpty()) { "A meal must contain every active food" }
+        require(log.foods.all { food ->
+            food.amount.isFinite() && food.amount > 0.0 &&
+                listOf(food.calories, food.protein, food.carbs, food.fats).all { it.isFinite() && it >= 0.0 }
+        }) { "Invalid food amount or nutrients" }
+        withContext(Dispatchers.IO) {
+            val alreadyStored = db.nutritionDao().getLogsForDate(log.date).any { it.id == log.id }
+            val plan = activeNutritionPlan
+            val snapshot = DailyGoalSnapshot(
+                date = log.date.take(10), planId = plan?.id,
+                calorieTargetKcal = plan?.calorieTarget?.takeIf { it > 0 },
+                proteinGoalG = plan?.proteinGoal?.takeIf { it > 0 },
+                carbGoalG = plan?.carbGoal?.takeIf { it > 0 },
+                fatGoalG = plan?.fatGoal?.takeIf { it > 0 }, direction = plan?.direction,
+                calculationOrigin = plan?.calculationOrigin ?: CalculationOrigin.MANUAL,
+                capturedAtEpochMs = System.currentTimeMillis(),
+            )
+            val snapshotInserted = db.withTransaction {
+                db.nutritionDao().upsertLog(log.toEntity())
+                db.nutritionDao().insertDailyGoalSnapshot(snapshot.toEntity()) != -1L
+            }
+            // Publish only committed rows, with no background writes left behind.
+            _nutritionLogs.update { current -> current.filterNot { it.id == log.id } + log }
+            if (snapshotInserted) _dailyGoalSnapshots.update { current -> current.filterNot { it.date == snapshot.date } + snapshot }
+            // A failed optional habit write must not report that the durable meal failed.
+            try {
+                for (confirmation in confirmations.takeUnless { alreadyStored }.orEmpty()) {
+                    if (confirmation.dimensions.isEmpty()) continue
+                    if ("identity" in confirmation.dimensions) {
+                        smartResolver.recordLearned(confirmation.query, null, confirmation.foodId, null, null)
+                        getFoodById(confirmation.foodId)?.let { recordFoodSelection(confirmation.query, it) }
+                    }
+                    foodCalibration.update { stored ->
+                        var profile = stored
+                        if ("identity" in confirmation.dimensions) profile = NutritionCalibrationWizardEngine.recordConfirmedIdentity(profile, confirmation.query, confirmation.foodId)
+                        if ("portion" in confirmation.dimensions) confirmation.portionGrams?.let {
+                            profile = NutritionCalibrationWizardEngine.recordConfirmedPortion(profile, confirmation.family, it)
+                        }
+                        if ("state" in confirmation.dimensions) {
+                            profile = NutritionCalibrationWizardEngine.recordConfirmedState(profile, confirmation.family, confirmation.weightBasis)
+                            profile = NutritionCalibrationWizardEngine.recordConfirmedState(profile, FoodIdentity.normalize(confirmation.query), confirmation.weightBasis)
+                        }
+                        if ("oil" in confirmation.dimensions) confirmation.oilGramsPer100?.let {
+                            profile = NutritionCalibrationWizardEngine.recordConfirmedOil(profile, confirmation.family, it)
+                            profile = NutritionCalibrationWizardEngine.recordConfirmedOil(profile, FoodIdentity.normalize(confirmation.query), it)
+                        }
+                        profile
+                    }
+                }
+            } catch (cancelled: CancellationException) { throw cancelled }
+            catch (error: Exception) {
+                android.util.Log.w("NutritionRepository", "Meal saved; confirmed habit could not be updated", error)
+            }
         }
     }
 
@@ -637,7 +697,7 @@ class NutritionRepository private constructor(
         return smartResolver.resolve(query, brandHint, contextHint, stateHint)
     }
 
-    fun recordLearnedResolution(
+    suspend fun recordLearnedResolution(
         query: String,
         brandHint: String?,
         foodId: String,
@@ -648,8 +708,18 @@ class NutritionRepository private constructor(
     }
 
     /** E16/IT2: invalidación del aprendizaje desde la UI. */
-    fun clearLearnedResolutions() {
-        smartResolver.clearLearned()
+    suspend fun clearLearnedResolutions() = foodSaveMutex.withLock {
+        withContext(Dispatchers.IO) {
+            smartResolver.clearLearned()
+            foodCalibration.update { profile -> profile.copy(
+                habitualPortionsGrams = emptyMap(), maturePortionsGrams = emptyMap(), confirmedPortions = emptyMap(),
+                identityMappings = emptyMap(), statePreferences = emptyMap(), preparationProfiles = emptyMap(), oilProfiles = emptyMap(),
+            ) }
+            db.withTransaction { db.nutritionDao().getAllTemplates().forEach { db.nutritionDao().deleteTemplate(it.id) } }
+            _mealTemplates.value = emptyList()
+            _foodQueryLearning.value = emptyMap()
+            check(foodPrefs.edit().remove("food_query_learning_v2").commit()) { "Could not clear food selection memory" }
+        }
     }
 
     /**
@@ -721,15 +791,19 @@ class NutritionRepository private constructor(
                 val measurements = normalizedBodyRepository.observations.value.toLegacyMeasurementEntries()
                 val schedule = normalizedBodyRepository.measurementSchedule.value
 
-                _nutritionLogs.value = logs
+                // Loading may overlap a save/forget. Re-read these rows under the
+                // same lock instead of publishing an earlier stale snapshot.
+                foodSaveMutex.withLock {
+                    _nutritionLogs.value = db.nutritionDao().getAllLogs().map { it.toNutritionLog() }
+                    _mealTemplates.value = db.nutritionDao().getAllTemplates().map { it.toMealTemplate() }
+                    _foodQueryLearning.value = loadFoodLearning()
+                }
                 _dailyGoalSnapshots.value = snapshots
                 _nutritionPlans.value = plans
                 _activeNutritionPlanId.value = activeId
                 _foodDatabase.value = (buildFoodDatabase(appContext) + customFoods)
                     .map(::normalizeFoodItem)
                     .distinctBy { it.id.ifBlank { it.normalizedName ?: it.name.lowercase() } }
-                _mealTemplates.value = templates
-                _foodQueryLearning.value = learning
                 _bodyMeasurements.value = measurements
                 _measurementSchedule.value = schedule
 

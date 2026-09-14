@@ -22,7 +22,7 @@
 
 ## Critical Systems
 
-- Room database: `android-native/app/src/main/java/com/example/kpkn/data/db/KpknDatabase.kt`, current version v20.
+- Room database: `android-native/app/src/main/java/com/example/kpkn/data/db/KpknDatabase.kt`, current version **v25**. Recipes/TM/autoregulation live in `ProgramEntity` JSON (no extra tables).
 - AUGE engines: `android-native/app/src/main/java/com/example/kpkn/domain/auge/`.
 - Nutrition parsing: `domain/nutrition/`, `data/food/`, and `data/remote/ExternalAiService.kt`.
 - Voice: `services/workout/`, Vosk assets, foreground service, TTS, and AIDL service boundary.
@@ -38,7 +38,8 @@
 <!-- KAUPOLIKAN_DYNAMIC_MAP_START -->
 Generated at: 2026-08-29T19:01:43.243Z
 Kotlin files: 519
-Room version detected in KpknDatabase.kt: 23
+Room version detected in KpknDatabase.kt: 25
+Training recipes: `data/protocols/TrainingPlanRecipe.kt` → `domain/training/PlanMaterializer.kt` + `SessionCompositionPolicy.kt` (H1–H11). Weekly AUGE: `ProgramAutoregulationEngine.kt` (confirm-by-default). Visible protocols require a day-by-day recipe; do not publish generic synthesis under a third-party name. Day archetypes: `data/protocols/DayArchetypes.kt` (T2/T3 `SlotSource.KPKN_DEFAULT` inside third-party protocols). F5 session recipes: `data/sessions/PlRecipeSessionTemplates.kt` matched to authored `SplitTemplate.dayDefinitions` via `SessionTemplateCatalogPolicy.templatesForSplitDay`.
 
 ### Entities
 - ActiveProgramEntity
