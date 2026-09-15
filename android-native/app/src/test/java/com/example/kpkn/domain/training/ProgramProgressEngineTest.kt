@@ -195,6 +195,52 @@ class ProgramProgressEngineTest {
     }
 
     @Test
+    fun `linear simple program completes instead of wrapping`() {
+        val program = simpleTwoWeekProgram().copy(
+            simpleProgramKind = SimpleProgramKind.LINEAR,
+            runState = com.example.kpkn.data.models.ProgramRunState(
+                runId = "run_linear",
+                cycleNumber = 1,
+                weekInstanceId = "w2",
+                weekId = "w2",
+            ),
+        )
+        val logs = listOf(
+            WorkoutLog(
+                id = "log1",
+                programId = "prog",
+                sessionId = "s1",
+                sessionName = "Día 1",
+                date = "2026-01-01T10:00:00.000Z",
+                durationMinutes = 45,
+                weekId = "w1",
+            ),
+            WorkoutLog(
+                id = "log2",
+                programId = "prog",
+                sessionId = "s2",
+                sessionName = "Día 2",
+                date = "2026-01-03T10:00:00.000Z",
+                durationMinutes = 45,
+                weekId = "w2",
+            ),
+        )
+        val result = ProgramProgressEngine.advanceAfterSessionComplete(
+            program = program,
+            activeState = com.example.kpkn.data.models.ActiveProgramState(
+                programId = "prog",
+                status = com.example.kpkn.data.models.ProgramStatus.ACTIVE,
+            ),
+            completedSession = Session(id = "s2", name = "Día 2", isMainSession = true),
+            weekInstanceId = "w2",
+            logs = logs,
+        )
+        assertEquals(com.example.kpkn.data.models.ProgramRunStatus.COMPLETED, result.program.runState?.status)
+        assertEquals(com.example.kpkn.data.models.ProgramStatus.COMPLETED, result.activeState?.status)
+        assertTrue(result.program.runState?.cycleNumber != 2)
+    }
+
+    @Test
     fun `completing future week out of order does not move canonical cursor`() {
         val program = simpleTwoWeekProgram().copy(
             runState = com.example.kpkn.data.models.ProgramRunState(

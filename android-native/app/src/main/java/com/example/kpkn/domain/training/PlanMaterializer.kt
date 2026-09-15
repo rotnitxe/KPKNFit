@@ -95,10 +95,15 @@ object PlanMaterializer {
             )
         }
         val structure = if (blocks.size > 1) ProgramStructure.COMPLEX else ProgramStructure.SIMPLE
+        val simpleKind = when {
+            structure != ProgramStructure.SIMPLE -> program.simpleProgramKind
+            recipe.repeats -> SimpleProgramKind.CYCLIC
+            else -> SimpleProgramKind.LINEAR
+        }
         val trainingDaySet = trainingDays?.toSet().orEmpty()
         return program.copy(
             structure = structure,
-            simpleProgramKind = if (structure == ProgramStructure.SIMPLE) SimpleProgramKind.CYCLIC else program.simpleProgramKind,
+            simpleProgramKind = simpleKind,
             structureTemplateId = recipe.id,
             powerliftingProfile = resolvedProfile ?: program.powerliftingProfile,
             sourceRecipe = recipe,
@@ -220,7 +225,7 @@ object PlanMaterializer {
         }
         return ProgramWeek(
             id = idProvider.newId(),
-            name = "Semana ${week.weekNumber}",
+            name = week.weekName.ifBlank { "Semana ${week.weekNumber}" },
             sessions = sessions,
             progressionIndex = week.weekNumber,
             executionKind = week.kind,

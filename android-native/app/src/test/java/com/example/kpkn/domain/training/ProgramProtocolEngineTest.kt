@@ -39,9 +39,10 @@ class ProgramProtocolEngineTest {
         val base = Program(id = "p", name = "Base", structure = ProgramStructure.SIMPLE)
         val applied = ProgramProtocolEngine.applyProtocol(base, protocol, SeqIds())
 
-        assertEquals(ProgramStructure.COMPLEX, applied.structure)
+        assertEquals(ProgramStructure.SIMPLE, applied.structure)
         assertEquals(protocol.recipe!!.id, applied.structureTemplateId)
-        assertTrue(applied.macrocycles.first().blocks.size >= 2)
+        assertEquals(1, applied.macrocycles.first().blocks.size)
+        assertEquals(SimpleProgramKind.CYCLIC, applied.simpleProgramKind)
 
         val firstWeek = applied.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
         assertTrue(firstWeek.sessions.isNotEmpty())
@@ -54,7 +55,7 @@ class ProgramProtocolEngineTest {
     }
 
     @Test
-    fun applyProtocol_single_block_stays_simple_cyclic() {
+    fun applyProtocol_single_block_finite_stays_simple_linear() {
         val protocol = PROTOCOL_LIBRARY.first { it.id == "smolov-jr" }
         val applied = ProgramProtocolEngine.applyProtocol(
             Program(id = "p", name = "Base"),
@@ -62,7 +63,7 @@ class ProgramProtocolEngineTest {
             SeqIds(),
         )
         assertEquals(ProgramStructure.SIMPLE, applied.structure)
-        assertEquals(SimpleProgramKind.CYCLIC, applied.simpleProgramKind)
+        assertEquals(SimpleProgramKind.LINEAR, applied.simpleProgramKind)
         assertTrue(applied.macrocycles.first().blocks.first().mesocycles.first().weeks.first().sessions.isNotEmpty())
     }
 

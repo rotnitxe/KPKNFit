@@ -99,6 +99,7 @@ import com.example.kpkn.data.programs.ProgramTemplateOption
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.protocols.Protocol
 import com.example.kpkn.data.protocols.isVisibleForApplication
+import com.example.kpkn.data.protocols.materializesAsComplex
 import com.example.kpkn.domain.training.ProgramProtocolEngine
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.domain.training.ProgramCalendarEngine
@@ -130,6 +131,7 @@ fun MacrocycleEditorLegacy(
     onCompetitionKeyDateSaved: (updatedProgram: Program, keyDate: ProgramKeyDate) -> Unit = { _, _ -> },
     onFocusWeek: (blockId: String, weekId: String) -> Unit = { _, _ -> },
     onCreateSessionForWeek: (weekId: String, preferredDayOfWeek: Int, keyDateId: String?) -> Unit = { _, _, _ -> },
+    onApplyProgramTemplate: (com.example.kpkn.data.programs.ProgramTemplateOption) -> Unit = {},
     showSimpleCalendarizationSheet: Boolean = false,
     onShowSimpleCalendarizationSheetChange: (Boolean) -> Unit = {},
     calendarizationStartDate: String = "",
@@ -727,7 +729,7 @@ fun MacrocycleEditorLegacy(
                             color = MaterialTheme.colorScheme.error,
                         )
                     }
-                    if (program.structure == ProgramStructure.SIMPLE) {
+                    if (program.structure == ProgramStructure.SIMPLE && protocol.materializesAsComplex) {
                         Text(
                             "Se convertirá a programa avanzado (COMPLEX) para poder aplicar el protocolo.",
                             style = MaterialTheme.typography.bodySmall,
@@ -789,12 +791,7 @@ fun MacrocycleEditorLegacy(
             },
             confirmButton = {
                 Button(onClick = {
-                    val result = ProgramTemplateEngine.applyTemplate(program, template)
-                    if (result.createdCopy) {
-                        onAddProgramCopy(result.program)
-                    } else {
-                        onUpdateProgram(result.program)
-                    }
+                    onApplyProgramTemplate(template)
                     pendingTemplate = null
                     setLibrarySheetOpen(false)
                 }) { Text("Aplicar plantilla") }

@@ -124,6 +124,7 @@ fun weekRecipe(
     blockGoal: BlockGoal,
     days: List<DayRecipe>,
     kind: WeekExecutionKind = WeekExecutionKind.TRAINING,
+    weekName: String = "",
 ): WeekRecipe = WeekRecipe(
     weekNumber = weekNumber,
     blockIndex = blockIndex,
@@ -131,6 +132,7 @@ fun weekRecipe(
     blockGoal = blockGoal,
     kind = kind,
     days = days,
+    weekName = weekName,
 )
 
 fun DayRecipe.dropT3(n: Int): DayRecipe {

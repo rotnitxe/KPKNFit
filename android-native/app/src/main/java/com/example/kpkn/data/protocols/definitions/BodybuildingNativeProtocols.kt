@@ -88,25 +88,27 @@ object BodybuildingProtocols {
         id = "phul-verified",
         name = "PHUL",
         emoji = "🧱",
-        description = "4 días, 8 semanas: power upper/lower 3-5×3-5 @≈80-85 % e hipertrofia upper/lower 8-12.",
+        description = "4 días, 4 semanas: power upper/lower 3-5×3-5 @≈80-85 % e hipertrofia upper/lower 8-12 en la misma semana.",
         author = "Brandon Campbell",
-        tags = listOf("powerbuilding", "intermedio", "4 días", "8 semanas", "%", "RPE"),
-        blocks = listOf(ProtocolBlock("Base", 4, "Acumulación", 70, 85), ProtocolBlock("Hipertrofia", 4, "Acumulación", 65, 80)),
+        tags = listOf("powerbuilding", "intermedio", "4 días", "4 semanas", "%", "RPE"),
+        blocks = listOf(ProtocolBlock("PHUL", 4, "Acumulación", 70, 85)),
         defaultSplit = "ul_x4",
         publicationStatus = ProtocolPublicationStatus.VERIFIED,
+        kind = ProtocolKind.WEEKLY_SPLIT,
         source = attributed("PHUL workout", "https://www.muscleandstrength.com/workouts/phul-workout", "Brandon Campbell"),
         recipe = TrainingPlanRecipe(
             id = "phul-verified",
-            weeks = (1..8).map { w ->
-                weekRecipe(w, if (w <= 4) 0 else 1, if (w <= 4) "Base" else "Hipertrofia", BlockGoal.ACCUMULATION, listOf(powerUpper(), powerLower(), hypUpper(), hypLower()))
+            weeks = (1..4).map { w ->
+                weekRecipe(w, 0, "PHUL", BlockGoal.ACCUMULATION, listOf(powerUpper(), powerLower(), hypUpper(), hypLower()), weekName = "Semana $w")
             },
             trainingMaxPercent = 0.90,
             liftSlots = sbdSlots(),
             exemptions = phulExemptions,
             claimedDaysPerWeek = 4,
             claimedLevel = "intermedio",
+            repeats = true,
         ),
-        fidelitySpec = ProtocolFidelitySpec(8, 4, requiresPercent = true, claimedLevel = "intermedio", percentAnchors = mapOf("power" to listOf(82.0))),
+        fidelitySpec = ProtocolFidelitySpec(4, 4, requiresPercent = true, claimedLevel = "intermedio", percentAnchors = mapOf("power" to listOf(82.0))),
         exemptions = phulExemptions,
     )
 
@@ -159,31 +161,33 @@ object BodybuildingProtocols {
         id = "phat-verified",
         name = "PHAT",
         emoji = "🦏",
-        description = "5 días, 8 semanas: 2 power + 3 hipertrofia con speed work 6×3 @ 65-70 %.",
+        description = "5 días, 4 semanas: 2 power + 3 hipertrofia con speed work 6×3 @ 65-70 % en la misma semana.",
         author = "Layne Norton",
-        tags = listOf("powerbuilding", "avanzado", "5 días", "8 semanas", "%", "RPE"),
-        blocks = listOf(ProtocolBlock("Power", 4, "Acumulación", 65, 85), ProtocolBlock("Hipertrofia", 4, "Acumulación", 65, 80)),
+        tags = listOf("powerbuilding", "avanzado", "5 días", "4 semanas", "%", "RPE"),
+        blocks = listOf(ProtocolBlock("PHAT", 4, "Acumulación", 65, 85)),
         defaultSplit = "phat_hybrid",
         publicationStatus = ProtocolPublicationStatus.VERIFIED,
+        kind = ProtocolKind.WEEKLY_SPLIT,
         source = attributed("PHAT: Power Hypertrophy Adaptive Training", "https://www.simplyshredded.com/mega-feature-layne-norton-training-series-full-power-hypertrophy-routine-updated-2011.html", "Layne Norton"),
         recipe = TrainingPlanRecipe(
             id = "phat-verified",
-            weeks = (1..8).map { w ->
-                weekRecipe(w, if (w <= 4) 0 else 1, "PHAT", BlockGoal.ACCUMULATION, listOf(
+            weeks = (1..4).map { w ->
+                weekRecipe(w, 0, "PHAT", BlockGoal.ACCUMULATION, listOf(
                     phatPowerUpper(),
                     phatPowerLower(),
                     DayArchetypes.bbPull(2).copy(weekday = 3, label = "Espalda/Hombros"),
                     phatChest(),
                     DayArchetypes.bbLegs(2).copy(weekday = 6, label = "Pierna hipertrofia"),
-                ))
+                ), weekName = "Semana $w")
             },
             trainingMaxPercent = 0.90,
             liftSlots = sbdSlots(),
             exemptions = phatExemptions,
             claimedDaysPerWeek = 5,
             claimedLevel = "avanzado",
+            repeats = true,
         ),
-        fidelitySpec = ProtocolFidelitySpec(8, 5, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("power" to listOf(82.0), "speed" to listOf(68.0))),
+        fidelitySpec = ProtocolFidelitySpec(4, 5, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("power" to listOf(82.0), "speed" to listOf(68.0))),
         exemptions = phatExemptions,
     )
 }

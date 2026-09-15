@@ -39,7 +39,7 @@ object MadcowProtocol {
     }
 
     fun recipe(): TrainingPlanRecipe {
-        val weeks = (1..8).map { w ->
+        val weeks = (1..4).map { w ->
             val onRamp = when (w) {
                 1 -> 0.925
                 2 -> 0.95
@@ -48,8 +48,8 @@ object MadcowProtocol {
             }
             val top = 100.0 * onRamp
             weekRecipe(
-                w, if (w <= 4) 0 else 1, if (w <= 4) "On-ramp" else "Progresión",
-                if (w <= 4) BlockGoal.ACCUMULATION else BlockGoal.INTENSIFICATION,
+                w, 0, "Madcow",
+                BlockGoal.INTENSIFICATION,
                 listOf(
                     day("Volumen", weekday = 1, slots = listOf(
                         slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, rampSets(top), 240, LiftSlot.SQUAT, isCompetitionLift = true),
@@ -85,6 +85,7 @@ object MadcowProtocol {
             progression = ProgressionRule.WeeklyPercent(2.5),
             claimedDaysPerWeek = 3,
             claimedLevel = "intermedio",
+            repeats = true,
         )
     }
 
@@ -92,15 +93,16 @@ object MadcowProtocol {
         id = "madcow-5x5",
         name = "Madcow 5×5",
         emoji = "🐮",
-        description = "3 días, 8 semanas: ramp 50/62,5/75/87,5/100 % del 5RM; viernes triple @ 102,5 % + 1×8 @ 75 %; +2,5 %/semana.",
+        description = "3 días, 4 semanas: ramp 50/62,5/75/87,5/100 % del 5RM; viernes triple @ 102,5 % + 1×8 @ 75 %; +2,5 %/semana.",
         author = "Madcow (Bill Starr)",
-        tags = listOf("powerlifting", "intermedio", "3 días", "8 semanas", "%"),
-        blocks = listOf(ProtocolBlock("On-ramp", 4, "Acumulación", 50, 100), ProtocolBlock("Progresión", 4, "Intensificación", 50, 110)),
+        tags = listOf("powerlifting", "intermedio", "3 días", "4 semanas", "%"),
+        blocks = listOf(ProtocolBlock("Madcow", 4, "Intensificación", 50, 110)),
         defaultSplit = "madcow_5x5",
         publicationStatus = ProtocolPublicationStatus.VERIFIED,
+        kind = ProtocolKind.METHOD,
         source = attributed("Madcow 5x5", "https://stronglifts.com/madcow-5x5/", "Madcow / Bill Starr"),
         recipe = recipe(),
-        fidelitySpec = ProtocolFidelitySpec(8, 3, requiresPercent = true, claimedLevel = "intermedio", percentAnchors = mapOf("ramp" to listOf(50.0, 62.5, 75.0, 87.5, 100.0))),
+        fidelitySpec = ProtocolFidelitySpec(4, 3, requiresPercent = true, claimedLevel = "intermedio", percentAnchors = mapOf("ramp" to listOf(50.0, 62.5, 75.0, 87.5, 100.0))),
     )
 }
 
@@ -123,7 +125,7 @@ object NSunsProtocol {
     )
 
     fun recipe(): TrainingPlanRecipe {
-        val weeks = (1..6).map { w ->
+        val weeks = (1..4).map { w ->
             weekRecipe(w, 0, "LP", BlockGoal.INTENSIFICATION, listOf(
                 day("Banca/OHP", weekday = 1, slots = listOf(
                     slot("t1", SlotRole.T1_MAIN, CatalogIds.BP, t1Bench(), 240, LiftSlot.BENCH, isCompetitionLift = true),
@@ -168,6 +170,7 @@ object NSunsProtocol {
             claimedDaysPerWeek = 4,
             claimedLevel = "avanzado",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
+            repeats = true,
         )
     }
 
@@ -175,15 +178,16 @@ object NSunsProtocol {
         id = "nsuns-531-lp-4d",
         name = "nSuns 5/3/1 LP 4 días",
         emoji = "📈",
-        description = "4 días, 6 semanas: T1 9 series y T2 8 series con la tabla nSuns; TM por AMRAP. Agarre cerrado = banca + CLOSE_GRIP.",
+        description = "4 días, 4 semanas: T1 9 series y T2 8 series con la tabla nSuns; TM por AMRAP. Agarre cerrado = banca + CLOSE_GRIP.",
         author = "nSuns",
-        tags = listOf("powerlifting", "avanzado", "4 días", "6 semanas", "AMRAP", "%"),
-        blocks = listOf(ProtocolBlock("LP", 6, "Intensificación", 50, 95, 1.3)),
+        tags = listOf("powerlifting", "avanzado", "4 días", "4 semanas", "AMRAP", "%"),
+        blocks = listOf(ProtocolBlock("LP", 4, "Intensificación", 50, 95, 1.3)),
         defaultSplit = "nsuns_4day",
         publicationStatus = ProtocolPublicationStatus.VERIFIED,
+        kind = ProtocolKind.METHOD,
         source = attributed("nSuns 5/3/1 LP", "https://www.reddit.com/r/nSuns/", "nSuns"),
         recipe = recipe(),
-        fidelitySpec = ProtocolFidelitySpec(6, 4, requiresAmrap = true, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("t1" to listOf(65.0, 75.0, 85.0))),
+        fidelitySpec = ProtocolFidelitySpec(4, 4, requiresAmrap = true, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("t1" to listOf(65.0, 75.0, 85.0))),
         exemptions = recipe().exemptions,
     )
 }
@@ -212,8 +216,8 @@ object GzclProtocols {
             Triple("Peso muerto", CatalogIds.DL, LiftSlot.DEADLIFT) to CatalogIds.RDL,
             Triple("Press militar", CatalogIds.OHP, LiftSlot.OVERHEAD) to CatalogIds.BP,
         )
-        val weeks = (1..12).map { w ->
-            weekRecipe(w, (w - 1) / 4, "Etapa ${(w - 1) / 4 + 1}", if (w <= 8) BlockGoal.ACCUMULATION else BlockGoal.INTENSIFICATION, days.mapIndexed { index, (main, t2id) ->
+        val weeks = (1..4).map { w ->
+            weekRecipe(w, 0, "Etapa T1", BlockGoal.ACCUMULATION, days.mapIndexed { index, (main, t2id) ->
                 val (label, id, lift) = main
                 day(label, weekday = listOf(1, 2, 4, 5)[index], slots = listOf(
                     slot("t1", SlotRole.T1_MAIN, id, t1Stage(w), 240, lift, isCompetitionLift = lift != LiftSlot.OVERHEAD),
@@ -233,6 +237,7 @@ object GzclProtocols {
             claimedDaysPerWeek = 4,
             claimedLevel = "intermedio",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
+            repeats = true,
         )
     }
 
@@ -240,15 +245,16 @@ object GzclProtocols {
         id = "gzclp",
         name = "GZCLP",
         emoji = "🏗️",
-        description = "4 días, 12 semanas: T1 5×3+ → 6×2+ → 10×1+; T2 3×10 → 3×8 → 3×6; T3 3×15+.",
+        description = "4 días, 4 semanas: T1 5×3+ (etapa 1); T2 3×10; T3 3×15+. Stall a la siguiente etapa T1 queda fuera de este ciclo.",
         author = "Cody Lefever",
-        tags = listOf("powerlifting", "intermedio", "4 días", "12 semanas", "AMRAP", "%"),
-        blocks = listOf(ProtocolBlock("Etapa 1", 4, "Acumulación", 65, 85), ProtocolBlock("Etapa 2", 4, "Acumulación", 70, 90), ProtocolBlock("Etapa 3", 4, "Intensificación", 75, 95)),
+        tags = listOf("powerlifting", "intermedio", "4 días", "4 semanas", "AMRAP", "%"),
+        blocks = listOf(ProtocolBlock("Etapa T1", 4, "Acumulación", 65, 85)),
         defaultSplit = "pl_classic_4",
         publicationStatus = ProtocolPublicationStatus.VERIFIED,
+        kind = ProtocolKind.METHOD,
         source = attributed("The GZCL Method", "https://gzclmethod.com/", "Cody Lefever", variant = "GZCLP"),
         recipe = gzclpRecipe(),
-        fidelitySpec = ProtocolFidelitySpec(12, 4, requiresAmrap = true, requiresPercent = true, claimedLevel = "intermedio", percentAnchors = mapOf("t1" to listOf(85.0))),
+        fidelitySpec = ProtocolFidelitySpec(4, 4, requiresAmrap = true, requiresPercent = true, claimedLevel = "intermedio", percentAnchors = mapOf("t1" to listOf(85.0))),
     )
 
     private fun gzclDay(label: String, weekday: Int, t1Id: String, t1Lift: LiftSlot, t2Id: String, t1Sets: List<SetRecipe>, t2Sets: List<SetRecipe>, t3a: String, t3b: String) = day(

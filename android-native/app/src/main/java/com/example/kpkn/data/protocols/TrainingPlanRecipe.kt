@@ -115,6 +115,8 @@ data class WeekRecipe(
     val blockGoal: BlockGoal = BlockGoal.ACCUMULATION,
     val kind: WeekExecutionKind = WeekExecutionKind.TRAINING,
     val days: List<DayRecipe>,
+    /** Etiqueta del autor para el microciclo (p. ej. 5s / 3s / 1s). Vacío → "Semana N". */
+    val weekName: String = "",
 )
 
 @Serializable
@@ -192,8 +194,11 @@ data class TrainingPlanRecipe(
     val autoregulationHooks: List<AutoregulationHook> = emptyList(),
     val claimedDaysPerWeek: Int? = null,
     val claimedLevel: String? = null,
+    /** True si el microciclo se repite (METHOD / WEEKLY_SPLIT). False = especialización finita. */
+    val repeats: Boolean = false,
 ) {
     val daysPerWeek: Int get() = claimedDaysPerWeek ?: weeks.maxOfOrNull { it.days.size } ?: 0
+    val distinctBlockCount: Int get() = weeks.map { it.blockIndex }.distinct().size
 }
 
 fun TechniqueModifier.displayName(): String = when (this) {

@@ -79,6 +79,13 @@ val Protocol.isVisibleForApplication: Boolean
     get() = publicationStatus != ProtocolPublicationStatus.HIDDEN_UNVERIFIED &&
         recipe?.weeks?.isNotEmpty() == true
 
+/** True si la receta honesta tiene más de un mesociclo (blockIndex distinto). */
+val Protocol.materializesAsComplex: Boolean
+    get() {
+        val recipeBlocks = recipe?.distinctBlockCount ?: 0
+        return if (recipeBlocks > 0) recipeBlocks > 1 else blocks.size > 1
+    }
+
 @Serializable
 data class ProtocolBlock(
     val name: String,

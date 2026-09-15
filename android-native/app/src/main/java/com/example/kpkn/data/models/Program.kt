@@ -68,7 +68,7 @@ enum class ProgramStructure { SIMPLE, COMPLEX }
 enum class TrainingPhase { ACCUMULATION, TRANSFORMATION, REALIZATION }
 enum class VolumeSystem { ISRAETEL, KPNK, MANUAL }
 enum class ProgramCalendarizationMode { ADVANCED_COMPETITION, SIMPLE_DATED }
-enum class SimpleProgramKind { CYCLIC, CALENDARIZED }
+enum class SimpleProgramKind { CYCLIC, CALENDARIZED, LINEAR }
 
 @Serializable
 data class ProgramCalendarization(
@@ -317,6 +317,10 @@ val Program.isSimpleTemporalProgram: Boolean
 
 val Program.isSimpleCalendarizedProgram: Boolean
     get() = isSimpleProgram && simpleProgramKind == SimpleProgramKind.CALENDARIZED
+
+/** Programa simple de una sola pasada (especialización finita): avanza semana a semana y termina. */
+val Program.isSimpleLinearProgram: Boolean
+    get() = isSimpleProgram && simpleProgramKind == SimpleProgramKind.LINEAR
 
 /** Identidad del break calendarizado activo; aisla logs del run cíclico pausado. */
 val Program.activeCalendarBreakId: String?

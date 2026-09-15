@@ -110,7 +110,7 @@ object ClassicPlProtocols {
         val weeks = (1..10).map { w ->
             val goal = if (w == 10) BlockGoal.PEAK else if (w >= 8) BlockGoal.INTENSIFICATION else BlockGoal.ACCUMULATION
             val drop = if (w == 10) 2 else if (w >= 8) 1 else 0
-            weekRecipe(w, if (w <= 5) 0 else 1, if (w == 10) "Test" else "Cubo", goal, listOf(
+            weekRecipe(w, 0, if (w == 10) "Test" else "Cubo", goal, listOf(
                 day("Pesado", weekday = 1, slots = listOf(
                     slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, heavySets(w), 240, LiftSlot.SQUAT, isCompetitionLift = true),
                     kpknAssist("row", CatalogIds.PENDLAY, 4, 8, 120),
@@ -139,8 +139,9 @@ object ClassicPlProtocols {
             id = "cube-method", name = "Cube Method", emoji = "🧊",
             description = "10 semanas, 4 días: rotación pesado/explosivo/reps por levantamiento + día de culturismo. Semana 10 test.",
             author = "Brandon Lilly", tags = listOf("powerlifting", "avanzado", "4 días", "10 semanas", "%"),
-            blocks = listOf(ProtocolBlock("Cubo 1", 5, "Acumulación", 60, 90), ProtocolBlock("Cubo 2", 5, "Intensificación", 60, 100)),
+            blocks = listOf(ProtocolBlock("Cubo", 10, "Intensificación", 60, 100)),
             defaultSplit = "cube_method", publicationStatus = ProtocolPublicationStatus.VERIFIED,
+            kind = ProtocolKind.FIXED_PROGRAM,
             source = attributed("The Cube Method", "https://www.powerliftingtowin.com/brandon-lillys-cube-method/", "Brandon Lilly"),
             recipe = TrainingPlanRecipe("cube-method", weeks, 0.95, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 4, claimedLevel = "avanzado"),
             fidelitySpec = ProtocolFidelitySpec(10, 4, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("heavy" to listOf(80.0))),
@@ -188,11 +189,11 @@ object ClassicPlProtocols {
         )
         val meLower = listOf(CatalogIds.SQ_BOX, CatalogIds.GM, CatalogIds.DL_DEF, CatalogIds.SQ_SSB)
         val meUpper = listOf(CatalogIds.BP_FLOOR, CatalogIds.BP_CHAINS, CatalogIds.BP_INC, CatalogIds.JM)
-        val weeks = (1..12).map { w ->
-            val wave = (w - 1) % 3
+        val weeks = (1..3).map { w ->
+            val wave = w - 1
             val deSq = listOf(12 to 50.0, 10 to 55.0, 8 to 60.0)[wave]
             val deBp = listOf(9 to 45.0, 9 to 50.0, 9 to 55.0)[wave]
-            weekRecipe(w, (w - 1) / 4, "Conjugate", BlockGoal.INTENSIFICATION, listOf(
+            weekRecipe(w, 0, "Conjugate", BlockGoal.INTENSIFICATION, listOf(
                 day("ME Lower", weekday = 1, slots = listOf(
                     slot("me", SlotRole.T1_MAIN, meLower[(w - 1) % 4], listOf(SetRecipe(reps = 2, percent = 90.0, isTopSet = true, loadBasis = com.example.kpkn.data.protocols.LoadBasis.REP_MAX)), 240, LiftSlot.SQUAT),
                     kpknAssist("rev", CatalogIds.REV_HYPER, 3, 10, 90),
@@ -225,13 +226,14 @@ object ClassicPlProtocols {
         }
         Protocol(
             id = "westside-conjugate", name = "Westside Conjugate", emoji = "🐺",
-            description = "12 semanas, 4 días: ME lower/upper rotando variante; DE olas 12×2/10×2/8×2 y 9×3. Bandas/cadenas no catalogadas: DE usa SPEED % de barra.",
-            author = "Louie Simmons", tags = listOf("powerlifting", "avanzado", "4 días", "12 semanas", "%", "RPE"),
-            blocks = listOf(ProtocolBlock("Ola 1", 4, "Intensificación", 45, 95), ProtocolBlock("Ola 2", 4, "Intensificación", 45, 95), ProtocolBlock("Ola 3", 4, "Intensificación", 45, 95)),
+            description = "3 semanas, 4 días: ME lower/upper rotando variante; DE ola 12×2 / 10×2 / 8×2 y 9×3. Bandas/cadenas no catalogadas: DE usa SPEED % de barra.",
+            author = "Louie Simmons", tags = listOf("powerlifting", "avanzado", "4 días", "3 semanas", "%", "RPE"),
+            blocks = listOf(ProtocolBlock("Ola DE", 3, "Intensificación", 45, 95)),
             defaultSplit = "westside_conjugate", publicationStatus = ProtocolPublicationStatus.VERIFIED,
+            kind = ProtocolKind.METHOD,
             source = attributed("Westside Barbell conjugate method", "https://www.westside-barbell.com/blogs/the-blog/the-conjugate-method", "Louie Simmons"),
-            recipe = TrainingPlanRecipe("westside-conjugate", weeks, 0.90, sbdSlots(), ProgressionRule.RepMaxAutoregulated, exemptions, claimedDaysPerWeek = 4, claimedLevel = "avanzado"),
-            fidelitySpec = ProtocolFidelitySpec(12, 4, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("de" to listOf(50.0))),
+            recipe = TrainingPlanRecipe("westside-conjugate", weeks, 0.90, sbdSlots(), ProgressionRule.RepMaxAutoregulated, exemptions, claimedDaysPerWeek = 4, claimedLevel = "avanzado", repeats = true),
+            fidelitySpec = ProtocolFidelitySpec(3, 4, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("de" to listOf(50.0))),
             exemptions = exemptions,
         )
     }
@@ -394,7 +396,7 @@ object ClassicPlProtocols {
                 },
             )
             weekRecipe(
-                w, when { w <= 4 -> 0; w == 5 -> 1; else -> 2 }, "TSA", goal,
+                w, when { w <= 5 -> 0; else -> 1 }, if (w <= 5) "Volumen" else "Intensidad", goal,
                 listOf(
                     applyRpe(DayArchetypes.plSquat(squat.pct, t1Sets = squat.sets, t1Reps = squat.reps, weekday = 1)).dropT3(drop),
                     DayArchetypes.plBenchHeavy(bench.pct, t1Sets = bench.sets, t1Reps = bench.reps.coerceAtLeast(1), weekday = 2).dropT3(drop),
@@ -410,7 +412,7 @@ object ClassicPlProtocols {
             id = "tsa-9", name = "TSA 9-Week Intermediate v2", emoji = "🍁",
             description = "9 semanas, 4 días DUP: volumen 1-4 con esquemas distintos por día, descarga 5, intensidad 6-8, test 9.",
             author = "The Strength Athlete", tags = listOf("powerlifting", "intermedio", "4 días", "9 semanas", "%", "RPE"),
-            blocks = listOf(ProtocolBlock("Volumen", 4, "Acumulación", 70, 78), ProtocolBlock("Descarga", 1, "Descarga", 50, 65), ProtocolBlock("Intensidad", 4, "Intensificación", 80, 95)),
+            blocks = listOf(ProtocolBlock("Volumen", 5, "Acumulación", 50, 78), ProtocolBlock("Intensidad", 4, "Intensificación", 80, 95)),
             defaultSplit = "pl_classic_4", publicationStatus = ProtocolPublicationStatus.VERIFIED,
             source = attributed("TSA 9 Week Intermediate Program v2", "https://www.thestrengthathlete.com/", "The Strength Athlete"),
             recipe = TrainingPlanRecipe("tsa-9", weeks, 0.90, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 4, claimedLevel = "intermedio"),

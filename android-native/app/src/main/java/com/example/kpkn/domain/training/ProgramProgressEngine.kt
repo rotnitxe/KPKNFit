@@ -19,6 +19,7 @@ import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.isSimpleCalendarizedProgram
+import com.example.kpkn.data.models.isSimpleLinearProgram
 import com.example.kpkn.data.models.isSimpleProgram
 
 /**
@@ -195,7 +196,7 @@ object ProgramProgressEngine {
         weeklySignals: WeeklyAutoregulationSignals? = null,
         compositionMetadata: ExerciseCompositionMetadataProvider? = null,
     ): ProgressAdvanceResult {
-        if (program.structure == ProgramStructure.COMPLEX) {
+        if (program.structure == ProgramStructure.COMPLEX || program.isSimpleLinearProgram) {
             return advanceComplexAfterSessionComplete(
                 program = program,
                 activeState = activeState,
@@ -633,6 +634,28 @@ object ProgramProgressEngine {
                 ),
                 advancedWeek = true,
                 autoregulationProposals = regulated.proposals,
+            )
+        }
+
+        if (program.isSimpleLinearProgram) {
+            val completedRun = (program.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
+                cycleNumber = 1,
+                weekInstanceId = null,
+                weekId = null,
+                macrocycleId = location.macrocycleId,
+                blockId = location.blockId,
+                mesocycleId = location.mesocycleId,
+                completedSessionIds = emptySet(),
+                status = ProgramRunStatus.COMPLETED,
+                pendingAction = null,
+            )
+            return ProgressAdvanceResult(
+                program = program.copy(runState = completedRun),
+                activeState = activeState?.copy(
+                    status = com.example.kpkn.data.models.ProgramStatus.COMPLETED,
+                    programRunId = completedRun.runId,
+                ),
+                advancedCycle = true,
             )
         }
 

@@ -563,6 +563,7 @@ object RemainingVerifiedProtocols {
         description = "3 semanas, 4 días: 6×6@70, 7×5@75, 8×4@80, 10×3@85, +2,5–5 kg/sem. Especialización SQ o BP.",
         tags = listOf("powerlifting", "avanzado", "especialización", "3 semanas", "%"),
         blocks = listOf(ProtocolBlock("Smolov Jr", 3, "Intensificación", 70, 90, 1.5)),
+        kind = ProtocolKind.SPECIALIZATION,
         recipe = TrainingPlanRecipe(
             id = "smolov-jr",
             weeks = (1..3).map { w ->
@@ -605,16 +606,20 @@ object RemainingVerifiedProtocols {
 
     val candito = protocol(
         "candito-6", "Candito 6-Week", "📘",
-        "6 semanas upper/lower: semana 1 de acondicionamiento (5 sesiones), hipertrofia, linear max OT, aclimatación, fuerza, descarga/test.",
+        "6 semanas: hipertrofia (acond + volumen), fuerza (linear + aclimatación) y pico-test.",
         "Jonnie Candito", listOf("powerlifting", "intermedio", "4 días", "6 semanas", "%"),
-        listOf(ProtocolBlock("Acondicionamiento", 1, "Acumulación", 65, 75), ProtocolBlock("Hipertrofia", 1, "Acumulación", 65, 75), ProtocolBlock("Linear", 1, "Intensificación", 80, 88), ProtocolBlock("Aclimatación", 1, "Intensificación", 85, 95), ProtocolBlock("Fuerza", 1, "Peak", 90, 97), ProtocolBlock("Test", 1, "Taper", 60, 100)),
+        listOf(
+            ProtocolBlock("Hipertrofia", 2, "Acumulación", 65, 75),
+            ProtocolBlock("Fuerza", 2, "Intensificación", 80, 95),
+            ProtocolBlock("Pico-test", 2, "Peak", 60, 100),
+        ),
         "pl_classic_4", attributed("Candito 6 Week Strength Program", "https://www.canditotraininghq.com/", "Jonnie Candito"),
         TrainingPlanRecipe(
             id = "candito-6",
             weeks = buildList {
                 add(
                     weekRecipe(
-                        1, 0, "Acond", BlockGoal.ACCUMULATION,
+                        1, 0, "Hipertrofia", BlockGoal.ACCUMULATION,
                         listOf(
                             DayArchetypes.plSquat(70.0, t1Sets = 4, t1Reps = 6, weekday = 1, label = "Lower A"),
                             DayArchetypes.plBenchHeavy(70.0, t1Sets = 4, t1Reps = 6, weekday = 2, label = "Upper A"),
@@ -625,16 +630,21 @@ object RemainingVerifiedProtocols {
                     ),
                 )
                 listOf(
-                    Triple(BlockGoal.ACCUMULATION, "Hiper", Triple(Triple(4, 8, 67.5), Triple(4, 8, 67.5), Triple(3, 8, 65.0))),
-                    Triple(BlockGoal.INTENSIFICATION, "Linear", Triple(Triple(5, 3, 85.0), Triple(5, 3, 85.0), Triple(3, 3, 82.5))),
-                    Triple(BlockGoal.INTENSIFICATION, "Aclim", Triple(Triple(3, 2, 90.0), Triple(3, 2, 90.0), Triple(2, 2, 87.5))),
-                    Triple(BlockGoal.PEAK, "Fuerza", Triple(Triple(2, 2, 95.0), Triple(2, 2, 95.0), Triple(2, 1, 97.5))),
-                    Triple(BlockGoal.TAPER, "Test", Triple(Triple(2, 1, 90.0), Triple(2, 1, 90.0), Triple(1, 1, 80.0))),
+                    Triple(BlockGoal.ACCUMULATION, "Hipertrofia", Triple(Triple(4, 8, 67.5), Triple(4, 8, 67.5), Triple(3, 8, 65.0))),
+                    Triple(BlockGoal.INTENSIFICATION, "Fuerza", Triple(Triple(5, 3, 85.0), Triple(5, 3, 85.0), Triple(3, 3, 82.5))),
+                    Triple(BlockGoal.INTENSIFICATION, "Fuerza", Triple(Triple(3, 2, 90.0), Triple(3, 2, 90.0), Triple(2, 2, 87.5))),
+                    Triple(BlockGoal.PEAK, "Pico-test", Triple(Triple(2, 2, 95.0), Triple(2, 2, 95.0), Triple(2, 1, 97.5))),
+                    Triple(BlockGoal.TAPER, "Pico-test", Triple(Triple(2, 1, 90.0), Triple(2, 1, 90.0), Triple(1, 1, 80.0))),
                 ).forEachIndexed { i, (goal, name, lifts) ->
                     val (sq, bp, dl) = lifts
                     val drop = if (goal == BlockGoal.PEAK || goal == BlockGoal.TAPER) 2 else 0
+                    val blockIndex = when {
+                        i == 0 -> 0
+                        i <= 2 -> 1
+                        else -> 2
+                    }
                     add(
-                        weekRecipe(i + 2, i + 1, name, goal, listOf(
+                        weekRecipe(i + 2, blockIndex, name, goal, listOf(
                             DayArchetypes.plSquat(sq.third, t1Sets = sq.first, t1Reps = sq.second, weekday = 1).dropT3(drop),
                             DayArchetypes.plBenchHeavy(bp.third, t1Sets = bp.first, t1Reps = bp.second, weekday = 2).dropT3(drop),
                             DayArchetypes.plDeadlift(dl.third, t1Sets = dl.first, t1Reps = dl.second, weekday = 4).dropT3(drop),
@@ -672,6 +682,7 @@ object RemainingVerifiedProtocols {
             TrainingPlanRecipe("coan-phillipi-dl", weeks, 1.0, mapOf(LiftSlot.DEADLIFT to CatalogIds.DL), ProgressionRule.None, listOf(RecipeCompositionExemption("H2", "Peso muerto", "DL + speed + SLDL + good morning"), RecipeCompositionExemption("H3", "Peso muerto", "Cuatro bisagras por diseño")), claimedDaysPerWeek = 1, claimedLevel = "avanzado")
         },
         ProtocolFidelitySpec(10, 1, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("w10" to listOf(100.0))),
+        kind = ProtocolKind.SPECIALIZATION,
         exemptions = listOf(RecipeCompositionExemption("H2", "Peso muerto", "DL + speed + SLDL + good morning"), RecipeCompositionExemption("H3", "Peso muerto", "Cuatro bisagras por diseño")),
     )
 }

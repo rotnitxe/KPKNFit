@@ -71,7 +71,7 @@ fun ProtocolDetailSheet(
                 }
             }
             sampleWeek?.let { week ->
-                Text("Semana tipo ${week.weekNumber}", fontWeight = FontWeight.Bold, color = Color.White)
+                Text("Semana tipo ${week.weekName.ifBlank { week.weekNumber.toString() }}", fontWeight = FontWeight.Bold, color = Color.White)
                 week.days.forEach { day ->
                     Text(
                         "${day.label}: " + day.slots.take(6).joinToString(" → ") { slot ->
