@@ -621,6 +621,34 @@ class SplitApplicationEngineTest {
         assertEquals(listOf(3, 4, 6, 7), days)
     }
 
+    @Test
+    fun current_week_without_selectedWeekId_still_applies_using_selectedWeekIds() {
+        val program = programWithWeeks(
+            listOf(
+                ProgramWeek("w1", "W1", sessions = listOf(Session("s1", "A"))),
+                ProgramWeek("w2", "W2", sessions = listOf(Session("s2", "B"))),
+            ),
+        )
+        val request = SplitApplicationRequest(
+            program = program,
+            selectedSplit = upperLower,
+            selectedBlockId = "block",
+            selectedWeekId = null,
+            startDay = 1,
+            temporalScope = SplitTemporalScope.CURRENT_WEEK,
+            selectedWeekIds = setOf("w1"),
+            migrationMode = SessionMigrationMode.CLEAN,
+        )
+        val impact = SplitApplicationEngine.impactSummary(request)
+        assertEquals(1, impact.affectedWeeks)
+        assertTrue(impact.affectedWeeks > 0)
+
+        val applied = SplitApplicationEngine.apply(request)
+        val weeks = applied.macrocycles.first().blocks.first().mesocycles.first().weeks
+        assertTrue(weeks.first { it.id == "w1" }.sessions.isNotEmpty())
+        assertEquals(listOf("s2"), weeks.first { it.id == "w2" }.sessions.map { it.id })
+    }
+
     private fun template(
         id: String,
         dayLabel: String,

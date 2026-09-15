@@ -102,6 +102,21 @@ fun ProgramDetailScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(uiState.snackbarMessage) {
+        val message = uiState.snackbarMessage ?: return@LaunchedEffect
+        snackbarHostState.showKpknSnackbar(
+            message,
+            if (message.startsWith("No se pudo")) SnackbarType.DANGER else SnackbarType.SUCCESS,
+        )
+        viewModel.consumeSnackbarMessage()
+    }
+
+    LaunchedEffect(uiState.pendingOpenProgramId) {
+        val id = uiState.pendingOpenProgramId ?: return@LaunchedEffect
+        viewModel.consumePendingOpenProgram()
+        onOpenProgram(id)
+    }
     var showVolumeSetupNotice by remember { mutableStateOf(false) }
     var openVolumeSheetToken by remember { mutableIntStateOf(0) }
     var notifiedLoopWeekId by remember { mutableStateOf<String?>(null) }
@@ -734,6 +749,7 @@ private fun TrainingPanel(
                 onUpdateProgram = { viewModel.updateProgram(it) },
                 onFocusWeek = ::focusWeek,
                 onCreateSessionForWeek = ::createSessionForWeek,
+                onApplyProgramTemplate = viewModel::applyProgramTemplate,
                 showSimpleCalendarizationSheet = showSimpleCalendarizationSheet,
                 onShowSimpleCalendarizationSheetChange = { viewModel.setShowSimpleCalendarizationSheet(it) },
                 calendarizationStartDate = calendarizationStartDate,

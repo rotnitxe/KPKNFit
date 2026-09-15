@@ -639,9 +639,11 @@ object SplitApplicationEngine {
             return blockId in request.perBlockSelections
         }
         return when (request.temporalScope) {
-            SplitTemporalScope.CURRENT_WEEK -> weekId == request.selectedWeekId
+            SplitTemporalScope.CURRENT_WEEK ->
+                weekId == (request.selectedWeekId ?: request.selectedWeekIds.firstOrNull())
             SplitTemporalScope.SELECTED_WEEKS -> weekId in request.selectedWeekIds
-            SplitTemporalScope.CURRENT_BLOCK -> blockId == request.selectedBlockId
+            SplitTemporalScope.CURRENT_BLOCK ->
+                request.selectedBlockId == null || blockId == request.selectedBlockId
             SplitTemporalScope.WHOLE_PROGRAM -> true
         }
     }

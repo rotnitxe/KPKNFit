@@ -126,4 +126,29 @@ class ProgramsViewModelTest {
         assertTrue(created.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.flatMap { it.sessions }.isNotEmpty())
         assertEquals(180.0, created.powerliftingProfile?.squatTM ?: -1.0, 0.01)
     }
+
+    @Test
+    fun createProgramFromTemplate_activates_program_and_materializes_executable_sessions() = runBlocking {
+        com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
+        val vm = ProgramsViewModel(ApplicationProvider.getApplicationContext())
+        val repository = ProgramRepository.getInstance()
+
+        listOf("simple-1", "power-12-3").forEach { templateId ->
+            val result = vm.createProgramFromTemplate(templateId)
+            assertTrue("create $templateId debe devolver Result.success", result.isSuccess)
+            val id = result.getOrThrow()
+            val created = repository.getProgramById(id)
+            assertNotNull(created)
+            assertEquals(id, repository.activeProgramState.value?.programId)
+            com.example.kpkn.domain.training.ProgramExecutionContract.requireExecutable(created!!)
+            val weeks = created.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
+            assertTrue(weeks.isNotEmpty())
+            assertTrue(
+                "plantilla $templateId debe dejar sesiones ejecutables",
+                weeks.any { week ->
+                    week.sessions.any(com.example.kpkn.domain.templates.SessionTemplateEngine::sessionHasExecutableContent)
+                },
+            )
+        }
+    }
 }

@@ -37,6 +37,7 @@ import com.example.kpkn.ui.components.EmptyStateView
 import com.example.kpkn.ui.components.SwipeToDeleteCard
 import com.example.kpkn.ui.components.icons.DumbbellIcon
 import com.example.kpkn.ui.components.KpknAlertDialog
+import kotlinx.coroutines.launch
 
 object ProgramCreationRequests {
     @Volatile var openSheet: Boolean = false
@@ -59,6 +60,8 @@ fun ProgramsScreen(
     var showCreateSheet by remember { mutableStateOf(false) }
     var selectedProtocol by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
     var protocolForTm by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
+    var templateError by remember { mutableStateOf<String?>(null) }
+    val createScope = rememberCoroutineScope()
 
     LaunchedEffect(openCreateSheetOnStart, Unit) {
         if (openCreateSheetOnStart || ProgramCreationRequests.openSheet) {
@@ -213,9 +216,17 @@ fun ProgramsScreen(
                 onNavigateToProgram(id)
             },
             onCreateFromTemplate = { template ->
-                val id = viewModel.createProgramFromTemplate(template.id)
-                showCreateSheet = false
-                onNavigateToProgram(id)
+                createScope.launch {
+                    viewModel.createProgramFromTemplate(template.id)
+                        .onSuccess { id ->
+                            showCreateSheet = false
+                            onNavigateToProgram(id)
+                        }
+                        .onFailure { error ->
+                            templateError = error.message?.takeIf { it.isNotBlank() }
+                                ?: "No se pudo crear el programa desde la plantilla."
+                        }
+                }
             },
             onSelectProtocol = { protocol ->
                 showCreateSheet = false
@@ -246,6 +257,16 @@ fun ProgramsScreen(
                 val id = viewModel.createProgramFromProtocol(protocol.id, profile)
                 protocolForTm = null
                 onNavigateToProgram(id)
+            },
+        )
+    }
+    templateError?.let { message ->
+        KpknAlertDialog(
+            onDismissRequest = { templateError = null },
+            title = { Text("No se pudo aplicar la plantilla", fontWeight = FontWeight.Black) },
+            text = { Text(message) },
+            confirmButton = {
+                TextButton(onClick = { templateError = null }) { Text("Entendido") }
             },
         )
     }

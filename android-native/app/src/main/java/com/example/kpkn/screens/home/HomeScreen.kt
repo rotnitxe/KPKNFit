@@ -67,6 +67,7 @@ import com.example.kpkn.ui.theme.RingRed
 import com.example.kpkn.ui.theme.RingYellow
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknAlertDialog
+import kotlinx.coroutines.launch
 import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
 import java.time.LocalDate
@@ -107,6 +108,8 @@ fun HomeScreen(
     val pendingProgramName by viewModel.pendingProgramName.collectAsState()
     var selectedProtocol by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
     var protocolForTm by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
+    var templateError by remember { mutableStateOf<String?>(null) }
+    val createScope = rememberCoroutineScope()
     val openCreate = { viewModel.openCreateProgramSheet() }
     val augeViewModel = rememberAugeViewModel()
     val augePerMuscle by augeViewModel.perMuscle.collectAsState()
@@ -370,9 +373,17 @@ fun HomeScreen(
                     onNavigateToProgram(id)
                 },
                 onCreateFromTemplate = { template ->
-                    val id = programsVm.createProgramFromTemplate(template.id)
-                    viewModel.onProgramCreated(id, activate = pendingProgramName != null)
-                    onNavigateToProgram(id)
+                    createScope.launch {
+                        programsVm.createProgramFromTemplate(template.id)
+                            .onSuccess { id ->
+                                viewModel.onProgramCreated(id, activate = pendingProgramName != null)
+                                onNavigateToProgram(id)
+                            }
+                            .onFailure { error ->
+                                templateError = error.message?.takeIf { it.isNotBlank() }
+                                    ?: "No se pudo crear el programa desde la plantilla."
+                            }
+                    }
                 },
                 onSelectProtocol = { protocol ->
                     viewModel.dismissCreateProgramSheet()
@@ -405,6 +416,16 @@ fun HomeScreen(
                     protocolForTm = null
                     viewModel.onProgramCreated(id, activate = true)
                     onNavigateToProgram(id)
+                },
+            )
+        }
+        templateError?.let { message ->
+            KpknAlertDialog(
+                onDismissRequest = { templateError = null },
+                title = { Text("No se pudo aplicar la plantilla", fontWeight = FontWeight.Black) },
+                text = { Text(message) },
+                confirmButton = {
+                    TextButton(onClick = { templateError = null }) { Text("Entendido") }
                 },
             )
         }

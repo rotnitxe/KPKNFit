@@ -29,7 +29,11 @@ fun SessionEditorViewModel.setTemplateSearchQuery(query: String) {
  *   choose between [SessionTemplateApplyMode.REPLACE] and [SessionTemplateApplyMode.APPEND].
  */
 fun SessionEditorViewModel.selectTemplate(template: SessionTemplate) {
-    val session = currentUiState.activeVariantSession ?: return
+    val session = currentUiState.activeVariantSession ?: currentUiState.session
+    if (session == null) {
+        updateUi { it.copy(snackbarMessage = "No hay una sesión abierta para aplicar la plantilla.") }
+        return
+    }
     if (!SessionTemplateEngine.canApplyTemplate(template, session)) {
         updateUi {
             it.copy(
@@ -242,10 +246,14 @@ internal fun SessionEditorViewModel.applyTemplateInternal(template: SessionTempl
         return
     }
     val state = currentUiState
-    val session = state.activeVariantSession ?: return
+    val session = state.activeVariantSession ?: state.session
+    if (session == null) {
+        updateUi { it.copy(snackbarMessage = "No hay una sesión abierta para aplicar la plantilla.") }
+        return
+    }
     val activeVariant = state.activeVariant
     val expectedSessionId = session.id
-    val expectedModifiedAt = session.lastModifiedAtMs
+    val expectedContentHash = session.contentHashForAuge()
     if (!SessionTemplateEngine.canApplyTemplate(template, session)) {
         updateUi { it.copy(snackbarMessage = "La plantilla no se puede aplicar a esta sesión.") }
         return
@@ -256,15 +264,15 @@ internal fun SessionEditorViewModel.applyTemplateInternal(template: SessionTempl
     }
     templateApplyJob = viewModelScope.launch {
         // Clone and merge off Main. The commit below is conditional on the same
-        // active variant/version so an intervening edit is never overwritten.
+        // active variant/content so an intervening edit is never overwritten.
         val result = withContext(Dispatchers.Default) {
             SessionTemplateEngine.applyTemplate(template, session, mode)
         }
         val latest = currentUiState
-        val latestSession = latest.activeVariantSession
+        val latestSession = latest.activeVariantSession ?: latest.session
         if (latest.activeVariant != activeVariant ||
             latestSession?.id != expectedSessionId ||
-            latestSession.lastModifiedAtMs != expectedModifiedAt
+            latestSession.contentHashForAuge() != expectedContentHash
         ) {
             updateUi {
                 it.copy(
@@ -274,7 +282,17 @@ internal fun SessionEditorViewModel.applyTemplateInternal(template: SessionTempl
             }
             return@launch
         }
+        if (latest.activeVariantSession == null) {
+            updateUi { it.copy(activeVariant = WeekVariant.A) }
+        }
         updateSession { result }
-        updateUi { it.copy(sheet = SessionEditorSheet.NONE, templateApplyDecision = null, templateSearchQuery = "") }
+        updateUi {
+            it.copy(
+                sheet = SessionEditorSheet.NONE,
+                templateApplyDecision = null,
+                templateSearchQuery = "",
+                snackbarMessage = "Plantilla \"${template.name}\" aplicada.",
+            )
+        }
     }
 }

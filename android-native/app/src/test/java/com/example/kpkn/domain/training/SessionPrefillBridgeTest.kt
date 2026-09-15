@@ -44,6 +44,7 @@ class SessionPrefillBridgeTest {
 
     @Test
     fun prefillIfEmpty_is_noop_when_program_already_has_sessions() {
+        CatalogCompositionTestSupport.install()
         val protocol = com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.first { it.id == "wendler-531-bbb" }
         val populated = ProgramProtocolEngine.applyProtocol(Program(id = "p", name = "P"), protocol)
         val split = SPLIT_TEMPLATES.first { it.id == "ul_x4" }
@@ -104,5 +105,56 @@ class SessionPrefillBridgeTest {
                 resultWeeks.first { it.id == original.id }.sessions,
             )
         }
+    }
+
+    @Test
+    fun prefillEmptyWeeks_falls_back_to_system_catalog_when_audit_index_rejects_days() {
+        val program = Program(
+            id = "poison-prefill",
+            name = "Vacío",
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "macro",
+                    name = "Macro",
+                    blocks = listOf(
+                        Block(
+                            id = "block",
+                            name = "Block",
+                            mesocycles = listOf(
+                                Mesocycle(
+                                    id = "meso",
+                                    name = "Meso",
+                                    weeks = listOf(ProgramWeek(id = "w1", name = "Semana 1")),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val split = SPLIT_TEMPLATES.first { it.id == "ul_x4" }
+        val poisonIndex = mapOf(
+            "poison" to com.example.kpkn.data.models.ExerciseMuscleInfo(id = "poison", name = "X"),
+        )
+
+        val auditedPreview = SplitApplicationEngine.prebuiltWeekPreview(
+            split = split,
+            exerciseIndex = poisonIndex,
+        )
+        assertTrue(
+            "El índice venenoso debe dejar al menos un día no disponible para ejercer el fallback",
+            auditedPreview.days.isEmpty() || auditedPreview.days.any { !it.isAvailable },
+        )
+
+        val result = SessionPrefillBridge.prefillEmptyWeeks(
+            program = program,
+            split = split,
+            exerciseIndex = poisonIndex,
+        )
+        val week = result.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
+        assertTrue(week.sessions.isNotEmpty())
+        assertTrue(
+            week.sessions.any { com.example.kpkn.domain.templates.SessionTemplateEngine.sessionHasExecutableContent(it) },
+        )
     }
 }

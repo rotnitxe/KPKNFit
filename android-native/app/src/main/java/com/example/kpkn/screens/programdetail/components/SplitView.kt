@@ -63,6 +63,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.repository.SessionTemplateRepository
+import com.example.kpkn.data.sessions.SESSION_TEMPLATES_SYSTEM
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.splits.Difficulty
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
@@ -113,6 +114,9 @@ fun SplitView(
     // Before Room is ready it is empty, so a USER toggle cannot appear to work
     // and then be silently ignored by materialization.
     val generationTemplates by templateRepository.generationTemplates.collectAsState()
+    // Room hydration starts as emptyList(); an explicit empty catalog disables
+    // the engine's SYSTEM fallback and would leave canApply/preview dead.
+    val applyTemplates = generationTemplates.takeIf { it.isNotEmpty() } ?: SESSION_TEMPLATES_SYSTEM
 
     val blocks = remember(program.id, program.macrocycles) {
         SplitApplicationEngine.buildBlockOptions(program)
@@ -273,7 +277,7 @@ fun SplitView(
                 defaultStartDay = program.startDay ?: 1,
                 isAdvancedProgram = isAdvancedProgram,
                 totalWeeks = totalWeeks,
-                generationTemplates = generationTemplates,
+                generationTemplates = applyTemplates,
                 onDismiss = { sheetSplitId = null },
                 onApply = {
                     onUpdateProgram(it)
@@ -306,7 +310,7 @@ fun SplitView(
             defaultStartDay = startDay,
             isAdvancedProgram = isAdvancedProgram,
             totalWeeks = totalWeeks,
-            generationTemplates = generationTemplates,
+            generationTemplates = applyTemplates,
             onDismiss = { pendingCustomSplit = null },
             onApply = {
                 onUpdateProgram(it)
@@ -322,7 +326,7 @@ fun SplitView(
             weeks = weekOptions,
             selectedBlockId = selectedBlockId,
             defaultStartDay = program.startDay ?: 1,
-            generationTemplates = generationTemplates,
+            generationTemplates = applyTemplates,
             onDismiss = { showMultiApply = false },
             onApply = {
                 onUpdateProgram(it)
@@ -834,16 +838,23 @@ private fun SplitApplySheet(
 ) {
     val isCalendarized = ProgramCalendarEngine.isCalendarized(program)
     var startDay by rememberSaveable { mutableStateOf(defaultStartDay) }
-    var temporalScope by rememberSaveable { mutableStateOf(SplitTemporalScope.CURRENT_WEEK) }
+    var temporalScope by rememberSaveable {
+        mutableStateOf(
+            if (!selectedWeekId.isNullOrBlank()) SplitTemporalScope.CURRENT_WEEK
+            else SplitTemporalScope.CURRENT_BLOCK,
+        )
+    }
     var advancedMode by rememberSaveable { mutableStateOf(AdvancedSplitMode.GLOBAL) }
     var migrationMode by rememberSaveable { mutableStateOf<SessionMigrationMode?>(null) }
     var destructiveAccepted by rememberSaveable { mutableStateOf(false) }
     var showFinalConfirm by rememberSaveable { mutableStateOf(false) }
+    var applyError by remember { mutableStateOf<String?>(null) }
     val blockSelections = remember {
         mutableStateMapOf<String, String>().apply { putAll(blocks.associate { it.id to selectedSplit.id }) }
     }
-    val selectedWeekIds = remember(selectedWeekId) {
-        mutableStateListOf<String>().apply { selectedWeekId?.let(::add) }
+    val resolvedWeekId = selectedWeekId ?: weeks.firstOrNull()?.id
+    val selectedWeekIds = remember(resolvedWeekId) {
+        mutableStateListOf<String>().apply { resolvedWeekId?.let(::add) }
     }
     var focusOverrides by remember(selectedSplit.id) { mutableStateOf<Map<Int, String>>(emptyMap()) }
     val weekPreview = remember(selectedSplit, focusOverrides, generationTemplates) {
@@ -868,7 +879,7 @@ private fun SplitApplySheet(
         program = program,
         selectedSplit = selectedSplit,
         selectedBlockId = selectedBlockId,
-        selectedWeekId = selectedWeekId,
+        selectedWeekId = resolvedWeekId,
         startDay = startDay,
         temporalScope = temporalScope,
         selectedWeekIds = selectedWeekIds.toSet(),
@@ -1095,7 +1106,7 @@ private fun SplitApplySheet(
             Button(
                 onClick = {
                     if (impact.isLargeDestructiveChange) showFinalConfirm = true
-                    else onApply(SplitApplicationEngine.apply(request))
+                    else applySplitSafely(request, onApply) { applyError = it }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = canApply,
@@ -1121,13 +1132,39 @@ private fun SplitApplySheet(
             confirmButton = {
                 Button(onClick = {
                     showFinalConfirm = false
-                    onApply(SplitApplicationEngine.apply(request))
+                    applySplitSafely(request, onApply) { applyError = it }
                 }) { Text("Sí, reemplazar") }
             },
             dismissButton = { TextButton(onClick = { showFinalConfirm = false }) { Text("Cancelar") } },
         )
     }
+    applyError?.let { message ->
+        KpknAlertDialog(
+            onDismissRequest = { applyError = null },
+            title = { Text("No se pudo aplicar el split", fontWeight = FontWeight.Black) },
+            text = { Text(message) },
+            confirmButton = {
+                TextButton(onClick = { applyError = null }) { Text("Entendido") }
+            },
+        )
+    }
 }
+
+private fun applySplitSafely(
+    request: SplitApplicationRequest,
+    onApply: (Program) -> Unit,
+    onError: (String) -> Unit,
+) {
+    try {
+        onApply(SplitApplicationEngine.apply(request))
+    } catch (error: Exception) {
+        onError(
+            error.message?.takeIf { it.isNotBlank() }
+                ?: "No se pudo aplicar el split.",
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun MultiSplitApplySheet(
@@ -1146,6 +1183,7 @@ private fun MultiSplitApplySheet(
     var migrationMode by rememberSaveable { mutableStateOf<SessionMigrationMode?>(null) }
     var destructiveAccepted by rememberSaveable { mutableStateOf(false) }
     var showFinalConfirm by rememberSaveable { mutableStateOf(false) }
+    var applyError by remember { mutableStateOf<String?>(null) }
     val selectedWeekIds = remember(selectedBlockId) {
         mutableStateListOf<String>().apply {
             addAll(weeks.filter { selectedBlockId == null || it.blockId == selectedBlockId }.map { it.id })
@@ -1255,7 +1293,15 @@ private fun MultiSplitApplySheet(
                     if (willReplace && (targetWeeks.size > 1 || affectedSessions > 4)) {
                         showFinalConfirm = true
                     } else {
-                        onApply(applyMultipleSplits(program, splits, targetWeeks, selectedBlockId, startDay, migrationMode ?: return@Button, generationTemplates))
+                        runCatching {
+                            applyMultipleSplits(program, splits, targetWeeks, selectedBlockId, startDay, migrationMode ?: return@Button, generationTemplates)
+                        }.fold(
+                            onSuccess = onApply,
+                            onFailure = { error ->
+                                applyError = error.message?.takeIf { it.isNotBlank() }
+                                    ?: "No se pudo aplicar el split."
+                            },
+                        )
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -1276,10 +1322,28 @@ private fun MultiSplitApplySheet(
             confirmButton = {
                 Button(onClick = {
                     showFinalConfirm = false
-                    onApply(applyMultipleSplits(program, splits, targetWeeks, selectedBlockId, startDay, migrationMode ?: return@Button, generationTemplates))
+                    runCatching {
+                        applyMultipleSplits(program, splits, targetWeeks, selectedBlockId, startDay, migrationMode ?: return@Button, generationTemplates)
+                    }.fold(
+                        onSuccess = onApply,
+                        onFailure = { error ->
+                            applyError = error.message?.takeIf { it.isNotBlank() }
+                                ?: "No se pudo aplicar el split."
+                        },
+                    )
                 }) { Text("Sí, aplicar") }
             },
             dismissButton = { TextButton(onClick = { showFinalConfirm = false }) { Text("Cancelar") } },
+        )
+    }
+    applyError?.let { message ->
+        KpknAlertDialog(
+            onDismissRequest = { applyError = null },
+            title = { Text("No se pudo aplicar el split", fontWeight = FontWeight.Black) },
+            text = { Text(message) },
+            confirmButton = {
+                TextButton(onClick = { applyError = null }) { Text("Entendido") }
+            },
         )
     }
 }

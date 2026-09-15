@@ -161,7 +161,7 @@ class SessionEditorViewModel(
 
     private var assistantJob: Job? = null
 
-    private fun Session.contentHashForAuge(): Int {
+    internal fun Session.contentHashForAuge(): Int {
         // Hash solo de lo que afecta AUGE: ejercicios/parts/supersets/warmup/targetDuration
         // Excluye name/description/lastModifiedAtMs/dayOfWeek
         var r = exercises.hashCode()

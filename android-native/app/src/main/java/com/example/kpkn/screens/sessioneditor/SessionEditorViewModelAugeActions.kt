@@ -187,6 +187,14 @@ fun SessionEditorViewModel.applyAssistantSuggestion(
             val targetExerciseId = suggestion.exerciseId ?: return
             updateSession { session -> convertToSupersetWithNext(session, targetExerciseId) }
         }
+        AssistantActionType.APPLY_TEMPLATE -> {
+            val preview = currentUiState.assistantReport?.plantillasCompatibles?.firstOrNull()
+            if (preview == null) {
+                updateUi { it.copy(snackbarMessage = "No hay una plantilla compatible para aplicar.") }
+            } else {
+                selectTemplate(preview.template)
+            }
+        }
         else -> Unit
     }
 }

@@ -781,4 +781,55 @@ class ProgramDetailViewModelTest {
         assertNull(repository.getProgramById(id)?.runState?.pendingAction)
         assertNull(vm.blockTransitionBanner.value)
     }
+
+    @Test
+    fun applyProgramTemplate_reselects_week_in_new_graph() = runBlocking {
+        com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
+        val id = nextId()
+        repository.addProgram(Program(id = id, name = "Vacío", structure = ProgramStructure.SIMPLE))
+        val vm = ProgramDetailViewModel(id)
+        val staleWeek = "${id}_missing_week"
+        vm.selectWeek(staleWeek)
+        assertEquals(staleWeek, vm.uiState.value.selectedWeekId)
+
+        val template = com.example.kpkn.data.programs.PROGRAM_TEMPLATES.first { it.id == "simple-1" }
+        vm.applyProgramTemplate(template)
+
+        withTimeout(15_000) {
+            while (true) {
+                val program = vm.program.value ?: repository.getProgramById(id)
+                val weekId = vm.uiState.value.selectedWeekId
+                val weekIds = program?.macrocycles
+                    ?.flatMap { it.blocks }
+                    ?.flatMap { it.mesocycles }
+                    ?.flatMap { it.weeks }
+                    ?.map { it.id }
+                    .orEmpty()
+                if (program != null &&
+                    weekId != null &&
+                    weekId in weekIds &&
+                    weekIds.isNotEmpty() &&
+                    program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
+                        .any { week ->
+                            week.sessions.any(
+                                com.example.kpkn.domain.templates.SessionTemplateEngine::sessionHasExecutableContent,
+                            )
+                        }
+                ) {
+                    break
+                }
+                delay(50)
+            }
+        }
+
+        val applied = vm.program.value ?: repository.getProgramById(id)!!
+        val weekIds = applied.macrocycles
+            .flatMap { it.blocks }
+            .flatMap { it.mesocycles }
+            .flatMap { it.weeks }
+            .map { it.id }
+            .toSet()
+        assertTrue(vm.uiState.value.selectedWeekId in weekIds)
+        assertNotNull(vm.uiState.value.snackbarMessage)
+    }
 }

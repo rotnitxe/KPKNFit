@@ -70,6 +70,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.UUID
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -93,6 +94,8 @@ data class ProgramDetailUiState(
     val macrocycleTimelineStartDate: String? = null,
     val macrocycleManualEndDate: String? = null,
     val macrocycleCompetitionDate: String? = null,
+    val snackbarMessage: String? = null,
+    val pendingOpenProgramId: String? = null,
 )
 
 /** Banner de transición de bloque (evento → StateFlow; sin lógica inline en Compose). */
@@ -399,12 +402,17 @@ class ProgramDetailViewModel(
         viewModelScope.launch {
             combine(activeProgramState, program, roadmapBlocks) { active, p, blocks ->
                 if (p == null || blocks.isEmpty()) return@combine
+                val currentId = _uiState.value.selectedBlockId
+                val currentMissing = currentId == null || blocks.none { it.id == currentId }
                 if (active != null && active.programId == programId && active.status == ProgramStatus.ACTIVE) {
                     val activeBlock = ProgramDetailHelpers.findActiveBlockId(active, programId, blocks)
-                    if (activeBlock != null && _uiState.value.selectedBlockId != activeBlock) {
-                        _uiState.update { it.copy(selectedBlockId = activeBlock) }
+                    when {
+                        activeBlock != null && currentId != activeBlock ->
+                            _uiState.update { it.copy(selectedBlockId = activeBlock) }
+                        activeBlock == null && currentMissing ->
+                            _uiState.update { it.copy(selectedBlockId = blocks.first().id) }
                     }
-                } else if (_uiState.value.selectedBlockId == null) {
+                } else if (currentMissing) {
                     _uiState.update { it.copy(selectedBlockId = blocks.first().id) }
                 }
             }.collect {}
@@ -521,8 +529,58 @@ class ProgramDetailViewModel(
         if (isPausedProgram.value) resumeProgram() else if (!isActiveProgram.value) startProgram()
     }
 
+    fun consumeSnackbarMessage() {
+        _uiState.update { it.copy(snackbarMessage = null) }
+    }
+
+    fun consumePendingOpenProgram() {
+        _uiState.update { it.copy(pendingOpenProgramId = null) }
+    }
+
     fun updateProgram(updated: Program) {
         repository.updateProgram(updated)
+    }
+
+    fun applyProgramTemplate(template: com.example.kpkn.data.programs.ProgramTemplateOption) {
+        viewModelScope.launch {
+            val current = program.value ?: return@launch
+            val result = runCatching {
+                withContext(kotlinx.coroutines.Dispatchers.Default) {
+                    com.example.kpkn.domain.training.ProgramTemplateEngine.applyTemplate(
+                        current = current,
+                        template = template,
+                    )
+                }
+            }
+            result.fold(
+                onSuccess = { applied ->
+                    if (applied.createdCopy) {
+                        addProgramCopy(applied.program)
+                    } else {
+                        updateProgram(applied.program)
+                        selectFirstRoadmapPosition(applied.program)
+                    }
+                    _uiState.update {
+                        it.copy(
+                            snackbarMessage = if (applied.createdCopy) {
+                                "Se creó una copia con la plantilla \"${template.name}\"."
+                            } else {
+                                "Plantilla \"${template.name}\" aplicada. Semanas rellenadas."
+                            },
+                            pendingOpenProgramId = applied.program.id.takeIf { applied.createdCopy },
+                        )
+                    }
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(
+                            snackbarMessage = error.message?.takeIf { msg -> msg.isNotBlank() }
+                                ?: "No se pudo aplicar la plantilla. Intenta de nuevo.",
+                        )
+                    }
+                },
+            )
+        }
     }
 
     fun clearCompetitionKeyDate() {

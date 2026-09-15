@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.training
 
+import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.SessionOrigin
@@ -50,6 +51,7 @@ object SessionPrefillBridge {
         program: Program,
         split: SplitTemplate?,
         templates: List<SessionTemplate> = SESSION_TEMPLATES_SYSTEM,
+        exerciseIndex: Map<String, ExerciseMuscleInfo>? = null,
     ): Program {
         val defaultSplit = split ?: resolveSplit(program) ?: return program
         val startDay = program.resolvedSchedulePlan().weekStartDay ?: program.startDay ?: 1
@@ -69,27 +71,39 @@ object SessionPrefillBridge {
                                                 ?: program.blockSplitSelections[block.id]
                                                 ?: defaultSplit.id,
                                         ) ?: return@map week
-                                        val preview = SplitApplicationEngine.prebuiltWeekPreview(
+                                        val prefs = SuggestionPrefs(preferredDifficulty = effectiveSplit.difficulty)
+                                        val materialization = resolvePrefillMaterialization(
                                             split = effectiveSplit,
                                             templates = templates,
-                                            prefs = SuggestionPrefs(preferredDifficulty = effectiveSplit.difficulty),
-                                        )
-                                        // No published recipe means no prefill. The advanced
-                                        // validator will report the incomplete block instead of
-                                        // silently persisting blank "generated" sessions.
-                                        if (preview.days.isEmpty() || preview.days.any { !it.isAvailable }) return@map week
+                                            prefs = prefs,
+                                            exerciseIndex = exerciseIndex,
+                                        ) ?: return@map week
                                         changed = true
                                         week.copy(
-                                            sessions = SplitApplicationEngine.buildSessionsForSplit(
-                                                splitId = effectiveSplit.id,
-                                                pattern = effectiveSplit.pattern,
-                                                sessionDescriptions = effectiveSplit.sessionDescriptions,
-                                                startDay = startDay,
-                                                existingSessions = emptyList(),
-                                                migrationMode = SessionMigrationMode.PREBUILT,
-                                                prefs = SuggestionPrefs(preferredDifficulty = effectiveSplit.difficulty),
-                                                templates = templates,
-                                            ),
+                                            sessions = if (materialization.exerciseIndex == null) {
+                                                SplitApplicationEngine.buildSessionsForSplit(
+                                                    splitId = effectiveSplit.id,
+                                                    pattern = effectiveSplit.pattern,
+                                                    sessionDescriptions = effectiveSplit.sessionDescriptions,
+                                                    startDay = startDay,
+                                                    existingSessions = emptyList(),
+                                                    migrationMode = SessionMigrationMode.PREBUILT,
+                                                    prefs = prefs,
+                                                    templates = templates,
+                                                )
+                                            } else {
+                                                SplitApplicationEngine.buildSessionsForSplit(
+                                                    splitId = effectiveSplit.id,
+                                                    pattern = effectiveSplit.pattern,
+                                                    sessionDescriptions = effectiveSplit.sessionDescriptions,
+                                                    startDay = startDay,
+                                                    existingSessions = emptyList(),
+                                                    migrationMode = SessionMigrationMode.PREBUILT,
+                                                    prefs = prefs,
+                                                    templates = templates,
+                                                    exerciseIndex = materialization.exerciseIndex,
+                                                )
+                                            },
                                         )
                                     }
                                 )
@@ -120,6 +134,53 @@ object SessionPrefillBridge {
 
     private fun weekNeedsPrefill(week: ProgramWeek): Boolean =
         week.sessions.isEmpty() || week.sessions.all { it.origin == SessionOrigin.GENERATED_PLACEHOLDER }
+
+    /**
+     * Audit can reject every candidate for a split day (partial V2 index, P0/P1).
+     * Retrying with an empty index restores the engine's publication-metadata
+     * fallback so a template still materializes sessions instead of crashing
+     * [ProgramExecutionContract.requireExecutable] on empty weeks.
+     */
+    private fun resolvePrefillMaterialization(
+        split: SplitTemplate,
+        templates: List<SessionTemplate>,
+        prefs: SuggestionPrefs,
+        exerciseIndex: Map<String, ExerciseMuscleInfo>?,
+    ): PrefillMaterialization? {
+        val primaryIndex = exerciseIndex
+        val primaryPreview = if (primaryIndex == null) {
+            SplitApplicationEngine.prebuiltWeekPreview(
+                split = split,
+                templates = templates,
+                prefs = prefs,
+            )
+        } else {
+            SplitApplicationEngine.prebuiltWeekPreview(
+                split = split,
+                templates = templates,
+                prefs = prefs,
+                exerciseIndex = primaryIndex,
+            )
+        }
+        if (previewIsReady(primaryPreview)) {
+            return PrefillMaterialization(primaryIndex)
+        }
+        val fallbackPreview = SplitApplicationEngine.prebuiltWeekPreview(
+            split = split,
+            templates = templates,
+            prefs = prefs,
+            exerciseIndex = emptyMap(),
+        )
+        if (!previewIsReady(fallbackPreview)) return null
+        return PrefillMaterialization(emptyMap())
+    }
+
+    private fun previewIsReady(preview: PrebuiltWeekPreview): Boolean =
+        preview.days.isNotEmpty() && preview.days.all { it.isAvailable }
+
+    private data class PrefillMaterialization(
+        val exerciseIndex: Map<String, ExerciseMuscleInfo>?,
+    )
 
     private fun resolveSplitId(program: Program, rawSplitId: String?): SplitTemplate? {
         val id = rawSplitId?.takeIf { it.isNotBlank() } ?: return null

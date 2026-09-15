@@ -17,10 +17,12 @@ import com.example.kpkn.domain.training.ProgramAutoregulationEngine
 import com.example.kpkn.domain.training.ProgramProtocolEngine
 import com.example.kpkn.domain.training.ProgramTemplateEngine
 import java.util.UUID
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.withContext
 
 /**
  * ProgramsViewModel — State management for Programs Screen.
@@ -197,32 +199,35 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         return programId
     }
 
-    fun createProgramFromTemplate(templateId: String): String {
-        val template = resolveProgramTemplate(templateId)
-        val programId = UUID.randomUUID().toString()
-        val base = Program(
-            id = programId,
-            name = template.name,
-            coverImage = "gradient://ember",
-            structure = template.type,
-            mode = when (template.trackLabel) {
-                "Powerlifting" -> ProgramMode.POWERLIFTING
-                "Powerbuilding" -> ProgramMode.POWERBUILDING
-                else -> ProgramMode.HYPERTROPHY
-            },
-        )
-        val result = ProgramTemplateEngine.applyTemplate(
-            current = base,
-            template = template,
-            // During Room hydration the repository can briefly report ready
-            // before the derived generation StateFlow has emitted its first
-            // catalog.  An explicit empty list disables the engine's safe
-            // system-catalog fallback, so only pass USER-aware candidates once
-            // there is an actual list to use.
-            generationTemplates = generationTemplates.value.takeIf { it.isNotEmpty() },
-        )
-        repository.addProgram(result.program)
-        return programId
+    suspend fun createProgramFromTemplate(templateId: String): Result<String> = withContext(Dispatchers.Default) {
+        runCatching {
+            val template = resolveProgramTemplate(templateId)
+            val programId = UUID.randomUUID().toString()
+            val base = Program(
+                id = programId,
+                name = template.name,
+                coverImage = "gradient://ember",
+                structure = template.type,
+                mode = when (template.trackLabel) {
+                    "Powerlifting" -> ProgramMode.POWERLIFTING
+                    "Powerbuilding" -> ProgramMode.POWERBUILDING
+                    else -> ProgramMode.HYPERTROPHY
+                },
+            )
+            val result = ProgramTemplateEngine.applyTemplate(
+                current = base,
+                template = template,
+                // During Room hydration the repository can briefly report ready
+                // before the derived generation StateFlow has emitted its first
+                // catalog.  An explicit empty list disables the engine's safe
+                // system-catalog fallback, so only pass USER-aware candidates once
+                // there is an actual list to use.
+                generationTemplates = generationTemplates.value.takeIf { it.isNotEmpty() },
+            )
+            repository.addProgram(result.program)
+            repository.startProgram(result.program.id)
+            result.program.id
+        }
     }
 
     fun estimatedProfileFromHistory(): PowerliftingProfile? {
@@ -261,7 +266,7 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
             id = programId,
             name = preferredName?.trim()?.takeIf { it.isNotEmpty() } ?: protocol.name,
             coverImage = "gradient://ember",
-            structure = ProgramStructure.COMPLEX,
+            structure = ProgramStructure.SIMPLE,
             mode = ProgramMode.POWERLIFTING,
             powerliftingProfile = profile,
             selectedSplitId = protocol.defaultSplit,
