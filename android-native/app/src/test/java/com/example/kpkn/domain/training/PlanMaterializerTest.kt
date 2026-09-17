@@ -67,7 +67,7 @@ class PlanMaterializerTest {
             profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0),
         )
         val t1 = program.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
-            .sessions.first().exercises.first()
+            .sessions.first().allExercises().first { it.catalogConfigurationId == CatalogIds.SQ_LOW }
         assertEquals(4, t1.sets.size)
         assertEquals(4, t1.sets.first().targetReps)
         assertEquals(80.0, t1.sets.first().targetPercentageRM)
@@ -75,6 +75,63 @@ class PlanMaterializerTest {
         assertEquals(180.0, t1.reference1RM ?: -1.0, 0.001)
         assertEquals(180.0 * 0.80, t1.sets.first().weight ?: -1.0, 0.001)
         assertEquals(listOf(40.0, 55.0, 65.0), t1.warmupSets.map { it.percentageOfWorkingWeight })
+    }
+
+    @Test
+    fun materialize_does_not_duplicate_exercises_in_loose_list() {
+        val recipe = sampleRecipe()
+        val program = PlanMaterializer.materialize(
+            Program(id = "p", name = "T"),
+            recipe,
+            CatalogCompositionTestSupport.metadata,
+            SeqIds(),
+            profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0),
+        )
+        val session = program.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
+            .sessions.first()
+        assertTrue(session.exercises.isEmpty())
+        assertTrue(session.parts.isNotEmpty())
+        val grouped = session.parts.flatMap { it.exercises }
+        assertEquals(grouped.size, session.allExercises().size)
+        assertEquals(grouped.size, grouped.map { it.id }.distinct().size)
+        assertTrue(session.parts.any { it.name == "Principal" })
+        assertTrue(session.parts.any { it.name == "Suplementario" })
+        assertTrue(session.parts.any { it.name == "Accesorios" })
+        assertTrue(grouped.any { it.catalogConfigurationId == CatalogIds.SQ_LOW })
+        assertTrue(grouped.any { it.catalogConfigurationId == CatalogIds.BP_PAUSE })
+    }
+
+    @Test
+    fun materialize_never_mirrors_exercises_loose_and_grouped() {
+        val profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0)
+        val recipes = (
+            PROTOCOL_LIBRARY.filter { it.isVisibleForApplication }.mapNotNull { it.recipe } +
+                PROGRAM_TEMPLATES.mapNotNull { it.recipe }
+            ).distinctBy { it.id }
+        assertTrue("Debe haber recetas para el test de duplicados", recipes.size >= 4)
+        recipes.forEach { recipe ->
+            val program = PlanMaterializer.materialize(
+                Program(id = "p", name = "T"),
+                recipe,
+                CatalogCompositionTestSupport.metadata,
+                SeqIds(),
+                profile = profile,
+            )
+            program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
+                .flatMap { it.sessions }.forEach { session ->
+                    val looseIds = session.exercises.map { it.id }
+                    val partIds = session.parts.flatMap { it.exercises }.map { it.id }
+                    assertTrue(
+                        "${recipe.id}/${session.name}: suelto espejado en grupo: ${looseIds.intersect(partIds.toSet())}",
+                        looseIds.intersect(partIds.toSet()).isEmpty(),
+                    )
+                    assertEquals(
+                        "${recipe.id}/${session.name}: ids duplicados en parts",
+                        partIds.size,
+                        partIds.distinct().size,
+                    )
+                }
+        }
     }
 
     @Test
@@ -162,7 +219,7 @@ class PlanMaterializerTest {
         )
         val week = program.macrocycles.first().blocks.first().mesocycles.first().weeks[1]
         val byName = week.sessions.associateBy { it.name }
-        fun squatOf(sessionName: String) = byName.getValue(sessionName).exercises.first {
+        fun squatOf(sessionName: String) = byName.getValue(sessionName).allExercises().first {
             it.catalogConfigurationId == CatalogIds.SQ_LOW
         }
         val monday = squatOf("Volumen 5x5")
@@ -219,7 +276,7 @@ class PlanMaterializerTest {
             strict = false,
         )
         val exercise = program.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
-            .sessions.first().exercises.first()
+            .sessions.first().allExercises().first()
         assertEquals(SlotRole.T1_MAIN, exercise.slotRole)
         assertEquals(com.example.kpkn.data.protocols.TechniqueModifier.PAUSE_2S, exercise.techniqueModifier)
         assertTrue(exercise.sets.first().isTopSet)
@@ -287,7 +344,7 @@ class PlanMaterializerTest {
             strict = false,
         )
         val exercises = program.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
-            .sessions.first().exercises
+            .sessions.first().allExercises()
         val base = derivedIndex.getValue(CatalogIds.BP)
         // El nombre almacenado es el canonical verbatim; la técnica viaja en
         // campos y se muestra como chip en exerciseDisplayParts.
@@ -299,7 +356,7 @@ class PlanMaterializerTest {
         )
         val parts = com.example.kpkn.domain.exercises.exerciseDisplayParts(exercises[1], null)
         assertEquals(base, parts.parentName)
-        assertEquals(listOf("Velocidad"), parts.chips)
+        assertTrue(parts.chips.isEmpty())
         exercises.forEach { exercise ->
             assertTrue(
                 "Ningún nombre materializado puede ser el id crudo: '${exercise.name}'",

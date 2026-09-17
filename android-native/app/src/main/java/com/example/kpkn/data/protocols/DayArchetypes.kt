@@ -38,9 +38,9 @@ object DayArchetypes {
                 restSeconds = 180, liftSlot = LiftSlot.DEADLIFT, source = kpkn,
             ),
             slot(
-                "bp-pause", SlotRole.T2_SUPPLEMENTAL, Id.BP,
+                "bp-pause", SlotRole.T2_SUPPLEMENTAL, Id.BP_PAUSE,
                 repeatPercentSets(3, 6, benchPausePercent, 150),
-                restSeconds = 150, liftSlot = LiftSlot.BENCH, technique = TechniqueModifier.PAUSE_2S, source = kpkn,
+                restSeconds = 150, liftSlot = LiftSlot.BENCH, source = kpkn,
             ),
             slot("ghr", SlotRole.T3_ACCESSORY, Id.GHR, rpeSets(3, 8, 8.0), restSeconds = 90, source = kpkn),
             slot("pallof", SlotRole.T3_ACCESSORY, Id.PALLOF, rpeSets(3, 10, 7.0), restSeconds = 60, isUnilateral = true, source = kpkn),
@@ -116,7 +116,7 @@ object DayArchetypes {
         weekday: Int? = 5,
         label: String = "Banca volumen",
         t1ConfigurationId: String = Id.BP,
-        t1Technique: TechniqueModifier? = TechniqueModifier.PAUSE_2S,
+        t1Technique: TechniqueModifier? = null,
     ): DayRecipe {
         val t1Rest = if (t1Percent >= 85.0) 240 else 180
         return day(

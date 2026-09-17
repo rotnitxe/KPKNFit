@@ -37,6 +37,7 @@ import com.example.kpkn.domain.calculations.SessionTimeBreakdown
 import com.example.kpkn.domain.calculations.suggestRestSeconds
 import com.example.kpkn.domain.exercises.TechnicalAspectEngine
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
+import com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconciler
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
@@ -421,11 +422,15 @@ class SessionEditorViewModel(
             mesoIndex = targetMesoIndex,
             sessionId = fallbackDraft.id,
         )
+        // D3: los programas históricos pueden traer espejo suelto+grupo; el
+        // colapso por-id corre al abrir (nombres se reconcilian al guardar).
         val draft = SupersetRules.normalizeSession(
-            resolveNewestSession(existing, fallbackDraft, persistedDraft)
-                .normalizeEditorScheduledTechniques()
-                .normalizeMobilityCompatibility()
-                .normalizedIdentityFields(),
+            SessionCatalogNameReconciler.normalizeSessionStructure(
+                resolveNewestSession(existing, fallbackDraft, persistedDraft)
+                    .normalizeEditorScheduledTechniques()
+                    .normalizeMobilityCompatibility()
+                    .normalizedIdentityFields(),
+            ),
         )
         val weekSessions = ensureSessionInList(week?.sessions.orEmpty(), draft)
         if (existing == null && week != null && targetWeekId.isNotBlank()) {

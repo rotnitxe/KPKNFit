@@ -19,7 +19,9 @@ import com.example.kpkn.data.models.restorePausedCyclicProgram
 import com.example.kpkn.data.models.resolvedSchedulePlan
 import com.example.kpkn.data.models.suggestCalendarTrainingDays
 import com.example.kpkn.data.models.totalBlockCount
+import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.validateTemporalStructure
+import com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconciler
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeParseException
@@ -107,12 +109,39 @@ object ProgramMigrationEngine {
             migrated = true
         }
 
+        val structureNormalized = collapseDuplicateSessionLayout(current)
+        if (structureNormalized != current) {
+            current = structureNormalized
+            migrated = true
+        }
+
         return MigrationResult(
             program = current,
             issues = current.validateTemporalStructure(),
             migrated = migrated,
         )
     }
+
+    private fun collapseDuplicateSessionLayout(program: Program): Program =
+        program.copy(
+            macrocycles = program.macrocycles.map { macro ->
+                macro.copy(
+                    blocks = macro.blocks.map { block ->
+                        block.copy(
+                            mesocycles = block.mesocycles.map { meso ->
+                                meso.copy(
+                                    weeks = meso.weeks.map { week ->
+                                        week.copy(
+                                            sessions = week.sessions.map(SessionCatalogNameReconciler::normalizeSessionStructure),
+                                        )
+                                    },
+                                )
+                            },
+                        )
+                    },
+                )
+            },
+        )
 
     fun loadProgramsSafely(rawPrograms: List<Pair<String, Program?>>): LoadResult {
         val valid = mutableListOf<Program>()

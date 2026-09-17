@@ -36,18 +36,22 @@ fun exerciseDisplayParts(
     nicknames: Map<String, String> = ExerciseNicknameResolver.nicknames,
 ): ExerciseDisplayParts {
     val parentName = overlayExerciseParentName(
-        fallbackName = exercise.name,
+        fallbackName = catalogInfo?.name?.takeIf { it.isNotBlank() }
+            ?: exercise.name,
         nicknameKey = exercise.nicknameKey(),
         nicknames = nicknames,
     )
-    val technique = recipeTechniqueLabel(exercise)
     val v2Chips = catalogInfo?.catalogVariantChips.orEmpty()
     if (v2Chips.isNotEmpty()) {
         return ExerciseDisplayParts(
             parentName = parentName,
-            chips = dedupeChips((listOfNotNull(technique) + v2Chips)).filterNot(::isDisplayNoiseChip),
+            chips = dedupeChips(v2Chips).filterNot(::isDisplayNoiseChip),
         )
     }
+    if (!exercise.catalogConfigurationId.isNullOrBlank()) {
+        return ExerciseDisplayParts(parentName = parentName)
+    }
+    val technique = recipeTechniqueLabel(exercise)
     val selected = exercise.selectedAspects.orEmpty()
     val options = catalogInfo?.catalogOptionAxes.orEmpty().flatMap { aspect ->
         val optionId = selected[aspect.id] ?: return@flatMap emptyList<AspectOption>()

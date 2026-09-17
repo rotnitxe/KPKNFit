@@ -107,3 +107,5 @@
 - Expects the agent to truly understand how each exercise works before generating its image — never relying only on catalog descriptions (some are wrong) but cross-checking the web and asking the user when the web is unclear. Confidence: 0.85
 - Has zero tolerance for AI artifacts in exercise images: deformed machines, anatomically impossible limbs, misaligned benches/Smith rails, or non-existent equipment (e.g., mini-pulleys); prefers deleting a nonsensical equipment variant from the catalog over keeping a bad image. Confidence: 0.9
 - Prefers large catalog image work delivered in small reviewable batches (e.g., tranches of ~15, grouped by muscle zone like chest/back) so each batch can be reviewed and corrected before continuing. Confidence: 0.8
+- When asked to commit and push, wants the entire working tree committed/pushed including files the agent did not touch, not just the agent's own changes. Confidence: 0.85
+- Absolutely prohibits losing any code, work, or app functionality during git/refactor operations; expects safeguards (e.g., backup branch, soft-only undos, keeping excluded binaries on disk) so nothing is ever deleted. Confidence: 0.95

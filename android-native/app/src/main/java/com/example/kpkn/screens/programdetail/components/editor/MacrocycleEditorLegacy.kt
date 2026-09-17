@@ -57,6 +57,7 @@ import androidx.compose.runtime.setValue
 import com.example.kpkn.ui.components.KpknSheetLightChip
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -922,8 +923,9 @@ fun MacrocycleEditorLegacy(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun MacrocycleToolbar(
+internal fun MacrocycleToolbar(
     insight: TemporalInsight,
     stats: ProgramStats,
     keyDatesCount: Int,
@@ -975,13 +977,17 @@ private fun MacrocycleToolbar(
             ToolbarStatChip("Semanas", "${stats.weeks}")
             ToolbarStatChip("Sesiones", "${stats.sessions}")
         }
-        Row(
+        @OptIn(ExperimentalLayoutApi::class)
+        FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (insight.isSimple) {
                 if (!isSimpleCalendarized) {
-                    OutlinedButton(onClick = onOpenLoops) { Text("Loops") }
+                    OutlinedButton(onClick = onOpenLoops) {
+                        Text("Loops", maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
                 }
                 OutlinedButton(
                     onClick = onOpenSimpleCalendarization,
@@ -995,14 +1001,31 @@ private fun MacrocycleToolbar(
                     )
                 }
             } else {
-                OutlinedButton(onClick = onOpenKeyDates) { Text("Fechas clave") }
-                OutlinedButton(onClick = onToggleRoadmap) { Text(if (showRoadmap) "Ocultar roadmap" else "Roadmap") }
+                OutlinedButton(onClick = onOpenKeyDates) {
+                    Text("Fechas clave", maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                OutlinedButton(onClick = onToggleRoadmap) {
+                    Text(
+                        if (showRoadmap) "Ocultar roadmap" else "Roadmap",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
-            OutlinedButton(onClick = onOpenLibrary) { Text("Plantillas") }
+            OutlinedButton(onClick = onOpenLibrary) {
+                Text("Plantillas", maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
             OutlinedButton(
                 onClick = onOpenSnapshots,
                 enabled = snapshotCount > 0,
-            ) { Text(if (snapshotCount > 0) "Historial ($snapshotCount)" else "Historial") }
+                modifier = Modifier.testTag("macrocycle_history_button"),
+            ) {
+                Text(
+                    if (snapshotCount > 0) "Historial ($snapshotCount)" else "Historial",
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     }
 }
@@ -2451,7 +2474,7 @@ private fun StatChip(label: String, value: String) {
     }
 }
 
-private data class ProgramStats(val weeks: Int, val sessions: Int, val mesos: Int, val blocks: Int)
+internal data class ProgramStats(val weeks: Int, val sessions: Int, val mesos: Int, val blocks: Int)
 
 private data class CalendarPreview(
     val startDate: LocalDate?,
@@ -2472,7 +2495,7 @@ private data class BlockStartPreview(
     val weeks: Int,
 )
 
-private data class TemporalInsight(
+internal data class TemporalInsight(
     val isSimple: Boolean,
     val cycleWeeks: Int?,
     val loopCadenceCycles: Int?,

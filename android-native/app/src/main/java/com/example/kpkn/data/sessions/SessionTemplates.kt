@@ -104,6 +104,7 @@ private val TEMPLATE_PERFORMANCE_PROFILE_BY_CONFIGURATION = mapOf(
     "overhead_triceps__dumbbells" to "overhead_triceps_extension__dumbbells__extension_de_triceps_overhead",
     "overhead_triceps__machine" to "overhead_triceps_extension__machine__extension_de_triceps_overhead",
     "pendlay_row__barbell" to "pendlay_row__barbell__remo_pendlay",
+    "paused_bench_press__barbell" to "paused_bench_press__barbell__press_de_banca_con_pausa",
     "pendulum_squat__bilateral" to "pendulum_squat__machine__sentadilla_pendulo",
     "pendulum_squat__unilateral" to "pendulum_squat__machine__sentadilla_pendulo",
     "preacher_curl__barbell" to "preacher_curl__barbell__curl_biceps_predicador",
@@ -3330,8 +3331,11 @@ private fun readCatalogAssetPayload(): String? {
     // Fallback por File para unit tests JVM (mismo patrón que
     // ExerciseCatalogContractTest): el working dir es el módulo app.
     listOf(
+        java.io.File("src/main/resources/exercise_catalog_v2.json"),
         java.io.File("src/main/assets/exercise_catalog_v2.json"),
+        java.io.File("app/src/main/resources/exercise_catalog_v2.json"),
         java.io.File("app/src/main/assets/exercise_catalog_v2.json"),
+        java.io.File("android-native/app/src/main/resources/exercise_catalog_v2.json"),
         java.io.File("android-native/app/src/main/assets/exercise_catalog_v2.json"),
     ).firstOrNull { it.isFile }?.let { return it.readText() }
     return null
@@ -3461,7 +3465,9 @@ private fun spanishConfigurationDisplayName(configurationId: String): String {
     // composición. Cadena de resolución (idéntica en tests JVM y runtime):
     // 1) lookup verbatim del asset (CatalogDisplayNames),
     // 2) legacy index (mismo verbatim tras reconciliación del adapter),
-    // 3) tokens como último recurso de cold-start.
+    // 3) índice runtime de ejercicios.
+    // Sin fallback de tokens: si no hay canonical aprobado, la plantilla no
+    // se publica con esa grafía (plan 2026-09-16).
     catalogConfigurationNames()[configurationId]
         ?.trim()
         ?.takeIf { it.isNotBlank() }
@@ -3474,12 +3480,9 @@ private fun spanishConfigurationDisplayName(configurationId: String): String {
         ?.trim()
         ?.takeIf { it.isNotBlank() }
         ?.let { return it }
-    val labels = configurationId
-        .lowercase()
-        .split("__", "_")
-        .mapNotNull { token -> V3_CONFIGURATION_TOKEN_LABELS[token] }
-        .distinct()
-    return labels.takeIf { it.isNotEmpty() }?.joinToString(" · ") ?: "Ejercicio de catálogo"
+    error(
+        "Plantilla publicada sin canonicalName de catálogo para configuración: $configurationId",
+    )
 }
 
 private fun v3Exercise(
@@ -4399,15 +4402,11 @@ private fun buildV3SystemTemplates(legacy: List<SessionTemplate>): List<SessionT
 /**
  * Re-deriva el nombre visible de cada ejercicio publicado desde el id de
  * configuración (plan 2026-09-16): canonicalName verbatim, sin composición.
- * Se ejecuta ANTES de publicar el catálogo para que toda plantilla SYSTEM
- * exponga el nombre exacto del catálogo. Sin índice runtime (cold-start en
- * tests JVM puros) conserva el nombre del fixture.
+ * Corre para TODAS las plantillas SYSTEM, incluida recipe-pl: la técnica del
+ * slot vive en variantName/techniqueModifier y se muestra como chip, nunca
+ * como texto del nombre.
  */
 private fun reconcilePublishedTemplateNames(template: SessionTemplate): SessionTemplate {
-    // recipe-pl ya compone su nombre con el derivado + técnica exacta; el
-    // catálogo runtime no está instalado en tests JVM puros, así que solo
-    // necesita reconciliación la vía genérica/expandida.
-    if (template.id.contains("recipe-pl")) return template
     fun derivedName(exercise: Exercise): String {
         val configurationId = exercise.catalogConfigurationId?.trim().orEmpty()
         if (configurationId.isBlank()) return exercise.name

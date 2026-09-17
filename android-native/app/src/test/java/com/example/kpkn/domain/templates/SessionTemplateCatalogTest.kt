@@ -132,6 +132,14 @@ class SessionTemplateCatalogTest {
                     expected,
                     exercise.name,
                 )
+                assertTrue(
+                    "Nombre con minúscula inicial de placeholder en '${template.id}/${exercise.catalogConfigurationId}': '${exercise.name}'",
+                    exercise.name.first().isUpperCase() || exercise.name.first().isDigit(),
+                )
+                assertTrue(
+                    "Nombre con id crudo en '${template.id}': '${exercise.name}'",
+                    "__" !in exercise.name,
+                )
             }
         }
     }
@@ -167,11 +175,17 @@ class SessionTemplateCatalogTest {
     fun v3CompilerNeverUsesColdStartFallback() {
         val coldStartMarkers = SESSION_TEMPLATES_SYSTEM.flatMap { template ->
             template.session.allExercises().mapNotNull { exercise ->
+                val configurationId = exercise.catalogConfigurationId?.trim().orEmpty()
+                if (configurationId.isBlank()) return@mapNotNull null
                 val name = exercise.name.trim()
-                if (name.equals("Ejercicio de catálogo", ignoreCase = true)) {
-                    "${template.id}/${exercise.catalogConfigurationId}: fallback genérico"
-                } else {
-                    null
+                when {
+                    name.equals("Ejercicio de catálogo", ignoreCase = true) ->
+                        "${template.id}/$configurationId: fallback genérico"
+                    name.contains("polea baja", ignoreCase = true) ->
+                        "${template.id}/$configurationId: nombre tokenizado ($name)"
+                    name == name.lowercase() && name.contains(" · ") ->
+                        "${template.id}/$configurationId: nombre tokenizado ($name)"
+                    else -> null
                 }
             }
         }

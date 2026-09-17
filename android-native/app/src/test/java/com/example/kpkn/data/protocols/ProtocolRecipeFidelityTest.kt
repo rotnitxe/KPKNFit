@@ -1,6 +1,7 @@
 package com.example.kpkn.data.protocols
 
 import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.domain.training.CatalogCompositionTestSupport
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -291,6 +292,48 @@ class ProtocolRecipeFidelityTest {
         val speed = protocol.recipe!!.weeks.first().days.first { it.label == "Power Upper" }.slots.first { it.role == SlotRole.SPEED }
         assertEquals(6, speed.sets.size)
         assertTrue(speed.sets.all { it.reps == 3 })
+    }
+
+    @Test
+    fun no_visible_recipe_repeats_variant_config_as_technique() {
+        // D2: si la configuración YA es la variante (cajón/déficit/pausa),
+        // el slot no debe llevar además el TechniqueModifier redundante.
+        val offenders = visible().flatMap { protocol ->
+            protocol.recipe!!.weeks.flatMap { week ->
+                week.days.flatMap { day ->
+                    day.slots.mapNotNull { slot ->
+                        val id = slot.lift.configurationId.lowercase()
+                        val tech = slot.technique ?: return@mapNotNull null
+                        val redundant = when (tech) {
+                            TechniqueModifier.BOX -> "cajon" in id
+                            TechniqueModifier.DEFICIT -> "deficit" in id
+                            TechniqueModifier.PAUSE_2S -> "paused" in id || "pausa" in id
+                            else -> false
+                        }
+                        if (redundant) "${protocol.id} w${week.weekNumber}/${day.label} ${slot.id} $id + $tech" else null
+                    }
+                }
+            }
+        }
+        assertTrue("Slots con técnica redundante sobre la config: $offenders", offenders.isEmpty())
+    }
+
+    @Test
+    fun every_visible_recipe_configuration_exists_in_catalog() {
+        val catalogIds = CatalogCompositionTestSupport.catalog.families
+            .flatMap { it.definitions }.flatMap { it.configurations }.map { it.id.lowercase() }.toSet()
+        val missing = visible().flatMap { protocol ->
+            protocol.recipe!!.weeks.flatMap { week ->
+                week.days.flatMap { day ->
+                    day.slots.mapNotNull { slot ->
+                        val id = slot.lift.configurationId
+                        if (id.trim().lowercase() in catalogIds) null
+                        else "${protocol.id} w${week.weekNumber}/${day.label} ${slot.id} $id"
+                    }
+                }
+            }
+        }
+        assertTrue("Configs de receta fuera del catálogo: $missing", missing.isEmpty())
     }
 
     @Test

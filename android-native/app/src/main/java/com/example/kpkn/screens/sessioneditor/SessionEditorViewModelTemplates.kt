@@ -268,7 +268,13 @@ internal fun SessionEditorViewModel.applyTemplateInternal(template: SessionTempl
         val outcome = withContext(Dispatchers.Default) {
             SessionTemplateEngine.applyTemplateAudited(template, session, mode)
         }
-        val result = outcome.session
+        var result = outcome.session
+        if (com.example.kpkn.data.exercises.isExerciseCatalogV2RuntimeReady()) {
+            result = com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconciler.reconcileSession(
+                result,
+                com.example.kpkn.data.exercises.catalogConfigurationDisplayNameIndex(),
+            )
+        }
         val latest = currentUiState
         val latestSession = latest.activeVariantSession ?: latest.session
         if (latest.activeVariant != activeVariant ||

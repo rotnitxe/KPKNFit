@@ -49,7 +49,7 @@ object KpknAdvancedProgramRecipes {
                 else -> Quad(3, "Taper/Test", BlockGoal.TAPER, if (w == 15) 91.0 else 90.0, if (w == 15) 90.0 else 90.0, if (w == 15) 90.0 else 90.0)
             }
             val (sqId, sqTech, bpId, bpTech, dlId, dlTech) = when (spec.block) {
-                0 -> Variant(CatalogIds.SQ_HIGH, null, CatalogIds.BP_SPOTO, TechniqueModifier.PAUSE_2S, CatalogIds.DL_DEF, TechniqueModifier.DEFICIT)
+                0 -> Variant(CatalogIds.SQ_HIGH, null, CatalogIds.BP_SPOTO, null, CatalogIds.DL_DEF, TechniqueModifier.DEFICIT)
                 1 -> Variant(CatalogIds.SQ_BOX, TechniqueModifier.BOX, CatalogIds.BP_INC, null, CatalogIds.RDL, null)
                 else -> Variant(CatalogIds.SQ_LOW, null, CatalogIds.BP, null, CatalogIds.DL, null)
             }
@@ -100,9 +100,9 @@ object KpknAdvancedProgramRecipes {
                 else -> Quad(4, "Taper", BlockGoal.TAPER, if (w == 19) 91.0 else 90.0, if (w == 19) 90.0 else 88.0, if (w == 19) 90.0 else 88.0)
             }
             val (sqId, sqTech, bpId, bpTech, dlId, dlTech) = when (spec.block) {
-                0 -> Variant(CatalogIds.SQ_HIGH, null, CatalogIds.BP_SPOTO, TechniqueModifier.PAUSE_2S, CatalogIds.DL_DEF, TechniqueModifier.DEFICIT)
+                0 -> Variant(CatalogIds.SQ_HIGH, null, CatalogIds.BP_SPOTO, null, CatalogIds.DL_DEF, TechniqueModifier.DEFICIT)
                 1 -> Variant(CatalogIds.SQ_BOX, TechniqueModifier.BOX, CatalogIds.BP_INC, null, CatalogIds.RDL, null)
-                2 -> Variant(CatalogIds.SQ_LOW, TechniqueModifier.PAUSE_2S, CatalogIds.BP, TechniqueModifier.PAUSE_2S, CatalogIds.DL, TechniqueModifier.DEFICIT)
+                2 -> Variant(CatalogIds.SQ_LOW, TechniqueModifier.PAUSE_2S, CatalogIds.BP_PAUSE, null, CatalogIds.DL, TechniqueModifier.DEFICIT)
                 else -> Variant(CatalogIds.SQ_LOW, null, CatalogIds.BP, null, CatalogIds.DL, null)
             }
             val drop = when (spec.goal) {

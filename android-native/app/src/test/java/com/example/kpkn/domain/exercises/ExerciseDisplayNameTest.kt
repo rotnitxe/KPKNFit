@@ -99,8 +99,8 @@ class ExerciseDisplayNameTest {
         )
         val parts = exerciseDisplayParts(exercise, info)
         assertEquals("Press de Banca Plano", parts.parentName)
-        assertEquals(listOf("Velocidad", "Barra"), parts.chips)
-        assertEquals("Press de Banca Plano · Velocidad · Barra", parts.text)
+        assertEquals(listOf("Barra"), parts.chips)
+        assertEquals("Press de Banca Plano · Barra", parts.text)
     }
 
     @Test

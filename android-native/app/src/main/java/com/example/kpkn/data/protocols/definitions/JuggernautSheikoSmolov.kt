@@ -425,7 +425,6 @@ object RemainingVerifiedProtocols {
                     "sq", SlotRole.T1_MAIN, if (box) CatalogIds.SQ_BOX else CatalogIds.SQ_LOW, sets,
                     if (sets.any { (it.percent ?: 0.0) >= 85 }) 240 else 180,
                     LiftSlot.SQUAT, isCompetitionLift = !box,
-                    technique = if (box) TechniqueModifier.BOX else null,
                 ),
                 kpknAssist("pull", CatalogIds.LAT, 3, 10, 90),
                 kpknAssist("face", CatalogIds.FACE, 3, 15, 60),

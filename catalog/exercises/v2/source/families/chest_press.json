@@ -4592,6 +4592,307 @@
           "press inclinado",
           "incline bench press"
         ]
+      },
+      {
+        "canonicalName": "Press de Banca con Pausa",
+        "configurations": [
+          {
+            "displaySummary": "Barra",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "legacy:exercise_database.json#tren_superior_press_banca_plano_barra",
+                "editorial:catalog-v7.2-human-editorial-2026-08-10"
+              ],
+              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "paused_bench_press__barbell",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "benefits": [
+                "La pausa sobre el pecho elimina el rebote y refuerza el control del press plano.",
+                "Entrenamiento directo del punto débil del empuje horizontal con barra."
+              ],
+              "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-12-a",
+              "cnc": 4.0,
+              "commonMistakes": [
+                "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
+              ],
+              "description": "Con barra, tumbado en el banco, la barra descansa sobre el pecho unos dos segundos antes de cada empuje. La pausa elimina el rebote y obliga a producir fuerza desde el pecho.",
+              "efc": 4.2,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Detén la barra sobre el pecho unos dos segundos sin relajar el torso antes de empujar."
+              ],
+              "fatigueTier": "ALTA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción Horizontal",
+                    "Flexión Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Retracción Y Estabilidad Escapular"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad En Extensión"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "horizontal_push",
+              "performanceProfileId": "paused_bench_press__barbell__press_de_banca_con_pausa",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": "chest_press_flat",
+              "replacementPriority": 1,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Aducción Horizontal",
+                    "Flexión Del Hombro",
+                    "Extensión",
+                    "Retracción Y Estabilidad Escapular",
+                    "Estabilidad En Extensión"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción Horizontal",
+                        "Flexión Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Retracción Y Estabilidad Escapular"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad En Extensión"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "deltoid",
+                    "triceps"
+                  ],
+                  "stabilizationDemand": "high",
+                  "stabilizerMuscles": [
+                    "biceps"
+                  ],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "horizontal_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "glenohumeral",
+                    "codo",
+                    "escapulotoracica",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
+                  ],
+                  "cues": [
+                    "Detén la barra sobre el pecho unos dos segundos sin relajar el torso antes de empujar."
+                  ],
+                  "execution": [
+                    "Detén la barra sobre el pecho unos dos segundos sin relajar el torso antes de empujar."
+                  ],
+                  "progressions": [
+                    "Aumentar la carga o el ángulo solo cuando trabajar pecho y tríceps con una referencia sencilla para progresar siga siendo perceptible sin compensaciones."
+                  ],
+                  "regressions": [
+                    "Reducir la carga o el rango y conservar empuje del brazo y extensión del codo como referencia técnica."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de codo según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Preparación: Detén la barra sobre el pecho unos dos segundos sin relajar el torso antes de empujar."
+                  ]
+                },
+                "display": {
+                  "displayName": "Press de Banca con Pausa",
+                  "displaySummary": "Barra",
+                  "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "La pausa sobre el pecho elimina el rebote y refuerza el control del press plano.",
+                    "Entrenamiento directo del punto débil del empuje horizontal con barra."
+                  ],
+                  "description": "Con barra, tumbado en el banco, la barra descansa sobre el pecho unos dos segundos antes de cada empuje. La pausa elimina el rebote y obliga a producir fuerza desde el pecho.",
+                  "technique": "Pausa estable de unos dos segundos sobre el pecho en cada repetición: sin rebote y con tensión sostenida antes de empujar.",
+                  "variantRationale": "La pausa sobre el pecho convierte el press plano en trabajo de punto débil y control de plataforma."
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 4.0,
+                  "efc": 4.2,
+                  "ssc": 0.35,
+                  "technicalDifficulty": 7.0,
+                  "ttc": 2.2
+                },
+                "identity": {
+                  "canonicalName": "Press de Banca con Pausa",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "configurationId": "paused_bench_press__barbell",
+                  "definitionId": "paused_bench_press",
+                  "familyId": "chest_press",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "paused_bench_press__barbell__press_de_banca_con_pausa",
+                  "searchTerms": [
+                    "press de banca con pausa",
+                    "press banca pausa",
+                    "paused bench press",
+                    "bench press pause"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "high",
+                  "indicativeRestSeconds": {
+                    "max": 150,
+                    "min": 90
+                  },
+                  "objectives": [
+                    "Desarrollar el pectoral mediante Press de Banca con Pausa en la variante Barra.",
+                    "Priorizar control y potencia desde el pecho con pausa estable en cada repetición."
+                  ],
+                  "recoveryCost": "high",
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "primary_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "4-8",
+                    "6-12"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "Conserva empuje del brazo y extensión del codo y el objetivo de el pectoral.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, codo, articulación escapulotorácica."
+                  ],
+                  "replacementGroup": "chest_press_flat",
+                  "replacementPriority": 1
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_push."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "deltoid",
+                "triceps"
+              ],
+              "setupCues": [
+                "Preparación: Detén la barra sobre el pecho unos dos segundos sin relajar el torso antes de empujar."
+              ],
+              "setupTimeSeconds": 45,
+              "ssc": 0.35,
+              "stabilizerMuscles": [
+                "biceps"
+              ],
+              "technicalDifficulty": 7.0,
+              "techniqueSummary": "Pausa estable de unos dos segundos sobre el pecho en cada repetición: sin rebote y con tensión sostenida antes de empujar.",
+              "ttc": 2.2,
+              "variantRationale": "La pausa sobre el pecho convierte el press plano en trabajo de punto débil y control de plataforma."
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "paused_bench_press__barbell",
+        "description": "El Press de Banca con Pausa detiene la barra sobre el pecho unos dos segundos en cada repetición: sin rebote, con el pectoral y el tríceps produciendo fuerza desde el punto más exigente del recorrido. Variante de método sobre el press plano con barra.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
+          ],
+          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "chest_press",
+        "id": "paused_bench_press",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "press de banca con pausa",
+          "press banca pausa",
+          "paused bench press",
+          "bench press pause"
+        ]
       }
     ],
     "description": "Familia de empuje horizontal sobre banco; plano, inclinado y declinado son padres separados por el ángulo del banco.",

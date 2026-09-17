@@ -59,6 +59,23 @@ muestran ejercicios de protocolo/sesión usan composición de display, no
 workout vivo (`displayWorkoutExerciseName`). Los `exercise.name` restantes
 son analítica/logs/voz/diagnóstico, no UI de ejercicios.
 
+## Plan 2026-09-17 — duplicados suelto+grupo, verbatim total, chips UI
+
+- **Fase 1 (D3)**: `collapseRedundantLooseExercises` pasa de todo-o-nada a
+  eliminación por-id; `normalizeSessionStructure` corre en hydrator, guardado,
+  `loadSessionInternal` del editor y lectura de ProgramDetail
+  (`Program.normalizedSessionStructures`). Tests: espejo total/parcial,
+  sueltos genuinos, cardio excluido, B/C/D+backup; `PlanMaterializerTest`
+  itera TODAS las recetas visibles (intersección suelto↔parts vacía).
+- **Fase 3**: `reconcilePublishedTemplateNames` corre para TODAS las SYSTEM
+  (fin del carve-out recipe-pl); `TemplateCatalogCards` usa `exerciseDisplayParts`
+  + chips solo de catálogo (eliminado `fallbackTechnicalVariantChips` que
+  parseaba el id); test verbatim endurecido (mayúscula inicial, sin `__`).
+- **Fase 4**: hero `weight(1f, fill=false)` + `widthIn(min=96.dp)` en
+  `CompactHeroPill`; `testTag("macrocycle_history_button")` + test
+  instrumentado `MacrocycleToolbarUiTest` (320dp, visible/habilitado/dentro
+  de bounds, geometría legible, click abre historial).
+
 ## Remediación aplicada (plan 2026-09-16_remediacion)
 
 - **Fix 1 (SHA/EOL)**: `AprendeCatalogAuditTest` normaliza EOL; `.gitattributes`
@@ -119,7 +136,29 @@ sustituyendo la **segunda** ocurrencia (nunca borrando series):
 | `sys-pull-beginner` (plb1-ex5) | `preacher_curl__barbell` ×2 (dos grafías) | `standing_biceps_curl__dumbbells` 2×10 (era 2×12) | Bíceps AISLADO con mancuernas, estable para principiante; se bajó a 10 reps para no romper DIRECT_VOLUME_CAP (6) |
 | `sys-upper-arms-beginner` (uab1-ex3) | mismo predicador ×2 | `standing_biceps_curl__dumbbells` 2×10 | Igual que arriba; alternancia bíceps/tríceps intacta |
 
-## Fase 4 — técnicas vs configuraciones (auditoría, sin cambios)
+## Fase 2 (plan 2026-09-17) — técnicas → configuraciones reales
+
+Barrido de `technique =` en `data/protocols/definitions/*.kt` + `DayArchetypes.kt`
+contra `catalog/exercises/v2/source/families/` (solo IDs existentes, D2):
+
+| Modifier | Uso en recetas | Config real | Decisión |
+|---|---|---|---|
+| `PAUSE_2S` en `BP` | histórico (dato viejo) | `paused_bench_press__barbell` ("Press de Banca con Pausa") | **Sustituido**: reconciler remapea + `plSquat/bp-pause` ya usa `BP_PAUSE` sin técnica |
+| `PAUSE_2S` en `SQ_HIGH` | `ClassicPlProtocols.withSquatTech` | NO existe paused-squat en catálogo | **Chip** "Pausa 2s", nombre verbatim de `SQ_HIGH` |
+| `CLOSE_GRIP` en `BP` | `MadcowNsunsGzcl:146`, `TexasWendlerProtocols:150` | NO existe `bench_press__close*` (solo barbell/dumbbells/smith/machine/cable/kettlebell + paused def) | **Chip** "Agarre cerrado", nombre verbatim |
+| `SPEED` | Westside/PHAT/Cube/recipe-pl + `TexasWendler:73` (Pendlay) | método/olas, sin config equivalente | **Chip** "Velocidad"; el rol SPEED ya distingue |
+| `TO_KNEES` en `DL` | `JuggernautSheikoSmolov:175` | sin equivalente | **Chip** "Hasta rodillas" |
+| `BOX` sobre `SQ_BOX` | `JuggernautSheikoSmolov:428` | `quads_sentadilla_cajon__default` YA es cajón | **Quitado** (redundante) |
+| `DEFICIT` sobre `DL_DEF` | histórico | `hams_peso_muerto_convencional_deficit__default` YA es déficit | **Quitado** si solo duplica (no hay uso con modifier hoy) |
+
+`isCompetitionLift` es flag del mismo `Exercise`, nunca un ejercicio aparte (D4).
+Tests nuevos: `no_visible_recipe_repeats_variant_config_as_technique` y
+`every_visible_recipe_configuration_exists_in_catalog` (fidelidad intacta).
+Gate `catalog_v2_gate.py --strict`: BLOCKED 2910 (base preexistente 2900 +
+10 editoriales de `paused_bench_press` en fuentes a medio curar; fuera de
+alcance, no introducido por este plan).
+
+## Fase 4 — técnicas vs configuraciones (auditoría original 2026-09-16)
 
 Barrido de `technique =` en `data/protocols/definitions/*.kt` + `DayArchetypes.kt`:
 

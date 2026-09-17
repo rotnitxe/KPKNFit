@@ -252,7 +252,7 @@ object ProgramAutoregulationEngine {
                             day.copy(
                                 slots = day.slots.map { slot ->
                                     val next = if (swap && slot.role.name.startsWith("T1")) {
-                                        slot.copy(technique = slot.technique ?: TechniqueModifier.PAUSE_2S)
+                                        slot
                                     } else slot
                                     if (delayPeak) {
                                         next.copy(sets = next.sets.map { set -> set.copy(percent = set.percent?.times(0.95)) })

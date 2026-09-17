@@ -433,9 +433,11 @@ internal fun TemplateExpandedDetails(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
+                        // Chips SOLO del catálogo (variantChips + técnica de
+                        // receta vía exerciseDisplayParts). Sin parseo de id:
+                        // si el índice aún no expone chips, no se muestra nada.
                         val chips = nameParts.chips.ifEmpty {
                             catalogInfo?.catalogVariantChips.orEmpty()
-                                .ifEmpty { fallbackTechnicalVariantChips(ex, catalogInfo) }
                         }
                         if (chips.isNotEmpty()) {
                             @OptIn(ExperimentalLayoutApi::class)
@@ -590,43 +592,3 @@ internal fun TemplateExpandedDetails(
     }
 }
 
-/**
- * Presentation-only fallback for an index that is still warming up. The
- * persisted V2 configuration ID remains the source of identity; these labels
- * never resolve or substitute an exercise. This keeps the technical choices
- * visible even when the asynchronous catalog index has not exposed its rich
- * chip metadata yet.
- */
-private fun fallbackTechnicalVariantChips(
-    exercise: Exercise,
-    catalogInfo: ExerciseMuscleInfo?,
-): List<String> {
-    val labels = mapOf(
-        "barbell" to "Barra",
-        "dumbbells" to "Mancuernas",
-        "machine" to "Máquina",
-        "cable" to "Polea",
-        "smith_machine" to "Máquina Smith",
-        "bilateral" to "Bilateral",
-        "unilateral" to "Unilateral",
-        "seated" to "Sentado",
-        "standing" to "De pie",
-        "supinated" to "Supino",
-        "pronated" to "Prono",
-        "neutral" to "Neutro",
-        "wide" to "Amplio",
-        "medium" to "Medio",
-        "close" to "Cerrado",
-        "high" to "Polea Alta",
-        "mid" to "Polea Media",
-        "low" to "Polea Baja",
-    )
-    val configurationOptions = exercise.catalogConfigurationId
-        ?.substringAfter("__", "")
-        ?.split("__")
-        .orEmpty()
-        .mapNotNull { labels[it.lowercase()] }
-    return (configurationOptions + catalogInfo?.equipment.orEmpty())
-        .filter { it.isNotBlank() }
-        .distinct()
-}

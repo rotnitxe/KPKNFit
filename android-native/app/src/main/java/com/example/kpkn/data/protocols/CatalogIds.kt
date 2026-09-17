@@ -15,6 +15,7 @@ object CatalogIds {
     const val LUNGE_W = "walking_lunge__dumbbells"
     const val LUNGE_F = "forward_lunge__dumbbells"
     const val BP = "bench_press__barbell"
+    const val BP_PAUSE = "paused_bench_press__barbell"
     const val BP_DB = "bench_press__dumbbells"
     const val BP_INC = "incline_bench_press__barbell"
     const val BP_INC_DB = "incline_bench_press__dumbbells"

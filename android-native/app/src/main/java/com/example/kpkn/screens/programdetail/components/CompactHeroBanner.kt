@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -20,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -97,7 +100,7 @@ private val focusOptions = listOf(
     FocusOption(ProgramMode.HYPERTROPHY, "Hipertrofia"),
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun CompactHeroBanner(
     programName: String,
@@ -199,61 +202,74 @@ fun CompactHeroBanner(
                 }
 
                 Row(
+                    modifier = Modifier.weight(1f, fill = false),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    CompactHeroPill(
-                        label = statusText,
-                        accent = statusAccent,
-                        contentColor = primaryTextColor,
-                        containerColor = glassColor,
-                        borderColor = strokeColor,
-                    )
-
-                    if (!blockProgressLabel.isNullOrBlank()) {
+                    @OptIn(ExperimentalLayoutApi::class)
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
                         CompactHeroPill(
-                            label = blockProgressLabel,
-                            accent = Color(0xFF67E8F9),
-                            contentColor = primaryTextColor,
-                            containerColor = glassColor,
-                            borderColor = strokeColor,
-                        )
-                    }
-
-                    if (!protocolLabel.isNullOrBlank()) {
-                        CompactHeroPill(
-                            label = protocolLabel,
-                            accent = Color(0xFFFBBF24),
-                            contentColor = primaryTextColor,
-                            containerColor = glassColor,
-                            borderColor = strokeColor,
-                        )
-                    }
-
-                    Box {
-                        CompactFocusPill(
-                            onClick = { showFocusMenu = true },
-                            label = focusOptions.find { it.mode.name.equals(focusMode, ignoreCase = true) }?.label
-                                ?: focusMode.replaceFirstChar { it.uppercase() },
+                            label = statusText,
+                            accent = statusAccent,
                             contentColor = primaryTextColor,
                             containerColor = glassColor,
                             borderColor = strokeColor,
                         )
 
-                        FocusDropdownMenu(
-                            expanded = showFocusMenu,
-                            focusMode = focusMode,
-                            onDismiss = { showFocusMenu = false },
-                            onSelect = { option ->
-                                if (!option.mode.name.equals(focusMode, ignoreCase = true)) {
-                                    pendingFocusMode = option.mode
-                                    showFocusRecalibrationDialog = true
-                                }
-                                showFocusMenu = false
-                            },
-                        )
-                    }
+                        if (!blockProgressLabel.isNullOrBlank()) {
+                            CompactHeroPill(
+                                label = blockProgressLabel,
+                                accent = Color(0xFF67E8F9),
+                                contentColor = primaryTextColor,
+                                containerColor = glassColor,
+                                borderColor = strokeColor,
+                            )
+                        }
 
+                        if (!protocolLabel.isNullOrBlank()) {
+                            CompactHeroPill(
+                                label = protocolLabel,
+                                accent = Color(0xFFFBBF24),
+                                contentColor = primaryTextColor,
+                                containerColor = glassColor,
+                                borderColor = strokeColor,
+                            )
+                        }
+
+                        Box {
+                            CompactFocusPill(
+                                onClick = { showFocusMenu = true },
+                                label = focusOptions.find { it.mode.name.equals(focusMode, ignoreCase = true) }?.label
+                                    ?: focusMode.replaceFirstChar { it.uppercase() },
+                                contentColor = primaryTextColor,
+                                containerColor = glassColor,
+                                borderColor = strokeColor,
+                            )
+
+                            FocusDropdownMenu(
+                                expanded = showFocusMenu,
+                                focusMode = focusMode,
+                                onDismiss = { showFocusMenu = false },
+                                onSelect = { option ->
+                                    if (!option.mode.name.equals(focusMode, ignoreCase = true)) {
+                                        pendingFocusMode = option.mode
+                                        showFocusRecalibrationDialog = true
+                                    }
+                                    showFocusMenu = false
+                                },
+                            )
+                        }
+                    }
+                }
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     HeroIconAction(
                         onClick = { showCoverSheet = true },
                         containerColor = actionContainer,
@@ -572,7 +588,9 @@ private fun CompactHeroPill(
         color = containerColor,
         shadowElevation = 0.dp,
         tonalElevation = 0.dp,
-        modifier = Modifier.border(1.dp, borderColor, RoundedCornerShape(999.dp)),
+        modifier = Modifier
+            .border(1.dp, borderColor, RoundedCornerShape(999.dp))
+            .widthIn(min = 96.dp),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
@@ -590,6 +608,8 @@ private fun CompactHeroPill(
                 color = contentColor,
                 fontWeight = FontWeight.Bold,
                 fontSize = 11.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }

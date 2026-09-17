@@ -149,6 +149,29 @@ fun Session.normalizedIdentityFields(): Session = copy(
     ),
 )
 
+/** D3: colapso por-id suelto↔grupo en lectura (portada/estructura/editor). */
+fun Program.normalizedSessionStructures(): Program = copy(
+    macrocycles = macrocycles.map { macro ->
+        macro.copy(
+            blocks = macro.blocks.map { block ->
+                block.copy(
+                    mesocycles = block.mesocycles.map { meso ->
+                        meso.copy(
+                            weeks = meso.weeks.map { week ->
+                                week.copy(
+                                    sessions = week.sessions.map {
+                                        com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconciler.normalizeSessionStructure(it)
+                                    },
+                                )
+                            },
+                        )
+                    },
+                )
+            },
+        )
+    },
+)
+
 fun Program.normalizedIdentityFields(): Program = copy(
     macrocycles = macrocycles.map { macro ->
         macro.copy(

@@ -251,7 +251,7 @@ object PlanMaterializer {
             scheduleLabel = day.label,
             dayOfWeek = dayOfWeek,
             assignedDays = listOf(dayOfWeek),
-            exercises = exercises,
+            exercises = emptyList(),
             parts = parts,
             isMainSession = day.slots.any { it.role == SlotRole.T1_MAIN },
             origin = SessionOrigin.USER_DRAFT,

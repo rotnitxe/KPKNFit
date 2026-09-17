@@ -50,6 +50,7 @@ import com.example.kpkn.domain.training.ProgramKeyDateEngine
 import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.training.RoadmapBlock
 import com.example.kpkn.domain.training.RoadmapLoopMarker
+import com.example.kpkn.domain.exercises.normalizedSessionStructures
 import com.example.kpkn.domain.training.SplitApplicationEngine
 import com.example.kpkn.domain.training.StartDaySessionMode
 import com.example.kpkn.domain.training.StartDayTemporalScope
@@ -157,9 +158,12 @@ class ProgramDetailViewModel(
         feedbacks
     ) { p, fbs ->
         if (p == null) return@combine null
-        if (fbs.isEmpty()) return@combine p
+        // D3: los programas históricos pueden traer espejo suelto+grupo; se
+        // normaliza por-id en lectura para portada/estructura/editor previo.
+        val normalized = p.normalizedSessionStructures()
+        if (fbs.isEmpty()) return@combine normalized
 
-        val scaledRecommendations = p.volumeRecommendations.map { rec ->
+        val scaledRecommendations = normalized.volumeRecommendations.map { rec ->
             val adj = VolumeCalculator.calculateVolumeAdjustment(rec.muscleGroup, fbs)
             if (adj == 1.0) rec
             else rec.copy(
@@ -168,7 +172,7 @@ class ProgramDetailViewModel(
                 maxRecoverableVolume = (rec.maxRecoverableVolume * adj).roundToInt()
             )
         }
-        p.copy(volumeRecommendations = scaledRecommendations)
+        normalized.copy(volumeRecommendations = scaledRecommendations)
     }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, repository.getProgramById(programId))

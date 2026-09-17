@@ -401,6 +401,8 @@ def main() -> int:
     print(f"canonicalSha256={digest}")
     if args.write:
         write_atomic(OUTPUT, payload)
+        resources = ROOT / "android-native" / "app" / "src" / "main" / "resources" / "exercise_catalog_v2.json"
+        write_atomic(resources, payload)
         print(f"wrote={OUTPUT}")
     return 0
 

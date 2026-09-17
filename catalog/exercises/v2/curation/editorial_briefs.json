@@ -651,6 +651,26 @@
       },
       "description": "El Press de Banca Plano es el empuje horizontal de referencia: pectoral, deltoide anterior y tríceps contra la mayor carga que puedas mover tumbado. Se ejecuta con los pies firmes en el suelo: la barra baja al pecho con los codos bajo la muñeca y sube en línea casi vertical hasta bloquear los brazos. Hay días en que conviene cambiar de escenario: con mancuernas cada brazo se responsabiliza de su lado y los desbalances salen a la luz, perfecto como accesorio del press principal; y la Smith, con su recorrido guiado, es el lugar más seguro para visitar el fallo muscular. El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla."
     },
+    "paused_bench_press": {
+      "configurations": {
+        "paused_bench_press__barbell": {
+          "benefits": [
+            "La pausa sobre el pecho elimina el rebote y refuerza el control del press plano.",
+            "Entrenamiento directo del punto débil del empuje horizontal con barra."
+          ],
+          "description": "Con barra, tumbado en el banco, la barra descansa sobre el pecho unos dos segundos antes de cada empuje. La pausa elimina el rebote y obliga a producir fuerza desde el pecho.",
+          "executionCues": [
+            "Detén la barra sobre el pecho unos dos segundos sin relajar el torso antes de empujar."
+          ],
+          "setupCues": [
+            "Preparación: pies firmes, escápulas retraídas y barra sobre el pecho antes de cada repetición."
+          ],
+          "techniqueSummary": "Detén la barra sobre el pecho unos dos segundos sin relajar el torso antes de empujar. El banco fija la espalda y la carga desciende al pecho antes de volver con los antebrazos alineados.",
+          "variantRationale": "Pausa completa sobre el pecho, no a un palmo como en Spoto: refuerza el control del press plano y la potencia desde el pecho."
+        }
+      },
+      "description": "El Press de Banca con Pausa detiene la barra sobre el pecho antes de cada empuje: sin rebote el pectoral y el tríceps producen fuerza desde abajo. Se ejecuta como el press plano con barra, aguantando la carga quieto sobre el pecho unos dos segundos y empujando sin ayuda elástica. Diferente del Spoto, que pausa a un palmo del pecho. La variante de powerlifting y técnica para dominar el punto más débil del press."
+    },
     "biceps_curl_bayesian": {
       "configurations": {
         "biceps_curl_bayesian__cable__neutral": {

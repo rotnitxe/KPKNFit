@@ -10,6 +10,7 @@ data class ExerciseTechniqueImageVariant(
 
 object ExerciseTechniqueImageLookup {
     const val FLAT_BENCH_PRESS_DEFINITION_ID = "bench_press"
+    const val PAUSED_BENCH_PRESS_DEFINITION_ID = "paused_bench_press"
     const val HIGH_BAR_BACK_SQUAT_DEFINITION_ID = "high_bar_back_squat"
     const val LOW_BAR_BACK_SQUAT_DEFINITION_ID = "low_bar_back_squat"
     const val CONVENTIONAL_DEADLIFT_DEFINITION_ID = "conventional_deadlift"
@@ -414,6 +415,9 @@ object ExerciseTechniqueImageLookup {
             ExerciseTechniqueImageVariant("machine", R.drawable.exercise_press_de_banca_plano_maquina_convergente, "Máquina"),
             ExerciseTechniqueImageVariant("cable", R.drawable.exercise_press_de_banca_plano_polea, "Polea"),
             ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_press_de_banca_plano_kettlebell, "Kettlebell"),
+        )
+        PAUSED_BENCH_PRESS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_press_de_banca_plano, "Barra"),
         )
         else -> emptyList()
     }

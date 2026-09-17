@@ -6,6 +6,7 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.Session
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Test
@@ -83,7 +84,7 @@ class SessionCatalogNameReconcilerTest {
         assertEquals(com.example.kpkn.data.protocols.TechniqueModifier.SPEED, out.techniqueModifier)
         val parts = com.example.kpkn.domain.exercises.exerciseDisplayParts(out, null)
         assertEquals("Press de Banca Plano", parts.parentName)
-        assertEquals(listOf("Velocidad"), parts.chips)
+        assertTrue(parts.chips.isEmpty())
     }
 
     @Test
@@ -118,5 +119,80 @@ class SessionCatalogNameReconcilerTest {
         assertEquals(custom.catalogConfigurationId, out.catalogConfigurationId)
         assertEquals(custom.occurrenceId, out.occurrenceId)
         assertEquals(custom.sets, out.sets)
+    }
+
+    @Test
+    fun normalizeSessionStructure_clears_redundant_loose_exercises() {
+        val exercise = catalogExercise("ex1", "Press de Banca Plano")
+        val part = com.example.kpkn.data.models.SessionPart(
+            id = "part",
+            name = "Principal",
+            exercises = listOf(exercise),
+        )
+        val session = Session(
+            id = "s1",
+            name = "Test",
+            exercises = listOf(exercise),
+            parts = listOf(part),
+        )
+        val normalized = SessionCatalogNameReconciler.normalizeSessionStructure(session)
+        assertTrue(normalized.exercises.isEmpty())
+        assertEquals(1, normalized.parts.single().exercises.size)
+    }
+
+    @Test
+    fun normalizeSessionStructure_removes_only_mirrored_loose_items() {
+        val mirrored = catalogExercise("ex1", "Press de Banca Plano")
+        val draft = catalogExercise("draft1", "Mi suelto").copy(
+            exerciseDbId = "custom:mi-suelto",
+            exerciseId = "custom:mi-suelto",
+            canonicalExerciseId = "custom:mi-suelto",
+            exerciseFamilyId = "custom:mi-suelto",
+        )
+        val part = com.example.kpkn.data.models.SessionPart(
+            id = "part",
+            name = "Principal",
+            exercises = listOf(mirrored),
+        )
+        val session = Session(
+            id = "s1",
+            name = "Test",
+            exercises = listOf(mirrored, draft),
+            parts = listOf(part),
+        )
+        val normalized = SessionCatalogNameReconciler.normalizeSessionStructure(session)
+        assertEquals(listOf("draft1"), normalized.exercises.map { it.id })
+        assertEquals(1, normalized.parts.single().exercises.size)
+    }
+
+    @Test
+    fun normalizeSessionStructure_ignores_cardio_parts() {
+        val exercise = catalogExercise("ex1", "Cardio")
+        val cardioPart = com.example.kpkn.data.models.SessionPart(
+            id = "cardio",
+            name = "Cardio",
+            exercises = listOf(exercise),
+            isCardioGroup = true,
+        )
+        val session = Session(
+            id = "s1",
+            name = "Test",
+            exercises = listOf(exercise),
+            parts = listOf(cardioPart),
+        )
+        val normalized = SessionCatalogNameReconciler.normalizeSessionStructure(session)
+        assertEquals(listOf("ex1"), normalized.exercises.map { it.id })
+    }
+
+    @Test
+    fun remap_legacy_bench_pause_to_catalog_configuration() {
+        val stale = catalogExercise("ex1", "Press de Banca Plano").copy(
+            techniqueModifier = com.example.kpkn.data.protocols.TechniqueModifier.PAUSE_2S,
+            variantName = "Pausa 2s",
+        )
+        val remapped = SessionCatalogNameReconciler.reconcileExercise(stale, displayNameIndex)
+        assertEquals(com.example.kpkn.data.protocols.CatalogIds.BP_PAUSE, remapped.catalogConfigurationId)
+        assertEquals("Press de Banca con Pausa", remapped.name)
+        assertNull(remapped.techniqueModifier)
     }
 }
