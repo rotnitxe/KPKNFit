@@ -16,6 +16,7 @@ import com.example.kpkn.data.protocols.SetRecipe
 import com.example.kpkn.data.protocols.SlotPriority
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.day
+import com.example.kpkn.data.protocols.displayName
 import com.example.kpkn.data.protocols.repeatPercentSets
 import com.example.kpkn.data.protocols.rpeSets
 import com.example.kpkn.data.protocols.slot
@@ -304,9 +305,16 @@ private fun fromDayRecipe(
 private fun recipeExercise(templateId: String, slot: com.example.kpkn.data.protocols.SlotRecipe, index: Int): Exercise {
     val configurationId = slot.lift.configurationId
     val exerciseId = "$templateId-${slot.id}-$index"
+    // El nombre es el canonicalName verbatim del catálogo (igual que
+    // PlanMaterializer.materializeSlot sin composición); la técnica del slot
+    // viaja en variantName/techniqueModifier/relationshipNotes y se muestra
+    // como chip en exerciseDisplayParts, nunca como texto del nombre.
+    // recipe-pl está exento del rewrite V3 porque su identidad ya es receta
+    // exacta verificable por ProtocolRecipeFidelityTest.
+    val derived = systemTemplateDisplayName(configurationId)
     return Exercise(
         id = exerciseId,
-        name = systemTemplateDisplayName(configurationId),
+        name = derived,
         exerciseDbId = configurationId,
         exerciseId = configurationId,
         canonicalExerciseId = configurationId,
@@ -329,7 +337,8 @@ private fun recipeExercise(templateId: String, slot: com.example.kpkn.data.proto
         selectedAspects = null,
         occurrenceId = exerciseId,
         isCompetitionLift = slot.isCompetitionLift,
-        variantName = slot.technique?.name,
+        techniqueModifier = slot.technique,
+        variantName = slot.technique?.displayName(),
     )
 }
 

@@ -221,4 +221,58 @@ class SessionCompositionPolicyTest {
         assertTrue("H11 debe fallar: $hard", hard.any { it.rule == "H11" })
         assertTrue("H11 no es exentable: $hard", hard.any { it.rule == "H11" })
     }
+
+    @Test
+    fun s_duplicate_slot_reports_same_config_same_technique_as_soft() {
+        val day = day(
+            "Duplicado",
+            listOf(
+                slot("a", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, repeatPercentSets(3, 5, 70.0, 180), 180, LiftSlot.SQUAT, isCompetitionLift = true),
+                slot("b", SlotRole.T2_SUPPLEMENTAL, CatalogIds.SQ_HIGH, rpeSets(3, 8, 8.0), 150, LiftSlot.SQUAT),
+                slot("c", SlotRole.T3_ACCESSORY, CatalogIds.PENDLAY, rpeSets(3, 8, 8.0), 120),
+                slot("d", SlotRole.T3_ACCESSORY, CatalogIds.PENDLAY, rpeSets(3, 8, 8.0), 120),
+            ),
+        )
+        val findings = SessionCompositionPolicy.evaluateDay(
+            day,
+            weekRecipe(1, 0, "Base", BlockGoal.ACCUMULATION, listOf(day)),
+            metadata,
+        )
+        val dupes = findings.filter { it.rule == "S_duplicate_slot" }
+        assertTrue("Debe reportar S_duplicate_slot: $findings", dupes.isNotEmpty())
+        assertTrue(
+            "S_duplicate_slot debe ser SOFT",
+            dupes.all { it.severity == com.example.kpkn.data.protocols.CompositionSeverity.SOFT },
+        )
+        assertTrue(
+            "SOFT no debe bloquear: ${findings.filter { it.severity == com.example.kpkn.data.protocols.CompositionSeverity.HARD }}",
+            findings.none { it.severity == com.example.kpkn.data.protocols.CompositionSeverity.HARD && it.rule == "S_duplicate_slot" },
+        )
+    }
+
+    @Test
+    fun s_duplicate_slot_exempts_same_config_with_different_technique() {
+        val day = day(
+            "Velocidad",
+            listOf(
+                slot("t1", SlotRole.T1_MAIN, CatalogIds.BP, repeatPercentSets(3, 5, 70.0, 180), 180, LiftSlot.BENCH, isCompetitionLift = true),
+                slot(
+                    "speed", SlotRole.SPEED, CatalogIds.BP, repeatPercentSets(6, 3, 68.0, 60), 60, LiftSlot.BENCH,
+                    technique = com.example.kpkn.data.protocols.TechniqueModifier.SPEED,
+                    supplementalOf = "t1",
+                ),
+                slot("row", SlotRole.T3_ACCESSORY, CatalogIds.PENDLAY, rpeSets(3, 8, 8.0), 120),
+                slot("curl", SlotRole.T3_ACCESSORY, CatalogIds.CURL, rpeSets(3, 10, 8.0), 90),
+            ),
+        )
+        val findings = SessionCompositionPolicy.evaluateDay(
+            day,
+            weekRecipe(1, 0, "Base", BlockGoal.ACCUMULATION, listOf(day)),
+            metadata,
+        )
+        assertTrue(
+            "PHAT speed-vs-main debe quedar exento de S_duplicate_slot: $findings",
+            findings.none { it.rule == "S_duplicate_slot" },
+        )
+    }
 }

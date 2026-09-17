@@ -1,0 +1,696 @@
+--------- beginning of main
+08-27 19:07:55.085  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4964KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 2.045ms,3.010ms total 288.792ms
+08-27 19:07:55.200  7272  7272 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+08-27 19:07:55.207  7272  7272 I AndroidRuntime: Using default boot image
+08-27 19:07:55.207  7272  7272 I AndroidRuntime: Leaving lock profiling enabled
+08-27 19:07:55.209  7272  7272 I app_process: Using CollectorTypeCMC GC.
+08-27 19:07:55.307  7272  7272 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+08-27 19:07:55.319  7272  7272 D nativeloader: Load libicu_jni.so using APEX ns com_android_art for caller /apex/com.android.art/javalib/core-oj.jar: ok
+08-27 19:07:55.319  7272  7272 D app_process: u_setTimeZoneFilesDirectory("/apex/com.android.tzdata/etc/tz/versioned/9/icu") succeeded. 
+08-27 19:07:55.319  7272  7272 D app_process: I18n APEX ICU file found: /apex/com.android.i18n/etc/icu/icudt76l.dat
+08-27 19:07:55.320  7272  7272 D nativeloader: Load libjavacore.so using APEX ns com_android_art for caller /apex/com.android.art/javalib/core-oj.jar: ok
+08-27 19:07:55.321  7272  7272 D nativeloader: Load libopenjdk.so using APEX ns com_android_art for caller /apex/com.android.art/javalib/core-oj.jar: ok
+08-27 19:07:55.323  7272  7272 W app_process: Unexpected CPU variant for x86: x86_64.
+08-27 19:07:55.323  7272  7272 W app_process: Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, goldmont-without-sha-xsaves, tremont, kabylake, alderlake, default
+08-27 19:07:55.325  7272  7272 W app_process: ClassLoaderContext shared library size mismatch. Expected=2, found=0 (PCL[]{PCL[/system/framework/android.test.base.jar*2789897741]#PCL[/system/framework/android.test.mock.jar*3361312393]} | PCL[])
+08-27 19:07:55.326  7272  7272 W app_process: ClassLoaderContext classpath size mismatch. expected=0, found=1 (PCL[]{PCL[/system/framework/android.test.runner.jar*895143020]#PCL[/system/framework/android.test.base.jar*2789897741]} | PCL[/system/framework/android.test.runner.jar*895143020])
+08-27 19:07:55.348  7272  7272 D nativeloader: Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
+08-27 19:07:55.348  7272  7272 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+08-27 19:07:55.353  7272  7272 I AconfigPackage: android.media.swcodec.flags is mapped to com.android.media.swcodec
+08-27 19:07:55.353  7272  7272 I AconfigPackage: com.google.android.settings.simplemode.flags is mapped to system_ext
+08-27 19:07:55.353  7272  7272 I AconfigPackage: com.google.android.systemui is mapped to system_ext
+08-27 19:07:55.354  7272  7272 I AconfigPackage: com.google.android.apps.nexuslauncher is mapped to system_ext
+08-27 19:07:55.354  7272  7272 I AconfigPackage: com.android.settings.accessibility is mapped to system_ext
+08-27 19:07:55.354  7272  7272 I AconfigPackage: com.android.settings.flags is mapped to system_ext
+08-27 19:07:55.354  7272  7272 I AconfigPackage: com.google.android.apps.miphone.aiai.matchmaker.overview.ui is mapped to system_ext
+08-27 19:07:55.354  7272  7272 I AconfigPackage: com.google.android.settings.flags is mapped to system_ext
+08-27 19:07:55.354  7272  7272 I AconfigPackage: com.android.launcher3 is mapped to system_ext
+08-27 19:07:55.354  7272  7272 I AconfigPackage: com.android.wallpaper is mapped to system_ext
+08-27 19:07:55.354  7272  7272 I AconfigPackage: com.android.settings.media_drm is mapped to system_ext
+08-27 19:07:55.354  7272  7272 I AconfigPackage: com.android.systemui.accessibility.accessibilitymenu is mapped to system_ext
+08-27 19:07:55.354  7272  7272 I AconfigPackage: com.android.settings.keyboard is mapped to system_ext
+08-27 19:07:55.354  7272  7272 I AconfigPackage: com.android.server.policy.feature.flags is mapped to system_ext
+08-27 19:07:55.354  7272  7272 I AconfigPackage: com.android.settings.factory_reset is mapped to system_ext
+08-27 19:07:55.354  7272  7272 I AconfigPackage: com.google.android.haptics.flags is mapped to system_ext
+08-27 19:07:55.354  7272  7272 I AconfigPackage: com.android.permission.flags is mapped to com.android.permission
+08-27 19:07:55.354  7272  7272 I AconfigPackage: com.android.icu is mapped to com.android.i18n
+08-27 19:07:55.355  7272  7272 I AconfigPackage: com.android.appsearch.flags is mapped to com.android.appsearch
+08-27 19:07:55.356  7272  7272 I AconfigPackage: android.uprobestats.mainline.flags is mapped to com.android.uprobestats
+08-27 19:07:55.356  7272  7272 I AconfigPackage: android.provider.flags is mapped to com.android.configinfrastructure
+08-27 19:07:55.356  7272  7272 I AconfigPackage: com.android.server.deviceconfig is mapped to com.android.configinfrastructure
+08-27 19:07:55.356  7272  7272 I AconfigPackage: com.android.nfc.flags is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: android.app.admin.flags is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: android.database.sqlite is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: com.android.providers.calendar is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: com.android.server.power.feature.flags is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: com.android.media.performance.flags is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: android.app.contextualsearch.flags is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: android.app.ondeviceintelligence.flags is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: com.android.media.projection.flags is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: android.companion is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: android.service.controls.flags is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: com.android.text.flags is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: com.android.providers.contactkeys.flags is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: com.android.intentresolver is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: android.companion.virtualdevice.flags is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: android.uprobestats.flags is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: com.android.net.thread.platform.flags is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: android.view.contentprotection.flags is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: com.android.server.dreams is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: com.android.graphics.surfaceflinger.flags is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: com.android.hardware.input is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: android.sdk is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: com.android.input.flags is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: android.tracing is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: com.android.server.biometrics is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: android.view.contentcapture.flags is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: android.app.job is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: android.content.res is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: android.net.platform.flags is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: com.android.aconfig.flags is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: com.android.graphics.flags is mapped to system
+08-27 19:07:55.357  7272  7272 I AconfigPackage: android.server.app is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: android.speech.flags is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.server.stats is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: android.hardware.biometrics is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: android.car.feature is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: android.adpf is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: android.location.flags is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.settingslib.flags is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.managedprovisioning.flags is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: android.app.assist.flags is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.server.net is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.settingslib.widget.flags is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.internal.camera.flags is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.hardware.libsensor.flags is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.internal.jank is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.providers.settings is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: android.multiuser is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.server.power.optimization is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.calllogbackup is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.media.flags is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.server.flags is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.graphics.libvulkan.flags is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: android.app.appfunctions.flags is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: android.app.smartspace.flags is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.providers.contacts.flags is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.shell.flags is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.media.aaudio is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: android.hardware.radio is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.google.wear.services.infra.flags is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: suspend_service.flags is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: android.media.midi is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.libcore.readonly is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.settingslib.widget.selectorwithwidgetpreference.flags is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: android.service.notification is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.systemui.shared is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: android.app.jank is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: android.app.wearable is mapped to system
+08-27 19:07:55.358  7272  7272 I AconfigPackage: com.android.media.audio is mapped to system
+08-27 19:07:55.359  7272  7272 I AconfigPackage: android.service.chooser is mapped to system
+08-27 19:07:55.359  7272  7272 I AconfigPackage: com.android.server.compat is mapped to system
+08-27 19:07:55.359  7272  7272 I AconfigPackage: com.android.server.alarm is mapped to system
+08-27 19:07:55.359  7272  7272 I AconfigPackage: com.android.apex.flags is mapped to system
+08-27 19:07:55.359  7272  7272 I AconfigPackage: android.service.quickaccesswallet is mapped to system
+08-27 19:07:55.359  7272  7272 I AconfigPackage: android.app.usage is mapped to system
+08-27 19:07:55.359  7272  7272 I AconfigPackage: com.android.server.accessibility is mapped to system
+08-27 19:07:55.359  7272  7272 I AconfigPackage: android.app.supervision.flags is mapped to system
+08-27 19:07:55.359  7272  7272 I AconfigPackage: com.android.server.utils is mapped to system
+08-27 19:07:55.359  7272  7272 I AconfigPackage: android.chre.flags is mapped to system
+08-27 19:07:55.359  7272  7272 I AconfigPackage: android.content.flags is mapped to system
+08-27 19:07:55.359  7272  7272 I AconfigPackage: android.media.codec is mapped to system
+08-27 19:07:55.359  7272  7272 I AconfigPackage: com.android.internal.os is mapped to system
+08-27 19:07:55.359  7272  7272 I AconfigPackage: com.android.nfc.nci.flags is mapped to system
+08-27 19:07:55.359  7272  7272 I AconfigPackage: android.app is mapped to system
+08-27 19:07:55.359  7272  7272 I AconfigPackage: android.security.keystore2 is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: android.crashrecovery.flags is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: com.android.tradeinmode.flags is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: android.hardware.flags is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: com.android.server.telecom.flags is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: com.android.settingslib.media.flags is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: com.android.server.policy is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: android.media.audiopolicy is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: com.android.egg.flags is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: com.android.internal.compat.flags is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: android.security is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: android.service.autofill is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: com.example.android.aconfig.demo.flags is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: android.view.flags is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: android.companion.virtual.flags is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: com.android.aconfig_new_storage is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: com.android.server.feature.flags is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: com.android.systemui is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: com.android.server.power.batterysaver is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: android.widget.flags is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: com.android.media.editing.flags is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: com.android.media.codec.flags is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: com.android.server.powerstats is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: com.android.graphics.egl.flags is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: com.android.media.audioserver is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: com.android.server.deviceidle is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: android.nfc is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: android.permission.flags is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: android.service.voice.flags is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: android.content.pm is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: com.android.server.power.hint is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: android.os is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: android.service.dreams is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: com.android.graphics.libgui.flags is mapped to system
+08-27 19:07:55.360  7272  7272 I AconfigPackage: android.hardware.usb.flags is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: android.provider is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: com.android.server.job is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: com.android.internal.foldables.flags is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: com.android.internal.telephony.flags is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: android.webkit is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: android.credentials.flags is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: com.android.server.display.feature.flags is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: com.android.server.notification is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: android.appwidget.flags is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: com.android.frameworks.sensorservice.flags is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: com.android.printspooler.flags is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: com.android.window.flags is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: android.adaptiveauth is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: android.net.wifi.flags is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: android.media.tv.flags is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: com.android.server.usb.flags is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: android.os.vibrator is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: android.hardware.devicestate.feature.flags is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: com.android.server.usage is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: android.server is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: com.android.wm.shell is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: android.view.inputmethod is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: com.android.graphics.hwui.flags is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: com.android.server.backup is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: com.android.internal.pm.pkg.component.flags is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: android.view.accessibility is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: com.google.wear.sdk is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: android.media.audio is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: com.android.server.am is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: com.android.media.playback.flags is mapped to system
+08-27 19:07:55.361  7272  7272 I AconfigPackage: com.android.art.flags is mapped to com.android.art
+08-27 19:07:55.361  7272  7272 I AconfigPackage: com.android.libcore is mapped to com.android.art
+08-27 19:07:55.362  7272  7272 I AconfigPackage: com.android.media.extractor.flags is mapped to com.android.media
+08-27 19:07:55.362  7272  7272 I AconfigPackage: com.android.media.mainline.flags is mapped to com.android.media
+08-27 19:07:55.362  7272  7272 I AconfigPackage: com.android.wifi.flags is mapped to com.android.wifi
+08-27 19:07:55.362  7272  7272 I AconfigPackage: com.android.org.conscrypt.flags is mapped to com.android.conscrypt
+08-27 19:07:55.362  7272  7272 I AconfigPackage: com.android.healthfitness.flags is mapped to com.android.healthfitness
+08-27 19:07:55.362  7272  7272 I AconfigPackage: com.google.android.input.twoshay.flags is mapped to vendor
+08-27 19:07:55.362  7272  7272 I AconfigPackage: libgooglecamerahal.flags is mapped to vendor
+08-27 19:07:55.363  7272  7272 I AconfigPackage: com.android.ipsec.flags is mapped to com.android.ipsec
+08-27 19:07:55.363  7272  7272 I AconfigPackage: com.android.nfc.module.flags is mapped to com.android.nfcservices
+08-27 19:07:55.363  7272  7272 I AconfigPackage: com.android.adservices.ondevicepersonalization.flags is mapped to com.android.ondevicepersonalization
+08-27 19:07:55.363  7272  7272 I AconfigPackage: com.android.bluetooth.flags is mapped to com.android.bt
+08-27 19:07:55.363  7272  7272 I AconfigPackage: com.android.devicelock.flags is mapped to com.android.devicelock
+08-27 19:07:55.363  7272  7272 I AconfigPackage: android.os.profiling is mapped to com.android.profiling
+08-27 19:07:55.364  7272  7272 I AconfigPackage: com.android.os.statsd.flags is mapped to com.android.os.statsd
+08-27 19:07:55.364  7272  7272 I AconfigPackage: com.android.cellbroadcastreceiver.flags is mapped to com.android.cellbroadcast
+08-27 19:07:55.364  7272  7272 I AconfigPackage: com.android.adservices.flags is mapped to com.android.adservices
+08-27 19:07:55.364  7272  7272 I AconfigPackage: com.android.sdksandbox.flags is mapped to com.android.adservices
+08-27 19:07:55.364  7272  7272 I AconfigPackage: com.android.uwb.flags is mapped to com.android.uwb
+08-27 19:07:55.365  7272  7272 I AconfigPackage: com.android.ranging.flags is mapped to com.android.uwb
+08-27 19:07:55.365  7272  7272 I AconfigPackage: android.graphics.pdf.flags is mapped to com.android.mediaprovider
+08-27 19:07:55.365  7272  7272 I AconfigPackage: com.android.providers.media.flags is mapped to com.android.mediaprovider
+08-27 19:07:55.365  7272  7272 I AconfigPackage: android.graphics.pdf.flags.readonly is mapped to com.android.mediaprovider
+08-27 19:07:55.365  7272  7272 I AconfigPackage: com.android.net.ct.flags is mapped to com.android.tethering
+08-27 19:07:55.365  7272  7272 I AconfigPackage: com.android.net.flags is mapped to com.android.tethering
+08-27 19:07:55.365  7272  7272 I AconfigPackage: android.net.vcn is mapped to com.android.tethering
+08-27 19:07:55.365  7272  7272 I AconfigPackage: com.android.nearby.flags is mapped to com.android.tethering
+08-27 19:07:55.365  7272  7272 I AconfigPackage: android.net.http is mapped to com.android.tethering
+08-27 19:07:55.365  7272  7272 I AconfigPackage: com.android.net.thread.flags is mapped to com.android.tethering
+08-27 19:07:55.366  7272  7272 I AconfigPackage: com.android.system.virtualmachine.flags is mapped to com.android.virt
+08-27 19:07:55.366  7272  7272 E FeatureFlagsImplExport: android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+08-27 19:07:55.369  7272  7272 D UiAutomationConnection: Created on user UserHandle{0}
+08-27 19:07:55.369  7272  7272 I UiAutomation: Initialized for user 0 on display 0
+08-27 19:07:55.369  7272  7272 W UiAutomation: Created with deprecatead constructor, assumes DEFAULT_DISPLAY
+--------- beginning of system
+08-27 19:07:55.370   682   912 D AccessibilityManagerService: changeCurrentUserForTestAutomationIfNeededLocked(0): ignoring because device doesn't support visible background users
+08-27 19:07:55.371   682   912 I UiAutomationManager: Registering UiTestAutomationService (id=com.android.server.accessibility/UiAutomation, flags=0x0) when called by user 0
+08-27 19:07:55.371   682   912 V AccessibilityManagerService: onUserStateChangedLocked for userId: 0, forceUpdate: false
+08-27 19:07:55.373   682   912 W MagnificationConnectionManager: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+08-27 19:07:55.374   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.374   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.374   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.374   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.374   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.374   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.374   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.374   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.374   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.375   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.375   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.375   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.375   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.379  1431  2266 I AiAiEcho: Settings changed for uri: content://settings/secure/accessibility_enabled
+08-27 19:07:55.379   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.380   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.380   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.380  1431  2089 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+08-27 19:07:55.380   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.380   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.381  1431  2089 I AiAiEcho: EchoTargets: 
+08-27 19:07:55.381  1431  2089 I AiAiEcho: Filtered by AiAi flag check: 
+08-27 19:07:55.381  1431  2089 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+08-27 19:07:55.381   682   912 V AccessibilityManagerService: onUserStateChangedLocked for userId: 0, forceUpdate: false
+08-27 19:07:55.382   682   912 W MagnificationConnectionManager: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+08-27 19:07:55.382  1431  2089 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+08-27 19:07:55.382  1431  2266 I AiAiEcho: Settings changed for uri: content://settings/secure/accessibility_enabled
+08-27 19:07:55.382   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.382   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.382   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.383  1431  2089 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+08-27 19:07:55.383   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.383   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.383   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.383  1431  2089 I AiAiEcho: EchoTargets: 
+08-27 19:07:55.383  1431  2089 I AiAiEcho: Filtered by AiAi flag check: 
+08-27 19:07:55.383  1431  2089 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+08-27 19:07:55.384   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.384   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.384   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.385   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.385   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.386   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:55.386  1431  2089 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+08-27 19:07:55.387   682   682 D BatterySaverPolicy: accessibility changed to true, updating policy.
+08-27 19:07:55.388  1431  2089 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0 (types=[])
+08-27 19:07:55.388  1431  2089 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+08-27 19:07:55.388  1431  2089 I AiAiEcho: EchoTargets: 
+08-27 19:07:55.388  1431  2089 I AiAiEcho: Filtered by AiAi flag check: 
+08-27 19:07:55.388  1431  2089 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+08-27 19:07:55.389  1431  2089 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+08-27 19:07:55.389  1431  2089 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+08-27 19:07:55.389  1431  2089 I AiAiEcho: EchoTargets: 
+08-27 19:07:55.389  1431  2089 I AiAiEcho: Filtered by AiAi flag check: 
+08-27 19:07:55.389  1431  2089 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+08-27 19:07:55.390  1431  2089 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+08-27 19:07:55.390  1093  1093 D SsBaseTemplateCard: No text view can be set up
+08-27 19:07:55.390  1093  1093 D SsBaseTemplateCard: Passed-in item info is null
+08-27 19:07:55.390  1093  1093 D SsBaseTemplateCard: Passed-in item info is null
+08-27 19:07:55.390  1093  1093 D SsBaseTemplateCard: Passed-in item info is null
+08-27 19:07:55.391  1093  1093 I SsBaseTemplateCard: Secondary card pane is null
+08-27 19:07:55.396  1431  2089 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface lockscreen with targets# 0 (types=[])
+08-27 19:07:55.397   939   939 W PageIndicator: Total number of pages invalid: 0. Assuming 1 page.
+08-27 19:07:55.397  1431  2089 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0 (types=[])
+08-27 19:07:55.398  1431  2089 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface lockscreen with targets# 0 (types=[])
+08-27 19:07:55.398  1093  1093 D SsBaseTemplateCard: No text view can be set up
+08-27 19:07:55.398  1093  1093 D SsBaseTemplateCard: Passed-in item info is null
+08-27 19:07:55.398  1093  1093 D SsBaseTemplateCard: Passed-in item info is null
+08-27 19:07:55.398  1093  1093 D SsBaseTemplateCard: Passed-in item info is null
+08-27 19:07:55.398  1093  1093 I SsBaseTemplateCard: Secondary card pane is null
+08-27 19:07:55.398   939   939 W PageIndicator: Total number of pages invalid: 0. Assuming 1 page.
+08-27 19:07:55.729  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5272KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.090ms,3.254ms total 285.812ms
+08-27 19:07:56.314  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5288KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.162ms,3.046ms total 279.675ms
+08-27 19:07:56.389   682  2680 V AccessibilityManagerService: onUserStateChangedLocked for userId: 0, forceUpdate: false
+08-27 19:07:56.391   682  2680 W MagnificationConnectionManager: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+08-27 19:07:56.391   682  2680 D AccessibilityManagerService: restoreCurrentUserForTestAutomationIfNeededLocked(): ignoring because device doesn't support visible background users
+08-27 19:07:56.391  1431  2266 I AiAiEcho: Settings changed for uri: content://settings/secure/accessibility_enabled
+08-27 19:07:56.391   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:56.391   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:56.391   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:56.392  1431  2089 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+08-27 19:07:56.392  1431  2089 I AiAiEcho: EchoTargets: 
+08-27 19:07:56.392  1431  2089 I AiAiEcho: Filtered by AiAi flag check: 
+08-27 19:07:56.392  1431  2089 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+08-27 19:07:56.392   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:56.392  1431  2089 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+08-27 19:07:56.393   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:56.393  1431  2089 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+08-27 19:07:56.393  1431  2089 I AiAiEcho: EchoTargets: 
+08-27 19:07:56.393  1431  2089 I AiAiEcho: Filtered by AiAi flag check: 
+08-27 19:07:56.393  1431  2089 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+08-27 19:07:56.393   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:56.393  1431  2089 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+08-27 19:07:56.393   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:56.393   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:56.393   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:56.394   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:56.394   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:56.394  1431  2089 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0 (types=[])
+08-27 19:07:56.395   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:56.395   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:56.395  1093  1093 D SsBaseTemplateCard: No text view can be set up
+08-27 19:07:56.395   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:56.396  1431  2089 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface lockscreen with targets# 0 (types=[])
+08-27 19:07:56.396  7272  7272 D AndroidRuntime: Shutting down VM
+08-27 19:07:56.397  7272  7282 W IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+08-27 19:07:56.397  7272  7281 W IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+08-27 19:07:56.398   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:56.398   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:56.398   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:56.398  1093  1093 D SsBaseTemplateCard: Passed-in item info is null
+08-27 19:07:56.399   682   682 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:07:56.400  1093  1093 D SsBaseTemplateCard: Passed-in item info is null
+08-27 19:07:56.400  1093  1093 D SsBaseTemplateCard: Passed-in item info is null
+08-27 19:07:56.400  1093  1093 I SsBaseTemplateCard: Secondary card pane is null
+08-27 19:07:56.401   682   682 D BatterySaverPolicy: accessibility changed to false, updating policy.
+08-27 19:07:56.411   939   939 W PageIndicator: Total number of pages invalid: 0. Assuming 1 page.
+08-27 19:07:56.425  6974  7115 I HWUI    : Davey! duration=2484ms; Flags=0, FrameTimelineVsyncId=702313, IntendedVsync=3243829653928, Vsync=3243829653928, InputEventId=0, HandleInputStart=3243831439100, AnimationStart=3243831458100, PerformTraversalsStart=3246273456700, DrawStart=3246273517500, FrameDeadline=3243862987260, FrameStartTime=3243831426700, FrameInterval=16666666, WorkloadTarget=16666666, SyncQueued=3246275130600, SyncStart=3246275629300, IssueDrawCommandsStart=3246275851000, SwapBuffers=3246299618000, FrameCompleted=3246314489500, DequeueBufferDuration=22300, QueueBufferDuration=312300, GpuCompleted=3246314489500, SwapBuffersCompleted=3246306087700, DisplayPresentTime=0, CommandSubmissionCompleted=3246299618000, 
+08-27 19:07:56.937  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5776KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.709ms,3.676ms total 280.318ms
+08-27 19:07:57.547  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5068KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 2.010ms,3.100ms total 303.077ms
+08-27 19:07:58.017  7293  7293 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: package
+08-27 19:07:58.193  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/base.odex) is kOatUpToDate with filter 'speed-profile' executable 'false'
+08-27 19:07:58.197  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_AdsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:07:58.199  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_CronetDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:07:58.202  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_DynamiteLoader_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:07:58.205  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_DynamiteModulesA_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:07:58.208  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_DynamiteModulesC_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:07:58.210  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_GoogleCertificates_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:07:58.213  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_MapsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:07:58.215  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_MeasurementDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:07:58.217  2257  2258 I artd    : GetBestInfo: /data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/split_maps_core_dynamite_ondemand.apk has no usable artifacts
+08-27 19:07:58.219  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000011/dl-PlayCloudSearch.optional_263032100000.apk has no usable artifacts
+08-27 19:07:58.220  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000001/CronetDynamite.apk has no usable artifacts
+08-27 19:07:58.220  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000002/DynamiteLoader.apk has no usable artifacts
+08-27 19:07:58.223  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000018/dl-IdentityCredentialsPlatform.optional_263032100800.apk has no usable artifacts
+08-27 19:07:58.224  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000005/GoogleCertificates.apk has no usable artifacts
+08-27 19:07:58.226  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000019/dl-TfliteDynamiteDynamite.integ_262730502100800.apk has no usable artifacts
+08-27 19:07:58.228  2257  2258 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/8A87D3ADD3A68B58A4F768E677B14023FB08B0E1/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+08-27 19:07:58.230  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000010/dl-VisionOcr.optional_263032100000.apk has no usable artifacts
+08-27 19:07:58.231  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000b/dl-TfliteDynamiteDynamite.integ_260580502100800.apk has no usable artifacts
+08-27 19:07:58.234  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000013/dl-MlkitOcrCommon.optional_263032100800.apk has no usable artifacts
+08-27 19:07:58.236  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000001/dl-TfliteDynamiteDynamite.integ_262730502100800.apk has no usable artifacts
+08-27 19:07:58.238  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000008/dl-Appsearch.optional_250834100800.apk has no usable artifacts
+08-27 19:07:58.240  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000014/dl-MlkitBarcodeUi.optional_263032100800.apk has no usable artifacts
+08-27 19:07:58.242  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000c/dl-MlkitBarcodeUi.optional_250834100800.apk has no usable artifacts
+08-27 19:07:58.244  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000012/dl-Appsearch.optional_263032100800.apk has no usable artifacts
+08-27 19:07:58.245  2257  2258 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/D76594F451C00E79F4C61E3B54BC3D01968BC47C/the.apk has no usable artifacts
+08-27 19:07:58.246  2257  2258 W artd    : Could not get dex checksums for location /data/app/~~OebE3h3aj7bRyFr6lOGvKw==/com.android.vending-A6r2KrtDQrcy5gixqfcP6A==/base.apk, fd=-1
+08-27 19:07:58.248  2257  2258 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/90356F09B5269D8AF0E8BAEAA661BE4AFD715065/the.apk has no usable artifacts
+08-27 19:07:58.275  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5204KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 3.392ms,9.187ms total 383.853ms
+08-27 19:07:58.849  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5408KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.697ms,2.911ms total 274.247ms
+08-27 19:07:58.909  6974  7217 I HWUI    : Davey! duration=2516ms; Flags=0, FrameTimelineVsyncId=702337, IntendedVsync=3246279653830, Vsync=3246279653830, InputEventId=0, HandleInputStart=3246284015800, AnimationStart=3246284049400, PerformTraversalsStart=3248765820100, DrawStart=3248765898800, FrameDeadline=3246346320494, FrameStartTime=3246283991100, FrameInterval=16666666, WorkloadTarget=16666666, SyncQueued=3248767633700, SyncStart=3248768767400, IssueDrawCommandsStart=3248768988200, SwapBuffers=3248781053500, FrameCompleted=3248796993500, DequeueBufferDuration=32700, QueueBufferDuration=697900, GpuCompleted=3248796993500, SwapBuffersCompleted=3248784105400, DisplayPresentTime=0, CommandSubmissionCompleted=3248781053500, 
+08-27 19:07:59.488  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5780KB AllocSpace bytes, 1(20KB) LOS objects, 22% free, 81MB/105MB, paused 1.953ms,3.118ms total 278.863ms
+08-27 19:07:59.993   919   919 I wpa_supplicant: wlan0: CTRL-EVENT-BEACON-LOSS 
+08-27 19:08:00.078  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5040KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.620ms,3.056ms total 286.602ms
+08-27 19:08:00.629   682   783 D ActivityManager: freezing 3905 com.google.android.gms
+08-27 19:08:00.631   682   783 D ActivityManager: freezing 2432 com.google.android.gms.unstable
+08-27 19:08:00.669  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5252KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.612ms,3.691ms total 283.021ms
+08-27 19:08:01.250  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5216KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.225ms,2.871ms total 271.007ms
+08-27 19:08:01.456  6974  6979 I om.example.kpkn: Method exceeds compiler instruction limit: 19646 in void com.example.kpkn.screens.workout.components.SetExecutionCardKt.SetInputCardV2-5FcBcts(com.example.kpkn.data.models.Exercise, int, com.example.kpkn.data.models.ExerciseSet, com.example.kpkn.data.models.CompletedSet, com.example.kpkn.data.models.CompletedSet, com.example.kpkn.screens.workout.WeightSuggestion, long, boolean, com.example.kpkn.data.models.SetOutcomeV2, com.example.kpkn.data.models.HomologatedPerformanceResult, boolean, boolean, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function1, java.lang.Double, com.example.kpkn.screens.workout.RecordActionHolder, boolean, com.example.kpkn.screens.workout.WorkoutSetDraft, kotlin.jvm.functions.Function2, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, java.util.Map, java.util.Map, java.lang.String, java.lang.String, java.lang.String, boolean, java.lang.Double, kotlin.jvm.functions.Function0, com.example.kpkn.screens.workout.AdaptActionHolder, kotlin.jvm.functions.Function9, com.example.kpkn.data.models.ExerciseReadiness, com.example.kpkn.data.models.SetAdjustmentSuggestion, kotlin.jvm.functions.Function1, androidx.compose.runtime.Composer, int, int, int, int, int, int)
+08-27 19:08:01.490  6974  6974 D HazeEffect: onGloballyPositioned: positionOnScreen=Offset(36.0, 2284.0), size=Size(1272.0, 612.0)
+08-27 19:08:01.490  6974  6974 D HazeEffect: Background Areas observing: SnapshotStateList(value=[HazeArea(positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1939.0), zIndex=0.0, contentLayer=androidx.compose.ui.graphics.layer.GraphicsLayer@e661c6f, contentDrawing=false)])@63970556
+08-27 19:08:01.491  6974  6974 D HazeEffect: Background Area: HazeArea(positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1939.0), zIndex=0.0, contentLayer=androidx.compose.ui.graphics.layer.GraphicsLayer@e661c6f, contentDrawing=false). Included=true
+08-27 19:08:01.491  6974  6974 D HazeEffect: invalidateRequired=false. Dirty params=[]
+08-27 19:08:01.541  6974  7217 I HWUI    : Davey! duration=2650ms; Flags=0, FrameTimelineVsyncId=702362, IntendedVsync=3248779653730, Vsync=3248796320396, InputEventId=-237682170, HandleInputStart=3248811533400, AnimationStart=3248811561400, PerformTraversalsStart=3251373437600, DrawStart=3251373513000, FrameDeadline=3248829653728, FrameStartTime=3248811510800, FrameInterval=16666666, WorkloadTarget=16666666, SyncQueued=3251388622000, SyncStart=3251389663000, IssueDrawCommandsStart=3251390908300, SwapBuffers=3251421419300, FrameCompleted=3251431440600, DequeueBufferDuration=37700, QueueBufferDuration=431800, GpuCompleted=3251431440600, SwapBuffersCompleted=3251422510300, DisplayPresentTime=0, CommandSubmissionCompleted=3251421419300, 
+08-27 19:08:01.908  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5584KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.820ms,3.218ms total 274.578ms
+08-27 19:08:02.475  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5284KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.528ms,3.056ms total 274.632ms
+08-27 19:08:03.052  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5236KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.805ms,4.076ms total 275.444ms
+08-27 19:08:03.239  1090  1259 D SatelliteController: iisInCarrierRoamingNbIotNtn: satellite is disabled
+08-27 19:08:03.239   682  2680 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:08:03.636  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5280KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.138ms,4.567ms total 277.557ms
+08-27 19:08:04.014  6974  6974 D HazeSource: onGloballyPositioned: positionOnScreen=Offset(0.0, 0.0), size=Size(1344.0, 2992.0), positionOnScreens=Offset(0.0, 0.0)
+08-27 19:08:04.014  6974  6974 D HazeSource: onGloballyPositioned: positionOnScreen=Offset(0.0, 0.0), size=Size(1344.0, 2992.0), positionOnScreens=Offset(0.0, 0.0)
+08-27 19:08:04.014  6974  6974 D HazeSource: onGloballyPositioned: positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1939.0), positionOnScreens=Offset(0.0, 495.0)
+08-27 19:08:04.017  6974  6974 D HazeEffect: onGloballyPositioned: positionOnScreen=Offset(36.0, 2284.0), size=Size(1272.0, 612.0)
+08-27 19:08:04.018  6974  6974 D HazeEffect: Background Areas observing: SnapshotStateList(value=[HazeArea(positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1939.0), zIndex=0.0, contentLayer=androidx.compose.ui.graphics.layer.GraphicsLayer@e661c6f, contentDrawing=false)])@63970556
+08-27 19:08:04.018  6974  6974 D HazeEffect: Background Area: HazeArea(positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1939.0), zIndex=0.0, contentLayer=androidx.compose.ui.graphics.layer.GraphicsLayer@e661c6f, contentDrawing=false). Included=true
+08-27 19:08:04.018  6974  6974 D HazeEffect: invalidateRequired=false. Dirty params=[]
+08-27 19:08:04.020  6974  6974 D HazeSource: start draw()
+08-27 19:08:04.020  6974  6974 D HazeSource: Drawn content into layer: androidx.compose.ui.graphics.layer.GraphicsLayer@b3faa70
+08-27 19:08:04.020  6974  6974 D HazeSource: Drawn layer to canvas: androidx.compose.ui.graphics.layer.GraphicsLayer@b3faa70
+08-27 19:08:04.020  6974  6974 D HazeSource: end draw()
+08-27 19:08:04.040  6974  6974 D HazeEffect: onGloballyPositioned: positionOnScreen=Offset(36.0, 2284.0), size=Size(1272.0, 612.0)
+08-27 19:08:04.041  6974  6974 D HazeEffect: Background Areas observing: SnapshotStateList(value=[HazeArea(positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1939.0), zIndex=0.0, contentLayer=androidx.compose.ui.graphics.layer.GraphicsLayer@e661c6f, contentDrawing=false)])@63970556
+08-27 19:08:04.041  6974  6974 D HazeEffect: Background Area: HazeArea(positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1939.0), zIndex=0.0, contentLayer=androidx.compose.ui.graphics.layer.GraphicsLayer@e661c6f, contentDrawing=false). Included=true
+08-27 19:08:04.041  6974  6974 D HazeEffect: invalidateRequired=false. Dirty params=[]
+08-27 19:08:04.041  6974  7217 I HWUI    : Davey! duration=2534ms; Flags=0, FrameTimelineVsyncId=702387, IntendedVsync=3251396320292, Vsync=3251396320292, InputEventId=0, HandleInputStart=3251397219800, AnimationStart=3251397273400, PerformTraversalsStart=3253901899700, DrawStart=3253912287600, FrameDeadline=3251462986956, FrameStartTime=3251397197500, FrameInterval=16666666, WorkloadTarget=16666666, SyncQueued=3253914459700, SyncStart=3253914954100, IssueDrawCommandsStart=3253915535700, SwapBuffers=3253918292100, FrameCompleted=3253930823300, DequeueBufferDuration=27700, QueueBufferDuration=1026700, GpuCompleted=3253930823300, SwapBuffersCompleted=3253919806100, DisplayPresentTime=0, CommandSubmissionCompleted=3253918292100, 
+08-27 19:08:04.219  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5176KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 2.014ms,3.068ms total 288.038ms
+08-27 19:08:04.802  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5160KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.109ms,3.566ms total 277.151ms
+08-27 19:08:05.368  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5244KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.073ms,4.371ms total 267.858ms
+08-27 19:08:05.960  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5292KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.255ms,4.017ms total 281.292ms
+08-27 19:08:06.365   682   792 I InputDispatcher: d8329 com.example.kpkn/com.example.kpkn.MainActivity spent 2326ms processing MotionEvent
+08-27 19:08:06.366  6974  6974 D StrictMode: StrictMode policy violation; ~duration=11 ms: android.os.strictmode.DiskReadViolation
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onReadFromDisk(StrictMode.java:1728)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at libcore.io.BlockGuardOs.access(BlockGuardOs.java:74)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at libcore.io.ForwardingOs.access(ForwardingOs.java:128)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.app.ActivityThread$AndroidOs.access(ActivityThread.java:8944)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at java.io.UnixFileSystem.checkAccess(UnixFileSystem.java:332)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at java.io.File.exists(File.java:829)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.app.ContextImpl.ensurePrivateDirExists(ContextImpl.java:818)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.app.ContextImpl.ensurePrivateDirExists(ContextImpl.java:809)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.app.ContextImpl.getPreferencesDir(ContextImpl.java:765)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.app.ContextImpl.getSharedPreferencesPath(ContextImpl.java:990)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.app.ContextImpl.getSharedPreferences(ContextImpl.java:605)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.content.ContextWrapper.getSharedPreferences(ContextWrapper.java:223)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.example.kpkn.services.workout.WorkoutRestAlertManager.prefs_delegate$lambda$0(WorkoutRestAlertManager.kt:73)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.example.kpkn.services.workout.WorkoutRestAlertManager$$ExternalSyntheticLambda2.invoke(D8$$SyntheticClass:0)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at kotlin.SynchronizedLazyImpl.getValue(LazyJVM.kt:86)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.example.kpkn.services.workout.WorkoutRestAlertManager.getPrefs(WorkoutRestAlertManager.kt:73)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.example.kpkn.services.workout.WorkoutRestAlertManager.cancelRestAlerts(WorkoutRestAlertManager.kt:202)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutRestAlertSinkAdapter.cancelRestAlerts(RestTimerController.kt:50)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.RestTimerController.cancelAlerts(RestTimerController.kt:143)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutRestTimerOrchestrator.stop(WorkoutRestTimerOrchestrator.kt:191)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutViewModel.stopRestTimer(WorkoutViewModel.kt:4094)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutViewModel$initExtractedControllers$3.stopRestTimer(WorkoutViewModel.kt:402)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutStepNavigator.selectWorkoutStep(WorkoutStepNavigator.kt:495)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutViewModel.selectWorkoutStep(WorkoutViewModel.kt:4046)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutV2BodyKt.WorkoutV2Body_y92iQJQ$lambda$373$lambda$348$lambda$347$lambda$346$lambda$345$lambda$344$lambda$236$lambda$235$lambda$232(WorkoutV2Body.kt:1118)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutV2BodyKt$$ExternalSyntheticLambda30.invoke(D8$$SyntheticClass:0)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutScreenKt.WorkoutScreen$lambda$191$lambda$189$lambda$188$lambda$187$lambda$186$lambda$183$lambda$182(WorkoutScreen.kt:1007)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutScreenKt$$ExternalSyntheticLambda3.invoke(D8$$SyntheticClass:0)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutSetPagerKt.WorkoutSetPager_dJGpISY$lambda$47$lambda$46$lambda$45$lambda$42$lambda$41$lambda$40$lambda$39$lambda$38(WorkoutSetPager.kt:624)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutSetPagerKt$$ExternalSyntheticLambda32.invoke(D8$$SyntheticClass:0)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at androidx.compose.foundation.CombinedClickableNode$createPointerInputNodeIfNeeded$1.invoke$lambda$2(Clickable.kt:1052)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at androidx.compose.foundation.CombinedClickableNode$createPointerInputNodeIfNeeded$1$$ExternalSyntheticLambda2.invoke(D8$$SyntheticClass:0)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at androidx.compose.foundation.gestures.TapGestureDetectorKt$detectTapGestures$2$1.invokeSuspend(TapGestureDetector.kt:146)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at kotlinx.coroutines.DispatchedTaskKt.resume(DispatchedTask.kt:165)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at kotlinx.coroutines.DispatchedTaskKt.dispatch(DispatchedTask.kt:154)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at kotlinx.coroutines.CancellableContinuationImpl.dispatchResume(CancellableContinuationImpl.kt:470)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at kotlinx.coroutines.CancellableContinuationImpl.resumeImpl$kotlinx_coroutines_core(CancellableContinuationImpl.kt:504)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at kotlinx.coroutines.CancellableContinuationImpl.resumeImpl$kotlinx_coroutines_core$default(CancellableContinuationImpl.kt:493)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at kotlinx.coroutines.CancellableContinuationImpl.resumeWith(CancellableContinuationImpl.kt:359)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.SuspendingPointerInputModifierNodeImpl$PointerEventHandlerCoroutine.offerPointerEvent(SuspendingPointerInputFilter.kt:829)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.SuspendingPointerInputModifierNodeImpl.dispatchPointerEvent(SuspendingPointerInputFilter.kt:699)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.SuspendingPointerInputModifierNodeImpl.onPointerEvent-H0pRuoY(SuspendingPointerInputFilter.kt:725)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at androidx.compose.foundation.AbstractClickableNode.onPointerEvent-H0pRuoY(Clickable.kt:1516)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.Node.dispatchMainEventPass(HitPathTracker.kt:446)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.Node.dispatchMainEventPass(HitPathTracker.kt:432)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.Node.dispatchMainEventPass(HitPathTracker.kt:432)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.Node.dispatchMainEventPass(HitPathTracker.kt:432)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.Node.dispatchMainEventPass(HitPathTracker.kt:432)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.NodeParent.dispatchMainEventPass(HitPathTracker.kt:285)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.HitPathTracker.dispatchChanges(HitPathTracker.kt:181)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.PointerInputEventProcessor.process-BIzXfog(PointerInputEventProcessor.kt:118)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at androidx.compose.ui.platform.AndroidComposeView.sendMotionEvent-8iAsVTc(AndroidComposeView.android.kt:2685)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at androidx.compose.ui.platform.AndroidComposeView.handleMotionEvent-8iAsVTc(AndroidComposeView.android.kt:2629)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at androidx.compose.ui.platform.AndroidComposeView.dispatchTouchEvent(AndroidComposeView.android.kt:2467)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewGroup.dispatchTransformedTouchEvent(ViewGroup.java:3146)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewGroup.dispatchTouchEvent(ViewGroup.java:2829)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewGroup.dispatchTransformedTouchEvent(ViewGroup.java:3146)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewGroup.dispatchTouchEvent(ViewGroup.java:2829)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewGroup.dispatchTransformedTouchEvent(ViewGroup.java:3146)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewGroup.dispatchTouchEvent(ViewGroup.java:2829)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewGroup.dispatchTransformedTouchEvent(ViewGroup.java:3146)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewGroup.dispatchTouchEvent(ViewGroup.java:2829)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.android.internal.policy.DecorView.superDispatchTouchEvent(DecorView.java:475)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.android.internal.policy.PhoneWindow.superDispatchTouchEvent(PhoneWindow.java:2021)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.app.Activity.dispatchTouchEvent(Activity.java:4604)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.android.internal.policy.DecorView.dispatchTouchEvent(DecorView.java:433)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.View.dispatchPointerEvent(View.java:16938)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$ViewPostImeInputStage.processPointerEvent(ViewRootImpl.java:8228)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$ViewPostImeInputStage.onProcess(ViewRootImpl.java:7987)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$InputStage.deliver(ViewRootImpl.java:7369)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$InputStage.onDeliverToNext(ViewRootImpl.java:7426)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$InputStage.forward(ViewRootImpl.java:7392)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$AsyncInputStage.forward(ViewRootImpl.java:7558)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$InputStage.apply(ViewRootImpl.java:7400)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$AsyncInputStage.apply(ViewRootImpl.java:7615)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$InputStage.deliver(ViewRootImpl.java:7373)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$InputStage.onDeliverToNext(ViewRootImpl.java:7426)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$InputStage.forward(ViewRootImpl.java:7392)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$InputStage.apply(ViewRootImpl.java:7400)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$InputStage.deliver(ViewRootImpl.java:7373)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewRootImpl.deliverInputEvent(ViewRootImpl.java:10533)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewRootImpl.doProcessInputEvents(ViewRootImpl.java:10484)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewRootImpl.enqueueInputEvent(ViewRootImpl.java:10452)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewRootImpl.processRawInputEvent(ViewRootImpl.java:10897)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$WindowInputEventReceiver.onInputEvent(ViewRootImpl.java:10655)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.view.InputEventReceiver.dispatchInputEvent(InputEventReceiver.java:300)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.os.MessageQueue.nativePollOnce(Native Method)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.os.MessageQueue.nextLegacy(MessageQueue.java:913)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.os.MessageQueue.next(MessageQueue.java:1025)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.os.Looper.loopOnce(Looper.java:196)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.os.Looper.loop(Looper.java:338)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at android.app.ActivityThread.main(ActivityThread.java:9067)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at java.lang.reflect.Method.invoke(Native Method)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
+08-27 19:08:06.366  6974  6974 D StrictMode: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
+08-27 19:08:06.367  6974  6974 D StrictMode: StrictMode policy violation; ~duration=11 ms: android.os.strictmode.DiskReadViolation
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onReadFromDisk(StrictMode.java:1728)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.app.SharedPreferencesImpl.awaitLoadedLocked(SharedPreferencesImpl.java:283)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.app.SharedPreferencesImpl.edit(SharedPreferencesImpl.java:376)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at com.example.kpkn.services.workout.WorkoutRestAlertManager.cancelRestAlerts(WorkoutRestAlertManager.kt:202)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutRestAlertSinkAdapter.cancelRestAlerts(RestTimerController.kt:50)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.RestTimerController.cancelAlerts(RestTimerController.kt:143)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutRestTimerOrchestrator.stop(WorkoutRestTimerOrchestrator.kt:191)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutViewModel.stopRestTimer(WorkoutViewModel.kt:4094)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutViewModel$initExtractedControllers$3.stopRestTimer(WorkoutViewModel.kt:402)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutStepNavigator.selectWorkoutStep(WorkoutStepNavigator.kt:495)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutViewModel.selectWorkoutStep(WorkoutViewModel.kt:4046)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutV2BodyKt.WorkoutV2Body_y92iQJQ$lambda$373$lambda$348$lambda$347$lambda$346$lambda$345$lambda$344$lambda$236$lambda$235$lambda$232(WorkoutV2Body.kt:1118)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutV2BodyKt$$ExternalSyntheticLambda30.invoke(D8$$SyntheticClass:0)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutScreenKt.WorkoutScreen$lambda$191$lambda$189$lambda$188$lambda$187$lambda$186$lambda$183$lambda$182(WorkoutScreen.kt:1007)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutScreenKt$$ExternalSyntheticLambda3.invoke(D8$$SyntheticClass:0)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutSetPagerKt.WorkoutSetPager_dJGpISY$lambda$47$lambda$46$lambda$45$lambda$42$lambda$41$lambda$40$lambda$39$lambda$38(WorkoutSetPager.kt:624)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutSetPagerKt$$ExternalSyntheticLambda32.invoke(D8$$SyntheticClass:0)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at androidx.compose.foundation.CombinedClickableNode$createPointerInputNodeIfNeeded$1.invoke$lambda$2(Clickable.kt:1052)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at androidx.compose.foundation.CombinedClickableNode$createPointerInputNodeIfNeeded$1$$ExternalSyntheticLambda2.invoke(D8$$SyntheticClass:0)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at androidx.compose.foundation.gestures.TapGestureDetectorKt$detectTapGestures$2$1.invokeSuspend(TapGestureDetector.kt:146)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at kotlinx.coroutines.DispatchedTaskKt.resume(DispatchedTask.kt:165)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at kotlinx.coroutines.DispatchedTaskKt.dispatch(DispatchedTask.kt:154)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at kotlinx.coroutines.CancellableContinuationImpl.dispatchResume(CancellableContinuationImpl.kt:470)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at kotlinx.coroutines.CancellableContinuationImpl.resumeImpl$kotlinx_coroutines_core(CancellableContinuationImpl.kt:504)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at kotlinx.coroutines.CancellableContinuationImpl.resumeImpl$kotlinx_coroutines_core$default(CancellableContinuationImpl.kt:493)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at kotlinx.coroutines.CancellableContinuationImpl.resumeWith(CancellableContinuationImpl.kt:359)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.SuspendingPointerInputModifierNodeImpl$PointerEventHandlerCoroutine.offerPointerEvent(SuspendingPointerInputFilter.kt:829)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.SuspendingPointerInputModifierNodeImpl.dispatchPointerEvent(SuspendingPointerInputFilter.kt:699)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.SuspendingPointerInputModifierNodeImpl.onPointerEvent-H0pRuoY(SuspendingPointerInputFilter.kt:725)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at androidx.compose.foundation.AbstractClickableNode.onPointerEvent-H0pRuoY(Clickable.kt:1516)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.Node.dispatchMainEventPass(HitPathTracker.kt:446)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.Node.dispatchMainEventPass(HitPathTracker.kt:432)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.Node.dispatchMainEventPass(HitPathTracker.kt:432)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.Node.dispatchMainEventPass(HitPathTracker.kt:432)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.Node.dispatchMainEventPass(HitPathTracker.kt:432)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.NodeParent.dispatchMainEventPass(HitPathTracker.kt:285)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.HitPathTracker.dispatchChanges(HitPathTracker.kt:181)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at androidx.compose.ui.input.pointer.PointerInputEventProcessor.process-BIzXfog(PointerInputEventProcessor.kt:118)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at androidx.compose.ui.platform.AndroidComposeView.sendMotionEvent-8iAsVTc(AndroidComposeView.android.kt:2685)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at androidx.compose.ui.platform.AndroidComposeView.handleMotionEvent-8iAsVTc(AndroidComposeView.android.kt:2629)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at androidx.compose.ui.platform.AndroidComposeView.dispatchTouchEvent(AndroidComposeView.android.kt:2467)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewGroup.dispatchTransformedTouchEvent(ViewGroup.java:3146)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewGroup.dispatchTouchEvent(ViewGroup.java:2829)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewGroup.dispatchTransformedTouchEvent(ViewGroup.java:3146)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewGroup.dispatchTouchEvent(ViewGroup.java:2829)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewGroup.dispatchTransformedTouchEvent(ViewGroup.java:3146)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewGroup.dispatchTouchEvent(ViewGroup.java:2829)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewGroup.dispatchTransformedTouchEvent(ViewGroup.java:3146)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewGroup.dispatchTouchEvent(ViewGroup.java:2829)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at com.android.internal.policy.DecorView.superDispatchTouchEvent(DecorView.java:475)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at com.android.internal.policy.PhoneWindow.superDispatchTouchEvent(PhoneWindow.java:2021)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.app.Activity.dispatchTouchEvent(Activity.java:4604)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at com.android.internal.policy.DecorView.dispatchTouchEvent(DecorView.java:433)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.View.dispatchPointerEvent(View.java:16938)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$ViewPostImeInputStage.processPointerEvent(ViewRootImpl.java:8228)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$ViewPostImeInputStage.onProcess(ViewRootImpl.java:7987)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$InputStage.deliver(ViewRootImpl.java:7369)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$InputStage.onDeliverToNext(ViewRootImpl.java:7426)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$InputStage.forward(ViewRootImpl.java:7392)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$AsyncInputStage.forward(ViewRootImpl.java:7558)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$InputStage.apply(ViewRootImpl.java:7400)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$AsyncInputStage.apply(ViewRootImpl.java:7615)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$InputStage.deliver(ViewRootImpl.java:7373)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$InputStage.onDeliverToNext(ViewRootImpl.java:7426)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$InputStage.forward(ViewRootImpl.java:7392)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$InputStage.apply(ViewRootImpl.java:7400)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$InputStage.deliver(ViewRootImpl.java:7373)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewRootImpl.deliverInputEvent(ViewRootImpl.java:10533)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewRootImpl.doProcessInputEvents(ViewRootImpl.java:10484)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewRootImpl.enqueueInputEvent(ViewRootImpl.java:10452)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewRootImpl.processRawInputEvent(ViewRootImpl.java:10897)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.ViewRootImpl$WindowInputEventReceiver.onInputEvent(ViewRootImpl.java:10655)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.view.InputEventReceiver.dispatchInputEvent(InputEventReceiver.java:300)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.os.MessageQueue.nativePollOnce(Native Method)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.os.MessageQueue.nextLegacy(MessageQueue.java:913)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.os.MessageQueue.next(MessageQueue.java:1025)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.os.Looper.loopOnce(Looper.java:196)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.os.Looper.loop(Looper.java:338)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at android.app.ActivityThread.main(ActivityThread.java:9067)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at java.lang.reflect.Method.invoke(Native Method)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
+08-27 19:08:06.367  6974  6974 D StrictMode: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
+08-27 19:08:06.373  6974  6974 I Choreographer: Skipped 139 frames!  The application may be doing too much work on its main thread.
+08-27 19:08:06.373  6974  6974 D HazeSource: onPreDraw
+08-27 19:08:06.546  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5560KB AllocSpace bytes, 2(32KB) LOS objects, 22% free, 81MB/105MB, paused 1.990ms,3.205ms total 285.733ms
+08-27 19:08:07.153  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5352KB AllocSpace bytes, 4(144KB) LOS objects, 22% free, 81MB/105MB, paused 1.675ms,4.191ms total 278.328ms
+08-27 19:08:07.732  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5204KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.665ms,4.038ms total 282.156ms
+08-27 19:08:07.931   919   919 I wpa_supplicant: wlan0: CTRL-EVENT-BEACON-LOSS 
+08-27 19:08:08.016  7307  7307 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: package
+08-27 19:08:08.183  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/base.odex) is kOatUpToDate with filter 'speed-profile' executable 'false'
+08-27 19:08:08.186  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_AdsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:08:08.188  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_CronetDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:08:08.190  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_DynamiteLoader_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:08:08.193  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_DynamiteModulesA_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:08:08.195  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_DynamiteModulesC_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:08:08.197  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_GoogleCertificates_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:08:08.200  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_MapsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:08:08.202  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_MeasurementDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:08:08.204  2257  2258 I artd    : GetBestInfo: /data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/split_maps_core_dynamite_ondemand.apk has no usable artifacts
+08-27 19:08:08.206  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000011/dl-PlayCloudSearch.optional_263032100000.apk has no usable artifacts
+08-27 19:08:08.206  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000001/CronetDynamite.apk has no usable artifacts
+08-27 19:08:08.207  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000002/DynamiteLoader.apk has no usable artifacts
+08-27 19:08:08.209  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000018/dl-IdentityCredentialsPlatform.optional_263032100800.apk has no usable artifacts
+08-27 19:08:08.209  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000005/GoogleCertificates.apk has no usable artifacts
+08-27 19:08:08.211  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000019/dl-TfliteDynamiteDynamite.integ_262730502100800.apk has no usable artifacts
+08-27 19:08:08.214  2257  2258 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/8A87D3ADD3A68B58A4F768E677B14023FB08B0E1/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+08-27 19:08:08.215  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000010/dl-VisionOcr.optional_263032100000.apk has no usable artifacts
+08-27 19:08:08.217  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000b/dl-TfliteDynamiteDynamite.integ_260580502100800.apk has no usable artifacts
+08-27 19:08:08.219  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000013/dl-MlkitOcrCommon.optional_263032100800.apk has no usable artifacts
+08-27 19:08:08.221  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000001/dl-TfliteDynamiteDynamite.integ_262730502100800.apk has no usable artifacts
+08-27 19:08:08.224  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000008/dl-Appsearch.optional_250834100800.apk has no usable artifacts
+08-27 19:08:08.225  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000014/dl-MlkitBarcodeUi.optional_263032100800.apk has no usable artifacts
+08-27 19:08:08.228  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000c/dl-MlkitBarcodeUi.optional_250834100800.apk has no usable artifacts
+08-27 19:08:08.229  2257  2258 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000012/dl-Appsearch.optional_263032100800.apk has no usable artifacts
+08-27 19:08:08.230  2257  4225 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/D76594F451C00E79F4C61E3B54BC3D01968BC47C/the.apk has no usable artifacts
+08-27 19:08:08.230  2257  2258 W artd    : Could not get dex checksums for location /data/app/~~OebE3h3aj7bRyFr6lOGvKw==/com.android.vending-A6r2KrtDQrcy5gixqfcP6A==/base.apk, fd=-1
+08-27 19:08:08.233  2257  4225 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/90356F09B5269D8AF0E8BAEAA661BE4AFD715065/the.apk has no usable artifacts
+08-27 19:08:08.440  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5500KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.610ms,3.648ms total 349.435ms
+08-27 19:08:09.024  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5364KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.784ms,4.616ms total 279.041ms
+08-27 19:08:09.028  6974  6979 I om.example.kpkn: Method exceeds compiler instruction limit: 19646 in void com.example.kpkn.screens.workout.components.SetExecutionCardKt.SetInputCardV2-5FcBcts(com.example.kpkn.data.models.Exercise, int, com.example.kpkn.data.models.ExerciseSet, com.example.kpkn.data.models.CompletedSet, com.example.kpkn.data.models.CompletedSet, com.example.kpkn.screens.workout.WeightSuggestion, long, boolean, com.example.kpkn.data.models.SetOutcomeV2, com.example.kpkn.data.models.HomologatedPerformanceResult, boolean, boolean, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function1, java.lang.Double, com.example.kpkn.screens.workout.RecordActionHolder, boolean, com.example.kpkn.screens.workout.WorkoutSetDraft, kotlin.jvm.functions.Function2, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, java.util.Map, java.util.Map, java.lang.String, java.lang.String, java.lang.String, boolean, java.lang.Double, kotlin.jvm.functions.Function0, com.example.kpkn.screens.workout.AdaptActionHolder, kotlin.jvm.functions.Function9, com.example.kpkn.data.models.ExerciseReadiness, com.example.kpkn.data.models.SetAdjustmentSuggestion, kotlin.jvm.functions.Function1, androidx.compose.runtime.Composer, int, int, int, int, int, int)
+08-27 19:08:09.054  6974  6974 D HazeEffect: Background Areas observing: SnapshotStateList(value=[HazeArea(positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1939.0), zIndex=0.0, contentLayer=androidx.compose.ui.graphics.layer.GraphicsLayer@e661c6f, contentDrawing=false)])@63970556
+08-27 19:08:09.054  6974  6974 D HazeEffect: Background Area: HazeArea(positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1939.0), zIndex=0.0, contentLayer=androidx.compose.ui.graphics.layer.GraphicsLayer@e661c6f, contentDrawing=false). Included=true
+08-27 19:08:09.054  6974  6974 D HazeEffect: invalidateRequired=false. Dirty params=[]
+08-27 19:08:09.068  6974  6974 D HazeEffect: onGloballyPositioned: positionOnScreen=Offset(36.0, 2284.0), size=Size(1272.0, 612.0)
+08-27 19:08:09.068  6974  6974 D HazeEffect: Background Areas observing: SnapshotStateList(value=[HazeArea(positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1939.0), zIndex=0.0, contentLayer=androidx.compose.ui.graphics.layer.GraphicsLayer@e661c6f, contentDrawing=false)])@63970556
+08-27 19:08:09.068  6974  6974 D HazeEffect: Background Area: HazeArea(positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1939.0), zIndex=0.0, contentLayer=androidx.compose.ui.graphics.layer.GraphicsLayer@e661c6f, contentDrawing=false). Included=true
+08-27 19:08:09.068  6974  6974 D HazeEffect: invalidateRequired=false. Dirty params=[]
+08-27 19:08:09.071  6974  6974 D HazeEffect: -> start draw()
+08-27 19:08:09.072  6974  6974 D HazeEffect: Drawing HazeArea GraphicsLayer: androidx.compose.ui.graphics.layer.GraphicsLayer@e661c6f
+08-27 19:08:09.073  6974  6974 D HazeEffect: -> end draw()
+08-27 19:08:09.091  6974  7217 I HWUI    : Davey! duration=5034ms; Flags=0, FrameTimelineVsyncId=702397, IntendedVsync=3253946320190, Vsync=3256262986764, InputEventId=-1043423206, HandleInputStart=3256266510500, AnimationStart=3256266563000, PerformTraversalsStart=3258949928000, DrawStart=3258950031600, FrameDeadline=3253962986856, FrameStartTime=3256265834300, FrameInterval=16666666, WorkloadTarget=16666666, SyncQueued=3258967351600, SyncStart=3258968468700, IssueDrawCommandsStart=3258968796900, SwapBuffers=3258974499900, FrameCompleted=3258982282900, DequeueBufferDuration=40700, QueueBufferDuration=372500, GpuCompleted=3258982282900, SwapBuffersCompleted=3258975530000, DisplayPresentTime=0, CommandSubmissionCompleted=3258974499900, 
+08-27 19:08:09.159  6974  6979 I om.example.kpkn: Compiler allocated 5850KB to compile void com.example.kpkn.screens.workout.components.SetExecutionCardKt.SetInputCardV2_5FcBcts$lambda$455$lambda$439$lambda$356$lambda$355$ValueStepperBlock(java.lang.String, boolean, double, boolean, boolean, java.lang.String, java.lang.String, java.lang.String, androidx.compose.runtime.MutableState, androidx.compose.runtime.MutableState, androidx.compose.runtime.MutableState, androidx.compose.runtime.MutableState, androidx.compose.runtime.MutableState, long, androidx.compose.runtime.MutableState, androidx.compose.runtime.MutableIntState, int, androidx.compose.runtime.MutableIntState, androidx.compose.runtime.MutableState, androidx.compose.runtime.MutableState, androidx.compose.runtime.MutableIntState, androidx.compose.runtime.MutableState, androidx.compose.ui.Modifier, androidx.compose.runtime.Composer, int, int)
+08-27 19:08:09.206  6974  6974 I Choreographer: Skipped 169 frames!  The application may be doing too much work on its main thread.
+08-27 19:08:09.300  6974  6979 I om.example.kpkn: Method exceeds compiler instruction limit: 19646 in void com.example.kpkn.screens.workout.components.SetExecutionCardKt.SetInputCardV2-5FcBcts(com.example.kpkn.data.models.Exercise, int, com.example.kpkn.data.models.ExerciseSet, com.example.kpkn.data.models.CompletedSet, com.example.kpkn.data.models.CompletedSet, com.example.kpkn.screens.workout.WeightSuggestion, long, boolean, com.example.kpkn.data.models.SetOutcomeV2, com.example.kpkn.data.models.HomologatedPerformanceResult, boolean, boolean, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function1, java.lang.Double, com.example.kpkn.screens.workout.RecordActionHolder, boolean, com.example.kpkn.screens.workout.WorkoutSetDraft, kotlin.jvm.functions.Function2, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, java.util.Map, java.util.Map, java.lang.String, java.lang.String, java.lang.String, boolean, java.lang.Double, kotlin.jvm.functions.Function0, com.example.kpkn.screens.workout.AdaptActionHolder, kotlin.jvm.functions.Function9, com.example.kpkn.data.models.ExerciseReadiness, com.example.kpkn.data.models.SetAdjustmentSuggestion, kotlin.jvm.functions.Function1, androidx.compose.runtime.Composer, int, int, int, int, int, int)
+08-27 19:08:09.954  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5764KB AllocSpace bytes, 2(32KB) LOS objects, 22% free, 83MB/107MB, paused 1.119ms,3.016ms total 285.765ms
+08-27 19:08:10.540  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5196KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 83MB/107MB, paused 2.223ms,2.593ms total 290.863ms
+08-27 19:08:11.135  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5324KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 83MB/107MB, paused 1.534ms,4.086ms total 287.021ms
+08-27 19:08:11.516  7311  7311 W screencap: Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: SurfaceFlingerAIDL
+08-27 19:08:11.516  7311  7311 W BpBinder: Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
+08-27 19:08:11.517  7311  7311 W ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+08-27 19:08:11.546   555   571 E HwcComposer: getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+08-27 19:08:11.546   555   571 E HWComposer: getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+08-27 19:08:11.579  1397  5547 W MediaProvider: isAppCloneUserPair for user 0: false
+08-27 19:08:11.647   682  2680 D ActivityManager: sync unfroze 3905 com.google.android.gms for 6
+08-27 19:08:11.649   682  2680 D ActivityManager: sync unfroze 2432 com.google.android.gms.unstable for 6
+08-27 19:08:11.671   682   761 W ProcessStats: Tracking association SourceState{dd7a4d3 com.google.android.gms/10147 ImpBg #4565} whose proc state 6 is better than process ProcessState{db8aa02 com.google.android.gms.unstable/10147 pkg=com.google.android.gms} proc state 14 (5 skipped)
+08-27 19:08:11.673  1254  7314 I NetworkScheduler.Stats: (REDACTED) Task %s/%s started execution. cause:%s exec_start_elapsed_seconds: %s
+08-27 19:08:11.684  1254  7315 I NetworkScheduler.Stats: (REDACTED) Task %s/%s finished executing. cause:%s result: %s elapsed_millis: %s uptime_millis: %s exec_start_elapsed_seconds: %s
+08-27 19:08:11.825  6974  6980 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5608KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 83MB/107MB, paused 2.088ms,3.736ms total 376.975ms
+08-27 19:08:11.860  6974  6974 D HazeSource: onGloballyPositioned: positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1765.0), positionOnScreens=Offset(0.0, 495.0)
+08-27 19:08:11.864  6974  6974 D HazeEffect: Background Areas observing: SnapshotStateList(value=[HazeArea(positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1765.0), zIndex=0.0, contentLayer=androidx.compose.ui.graphics.layer.GraphicsLayer@e661c6f, contentDrawing=false)])@63970556
+08-27 19:08:11.864  6974  6974 D HazeEffect: Background Area: HazeArea(positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1765.0), zIndex=0.0, contentLayer=androidx.compose.ui.graphics.layer.GraphicsLayer@e661c6f, contentDrawing=false). Included=true
+08-27 19:08:11.865  6974  6974 D HazeEffect: layerSize changed. Current: Size(1344.0, 450.0). New: Size(1344.0, 276.0)
+08-27 19:08:11.865  6974  6974 D HazeEffect: invalidateRequired=true. Dirty params=[LayerSize]
+08-27 19:08:11.904  6974  6974 D HazeSource: start draw()
+08-27 19:08:11.904  6974  6974 D HazeSource: Drawn content into layer: androidx.compose.ui.graphics.layer.GraphicsLayer@e661c6f
+08-27 19:08:11.905  6974  6974 D HazeSource: Drawn layer to canvas: androidx.compose.ui.graphics.layer.GraphicsLayer@e661c6f
+08-27 19:08:11.905  6974  6974 D HazeSource: end draw()
+08-27 19:08:11.907  6974  6974 D HazeEffect: -> start draw()
+08-27 19:08:11.907  6974  6974 D HazeEffect: Drawing HazeArea GraphicsLayer: androidx.compose.ui.graphics.layer.GraphicsLayer@e661c6f
+08-27 19:08:11.907  6974  6974 D HazeEffect: getOrCreateRenderEffect: RenderEffectParams(blurRadius=100.0.dp, noiseFactor=0.02, scale=1.0, contentSize=Size(1272.0, 612.0), contentOffset=Offset(36.0, 300.0), tints=[HazeTint(color=Color(0.05490196, 0.05490196, 0.05490196, 0.5803922, sRGB IEC61966-2.1), blendMode=SrcOver, brush=null)], tintAlphaModulate=1.0, mask=null, progressive=null, blurTileMode=Clamp)
+08-27 19:08:11.907  6974  6974 D HazeEffect: getOrCreateRenderEffect. Returning cached: RenderEffectParams(blurRadius=100.0.dp, noiseFactor=0.02, scale=1.0, contentSize=Size(1272.0, 612.0), contentOffset=Offset(36.0, 300.0), tints=[HazeTint(color=Color(0.05490196, 0.05490196, 0.05490196, 0.5803922, sRGB IEC61966-2.1), blendMode=SrcOver, brush=null)], tintAlphaModulate=1.0, mask=null, progressive=null, blurTileMode=Clamp)
+08-27 19:08:11.909  6974  6974 D HazeEffect: -> end draw()
+08-27 19:08:11.936  6974  6974 I Choreographer: Skipped 162 frames!  The application may be doing too much work on its main thread.
+08-27 19:08:11.937  6974  6974 D HazeSource: onPreDraw
+08-27 19:08:11.944  6974  6985 I HWUI    : Davey! duration=5550ms; Flags=0, FrameTimelineVsyncId=702412, IntendedVsync=3256279653430, Vsync=3259096319984, InputEventId=0, HandleInputStart=3259099285400, AnimationStart=3259099316800, PerformTraversalsStart=3261732236900, DrawStart=3261732298900, FrameDeadline=3259012986654, FrameStartTime=3259098854900, FrameInterval=16666666, WorkloadTarget=16666666, SyncQueued=3261802402000, SyncStart=3261802933300, IssueDrawCommandsStart=3261803430300, SwapBuffers=3261815833400, FrameCompleted=3261830389800, DequeueBufferDuration=29500, QueueBufferDuration=245700, GpuCompleted=3261830389800, SwapBuffersCompleted=3261816452900, DisplayPresentTime=0, CommandSubmissionCompleted=3261815833400, 
+08-27 19:08:11.976   682   707 I ActivityManager: Broadcasting: Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///... flg=0x400000 }
+08-27 19:08:11.977   682   707 I ActivityManager: Enqueued broadcast Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///... flg=0x400000 }: 0
+08-27 19:08:11.979   682   890 D BackgroundInstallControlService: Package event received: 0
+08-27 19:08:11.979   682   761 W JobInfo : Job 'com.google.android.providers.media.module/com.android.providers.media.MediaService#-300' has a deadline with no functional constraints. The deadline won't improve job execution latency. Consider removing the deadline.
+08-27 19:08:11.986   682   712 I ActivityManager: Broadcast completed: result=0
+08-27 19:08:11.990  1397  1947 I MediaProvider: Begin Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///... flg=0x1400010 cmp=com.google.android.providers.media.module/com.android.providers.media.MediaService }
+08-27 19:08:12.005  1397  1947 I MediaProvider: End Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///... flg=0x1400010 cmp=com.google.android.providers.media.module/com.android.providers.media.MediaService }
+08-27 19:08:12.031  1397  1660 D WM-SystemJobScheduler: Scheduling work ID be768d34-2bbc-4ee1-aec4-8b203d065e31Job ID 134
+08-27 19:08:12.038  1397  1660 D WM-GreedyScheduler: Ignoring {WorkSpec: 2261e1af-c492-45b9-b542-954c61979aa3}. Requires device idle.
+08-27 19:08:12.038  1397  1660 D WM-GreedyScheduler: Ignoring {WorkSpec: 01fab927-4c6f-4932-9ba9-1d04f1d1b501}. Requires device idle.

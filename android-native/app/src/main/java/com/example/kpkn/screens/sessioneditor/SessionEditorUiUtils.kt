@@ -59,9 +59,14 @@ internal fun formatRestSummary(restTime: Int?): String {
 
 internal fun formatExerciseCollapsedSummary(exercise: Exercise): String? {
     if (exercise.sets.isEmpty()) return null
+    val timeSets = exercise.sets.filter { it.targetDuration != null && (it.targetDuration ?: 0) > 0 }
     val reps = exercise.sets.mapNotNull { it.effectiveRepRange()?.format() }.distinct()
+    val durations = timeSets.mapNotNull { it.targetDuration }.distinct()
     val loads = exercise.sets.mapNotNull { it.weight }.distinct()
     val repsPart = when {
+        timeSets.size == exercise.sets.size && durations.size == 1 ->
+            "${exercise.sets.size}×${durations.first()}s"
+        timeSets.size == exercise.sets.size -> "${exercise.sets.size} series"
         reps.size == 1 -> "${exercise.sets.size}×${reps.first()}"
         else -> "${exercise.sets.size} series"
     }

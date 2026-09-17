@@ -85,10 +85,39 @@ class UltraFastEngineTest {
 
     @Test
     fun protected_bench_plano_2to1() {
-        val ex = exercise("ex1", "Press banca plano barra", 2)
-        val idx = mapOf("press banca plano barra" to info("press banca plano barra", "Press banca plano barra", equipment = "barra", type = "Básico"))
+        val ex = exercise("ex1", "Press de Banca Plano", 2, dbId = "bench_press__barbell")
+            .copy(catalogConfigurationId = "bench_press__barbell")
+        val idx = mapOf("press de banca plano" to info("press de banca plano", "Press de Banca Plano", equipment = "barra", type = "Básico"))
         val session = Session(id = "s", name = "test", exercises = listOf(ex))
         val preview = UltraFastEngine.preview(session, idx)
+        assertEquals(1, preview.perExercise.first().afterSets)
+    }
+
+    @Test
+    fun protected_applies_with_v2_catalog_ids_and_verbatim_names() {
+        val derivedSquat = exercise(
+            "ex1",
+            "Sentadilla Trasera con Barra Baja",
+            4,
+            dbId = "low_bar_back_squat__barbell",
+        ).copy(catalogConfigurationId = "low_bar_back_squat__barbell")
+        val derivedBench = exercise(
+            "ex2",
+            "Press de Banca Plano",
+            2,
+            dbId = "bench_press__barbell",
+        ).copy(catalogConfigurationId = "bench_press__barbell")
+        val derivedDeadlift = exercise(
+            "ex3",
+            "Peso Muerto Convencional",
+            4,
+            dbId = "conventional_deadlift__bilateral__barbell",
+        ).copy(catalogConfigurationId = "conventional_deadlift__bilateral__barbell")
+        assertTrue(UltraFastEngine.isProtectedBasic(derivedSquat, null))
+        assertTrue(UltraFastEngine.isProtectedBasic(derivedBench, null))
+        assertTrue(UltraFastEngine.isProtectedBasic(derivedDeadlift, null))
+        val session = Session(id = "s", name = "test", exercises = listOf(derivedBench))
+        val preview = UltraFastEngine.preview(session, emptyMap())
         assertEquals(1, preview.perExercise.first().afterSets)
     }
 

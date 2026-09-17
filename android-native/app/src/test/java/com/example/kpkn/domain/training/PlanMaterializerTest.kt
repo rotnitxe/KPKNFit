@@ -225,4 +225,86 @@ class PlanMaterializerTest {
         assertTrue(exercise.sets.first().isTopSet)
         assertEquals(LoadBasis.PERCENT_TM, exercise.sets.first().loadBasis)
     }
+
+    @Test
+    fun materialize_uses_verbatim_catalog_name_with_technique_as_chip() {
+        val derivedIndex = com.example.kpkn.domain.exercises.catalogv2.CatalogDisplayNames
+            .buildDisplayNameIndex(CatalogCompositionTestSupport.catalog)
+        val recipe = TrainingPlanRecipe(
+            id = "names",
+            weeks = listOf(
+                weekRecipe(
+                    1,
+                    0,
+                    "Bloque",
+                    BlockGoal.INTENSIFICATION,
+                    listOf(
+                        com.example.kpkn.data.protocols.DayRecipe(
+                            label = "Dia",
+                            slots = listOf(
+                                slot(
+                                    "t1",
+                                    SlotRole.T1_MAIN,
+                                    CatalogIds.BP,
+                                    listOf(
+                                        com.example.kpkn.data.protocols.SetRecipe(
+                                            reps = 5,
+                                            percent = 75.0,
+                                            loadBasis = LoadBasis.PERCENT_TM,
+                                        ),
+                                    ),
+                                    180,
+                                    LiftSlot.BENCH,
+                                ),
+                                slot(
+                                    "t2",
+                                    SlotRole.T2_SUPPLEMENTAL,
+                                    CatalogIds.BP,
+                                    listOf(
+                                        com.example.kpkn.data.protocols.SetRecipe(
+                                            reps = 5,
+                                            percent = 70.0,
+                                            loadBasis = LoadBasis.PERCENT_TM,
+                                        ),
+                                    ),
+                                    150,
+                                    LiftSlot.BENCH,
+                                    technique = com.example.kpkn.data.protocols.TechniqueModifier.SPEED,
+                                    supplementalOf = "t1",
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val program = PlanMaterializer.materialize(
+            Program(id = "p", name = "N"),
+            recipe,
+            CatalogCompositionTestSupport.metadata,
+            SeqIds(),
+            profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0),
+            strict = false,
+        )
+        val exercises = program.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
+            .sessions.first().exercises
+        val base = derivedIndex.getValue(CatalogIds.BP)
+        // El nombre almacenado es el canonical verbatim; la técnica viaja en
+        // campos y se muestra como chip en exerciseDisplayParts.
+        assertEquals(base, exercises[0].name)
+        assertEquals(base, exercises[1].name)
+        assertEquals(
+            com.example.kpkn.data.protocols.TechniqueModifier.SPEED,
+            exercises[1].techniqueModifier,
+        )
+        val parts = com.example.kpkn.domain.exercises.exerciseDisplayParts(exercises[1], null)
+        assertEquals(base, parts.parentName)
+        assertEquals(listOf("Velocidad"), parts.chips)
+        exercises.forEach { exercise ->
+            assertTrue(
+                "Ningún nombre materializado puede ser el id crudo: '${exercise.name}'",
+                !exercise.name.contains("__"),
+            )
+        }
+    }
 }

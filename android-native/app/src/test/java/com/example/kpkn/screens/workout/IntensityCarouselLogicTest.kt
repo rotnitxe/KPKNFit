@@ -3,6 +3,7 @@ package com.example.kpkn.screens.workout
 import com.example.kpkn.data.models.IntensityMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -53,6 +54,22 @@ class IntensityCarouselLogicTest {
         assertTrue(failureIndex < items.lastIndex)
         assertTrue(items.take(failureIndex).all { it.mode == IntensityMode.RPE })
         assertTrue(items.drop(failureIndex + 1).all { it.mode == IntensityMode.RIR })
+    }
+
+    @Test
+    fun rmCarousel_startsWithoutAnImplicitEffortMode() {
+        val items = buildIntensityCarouselItems(
+            plannedIntensityMode = IntensityMode.SOLO_RM,
+            reportedIntensityMode = null,
+            targetRir = null,
+            targetRpe = null,
+        )
+        assertEquals("—", items.first().display)
+        assertNull(items.first().mode)
+        assertFalse(items.first().isFailure)
+        assertTrue(items.drop(1).any { it.mode == IntensityMode.RPE && it.numericValue == 8.0 })
+        assertTrue(items.any { it.mode == IntensityMode.RIR && it.numericValue == 2.0 })
+        assertTrue(items.any { it.isFailure })
     }
 
     @Test

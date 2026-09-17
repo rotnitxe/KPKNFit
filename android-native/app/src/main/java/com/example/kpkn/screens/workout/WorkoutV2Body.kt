@@ -67,7 +67,6 @@ import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import com.example.kpkn.ui.components.KpknAlertDialog
@@ -152,7 +151,6 @@ internal fun WorkoutV2Body(
             ?.takeIf { it.isCardio && it.cardioDetails?.requiresGps == true }
             ?.let(viewModel::restoreCardioGpsIfAvailable)
     }
-    val coroutineScope = rememberCoroutineScope()
     var pendingUpdateAction by remember { mutableStateOf<(() -> Unit)?>(null) }
     var tagManagerTagId by remember { mutableStateOf<String?>(null) }
     var showTagListOverlay by remember { mutableStateOf(false) }
@@ -272,6 +270,11 @@ internal fun WorkoutV2Body(
                 exerciseChips = headerExerciseChips,
                 sessionName = headerSessionName,
                 groupName = headerGroupName,
+                protocolLabel = uiState.livePlanContext?.sourceProtocolName?.let { name ->
+                    val id = uiState.livePlanContext?.sourceProtocolId
+                    val emoji = id?.let { com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.firstOrNull { it.id == id }?.emoji }
+                    listOfNotNull(emoji, name).joinToString(" ")
+                },
                 startTimeMs = headerStartTimeMs,
                 isComplete = headerIsComplete,
                 background = headerBackground,
@@ -1971,7 +1974,7 @@ internal fun WorkoutV2Body(
                                     onSetBodyWeight = { bw: Double -> viewModel.setCurrentBodyWeight(bw) },
                                     initialBodyWeight = viewModel.currentBodyWeight(),
                                     onExecutionError = {
-                                        coroutineScope.launch {
+                                        viewModel.launchWorkoutCommand {
                                             viewModel.recordSetV2(
                                                 weight = 0.0,
                                                 value = 0.0,
@@ -2016,7 +2019,7 @@ internal fun WorkoutV2Body(
                                             "${targetExercise.id}_$activeSetIndex"
                                         }
                                         val action: () -> Unit = {
-                                            coroutineScope.launch {
+                                            viewModel.launchWorkoutCommand {
                                                 viewModel.recordSetV2(
                                                     weight = weight,
                                                     value = value,

@@ -11,6 +11,7 @@ import com.example.kpkn.domain.sessionassistant.SessionAssistantEngine
 import com.example.kpkn.domain.sessionassistant.SessionAssistantInput
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.workout.SupersetRules
+import com.example.kpkn.domain.workout.normalizeEditorScheduledTechniques
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -263,7 +264,16 @@ internal fun SessionEditorViewModel.switchToSession(
 fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScope.SESSION_ONLY, skipRefresh: Boolean = false): SessionEditorSaveResult {
     val state = currentUiState
     val rawDraft = state.session ?: return SessionEditorSaveResult(false, "No hay una sesión activa para guardar.")
-    val draft = rawDraft.normalizeSession().copy(
+    val normalized = rawDraft.normalizeEditorScheduledTechniques().normalizeSession()
+    // D6 del plan 2026-09-16: el guardado auto-cura nombres históricos con el
+    // derivado del catálogo cuando el runtime v2 está listo.
+    val reconciledDraft = if (isExerciseCatalogV2RuntimeReady()) {
+        com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconciler
+            .reconcileSession(normalized, com.example.kpkn.data.exercises.catalogConfigurationDisplayNameIndex())
+    } else {
+        normalized
+    }
+    val draft = reconciledDraft.copy(
         lastModifiedAtMs = System.currentTimeMillis(),
         persistedRuleDefaults = state.ruleDefaults.toPersisted(),
     )
@@ -271,8 +281,11 @@ fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScop
     if (state.weekId.isBlank()) return SessionEditorSaveResult(false, "No pudimos identificar la semana para guardar.")
 
     // Once v2 is actually loaded, no legacy/partial identity may cross the save boundary.
+    // El draft ya viene reconciliado (D6): el gate valida identidad y nombre.
     if (isExerciseCatalogV2RuntimeReady()) {
-        val catalogIssues = draft.catalogV2SelectionIssues()
+        val catalogIssues = draft.catalogV2SelectionIssues(
+            com.example.kpkn.data.exercises.catalogConfigurationDisplayNameIndex(),
+        )
         if (catalogIssues.isNotEmpty()) {
             val details = catalogIssues.take(3).joinToString(" | ") { issue ->
                 "${issue.exerciseId}: ${issue.code}${issue.detail?.let { detail -> " ($detail)" }.orEmpty()}"

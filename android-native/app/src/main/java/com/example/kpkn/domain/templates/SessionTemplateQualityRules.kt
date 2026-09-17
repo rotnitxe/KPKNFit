@@ -180,6 +180,36 @@ object SessionTemplateQualityRules {
                 )
             }
         }
+        checkDuplicateCatalogConfiguration(template, resolved, issues)
+    }
+
+    /**
+     * P0 del plan 2026-09-16: dos ejercicios en la misma plantilla SYSTEM con
+     * igual catalogConfigurationId son un duplicado de configuración, aunque
+     * tengan occurrenceId distintos. La fidelidad de protocolo no aplica aquí:
+     * las recetas deliberadas viven en TrainingPlanRecipe, no en plantillas.
+     */
+    private fun checkDuplicateCatalogConfiguration(
+        template: SessionTemplate,
+        resolved: List<Pair<Exercise, ExerciseMuscleInfo?>>,
+        issues: MutableList<TemplateQualityIssue>,
+    ) {
+        if (template.sourceType != SessionTemplateSourceType.SYSTEM) return
+        val seen = mutableMapOf<String, String>()
+        resolved.forEach { (exercise, _) ->
+            val configurationId = exercise.catalogConfigurationId?.trim()?.lowercase()
+            if (configurationId.isNullOrBlank()) return@forEach
+            val first = seen[configurationId]
+            if (first == null) {
+                seen[configurationId] = exercise.name
+            } else {
+                issues += TemplateQualityIssue(
+                    TemplateQualitySeverity.P0,
+                    "DUPLICATE_CATALOG_CONFIGURATION",
+                    "Configuración '$configurationId' repetida en '${template.id}' ('$first' y '${exercise.name}')",
+                )
+            }
+        }
     }
 
     private fun checkCommonEquipment(

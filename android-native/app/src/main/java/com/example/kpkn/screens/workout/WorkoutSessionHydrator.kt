@@ -18,6 +18,7 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.StartWorkoutResult
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
+import com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconciler
 import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.workout.WorkoutContextRecurrenceEngine
 import com.example.kpkn.domain.workout.WorkoutTagResolver
@@ -308,7 +309,9 @@ class WorkoutSessionHydrator(
 
         updateState {
             it.copy(
-                session = restoredSession.normalizedIdentityFields().let(ports::normalizeSupersetsForWorkout),
+                session = restoredSession.normalizedIdentityFields()
+                    .let(::reconcileHydratedSessionNames)
+                    .let(ports::normalizeSupersetsForWorkout),
                 loadSuggestions = restoredSuggestions,
                 activeMode = restoredMode,
                 weekId = resolvedWeekId,
@@ -442,7 +445,8 @@ class WorkoutSessionHydrator(
             val startResult = repository.startWorkout(
                 OngoingWorkoutState(
                     programId = programId,
-                    session = restoredSession.normalizedIdentityFields(),
+                    session = restoredSession.normalizedIdentityFields()
+                        .let(::reconcileHydratedSessionNames),
                     startTime = restoredStartTime,
                     activeExerciseId = initialExercise?.id,
                     activeSetId = initialExercise?.sets?.firstOrNull()?.id,
@@ -553,6 +557,16 @@ class WorkoutSessionHydrator(
         return ProgramProgressEngine.instanceIdFor(cycle, templateWeekId)
     }
 
+    private fun reconcileHydratedSessionNames(session: Session): Session {
+        // D6 del plan 2026-09-16: las sesiones históricas se auto-reparan al
+        // cargar. Sin índice runtime (cold-start) se devuelve intacta.
+        if (!com.example.kpkn.data.exercises.isExerciseCatalogV2RuntimeReady()) return session
+        return SessionCatalogNameReconciler.reconcileSession(
+            session,
+            com.example.kpkn.data.exercises.catalogConfigurationDisplayNameIndex(),
+        )
+    }
+
     private fun resolveStoredTagId(
         exerciseId: String,
         token: String?,
@@ -600,6 +614,8 @@ internal fun buildLivePlanContext(
     val weekIndex = weeks.indexOfFirst { it.id == weekId }.takeIf { it >= 0 }
     val protocolName = program.sourceProtocolId
         ?.let { id -> com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.firstOrNull { it.id == id }?.name }
+        ?: program.structureTemplateId
+            ?.let { id -> com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.firstOrNull { it.id == id }?.name }
     return LivePlanContext(
         sourceProtocolId = program.sourceProtocolId,
         sourceProtocolName = protocolName,

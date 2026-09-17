@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.domain.exercises.exerciseDisplayParts
 import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.splits.Difficulty
@@ -424,15 +425,18 @@ internal fun TemplateExpandedDetails(
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
+                        val nameParts = exerciseDisplayParts(ex, catalogInfo)
                         Text(
-                            text = "${idx + 1}. ${ex.name}",
+                            text = "${idx + 1}. ${nameParts.text}",
                             style = MaterialTheme.typography.bodySmall,
                             color = mutedColor,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
-                        val chips = catalogInfo?.catalogVariantChips.orEmpty()
-                            .ifEmpty { fallbackTechnicalVariantChips(ex, catalogInfo) }
+                        val chips = nameParts.chips.ifEmpty {
+                            catalogInfo?.catalogVariantChips.orEmpty()
+                                .ifEmpty { fallbackTechnicalVariantChips(ex, catalogInfo) }
+                        }
                         if (chips.isNotEmpty()) {
                             @OptIn(ExperimentalLayoutApi::class)
                             FlowRow(

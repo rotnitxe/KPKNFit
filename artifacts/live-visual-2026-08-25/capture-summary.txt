@@ -1,0 +1,8 @@
+short: size=132466 fatals=0
+normal: size=648320 fatals=0
+long: size=652009 fatals=0
+approx: size=636625 fatals=0
+mobility: size=133723 fatals=0
+unilateral: size=143103 fatals=0
+superseries: size=92815 fatals=0
+cardio: size=119039 fatals=0

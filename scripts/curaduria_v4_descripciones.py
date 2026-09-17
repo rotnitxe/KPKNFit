@@ -518,10 +518,6 @@ CFG_DESC: dict[str, str] = {
                                        "recorrido libre. Variante fina para dar forma al pecho."),
     "decline_bench_press__smith_machine": ("Smith en banco declinado: barra guiada y ángulo bajo para aislar el pectoral inferior. "
                                            "Cómoda para cargar peso y sentir la zona baja."),
-    "decline_bench_press__machine": ("Máquina declinada: recorrido fijo y foco total en la parte baja del pecho. "
-                                     "La opción más limpia para rematar el pectoral inferior."),
-    "decline_bench_press__cable": ("Polea en banco declinado: tensión constante que mantiene la parte baja del pecho ardiendo. "
-                                   "Variante original que se agradece a mitad de rutina."),
     "decline_bench_press__kettlebell": ("Kettlebell en banco declinado: inestabilidad extra y trabajo enfocado en el pecho bajo. "
                                         "Para quien busca salir de la zona cómoda."),
     # ---- Press de Banca Inclinado ----
@@ -557,10 +553,6 @@ CFG_DESC: dict[str, str] = {
                                    "Fácil de cargar y muy efectiva para definir."),
     "decline_chest_fly__dumbbells": ("Mancuernas en apertura declinada: el arco baja y el pectoral inferior se estira a fondo. "
                                      "La variante que completa la parte baja del pecho."),
-    "decline_chest_fly__cable": ("Polea en apertura declinada: tensión constante en el pectoral inferior de punta a punta. "
-                                 "Cambio de ángulo que se siente como una novedad refrescante."),
-    "decline_chest_fly__machine": ("Máquina declinada de aperturas: el guiado apunta directo a la parte baja del pecho. "
-                                   "Cómoda, estable y muy efectiva para completar el pecho."),
     # ---- Aperturas Inversas ----
     "reverse_pec_fly__machine__bilateral": ("Máquina Pec Deck invertida con ambos brazos: el deltoides posterior y la espalda alta "
                                             "trabajan juntos en cada apertura. El ejercicio más popular para corregir postura."),

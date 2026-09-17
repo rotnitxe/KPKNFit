@@ -1,0 +1,4 @@
+E/AndroidRuntime(21388): FATAL EXCEPTION: main
+E/ActivityManager(  679): ANR in com.example.kpkn (com.example.kpkn/.MainActivity)
+E/ActivityManager(  679): ANR in com.example.kpkn (com.example.kpkn/.MainActivity)
+E/ActivityManager(  679): ANR in com.example.kpkn (com.example.kpkn/.MainActivity)

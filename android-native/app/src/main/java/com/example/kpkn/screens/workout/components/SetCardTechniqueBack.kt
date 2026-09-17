@@ -45,6 +45,8 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.DropSetData
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.RestPauseData
+import com.example.kpkn.domain.workout.SetTechniqueScope
+import com.example.kpkn.domain.workout.techniqueScope
 import com.example.kpkn.data.models.TechniqueType
 import com.example.kpkn.screens.sessioneditor.components.DropSetPlanDefaults
 import com.example.kpkn.screens.sessioneditor.components.RestPausePlanDefaults
@@ -85,7 +87,14 @@ internal fun SetCardTechniqueBack(
     onOpenPrMedia: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
-    val plannedGuide = remember(currentSet) { currentSet.resolvePlannedTechniqueGuide() }
+    val plannedGuide = remember(currentSet) {
+        // Volume-replaced editor plans run inside the front card controls.
+        // Never arm the manual back-face editors for them: the back card is
+        // a flip replacement, not an overlay, and must not resurrect a
+        // second technique surface on top of the scheduled flow.
+        if (currentSet.techniqueScope() == SetTechniqueScope.VOLUME_REPLACED) null
+        else currentSet.resolvePlannedTechniqueGuide()
+    }
     var dropEnabled by remember(currentSet.id) {
         mutableStateOf(initialDropEnabled || plannedGuide?.kind == TechniqueType.DROP_SET)
     }

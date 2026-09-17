@@ -649,6 +649,50 @@ class SplitApplicationEngineTest {
         assertEquals(listOf("s2"), weeks.first { it.id == "w2" }.sessions.map { it.id })
     }
 
+    @Test
+    fun prebuilt_fallback_days_do_not_repeat_template_or_focus_muscle() {
+        // suggestForDay con diversidad: la segunda llamada (con la primera
+        // elección en usedTemplates) ya no debe repetir plantilla ni
+        // músculo principal (plan 2026-09-16, remediación Fix 3).
+        fun labeled(id: String, muscle: String?): SessionTemplate = template(id, "Torso", SessionTemplateFocusCategory.PECHO).copy(
+            primaryFocusMuscle = muscle,
+        )
+        val templates = listOf(
+            labeled("chest-a", "pectoralis"),
+            labeled("chest-b", "pectoralis"),
+            labeled("back", "lats"),
+        )
+
+        // suggestForDay desempata por id (thenBy { it.id }): chest-b gana la
+        // primera llamada; la segunda, con chest-b en usedTemplates, debe
+        // elegir back (−60 por repetir pectoralis) en vez de repetir chest-b.
+        val first = SessionTemplateSuggestionEngine.suggestForDay(
+            splitId = "no-such-split",
+            dayLabel = "Torso",
+            templates = templates,
+        )
+        assertEquals("chest-b", first?.id)
+
+        val second = SessionTemplateSuggestionEngine.suggestForDay(
+            splitId = "no-such-split",
+            dayLabel = "Torso",
+            templates = templates,
+            excludeIds = setOfNotNull(first?.id),
+            usedTemplates = listOfNotNull(first),
+        )
+        assertEquals("back", second?.id)
+
+        // Sin diversidad (código previo), la segunda llamada repetiría
+        // chest-b: el acumulador de SplitApplicationEngine es lo que impide
+        // que dos días fallback elijan la misma plantilla.
+        val secondWithoutDiversity = SessionTemplateSuggestionEngine.suggestForDay(
+            splitId = "no-such-split",
+            dayLabel = "Torso",
+            templates = templates,
+        )
+        assertEquals("chest-b", secondWithoutDiversity?.id)
+    }
+
     private fun template(
         id: String,
         dayLabel: String,

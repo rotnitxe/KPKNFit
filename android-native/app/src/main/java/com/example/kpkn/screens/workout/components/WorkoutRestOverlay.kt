@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import com.example.kpkn.ui.components.kpknHazeEffect
 import dev.chrisbanes.haze.HazeState
 import java.util.Locale
@@ -68,6 +69,14 @@ internal fun RestTimerOverlay(
         modifier = Modifier
             .fillMaxSize()
             .kpknHazeEffect(hazeState)
+            // The rest layer is modal.  Consume taps in its transparent
+            // margins too, otherwise a touch can fall through to the media
+            // card and open Photos/camera after "Saltar descanso".
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = {},
+            )
             .zIndex(6f),
     ) {
         AnimatedContent(

@@ -1,0 +1,893 @@
+--------- beginning of system
+08-25 07:03:39.147   679  8066 W ActivityTaskManager: callingPackage for (uid=2000, pid=25134) has no WPC
+08-25 07:03:39.148   679  8066 D CompatChangeReporter: Compat change id reported: 151861875; UID 10259; state: ENABLED
+--------- beginning of main
+08-25 07:03:39.149   679  8066 V GrammaticalInflectionUtils: AttributionSource: android.content.AttributionSource@a920e262 does not have READ_SYSTEM_GRAMMATICAL_GENDER permission.
+08-25 07:03:39.149   679  8066 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_USER_ASPECT_RATIO_OVERRIDE
+08-25 07:03:39.149   679  8066 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_USER_ASPECT_RATIO_FULLSCREEN_OVERRIDE
+08-25 07:03:39.150   679  8066 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_RESIZEABLE_ACTIVITY_OVERRIDES
+08-25 07:03:39.150   679  8066 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_MIN_ASPECT_RATIO_OVERRIDE
+08-25 07:03:39.153   679  8066 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_ORIENTATION_OVERRIDE
+08-25 07:03:39.156   554  1211 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+08-25 07:03:39.162   679  8066 I ActivityTaskManager: START u0 {act=android.intent.action.VIEW dat=kpkn://workout/... flg=0x10000000 xflg=0x4 cmp=com.example.kpkn/.MainActivity} with LAUNCH_MULTIPLE from uid 2000 (BAL_ALLOW_PERMISSION) result code=0
+08-25 07:03:39.162   929   985 V WindowManagerShell: Transition requested (#246): android.os.BinderProxy@88c7141 TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=771 effectiveUid=10259 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.example.kpkn/.MainActivity } baseActivity=ComponentInfo{com.example.kpkn/com.example.kpkn.MainActivity} topActivity=ComponentInfo{com.example.kpkn/com.example.kpkn.MainActivity} origActivity=null realActivity=ComponentInfo{com.example.kpkn/com.example.kpkn.MainActivity} numActivities=2 lastActiveTime=14197755 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@79436e6} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 0 - 0, 0) topActivityInfo=ActivityInfo{eb9a427 com.example.kpkn.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isTopActivityNoDisplay=false isSleeping=false locusId=null displayAreaFeatureId=1 isTopActivityTransparent=false isActivityStackTransparent=false lastNonFullscreenBounds=Rect(273, 708 - 808, 1788) capturedLink=null capturedLinkTimestamp=0 requestedVisibleTypes=-9 topActivityRequestOpenInBrowserEducationTimestamp=0 appCompatTaskInfo=AppCompatTaskInfo { topActivityInSizeCompat=false eligibleForLetterboxEducation= false isLetterboxEducationEnabled= true isLetterboxDoubleTapEnabled= false eligibleForUserAspectRatioButton= false topActivityBoundsLetterboxed= false isFromLetterboxDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 topActivityAppBounds=Rect(0, 0 - 1080, 2400) isUserFullscreenOverrideEnabled=false isSystemFullscreenOverrideEnabled=false hasMinAspectRatioOverride=false topActivityLetterboxBounds=null cameraCompatTaskInfo=CameraCompatTaskInfo { freeformCameraCompatMode=inactive}} topActivityMainWindowFrame=null}, pipChange = null, remoteTransition = null, displayChange = null, flags = 0, debugId = 246 }
+08-25 07:03:39.162   929   985 D ShellSplitScreen: logExit: no-op, mLoggerSessionId is null
+08-25 07:03:39.173   554   554 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+08-25 07:03:39.193   679  8066 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ENABLE_FAKE_FOCUS
+08-25 07:03:39.200   679   882 D BackgroundInstallControlService: Package event received: 0
+08-25 07:03:39.201   679   882 D BackgroundInstallControlService: Package event received: 0
+08-25 07:03:39.201   679   882 D BackgroundInstallControlService: Package event received: 0
+08-25 07:03:39.246 25066 25066 D StrictMode: StrictMode policy violation; ~duration=46 ms: android.os.strictmode.DiskReadViolation
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onReadFromDisk(StrictMode.java:1728)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at libcore.io.BlockGuardOs.access(BlockGuardOs.java:74)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at libcore.io.ForwardingOs.access(ForwardingOs.java:128)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at android.app.ActivityThread$AndroidOs.access(ActivityThread.java:8944)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at java.io.UnixFileSystem.checkAccess(UnixFileSystem.java:332)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at java.io.File.exists(File.java:829)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at android.app.ContextImpl.getDataDir(ContextImpl.java:3347)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at android.app.ContextImpl.getPreferencesDir(ContextImpl.java:763)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at android.app.ContextImpl.getSharedPreferencesPath(ContextImpl.java:990)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at android.app.ContextImpl.getSharedPreferences(ContextImpl.java:605)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at com.example.kpkn.ui.locale.LocaleManager.getSavedLanguage(LocaleManager.kt:86)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at com.example.kpkn.ui.locale.LocaleManager.wrapContext(LocaleManager.kt:97)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at com.example.kpkn.MainActivity.attachBaseContext(MainActivity.kt:138)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at android.app.Activity.attach(Activity.java:9042)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:4231)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:4467)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:222)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeNonLifecycleItem(TransactionExecutor.java:133)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeTransactionItems(TransactionExecutor.java:103)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:80)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2823)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at android.os.Handler.dispatchMessage(Handler.java:110)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at android.os.Looper.loopOnce(Looper.java:248)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at android.os.Looper.loop(Looper.java:338)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at android.app.ActivityThread.main(ActivityThread.java:9067)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at java.lang.reflect.Method.invoke(Native Method)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
+08-25 07:03:39.246 25066 25066 D StrictMode: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
+08-25 07:03:39.247 25066 25066 D StrictMode: StrictMode policy violation; ~duration=46 ms: android.os.strictmode.DiskReadViolation
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onReadFromDisk(StrictMode.java:1728)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at libcore.io.BlockGuardOs.access(BlockGuardOs.java:74)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at libcore.io.ForwardingOs.access(ForwardingOs.java:128)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at android.app.ActivityThread$AndroidOs.access(ActivityThread.java:8944)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at java.io.UnixFileSystem.checkAccess(UnixFileSystem.java:332)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at java.io.File.exists(File.java:829)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at android.app.ContextImpl.ensurePrivateDirExists(ContextImpl.java:818)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at android.app.ContextImpl.ensurePrivateDirExists(ContextImpl.java:809)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at android.app.ContextImpl.getPreferencesDir(ContextImpl.java:765)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at android.app.ContextImpl.getSharedPreferencesPath(ContextImpl.java:990)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at android.app.ContextImpl.getSharedPreferences(ContextImpl.java:605)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at com.example.kpkn.ui.locale.LocaleManager.getSavedLanguage(LocaleManager.kt:86)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at com.example.kpkn.ui.locale.LocaleManager.wrapContext(LocaleManager.kt:97)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at com.example.kpkn.MainActivity.attachBaseContext(MainActivity.kt:138)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at android.app.Activity.attach(Activity.java:9042)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:4231)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:4467)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:222)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeNonLifecycleItem(TransactionExecutor.java:133)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeTransactionItems(TransactionExecutor.java:103)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:80)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2823)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at android.os.Handler.dispatchMessage(Handler.java:110)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at android.os.Looper.loopOnce(Looper.java:248)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at android.os.Looper.loop(Looper.java:338)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at android.app.ActivityThread.main(ActivityThread.java:9067)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at java.lang.reflect.Method.invoke(Native Method)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
+08-25 07:03:39.247 25066 25066 D StrictMode: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
+08-25 07:03:39.248 25066 25066 D StrictMode: StrictMode policy violation; ~duration=23 ms: android.os.strictmode.DiskReadViolation
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onReadFromDisk(StrictMode.java:1728)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at libcore.io.BlockGuardOs.access(BlockGuardOs.java:74)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at libcore.io.ForwardingOs.access(ForwardingOs.java:128)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.app.ActivityThread$AndroidOs.access(ActivityThread.java:8944)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at java.io.UnixFileSystem.checkAccess(UnixFileSystem.java:332)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at java.io.File.exists(File.java:829)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.app.ContextImpl.ensurePrivateDirExists(ContextImpl.java:818)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.app.ContextImpl.ensurePrivateDirExists(ContextImpl.java:809)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.app.ContextImpl.getPreferencesDir(ContextImpl.java:765)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.app.ContextImpl.getSharedPreferencesPath(ContextImpl.java:990)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.app.ContextImpl.getSharedPreferences(ContextImpl.java:605)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.content.ContextWrapper.getSharedPreferences(ContextWrapper.java:223)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at com.example.kpkn.data.migrations.LegacyLearnPreferencesCleanup.clearOnce(LegacyLearnPreferencesCleanup.kt:18)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at com.example.kpkn.data.migrations.LegacyLearnPreferencesCleanupKt.clearLegacyLearnPreferencesOnce(LegacyLearnPreferencesCleanup.kt:32)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at com.example.kpkn.MainActivity.onCreate(MainActivity.kt:162)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.app.Activity.performCreate(Activity.java:9155)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.app.Activity.performCreate(Activity.java:9133)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.app.Instrumentation.callActivityOnCreate(Instrumentation.java:1521)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:4262)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:4467)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:222)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeNonLifecycleItem(TransactionExecutor.java:133)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeTransactionItems(TransactionExecutor.java:103)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:80)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2823)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.os.Handler.dispatchMessage(Handler.java:110)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.os.Looper.loopOnce(Looper.java:248)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.os.Looper.loop(Looper.java:338)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at android.app.ActivityThread.main(ActivityThread.java:9067)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at java.lang.reflect.Method.invoke(Native Method)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
+08-25 07:03:39.248 25066 25066 D StrictMode: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
+08-25 07:03:39.381 25066 25066 D HazeSource: onAttach. Adding HazeArea: HazeArea(positionOnScreen=Offset.Unspecified, size=Size.Unspecified, zIndex=0.0, contentLayer=null, contentDrawing=false)
+08-25 07:03:39.383 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4909KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 1.409ms,2.829ms total 223.911ms
+08-25 07:03:39.397 25066 25066 D HazeEffect: LocalHazeStyle changed. Current: HazeStyle(backgroundColor=Color(0.0, 0.0, 0.0, 0.0, None), tints=[], blurRadius=Dp.Unspecified, noiseFactor=-1.0, fallbackTint=HazeTint(color=Color(0.0, 0.0, 0.0, 0.0, None), blendMode=SrcOver, brush=null)). New: HazeStyle(backgroundColor=Color(0.0, 0.0, 0.0, 0.0, None), tints=[HazeTint(color=Color(0.0, 0.0, 0.0, 0.0, None), blendMode=SrcOver, brush=null)], blurRadius=20.0.dp, noiseFactor=0.15, fallbackTint=HazeTint(color=Color(0.0, 0.0, 0.0, 0.0, None), blendMode=SrcOver, brush=null))
+08-25 07:03:39.398 25066 25066 D HazeEffect: alpha changed. Current 1.0. New: 0.42
+08-25 07:03:39.398 25066 25066 D HazeEffect: Background Areas observing: SnapshotStateList(value=[HazeArea(positionOnScreen=Offset.Unspecified, size=Size.Unspecified, zIndex=0.0, contentLayer=null, contentDrawing=false)])@136799710
+08-25 07:03:39.399 25066 25066 D HazeEffect: Background Area: HazeArea(positionOnScreen=Offset.Unspecified, size=Size.Unspecified, zIndex=0.0, contentLayer=null, contentDrawing=false). Included=true
+08-25 07:03:39.399 25066 25066 D HazeEffect: backgroundAreas changed. Current []. New: [HazeArea(positionOnScreen=Offset.Unspecified, size=Size.Unspecified, zIndex=0.0, contentLayer=null, contentDrawing=false)]
+08-25 07:03:39.399 25066 25066 D HazeEffect: areaOffsets changed
+08-25 07:03:39.399 25066 25066 D HazeEffect: invalidateRequired=true. Dirty params=[RelativePosition, BlurRadius, NoiseFactor, Tints, Alpha, Areas]
+08-25 07:03:39.410 25066 25066 D HazeEffect: Background Areas observing: SnapshotStateList(value=[HazeArea(positionOnScreen=Offset.Unspecified, size=Size.Unspecified, zIndex=0.0, contentLayer=null, contentDrawing=false)])@136799710
+08-25 07:03:39.411 25066 25066 D HazeEffect: Background Area: HazeArea(positionOnScreen=Offset.Unspecified, size=Size.Unspecified, zIndex=0.0, contentLayer=null, contentDrawing=false). Included=true
+08-25 07:03:39.411 25066 25066 D HazeEffect: invalidateRequired=true. Dirty params=[RelativePosition, BlurRadius, NoiseFactor, Tints, Alpha, Areas]
+08-25 07:03:39.417   679  8066 D CoreBackPreview: Window{9b7c58c u0 com.example.kpkn/com.example.kpkn.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@7aa54ea, mPriority=0, mIsAnimationCallback=false, mOverrideBehavior=0}
+08-25 07:03:39.577 25066 25066 D HazeSource: onPlaced: positionOnScreen=Offset(0.0, 0.0), size=Size(1080.0, 2400.0), positionOnScreens=Offset(0.0, 0.0)
+08-25 07:03:39.631 25066 25066 D HazeEffect: positionOnScreen changed. Current: Offset.Unspecified. New: Offset(32.0, 2095.0)
+08-25 07:03:39.632 25066 25066 D HazeEffect: size changed. Current: Size.Unspecified. New: Size(1016.0, 210.0)
+08-25 07:03:39.632 25066 25066 D HazeEffect: rootBoundsOnScreen changed. Current: Rect.fromLTRB(0.0, 0.0, 0.0, 0.0). New: Rect.fromLTRB(0.0, 0.0, 1080.0, 2400.0)
+08-25 07:03:39.632 25066 25066 D HazeEffect: onPlaced: positionOnScreen=Offset(32.0, 2095.0), size=Size(1016.0, 210.0)
+08-25 07:03:39.632 25066 25066 D HazeEffect: Background Areas observing: SnapshotStateList(value=[HazeArea(positionOnScreen=Offset(0.0, 0.0), size=Size(1080.0, 2400.0), zIndex=0.0, contentLayer=null, contentDrawing=false)])@136799710
+08-25 07:03:39.633 25066 25066 D HazeEffect: Background Area: HazeArea(positionOnScreen=Offset(0.0, 0.0), size=Size(1080.0, 2400.0), zIndex=0.0, contentLayer=null, contentDrawing=false). Included=true
+08-25 07:03:39.633 25066 25066 D HazeEffect: areaOffsets changed
+08-25 07:03:39.633 25066 25066 D HazeEffect: layerSize changed. Current: Size.Unspecified. New: Size(1080.0, 567.5)
+08-25 07:03:39.633 25066 25066 D HazeEffect: layerOffset changed. Current: Offset(0.0, 0.0). New: Offset(32.0, 262.5)
+08-25 07:03:39.633 25066 25066 D HazeEffect: invalidateRequired=true. Dirty params=[ScreenPosition, RelativePosition, Size, LayerSize, LayerOffset, BlurRadius, NoiseFactor, Tints, Alpha, Areas]
+08-25 07:03:39.641 25066 25066 D HazeSource: onGloballyPositioned: positionOnScreen=Offset(0.0, 0.0), size=Size(1080.0, 2400.0), positionOnScreens=Offset(0.0, 0.0)
+08-25 07:03:39.641 25066 25066 D HazeEffect: onGloballyPositioned: positionOnScreen=Offset(32.0, 2095.0), size=Size(1016.0, 210.0)
+08-25 07:03:39.643 25066 25066 D HazeEffect: Background Areas observing: SnapshotStateList(value=[HazeArea(positionOnScreen=Offset(0.0, 0.0), size=Size(1080.0, 2400.0), zIndex=0.0, contentLayer=null, contentDrawing=false)])@136799710
+08-25 07:03:39.643 25066 25066 D HazeEffect: Background Area: HazeArea(positionOnScreen=Offset(0.0, 0.0), size=Size(1080.0, 2400.0), zIndex=0.0, contentLayer=null, contentDrawing=false). Included=true
+08-25 07:03:39.643 25066 25066 D HazeEffect: invalidateRequired=true. Dirty params=[ScreenPosition, RelativePosition, Size, LayerSize, LayerOffset, BlurRadius, NoiseFactor, Tints, Alpha, Areas]
+08-25 07:03:39.646 25066 25066 D HazeEffect: Background Areas observing: SnapshotStateList(value=[HazeArea(positionOnScreen=Offset(0.0, 0.0), size=Size(1080.0, 2400.0), zIndex=0.0, contentLayer=null, contentDrawing=false)])@136799710
+08-25 07:03:39.647 25066 25066 D HazeEffect: Background Area: HazeArea(positionOnScreen=Offset(0.0, 0.0), size=Size(1080.0, 2400.0), zIndex=0.0, contentLayer=null, contentDrawing=false). Included=true
+08-25 07:03:39.647 25066 25066 D HazeEffect: invalidateRequired=true. Dirty params=[ScreenPosition, RelativePosition, Size, LayerSize, LayerOffset, BlurRadius, NoiseFactor, Tints, Alpha, Areas]
+08-25 07:03:39.648 25066 25066 D HazeSource: start draw()
+08-25 07:03:39.648 25066 25066 D HazeSource: Updated contentLayer in HazeArea: HazeArea(positionOnScreen=Offset(0.0, 0.0), size=Size(1080.0, 2400.0), zIndex=0.0, contentLayer=androidx.compose.ui.graphics.layer.GraphicsLayer@1fe41a0, contentDrawing=true)
+08-25 07:03:39.661 25066 25066 D HazeSource: Drawn content into layer: androidx.compose.ui.graphics.layer.GraphicsLayer@1fe41a0
+08-25 07:03:39.661 25066 25066 D HazeSource: Drawn layer to canvas: androidx.compose.ui.graphics.layer.GraphicsLayer@1fe41a0
+08-25 07:03:39.661 25066 25066 D HazeSource: end draw()
+08-25 07:03:39.661 25066 25066 D HazeEffect: -> start draw()
+08-25 07:03:39.661 25066 25066 D HazeEffect: blurEffect changed. Current dev.chrisbanes.haze.ScrimBlurEffect@a360039. New: dev.chrisbanes.haze.RenderEffectBlurEffect@225a67e
+08-25 07:03:39.662 25066 25066 D HazeEffect: Drawing HazeArea GraphicsLayer: androidx.compose.ui.graphics.layer.GraphicsLayer@1fe41a0
+08-25 07:03:39.662 25066 25066 D HazeEffect: getOrCreateRenderEffect: RenderEffectParams(blurRadius=100.0.dp, noiseFactor=0.02, scale=1.0, contentSize=Size(1016.0, 210.0), contentOffset=Offset(32.0, 262.5), tints=[HazeTint(color=Color(0.05490196, 0.05490196, 0.05490196, 0.5803922, sRGB IEC61966-2.1), blendMode=SrcOver, brush=null)], tintAlphaModulate=1.0, mask=null, progressive=null, blurTileMode=Clamp)
+08-25 07:03:39.663 25066 25066 D HazeEffect: getOrCreateRenderEffect. Returning cached: RenderEffectParams(blurRadius=100.0.dp, noiseFactor=0.02, scale=1.0, contentSize=Size(1016.0, 210.0), contentOffset=Offset(32.0, 262.5), tints=[HazeTint(color=Color(0.05490196, 0.05490196, 0.05490196, 0.5803922, sRGB IEC61966-2.1), blendMode=SrcOver, brush=null)], tintAlphaModulate=1.0, mask=null, progressive=null, blurTileMode=Clamp)
+08-25 07:03:39.668 25066 25066 D HazeEffect: -> end draw()
+08-25 07:03:39.680   929  1280 V WindowManagerShell: onTransitionReady(transaction=2916282812415)
+08-25 07:03:39.680   929   985 V WindowManagerShell: onTransitionReady (#246) android.os.BinderProxy@88c7141: {id=246 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[
+08-25 07:03:39.680   929   985 V WindowManagerShell:         {m=OPEN f=FILLS_TASK leash=Surface(name=ActivityRecord{61395808 u0 com.example.kpkn/.MainActivity)/@0x238f6d4 sb=Rect(0, 0 - 0, 0) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=-1->0 r=-1->0:-1 bc=ff0c0d0e component=com.example.kpkn/.MainActivity opt={t=FROM_STYLE mUserId=0}},
+08-25 07:03:39.680   929   985 V WindowManagerShell:         {m=TO_BACK f=FILLS_TASK leash=Surface(name=ActivityRecord{253726484 u0 com.example.kpkn/.MainActivity)/@0x96de07d sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0 bc=ff0c0d0e component=com.example.kpkn/.MainActivity opt={t=FROM_STYLE mUserId=0}}
+08-25 07:03:39.680   929   985 V WindowManagerShell:     ]}
+08-25 07:03:39.681   929   985 V WindowManagerShell: Playing animation for (#246) android.os.BinderProxy@88c7141@0
+08-25 07:03:39.681   929   985 V ShellRecents: RecentsTransitionHandler.startAnimation: no controller found
+08-25 07:03:39.681   929   985 V WindowManagerShell: Transition doesn't have explicit remote, search filters for match for {id=246 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{m=OPEN f=FILLS_TASK leash=Surface(name=ActivityRecord{61395808 u0 com.example.kpkn/.MainActivity)/@0x238f6d4 sb=Rect(0, 0 - 0, 0) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=-1->0 r=-1->0:-1 bc=ff0c0d0e component=com.example.kpkn/.MainActivity opt={t=FROM_STYLE mUserId=0}},{m=TO_BACK f=FILLS_TASK leash=Surface(name=ActivityRecord{253726484 u0 com.example.kpkn/.MainActivity)/@0x96de07d sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0 bc=ff0c0d0e component=com.example.kpkn/.MainActivity opt={t=FROM_STYLE mUserId=0}}]}
+08-25 07:03:39.681   929   985 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x0 checks=[{atype=undefined independent=true modes=[CLOSE,TO_BACK] flags=IN_TASK_WITH_EMBEDDED_ACTIVITY mustBeTask=false order=ANY topActivity=null launchCookie=null taskFragmentToken=android.os.BinderProxy@12a9f4e windowingMode=undefined}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@3c86f, appThread = android.app.IApplicationThread$Stub$Proxy@d88597c, debugName = overlayBackTransition }}
+08-25 07:03:39.681   929   985 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x0 checks=[{atype=dream independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null windowingMode=undefined},{atype=home independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null windowingMode=undefined}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@3a1205, appThread = android.app.IApplicationThread$Stub$Proxy@f15625a, debugName = LauncherToDream }}
+08-25 07:03:39.681   929   985 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x100 checks=[{atype=home independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=TOP topActivity=ComponentInfo{com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity} launchCookie=null windowingMode=undefined},{atype=standard independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null windowingMode=undefined},{NOT atype=undefined independent=true modes=[] flags=NONE mustBeTask=true order=ANY topActivity=null launchCookie=null customAnim=true windowingMode=undefined}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@bae7c8b, appThread = android.app.IApplicationThread$Stub$Proxy@1bf9168, debugName = QuickstepLaunchHome }}
+08-25 07:03:39.681   929   985 V WindowManagerShell:  Delegate animation for (#246) to null
+08-25 07:03:39.681   679   701 I ActivityTaskManager: Displayed com.example.kpkn/.MainActivity for user 0: +532ms
+08-25 07:03:39.682   679   701 V WindowManager: Sent Transition (#246) createdAt=08-25 07:03:39.151 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=771 effectiveUid=10259 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.example.kpkn/.MainActivity } baseActivity=ComponentInfo{com.example.kpkn/com.example.kpkn.MainActivity} topActivity=ComponentInfo{com.example.kpkn/com.example.kpkn.MainActivity} origActivity=null realActivity=ComponentInfo{com.example.kpkn/com.example.kpkn.MainActivity} numActivities=2 lastActiveTime=14197755 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{920e94f Task{b8033bd #771 type=standard A=10259:com.example.kpkn}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 0 - 0, 0) topActivityInfo=ActivityInfo{e0c9742 com.example.kpkn.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isTopActivityNoDisplay=false isSleeping=false locusId=null displayAreaFeatureId=1 isTopActivityTransparent=false isActivityStackTransparent=false lastNonFullscreenBounds=Rect(273, 708 - 808, 1788) capturedLink=null capturedLinkTimestamp=0 requestedVisibleTypes=-9 topActivityRequestOpenInBrowserEducationTimestamp=0 appCompatTaskInfo=AppCompatTaskInfo { topActivityInSizeCompat=false eligibleForLetterboxEducation= false isLetterboxEducationEnabled= true isLetterboxDoubleTapEnabled= false eligibleForUserAspectRatioButton= false topActivityBoundsLetterboxed= false isFromLetterboxDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 topActivityAppBounds=Rect(0, 0 - 1080, 2400) isUserFullscreenOverrideEnabled=false isSystemFullscreenOverrideEnabled=false hasMinAspectRatioOverride=false topActivityLetterboxBounds=null cameraCompatTaskInfo=CameraCompatTaskInfo { freeformCameraCompatMode=inactive}} topActivityMainWindowFrame=null}, pipChange = null, remoteTransition = null, displayChange = null, flags = 0, debugId = 246 }
+08-25 07:03:39.682   679   701 V WindowManager:     startWCT=WindowContainerTransaction { changes= {} hops= [] errorCallbackToken=null taskFragmentOrganizer=null }
+08-25 07:03:39.682   679   701 V WindowManager:     info={id=246 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[
+08-25 07:03:39.682   679   701 V WindowManager:         {m=OPEN f=FILLS_TASK leash=Surface(name=ActivityRecord{61395808 u0 com.example.kpkn/.MainActivity)/@0xbf3a24 sb=Rect(0, 0 - 0, 0) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=-1->0 r=-1->0:-1 bc=ff0c0d0e component=com.example.kpkn/.MainActivity opt={t=FROM_STYLE mUserId=0}},
+08-25 07:03:39.682   679   701 V WindowManager:         {m=TO_BACK f=FILLS_TASK leash=Surface(name=ActivityRecord{253726484 u0 com.example.kpkn/.MainActivity)/@0xe4ca2b7 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0 bc=ff0c0d0e component=com.example.kpkn/.MainActivity opt={t=FROM_STYLE mUserId=0}}
+08-25 07:03:39.682   679   701 V WindowManager:     ]}
+08-25 07:03:39.685   929   985 V WindowManagerShell: start default transition animation, info = {id=246 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{m=OPEN f=FILLS_TASK leash=Surface(name=ActivityRecord{61395808 u0 com.example.kpkn/.MainActivity)/@0x238f6d4 sb=Rect(0, 0 - 0, 0) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=-1->0 r=-1->0:-1 bc=ff0c0d0e component=com.example.kpkn/.MainActivity opt={t=FROM_STYLE mUserId=0}},{m=TO_BACK f=FILLS_TASK leash=Surface(name=ActivityRecord{253726484 u0 com.example.kpkn/.MainActivity)/@0x96de07d sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0 bc=ff0c0d0e component=com.example.kpkn/.MainActivity opt={t=FROM_STYLE mUserId=0}}]}
+08-25 07:03:39.685   929   985 V WindowManagerShell: loadAnimation: anim=android.view.animation.AnimationSet@1993cbe animAttr=0x5 type=OPEN isEntrance=false
+08-25 07:03:39.686   929   985 V WindowManagerShell: loadAnimation: anim=android.view.animation.AnimationSet@9bda235 animAttr=0x4 type=OPEN isEntrance=true
+08-25 07:03:39.687   929   985 V WindowManagerShell:  animated by com.android.wm.shell.transition.DefaultTransitionHandler@debbd40
+08-25 07:03:39.707   929   985 V WindowManagerShell: Transition animation finished (aborted=false), notifying core (#246) android.os.BinderProxy@88c7141@0
+08-25 07:03:39.713   929   985 V WindowManagerShell: Track 0 became idle
+08-25 07:03:39.713   929   985 V WindowManagerShell: All active transition animations finished
+08-25 07:03:39.716   679   701 V WindowManager: Finish Transition (#246): created at 08-25 07:03:39.151 collect-started=0.098ms request-sent=6.312ms started=11.743ms ready=45.18ms sent=528.585ms commit=26.417ms finished=557.599ms
+08-25 07:03:39.728 25066 25066 D HazeSource: onPreDraw
+08-25 07:03:39.979 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4484KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 54MB/78MB, paused 1.492ms,3.920ms total 170.835ms
+08-25 07:03:40.236 25066 25066 I om.example.kpkn: AssetManager2(0x78e845978998) locale list changing from [] to [en-US]
+08-25 07:03:40.239 25066 25066 I TextToSpeech: Sucessfully bound to com.google.android.tts
+08-25 07:03:40.239   679   755 D TextToSpeechManagerPerUserService: Trying to start connection to TTS engine: com.google.android.tts
+08-25 07:03:40.241   679   882 D BackgroundInstallControlService: Package event received: 0
+08-25 07:03:40.245   679   679 D ActivityManager: sync unfroze 2442 com.google.android.tts for 6
+08-25 07:03:40.246   679   882 D BackgroundInstallControlService: Package event received: 0
+08-25 07:03:40.263  2442  2442 I GoogleTtsServicePeer: Creating Google TTS service, version googletts.google-speech-apk_20241125.02_p2.702443970
+08-25 07:03:40.264  2442  2442 I ExoPlayerImpl: Init 39911da [AndroidXMedia3/1.5.0] [emu64xa, sdk_gphone64_x86_64, Google, 36]
+08-25 07:03:40.273  2442  2442 I ExoPlayerImpl: Init 2558ce8 [AndroidXMedia3/1.5.0] [emu64xa, sdk_gphone64_x86_64, Google, 36]
+08-25 07:03:40.309  2442  2442 I PipelineReaderImpl: Initializing en-us-x-iog-seanet-embedded from disk
+08-25 07:03:40.329  1448  1448 D WM-DelayedWorkTracker: Scheduling work 4ce0fa58-bb9d-4bb9-8261-08d1dbde94b2
+08-25 07:03:40.329  1448  1448 D WM-GreedyScheduler: Starting tracking for 4ce0fa58-bb9d-4bb9-8261-08d1dbde94b2
+08-25 07:03:40.336  1448  1658 D WM-ConstraintTracker: BatteryNotLowTracker: initial state = true
+08-25 07:03:40.336  1448  1658 D WM-BrdcstRcvrCnstrntTrc: BatteryNotLowTracker: registering receiver
+08-25 07:03:40.346  1448  1658 D WM-GreedyScheduler: Constraints met: Scheduling work ID WorkGenerationalId(workSpecId=4ce0fa58-bb9d-4bb9-8261-08d1dbde94b2, generation=0)
+08-25 07:03:40.347  1448  1658 D WM-Processor: Processor: processing WorkGenerationalId(workSpecId=4ce0fa58-bb9d-4bb9-8261-08d1dbde94b2, generation=0)
+08-25 07:03:40.350  1448  1448 D WM-WorkerWrapper: Starting work for com.android.providers.media.photopicker.sync.ProactiveSyncWorker
+08-25 07:03:40.351  1448 11339 I PSyncWorker: Starting proactive picker sync from sync source: 1
+08-25 07:03:40.351  1448 11339 I PickerSyncTracker: Created new sync future java.util.concurrent.CompletableFuture@f4e0053[Not completed, 1 dependents]. Future map: {4ce0fa58-bb9d-4bb9-8261-08d1dbde94b2=java.util.concurrent.CompletableFuture@f4e0053[Not completed, 1 dependents]}
+08-25 07:03:40.351  1448 11339 D PickerSyncController: syncAllMediaFromProvider() LOCAL, auth=com.android.providers.media.photopicker, retry=true
+08-25 07:03:40.351  1448 11339 D PickerSyncController: getSyncRequestParams() LOCAL, auth=com.android.providers.media.photopicker
+08-25 07:03:40.353  1448  1448 D WM-SystemJobService: onStartJob for WorkGenerationalId(workSpecId=4ce0fa58-bb9d-4bb9-8261-08d1dbde94b2, generation=0)
+08-25 07:03:40.354  1448 11339 D PickerSyncController:    Latest ID/Gen=5e7e226befc80d7f:external_primary/1866
+08-25 07:03:40.354  1448 11339 D PickerSyncController:    Cached ID/Gen=5e7e226befc80d7f:external_primary/1851
+08-25 07:03:40.354  1448 11339 D PickerSyncController:    RESULT=SyncRequestParams{type=MEDIA_INCREMENTAL, gen=1851, latest=Bundle[{last_media_sync_generation=1866, media_collection_id=5e7e226befc80d7f:external_primary}], pageSize=1000}
+08-25 07:03:40.354  1448 11339 I PickerSyncController: Executing SyncAdd. isLocal: true. authority: com.android.providers.media.photopicker
+08-25 07:03:40.354  1448 11339 D PickerSyncLockManager: Trying to acquire lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@7b700cf[Unlocked]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = [] with timeout.
+08-25 07:03:40.354  1448 11339 D CloseableReentrantLock: Successfully acquired lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@7b700cf[Locked by thread pool-4-thread-1]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = []
+08-25 07:03:40.354  1448 11339 D CloseableReentrantLock: Successfully released lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@7b700cf[Unlocked]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = []
+08-25 07:03:40.354  1448 11339 D ExternalDbFacade: Token received for queryMedia = null
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: Failed to insert picker db media. ContentValues: _user_id=0 standard_mime_type_extension=0 size_bytes=187819 orientation=0 height=2400 owner_package_name=com.android.shell date_taken_ms=1787641323000 duration_ms=0 sync_generation=1862 mime_type=image/png width=1080 is_favorite=0 local_id=232 is_visible=1
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: android.database.sqlite.SQLiteConstraintException: UNIQUE constraint failed: media.local_id, media.is_visible (code 2067 SQLITE_CONSTRAINT_UNIQUE)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at android.database.sqlite.SQLiteConnection.nativeExecuteForLastInsertedRowId(Native Method)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at android.database.sqlite.SQLiteConnection.executeForLastInsertedRowId(SQLiteConnection.java:985)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at android.database.sqlite.SQLiteSession.executeForLastInsertedRowId(SQLiteSession.java:825)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at android.database.sqlite.SQLiteStatement.executeInsert(SQLiteStatement.java:89)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at android.database.DatabaseUtils.executeInsert(DatabaseUtils.java:210)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at android.database.sqlite.SQLiteQueryBuilder.insert(SQLiteQueryBuilder.java:638)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at com.android.providers.media.photopicker.data.PickerDbFacade$AddMediaOperation.insertMedia(PickerDbFacade.java:644)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at com.android.providers.media.photopicker.data.PickerDbFacade$AddMediaOperation.upsertMedia(PickerDbFacade.java:658)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at com.android.providers.media.photopicker.data.PickerDbFacade$AddMediaOperation.executeInternal(PickerDbFacade.java:616)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at com.android.providers.media.photopicker.data.PickerDbFacade$DbWriteOperation.execute(PickerDbFacade.java:405)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at com.android.providers.media.photopicker.PickerSyncController.executePagedSync(PickerSyncController.java:1793)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at com.android.providers.media.photopicker.PickerSyncController.executePagedSync(PickerSyncController.java:1712)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at com.android.providers.media.photopicker.PickerSyncController.executeSyncAdd(PickerSyncController.java:1134)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at com.android.providers.media.photopicker.PickerSyncController.syncAllMediaFromProvider(PickerSyncController.java:978)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at com.android.providers.media.photopicker.PickerSyncController.syncAllMediaFromLocalProvider(PickerSyncController.java:401)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at com.android.providers.media.photopicker.sync.ProactiveSyncWorker.doWork(ProactiveSyncWorker.java:89)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at androidx.work.Worker$startWork$1.invoke(Worker.kt:64)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at androidx.work.Worker$startWork$1.invoke(Worker.kt:64)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at androidx.work.WorkerKt.future$lambda$2$lambda$1(Worker.kt:100)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at androidx.work.WorkerKt.$r8$lambda$06LNzu7McnKR6G06fSbfQ2BCegc(Worker.kt:0)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at androidx.work.WorkerKt$$ExternalSyntheticLambda2.run(R8$$SyntheticClass:0)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1156)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:651)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: 	at java.lang.Thread.run(Thread.java:1119)
+08-25 07:03:40.356  1448 11339 V PickerDbFacade: Retrying failed insert as update. ContentValues: _user_id=0 standard_mime_type_extension=0 size_bytes=187819 orientation=0 height=2400 owner_package_name=com.android.shell date_taken_ms=1787641323000 duration_ms=0 sync_generation=1862 mime_type=image/png width=1080 is_favorite=0 local_id=232 is_visible=1
+08-25 07:03:40.357  1448 11339 D PickerSyncLockManager: Trying to acquire lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@7b700cf[Unlocked]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = [] with timeout.
+08-25 07:03:40.357  1448 11339 D CloseableReentrantLock: Successfully acquired lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@7b700cf[Locked by thread pool-4-thread-1]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = []
+08-25 07:03:40.357  1448 11339 D PickerSyncController: Saving next page token: 1787641323000|232 for key: local_provider:media_add:resume
+08-25 07:03:40.357  1448 11339 D CloseableReentrantLock: Successfully released lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@7b700cf[Unlocked]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = []
+08-25 07:03:40.397  1448 11339 D PickerNotificationSender: Sending a notification for media update
+08-25 07:03:40.397  1448 11339 D PickerNotificationSender: Sending a notification for merged album media update Favorites
+08-25 07:03:40.397  1448 11339 D PickerNotificationSender: Sending a notification for album media update Favorites
+08-25 07:03:40.398  1448  1658 D WM-Processor: Work WorkGenerationalId(workSpecId=4ce0fa58-bb9d-4bb9-8261-08d1dbde94b2, generation=0) is already enqueued for processing
+08-25 07:03:40.399  1448 11339 D PickerNotificationSender: Sending a notification for merged album media update Videos
+08-25 07:03:40.399  1448 11339 D PickerNotificationSender: Sending a notification for album media update Videos
+08-25 07:03:40.400  1448 11339 D ExternalDbFacade: Token received for queryMedia = 1787641323000|232
+08-25 07:03:40.401  1448 11339 D PickerSyncLockManager: Trying to acquire lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@7b700cf[Unlocked]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = [] with timeout.
+08-25 07:03:40.401  1448 11339 D CloseableReentrantLock: Successfully acquired lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@7b700cf[Locked by thread pool-4-thread-1]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = []
+08-25 07:03:40.401  1448 11339 D PickerSyncController: Clearing next page token for key: local_provider:media_add:resume
+08-25 07:03:40.401  1448 11339 D CloseableReentrantLock: Successfully released lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@7b700cf[Unlocked]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = []
+08-25 07:03:40.401  1448 11339 D PickerNotificationSender: Sending a notification for media update
+08-25 07:03:40.402  1448 11339 D PickerNotificationSender: Sending a notification for merged album media update Favorites
+08-25 07:03:40.402  1448 11339 D PickerNotificationSender: Sending a notification for album media update Favorites
+08-25 07:03:40.403  1448 11339 D PickerNotificationSender: Sending a notification for merged album media update Videos
+08-25 07:03:40.403  1448 11339 D PickerNotificationSender: Sending a notification for album media update Videos
+08-25 07:03:40.403  1448 11339 I PickerSyncController: Paged sync successful. QueryArgs: Bundle[{android.provider.extra.PAGE_TOKEN=1787641323000|232, android.provider.extra.SYNC_GENERATION=1851, android.provider.extra.PAGE_SIZE=1000}] Total Rows: 2
+08-25 07:03:40.403  1448 11339 I PickerSyncController: Executing SyncRemove. isLocal: true. authority: com.android.providers.media.photopicker
+08-25 07:03:40.404  1448 11339 D PickerSyncLockManager: Trying to acquire lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@7b700cf[Unlocked]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = [] with timeout.
+08-25 07:03:40.404  1448 11339 D CloseableReentrantLock: Successfully acquired lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@7b700cf[Locked by thread pool-4-thread-1]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = []
+08-25 07:03:40.404  1448 11339 D CloseableReentrantLock: Successfully released lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@7b700cf[Unlocked]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = []
+08-25 07:03:40.405  1448 11339 D PickerSyncLockManager: Trying to acquire lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@7b700cf[Unlocked]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = [] with timeout.
+08-25 07:03:40.405  1448 11339 D CloseableReentrantLock: Successfully acquired lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@7b700cf[Locked by thread pool-4-thread-1]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = []
+08-25 07:03:40.405  1448 11339 D PickerSyncController: Clearing next page token for key: local_provider:media_remove:resume
+08-25 07:03:40.405  1448 11339 D CloseableReentrantLock: Successfully released lock com.android.providers.media.photopicker.sync.CloseableReentrantLock@7b700cf[Unlocked]. Lock Name = CLOUD_PROVIDER_LOCK. Threads that may be waiting to acquire this lock = []
+08-25 07:03:40.405  1448 11339 D PickerNotificationSender: Sending a notification for media update
+08-25 07:03:40.406  1448 11339 D PickerNotificationSender: Sending a notification for merged album media update Favorites
+08-25 07:03:40.407  1448 11339 D PickerNotificationSender: Sending a notification for album media update Favorites
+08-25 07:03:40.409   914   914 I wpa_supplicant: wlan0: CTRL-EVENT-BEACON-LOSS 
+08-25 07:03:40.424  1448 11339 D PickerNotificationSender: Sending a notification for merged album media update Videos
+08-25 07:03:40.424  1448 11339 D PickerNotificationSender: Sending a notification for album media update Videos
+08-25 07:03:40.425  1448 11339 I PickerSyncController: Paged sync successful. QueryArgs: Bundle[{android.provider.extra.PAGE_TOKEN=1787641323000|232, android.provider.extra.SYNC_GENERATION=1851, android.provider.extra.PAGE_SIZE=1000}] Total Rows: 0
+08-25 07:03:40.425  1448 11339 I PickerSyncTracker: Marked sync future complete for work id: 4ce0fa58-bb9d-4bb9-8261-08d1dbde94b2. Future map: {}
+08-25 07:03:40.425  1448 11339 I PSyncWorker: Completed picker proactive sync complete from local provider.
+08-25 07:03:40.426  1448  1678 I WM-WorkerWrapper: Worker result SUCCESS for Work [ id=4ce0fa58-bb9d-4bb9-8261-08d1dbde94b2, tags={ com.android.providers.media.photopicker.sync.ProactiveSyncWorker } ]
+08-25 07:03:40.427  1448  1448 D WM-Processor: Processor 4ce0fa58-bb9d-4bb9-8261-08d1dbde94b2 executed; reschedule = false
+08-25 07:03:40.428  1448  1448 D WM-GreedyScheduler: Stopping tracking for WorkGenerationalId(workSpecId=4ce0fa58-bb9d-4bb9-8261-08d1dbde94b2, generation=0)
+08-25 07:03:40.428  1448  1448 D WM-SystemJobService: 4ce0fa58-bb9d-4bb9-8261-08d1dbde94b2 executed on JobScheduler
+08-25 07:03:40.444  1448  1678 D WM-GreedyScheduler: Cancelling work ID 4ce0fa58-bb9d-4bb9-8261-08d1dbde94b2
+08-25 07:03:40.445  1448  1678 D WM-GreedyScheduler: Ignoring {WorkSpec: 2261e1af-c492-45b9-b542-954c61979aa3}. Requires device idle.
+08-25 07:03:40.445  1448  1678 D WM-GreedyScheduler: Ignoring {WorkSpec: 01fab927-4c6f-4932-9ba9-1d04f1d1b501}. Requires device idle.
+08-25 07:03:40.445  1448  1678 D WM-BrdcstRcvrCnstrntTrc: BatteryNotLowTracker: unregistering receiver
+08-25 07:03:40.518   929  1075 E FrameTracker: force finish cuj, time out: J<SPLASHSCREEN_EXIT_ANIM>
+08-25 07:03:40.555 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5176KB AllocSpace bytes, 3(136KB) LOS objects, 30% free, 54MB/78MB, paused 1.482ms,3.437ms total 196.063ms
+08-25 07:03:40.968  2442  2442 E tflite  : third_party/tensorflow/lite/core/subgraph.cc:1062 tensor.data.raw != nullptr was not true.
+08-25 07:03:41.042 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5124KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 54MB/78MB, paused 1.456ms,2.941ms total 207.240ms
+08-25 07:03:41.184  2442  2442 I ComposerWrapperImpl: Done initializing en-us-x-iog-seanet-embedded
+08-25 07:03:41.189   679   679 D TextToSpeechManagerPerUserService: Connected successfully to TTS engine: com.google.android.tts
+08-25 07:03:41.189 25066 25078 I TextToSpeech: Connected to TTS engine
+08-25 07:03:41.228  2442 12242 I GoogleTTSServiceImpl: currentLocale = en-US
+08-25 07:03:41.236  2442 12242 I GoogleTTSServiceImpl: For default lang en-us is name en-US-language (en-us-x-iog-server)
+08-25 07:03:41.236 25066 25143 I TextToSpeech: Setting up the connection to TTS engine...
+08-25 07:03:41.519 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5736KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 2.467ms,2.804ms total 218.925ms
+08-25 07:03:42.050 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5536KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 54MB/78MB, paused 1.845ms,5.463ms total 188.991ms
+08-25 07:03:42.173   679  1617 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+08-25 07:03:42.473 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5660KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.443ms,3.878ms total 176.838ms
+08-25 07:03:42.860 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5844KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.635ms,4.156ms total 188.679ms
+08-25 07:03:43.256 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5896KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.427ms,3.243ms total 176.328ms
+08-25 07:03:43.438  1062  1260 D SatelliteController: iisInCarrierRoamingNbIotNtn: satellite is disabled
+08-25 07:03:43.664 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6016KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.350ms,4.403ms total 194.395ms
+08-25 07:03:44.066 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5908KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.424ms,4.225ms total 177.625ms
+08-25 07:03:44.468 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5948KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.272ms,2.830ms total 167.056ms
+08-25 07:03:44.718   679   786 W InputDispatcher: Window 9b7c58c com.example.kpkn/com.example.kpkn.MainActivity is unresponsive: 9b7c58c com.example.kpkn/com.example.kpkn.MainActivity is not responding. Waited 5001ms for FocusEvent(hasFocus=true)
+08-25 07:03:44.718   679   786 W InputDispatcher: Canceling events for 9b7c58c com.example.kpkn/com.example.kpkn.MainActivity because it is unresponsive
+08-25 07:03:44.719   679   786 I WindowManager: ANR in Window{9b7c58c u0 com.example.kpkn/com.example.kpkn.MainActivity}. Reason:Input dispatching timed out (9b7c58c com.example.kpkn/com.example.kpkn.MainActivity is not responding. Waited 5001ms for FocusEvent(hasFocus=true)).
+08-25 07:03:44.723   679 25145 D ActivityManager: created ANR temporary file:/data/anr/temp_anr_4907573841414611858.txt
+08-25 07:03:44.723   679 25145 I ActivityManager: Collecting stacks for pid 25066 into temporary file temp_anr_4907573841414611858.txt
+08-25 07:03:44.716   679   679 W AnrMainProcessD: type=1400 audit(0.0:239): avc:  denied  { read } for  name="transactions" dev="binder" ino=1048587 scontext=u:r:system_server:s0 tcontext=u:object_r:binderfs_logs_transactions:s0 tclass=file permissive=0
+08-25 07:03:44.726   679 25145 E system_server: Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+08-25 07:03:44.726   679 25145 E android.os.Debug: Failed to get binder state info for pid: 25066 status: -2: No such file or directory
+08-25 07:03:44.727   679 25145 I system_server: libdebuggerd_client: started dumping process 25066
+08-25 07:03:44.728   306   306 I tombstoned: registered intercept for pid 25066 and type kDebuggerdJavaBacktrace
+08-25 07:03:44.729 25066 25068 I om.example.kpkn: Thread[2,tid=25068,WaitingInMainSignalCatcherLoop,Thread*=0x78e86596a6f0,peer=0x2001210,"Signal Catcher"]: reacting to signal 3
+08-25 07:03:44.729 25066 25068 I om.example.kpkn: Mutator lock exclusive owner tid: -1
+08-25 07:03:44.729 25066 25068 I om.example.kpkn: ThreadList lock owner tid: 0
+08-25 07:03:44.729 25066 25068 I om.example.kpkn: ClassLinker classes lock owner tid: 0
+08-25 07:03:44.729 25066 25068 I om.example.kpkn: ClassLinker dex lock owner tid: 0
+08-25 07:03:44.736   679 25146 I ActivityManager: dumpStackTraces pids={1032=true, 1065=true, 1077=true, 1154=true, 1241=true, 1344=true, 1372=true, 1403=true, 1431=true, 1448=true, 1484=true, 1505=true, 1522=true, 1534=true, 1570=true, 1640=true, 1741=true, 1755=true, 1815=true, 1870=true, 1986=true, 2023=true, 2104=true, 2175=true, 2179=true, 2267=true, 2324=true, 2361=true, 2432=true, 2442=true, 2457=true, 2542=true, 2600=true, 2661=true, 2687=true, 2755=true, 2817=true, 2843=true, 2867=true, 2885=true, 2915=true, 3007=true, 3036=true, 3085=true, 3102=true, 3138=true, 3156=true, 3174=true, 3192=true, 3213=true, 3328=true, 3354=true, 3382=true, 3464=true, 3486=true, 3525=true, 3688=true, 4048=true, 7562=true, 8030=true, 10281=true}
+08-25 07:03:44.736   679 25146 I ActivityManager: Dumping to /data/anr/anr_2026-08-25-07-03-44-736
+08-25 07:03:44.986   306   306 I tombstoned: received crash request for pid 25066
+08-25 07:03:44.987   306   306 I tombstoned: found intercept fd 512 for pid 25066 and type kDebuggerdJavaBacktrace
+08-25 07:03:44.988 25066 25068 I om.example.kpkn: Wrote stack traces to tombstoned
+08-25 07:03:44.988   306   306 W tombstoned: skipping tombstone file creation due to intercept
+08-25 07:03:45.015   679 25145 I system_server: libdebuggerd_client: done dumping process 25066
+08-25 07:03:45.024   679 25146 I ActivityManager: Collecting stacks for pid 679
+08-25 07:03:45.020   679   679 W AnrConsumer: type=1400 audit(0.0:240): avc:  denied  { read } for  name="transactions" dev="binder" ino=1048587 scontext=u:r:system_server:s0 tcontext=u:object_r:binderfs_logs_transactions:s0 tclass=file permissive=0
+08-25 07:03:45.026   679 25146 E system_server: Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+08-25 07:03:45.026   679 25146 E android.os.Debug: Failed to get binder state info for pid: 679 status: -2: No such file or directory
+08-25 07:03:45.033   679 25146 I system_server: libdebuggerd_client: started dumping process 679
+08-25 07:03:45.033   306   306 I tombstoned: registered intercept for pid 679 and type kDebuggerdJavaBacktrace
+08-25 07:03:45.034   679   688 I system_server: Thread[2,tid=688,WaitingInMainSignalCatcherLoop,Thread*=0x78e865961be0,peer=0x2006c10,"Signal Catcher"]: reacting to signal 3
+08-25 07:03:45.034   679   688 I system_server: 
+08-25 07:03:45.062 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5852KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 4.434ms,3.524ms total 382.496ms
+08-25 07:03:45.196   679 25147 I ActivityManager: Skipping next CPU consuming process, not a java proc: 25066
+08-25 07:03:45.196   679 25147 I ActivityManager: Skipping next CPU consuming process, not a java proc: 679
+08-25 07:03:45.196   679 25147 I ActivityManager: Skipping next CPU consuming process, not a java proc: 500
+08-25 07:03:45.196   679 25147 I ActivityManager: Skipping next CPU consuming process, not a java proc: 507
+08-25 07:03:45.196   679 25147 I ActivityManager: Skipping next CPU consuming process, not a java proc: 996
+08-25 07:03:45.487   679   692 I system_server: Background concurrent mark compact GC freed 23MB AllocSpace bytes, 19(376KB) LOS objects, 41% free, 34MB/58MB, paused 4.183ms,2.627ms total 201.921ms
+08-25 07:03:45.500   679   694 W System  : A resource failed to call release. 
+08-25 07:03:45.522 25148 25148 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: package
+08-25 07:03:45.758  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/base.odex) is kOatUpToDate with filter 'speed-profile' executable 'false'
+08-25 07:03:45.768  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_AdsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:03:45.780  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_CronetDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:03:45.782  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_DynamiteLoader_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:03:45.784  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_DynamiteModulesA_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:03:45.785  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_DynamiteModulesC_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:03:45.787  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_GoogleCertificates_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:03:45.795  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_MapsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:03:45.798  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_MeasurementDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:03:45.799  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000011/dl-PlayCloudSearch.optional_263032100000.apk has no usable artifacts
+08-25 07:03:45.800  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000001/CronetDynamite.apk has no usable artifacts
+08-25 07:03:45.800  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000002/DynamiteLoader.apk has no usable artifacts
+08-25 07:03:45.801  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000018/dl-IdentityCredentialsPlatform.optional_263032100800.apk has no usable artifacts
+08-25 07:03:45.802  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000005/GoogleCertificates.apk has no usable artifacts
+08-25 07:03:45.803  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000019/dl-TfliteDynamiteDynamite.integ_262730502100800.apk has no usable artifacts
+08-25 07:03:45.805  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000010/dl-VisionOcr.optional_263032100000.apk has no usable artifacts
+08-25 07:03:45.806  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000b/dl-TfliteDynamiteDynamite.integ_260580502100800.apk has no usable artifacts
+08-25 07:03:45.807  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000013/dl-MlkitOcrCommon.optional_263032100800.apk has no usable artifacts
+08-25 07:03:45.809  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000008/dl-Appsearch.optional_250834100800.apk has no usable artifacts
+08-25 07:03:45.811  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000014/dl-MlkitBarcodeUi.optional_263032100800.apk has no usable artifacts
+08-25 07:03:45.813  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000c/dl-MlkitBarcodeUi.optional_250834100800.apk has no usable artifacts
+08-25 07:03:45.814  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000012/dl-Appsearch.optional_263032100800.apk has no usable artifacts
+08-25 07:03:45.816  2344  2344 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/D76594F451C00E79F4C61E3B54BC3D01968BC47C/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+08-25 07:03:45.816  2344  2344 W artd    : Could not get dex checksums for location /data/app/~~OebE3h3aj7bRyFr6lOGvKw==/com.android.vending-A6r2KrtDQrcy5gixqfcP6A==/base.apk, fd=-1
+08-25 07:03:45.818  2344  2344 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/90356F09B5269D8AF0E8BAEAA661BE4AFD715065/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+08-25 07:03:45.863 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 7924KB AllocSpace bytes, 0(0B) LOS objects, 29% free, 56MB/80MB, paused 20.301ms,21.149ms total 536.368ms
+08-25 07:03:46.059   306   306 I tombstoned: received crash request for pid 679
+08-25 07:03:46.059   306   306 I tombstoned: found intercept fd 512 for pid 679 and type kDebuggerdJavaBacktrace
+08-25 07:03:46.060   679   688 I system_server: Wrote stack traces to tombstoned
+08-25 07:03:46.075   306   306 W tombstoned: skipping tombstone file creation due to intercept
+08-25 07:03:46.080   679 25146 I system_server: libdebuggerd_client: done dumping process 679
+08-25 07:03:46.094   679 25146 I ActivityManager: Collecting stacks for pid 1586
+08-25 07:03:46.092   679   679 W AnrConsumer: type=1400 audit(0.0:241): avc:  denied  { read } for  name="transactions" dev="binder" ino=1048587 scontext=u:r:system_server:s0 tcontext=u:object_r:binderfs_logs_transactions:s0 tclass=file permissive=0
+08-25 07:03:46.097   679 25146 E system_server: Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+08-25 07:03:46.097   679 25146 E android.os.Debug: Failed to get binder state info for pid: 1586 status: -2: No such file or directory
+08-25 07:03:46.097   679 25146 I system_server: libdebuggerd_client: started dumping process 1586
+08-25 07:03:46.098   306   306 I tombstoned: registered intercept for pid 1586 and type kDebuggerdJavaBacktrace
+08-25 07:03:46.098  1586  1588 I or.multidisplay: Thread[2,tid=1588,WaitingInMainSignalCatcherLoop,Thread*=0x78e8659637b0,peer=0x2001d30,"Signal Catcher"]: reacting to signal 3
+08-25 07:03:46.098  1586  1588 I or.multidisplay: 
+08-25 07:03:46.146   306   306 I tombstoned: received crash request for pid 1586
+08-25 07:03:46.146   306   306 I tombstoned: found intercept fd 512 for pid 1586 and type kDebuggerdJavaBacktrace
+08-25 07:03:46.147   306   306 W tombstoned: skipping tombstone file creation due to intercept
+08-25 07:03:46.147  1586  1588 I or.multidisplay: Wrote stack traces to tombstoned
+08-25 07:03:46.148   679 25146 I system_server: libdebuggerd_client: done dumping process 1586
+08-25 07:03:46.155   679 25146 I ActivityManager: Collecting stacks for pid 1062
+08-25 07:03:46.156   679 25146 E system_server: Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+08-25 07:03:46.156   679 25146 E android.os.Debug: Failed to get binder state info for pid: 1062 status: -2: No such file or directory
+08-25 07:03:46.157   679 25146 I system_server: libdebuggerd_client: started dumping process 1062
+08-25 07:03:46.158   306   306 I tombstoned: registered intercept for pid 1062 and type kDebuggerdJavaBacktrace
+08-25 07:03:46.158  1062  1064 I m.android.phone: Thread[2,tid=1064,WaitingInMainSignalCatcherLoop,Thread*=0x78e86596a6f0,peer=0x2000cd8,"Signal Catcher"]: reacting to signal 3
+08-25 07:03:46.158  1062  1064 I m.android.phone: 
+08-25 07:03:46.152   679   679 W AnrConsumer: type=1400 audit(0.0:242): avc:  denied  { read } for  name="transactions" dev="binder" ino=1048587 scontext=u:r:system_server:s0 tcontext=u:object_r:binderfs_logs_transactions:s0 tclass=file permissive=0
+08-25 07:03:46.278  1062  1069 W m.android.phone: Suspending all threads took: 13.623ms
+08-25 07:03:46.290   306   306 I tombstoned: received crash request for pid 1062
+08-25 07:03:46.290   306   306 I tombstoned: found intercept fd 512 for pid 1062 and type kDebuggerdJavaBacktrace
+08-25 07:03:46.290  1062  1064 I m.android.phone: Wrote stack traces to tombstoned
+08-25 07:03:46.290   306   306 W tombstoned: skipping tombstone file creation due to intercept
+08-25 07:03:46.311   679 25146 I system_server: libdebuggerd_client: done dumping process 1062
+08-25 07:03:46.329   679 25146 I ActivityManager: Collecting stacks for pid 1043
+08-25 07:03:46.328   679   679 W AnrConsumer: type=1400 audit(0.0:243): avc:  denied  { read } for  name="transactions" dev="binder" ino=1048587 scontext=u:r:system_server:s0 tcontext=u:object_r:binderfs_logs_transactions:s0 tclass=file permissive=0
+08-25 07:03:46.331   679 25146 E system_server: Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+08-25 07:03:46.332   679 25146 E android.os.Debug: Failed to get binder state info for pid: 1043 status: -2: No such file or directory
+08-25 07:03:46.332   679 25146 I system_server: libdebuggerd_client: started dumping process 1043
+08-25 07:03:46.332   306   306 I tombstoned: registered intercept for pid 1043 and type kDebuggerdJavaBacktrace
+08-25 07:03:46.333  1043  1047 I com.android.se: Thread[2,tid=1047,WaitingInMainSignalCatcherLoop,Thread*=0x78e86596a6f0,peer=0x2000d60,"Signal Catcher"]: reacting to signal 3
+08-25 07:03:46.333  1043  1047 I com.android.se: 
+08-25 07:03:46.387   306   306 I tombstoned: received crash request for pid 1043
+08-25 07:03:46.387   306   306 I tombstoned: found intercept fd 512 for pid 1043 and type kDebuggerdJavaBacktrace
+08-25 07:03:46.388  1043  1047 I com.android.se: Wrote stack traces to tombstoned
+08-25 07:03:46.388   306   306 W tombstoned: skipping tombstone file creation due to intercept
+08-25 07:03:46.404   679 25146 I system_server: libdebuggerd_client: done dumping process 1043
+08-25 07:03:46.419 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 7780KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 3.016ms,2.913ms total 215.036ms
+08-25 07:03:46.422   679 25146 I ActivityManager: Collecting stacks for pid 996
+08-25 07:03:46.422   679 25146 E system_server: Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+08-25 07:03:46.423   679 25146 E android.os.Debug: Failed to get binder state info for pid: 996 status: -2: No such file or directory
+08-25 07:03:46.423   679 25146 I system_server: libdebuggerd_client: started dumping process 996
+08-25 07:03:46.423   306   306 I tombstoned: registered intercept for pid 996 and type kDebuggerdJavaBacktrace
+08-25 07:03:46.420   679   679 W AnrConsumer: type=1400 audit(0.0:244): avc:  denied  { read } for  name="transactions" dev="binder" ino=1048587 scontext=u:r:system_server:s0 tcontext=u:object_r:binderfs_logs_transactions:s0 tclass=file permissive=0
+08-25 07:03:46.424   996  1005 I rkstack.process: Thread[2,tid=1005,WaitingInMainSignalCatcherLoop,Thread*=0x78e865968b20,peer=0x2001438,"Signal Catcher"]: reacting to signal 3
+08-25 07:03:46.433   996  1005 I rkstack.process: 
+08-25 07:03:46.531   306   306 I tombstoned: received crash request for pid 996
+08-25 07:03:46.531   306   306 I tombstoned: found intercept fd 512 for pid 996 and type kDebuggerdJavaBacktrace
+08-25 07:03:46.531   996  1005 I rkstack.process: Wrote stack traces to tombstoned
+08-25 07:03:46.535   679 25146 I system_server: libdebuggerd_client: done dumping process 996
+08-25 07:03:46.536   306   306 W tombstoned: skipping tombstone file creation due to intercept
+08-25 07:03:46.543   679 25146 I ActivityManager: Collecting stacks for pid 929
+08-25 07:03:46.543   679 25146 E system_server: Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+08-25 07:03:46.543   679 25146 E android.os.Debug: Failed to get binder state info for pid: 929 status: -2: No such file or directory
+08-25 07:03:46.545   679 25146 I system_server: libdebuggerd_client: started dumping process 929
+08-25 07:03:46.546   306   306 I tombstoned: registered intercept for pid 929 and type kDebuggerdJavaBacktrace
+08-25 07:03:46.540   679   679 W AnrConsumer: type=1400 audit(0.0:245): avc:  denied  { read } for  name="transactions" dev="binder" ino=1048587 scontext=u:r:system_server:s0 tcontext=u:object_r:binderfs_logs_transactions:s0 tclass=file permissive=0
+08-25 07:03:46.559   929   932 I ndroid.systemui: Thread[2,tid=932,WaitingInMainSignalCatcherLoop,Thread*=0x78e865968b20,peer=0x2001498,"Signal Catcher"]: reacting to signal 3
+08-25 07:03:46.559   929   932 I ndroid.systemui: 
+08-25 07:03:46.811   306   306 I tombstoned: received crash request for pid 929
+08-25 07:03:46.811   306   306 I tombstoned: found intercept fd 512 for pid 929 and type kDebuggerdJavaBacktrace
+08-25 07:03:46.812   929   932 I ndroid.systemui: Wrote stack traces to tombstoned
+08-25 07:03:46.812   306   306 W tombstoned: skipping tombstone file creation due to intercept
+08-25 07:03:46.831   679 25146 I system_server: libdebuggerd_client: done dumping process 929
+08-25 07:03:46.838   679 25146 I ActivityManager: dumpStackTraces nativepids=null
+08-25 07:03:46.838   679 25146 I ActivityManager: dumpStackTraces extraPids=[]
+08-25 07:03:46.838   679 25146 I ActivityManager: Done dumping
+08-25 07:03:46.839   679 25146 E ActivityManager: ANR in com.example.kpkn (com.example.kpkn/.MainActivity)
+08-25 07:03:46.839   679 25146 E ActivityManager: PID: 25066
+08-25 07:03:46.839   679 25146 E ActivityManager: Reason: Input dispatching timed out (9b7c58c com.example.kpkn/com.example.kpkn.MainActivity is not responding. Waited 5001ms for FocusEvent(hasFocus=true)).
+08-25 07:03:46.839   679 25146 E ActivityManager: Parent: com.example.kpkn/.MainActivity
+08-25 07:03:46.839   679 25146 E ActivityManager: ErrorId: 29b5670e-860c-4178-a0e5-e914e34400a6
+08-25 07:03:46.839   679 25146 E ActivityManager: Frozen: false
+08-25 07:03:46.839   679 25146 E ActivityManager: Load: 2.37 / 1.42 / 1.37
+08-25 07:03:46.839   679 25146 E ActivityManager: ----- Output from /proc/pressure/memory -----
+08-25 07:03:46.839   679 25146 E ActivityManager: some avg10=0.48 avg60=0.14 avg300=0.09 total=21233138
+08-25 07:03:46.839   679 25146 E ActivityManager: full avg10=0.36 avg60=0.11 avg300=0.06 total=11489744
+08-25 07:03:46.839   679 25146 E ActivityManager: ----- End output from /proc/pressure/memory -----
+08-25 07:03:46.839   679 25146 E ActivityManager: ----- Output from /proc/pressure/cpu -----
+08-25 07:03:46.839   679 25146 E ActivityManager: some avg10=9.55 avg60=6.41 avg300=3.73 total=616785035
+08-25 07:03:46.839   679 25146 E ActivityManager: full avg10=0.00 avg60=0.00 avg300=0.00 total=0
+08-25 07:03:46.839   679 25146 E ActivityManager: ----- End output from /proc/pressure/cpu -----
+08-25 07:03:46.839   679 25146 E ActivityManager: ----- Output from /proc/pressure/io -----
+08-25 07:03:46.839   679 25146 E ActivityManager: some avg10=0.00 avg60=0.00 avg300=0.00 total=22850631
+08-25 07:03:46.839   679 25146 E ActivityManager: full avg10=0.00 avg60=0.00 avg300=0.00 total=7778832
+08-25 07:03:46.839   679 25146 E ActivityManager: ----- End output from /proc/pressure/io -----
+08-25 07:03:46.839   679 25146 E ActivityManager: 
+08-25 07:03:46.839   679 25146 E ActivityManager: CPU usage from 71704ms to -2ms ago (2026-08-25 07:02:33.023 to 2026-08-25 07:03:44.729):
+08-25 07:03:46.839   679 25146 E ActivityManager:   3.7% 679/system_server: 0.7% user + 2.9% kernel / faults: 16307 minor
+08-25 07:03:46.839   679 25146 E ActivityManager:   2.6% 507/android.hardware.graphics.composer3-service.ranchu: 0% user + 2.6% kernel / faults: 1 minor
+08-25 07:03:46.839   679 25146 E ActivityManager:   1.4% 2442/com.google.android.tts: 0.6% user + 0.7% kernel / faults: 12555 minor 8173 major
+08-25 07:03:46.839   679 25146 E ActivityManager:   1.3% 500/android.hardware.sensors-service.multihal: 0% user + 1.3% kernel
+08-25 07:03:46.839   679 25146 E ActivityManager:   0.9% 554/surfaceflinger: 0% user + 0.9% kernel / faults: 45 minor
+08-25 07:03:46.839   679 25146 E ActivityManager:   0.7% 562/adbd: 0% user + 0.7% kernel / faults: 12665 minor
+08-25 07:03:46.839   679 25146 E ActivityManager:   0.7% 24280/kworker/1:3-virtio_vsock: 0% user + 0.7% kernel
+08-25 07:03:46.839   679 25146 E ActivityManager:   0.4% 929/com.android.systemui: 0.1% user + 0.3% kernel / faults: 1476 minor
+08-25 07:03:46.839   679 25146 E ActivityManager:   0.3% 24641/kworker/1:0-virtio_vsock: 0% user + 0.3% kernel
+08-25 07:03:46.839   679 25146 E ActivityManager:   0.3% 2344/artd: 0% user + 0.2% kernel / faults: 13293 minor
+08-25 07:03:46.839   679 25146 E ActivityManager: 24% TOTAL: 16% user + 8% kernel + 0% iowait + 0.1% softirq
+08-25 07:03:46.839   679 25146 E ActivityManager: CPU usage from 30ms to 441ms later (2026-08-25 07:03:44.758 to 2026-08-25 07:03:45.169):
+08-25 07:03:46.839   679 25146 E ActivityManager:   238% 25066/com.example.kpkn: 160% user + 77% kernel / faults: 3303 minor
+08-25 07:03:46.839   679 25146 E ActivityManager:     82% 25098/DefaultDispatch: 64% user + 17% kernel
+08-25 07:03:46.839   679 25146 E ActivityManager:     77% 25066/om.example.kpkn: 56% user + 21% kernel
+08-25 07:03:46.839   679 25146 E ActivityManager:     38% 25073/ReferenceQueueD: 12% user + 25% kernel
+08-25 07:03:46.839   679 25146 E ActivityManager:     30% 25072/HeapTaskDaemon: 21% user + 8.6% kernel
+08-25 07:03:46.839   679 25146 E ActivityManager:     4.3% 25088/kpkn-jsonl-writ: 0% user + 4.3% kernel
+08-25 07:03:46.839   679 25146 E ActivityManager:   63% 679/system_server: 10% user + 52% kernel / faults: 1482 minor 8 major
+08-25 07:03:46.839   679 25146 E ActivityManager:     38% 25147/AnrAuxiliaryTas: 0% user + 38% kernel
+08-25 07:03:46.839   679 25146 E ActivityManager:     13% 688/Signal Catcher: 5.4% user + 8.2% kernel
+08-25 07:03:46.839   679 25146 E ActivityManager:     2.7% 692/HeapTaskDaemon: 2.7% user + 0% kernel
+08-25 07:03:46.839   679 25146 E ActivityManager:     2.7% 708/PowerStatsServi: 0% user + 2.7% kernel
+08-25 07:03:46.839   679 25146 E ActivityManager:     2.7% 25145/AnrMainProcessD: 0% user + 2.7% kernel
+08-25 07:03:46.839   679 25146 E ActivityManager:   2.6% 500/android.hardware.sensors-service.multihal: 0% user + 2.6% kernel
+08-25 07:03:46.839   679 25146 E ActivityManager:     2.6% 510/android.hardwar: 0% user + 2.6% kernel
+08-25 07:03:46.839   679 25146 E ActivityManager:   2.6% 507/android.hardware.graphics.composer3-service.ranchu: 0% user + 2.6% kernel
+08-25 07:03:46.839   679 25146 E ActivityManager:     2.6% 592/_thread: 0% user + 2.6% kernel
+08-25 07:03:46.839   679 25146 E ActivityManager:   2.8% 996/com.android.networkstack.process: 0% user + 2.8% kernel / faults: 15 minor
+08-25 07:03:46.839   679 25146 E ActivityManager: 48% TOTAL: 25% user + 23% kernel
+08-25 07:03:46.858   679 25146 D ActivityManager: Completed ANR of com.example.kpkn in 2131ms, latency 8ms
+08-25 07:03:46.861   679 25151 I DropBoxManagerService: add tag=data_app_anr isTagEnabled=true flags=0x6
+08-25 07:03:46.907   679   702 D CoreBackPreview: Window{355ba86 u0 Application Not Responding: com.example.kpkn}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.WindowOnBackInvokedDispatcher$OnBackInvokedCallbackWrapper@17f003f, mPriority=-1, mIsAnimationCallback=false, mOverrideBehavior=0}
+08-25 07:03:46.975 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6884KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.611ms,2.997ms total 211.603ms
+08-25 07:03:47.681 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5844KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.881ms,4.121ms total 358.395ms
+08-25 07:03:48.084 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5696KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.458ms,2.608ms total 166.897ms
+08-25 07:03:48.360   914   914 I wpa_supplicant: wlan0: CTRL-EVENT-BEACON-LOSS 
+08-25 07:03:48.452 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5676KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 3.143ms,2.517ms total 164.142ms
+08-25 07:03:48.841 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5700KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.338ms,2.986ms total 175.718ms
+08-25 07:03:49.171   679   704 W ActivityTaskManager: Launch timeout has expired, giving up wake lock!
+08-25 07:03:49.204   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.205   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.205   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.205   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.205   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.205   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.205   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.206   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.206   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.206   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.206   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.208   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.208   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.208   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.209   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.210   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.210   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.210   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.210   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.210   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.211   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.211   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.211   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.211   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.211   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.213   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.213   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.213   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.213   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.213   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.214   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.214   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.214   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.214   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.214   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.214   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.215   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.215   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.215   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.215   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.215   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.215   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.218   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.218   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.219   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.219   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.219   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.219   679   704 W IPCThreadState: Sending oneway calls to frozen process.
+08-25 07:03:49.220   679   704 W ProcessStats: Tracking association SourceState{9c67e26 system/1000 BFgs #10147} whose proc state 4 is better than process ProcessState{ea822bc com.google.android.tts/10152 pkg=com.google.android.tts} proc state 14 (6 skipped)
+08-25 07:03:49.233 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5740KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.284ms,2.817ms total 167.454ms
+08-25 07:03:49.597 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5528KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.158ms,3.503ms total 163.177ms
+08-25 07:03:49.977 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5184KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.178ms,3.540ms total 150.373ms
+08-25 07:03:50.347 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5612KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.393ms,2.585ms total 166.684ms
+08-25 07:03:50.657   679   834 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET, states=14
+08-25 07:03:50.658   679   834 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET6, states=14
+08-25 07:03:50.658   679   834 D InetDiagMessage: Destroyed live tcp sockets for uids={10198} in 1ms
+08-25 07:03:50.659   679   834 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET, states=14
+08-25 07:03:50.659   679   834 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET6, states=14
+08-25 07:03:50.659   679   834 D InetDiagMessage: Destroyed live tcp sockets for uids={20198} in 1ms
+08-25 07:03:50.723 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5780KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.313ms,2.818ms total 177.739ms
+08-25 07:03:50.733   679   704 W ActivityTaskManager: Activity stop timeout for ActivityRecord{253726484 u0 com.example.kpkn/.MainActivity t771}
+08-25 07:03:50.734   679   882 D BackgroundInstallControlService: Package event received: 0
+08-25 07:03:51.087 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5292KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.765ms,2.128ms total 171.841ms
+08-25 07:03:51.500 25162 25162 W screencap: Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: SurfaceFlingerAIDL
+08-25 07:03:51.500 25162 25162 W BpBinder: Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
+08-25 07:03:51.501 25162 25162 W ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+08-25 07:03:51.507 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5420KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.867ms,3.203ms total 195.590ms
+08-25 07:03:51.519   554   578 E HwcComposer: getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+08-25 07:03:51.519   554   578 E HWComposer: getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+08-25 07:03:51.897 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5756KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.407ms,4.421ms total 175.114ms
+08-25 07:03:51.926   679  1021 I ActivityManager: Broadcasting: Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///... flg=0x400000 }
+08-25 07:03:51.926   679  1021 I ActivityManager: Enqueued broadcast Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///... flg=0x400000 }: 0
+08-25 07:03:51.928   679  8066 W JobInfo : Job 'com.google.android.providers.media.module/com.android.providers.media.MediaService#-300' has a deadline with no functional constraints. The deadline won't improve job execution latency. Consider removing the deadline.
+08-25 07:03:51.936  1448  1874 I MediaProvider: Begin Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///... flg=0x1400010 cmp=com.google.android.providers.media.module/com.android.providers.media.MediaService }
+08-25 07:03:51.937   679   701 I ActivityManager: Broadcast completed: result=0
+08-25 07:03:51.943  1448  1874 D ExifInterface: Invalid image: ExifInterface got an unsupported or corrupted image file
+08-25 07:03:51.943  1448  1874 D ExifInterface: java.io.IOException: Encountered corrupt PNG file.
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at android.media.ExifInterface.getPngAttributes(ExifInterface.java:3444)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at android.media.ExifInterface.loadAttributes(ExifInterface.java:2008)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at android.media.ExifInterface.<init>(ExifInterface.java:1640)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at android.media.ExifInterface.<init>(ExifInterface.java:1591)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at com.android.providers.media.scan.ModernMediaScanner.scanItemImage(ModernMediaScanner.java:1713)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at com.android.providers.media.scan.ModernMediaScanner.scanItem(ModernMediaScanner.java:1306)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at com.android.providers.media.scan.ModernMediaScanner.-$$Nest$mscanItem(ModernMediaScanner.java:0)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at com.android.providers.media.scan.ModernMediaScanner$Scan.visitFile(ModernMediaScanner.java:1020)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at com.android.providers.media.scan.ModernMediaScanner$Scan.visitFile(ModernMediaScanner.java:501)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at java.nio.file.Files.walkFileTree(Files.java:2670)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at java.nio.file.Files.walkFileTree(Files.java:2742)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at com.android.providers.media.scan.ModernMediaScanner$Scan.walkFileTree(ModernMediaScanner.java:624)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at com.android.providers.media.scan.ModernMediaScanner$Scan.runInternal(ModernMediaScanner.java:583)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at com.android.providers.media.scan.ModernMediaScanner$Scan.run(ModernMediaScanner.java:572)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at com.android.providers.media.scan.ModernMediaScanner.scanFile(ModernMediaScanner.java:420)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at com.android.providers.media.MediaProvider.scanFile(MediaProvider.java:2396)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at com.android.providers.media.MediaService.onScanFile(MediaService.java:237)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at com.android.providers.media.MediaService.onHandleWork(MediaService.java:85)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at androidx.core.app.JobIntentService$CommandProcessor.doInBackground(JobIntentService.java:397)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at androidx.core.app.JobIntentService$CommandProcessor.doInBackground(JobIntentService.java:388)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at android.os.AsyncTask$3.call(AsyncTask.java:394)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at java.util.concurrent.FutureTask.run(FutureTask.java:317)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1156)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:651)
+08-25 07:03:51.943  1448  1874 D ExifInterface: 	at java.lang.Thread.run(Thread.java:1119)
+08-25 07:03:51.955  1448  1874 I MediaProvider: End Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///... flg=0x1400010 cmp=com.google.android.providers.media.module/com.android.providers.media.MediaService }
+08-25 07:03:52.333 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5292KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.416ms,2.547ms total 186.139ms
+08-25 07:03:52.758 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5248KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.727ms,3.264ms total 187.736ms
+08-25 07:03:53.177 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5288KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.378ms,3.206ms total 202.646ms
+08-25 07:03:53.445  1062  1260 D SatelliteController: iisInCarrierRoamingNbIotNtn: satellite is disabled
+08-25 07:03:53.759 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5632KB AllocSpace bytes, 0(0B) LOS objects, 29% free, 56MB/80MB, paused 1.346ms,3.562ms total 221.247ms
+08-25 07:03:54.303 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 8188KB AllocSpace bytes, 0(0B) LOS objects, 29% free, 57MB/81MB, paused 2.935ms,3.008ms total 213.005ms
+08-25 07:03:54.770 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 8176KB AllocSpace bytes, 0(0B) LOS objects, 29% free, 58MB/82MB, paused 1.739ms,3.348ms total 208.797ms
+08-25 07:03:55.248 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 7868KB AllocSpace bytes, 0(0B) LOS objects, 28% free, 59MB/83MB, paused 1.899ms,3.704ms total 215.191ms
+08-25 07:03:55.551 25171 25171 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: package
+08-25 07:03:55.693  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/base.odex) is kOatUpToDate with filter 'speed-profile' executable 'false'
+08-25 07:03:55.695  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_AdsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:03:55.698  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_CronetDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:03:55.700  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_DynamiteLoader_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:03:55.705   679   778 D ActivityManager: freezing 1570 com.google.android.gms
+08-25 07:03:55.706  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_DynamiteModulesA_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:03:55.708  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_DynamiteModulesC_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:03:55.710  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_GoogleCertificates_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:03:55.712  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_MapsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:03:55.723   679   778 D ActivityManager: freezing 3688 com.google.android.adservices.api
+08-25 07:03:55.723  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_MeasurementDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:03:55.726  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000011/dl-PlayCloudSearch.optional_263032100000.apk has no usable artifacts
+08-25 07:03:55.727  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000001/CronetDynamite.apk has no usable artifacts
+08-25 07:03:55.727  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000002/DynamiteLoader.apk has no usable artifacts
+08-25 07:03:55.729  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000018/dl-IdentityCredentialsPlatform.optional_263032100800.apk has no usable artifacts
+08-25 07:03:55.729  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000005/GoogleCertificates.apk has no usable artifacts
+08-25 07:03:55.730  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000019/dl-TfliteDynamiteDynamite.integ_262730502100800.apk has no usable artifacts
+08-25 07:03:55.732  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000010/dl-VisionOcr.optional_263032100000.apk has no usable artifacts
+08-25 07:03:55.736  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000b/dl-TfliteDynamiteDynamite.integ_260580502100800.apk has no usable artifacts
+08-25 07:03:55.738  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000013/dl-MlkitOcrCommon.optional_263032100800.apk has no usable artifacts
+08-25 07:03:55.739  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000008/dl-Appsearch.optional_250834100800.apk has no usable artifacts
+08-25 07:03:55.741  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000014/dl-MlkitBarcodeUi.optional_263032100800.apk has no usable artifacts
+08-25 07:03:55.743  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000c/dl-MlkitBarcodeUi.optional_250834100800.apk has no usable artifacts
+08-25 07:03:55.745  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000012/dl-Appsearch.optional_263032100800.apk has no usable artifacts
+08-25 07:03:55.746  2344  2344 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/D76594F451C00E79F4C61E3B54BC3D01968BC47C/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+08-25 07:03:55.747  2344  2344 W artd    : Could not get dex checksums for location /data/app/~~OebE3h3aj7bRyFr6lOGvKw==/com.android.vending-A6r2KrtDQrcy5gixqfcP6A==/base.apk, fd=-1
+08-25 07:03:55.749  2344  2344 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/90356F09B5269D8AF0E8BAEAA661BE4AFD715065/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+08-25 07:03:55.805   679   834 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET, states=14
+08-25 07:03:55.806   679   834 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET6, states=14
+08-25 07:03:55.806   679   834 D InetDiagMessage: Destroyed live tcp sockets for uids={10198} in 1ms
+08-25 07:03:55.851 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 8232KB AllocSpace bytes, 0(0B) LOS objects, 28% free, 60MB/84MB, paused 1.777ms,12.983ms total 350.354ms
+08-25 07:03:56.286   914   914 I wpa_supplicant: wlan0: CTRL-EVENT-BEACON-LOSS 
+08-25 07:03:56.375 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 8104KB AllocSpace bytes, 0(0B) LOS objects, 28% free, 60MB/84MB, paused 2.045ms,3.639ms total 241.239ms
+08-25 07:03:56.852 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 7944KB AllocSpace bytes, 0(0B) LOS objects, 27% free, 62MB/86MB, paused 2.079ms,4.412ms total 235.181ms
+08-25 07:03:57.384 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 8312KB AllocSpace bytes, 0(0B) LOS objects, 27% free, 62MB/86MB, paused 1.940ms,3.015ms total 221.458ms
+08-25 07:03:57.852 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 9076KB AllocSpace bytes, 0(0B) LOS objects, 27% free, 64MB/88MB, paused 1.548ms,3.100ms total 225.045ms
+08-25 07:03:58.373 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 9224KB AllocSpace bytes, 0(0B) LOS objects, 26% free, 65MB/89MB, paused 2.982ms,2.818ms total 221.438ms
+08-25 07:03:58.543   679  8066 D ActivityManager: sync unfroze 1570 com.google.android.gms for 6
+08-25 07:03:58.544   679  8066 D ActivityManager: sync unfroze 3688 com.google.android.adservices.api for 6
+08-25 07:03:58.575  1241 24866 I NetworkScheduler.Stats: (REDACTED) Task %s/%s started execution. cause:%s exec_start_elapsed_seconds: %s
+08-25 07:03:58.591  1241 24865 I NetworkScheduler.Stats: (REDACTED) Task %s/%s finished executing. cause:%s result: %s elapsed_millis: %s uptime_millis: %s exec_start_elapsed_seconds: %s
+08-25 07:03:58.865 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 8888KB AllocSpace bytes, 0(0B) LOS objects, 26% free, 66MB/90MB, paused 2.053ms,3.491ms total 223.112ms
+08-25 07:03:59.394 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 10MB AllocSpace bytes, 0(0B) LOS objects, 26% free, 66MB/90MB, paused 2.180ms,3.271ms total 234.939ms
+08-25 07:03:59.879 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 8860KB AllocSpace bytes, 0(0B) LOS objects, 25% free, 68MB/92MB, paused 1.851ms,2.562ms total 235.121ms
+08-25 07:04:00.474 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 10MB AllocSpace bytes, 0(0B) LOS objects, 25% free, 69MB/93MB, paused 2.564ms,4.148ms total 245.366ms
+08-25 07:04:00.981 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 9188KB AllocSpace bytes, 0(0B) LOS objects, 25% free, 70MB/94MB, paused 2.318ms,2.954ms total 256.053ms
+08-25 07:04:01.491 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 10MB AllocSpace bytes, 0(0B) LOS objects, 25% free, 71MB/95MB, paused 2.400ms,2.815ms total 261.281ms
+08-25 07:04:01.980 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 9108KB AllocSpace bytes, 0(0B) LOS objects, 24% free, 72MB/96MB, paused 3.050ms,2.459ms total 250.881ms
+08-25 07:04:02.518 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 9812KB AllocSpace bytes, 0(0B) LOS objects, 24% free, 73MB/97MB, paused 1.916ms,3.845ms total 269.396ms
+08-25 07:04:03.041 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 10MB AllocSpace bytes, 0(0B) LOS objects, 24% free, 75MB/99MB, paused 2.116ms,2.677ms total 272.562ms
+08-25 07:04:03.459  1062  1260 D SatelliteController: iisInCarrierRoamingNbIotNtn: satellite is disabled
+08-25 07:04:03.591 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 10MB AllocSpace bytes, 0(0B) LOS objects, 24% free, 75MB/99MB, paused 2.406ms,2.743ms total 277.828ms
+08-25 07:04:03.633   679   834 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET, states=14
+08-25 07:04:03.634   679   834 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET6, states=14
+08-25 07:04:03.634   679   834 D InetDiagMessage: Destroyed live tcp sockets for uids={10198} in 2ms
+08-25 07:04:03.635   679   834 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET, states=14
+08-25 07:04:03.635   679   834 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET6, states=14
+08-25 07:04:03.635   679   834 D InetDiagMessage: Destroyed live tcp sockets for uids={20198} in 1ms
+08-25 07:04:04.143 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 10MB AllocSpace bytes, 0(0B) LOS objects, 23% free, 77MB/101MB, paused 2.301ms,3.115ms total 295.748ms
+08-25 07:04:04.223   914   914 I wpa_supplicant: wlan0: CTRL-EVENT-BEACON-LOSS 
+08-25 07:04:04.681 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 10MB AllocSpace bytes, 0(0B) LOS objects, 23% free, 78MB/102MB, paused 2.769ms,2.472ms total 286.366ms
+08-25 07:04:05.196 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 10124KB AllocSpace bytes, 0(0B) LOS objects, 23% free, 79MB/103MB, paused 2.083ms,2.764ms total 274.467ms
+08-25 07:04:05.516 25175 25175 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: package
+08-25 07:04:05.789  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/base.odex) is kOatUpToDate with filter 'speed-profile' executable 'false'
+08-25 07:04:05.791  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_AdsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:05.802  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_CronetDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:05.803  2344  3808 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_DynamiteLoader_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:05.805  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_DynamiteModulesA_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:05.806  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_DynamiteModulesC_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:05.808  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_GoogleCertificates_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:05.809  2344  4362 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_MapsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:05.811  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_MeasurementDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:05.818  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000011/dl-PlayCloudSearch.optional_263032100000.apk has no usable artifacts
+08-25 07:04:05.819  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000001/CronetDynamite.apk has no usable artifacts
+08-25 07:04:05.820  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000002/DynamiteLoader.apk has no usable artifacts
+08-25 07:04:05.821  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000018/dl-IdentityCredentialsPlatform.optional_263032100800.apk has no usable artifacts
+08-25 07:04:05.822  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000005/GoogleCertificates.apk has no usable artifacts
+08-25 07:04:05.823  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000019/dl-TfliteDynamiteDynamite.integ_262730502100800.apk has no usable artifacts
+08-25 07:04:05.825  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000010/dl-VisionOcr.optional_263032100000.apk has no usable artifacts
+08-25 07:04:05.826  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000b/dl-TfliteDynamiteDynamite.integ_260580502100800.apk has no usable artifacts
+08-25 07:04:05.827  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000013/dl-MlkitOcrCommon.optional_263032100800.apk has no usable artifacts
+08-25 07:04:05.832  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000008/dl-Appsearch.optional_250834100800.apk has no usable artifacts
+08-25 07:04:05.833  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000014/dl-MlkitBarcodeUi.optional_263032100800.apk has no usable artifacts
+08-25 07:04:05.841  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000c/dl-MlkitBarcodeUi.optional_250834100800.apk has no usable artifacts
+08-25 07:04:05.843  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000012/dl-Appsearch.optional_263032100800.apk has no usable artifacts
+08-25 07:04:05.845  2344  2348 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/D76594F451C00E79F4C61E3B54BC3D01968BC47C/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+08-25 07:04:05.847  2344  2348 W artd    : Could not get dex checksums for location /data/app/~~OebE3h3aj7bRyFr6lOGvKw==/com.android.vending-A6r2KrtDQrcy5gixqfcP6A==/base.apk, fd=-1
+08-25 07:04:05.850  2344  2348 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/90356F09B5269D8AF0E8BAEAA661BE4AFD715065/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+08-25 07:04:05.936 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 10MB AllocSpace bytes, 0(0B) LOS objects, 23% free, 79MB/103MB, paused 4.168ms,3.429ms total 486.300ms
+08-25 07:04:06.468 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 10MB AllocSpace bytes, 0(0B) LOS objects, 22% free, 80MB/104MB, paused 4.505ms,2.660ms total 291.701ms
+08-25 07:04:07.037 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 10056KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 82MB/106MB, paused 4.099ms,2.709ms total 292.640ms
+08-25 07:04:07.601 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 10MB AllocSpace bytes, 0(0B) LOS objects, 22% free, 84MB/108MB, paused 2.487ms,4.381ms total 309.487ms
+08-25 07:04:07.661 25066 25098 I NutritionRepository: FoodIndex built: 5977 foods indexed
+08-25 07:04:08.214 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 11MB AllocSpace bytes, 0(0B) LOS objects, 23% free, 79MB/103MB, paused 1.168ms,3.007ms total 303.219ms
+08-25 07:04:08.612  1570 25178 I GmscoreIpa: Starting mediastore instant index [CONTEXT service_id=255 ]
+08-25 07:04:08.787 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5424KB AllocSpace bytes, 0(0B) LOS objects, 23% free, 79MB/103MB, paused 1.548ms,2.576ms total 291.027ms
+08-25 07:04:09.350 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5456KB AllocSpace bytes, 0(0B) LOS objects, 23% free, 79MB/103MB, paused 1.359ms,3.015ms total 278.257ms
+08-25 07:04:09.777 25066 25066 D HazeSource: onDetach. Removing HazeArea: HazeArea(positionOnScreen=Offset(0.0, 0.0), size=Size(1080.0, 2400.0), zIndex=0.0, contentLayer=androidx.compose.ui.graphics.layer.GraphicsLayer@1fe41a0, contentDrawing=false)
+08-25 07:04:09.778 25066 25066 D HazeSource: Releasing content layer: androidx.compose.ui.graphics.layer.GraphicsLayer@1fe41a0
+08-25 07:04:09.790 25066 25066 D HazeSource: onAttach. Adding HazeArea: HazeArea(positionOnScreen=Offset.Unspecified, size=Size.Unspecified, zIndex=0.0, contentLayer=null, contentDrawing=false)
+08-25 07:04:09.794 25066 25083 I om.example.kpkn: Waiting for a blocking GC ProfileSaver
+08-25 07:04:09.806 25066 25066 W WindowOnBackDispatcher: OnBackInvokedCallback is not enabled for the application.
+08-25 07:04:09.806 25066 25066 W WindowOnBackDispatcher: Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+08-25 07:04:09.933 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4876KB AllocSpace bytes, 0(0B) LOS objects, 23% free, 78MB/102MB, paused 1.334ms,3.108ms total 280.345ms
+08-25 07:04:09.946 25066 25083 I om.example.kpkn: WaitForGcToComplete blocked ProfileSaver on NativeAlloc for 151.648ms
+08-25 07:04:10.331 25066 25066 D HazeSource: onAttach. Adding HazeArea: HazeArea(positionOnScreen=Offset.Unspecified, size=Size.Unspecified, zIndex=0.0, contentLayer=null, contentDrawing=false)
+08-25 07:04:10.745 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4200KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 80MB/104MB, paused 1.718ms,2.743ms total 289.411ms
+08-25 07:04:11.305 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5436KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 80MB/104MB, paused 1.278ms,2.854ms total 295.127ms
+08-25 07:04:11.885 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5404KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 80MB/104MB, paused 1.504ms,2.715ms total 283.162ms
+08-25 07:04:12.415   914   914 I wpa_supplicant: wlan0: CTRL-EVENT-BEACON-LOSS 
+08-25 07:04:12.488 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5504KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 80MB/104MB, paused 1.983ms,3.146ms total 335.546ms
+08-25 07:04:13.100 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5468KB AllocSpace bytes, 0(0B) LOS objects, 23% free, 80MB/104MB, paused 1.733ms,2.828ms total 293.296ms
+08-25 07:04:13.464  1062  1260 D SatelliteController: iisInCarrierRoamingNbIotNtn: satellite is disabled
+08-25 07:04:13.699 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5408KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 80MB/104MB, paused 1.352ms,3.171ms total 318.882ms
+08-25 07:04:14.257 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5340KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 80MB/104MB, paused 1.484ms,3.194ms total 282.839ms
+08-25 07:04:14.817 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5336KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 80MB/104MB, paused 1.287ms,3.005ms total 292.020ms
+08-25 07:04:15.404 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5356KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 80MB/104MB, paused 1.234ms,3.424ms total 306.911ms
+08-25 07:04:15.523 25180 25180 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: package
+08-25 07:04:15.800  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/base.odex) is kOatUpToDate with filter 'speed-profile' executable 'false'
+08-25 07:04:15.803  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_AdsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:15.805  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_CronetDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:15.807  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_DynamiteLoader_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:15.810  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_DynamiteModulesA_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:15.813  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_DynamiteModulesC_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:15.814  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_GoogleCertificates_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:15.816  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_MapsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:15.818  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_MeasurementDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:15.820  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000011/dl-PlayCloudSearch.optional_263032100000.apk has no usable artifacts
+08-25 07:04:15.821  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000001/CronetDynamite.apk has no usable artifacts
+08-25 07:04:15.821  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000002/DynamiteLoader.apk has no usable artifacts
+08-25 07:04:15.824  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000018/dl-IdentityCredentialsPlatform.optional_263032100800.apk has no usable artifacts
+08-25 07:04:15.825  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000005/GoogleCertificates.apk has no usable artifacts
+08-25 07:04:15.827  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000019/dl-TfliteDynamiteDynamite.integ_262730502100800.apk has no usable artifacts
+08-25 07:04:15.828  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000010/dl-VisionOcr.optional_263032100000.apk has no usable artifacts
+08-25 07:04:15.830  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000b/dl-TfliteDynamiteDynamite.integ_260580502100800.apk has no usable artifacts
+08-25 07:04:15.831  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000013/dl-MlkitOcrCommon.optional_263032100800.apk has no usable artifacts
+08-25 07:04:15.833  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000008/dl-Appsearch.optional_250834100800.apk has no usable artifacts
+08-25 07:04:15.834  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000014/dl-MlkitBarcodeUi.optional_263032100800.apk has no usable artifacts
+08-25 07:04:15.836  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000c/dl-MlkitBarcodeUi.optional_250834100800.apk has no usable artifacts
+08-25 07:04:15.838  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000012/dl-Appsearch.optional_263032100800.apk has no usable artifacts
+08-25 07:04:15.842  2344  2348 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/D76594F451C00E79F4C61E3B54BC3D01968BC47C/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+08-25 07:04:15.843  2344  2348 W artd    : Could not get dex checksums for location /data/app/~~OebE3h3aj7bRyFr6lOGvKw==/com.android.vending-A6r2KrtDQrcy5gixqfcP6A==/base.apk, fd=-1
+08-25 07:04:15.845  2344  2348 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/90356F09B5269D8AF0E8BAEAA661BE4AFD715065/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+08-25 07:04:16.266 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5340KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 80MB/104MB, paused 1.550ms,3.231ms total 331.729ms
+08-25 07:04:16.933 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5476KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 80MB/104MB, paused 1.351ms,2.964ms total 323.274ms
+08-25 07:04:17.506 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5364KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 80MB/104MB, paused 1.249ms,4.209ms total 286.943ms
+08-25 07:04:18.057 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5296KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 80MB/104MB, paused 1.657ms,2.861ms total 285.734ms
+08-25 07:04:18.615 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5272KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 80MB/104MB, paused 1.262ms,2.826ms total 282.506ms
+08-25 07:04:19.528 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5848KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.778ms,2.737ms total 292.216ms
+08-25 07:04:20.081 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5396KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.219ms,2.671ms total 291.086ms
+08-25 07:04:20.353   914   914 I wpa_supplicant: wlan0: CTRL-EVENT-BEACON-LOSS 
+08-25 07:04:20.656 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5348KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.402ms,2.525ms total 281.314ms
+08-25 07:04:20.683   679   834 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET, states=14
+08-25 07:04:20.684   679   834 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET6, states=14
+08-25 07:04:20.684   679   834 D InetDiagMessage: Destroyed live tcp sockets for uids={10198} in 2ms
+08-25 07:04:20.685   679   834 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET, states=14
+08-25 07:04:20.685   679   834 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET6, states=14
+08-25 07:04:20.685   679   834 D InetDiagMessage: Destroyed live tcp sockets for uids={20198} in 1ms
+08-25 07:04:21.198 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5396KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.168ms,2.597ms total 271.650ms
+08-25 07:04:21.758 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5492KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.611ms,2.999ms total 287.397ms
+08-25 07:04:22.334 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5516KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.692ms,3.326ms total 305.724ms
+08-25 07:04:22.390  1570 24704 I gle.android.gms: Explicit concurrent mark compact GC freed 4227KB AllocSpace bytes, 8(352KB) LOS objects, 25% free, 14MB/19MB, paused 1.599ms,2.099ms total 268.680ms
+08-25 07:04:22.905 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5440KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.397ms,2.466ms total 279.519ms
+08-25 07:04:23.449 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5380KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.391ms,2.715ms total 275.257ms
+08-25 07:04:23.467  1062  1260 D SatelliteController: iisInCarrierRoamingNbIotNtn: satellite is disabled
+08-25 07:04:24.014 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5424KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.398ms,2.761ms total 285.046ms
+08-25 07:04:24.560 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5376KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.210ms,2.766ms total 275.502ms
+08-25 07:04:25.118 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5464KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.530ms,2.628ms total 282.125ms
+08-25 07:04:25.512 25183 25183 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: package
+08-25 07:04:25.722   679   778 D ActivityManager: freezing 1570 com.google.android.gms
+08-25 07:04:25.725   679   778 D ActivityManager: freezing 3688 com.google.android.adservices.api
+08-25 07:04:25.818  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/base.odex) is kOatUpToDate with filter 'speed-profile' executable 'false'
+08-25 07:04:25.820  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_AdsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:25.827  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_CronetDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:25.829  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_DynamiteLoader_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:25.831  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_DynamiteModulesA_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:25.843  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_DynamiteModulesC_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:25.845  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_GoogleCertificates_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:25.848  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_MapsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:25.850  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_MeasurementDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:25.851  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000011/dl-PlayCloudSearch.optional_263032100000.apk has no usable artifacts
+08-25 07:04:25.852  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000001/CronetDynamite.apk has no usable artifacts
+08-25 07:04:25.852  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000002/DynamiteLoader.apk has no usable artifacts
+08-25 07:04:25.854  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000018/dl-IdentityCredentialsPlatform.optional_263032100800.apk has no usable artifacts
+08-25 07:04:25.854  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000005/GoogleCertificates.apk has no usable artifacts
+08-25 07:04:25.857  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000019/dl-TfliteDynamiteDynamite.integ_262730502100800.apk has no usable artifacts
+08-25 07:04:25.859  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000010/dl-VisionOcr.optional_263032100000.apk has no usable artifacts
+08-25 07:04:25.874  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000b/dl-TfliteDynamiteDynamite.integ_260580502100800.apk has no usable artifacts
+08-25 07:04:25.876  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000013/dl-MlkitOcrCommon.optional_263032100800.apk has no usable artifacts
+08-25 07:04:25.878  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000008/dl-Appsearch.optional_250834100800.apk has no usable artifacts
+08-25 07:04:25.879  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000014/dl-MlkitBarcodeUi.optional_263032100800.apk has no usable artifacts
+08-25 07:04:25.881  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000c/dl-MlkitBarcodeUi.optional_250834100800.apk has no usable artifacts
+08-25 07:04:25.883  2344  2348 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000012/dl-Appsearch.optional_263032100800.apk has no usable artifacts
+08-25 07:04:25.885  2344  2348 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/D76594F451C00E79F4C61E3B54BC3D01968BC47C/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+08-25 07:04:25.885  2344  2348 W artd    : Could not get dex checksums for location /data/app/~~OebE3h3aj7bRyFr6lOGvKw==/com.android.vending-A6r2KrtDQrcy5gixqfcP6A==/base.apk, fd=-1
+08-25 07:04:25.888  2344  2348 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/90356F09B5269D8AF0E8BAEAA661BE4AFD715065/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+08-25 07:04:25.948 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5664KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 18.476ms,5.674ms total 570.878ms
+08-25 07:04:26.009   679   692 I system_server: Background concurrent mark compact GC freed 23MB AllocSpace bytes, 16(2268KB) LOS objects, 42% free, 32MB/56MB, paused 2.592ms,3.970ms total 204.443ms
+08-25 07:04:26.058   679   834 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET, states=14
+08-25 07:04:26.058   679   834 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET6, states=14
+08-25 07:04:26.058   679   834 D InetDiagMessage: Destroyed live tcp sockets for uids={10198} in 1ms
+08-25 07:04:26.522 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5708KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.533ms,3.597ms total 275.429ms
+08-25 07:04:27.083 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5528KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.184ms,2.680ms total 291.199ms
+08-25 07:04:27.647 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5452KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.725ms,2.836ms total 288.885ms
+08-25 07:04:28.201 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5336KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.177ms,2.661ms total 288.021ms
+08-25 07:04:28.288   914   914 I wpa_supplicant: wlan0: CTRL-EVENT-BEACON-LOSS 
+08-25 07:04:28.750 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5348KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.255ms,3.038ms total 281.228ms
+08-25 07:04:29.311 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5340KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.427ms,2.494ms total 292.987ms
+08-25 07:04:29.867 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5384KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.195ms,2.739ms total 286.248ms
+08-25 07:04:30.428 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5420KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.414ms,3.429ms total 291.350ms
+08-25 07:04:30.994 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5380KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.273ms,3.676ms total 286.625ms
+08-25 07:04:31.541 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5392KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.609ms,3.046ms total 281.271ms
+08-25 07:04:32.094 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5440KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.714ms,2.509ms total 284.010ms
+08-25 07:04:32.643 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5360KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.206ms,2.606ms total 280.076ms
+08-25 07:04:32.861   679   769 D ActivityManager: sync unfroze 1741 com.google.android.googlequicksearchbox:search for 6
+08-25 07:04:32.867  1741  1910 I alhi    : NGA enabled in interactor.
+08-25 07:04:32.869  1741  1910 I alhi    : NGA enabled in interactor.
+08-25 07:04:32.884  1741  1741 I avrd    : (REDACTED) Starting %s background task %s.
+08-25 07:04:32.887  1741  1741 I avrd    : (REDACTED) Starting %s background task %s.
+08-25 07:04:32.888  1741  1741 I avrd    : (REDACTED) Starting %s background task %s.
+08-25 07:04:32.888  1741  1741 I avrd    : (REDACTED) Starting %s background task %s.
+08-25 07:04:32.919  1741  2043 W achh    : Abort, client detached.
+08-25 07:04:32.919  1741  2043 W achh    : Abort, client detached.
+08-25 07:04:32.919  1741  2043 W achh    : Abort, client detached.
+08-25 07:04:32.931  1741  2043 W achh    : Abort, client detached.
+08-25 07:04:32.931  1741  2043 W achh    : Abort, client detached.
+08-25 07:04:32.934   679  8066 W ProcessStats: Tracking association SourceState{f658c8d system/1000 ImpBg #10168} whose proc state 6 is better than process ProcessState{7930cac com.google.android.googlequicksearchbox:search/10149 pkg=com.google.android.googlequicksearchbox} proc state 15 (2 skipped)
+08-25 07:04:32.941  1741 24772 I sey     : (REDACTED) Attempting to cache the data for corpora %s.
+08-25 07:04:32.950  1741 25188 I sgv     : (REDACTED) No accounts found for %s, not syncing anything.
+08-25 07:04:32.964  1741  2043 W achh    : Abort, client detached.
+08-25 07:04:33.275 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5592KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.235ms,2.670ms total 293.059ms
+08-25 07:04:33.470  1062  1260 D SatelliteController: iisInCarrierRoamingNbIotNtn: satellite is disabled
+08-25 07:04:33.845 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5604KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.546ms,2.759ms total 296.145ms
+08-25 07:04:34.397 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5616KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 1.497ms,4.017ms total 279.862ms
+08-25 07:04:34.944 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5392KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 81MB/105MB, paused 2.983ms,2.639ms total 281.615ms
+08-25 07:04:35.512 25191 25191 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: package
+08-25 07:04:35.575  1241  1241 D BoundBrokerSvc: onRebind: Intent { act=com.google.android.gms.common.telemetry.service.START dat=chimera-action:/... xflg=0x4 cmp=com.google.android.gms/.chimera.PersistentApiService }
+08-25 07:04:35.617  1241 24865 I AlarmManager: setExactAndAllowWhileIdle [name: GCM_HB_ALARM type: 2 triggerAtMillis: 14614216]
+08-25 07:04:35.619 25066 25072 W om.example.kpkn: Suspending all threads took: 24.204ms
+08-25 07:04:35.667  1241 24865 I AlarmManager: setExactAndAllowWhileIdle [name: GCM_HB_ALARM type: 2 triggerAtMillis: 14614267]
+08-25 07:04:35.782  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/base.odex) is kOatUpToDate with filter 'speed-profile' executable 'false'
+08-25 07:04:35.784  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_AdsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:35.786  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_CronetDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:35.788  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_DynamiteLoader_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:35.796  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_DynamiteModulesA_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:35.798  2344  2348 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_DynamiteModulesC_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:35.799  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_GoogleCertificates_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:35.801  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_MapsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:35.804  2344  2344 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~3bpsBuasRF-zC1BhkFmy3g==/com.google.android.gms-NIJ8hloX3qQzxHHO-8uXrQ==/oat/x86_64/split_MeasurementDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-25 07:04:35.805  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000011/dl-PlayCloudSearch.optional_263032100000.apk has no usable artifacts
+08-25 07:04:35.806  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000001/CronetDynamite.apk has no usable artifacts
+08-25 07:04:35.806  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000002/DynamiteLoader.apk has no usable artifacts
+08-25 07:04:35.807  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000018/dl-IdentityCredentialsPlatform.optional_263032100800.apk has no usable artifacts
+08-25 07:04:35.808  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000005/GoogleCertificates.apk has no usable artifacts
+08-25 07:04:35.810  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000019/dl-TfliteDynamiteDynamite.integ_262730502100800.apk has no usable artifacts
+08-25 07:04:35.812  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000010/dl-VisionOcr.optional_263032100000.apk has no usable artifacts
+08-25 07:04:35.813  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000b/dl-TfliteDynamiteDynamite.integ_260580502100800.apk has no usable artifacts
+08-25 07:04:35.814  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000013/dl-MlkitOcrCommon.optional_263032100800.apk has no usable artifacts
+08-25 07:04:35.815  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000008/dl-Appsearch.optional_250834100800.apk has no usable artifacts
+08-25 07:04:35.816  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000014/dl-MlkitBarcodeUi.optional_263032100800.apk has no usable artifacts
+08-25 07:04:35.818  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000c/dl-MlkitBarcodeUi.optional_250834100800.apk has no usable artifacts
+08-25 07:04:35.819  2344  2344 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000012/dl-Appsearch.optional_263032100800.apk has no usable artifacts
+08-25 07:04:35.820  2344  2344 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/D76594F451C00E79F4C61E3B54BC3D01968BC47C/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+08-25 07:04:35.821  2344  2344 W artd    : Could not get dex checksums for location /data/app/~~OebE3h3aj7bRyFr6lOGvKw==/com.android.vending-A6r2KrtDQrcy5gixqfcP6A==/base.apk, fd=-1
+08-25 07:04:35.823  2344  2344 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/90356F09B5269D8AF0E8BAEAA661BE4AFD715065/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+08-25 07:04:35.881 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 9432KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 82MB/106MB, paused 34.726ms,23.117ms total 533.786ms
+08-25 07:04:36.217   914   914 I wpa_supplicant: wlan0: CTRL-EVENT-BEACON-LOSS 
+08-25 07:04:36.444 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5620KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 82MB/106MB, paused 1.462ms,3.127ms total 298.499ms
+08-25 07:04:36.859  1505  1609 I bbax    : (REDACTED) getHotwordActive::active query: %s, watch: %s, devices connected: %s
+08-25 07:04:37.021 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5624KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 82MB/106MB, paused 1.267ms,2.783ms total 288.855ms
+08-25 07:04:37.576 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5512KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 82MB/106MB, paused 1.546ms,2.696ms total 289.071ms
+08-25 07:04:38.155 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5472KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 82MB/106MB, paused 1.221ms,2.617ms total 287.769ms
+08-25 07:04:38.707 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5508KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 82MB/106MB, paused 1.221ms,2.657ms total 289.053ms
+08-25 07:04:39.362 25066 25072 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5440KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 82MB/106MB, paused 2.548ms,3.784ms total 318.018ms

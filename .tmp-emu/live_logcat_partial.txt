@@ -1,0 +1,122 @@
+
+09-15 17:25:30.666 I/AconfigPackage(24804): com.google.android.settings.simplemode.flags is mapped to system_ext
+09-15 17:25:30.667 I/AconfigPackage(24804): com.android.settings.accessibility is mapped to system_ext
+09-15 17:25:30.667 I/AconfigPackage(24804): com.android.settings.flags is mapped to system_ext
+09-15 17:25:30.667 I/AconfigPackage(24804): com.google.android.settings.flags is mapped to system_ext
+09-15 17:25:30.667 I/AconfigPackage(24804): com.android.settings.media_drm is mapped to system_ext
+09-15 17:25:30.667 I/AconfigPackage(24804): com.android.settings.keyboard is mapped to system_ext
+09-15 17:25:30.667 I/AconfigPackage(24804): com.android.settings.factory_reset is mapped to system_ext
+09-15 17:25:30.673 I/AconfigPackage(24804): com.android.settingslib.flags is mapped to system
+09-15 17:25:30.674 I/AconfigPackage(24804): com.android.settingslib.widget.flags is mapped to system
+09-15 17:25:30.674 I/AconfigPackage(24804): com.android.providers.settings is mapped to system
+09-15 17:25:30.675 I/AconfigPackage(24804): com.android.settingslib.widget.selectorwithwidgetpreference.flags is mapped to system
+09-15 17:25:30.676 I/AconfigPackage(24804): com.android.settingslib.media.flags is mapped to system
+09-15 17:25:30.695 E/FeatureFlagsImplExport(24804): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+09-15 17:25:30.715 I/AiAiEcho( 1508): Settings changed for uri: content://settings/secure/accessibility_enabled
+09-15 17:25:30.722 D/SsBaseTemplateCard( 1133): No text view can be set up
+09-15 17:25:30.722 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:25:30.722 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:25:30.722 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:25:30.722 I/SsBaseTemplateCard( 1133): Secondary card pane is null
+09-15 17:25:30.734 I/AiAiEcho( 1508): Settings changed for uri: content://settings/secure/accessibility_enabled
+09-15 17:25:30.753 D/SsBaseTemplateCard( 1133): No text view can be set up
+09-15 17:25:30.753 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:25:30.753 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:25:30.753 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:25:30.753 I/SsBaseTemplateCard( 1133): Secondary card pane is null
+09-15 17:25:34.111 I/om.example.kpkn( 9566): Method exceeds compiler instruction limit: 19322 in void com.example.kpkn.screens.workout.components.SetExecutionCardKt.SetInputCardV2-YTXd-Ck(com.example.kpkn.data.models.Exercise, int, com.example.kpkn.data.models.ExerciseSet, com.example.kpkn.data.models.CompletedSet, com.example.kpkn.data.models.CompletedSet, com.example.kpkn.screens.workout.WeightSuggestion, java.lang.Double, java.lang.Double, long, boolean, com.example.kpkn.data.models.SetOutcomeV2, com.example.kpkn.data.models.HomologatedPerformanceResult, boolean, boolean, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function1, java.lang.Double, com.example.kpkn.screens.workout.RecordActionHolder, com.example.kpkn.screens.workout.RecordFabHolder, boolean, boolean, com.example.kpkn.screens.workout.WorkoutSetDraft, kotlin.jvm.functions.Function2, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, java.util.Map, java.util.Map, java.lang.String, java.lang.String, java.lang.String, boolean, java.lang.Double, kotlin.jvm.functions.Function0, com.example.kpkn.screens.workout.AdaptActionHolder, kotlin.jvm.functions.Function9, com.example.kpkn.data.models.ExerciseReadiness, com.example.kpkn.data.models.SetAdjustmentSuggestion, kotlin.jvm.functions.Function1, boolean, boolean, boolean, boolean, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, com.example.kpkn.screens.workout.WorkoutMediaCaptureController, boolean, kotlin.jvm.functions.Function0, java.util.List, androidx.compose.runtime.Composer, int, int, int, int, int, int, int)
+09-15 17:25:34.304 I/AiAiEcho( 1508): Settings changed for uri: content://settings/secure/accessibility_enabled
+09-15 17:25:34.306 W/IPCThreadState(24804): call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+09-15 17:25:34.312 W/IPCThreadState(24804): call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+09-15 17:25:34.312 W/IPCThreadState(24804): call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+09-15 17:25:34.317 D/SsBaseTemplateCard( 1133): No text view can be set up
+09-15 17:25:34.317 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:25:34.317 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:25:34.317 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:25:34.317 I/SsBaseTemplateCard( 1133): Secondary card pane is null
+09-15 17:25:36.091 I/om.example.kpkn( 9566): Method exceeds compiler instruction limit: 16570 in void com.example.kpkn.screens.workout.WorkoutScreenKt.WorkoutScreen(java.lang.String, java.lang.String, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function1, kotlin.jvm.functions.Function1, com.example.kpkn.screens.sessioneditor.CatalogResult, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function2, androidx.compose.runtime.Composer, int, int)
+09-15 17:26:07.798 I/ndroid.systemui(  994): AssetManager2(0x711518026d98) locale list changing from [] to [en-US]
+09-15 17:26:07.820 I/ndroid.systemui(  994): AssetManager2(0x711518013e78) locale list changing from [] to [en-US]
+09-15 17:26:09.011 D/app_process(24838): u_setTimeZoneFilesDirectory("/apex/com.android.tzdata/etc/tz/versioned/9/icu") succeeded. 
+09-15 17:26:09.045 I/AconfigPackage(24838): com.google.android.settings.simplemode.flags is mapped to system_ext
+09-15 17:26:09.046 I/AconfigPackage(24838): com.android.settings.accessibility is mapped to system_ext
+09-15 17:26:09.046 I/AconfigPackage(24838): com.android.settings.flags is mapped to system_ext
+09-15 17:26:09.046 I/AconfigPackage(24838): com.google.android.settings.flags is mapped to system_ext
+09-15 17:26:09.046 I/AconfigPackage(24838): com.android.settings.media_drm is mapped to system_ext
+09-15 17:26:09.046 I/AconfigPackage(24838): com.android.settings.keyboard is mapped to system_ext
+09-15 17:26:09.046 I/AconfigPackage(24838): com.android.settings.factory_reset is mapped to system_ext
+09-15 17:26:09.048 I/AconfigPackage(24838): com.android.settingslib.flags is mapped to system
+09-15 17:26:09.048 I/AconfigPackage(24838): com.android.settingslib.widget.flags is mapped to system
+09-15 17:26:09.048 I/AconfigPackage(24838): com.android.providers.settings is mapped to system
+09-15 17:26:09.049 I/AconfigPackage(24838): com.android.settingslib.widget.selectorwithwidgetpreference.flags is mapped to system
+09-15 17:26:09.049 I/AconfigPackage(24838): com.android.settingslib.media.flags is mapped to system
+09-15 17:26:09.056 E/FeatureFlagsImplExport(24838): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+09-15 17:26:09.062 I/AiAiEcho( 1508): Settings changed for uri: content://settings/secure/accessibility_enabled
+09-15 17:26:09.066 D/SsBaseTemplateCard( 1133): No text view can be set up
+09-15 17:26:09.066 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:26:09.066 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:26:09.066 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:26:09.066 I/SsBaseTemplateCard( 1133): Secondary card pane is null
+09-15 17:26:09.073 I/AiAiEcho( 1508): Settings changed for uri: content://settings/secure/accessibility_enabled
+09-15 17:26:09.081 D/SsBaseTemplateCard( 1133): No text view can be set up
+09-15 17:26:09.081 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:26:09.081 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:26:09.081 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:26:09.081 I/SsBaseTemplateCard( 1133): Secondary card pane is null
+09-15 17:26:10.405 W/NotificationService(  740): Toast already killed. pkg=com.example.kpkn token=android.os.BinderProxy@866339c
+09-15 17:26:11.589 I/AiAiEcho( 1508): Settings changed for uri: content://settings/secure/accessibility_enabled
+09-15 17:26:11.611 W/IPCThreadState(24838): call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+09-15 17:26:11.612 W/IPCThreadState(24838): call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+09-15 17:26:11.612 W/IPCThreadState(24838): call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+09-15 17:26:11.651 D/SsBaseTemplateCard( 1133): No text view can be set up
+09-15 17:26:11.651 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:26:11.651 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:26:11.651 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:26:11.651 I/SsBaseTemplateCard( 1133): Secondary card pane is null
+09-15 17:26:13.565 I/om.example.kpkn( 9566): Method exceeds compiler instruction limit: 19322 in void com.example.kpkn.screens.workout.components.SetExecutionCardKt.SetInputCardV2-YTXd-Ck(com.example.kpkn.data.models.Exercise, int, com.example.kpkn.data.models.ExerciseSet, com.example.kpkn.data.models.CompletedSet, com.example.kpkn.data.models.CompletedSet, com.example.kpkn.screens.workout.WeightSuggestion, java.lang.Double, java.lang.Double, long, boolean, com.example.kpkn.data.models.SetOutcomeV2, com.example.kpkn.data.models.HomologatedPerformanceResult, boolean, boolean, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function1, java.lang.Double, com.example.kpkn.screens.workout.RecordActionHolder, com.example.kpkn.screens.workout.RecordFabHolder, boolean, boolean, com.example.kpkn.screens.workout.WorkoutSetDraft, kotlin.jvm.functions.Function2, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, java.util.Map, java.util.Map, java.lang.String, java.lang.String, java.lang.String, boolean, java.lang.Double, kotlin.jvm.functions.Function0, com.example.kpkn.screens.workout.AdaptActionHolder, kotlin.jvm.functions.Function9, com.example.kpkn.data.models.ExerciseReadiness, com.example.kpkn.data.models.SetAdjustmentSuggestion, kotlin.jvm.functions.Function1, boolean, boolean, boolean, boolean, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, com.example.kpkn.screens.workout.WorkoutMediaCaptureController, boolean, kotlin.jvm.functions.Function0, java.util.List, androidx.compose.runtime.Composer, int, int, int, int, int, int, int)
+09-15 17:26:32.131 I/om.example.kpkn( 9566): Method exceeds compiler instruction limit: 16570 in void com.example.kpkn.screens.workout.WorkoutScreenKt.WorkoutScreen(java.lang.String, java.lang.String, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function1, kotlin.jvm.functions.Function1, com.example.kpkn.screens.sessioneditor.CatalogResult, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function2, androidx.compose.runtime.Composer, int, int)
+09-15 17:26:51.375 D/app_process(24876): u_setTimeZoneFilesDirectory("/apex/com.android.tzdata/etc/tz/versioned/9/icu") succeeded. 
+09-15 17:26:51.415 I/AconfigPackage(24876): com.google.android.settings.simplemode.flags is mapped to system_ext
+09-15 17:26:51.415 I/AconfigPackage(24876): com.android.settings.accessibility is mapped to system_ext
+09-15 17:26:51.415 I/AconfigPackage(24876): com.android.settings.flags is mapped to system_ext
+09-15 17:26:51.415 I/AconfigPackage(24876): com.google.android.settings.flags is mapped to system_ext
+09-15 17:26:51.415 I/AconfigPackage(24876): com.android.settings.media_drm is mapped to system_ext
+09-15 17:26:51.415 I/AconfigPackage(24876): com.android.settings.keyboard is mapped to system_ext
+09-15 17:26:51.415 I/AconfigPackage(24876): com.android.settings.factory_reset is mapped to system_ext
+09-15 17:26:51.417 I/AconfigPackage(24876): com.android.settingslib.flags is mapped to system
+09-15 17:26:51.417 I/AconfigPackage(24876): com.android.settingslib.widget.flags is mapped to system
+09-15 17:26:51.417 I/AconfigPackage(24876): com.android.providers.settings is mapped to system
+09-15 17:26:51.418 I/AconfigPackage(24876): com.android.settingslib.widget.selectorwithwidgetpreference.flags is mapped to system
+09-15 17:26:51.421 I/AconfigPackage(24876): com.android.settingslib.media.flags is mapped to system
+09-15 17:26:51.428 E/FeatureFlagsImplExport(24876): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+09-15 17:26:51.433 I/AiAiEcho( 1508): Settings changed for uri: content://settings/secure/accessibility_enabled
+09-15 17:26:51.439 D/SsBaseTemplateCard( 1133): No text view can be set up
+09-15 17:26:51.439 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:26:51.439 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:26:51.439 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:26:51.439 I/SsBaseTemplateCard( 1133): Secondary card pane is null
+09-15 17:26:51.444 I/AiAiEcho( 1508): Settings changed for uri: content://settings/secure/accessibility_enabled
+09-15 17:26:51.451 D/SsBaseTemplateCard( 1133): No text view can be set up
+09-15 17:26:51.451 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:26:51.451 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:26:51.452 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:26:51.452 I/SsBaseTemplateCard( 1133): Secondary card pane is null
+09-15 17:26:52.533 W/NotificationService(  740): Toast already killed. pkg=com.example.kpkn token=android.os.BinderProxy@68722b
+09-15 17:26:53.947 I/AiAiEcho( 1508): Settings changed for uri: content://settings/secure/accessibility_enabled
+09-15 17:26:53.951 D/SsBaseTemplateCard( 1133): No text view can be set up
+09-15 17:26:53.951 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:26:53.951 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:26:53.951 D/SsBaseTemplateCard( 1133): Passed-in item info is null
+09-15 17:26:53.952 I/SsBaseTemplateCard( 1133): Secondary card pane is null
+09-15 17:26:53.953 W/IPCThreadState(24876): call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+09-15 17:26:53.953 W/IPCThreadState(24876): call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+09-15 17:26:53.955 W/IPCThreadState(24876): call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+09-15 17:26:53.955 W/IPCThreadState(24876): call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+09-15 17:26:54.049 I/om.example.kpkn( 9566): Method exceeds compiler instruction limit: 19322 in void com.example.kpkn.screens.workout.components.SetExecutionCardKt.SetInputCardV2-YTXd-Ck(com.example.kpkn.data.models.Exercise, int, com.example.kpkn.data.models.ExerciseSet, com.example.kpkn.data.models.CompletedSet, com.example.kpkn.data.models.CompletedSet, com.example.kpkn.screens.workout.WeightSuggestion, java.lang.Double, java.lang.Double, long, boolean, com.example.kpkn.data.models.SetOutcomeV2, com.example.kpkn.data.models.HomologatedPerformanceResult, boolean, boolean, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function1, java.lang.Double, com.example.kpkn.screens.workout.RecordActionHolder, com.example.kpkn.screens.workout.RecordFabHolder, boolean, boolean, com.example.kpkn.screens.workout.WorkoutSetDraft, kotlin.jvm.functions.Function2, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, java.util.Map, java.util.Map, java.lang.String, java.lang.String, java.lang.String, boolean, java.lang.Double, kotlin.jvm.functions.Function0, com.example.kpkn.screens.workout.AdaptActionHolder, kotlin.jvm.functions.Function9, com.example.kpkn.data.models.ExerciseReadiness, com.example.kpkn.data.models.SetAdjustmentSuggestion, kotlin.jvm.functions.Function1, boolean, boolean, boolean, boolean, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, com.example.kpkn.screens.workout.WorkoutMediaCaptureController, boolean, kotlin.jvm.functions.Function0, java.util.List, androidx.compose.runtime.Composer, int, int, int, int, int, int, int)
+09-15 17:26:55.113 W/NotificationService(  740): Toast already killed. pkg=com.example.kpkn token=android.os.BinderProxy@3f6c61e
+09-15 17:27:22.492 W/BpBinder(24908): Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
+09-15 17:27:28.209 I/om.example.kpkn( 9566): Method exceeds compiler instruction limit: 16570 in void com.example.kpkn.screens.workout.WorkoutScreenKt.WorkoutScreen(java.lang.String, java.lang.String, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function1, kotlin.jvm.functions.Function1, com.example.kpkn.screens.sessioneditor.CatalogResult, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function2, androidx.compose.runtime.Composer, int, int)
+09-15 17:27:32.444 I/om.example.kpkn( 9566): Method exceeds compiler instruction limit: 19322 in void com.example.kpkn.screens.workout.components.SetExecutionCardKt.SetInputCardV2-YTXd-Ck(com.example.kpkn.data.models.Exercise, int, com.example.kpkn.data.models.ExerciseSet, com.example.kpkn.data.models.CompletedSet, com.example.kpkn.data.models.CompletedSet, com.example.kpkn.screens.workout.WeightSuggestion, java.lang.Double, java.lang.Double, long, boolean, com.example.kpkn.data.models.SetOutcomeV2, com.example.kpkn.data.models.HomologatedPerformanceResult, boolean, boolean, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function1, java.lang.Double, com.example.kpkn.screens.workout.RecordActionHolder, com.example.kpkn.screens.workout.RecordFabHolder, boolean, boolean, com.example.kpkn.screens.workout.WorkoutSetDraft, kotlin.jvm.functions.Function2, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, java.util.Map, java.util.Map, java.lang.String, java.lang.String, java.lang.String, boolean, java.lang.Double, kotlin.jvm.functions.Function0, com.example.kpkn.screens.workout.AdaptActionHolder, kotlin.jvm.functions.Function9, com.example.kpkn.data.models.ExerciseReadiness, com.example.kpkn.data.models.SetAdjustmentSuggestion, kotlin.jvm.functions.Function1, boolean, boolean, boolean, boolean, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, com.example.kpkn.screens.workout.WorkoutMediaCaptureController, boolean, kotlin.jvm.functions.Function0, java.util.List, androidx.compose.runtime.Composer, int, int, int, int, int, int, int)
+09-15 17:27:56.191 I/om.example.kpkn( 9566): Method exceeds compiler instruction limit: 16570 in void com.example.kpkn.screens.workout.WorkoutScreenKt.WorkoutScreen(java.lang.String, java.lang.String, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function1, kotlin.jvm.functions.Function1, com.example.kpkn.screens.sessioneditor.CatalogResult, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function2, androidx.compose.runtime.Composer, int, int)
+09-15 17:28:10.917 I/om.example.kpkn( 9566): Method exceeds compiler instruction limit: 19322 in void com.example.kpkn.screens.workout.components.SetExecutionCardKt.SetInputCardV2-YTXd-Ck(com.example.kpkn.data.models.Exercise, int, com.example.kpkn.data.models.ExerciseSet, com.example.kpkn.data.models.CompletedSet, com.example.kpkn.data.models.CompletedSet, com.example.kpkn.screens.workout.WeightSuggestion, java.lang.Double, java.lang.Double, long, boolean, com.example.kpkn.data.models.SetOutcomeV2, com.example.kpkn.data.models.HomologatedPerformanceResult, boolean, boolean, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function1, java.lang.Double, com.example.kpkn.screens.workout.RecordActionHolder, com.example.kpkn.screens.workout.RecordFabHolder, boolean, boolean, com.example.kpkn.screens.workout.WorkoutSetDraft, kotlin.jvm.functions.Function2, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, java.util.Map, java.util.Map, java.lang.String, java.lang.String, java.lang.String, boolean, java.lang.Double, kotlin.jvm.functions.Function0, com.example.kpkn.screens.workout.AdaptActionHolder, kotlin.jvm.functions.Function9, com.example.kpkn.data.models.ExerciseReadiness, com.example.kpkn.data.models.SetAdjustmentSuggestion, kotlin.jvm.functions.Function1, boolean, boolean, boolean, boolean, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, com.example.kpkn.screens.workout.WorkoutMediaCaptureController, boolean, kotlin.jvm.functions.Function0, java.util.List, androidx.compose.runtime.Composer, int, int, int, int, int, int, int)
+

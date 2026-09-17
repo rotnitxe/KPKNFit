@@ -732,7 +732,7 @@ class WorkoutVisualModelsTest {
     @Test
     fun session_chronometer_overtime_keeps_limit_visible() {
         assertEquals(
-            "-00:15 / 30:00",
+            "00:00 / 30:00",
             formatSessionChronometerText(
                 hasLimit = true,
                 remainingSeconds = -15,
@@ -834,6 +834,18 @@ class WorkoutVisualModelsTest {
         assertTrue(looseAccent != androidx.compose.ui.graphics.Color(0xFF38BDF8))
         assertTrue(groupAccent != cover)
         assertTrue(groupAccent != androidx.compose.ui.graphics.Color(0xFF38BDF8))
+    }
+
+    @Test
+    fun volume_replaced_pager_accent_uses_red_tint() {
+        val scheme = androidx.compose.material3.darkColorScheme()
+        val accent = workoutSetPagerAccent(
+            WorkoutSetCardVisualState.ACTIVE,
+            scheme,
+            sessionAccentColor = androidx.compose.ui.graphics.Color(0xFFE08E45),
+            volumeReplaced = true,
+        )
+        assertEquals(VolumeReplacedStepperTint, accent)
     }
 
     @Test

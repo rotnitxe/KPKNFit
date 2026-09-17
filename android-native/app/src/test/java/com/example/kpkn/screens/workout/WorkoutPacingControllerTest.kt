@@ -93,7 +93,7 @@ class WorkoutPacingControllerTest {
     }
 
     @Test
-    fun overtime_setsNegativeRemaining_andExhaustedCue() = runTest {
+    fun overtime_clampsRemaining_andExposesExhaustedCue() = runTest {
         var now = 0L
         var state = baseState(targetMinutes = 20, mode = PacingAlertMode.FINAL)
         val spoken = mutableListOf<Pair<String, Boolean>>()
@@ -110,7 +110,7 @@ class WorkoutPacingControllerTest {
         advanceTimeBy(1_000L)
         runCurrent()
 
-        assertTrue((controller.sessionTimeRemainingSeconds.value ?: 0) < 0)
+        assertEquals(0, controller.sessionTimeRemainingSeconds.value)
         assertTrue(spoken.any { it.first == SessionTimeCues.EXHAUSTED && it.second })
         assertEquals(SessionTimeCues.EXHAUSTED, state.pacingAlertMessage)
     }

@@ -1,0 +1,83 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.4.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :app
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preBaseDebugBuild UP-TO-DATE
+> Task :app:compileBaseDebugAidl UP-TO-DATE
+> Task :app:generateBaseDebugBuildConfig UP-TO-DATE
+> Task :app:generateBaseDebugResources UP-TO-DATE
+> Task :app:packageBaseDebugResources UP-TO-DATE
+> Task :app:processBaseDebugNavigationResources UP-TO-DATE
+> Task :app:parseBaseDebugLocalResources UP-TO-DATE
+> Task :app:generateBaseDebugRFile UP-TO-DATE
+> Task :app:kspBaseDebugKotlin UP-TO-DATE
+> Task :app:compileBaseDebugKotlin UP-TO-DATE
+> Task :app:javaPreCompileBaseDebug UP-TO-DATE
+> Task :app:compileBaseDebugJavaWithJavac UP-TO-DATE
+> Task :app:checkBaseDebugAarMetadata UP-TO-DATE
+> Task :app:mapBaseDebugSourceSetPaths UP-TO-DATE
+> Task :app:compileBaseDebugNavigationResources UP-TO-DATE
+> Task :app:mergeBaseDebugResources UP-TO-DATE
+> Task :app:createBaseDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksBaseDebug UP-TO-DATE
+> Task :app:processBaseDebugMainManifest UP-TO-DATE
+> Task :app:processBaseDebugManifest UP-TO-DATE
+> Task :app:processBaseDebugManifestForPackage UP-TO-DATE
+> Task :app:processBaseDebugResources UP-TO-DATE
+> Task :app:bundleBaseDebugClassesToRuntimeJar UP-TO-DATE
+> Task :app:bundleBaseDebugClassesToCompileJar UP-TO-DATE
+> Task :app:kspBaseDebugUnitTestKotlin UP-TO-DATE
+> Task :app:preBaseDebugUnitTestBuild UP-TO-DATE
+> Task :app:compileBaseDebugUnitTestKotlin UP-TO-DATE
+> Task :app:javaPreCompileBaseDebugUnitTest UP-TO-DATE
+> Task :app:compileBaseDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:generateBaseDebugAssets UP-TO-DATE
+> Task :app:mergeBaseDebugAssets UP-TO-DATE
+> Task :app:packageBaseDebugUnitTestForUnitTest UP-TO-DATE
+> Task :app:processBaseDebugUnitTestManifest UP-TO-DATE
+> Task :app:generateBaseDebugUnitTestConfig UP-TO-DATE
+> Task :app:processBaseDebugJavaRes UP-TO-DATE
+> Task :app:processBaseDebugUnitTestJavaRes UP-TO-DATE
+Unexpected exception thrown.
+org.gradle.internal.remote.internal.MessageIOException: Could not write '/127.0.0.1:61503'.
+	at org.gradle.internal.remote.internal.inet.SocketConnection.flush(SocketConnection.java:142)
+	at org.gradle.internal.remote.internal.hub.MessageHub$ConnectionDispatch.run(MessageHub.java:333)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.io.IOException: Connection reset by peer
+	at java.base/sun.nio.ch.SocketDispatcher.write0(Native Method)
+	at java.base/sun.nio.ch.SocketDispatcher.write(SocketDispatcher.java:54)
+	at java.base/sun.nio.ch.IOUtil.writeFromNativeBuffer(IOUtil.java:137)
+	at java.base/sun.nio.ch.IOUtil.write(IOUtil.java:81)
+	at java.base/sun.nio.ch.IOUtil.write(IOUtil.java:58)
+	at java.base/sun.nio.ch.SocketChannelImpl.write(SocketChannelImpl.java:542)
+	at org.gradle.internal.remote.internal.inet.SocketConnection$SocketOutputStream.writeWithNonBlockingRetry(SocketConnection.java:282)
+	at org.gradle.internal.remote.internal.inet.SocketConnection$SocketOutputStream.writeBufferToChannel(SocketConnection.java:269)
+	at org.gradle.internal.remote.internal.inet.SocketConnection$SocketOutputStream.flush(SocketConnection.java:263)
+	at org.gradle.internal.remote.internal.inet.SocketConnection.flush(SocketConnection.java:140)
+	... 6 more
+> Task :app:testBaseDebugUnitTest FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:testBaseDebugUnitTest'.
+> Test process encountered an unexpected problem.
+   > Process 'Gradle Test Executor 1' finished with non-zero exit value 10
+
+* Try:
+> Check common problems https://docs.gradle.org/9.4.1/userguide/java_testing.html#sec:java_testing_troubleshooting.
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 40s
+33 actionable tasks: 1 executed, 32 up-to-date

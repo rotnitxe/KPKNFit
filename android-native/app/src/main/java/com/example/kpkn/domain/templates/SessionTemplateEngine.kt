@@ -31,6 +31,19 @@ enum class SessionClonePurpose {
     PROGRESSION_SEED,
 }
 
+/** An exercise skipped by APPEND dedup; reported instead of silently dropped. */
+data class OmittedAppendExercise(
+    val configurationId: String?,
+    val exerciseName: String,
+    val partName: String?,
+)
+
+/** Result of applying a template. REPLACE never omits exercises. */
+data class TemplateApplyOutcome(
+    val session: Session,
+    val omittedAppendExercises: List<OmittedAppendExercise> = emptyList(),
+)
+
 /**
  * Pure, canonical session cloner and template merger.
  *
@@ -51,12 +64,19 @@ object SessionTemplateEngine {
         template: SessionTemplate,
         targetSession: Session,
         mode: SessionTemplateApplyMode,
-    ): Session {
+    ): Session = applyTemplateAudited(template, targetSession, mode).session
+
+    /** Same as [applyTemplate] but reports what APPEND dedup omitted (D8). */
+    fun applyTemplateAudited(
+        template: SessionTemplate,
+        targetSession: Session,
+        mode: SessionTemplateApplyMode,
+    ): TemplateApplyOutcome {
         require(canApplyTemplate(template, targetSession)) {
             "La plantilla está oculta o su tipo no corresponde a la sesión de destino."
         }
         return when (mode) {
-            SessionTemplateApplyMode.REPLACE -> applyReplace(template, targetSession)
+            SessionTemplateApplyMode.REPLACE -> TemplateApplyOutcome(applyReplace(template, targetSession))
             SessionTemplateApplyMode.APPEND -> applyAppend(template, targetSession)
         }
     }
@@ -269,16 +289,53 @@ object SessionTemplateEngine {
         )
     }
 
-    private fun applyAppend(template: SessionTemplate, target: Session): Session {
+    private fun applyAppend(template: SessionTemplate, target: Session): TemplateApplyOutcome {
         val cloned = cloneSessionContent(template.session, SessionClonePurpose.TEMPLATE_APPLY)
-        return target.copy(
-            parts = target.parts + cloned.parts,
-            exercises = target.exercises + cloned.exercises,
-            warmup = target.warmup + cloned.warmup,
-            supersetGroups = target.allSupersetGroups() + cloned.supersetGroups,
-            origin = SessionOrigin.USER_DRAFT,
+        // D8 del plan 2026-09-16: APPEND no duplica configuraciones. Los
+        // ejercicios clonados cuyo catalogConfigurationId ya exista en la
+        // sesión objetivo se omiten; los custom: nunca se filtran. Cada
+        // omisión se reporta en el outcome en vez de perderse en silencio.
+        val existingConfigurations = target.allExercises()
+            .mapNotNull { it.catalogConfigurationId?.trim()?.lowercase() }
+            .filter { it.isNotBlank() }
+            .toSet()
+        fun Exercise.isDuplicateAppend(): Boolean {
+            if (isManualCustomAppend(this)) return false
+            val configurationId = catalogConfigurationId?.trim()?.lowercase().orEmpty()
+            return configurationId.isNotBlank() && configurationId in existingConfigurations
+        }
+        val omitted = mutableListOf<OmittedAppendExercise>()
+        fun Exercise.toOmitted(partName: String?): OmittedAppendExercise = OmittedAppendExercise(
+            configurationId = catalogConfigurationId?.trim()?.lowercase()?.takeIf { it.isNotBlank() },
+            exerciseName = name,
+            partName = partName,
+        )
+        val keptParts = cloned.parts.map { part ->
+            val (kept, dropped) = part.exercises.partition { !it.isDuplicateAppend() }
+            dropped.forEach { omitted += it.toOmitted(part.name) }
+            part.copy(exercises = kept)
+        }.filter { it.exercises.isNotEmpty() || it.mobilitySeries.isNotEmpty() || it.mobilityConfig != null }
+        val (keptExercises, droppedExercises) = cloned.exercises.partition { !it.isDuplicateAppend() }
+        droppedExercises.forEach { omitted += it.toOmitted(null) }
+        return TemplateApplyOutcome(
+            session = target.copy(
+                parts = target.parts + keptParts,
+                exercises = target.exercises + keptExercises,
+                warmup = target.warmup + cloned.warmup,
+                supersetGroups = target.allSupersetGroups() + cloned.supersetGroups,
+                origin = SessionOrigin.USER_DRAFT,
+            ),
+            omittedAppendExercises = omitted,
         )
     }
+
+    private fun isManualCustomAppend(exercise: Exercise): Boolean =
+        listOf(
+            exercise.exerciseDbId,
+            exercise.exerciseId,
+            exercise.canonicalExerciseId,
+            exercise.exerciseFamilyId,
+        ).any { it?.startsWith("custom:", ignoreCase = true) == true }
 
     private class CloneContext(private val purpose: SessionClonePurpose) {
         private fun fresh(): String = UUID.randomUUID().toString()

@@ -17,6 +17,7 @@ import com.example.kpkn.data.models.SetOutcomeV2
 import com.example.kpkn.data.models.SetTechniqueV2
 import com.example.kpkn.data.models.SubTagCategory
 import com.example.kpkn.data.models.TimeProgressionStrategyV3
+import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutContextProfile
@@ -28,6 +29,11 @@ import com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngine
 import com.example.kpkn.domain.workout.WorkoutTagResolver
 import com.example.kpkn.domain.workout.isStackedIntensityTechnique
 import com.example.kpkn.domain.workout.isVolumeReplacedTechnique
+import com.example.kpkn.domain.workout.scheduledTechniquePlan
+import com.example.kpkn.domain.workout.resolveScheduledTechniqueExecution
+import com.example.kpkn.domain.workout.ScheduledTechniqueKind
+import com.example.kpkn.domain.workout.isInlineEditorScheduledTechnique
+import com.example.kpkn.domain.workout.techniqueScope
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.data.models.SessionEnergySummary
 import com.example.kpkn.data.models.SetDrain
@@ -79,6 +85,8 @@ class WorkoutSetRecorder(
         fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?)
         fun persistLoadModeToProfile(exerciseId: String, loadMode: LoadModeV2)
         fun registerManualLoadOverride(exerciseId: String, setIdx: Int, side: String?, load: Double)
+        /** Applies a scheduled technique's next-load prescription to the live card. */
+        fun applyScheduledLoadOverride(exerciseId: String, setIdx: Int, side: String?, load: Double)
         fun refreshLoadSuggestions(state: WorkoutUiState, onlyExerciseId: String? = null)
         suspend fun persistOngoingStateAndAwait()
         fun nextSet(stopRest: Boolean = true)
@@ -155,6 +163,7 @@ class WorkoutSetRecorder(
         updateState { it.copy(recordingSetKey = recordingKey) }
         try {
             val plannedSet = exercise.sets.getOrNull(targetSetIdx)
+            val scheduledPlan = plannedSet?.scheduledTechniquePlan()
             val amrapActive = resolveAmrapActive(
                 plannedSet = plannedSet,
                 requestedOverride = amrapOverride,
@@ -253,7 +262,13 @@ class WorkoutSetRecorder(
                 amrapActive -> IntensityMode.AMRAP
                 intensity != null -> IntensityMode.RPE
                 plannedSet?.isFailure == true || plannedSet?.intensityMode == IntensityMode.FAILURE -> IntensityMode.FAILURE
-                else -> plannedSet?.intensityMode
+                // LOAD is the legacy marker used by %RM prescriptions, not
+                // an effort report.  Keep RM unlabelled until the athlete
+                // explicitly selects RPE/RIR/FALLO.
+                else -> plannedSet?.intensityMode?.takeUnless {
+                    it == IntensityMode.LOAD ||
+                        (exercise.trainingMode == TrainingMode.RM && plannedSet.targetPercentageRM != null)
+                }
             }
             val actualIntensityValue = advanced.actualIntensityValue ?: when (actualIntensityMode) {
                 IntensityMode.RIR -> advanced.rir?.toDouble()
@@ -270,6 +285,8 @@ class WorkoutSetRecorder(
             val techniques = buildList {
                 if (advanced.dropSets.isNotEmpty()) add(SetTechniqueV2.DROP_SET)
                 if (advanced.restPauses.isNotEmpty()) add(SetTechniqueV2.REST_PAUSE)
+                if (scheduledPlan?.kind == ScheduledTechniqueKind.DROP_SET && advanced.dropSets.isEmpty()) add(SetTechniqueV2.DROP_SET)
+                if (scheduledPlan?.kind == ScheduledTechniqueKind.REST_PAUSE && advanced.restPauses.isEmpty()) add(SetTechniqueV2.REST_PAUSE)
                 if (advanced.isPartial) add(SetTechniqueV2.PARTIALS)
                 if (advanced.reachedFailure) add(SetTechniqueV2.FAILURE)
                 if (amrapActive) add(SetTechniqueV2.AMRAP)
@@ -399,7 +416,13 @@ class WorkoutSetRecorder(
                     reps = actualReps,
                     timeSeconds = durationSeconds,
                     side = resolvedSide,
-                    rpe = if (advanced.reachedFailure) null else (actualIntensityValue ?: intensity),
+                    // RIR is stored in `rir`; never mirror it into the RPE
+                    // field.  RM without explicit effort remains null.
+                    rpe = if (actualIntensityMode == IntensityMode.RPE) {
+                        actualIntensityValue ?: intensity
+                    } else {
+                        null
+                    },
                     actualIntensityMode = actualIntensityMode,
                     actualIntensityValue = actualIntensityValue,
                     debt = outcome.debt,
@@ -421,10 +444,40 @@ class WorkoutSetRecorder(
                 ),
                 advanced = advanced,
             )
+            val scheduledDropRows = if (plannedSet?.isInlineEditorScheduledTechnique() == true &&
+                scheduledPlan?.kind == ScheduledTechniqueKind.DROP_SET &&
+                advanced.dropSets.isEmpty() && weight > 0.0
+            ) {
+                List(scheduledPlan.followUpCount) { index ->
+                    com.example.kpkn.data.models.DropSetData(
+                        weight = (weight - scheduledPlan.dropKg * (index + 1)).coerceAtLeast(0.0),
+                        reps = scheduledPlan.followUpReps,
+                    )
+                }
+            } else {
+                emptyList()
+            }
+            val scheduledRestRows = if (plannedSet?.isInlineEditorScheduledTechnique() == true &&
+                scheduledPlan?.kind == ScheduledTechniqueKind.REST_PAUSE &&
+                advanced.restPauses.isEmpty()
+            ) {
+                List(scheduledPlan.followUpCount) {
+                    com.example.kpkn.data.models.RestPauseData(
+                        restTime = scheduledPlan.pauseSeconds,
+                        reps = scheduledPlan.followUpReps,
+                    )
+                }
+            } else {
+                emptyList()
+            }
             val completedSet = if (plannedSet?.isVolumeReplacedTechnique() == true) {
                 recordedAfterAdvanced.copy(
-                    dropSets = recordedAfterAdvanced.dropSets.ifEmpty { plannedSet.dropSets },
-                    restPauses = recordedAfterAdvanced.restPauses.ifEmpty { plannedSet.restPauses },
+                    dropSets = recordedAfterAdvanced.dropSets
+                        .ifEmpty { plannedSet.dropSets }
+                        .ifEmpty { scheduledDropRows },
+                    restPauses = recordedAfterAdvanced.restPauses
+                        .ifEmpty { plannedSet.restPauses }
+                        .ifEmpty { scheduledRestRows },
                 )
             } else {
                 recordedAfterAdvanced
@@ -432,6 +485,16 @@ class WorkoutSetRecorder(
 
             val key = buildCompletedSetKey(exercise.id, targetSetIdx, resolvedSide)
             val wasExistingSet = state.completedSets.containsKey(key)
+            val existingSet = state.completedSets[key]
+            if (existingSet != null && completedSetContentMatches(
+                    existing = existingSet,
+                    next = completedSet,
+                    requestedNotes = advanced.notes,
+                )
+            ) {
+                ports.onRecordingRejected("No hay cambios para actualizar.")
+                return
+            }
             val newDeviations = plannedSet?.let {
                 WorkoutPlanDeviationSupport.detect(
                     exerciseId = exercise.id,
@@ -506,6 +569,7 @@ class WorkoutSetRecorder(
                 namespace = "workout",
                 name = "set_recorded",
                 fields = mapOf(
+                    "sessionId" to state.session?.id,
                     "exerciseId" to exercise.id,
                     "exerciseName" to exercise.name,
                     "setIndex" to targetSetIdx,
@@ -524,6 +588,18 @@ class WorkoutSetRecorder(
                     "operation" to if (wasExistingSet) "replace" else "insert",
                     "actualIntensityMode" to completedSet.actualIntensityMode?.name,
                     "actualIntensityValue" to completedSet.actualIntensityValue,
+                    "plannedIntensityMode" to plannedSet?.intensityMode?.name,
+                    "plannedIntensityValue" to plannedSet?.let { set ->
+                        set.targetPercentageRM
+                            ?: set.targetRPE
+                            ?: set.targetRIR?.toDouble()
+                            ?: set.targetReps?.takeIf { set.isAmrap }?.toDouble()
+                    },
+                    "techniqueScope" to plannedSet?.techniqueScope()?.name,
+                    "scheduledTechnique" to scheduledPlan?.kind?.name,
+                    "scheduledPauseSeconds" to scheduledPlan?.pauseSeconds,
+                    "scheduledDropKg" to scheduledPlan?.dropKg,
+                    "scheduledFollowUps" to scheduledPlan?.followUpCount,
                     "effectiveRpe" to AugeFatigueEngine.getEffectiveRPE(completedSet),
                     "isFailedSet" to completedSet.isFailedSet,
                 ),
@@ -545,10 +621,114 @@ class WorkoutSetRecorder(
                     (plannedSet.isRestPause && advanced.restPauses.isEmpty())
                 )
             if (!isExecutionError && !unilateralPendingOtherSide && !wasExistingSet && !techniqueStillOpen) {
+                // A legacy/one-phase scheduled set still gets its deterministic
+                // next-load prescription even when the UI did not need to
+                // collect explicit follow-up rows.
+                val scheduledChain = scheduledPlan?.let { plan ->
+                    if (plannedSet?.isInlineEditorScheduledTechnique() == true) {
+                        // The inline card submits the main phase together with
+                        // all follow-up rows.  At that point the cursor is on
+                        // the final phase, so there is no technique load to
+                        // leak into the next independent set.
+                        val followUpsRecorded = when (plan.kind) {
+                            ScheduledTechniqueKind.DROP_SET -> completedSet.dropSets.size
+                            ScheduledTechniqueKind.REST_PAUSE -> completedSet.restPauses.size
+                        }
+                        (if (followUpsRecorded >= plan.followUpCount) plan.phaseCount - 1 else 0) to plan.phaseCount
+                    } else {
+                        fun sameKind(candidate: com.example.kpkn.data.models.ExerciseSet): Boolean =
+                            candidate.isVolumeReplacedTechnique() &&
+                                !candidate.isInlineEditorScheduledTechnique() &&
+                                candidate.scheduledTechniquePlan()?.kind == plan.kind
+                        var first = targetSetIdx
+                        while (first > 0 && sameKind(exercise.sets[first - 1])) first -= 1
+                        var last = targetSetIdx
+                        while (last < exercise.sets.lastIndex && sameKind(exercise.sets[last + 1])) last += 1
+                        (targetSetIdx - first) to (last - first + 1)
+                    }
+                }
+                val scheduledPhase = scheduledChain?.first ?: 0
+                val scheduledPhaseCount = scheduledChain?.second
+                val scheduledNext = scheduledPlan?.let {
+                    plannedSet?.resolveScheduledTechniqueExecution(
+                        phaseIndex = scheduledPhase,
+                        currentLoad = weight,
+                        normalRestSeconds = exercise.restTime?.takeIf { seconds -> seconds > 0 }
+                            ?: repository.settings.value.restTimerDefaultSeconds,
+                        unitMode = resolvedUnitMode,
+                        phaseCountOverride = scheduledPhaseCount,
+                        actualIntensityMode = completedSet.actualIntensityMode,
+                        actualIntensityValue = completedSet.actualIntensityValue,
+                    )
+                }
+                val nextCanonicalIndex = targetSetIdx + 1
+                if (scheduledNext?.nextLoad != null && nextCanonicalIndex < exercise.sets.size) {
+                    ports.applyScheduledLoadOverride(
+                        exerciseId = exercise.id,
+                        setIdx = nextCanonicalIndex,
+                        side = resolvedSide,
+                        load = scheduledNext.nextLoad,
+                    )
+                }
                 ports.nextSet(stopRest = false)
             }
 
             val baseRest = exercise.restTime?.takeIf { it > 0 } ?: repository.settings.value.restTimerDefaultSeconds
+            val scheduledPhaseForRest = if (scheduledPlan != null &&
+                plannedSet?.isInlineEditorScheduledTechnique() == true &&
+                (completedSet.dropSets.isNotEmpty() || completedSet.restPauses.isNotEmpty())
+            ) {
+                scheduledPlan.phaseCount - 1
+            } else {
+                val plan = scheduledPlan
+                if (plan == null || plannedSet?.isInlineEditorScheduledTechnique() == true) {
+                    0
+                } else {
+                    var first = targetSetIdx
+                    while (first > 0) {
+                        val previous = exercise.sets[first - 1]
+                        if (!previous.isVolumeReplacedTechnique() || previous.isInlineEditorScheduledTechnique() ||
+                            previous.scheduledTechniquePlan()?.kind != plan.kind
+                        ) break
+                        first -= 1
+                    }
+                    targetSetIdx - first
+                }
+            }
+            val scheduledPhaseCountForRest = if (scheduledPlan != null &&
+                plannedSet?.isInlineEditorScheduledTechnique() != true
+            ) {
+                var first = targetSetIdx
+                var last = targetSetIdx
+                while (first > 0) {
+                    val previous = exercise.sets[first - 1]
+                    if (!previous.isVolumeReplacedTechnique() || previous.isInlineEditorScheduledTechnique() ||
+                        previous.scheduledTechniquePlan()?.kind != scheduledPlan.kind
+                    ) break
+                    first -= 1
+                }
+                while (last < exercise.sets.lastIndex) {
+                    val next = exercise.sets[last + 1]
+                    if (!next.isVolumeReplacedTechnique() || next.isInlineEditorScheduledTechnique() ||
+                        next.scheduledTechniquePlan()?.kind != scheduledPlan.kind
+                    ) break
+                    last += 1
+                }
+                last - first + 1
+            } else {
+                null
+            }
+            val scheduledRestForCurrent = scheduledPlan?.let {
+                plannedSet?.resolveScheduledTechniqueExecution(
+                    phaseIndex = scheduledPhaseForRest,
+                    currentLoad = weight,
+                    normalRestSeconds = baseRest,
+                    unitMode = resolvedUnitMode,
+                    phaseCountOverride = scheduledPhaseCountForRest,
+                    actualIntensityMode = completedSet.actualIntensityMode,
+                    actualIntensityValue = completedSet.actualIntensityValue,
+                )?.restAfterSeconds
+            }
             val sessionForRest = state.session?.let { ports.sessionForActiveMode(it, state.activeMode) }
             val supersetGroup = sessionForRest?.effectiveSupersetGroupFor(exercise)
             val sameSupersetRound = nextStepForRest?.supersetGroupId != null &&
@@ -575,6 +755,7 @@ class WorkoutSetRecorder(
                 RestTimerKind.STANDARD -> {
                     val nextPlannedSet = exercise.sets.getOrNull(targetSetIdx + 1)
                     when {
+                        scheduledRestForCurrent != null -> scheduledRestForCurrent
                         wasLastSet -> baseRest
                         nextPlannedSet?.isDropSet == true -> 0
                         nextPlannedSet?.isRestPause == true -> nextPlannedSet.restAfterSeconds?.takeIf { it >= 0 } ?: 15
@@ -764,4 +945,45 @@ class WorkoutSetRecorder(
     }
 
     private fun counterpartSide(side: String): String = if (side == "left") "right" else "left"
+
+    private fun completedSetContentMatches(
+        existing: CompletedSet,
+        next: CompletedSet,
+        requestedNotes: String?,
+    ): Boolean {
+        val oldPayload = existing.recordedPayloadV3
+        val newPayload = next.recordedPayloadV3
+        if (oldPayload != null && newPayload != null) {
+            return oldPayload == newPayload &&
+                existing.dropSets == next.dropSets &&
+                existing.restPauses == next.restPauses &&
+                existing.isPartial == next.isPartial &&
+                existing.partialReps == next.partialReps &&
+                existing.skipped == next.skipped &&
+                existing.notes == (requestedNotes ?: existing.notes)
+        }
+        // Legacy logs may not carry recordedPayloadV3.  Compare every user
+        // visible field that can be edited so an old set cannot accept a
+        // no-op replacement merely because its compact payload is absent.
+        return existing.weight == next.weight &&
+            existing.side == next.side &&
+            existing.reps == next.reps &&
+            existing.timeSeconds == next.timeSeconds &&
+            existing.rpe == next.rpe &&
+            existing.rir == next.rir &&
+            existing.isFailure == next.isFailure &&
+            existing.isFailedSet == next.isFailedSet &&
+            existing.failureReason == next.failureReason &&
+            existing.actualIntensityMode == next.actualIntensityMode &&
+            existing.actualIntensityValue == next.actualIntensityValue &&
+            existing.amrapPerformed == next.amrapPerformed &&
+            existing.amrapMinimumReps == next.amrapMinimumReps &&
+            existing.amrapBelowMinimum == next.amrapBelowMinimum &&
+            existing.dropSets == next.dropSets &&
+            existing.restPauses == next.restPauses &&
+            existing.isPartial == next.isPartial &&
+            existing.partialReps == next.partialReps &&
+            existing.skipped == next.skipped &&
+            existing.notes == (requestedNotes ?: existing.notes)
+    }
 }

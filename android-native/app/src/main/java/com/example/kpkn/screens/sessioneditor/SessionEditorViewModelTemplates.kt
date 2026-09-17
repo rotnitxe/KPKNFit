@@ -265,9 +265,10 @@ internal fun SessionEditorViewModel.applyTemplateInternal(template: SessionTempl
     templateApplyJob = viewModelScope.launch {
         // Clone and merge off Main. The commit below is conditional on the same
         // active variant/content so an intervening edit is never overwritten.
-        val result = withContext(Dispatchers.Default) {
-            SessionTemplateEngine.applyTemplate(template, session, mode)
+        val outcome = withContext(Dispatchers.Default) {
+            SessionTemplateEngine.applyTemplateAudited(template, session, mode)
         }
+        val result = outcome.session
         val latest = currentUiState
         val latestSession = latest.activeVariantSession ?: latest.session
         if (latest.activeVariant != activeVariant ||
@@ -286,12 +287,18 @@ internal fun SessionEditorViewModel.applyTemplateInternal(template: SessionTempl
             updateUi { it.copy(activeVariant = WeekVariant.A) }
         }
         updateSession { result }
+        val omittedNote = if (mode == SessionTemplateApplyMode.APPEND && outcome.omittedAppendExercises.isNotEmpty()) {
+            val omittedCount = outcome.omittedAppendExercises.size
+            " $omittedCount ejercicio(s) ya estaban en la sesión y no se duplicaron."
+        } else {
+            ""
+        }
         updateUi {
             it.copy(
                 sheet = SessionEditorSheet.NONE,
                 templateApplyDecision = null,
                 templateSearchQuery = "",
-                snackbarMessage = "Plantilla \"${template.name}\" aplicada.",
+                snackbarMessage = "Plantilla \"${template.name}\" aplicada.$omittedNote",
             )
         }
     }

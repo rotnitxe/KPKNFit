@@ -358,6 +358,21 @@ class WorkoutStepNavigator(
         val allExercises = ports.visibleExercises(state)
         val currentEx = allExercises.getOrNull(state.currentExerciseIdx) ?: return
         val nextStep = nextIncompleteStepAfter(state)
+        // A unilateral set may advance to its pending side, but never past
+        // the set until both sides are complete (or skipSet explicitly marks
+        // the missing side). This also protects the footer/voice "Siguiente"
+        // action from jumping over the right-side card.
+        if (currentEx.isEffectivelyUnilateral() &&
+            !ports.isSetDone(
+                state.completedSets,
+                currentEx.id,
+                state.currentSetIdx,
+                true,
+            ) &&
+            nextStep?.setIndex != state.currentSetIdx
+        ) {
+            return
+        }
         if (nextStep == null) {
             val feedbackTarget = buildPostExerciseFeedbackTargetInternal(state, currentEx)
             val shouldShowFeedback = feedbackTarget.unrecordedFeedbackExerciseIds(state).isNotEmpty()

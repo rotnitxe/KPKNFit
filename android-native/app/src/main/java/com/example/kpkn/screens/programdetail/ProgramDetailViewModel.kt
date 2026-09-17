@@ -39,6 +39,7 @@ import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.BlockProgressionEngine
 import com.example.kpkn.domain.training.BlockTransitionEngine
+import com.example.kpkn.domain.training.ProgramAutoregulationEngine
 import com.example.kpkn.domain.training.ProgramDetailHelpers
 import com.example.kpkn.domain.training.AppClock
 import com.example.kpkn.domain.training.IdProvider
@@ -139,6 +140,16 @@ class ProgramDetailViewModel(
     private val _blockTransitionBanner = MutableStateFlow<BlockTransitionBanner?>(null)
     val blockTransitionBanner: StateFlow<BlockTransitionBanner?> = _blockTransitionBanner
 
+    private val _programSnapshots = MutableStateFlow<List<com.example.kpkn.domain.training.ProgramSnapshot>>(emptyList())
+    val programSnapshots: StateFlow<List<com.example.kpkn.domain.training.ProgramSnapshot>> = _programSnapshots
+
+    private var snapshotStore: com.example.kpkn.domain.training.ProgramSnapshotStore? = null
+
+    fun attachSnapshotStore(store: com.example.kpkn.domain.training.ProgramSnapshotStore) {
+        snapshotStore = store
+        refreshProgramSnapshots()
+    }
+
     // ─── Raw Data from Repository ─────────────────────────────────────────
 
     val program: StateFlow<Program?> = combine(
@@ -220,6 +231,34 @@ class ProgramDetailViewModel(
                 feedbacks.value = list
             } catch (_: Exception) {}
         }
+    }
+
+    fun estimatedTmProfile(): com.example.kpkn.data.models.PowerliftingProfile? {
+        val fromLogs = ProgramAutoregulationEngine.collectE1rmFromHistory(history.value)
+        val fromPrograms = listOfNotNull(program.value?.powerliftingProfile)
+        fun best(
+            slot: com.example.kpkn.data.protocols.LiftSlot,
+            fromProfile: (com.example.kpkn.data.models.PowerliftingProfile) -> Double?,
+        ): Double? {
+            val logged = fromLogs[slot]
+            val profileMax = fromPrograms.mapNotNull(fromProfile).maxOrNull()
+            return listOfNotNull(logged, profileMax).maxOrNull()?.takeIf { it > 0.0 }
+        }
+        val squat = best(com.example.kpkn.data.protocols.LiftSlot.SQUAT) { it.squat1RM ?: it.squatE1RM }
+        val bench = best(com.example.kpkn.data.protocols.LiftSlot.BENCH) { it.bench1RM ?: it.benchE1RM }
+        val deadlift = best(com.example.kpkn.data.protocols.LiftSlot.DEADLIFT) { it.deadlift1RM ?: it.deadliftE1RM }
+        val overhead = best(com.example.kpkn.data.protocols.LiftSlot.OVERHEAD) { it.overhead1RM ?: it.overheadE1RM }
+        if (squat == null && bench == null && deadlift == null && overhead == null) return null
+        return com.example.kpkn.data.models.PowerliftingProfile(
+            squat1RM = squat,
+            squatE1RM = squat,
+            bench1RM = bench,
+            benchE1RM = bench,
+            deadlift1RM = deadlift,
+            deadliftE1RM = deadlift,
+            overhead1RM = overhead,
+            overheadE1RM = overhead,
+        )
     }
 
     val muscleCdbsStatus: StateFlow<Map<String, MuscleOvertrainingStatus>> = combine(
@@ -541,14 +580,21 @@ class ProgramDetailViewModel(
         repository.updateProgram(updated)
     }
 
-    fun applyProgramTemplate(template: com.example.kpkn.data.programs.ProgramTemplateOption) {
+    fun applyProgramTemplate(
+        template: com.example.kpkn.data.programs.ProgramTemplateOption,
+        overwrite: Boolean = false,
+    ) {
         viewModelScope.launch {
             val current = program.value ?: return@launch
+            if (overwrite) {
+                pushProgramSnapshot(current, "Antes de \"${template.name}\"")
+            }
             val result = runCatching {
                 withContext(kotlinx.coroutines.Dispatchers.Default) {
                     com.example.kpkn.domain.training.ProgramTemplateEngine.applyTemplate(
                         current = current,
                         template = template,
+                        forceReplace = overwrite,
                     )
                 }
             }
@@ -560,6 +606,7 @@ class ProgramDetailViewModel(
                         updateProgram(applied.program)
                         selectFirstRoadmapPosition(applied.program)
                     }
+                    refreshProgramSnapshots(applied.program.id)
                     _uiState.update {
                         it.copy(
                             snackbarMessage = if (applied.createdCopy) {
@@ -604,6 +651,88 @@ class ProgramDetailViewModel(
 
     fun addProgramCopy(copy: Program) {
         repository.addProgram(ProgramCalendarEngine.materializeWeekDates(copy))
+    }
+
+    fun applyProtocolOverwrite(
+        protocol: com.example.kpkn.data.protocols.Protocol,
+        overwrite: Boolean = false,
+    ) {
+        viewModelScope.launch {
+            val current = program.value ?: return@launch
+            if (overwrite) {
+                pushProgramSnapshot(current, "Antes de \"${protocol.name}\"")
+            }
+            val result = runCatching {
+                withContext(kotlinx.coroutines.Dispatchers.Default) {
+                    if (overwrite) {
+                        com.example.kpkn.domain.training.ProgramProtocolEngine.applyProtocol(current, protocol)
+                    } else if (com.example.kpkn.domain.training.ProgramTemplateEngine.hasSessionContent(current)) {
+                        val base = current.copy(
+                            id = idProvider.newId(),
+                            name = "${current.name} · ${protocol.name}",
+                            isDraft = true,
+                        )
+                        com.example.kpkn.domain.training.ProgramProtocolEngine.applyProtocol(base, protocol)
+                    } else {
+                        com.example.kpkn.domain.training.ProgramProtocolEngine.applyProtocol(current, protocol)
+                    }
+                }
+            }
+            result.fold(
+                onSuccess = { applied ->
+                    if (!overwrite && applied.id != current.id) {
+                        addProgramCopy(applied)
+                        _uiState.update {
+                            it.copy(
+                                snackbarMessage = "Se creó una copia con el protocolo \"${protocol.name}\".",
+                                pendingOpenProgramId = applied.id,
+                            )
+                        }
+                    } else {
+                        updateProgram(applied)
+                        selectFirstRoadmapPosition(applied)
+                        refreshProgramSnapshots(applied.id)
+                        _uiState.update {
+                            it.copy(
+                                snackbarMessage = "Protocolo \"${protocol.name}\" aplicado. Reemplazó todo el programa.",
+                                pendingOpenProgramId = null,
+                            )
+                        }
+                    }
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(
+                            snackbarMessage = error.message?.takeIf { msg -> msg.isNotBlank() }
+                                ?: "No se pudo aplicar el protocolo. Intenta de nuevo.",
+                        )
+                    }
+                },
+            )
+        }
+    }
+
+    fun refreshProgramSnapshots(targetProgramId: String? = null) {
+        val store = snapshotStore ?: return
+        _programSnapshots.value = store.list(targetProgramId ?: programId)
+    }
+
+    fun restoreProgramSnapshot(snapshotId: String) {
+        viewModelScope.launch {
+            val current = program.value ?: return@launch
+            val store = snapshotStore ?: return@launch
+            val snapshot = withContext(kotlinx.coroutines.Dispatchers.Default) {
+                store.restore(current.id, snapshotId)
+            } ?: return@launch
+            updateProgram(snapshot)
+            selectFirstRoadmapPosition(snapshot)
+            _uiState.update { it.copy(snackbarMessage = "Copia previa restaurada.") }
+        }
+    }
+
+    private fun pushProgramSnapshot(current: Program, reason: String) {
+        val store = snapshotStore ?: return
+        _programSnapshots.value = store.push(current, reason)
     }
 
     fun markVolumeSetupPromptSeen() {

@@ -2,6 +2,7 @@ package com.example.kpkn.data.sessions
 
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.protocols.displayName
 import com.example.kpkn.data.splits.Difficulty
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.SplitTag
@@ -165,14 +166,22 @@ private val TEMPLATE_PERFORMANCE_PROFILE_BY_CONFIGURATION = mapOf(
  * System templates are authored with an explicit configuration id.  The old
  * implementation inferred the configuration from the visible name; that made
  * a renamed exercise silently select another machine, grip or laterality.
+ * (D2 del plan 2026-09-16: el nombre visible se deriva del id de
+ * configuración en publicación; el fixture ya no lleva nombres libres.)
  */
-private fun canonicalTemplateConfigurationId(exerciseDbId: String, @Suppress("UNUSED_PARAMETER") name: String): String =
+private fun canonicalTemplateConfigurationId(exerciseDbId: String): String =
     exerciseDbId.trim().also { require(it.isNotBlank()) { "Template configuration id cannot be blank" } }
 
-private fun canonicalTemplateExerciseName(
-    @Suppress("UNUSED_PARAMETER") configurationId: String,
-    rawName: String,
-): String = rawName.trim().ifBlank { configurationId.replace("__", " · ") }
+/**
+ * Nombre del fixture en memoria. OJO: ni CATALOG_CONFIGURATION_NAMES ni
+ * V3_CONFIGURATION_TOKEN_LABELS pueden resolverse durante la inicialización
+ * estática del propio fixture (NPE de lazy/field circular en
+ * SessionTemplates.kt:<clinit>): aquí NO se toca ninguna tabla. El nombre
+ * final derivado del catálogo lo asigna reconcilePublishedTemplateNames en
+ * publicación (~línea 4399), que sí corre con las tablas ya utilizables.
+ */
+private fun canonicalTemplateExerciseName(exerciseDbId: String): String =
+    exerciseDbId.trim().replace("__", " · ").replace("_", " ")
 
 internal fun systemTemplatePerformanceProfileId(configurationId: String): String =
     templatePerformanceProfileId(configurationId)
@@ -189,7 +198,6 @@ private fun templatePerformanceProfileId(configurationId: String): String =
 
 private fun ex(
     id: String,
-    name: String,
     exerciseDbId: String,
     sets: List<ExerciseSet>,
     restTime: Int? = 120,
@@ -197,8 +205,8 @@ private fun ex(
     _intensityMode: IntensityMode = IntensityMode.RPE,
     damageProfile: DamageProfile? = null,
 ): Exercise {
-    val canonicalConfigurationId = canonicalTemplateConfigurationId(exerciseDbId, name)
-    val canonicalName = canonicalTemplateExerciseName(canonicalConfigurationId, name)
+    val canonicalConfigurationId = canonicalTemplateConfigurationId(exerciseDbId)
+    val canonicalName = canonicalTemplateExerciseName(canonicalConfigurationId)
     return Exercise(
         id = id,
         name = canonicalName,
@@ -367,17 +375,17 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Push Day · PPL",
             parts = listOf(
                 part("p-push-1", "Pecho + Hombros", "#1B4965", listOf(
-                    ex("p1-ex1", "Press de Banca con Barra", "bench_press__barbell",
+                    ex("p1-ex1", "bench_press__barbell",
                         nSets("p1e1", 3, 8, 8.0), restTime = 150, damageProfile = DamageProfile.STRETCH),
-                    ex("p1-ex2", "Press de Banca con Mancuernas", "bench_press__dumbbells",
+                    ex("p1-ex2", "bench_press__dumbbells",
                         nSets("p1e2", 3, 10, 7.5), restTime = 120, damageProfile = DamageProfile.STRETCH),
-                    ex("p1-ex3", "Elevaciones Laterales de Pie", "standing_lateral_raise__cable",
+                    ex("p1-ex3", "standing_lateral_raise__cable",
                         sets = nSets("p1e3", 4, 12, 8.5), restTime = 75),
-                    ex("p1-ex4", "Aperturas en Máquina Pec Deck", "flat_chest_fly__machine",
+                    ex("p1-ex4", "flat_chest_fly__machine",
                         nSets("p1e4", 2, 12, 8.0), restTime = 90, damageProfile = DamageProfile.SQUEEZE),
                 )),
                 part("p-push-2", "Tríceps", "#1F3A2E", listOf(
-                    ex("p3-ex1", "Extensión de Tríceps en Polea Alta", "triceps_pushdown__bilateral__cable",
+                    ex("p3-ex1", "triceps_pushdown__bilateral__cable",
                         nSets("p3e1", 4, 12, 8.5), restTime = 90),
                 )),
             ),
@@ -417,17 +425,17 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Pull Day · PPL",
             parts = listOf(
                 part("p-pull-1", "Tirón principal", "#0F3D5E", listOf(
-                    ex("pu1-ex1", "Jalón Neutro en Polea", "lat_pulldown__bilateral__cable",
+                    ex("pu1-ex1", "lat_pulldown__bilateral__cable",
                         nSets("pu1e1", 4, 10, 7.5), restTime = 120),
-                    ex("pu1-ex2", "Remo con Pecho Apoyado con Mancuernas", "chest_supported_row__dumbbells__medium",
+                    ex("pu1-ex2", "chest_supported_row__dumbbells__medium",
                         nSets("pu1e2", 2, 8, 7.5), restTime = 150),
-                    ex("pu1-ex3", "Curl Predicador con Barra EZ", "preacher_curl__barbell",
+                    ex("pu1-ex3", "preacher_curl__barbell",
                         nSets("pu1e3", 2, 10, 8.5), restTime = 90, damageProfile = DamageProfile.STRETCH),
-                    ex("pu1-ex4", "Face Pull en Polea", "deltoides_face_pull__default",
+                    ex("pu1-ex4", "deltoides_face_pull__default",
                         nSets("pu1e4", 4, 15, 8.0), restTime = 90),
-                    ex("pu1-ex5", "Pullover en Polea Alta", "lying_pullover__dumbbells",
+                    ex("pu1-ex5", "lying_pullover__dumbbells",
                         nSets("pu1e5", 2, 12, 8.0), restTime = 90),
-                    ex("pu1-ex6", "Curl Martillo de Pie con Mancuernas", "standing_biceps_curl__barbell",
+                    ex("pu1-ex6", "standing_biceps_curl__barbell",
                         nSets("pu1e6", 2, 12, 8.0), restTime = 90),
                 )),
             ),
@@ -466,19 +474,19 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Leg Day · Cuádriceps",
             parts = listOf(
                 part("p-lq-1", "Compuestos", "#7F1D1D", listOf(
-                    ex("lq1-ex1", "Sentadilla Trasera Barra Alta con Barra Recta", "high_bar_back_squat__barbell",
+                    ex("lq1-ex1", "high_bar_back_squat__barbell",
                         nSets("lq1e1", 3, 6, 8.0), restTime = 180, damageProfile = DamageProfile.STRETCH),
-                    ex("lq1-ex2", "Peso Muerto Rumano con Barra Recta", "romanian_deadlift__bilateral__barbell",
+                    ex("lq1-ex2", "romanian_deadlift__bilateral__barbell",
                         nSets("lq1e2", 2, 8, 8.0), restTime = 150, damageProfile = DamageProfile.STRETCH),
                 )),
                 part("p-lq-2", "Aislamientos", "#1E3A8A", listOf(
-                    ex("lq2-ex1", "Extensión de Cuádriceps en Máquina", "quads_extension_cuadriceps__machine__bilateral",
+                    ex("lq2-ex1", "quads_extension_cuadriceps__machine__bilateral",
                         nSets("lq2e1", 2, 12, 8.5), restTime = 90, damageProfile = DamageProfile.SQUEEZE),
-                    ex("lq2-ex2", "Curl Femoral Sentado en Máquina", "curl_isquios_con_sliders__default",
+                    ex("lq2-ex2", "curl_isquios_con_sliders__default",
                         nSets("lq2e2", 2, 12, 8.5), restTime = 90, damageProfile = DamageProfile.STRETCH),
-                    ex("lq2-ex3", "Aducción de Cadera Sentado en Máquina", "hip_adduction__seated__machine__bilateral",
+                    ex("lq2-ex3", "hip_adduction__seated__machine__bilateral",
                         nSets("lq2e3", 4, 12, 8.5), restTime = 75),
-                    ex("lq2-ex4", "Elevación de Talones de Pie en Máquina", "calf_raise__bilateral__machine",
+                    ex("lq2-ex4", "calf_raise__bilateral__machine",
                         nSets("lq2e4", 4, 15, 8.5), restTime = 60),
                 )),
             ),
@@ -517,19 +525,19 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Leg Day · Isquios",
             parts = listOf(
                 part("p-lh-1", "Compuestos", "#244B3C", listOf(
-                    ex("lh1-ex1", "Peso Muerto Rumano con Barra Recta", "romanian_deadlift__bilateral__barbell",
+                    ex("lh1-ex1", "romanian_deadlift__bilateral__barbell",
                         nSets("lh1e1", 3, 8, 8.0), restTime = 150, damageProfile = DamageProfile.STRETCH),
-                    ex("lh1-ex2", "Prensa de Piernas a 45º en Máquina", "quads_prensa_piernas__bilateral",
+                    ex("lh1-ex2", "quads_prensa_piernas__bilateral",
                         nSets("lh1e2", 3, 10, 7.0), restTime = 120),
-                    ex("lh1-ex3", "Hip Thrust con Barra Recta", "hip_thrust__bilateral__barbell",
+                    ex("lh1-ex3", "hip_thrust__bilateral__barbell",
                         nSets("lh1e3", 2, 10, 8.0), restTime = 120, damageProfile = DamageProfile.SQUEEZE),
                 )),
                 part("p-lh-2", "Aislamientos", "#1B4965", listOf(
-                    ex("lh2-ex1", "Curl Femoral de Pie en Máquina", "curl_isquios_con_sliders__default",
+                    ex("lh2-ex1", "curl_isquios_con_sliders__default",
                         nSets("lh2e1", 2, 10, 8.5), restTime = 90, damageProfile = DamageProfile.STRETCH),
-                    ex("lh2-ex2", "Aducción de Cadera Sentado en Máquina", "hip_adduction__seated__machine__bilateral",
+                    ex("lh2-ex2", "hip_adduction__seated__machine__bilateral",
                         nSets("lh2e2", 4, 12, 8.5), restTime = 75),
-                    ex("lh2-ex3", "Elevación de Talones de Pie en Máquina", "calf_raise__bilateral__machine",
+                    ex("lh2-ex3", "calf_raise__bilateral__machine",
                         nSets("lh2e3", 3, 15, 8.5), restTime = 60),
                 )),
             ),
@@ -568,21 +576,21 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Torso A",
             parts = listOf(
                 part("p-ua-1", "Pecho + Espalda", "#1B4965", listOf(
-                    ex("ua1-ex1", "Press de Banca con Mancuernas", "bench_press__dumbbells",
+                    ex("ua1-ex1", "bench_press__dumbbells",
                         nSets("ua1e1", 3, 8, 8.0), restTime = 150, damageProfile = DamageProfile.STRETCH),
-                    ex("ua1-ex2", "Remo en Máquina", "conventional_row__machine",
+                    ex("ua1-ex2", "conventional_row__machine",
                         nSets("ua1e2", 2, 8, 7.5), restTime = 120),
-                    ex("ua1-ex3", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente__default",
+                    ex("ua1-ex3", "tren_superior_press_pecho_maquina_convergente__default",
                         nSets("ua1e3", 2, 10, 7.5), restTime = 120),
-                    ex("ua1-ex4", "Jalón al Pecho en Polea (Agarre Ancho)", "lat_pulldown__bilateral__cable",
+                    ex("ua1-ex4", "lat_pulldown__bilateral__cable",
                         nSets("ua1e4", 2, 10, 7.5), restTime = 90),
                 )),
                 part("p-ua-2", "Hombros + Brazos", "#5B2A86", listOf(
-                    ex("ua2-ex2", "Elevaciones Laterales Sentado en Máquina", "seated_lateral_raise__machine",
+                    ex("ua2-ex2", "seated_lateral_raise__machine",
                         nSets("ua2e2", 3, 12, 8.5), restTime = 60),
-                    ex("ua2-ex3", "Curl de Bíceps de Pie con Mancuernas", "standing_biceps_curl__barbell",
+                    ex("ua2-ex3", "standing_biceps_curl__barbell",
                         nSets("ua2e3", 3, 10, 8.5), restTime = 75, damageProfile = DamageProfile.STRETCH),
-                    ex("ua2-ex4", "Patada de Tríceps en Polea", "triceps_patada__dumbbells__bilateral",
+                    ex("ua2-ex4", "triceps_patada__dumbbells__bilateral",
                         nSets("ua2e4", 3, 12, 8.5), restTime = 75),
                 )),
             ),
@@ -616,21 +624,21 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Full Body · Base",
             parts = listOf(
                 part("p-fb-1", "Pierna", "#7F1D1D", listOf(
-                    ex("fb1-ex1", "Sentadilla Copa con Mancuerna (Goblet Squat)", "quads_sentadilla_copa__default",
+                    ex("fb1-ex1", "quads_sentadilla_copa__default",
                         nSets("fb1e1", 3, 8, 7.0), restTime = 150),
-                    ex("fb1-ex2", "Hip Thrust en Máquina", "hip_thrust__bilateral__barbell",
+                    ex("fb1-ex2", "hip_thrust__bilateral__barbell",
                         nSets("fb1e2", 3, 10, 7.5), restTime = 120),
                 )),
                 part("p-fb-2", "Empuje", "#1B4965", listOf(
-                    ex("fb2-ex1", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente__default",
+                    ex("fb2-ex1", "tren_superior_press_pecho_maquina_convergente__default",
                         nSets("fb2e1", 2, 8, 7.0), restTime = 120, damageProfile = DamageProfile.STRETCH),
-                    ex("fb2-ex2", "Aperturas en Máquina Pec Deck", "flat_chest_fly__machine",
+                    ex("fb2-ex2", "flat_chest_fly__machine",
                         nSets("fb2e2", 2, 12, 7.5), restTime = 75),
                 )),
                 part("p-fb-3", "Tirón", "#244B3C", listOf(
-                    ex("fb3-ex1", "Jalón al Pecho en Máquina (Agarre Ancho)", "lat_pulldown__bilateral__machine",
+                    ex("fb3-ex1", "lat_pulldown__bilateral__machine",
                         nSets("fb3e1", 3, 8, 7.0), restTime = 120),
-                    ex("fb3-ex2", "Curl Predicador en Máquina", "preacher_curl__barbell",
+                    ex("fb3-ex2", "preacher_curl__barbell",
                         nSets("fb3e2", 3, 12, 7.5), restTime = 75),
                 )),
             ),
@@ -666,21 +674,21 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "SBD Powerlifting",
             parts = listOf(
                 part("p-sbd-1", "Sentadilla", "#7F1D1D", listOf(
-                    ex("sbd1-ex1", "Sentadilla Trasera Barra Alta con Barra Recta", "high_bar_back_squat__barbell",
+                    ex("sbd1-ex1", "high_bar_back_squat__barbell",
                         nSets("sbd1e1", 3, 3, 8.0), restTime = 210),
-                    ex("sbd1-ex2", "Sentadilla Frontal con Barra Recta", "front_squat__barbell",
+                    ex("sbd1-ex2", "front_squat__barbell",
                         nSets("sbd1e2", 2, 5, 7.0), restTime = 180),
                 )),
                 part("p-sbd-2", "Banca", "#1B4965", listOf(
-                    ex("sbd2-ex1", "Press de Banca con Barra", "bench_press__barbell",
+                    ex("sbd2-ex1", "bench_press__barbell",
                         nSets("sbd2e1", 3, 3, 8.0), restTime = 210),
-                    ex("sbd2-ex2", "Floor Press con Barra", "floor_press__barbell",
+                    ex("sbd2-ex2", "floor_press__barbell",
                         nSets("sbd2e2", 2, 5, 7.0), restTime = 150),
                 )),
                 part("p-sbd-3", "Peso Muerto", "#244B3C", listOf(
-                    ex("sbd3-ex1", "Peso Muerto Convencional con Barra Recta", "conventional_deadlift__bilateral__barbell",
+                    ex("sbd3-ex1", "conventional_deadlift__bilateral__barbell",
                         nSets("sbd3e1", 2, 3, 8.0), restTime = 240),
-                    ex("sbd3-ex2", "Peso Muerto Sumo con Barra Recta", "sumo_deadlift__barbell",
+                    ex("sbd3-ex2", "sumo_deadlift__barbell",
                         nSets("sbd3e2", 2, 6, 7.0), restTime = 150),
                 )),
             ),
@@ -713,13 +721,13 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             id = "tpl-minimalist",
             name = "Minimalista · Fuerza",
             exercises = listOf(
-                ex("min-ex1", "Sentadilla Trasera Barra Alta con Barra Recta", "high_bar_back_squat__barbell",
+                ex("min-ex1", "high_bar_back_squat__barbell",
                     nSets("mine1", 4, 5, 8.0), restTime = 180),
-                ex("min-ex2", "Press de Banca con Mancuernas", "bench_press__dumbbells",
+                ex("min-ex2", "bench_press__dumbbells",
                     nSets("mine2", 3, 5, 8.0), restTime = 150),
-                ex("min-ex3", "Peso Muerto Convencional con Barra Recta", "conventional_deadlift__bilateral__barbell",
+                ex("min-ex3", "conventional_deadlift__bilateral__barbell",
                     nSets("mine3", 3, 5, 8.0), restTime = 180),
-                ex("min-ex4", "Dominadas Pronas", "pull_up__pronated__medium",
+                ex("min-ex4", "pull_up__pronated__medium",
                     nSets("mine4", 3, 6, 7.5), restTime = 120),
             ),
         ),
@@ -756,17 +764,17 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Pecho Day",
             parts = listOf(
                 part("p-ch-1", "Pecho principal", "#1B4965", listOf(
-                    ex("ch1-ex1", "Press de Banca con Barra", "bench_press__barbell",
+                    ex("ch1-ex1", "bench_press__barbell",
                         nSets("ch1e1", 3, 8, 8.0), restTime = 150, damageProfile = DamageProfile.STRETCH),
-                    ex("ch1-ex2", "Press de Hombros Sentado en Máquina", "seated_shoulder_press__barbell",
+                    ex("ch1-ex2", "seated_shoulder_press__barbell",
                         nSets("ch1e2", 4, 10, 7.5), restTime = 90),
-                    ex("ch1-ex3", "Aperturas Planas con Mancuernas", "flat_chest_fly__dumbbells",
+                    ex("ch1-ex3", "flat_chest_fly__dumbbells",
                         nSets("ch1e3", 3, 12, 8.0), restTime = 90, damageProfile = DamageProfile.STRETCH),
-                    ex("ch1-ex4", "Cruce de Poleas en Polea Alta", "tren_superior_cruce_poleas__high",
+                    ex("ch1-ex4", "tren_superior_cruce_poleas__high",
                         nSets("ch1e4", 2, 12, 8.5), restTime = 90, damageProfile = DamageProfile.SQUEEZE),
                 )),
                 part("p-ch-2", "Tríceps", "#4A1942", listOf(
-                    ex("ch2-ex1", "Extensión de Tríceps Overhead en Polea", "overhead_triceps__barbell",
+                    ex("ch2-ex1", "overhead_triceps__barbell",
                         nSets("ch2e1", 4, 12, 8.5), restTime = 75),
                 )),
             ),
@@ -807,21 +815,21 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Legs Day · Completo",
             parts = listOf(
                 part("p-lc-1", "Compuestos", "#7F1D1D", listOf(
-                    ex("lc1-ex1", "Sentadilla Trasera Barra Alta con Barra Recta", "high_bar_back_squat__barbell",
+                    ex("lc1-ex1", "high_bar_back_squat__barbell",
                         nSets("lc1e1", 2, 6, 8.0), restTime = 180, damageProfile = DamageProfile.STRETCH),
-                    ex("lc1-ex2", "Peso Muerto Rumano Estilo Sumo con Barra Recta", "romanian_deadlift__bilateral__barbell",
+                    ex("lc1-ex2", "romanian_deadlift__bilateral__barbell",
                         nSets("lc1e2", 2, 8, 8.0), restTime = 150, damageProfile = DamageProfile.STRETCH),
-                    ex("lc1-ex3", "Prensa de Piernas Horizontal en Máquina", "quads_prensa_piernas__bilateral",
+                    ex("lc1-ex3", "quads_prensa_piernas__bilateral",
                         nSets("lc1e3", 2, 10, 7.5), restTime = 120),
                 )),
                 part("p-lc-2", "Aislamientos", "#244B3C", listOf(
-                    ex("lc2-ex1", "Curl Femoral Tumbado en Máquina", "curl_isquios_con_sliders__default",
+                    ex("lc2-ex1", "curl_isquios_con_sliders__default",
                         nSets("lc2e1", 2, 12, 8.5), restTime = 90),
-                    ex("lc2-ex2", "Extensión de Cuádriceps en Máquina", "quads_extension_cuadriceps__machine__bilateral",
+                    ex("lc2-ex2", "quads_extension_cuadriceps__machine__bilateral",
                         nSets("lc2e2", 2, 12, 8.5), restTime = 90),
-                    ex("lc2-ex3", "Aducción de Cadera Sentado en Máquina", "hip_adduction__seated__machine__bilateral",
+                    ex("lc2-ex3", "hip_adduction__seated__machine__bilateral",
                         nSets("lc2e3", 4, 12, 8.0), restTime = 75),
-                    ex("lc2-ex4", "Elevación de Talones Sentado en Máquina", "calf_raise__bilateral__machine",
+                    ex("lc2-ex4", "calf_raise__bilateral__machine",
                         nSets("lc2e4", 4, 15, 8.0), restTime = 60),
                 )),
             ),
@@ -860,15 +868,15 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Pecho / Espalda",
             parts = listOf(
                 part("p-cba-1", "Antagonistas", "#1B4965", listOf(
-                    ex("cba1-ex1", "Press de Banca con Barra", "bench_press__barbell",
+                    ex("cba1-ex1", "bench_press__barbell",
                         nSets("cba1e1", 3, 8, 8.0), restTime = 120),
-                    ex("cba1-ex2", "Remo Pendlay con Barra Recta", "pendlay_row__barbell",
+                    ex("cba1-ex2", "pendlay_row__barbell",
                         nSets("cba1e2", 3, 8, 8.0), restTime = 120),
-                    ex("cba1-ex4", "Remo en Polea", "conventional_row__cable",
+                    ex("cba1-ex4", "conventional_row__cable",
                         nSets("cba1e4", 4, 12, 7.5), restTime = 90),
-                    ex("cba1-ex5", "Pullover en Polea Alta", "lying_pullover__dumbbells",
+                    ex("cba1-ex5", "lying_pullover__dumbbells",
                         nSets("cba1e5", 2, 12, 8.0), restTime = 90),
-                    ex("cba1-ex6", "Aperturas Planas con Mancuernas", "flat_chest_fly__dumbbells",
+                    ex("cba1-ex6", "flat_chest_fly__dumbbells",
                         nSets("cba1e6", 2, 12, 8.5), restTime = 90),
                 )),
             ),
@@ -903,19 +911,19 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Hombro / Brazo",
             parts = listOf(
                 part("p-saa-1", "Hombros", "#4A1942", listOf(
-                    ex("saa1-ex1", "Press de Hombros Sentado con Barra Recta", "seated_shoulder_press__barbell",
+                    ex("saa1-ex1", "seated_shoulder_press__barbell",
                         nSets("saa1e1", 4, 10, 7.5), restTime = 120),
                 )),
                 part("p-saa-2", "Brazos", "#5B2A86", listOf(
-                    ex("saa2-ex1", "Curl Bayesian", "biceps_curl_bayesian__dumbbells__supinated",
+                    ex("saa2-ex1", "biceps_curl_bayesian__dumbbells__supinated",
                         nSets("saa2e1", 4, 10, 8.5), restTime = 75),
-                    ex("saa2-ex2", "Extensión de Tríceps Overhead con Barra EZ", "overhead_triceps__barbell",
+                    ex("saa2-ex2", "overhead_triceps__barbell",
                         nSets("saa2e2", 3, 12, 8.5), restTime = 75),
-                    ex("saa2-ex3", "Curl Concentrado con Mancuernas", "concentration_curl__dumbbells",
+                    ex("saa2-ex3", "concentration_curl__dumbbells",
                         nSets("saa2e3", 3, 12, 8.5), restTime = 60),
-                    ex("saa2-ex4", "Patada de Tríceps con Mancuerna", "triceps_patada__dumbbells__bilateral",
+                    ex("saa2-ex4", "triceps_patada__dumbbells__bilateral",
                         nSets("saa2e4", 3, 12, 8.5), restTime = 75),
-                    ex("saa2-ex5", "Elevaciones Laterales de Pie con Mancuernas", "standing_lateral_raise__dumbbells",
+                    ex("saa2-ex5", "standing_lateral_raise__dumbbells",
                         nSets("saa2e5", 3, 15, 8.0), restTime = 60),
                 )),
             ),
@@ -949,15 +957,15 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Hombros / Abs",
             parts = listOf(
                 part("p-sag-1", "Hombros", "#4A1942", listOf(
-                    ex("sag1-ex1", "Press de Hombros Sentado en Máquina", "seated_shoulder_press__barbell",
+                    ex("sag1-ex1", "seated_shoulder_press__barbell",
                         nSets("sag1e1", 3, 10, 7.0), restTime = 120),
-                    ex("sag1-ex2", "Elevaciones Laterales de Pie en Máquina", "seated_lateral_raise__machine",
+                    ex("sag1-ex2", "seated_lateral_raise__machine",
                         nSets("sag1e2", 3, 15, 7.5), restTime = 60),
                 )),
                 part("p-sag-2", "Core", "#1B4965", listOf(
-                    ex("sag2-ex1", "Press Pallof en Polea", "core_press_pallof__default",
+                    ex("sag2-ex1", "core_press_pallof__default",
                         nSets("sag2e1", 3, 12, 7.0), restTime = 60),
-                    ex("sag2-ex2", "Plancha Frontal Isométrica", "core_plancha__default",
+                    ex("sag2-ex2", "core_plancha__default",
                         nSets("sag2e2", 3, 30, 7.0), restTime = 60),
                 )),
             ),
@@ -993,15 +1001,15 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Glúteo / Isquios",
             parts = listOf(
                 part("p-ghs-1", "Cadena Posterior Base", "#244B3C", listOf(
-                    ex("ghs1-ex1", "Hip Thrust con Barra Recta", "hip_thrust__bilateral__barbell",
+                    ex("ghs1-ex1", "hip_thrust__bilateral__barbell",
                         nSets("ghs1e1", 4, 10, 8.0), restTime = 120),
-                    ex("ghs1-ex2", "Peso Muerto Rumano Estilo Sumo con Mancuernas", "romanian_deadlift__bilateral__barbell",
+                    ex("ghs1-ex2", "romanian_deadlift__bilateral__barbell",
                         nSets("ghs1e2", 4, 8, 8.0), restTime = 120),
                 )),
                 part("p-ghs-2", "Aislamiento y Bombeo", "#4A1942", listOf(
-                    ex("ghs2-ex1", "Curl Femoral Sentado en Máquina", "curl_isquios_con_sliders__default",
+                    ex("ghs2-ex1", "curl_isquios_con_sliders__default",
                         nSets("ghs2e1", 4, 12, 8.5), restTime = 90),
-                    ex("ghs2-ex2", "Abducción de Cadera de Pie en Polea", "hip_abduction__standing__cable__unilateral",
+                    ex("ghs2-ex2", "hip_abduction__standing__cable__unilateral",
                         nSets("ghs2e2", 4, 15, 8.5), restTime = 75),
                 )),
             ),
@@ -1040,15 +1048,15 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Glúteo Pump",
             parts = listOf(
                 part("p-gp-1", "Activación y Rango", "#4A1942", listOf(
-                    ex("gp1-ex1", "Hip Thrust Unilateral con Mancuerna", "hip_thrust__bilateral__barbell",
+                    ex("gp1-ex1", "hip_thrust__bilateral__barbell",
                         nSets("gp1e1", 3, 12, 8.0), restTime = 120),
-                    ex("gp1-ex2", "Curl Femoral Sentado en Máquina", "curl_isquios_con_sliders__default",
+                    ex("gp1-ex2", "curl_isquios_con_sliders__default",
                         nSets("gp1e2", 4, 12, 8.0), restTime = 90),
                 )),
                 part("p-gp-2", "Aislamiento Estético", "#5B2A86", listOf(
-                    ex("gp2-ex1", "Patada de Glúteo en Polea", "glutes_patada_gluteo__cable",
+                    ex("gp2-ex1", "glutes_patada_gluteo__cable",
                         nSets("gp2e1", 2, 15, 8.5), restTime = 75),
-                    ex("gp2-ex2", "Elevación de Talones Burro (Donkey Calf Raise) en Máquina", "calf_raise__bilateral__machine",
+                    ex("gp2-ex2", "calf_raise__bilateral__machine",
                         nSets("gp2e2", 4, 15, 8.5), restTime = 60),
                 )),
             ),
@@ -1083,17 +1091,17 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Torso Liviano",
             parts = listOf(
                 part("p-ulg-1", "Empuje y Tirón", "#1B4965", listOf(
-                    ex("ulg1-ex1", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente__default",
+                    ex("ulg1-ex1", "tren_superior_press_pecho_maquina_convergente__default",
                         nSets("ulg1e1", 4, 10, 6.5), restTime = 120),
-                    ex("ulg1-ex2", "Jalón al Pecho en Máquina (Agarre Cerrado)", "lat_pulldown__bilateral__machine",
+                    ex("ulg1-ex2", "lat_pulldown__bilateral__machine",
                         nSets("ulg1e2", 4, 10, 7.0), restTime = 90),
                 )),
                 part("p-ulg-2", "Accesorios Estéticos", "#4A1942", listOf(
-                    ex("ulg2-ex1", "Elevaciones Laterales Sentado con Mancuernas", "seated_lateral_raise__machine",
+                    ex("ulg2-ex1", "seated_lateral_raise__machine",
                         nSets("ulg2e1", 4, 12, 7.5), restTime = 60),
-                    ex("ulg2-ex2", "Curl Predicador en Máquina", "preacher_curl__barbell",
+                    ex("ulg2-ex2", "preacher_curl__barbell",
                         nSets("ulg2e2", 4, 12, 7.5), restTime = 60),
-                    ex("ulg2-ex3", "Extensión de Tríceps Overhead en Máquina", "overhead_triceps__machine",
+                    ex("ulg2-ex3", "overhead_triceps__machine",
                         nSets("ulg2e3", 3, 12, 7.5), restTime = 60),
                 )),
             ),
@@ -1127,15 +1135,15 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Banca Volumen",
             parts = listOf(
                 part("p-bvp-1", "Banca Principal", "#1B4965", listOf(
-                    ex("bvp1-ex1", "Press de Banca con Barra", "bench_press__barbell",
+                    ex("bvp1-ex1", "bench_press__barbell",
                         nSets("bvp1e1", 5, 5, 8.0), restTime = 180),
                 )),
                 part("p-bvp-2", "Accesorios y Tracciones", "#244B3C", listOf(
-                    ex("bvp2-ex1", "Remo Seal con Mancuernas", "seal_row__dumbbells",
+                    ex("bvp2-ex1", "seal_row__dumbbells",
                         nSets("bvp2e1", 4, 10, 8.0), restTime = 90),
-                    ex("bvp2-ex2", "Fondos en Paralelas", "tren_superior_fondos__default",
+                    ex("bvp2-ex2", "tren_superior_fondos__default",
                         nSets("bvp2e2", 3, 10, 7.5), restTime = 90),
-                    ex("bvp2-ex3", "Encogimientos de Hombros con Mancuernas", "back_encogimientos__dumbbells",
+                    ex("bvp2-ex3", "back_encogimientos__dumbbells",
                         nSets("bvp2e3", 4, 12, 8.0), restTime = 60),
                 )),
             ),
@@ -1170,13 +1178,13 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Sentadilla / Banca",
             parts = listOf(
                 part("p-sbp-1", "Sentadilla & Banca", "#7F1D1D", listOf(
-                    ex("sbp1-ex1", "Sentadilla Trasera Barra Alta con Barra Recta", "high_bar_back_squat__barbell",
+                    ex("sbp1-ex1", "high_bar_back_squat__barbell",
                         nSets("sbp1e1", 4, 5, 8.0), restTime = 180),
-                    ex("sbp1-ex2", "Press de Banca con Barra", "bench_press__barbell",
+                    ex("sbp1-ex2", "bench_press__barbell",
                         nSets("sbp1e2", 4, 5, 8.0), restTime = 180),
                 )),
                 part("p-sbp-2", "Espalda Accesoria", "#244B3C", listOf(
-                    ex("sbp2-ex1", "Remo en Barra T", "t_bar_row__t_bar__medium",
+                    ex("sbp2-ex1", "t_bar_row__t_bar__medium",
                         nSets("sbp2e1", 4, 10, 7.5), restTime = 120),
                 )),
             ),
@@ -1210,13 +1218,13 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Peso Muerto",
             parts = listOf(
                 part("p-dlp-1", "Peso Muerto", "#244B3C", listOf(
-                    ex("dlp1-ex1", "Peso Muerto Convencional con Barra Recta", "conventional_deadlift__bilateral__barbell",
+                    ex("dlp1-ex1", "conventional_deadlift__bilateral__barbell",
                         nSets("dlp1e1", 4, 5, 8.0), restTime = 210),
                 )),
                 part("p-dlp-2", "Accesorios", "#1B4965", listOf(
-                    ex("dlp2-ex1", "Press de Banca con Mancuernas", "bench_press__dumbbells",
+                    ex("dlp2-ex1", "bench_press__dumbbells",
                         nSets("dlp2e1", 4, 8, 7.5), restTime = 120),
-                    ex("dlp2-ex2", "Dominadas Neutras", "pull_up__pronated__medium",
+                    ex("dlp2-ex2", "pull_up__pronated__medium",
                         nSets("dlp2e2", 4, 8, 7.5), restTime = 120),
                 )),
             ),
@@ -1249,11 +1257,11 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             id = "tpl-t1-squat-gzcl",
             name = "T1 Sentadilla · GZCL",
             exercises = listOf(
-                ex("gzs-ex1", "Sentadilla Trasera Barra Alta con Barra Recta", "high_bar_back_squat__barbell",
+                ex("gzs-ex1", "high_bar_back_squat__barbell",
                     nSets("gzse1", 4, 3, 8.5), restTime = 180),
-                ex("gzs-ex2", "Peso Muerto Rumano con Barra Recta", "romanian_deadlift__bilateral__barbell",
+                ex("gzs-ex2", "romanian_deadlift__bilateral__barbell",
                     nSets("gzse2", 4, 8, 7.5), restTime = 120),
-                ex("gzs-ex3", "Remo Gironda", "gironda_row__medium",
+                ex("gzs-ex3", "gironda_row__medium",
                     nSets("gzse3", 4, 12, 8.0), restTime = 75),
             ),
         ),
@@ -1285,11 +1293,11 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             id = "tpl-t1-bench-gzcl",
             name = "T1 Banca · GZCL",
             exercises = listOf(
-                ex("gzb-ex1", "Press de Banca con Barra", "bench_press__barbell",
+                ex("gzb-ex1", "bench_press__barbell",
                     nSets("gzbe1", 4, 3, 8.5), restTime = 180),
-                ex("gzb-ex2", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente__default",
+                ex("gzb-ex2", "tren_superior_press_pecho_maquina_convergente__default",
                     nSets("gzbe2", 4, 8, 7.5), restTime = 120),
-                ex("gzb-ex3", "Jalón Neutro en Polea", "lat_pulldown__bilateral__cable",
+                ex("gzb-ex3", "lat_pulldown__bilateral__cable",
                     nSets("gzbe3", 4, 12, 8.0), restTime = 75),
             ),
         ),
@@ -1321,11 +1329,11 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             id = "tpl-t1-deadlift-gzcl",
             name = "T1 Peso Muerto · GZCL",
             exercises = listOf(
-                ex("gzd-ex1", "Peso Muerto Convencional con Barra Recta", "conventional_deadlift__bilateral__barbell",
+                ex("gzd-ex1", "conventional_deadlift__bilateral__barbell",
                     nSets("gzde1", 4, 3, 8.5), restTime = 210),
-                ex("gzd-ex2", "Sentadilla Frontal con Barra Recta", "front_squat__barbell",
+                ex("gzd-ex2", "front_squat__barbell",
                     nSets("gzde2", 4, 8, 7.0), restTime = 150),
-                ex("gzd-ex3", "Extensión Lumbar en Máquina", "back_extension_lumbar__default",
+                ex("gzd-ex3", "back_extension_lumbar__default",
                     nSets("gzde3", 4, 12, 7.5), restTime = 75),
             ),
         ),
@@ -1357,11 +1365,11 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             id = "tpl-t1-military-gzcl",
             name = "T1 Militar · GZCL",
             exercises = listOf(
-                ex("gzm-ex1", "Press Militar de Pie con Barra Recta", "military_press__barbell",
+                ex("gzm-ex1", "military_press__barbell",
                     nSets("gzme1", 4, 3, 8.5), restTime = 180),
-                ex("gzm-ex2", "Floor Press con Mancuernas", "floor_press__dumbbells",
+                ex("gzm-ex2", "floor_press__dumbbells",
                     nSets("gzme2", 4, 8, 7.5), restTime = 120),
-                ex("gzm-ex3", "Elevaciones Laterales de Pie", "standing_lateral_raise__cable",
+                ex("gzm-ex3", "standing_lateral_raise__cable",
                     sets = nSets("gzme3", 4, 12, 8.5), restTime = 60),
             ),
         ),
@@ -1399,15 +1407,15 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Cadena Anterior",
             parts = listOf(
                 part("p-aca-1", "Empujes Pierna + Torso", "#7F1D1D", listOf(
-                    ex("aca1-ex1", "Sentadilla en Máquina Hack", "quads_sentadilla_hack__machine",
+                    ex("aca1-ex1", "quads_sentadilla_hack__machine",
                         nSets("aca1e1", 2, 8, 8.0), restTime = 150),
-                    ex("aca1-ex2", "Press de Banca con Mancuernas", "bench_press__dumbbells",
+                    ex("aca1-ex2", "bench_press__dumbbells",
                         nSets("aca1e2", 3, 8, 8.0), restTime = 120),
-                    ex("aca1-ex3", "Prensa de Piernas a 45º en Máquina", "quads_prensa_piernas__bilateral",
+                    ex("aca1-ex3", "quads_prensa_piernas__bilateral",
                         nSets("aca1e3", 4, 10, 7.5), restTime = 120),
-                    ex("aca1-ex4", "Press de Hombros Sentado en Máquina", "seated_shoulder_press__barbell",
+                    ex("aca1-ex4", "seated_shoulder_press__barbell",
                         nSets("aca1e4", 4, 10, 7.5), restTime = 90),
-                    ex("aca1-ex5", "Aperturas en Máquina Pec Deck", "flat_chest_fly__machine",
+                    ex("aca1-ex5", "flat_chest_fly__machine",
                         nSets("aca1e5", 3, 12, 8.0), restTime = 75),
                 )),
             ),
@@ -1446,19 +1454,19 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
             name = "Cadena Posterior",
             parts = listOf(
                 part("p-pca-1", "Cadena Posterior Pesada", "#244B3C", listOf(
-                    ex("pca1-ex1", "Peso Muerto Convencional con Barra Recta", "conventional_deadlift__bilateral__barbell",
+                    ex("pca1-ex1", "conventional_deadlift__bilateral__barbell",
                         nSets("pca1e1", 3, 5, 8.0), restTime = 180),
-                    ex("pca1-ex2", "Remo Pendlay con Barra Recta", "pendlay_row__barbell",
+                    ex("pca1-ex2", "pendlay_row__barbell",
                         nSets("pca1e2", 3, 8, 8.0), restTime = 120),
-                    ex("pca1-ex3", "Hip Thrust con Barra Recta", "hip_thrust__bilateral__barbell",
+                    ex("pca1-ex3", "hip_thrust__bilateral__barbell",
                         nSets("pca1e3", 3, 10, 8.0), restTime = 120),
                 )),
                 part("p-pca-2", "Aislamiento y Tracción", "#0F3D5E", listOf(
-                    ex("pca2-ex1", "Jalón Neutro en Polea", "lat_pulldown__bilateral__cable",
+                    ex("pca2-ex1", "lat_pulldown__bilateral__cable",
                         nSets("pca2e1", 2, 10, 7.5), restTime = 120),
-                    ex("pca2-ex2", "Curl Femoral Sentado en Máquina", "curl_isquios_con_sliders__default",
+                    ex("pca2-ex2", "curl_isquios_con_sliders__default",
                         nSets("pca2e2", 2, 12, 8.5), restTime = 75),
-                    ex("pca2-ex3", "Face Pull en Polea", "deltoides_face_pull__default",
+                    ex("pca2-ex3", "deltoides_face_pull__default",
                         nSets("pca2e3", 4, 12, 8.5), restTime = 75),
                 )),
             ),
@@ -1874,11 +1882,11 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Pantorrillas · Enfoque",
             parts = listOf(
                 part("p-cal-1", "Gemelos y cobertura", "#1F3A2E", listOf(
-                    ex("cal1-ex1", "Elevación de Talones de Pie en Máquina", "calf_raise__bilateral__machine",
+                    ex("cal1-ex1", "calf_raise__bilateral__machine",
                         nSets("cale1", 3, 12, 8.5), restTime = 75),
-                    ex("cal1-ex2", "Tibial Anterior", "calves_tibial_anterior__default",
+                    ex("cal1-ex2", "calves_tibial_anterior__default",
                         nSets("cale2", 3, 15, 8.0), restTime = 60),
-                    ex("cal1-ex3", "Press Pallof en Polea", "core_press_pallof__default",
+                    ex("cal1-ex3", "core_press_pallof__default",
                         nSets("cale3", 3, 12, 7.5), restTime = 60),
                 )),
             ),
@@ -1906,15 +1914,15 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Core · Abdomen",
             parts = listOf(
                 part("p-core-1", "Anti-rotación", "#1B4965", listOf(
-                    ex("co1-ex1", "Press Pallof en Polea", "core_press_pallof__default",
+                    ex("co1-ex1", "core_press_pallof__default",
                         nSets("coe1", 3, 12, 7.5), restTime = 60),
-                    ex("co1-ex2", "Leñador en Polea (Woodchopper) de Alta a Baja", "core_lenador_polea__default",
+                    ex("co1-ex2", "core_lenador_polea__default",
                         nSets("coe2", 3, 10, 8.0), restTime = 60),
                 )),
                 part("p-core-2", "Flexión y control", "#4A1942", listOf(
-                    ex("co2-ex1", "Crunch Abdominal en Máquina", "core_crunch_maquina__default",
+                    ex("co2-ex1", "core_crunch_maquina__default",
                         nSets("coe3", 3, 12, 8.0), restTime = 60),
-                    ex("co2-ex2", "Elevación de Piernas Colgado en Barra", "core_elevacion_piernas__default",
+                    ex("co2-ex2", "core_elevacion_piernas__default",
                         nSets("coe4", 3, 10, 8.0), restTime = 75),
                 )),
             ),
@@ -1942,11 +1950,11 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Antebrazos · Grip",
             parts = listOf(
                 part("p-fa-1", "Muñeca y cobertura", "#5B2A86", listOf(
-                    ex("fa1-ex1", "Curl de Muñeca Sentado con Barra Recta", "forearms_curl_muneca_sentado__barbell",
+                    ex("fa1-ex1", "forearms_curl_muneca_sentado__barbell",
                         nSets("fae1", 3, 15, 8.0), restTime = 60),
-                    ex("fa1-ex2", "Face Pull en Polea", "deltoides_face_pull__default",
+                    ex("fa1-ex2", "deltoides_face_pull__default",
                         nSets("fae2", 3, 15, 7.5), restTime = 60),
-                    ex("fa1-ex3", "Curl Predicador en Máquina", "preacher_curl__machine",
+                    ex("fa1-ex3", "preacher_curl__machine",
                         nSets("fae3", 3, 12, 8.0), restTime = 60),
                 )),
             ),
@@ -1974,11 +1982,11 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Aductores · Enfoque",
             parts = listOf(
                 part("p-ad-1", "Cadera y cobertura", "#7F1D1D", listOf(
-                    ex("ad1-ex1", "Prensa de Piernas Horizontal en Máquina", "quads_prensa_piernas__bilateral",
+                    ex("ad1-ex1", "quads_prensa_piernas__bilateral",
                         nSets("ade1", 3, 10, 7.5), restTime = 120),
-                    ex("ad1-ex2", "Aducción de Cadera Sentado en Máquina", "hip_adduction__seated__machine__bilateral",
+                    ex("ad1-ex2", "hip_adduction__seated__machine__bilateral",
                         nSets("ade2", 3, 12, 8.5), restTime = 75),
-                    ex("ad1-ex3", "Press Pallof en Polea", "core_press_pallof__default",
+                    ex("ad1-ex3", "core_press_pallof__default",
                         nSets("ade3", 3, 12, 7.5), restTime = 60),
                 )),
             ),
@@ -2006,17 +2014,17 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Push · Principiante",
             parts = listOf(
                 part("p-pb-1", "Pecho + Hombros", "#1B4965", listOf(
-                    ex("pb1-ex1", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente__default",
+                    ex("pb1-ex1", "tren_superior_press_pecho_maquina_convergente__default",
                         nSets("pbe1", 2, 10, 7.0), restTime = 120),
-                    ex("pb1-ex2", "Press de Hombros Sentado en Máquina", "seated_shoulder_press__barbell",
+                    ex("pb1-ex2", "seated_shoulder_press__barbell",
                         nSets("pbe2", 2, 10, 7.0), restTime = 90),
-                    ex("pb1-ex3", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente__default",
+                    ex("pb1-ex3", "bench_press__machine",
                         nSets("pbe3", 2, 12, 7.0), restTime = 90),
-                    ex("pb1-ex4", "Elevaciones Laterales Sentado en Máquina", "seated_lateral_raise__machine",
+                    ex("pb1-ex4", "seated_lateral_raise__machine",
                         nSets("pbe4", 2, 12, 7.5), restTime = 60),
-                    ex("pb1-ex5", "Aperturas en Máquina Pec Deck", "flat_chest_fly__machine",
+                    ex("pb1-ex5", "flat_chest_fly__machine",
                         nSets("pbe5", 2, 12, 7.5), restTime = 75),
-                    ex("pb1-ex6", "Extensión de Tríceps Overhead en Máquina", "overhead_triceps__machine",
+                    ex("pb1-ex6", "overhead_triceps__machine",
                         nSets("pbe6", 2, 12, 7.5), restTime = 75),
                 )),
             ),
@@ -2044,15 +2052,15 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Push · Avanzado",
             parts = listOf(
                 part("p-pa-1", "Empuje", "#1B4965", listOf(
-                    ex("pa1-ex1", "Press de Banca con Barra", "bench_press__barbell",
+                    ex("pa1-ex1", "bench_press__barbell",
                         nSets("pae1", 3, 6, 8.5), restTime = 180),
-                    ex("pa1-ex2", "Press de Hombros Sentado en Máquina", "seated_shoulder_press__barbell",
+                    ex("pa1-ex2", "seated_shoulder_press__barbell",
                         nSets("pae2", 2, 8, 7.5), restTime = 120),
-                    ex("pa1-ex4", "Elevaciones Laterales Super ROM con Mancuernas", "lateral_raise_super_rom__dumbbells",
+                    ex("pa1-ex4", "lateral_raise_super_rom__dumbbells",
                         nSets("pae4", 2, 12, 8.0), restTime = 60),
-                    ex("pa1-ex5", "Aperturas Inclinadas con Mancuernas", "incline_chest_fly__dumbbells",
+                    ex("pa1-ex5", "incline_chest_fly__dumbbells",
                         nSets("pae5", 2, 12, 8.0), restTime = 90),
-                    ex("pa1-ex6", "Extensión de Tríceps Overhead con Mancuerna", "overhead_triceps__barbell",
+                    ex("pa1-ex6", "overhead_triceps__barbell",
                         nSets("pae6", 2, 10, 8.0), restTime = 75),
                 )),
             ),
@@ -2080,16 +2088,16 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Pull · Principiante",
             parts = listOf(
                 part("p-plb-1", "Tirón guiado", "#0F3D5E", listOf(
-                    ex("plb1-ex1", "Jalón al Pecho en Máquina (Agarre Ancho)", "lat_pulldown__bilateral__machine",
+                    ex("plb1-ex1", "lat_pulldown__bilateral__machine",
                         nSets("plbe1", 2, 10, 7.0), restTime = 120),
-                    ex("plb1-ex2", "Remo en Máquina", "conventional_row__machine",
+                    ex("plb1-ex2", "conventional_row__machine",
                         nSets("plbe2", 2, 10, 7.0), restTime = 90),
-                    ex("plb1-ex3", "Curl Predicador en Máquina", "preacher_curl__barbell",
+                    ex("plb1-ex3", "preacher_curl__barbell",
                         nSets("plbe3", 2, 12, 7.5), restTime = 75),
-                    ex("plb1-ex4", "Pullover en Máquina", "lying_pullover__dumbbells",
+                    ex("plb1-ex4", "lying_pullover__dumbbells",
                         nSets("plbe4", 2, 12, 7.5), restTime = 75),
-                    ex("plb1-ex5", "Curl Martillo Predicador con Mancuernas", "preacher_curl__barbell",
-                        nSets("plbe5", 2, 12, 7.5), restTime = 60),
+                    ex("plb1-ex5", "standing_biceps_curl__dumbbells",
+                        nSets("plbe5", 2, 10, 7.5), restTime = 60),
                 )),
             ),
         ),
@@ -2116,17 +2124,17 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Pull · Avanzado",
             parts = listOf(
                 part("p-pla-1", "Tirón", "#0F3D5E", listOf(
-                    ex("pla1-ex1", "Dominadas Pronas", "pull_up__pronated__medium",
+                    ex("pla1-ex1", "pull_up__pronated__medium",
                         nSets("plae1", 2, 6, 8.5), restTime = 150),
-                    ex("pla1-ex2", "Remo Pendlay con Barra Recta", "pendlay_row__barbell",
+                    ex("pla1-ex2", "pendlay_row__barbell",
                         nSets("plae2", 2, 6, 8.5), restTime = 150),
-                    ex("pla1-ex3", "Curl Bayesian con Mancuernas", "biceps_curl_bayesian__dumbbells__supinated",
+                    ex("pla1-ex3", "biceps_curl_bayesian__dumbbells__supinated",
                         nSets("plae3", 2, 10, 8.5), restTime = 75),
-                    ex("pla1-ex4", "Remo en Polea", "conventional_row__cable",
+                    ex("pla1-ex4", "conventional_row__cable",
                         nSets("plae4", 2, 10, 8.0), restTime = 90),
-                    ex("pla1-ex5", "Face Pull en Polea", "deltoides_face_pull__default",
+                    ex("pla1-ex5", "deltoides_face_pull__default",
                         nSets("plae5", 2, 15, 8.0), restTime = 75),
-                    ex("pla1-ex6", "Pullover en Polea Alta", "lying_pullover__dumbbells",
+                    ex("pla1-ex6", "lying_pullover__dumbbells",
                         nSets("plae6", 2, 12, 8.5), restTime = 75),
                 )),
             ),
@@ -2156,17 +2164,17 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Legs · Principiante",
             parts = listOf(
                 part("p-lb-1", "Máquinas", "#7F1D1D", listOf(
-                    ex("lb1-ex1", "Prensa de Piernas a 45º en Máquina", "quads_prensa_piernas__bilateral",
+                    ex("lb1-ex1", "quads_prensa_piernas__bilateral",
                         nSets("lbe1", 2, 12, 7.0), restTime = 120),
-                    ex("lb1-ex2", "Hip Thrust en Máquina", "hip_thrust__bilateral__barbell",
+                    ex("lb1-ex2", "hip_thrust__bilateral__barbell",
                         nSets("lbe2", 2, 10, 7.5), restTime = 90),
-                    ex("lb1-ex3", "Extensión de Cuádriceps en Máquina", "quads_extension_cuadriceps__machine__bilateral",
+                    ex("lb1-ex3", "quads_extension_cuadriceps__machine__bilateral",
                         nSets("lbe3", 2, 12, 7.5), restTime = 75),
-                    ex("lb1-ex4", "Curl Femoral Sentado en Máquina", "curl_isquios_con_sliders__default",
+                    ex("lb1-ex4", "curl_isquios_con_sliders__default",
                         nSets("lbe4", 2, 12, 7.5), restTime = 75),
-                    ex("lb1-ex5", "Aducción de Cadera Sentado en Máquina", "hip_adduction__seated__machine__bilateral",
+                    ex("lb1-ex5", "hip_adduction__seated__machine__bilateral",
                         nSets("lbe5", 2, 12, 7.5), restTime = 75),
-                    ex("lb1-ex6", "Elevación de Talones de Pie en Máquina", "calf_raise__bilateral__machine",
+                    ex("lb1-ex6", "calf_raise__bilateral__machine",
                         nSets("lbe6", 2, 15, 7.5), restTime = 60),
                 )),
             ),
@@ -2194,21 +2202,21 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Legs · Avanzado",
             parts = listOf(
                 part("p-la-1", "Compuestos", "#7F1D1D", listOf(
-                    ex("la1-ex1", "Sentadilla Trasera Barra Alta con Barra Recta", "high_bar_back_squat__barbell",
+                    ex("la1-ex1", "high_bar_back_squat__barbell",
                         nSets("lae1", 3, 5, 8.5), restTime = 180),
-                    ex("la1-ex2", "Peso Muerto Rumano con Barra Recta", "romanian_deadlift__bilateral__barbell",
+                    ex("la1-ex2", "romanian_deadlift__bilateral__barbell",
                         nSets("lae2", 2, 8, 8.5), restTime = 150),
-                    ex("la1-ex3", "Sentadilla Búlgara Frontal con Mancuernas", "bulgarian_split_squat__dumbbells",
+                    ex("la1-ex3", "bulgarian_split_squat__dumbbells",
                         nSets("lae3", 2, 8, 7.5), restTime = 120),
                 )),
                 part("p-la-2", "Aislamientos", "#244B3C", listOf(
-                    ex("la2-ex1", "Curl Femoral Tumbado en Máquina", "curl_isquios_con_sliders__default",
+                    ex("la2-ex1", "curl_isquios_con_sliders__default",
                         nSets("lae4", 2, 10, 8.5), restTime = 90),
-                    ex("la2-ex2", "Extensión de Cuádriceps Unilateral en Máquina", "quads_extension_cuadriceps__machine__bilateral",
+                    ex("la2-ex2", "quads_extension_cuadriceps__machine__bilateral",
                         nSets("lae5", 2, 12, 8.5), restTime = 75),
-                    ex("la2-ex3", "Aducción de Cadera Sentado en Máquina", "hip_adduction__seated__machine__bilateral",
+                    ex("la2-ex3", "hip_adduction__seated__machine__bilateral",
                         nSets("lae6", 1, 12, 8.5), restTime = 75),
-                    ex("la2-ex4", "Elevación de Talones de Pie Unilateral en Máquina", "calf_raise__bilateral__machine",
+                    ex("la2-ex4", "calf_raise__bilateral__machine",
                         nSets("lae7", 2, 12, 8.5), restTime = 60),
                 )),
             ),
@@ -2232,21 +2240,21 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Full Body · Avanzado",
             parts = listOf(
                 part("p-fba-1", "Pierna", "#7F1D1D", listOf(
-                    ex("fba1-ex1", "Sentadilla Frontal con Barra Recta", "front_squat__barbell",
+                    ex("fba1-ex1", "front_squat__barbell",
                         nSets("fbae1", 3, 5, 8.0), restTime = 180),
-                    ex("fba1-ex2", "Peso Muerto Rumano con Barra Recta", "romanian_deadlift__bilateral__barbell",
+                    ex("fba1-ex2", "romanian_deadlift__bilateral__barbell",
                         nSets("fbae2", 3, 6, 8.0), restTime = 150),
                 )),
                 part("p-fba-2", "Empuje", "#1B4965", listOf(
-                    ex("fba2-ex1", "Press de Banca con Barra", "bench_press__barbell",
+                    ex("fba2-ex1", "bench_press__barbell",
                         nSets("fbae3", 3, 5, 8.0), restTime = 150),
-                    ex("fba2-ex2", "Press Militar con Mancuernas", "military_press__dumbbells",
+                    ex("fba2-ex2", "military_press__dumbbells",
                         nSets("fbae4", 2, 8, 7.5), restTime = 90),
                 )),
                 part("p-fba-3", "Tirón", "#244B3C", listOf(
-                    ex("fba3-ex1", "Dominadas Pronas", "pull_up__pronated__medium",
+                    ex("fba3-ex1", "pull_up__pronated__medium",
                         nSets("fbae5", 3, 6, 8.0), restTime = 120),
-                    ex("fba3-ex2", "Remo Seal con Barra Recta", "seal_row__barbell",
+                    ex("fba3-ex2", "seal_row__barbell",
                         nSets("fbae6", 3, 8, 8.0), restTime = 90),
                 )),
             ),
@@ -2274,19 +2282,19 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Torso · Principiante",
             parts = listOf(
                 part("p-ub-1", "Empuje / tirón", "#1B4965", listOf(
-                    ex("ub1-ex1", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente__default",
+                    ex("ub1-ex1", "tren_superior_press_pecho_maquina_convergente__default",
                         nSets("ube1", 2, 10, 7.0), restTime = 120),
-                    ex("ub1-ex2", "Remo en Máquina", "conventional_row__machine",
+                    ex("ub1-ex2", "conventional_row__machine",
                         nSets("ube2", 2, 10, 7.0), restTime = 90),
-                    ex("ub1-ex4", "Jalón al Pecho en Máquina (Agarre Cerrado)", "lat_pulldown__bilateral__machine",
+                    ex("ub1-ex4", "lat_pulldown__bilateral__machine",
                         nSets("ube4", 2, 12, 7.0), restTime = 90),
                 )),
                 part("p-ub-2", "Accesorios", "#5B2A86", listOf(
-                    ex("ub2-ex1", "Elevaciones Laterales de Pie en Máquina", "seated_lateral_raise__machine",
+                    ex("ub2-ex1", "seated_lateral_raise__machine",
                         nSets("ube5", 2, 12, 7.5), restTime = 60),
-                    ex("ub2-ex2", "Curl Predicador en Máquina", "preacher_curl__barbell",
+                    ex("ub2-ex2", "preacher_curl__barbell",
                         nSets("ube6", 2, 12, 7.5), restTime = 60),
-                    ex("ub2-ex3", "Extensión de Tríceps Overhead en Máquina", "overhead_triceps__machine",
+                    ex("ub2-ex3", "overhead_triceps__machine",
                         nSets("ube7", 2, 12, 7.5), restTime = 60),
                 )),
             ),
@@ -2318,13 +2326,13 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Legs · Cuádriceps Short",
             parts = listOf(
                 part("p-lqs-1", "Short lower", "#7F1D1D", listOf(
-                    ex("lqs1-ex1", "Prensa de Piernas Horizontal en Máquina", "quads_prensa_piernas__bilateral",
+                    ex("lqs1-ex1", "quads_prensa_piernas__bilateral",
                         nSets("lqse1", 2, 10, 7.5), restTime = 120),
-                    ex("lqs1-ex2", "Peso Muerto Rumano con Barra Recta", "romanian_deadlift__bilateral__barbell",
+                    ex("lqs1-ex2", "romanian_deadlift__bilateral__barbell",
                         nSets("lqse2", 2, 8, 8.0), restTime = 120),
-                    ex("lqs1-ex3", "Extensión de Cuádriceps en Máquina", "quads_extension_cuadriceps__machine__bilateral",
+                    ex("lqs1-ex3", "quads_extension_cuadriceps__machine__bilateral",
                         nSets("lqse3", 2, 12, 8.5), restTime = 75),
-                    ex("lqs1-ex4", "Curl Femoral Sentado en Máquina", "curl_isquios_con_sliders__default",
+                    ex("lqs1-ex4", "curl_isquios_con_sliders__default",
                         nSets("lqse4", 2, 12, 8.5), restTime = 75),
                 )),
             ),
@@ -2354,15 +2362,15 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Legs · Glúteos Short",
             parts = listOf(
                 part("p-lgs-1", "Short glute", "#4A1942", listOf(
-                    ex("lgs1-ex1", "Hip Thrust con Barra Recta", "hip_thrust__bilateral__barbell",
+                    ex("lgs1-ex1", "hip_thrust__bilateral__barbell",
                         nSets("lgse1", 2, 10, 8.0), restTime = 120),
-                    ex("lgs1-ex2", "Peso Muerto Rumano con Barra Recta", "romanian_deadlift__bilateral__barbell",
+                    ex("lgs1-ex2", "romanian_deadlift__bilateral__barbell",
                         nSets("lgse2", 2, 8, 8.0), restTime = 120),
-                    ex("lgs1-ex3", "Patada de Glúteo en Polea", "glutes_patada_gluteo__cable",
+                    ex("lgs1-ex3", "glutes_patada_gluteo__cable",
                         nSets("lgse3", 2, 15, 8.5), restTime = 75),
-                    ex("lgs1-ex4", "Curl Femoral Tumbado en Máquina", "curl_isquios_con_sliders__default",
+                    ex("lgs1-ex4", "curl_isquios_con_sliders__default",
                         nSets("lgse4", 2, 12, 8.5), restTime = 75),
-                    ex("lgs1-ex5", "Elevación de Talones Sentado en Máquina", "calf_raise__bilateral__machine",
+                    ex("lgs1-ex5", "calf_raise__bilateral__machine",
                         nSets("lgse5", 2, 15, 8.5), restTime = 60),
                 )),
             ),
@@ -2392,13 +2400,13 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Legs · Isquios Short",
             parts = listOf(
                 part("p-lhs-1", "Short hams", "#244B3C", listOf(
-                    ex("lhs1-ex1", "Peso Muerto Rumano con Barra Recta", "romanian_deadlift__bilateral__barbell",
+                    ex("lhs1-ex1", "romanian_deadlift__bilateral__barbell",
                         nSets("lhse1", 2, 8, 8.0), restTime = 150),
-                    ex("lhs1-ex2", "Hip Thrust en Máquina", "hip_thrust__bilateral__barbell",
+                    ex("lhs1-ex2", "hip_thrust__bilateral__barbell",
                         nSets("lhse2", 2, 10, 8.0), restTime = 120),
-                    ex("lhs1-ex3", "Curl Femoral de Pie en Máquina", "curl_isquios_con_sliders__default",
+                    ex("lhs1-ex3", "curl_isquios_con_sliders__default",
                         nSets("lhse3", 2, 10, 8.5), restTime = 90),
-                    ex("lhs1-ex4", "Elevación de Talones de Pie en Máquina", "calf_raise__bilateral__machine",
+                    ex("lhs1-ex4", "calf_raise__bilateral__machine",
                         nSets("lhse4", 2, 15, 8.5), restTime = 60),
                 )),
             ),
@@ -2428,19 +2436,19 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Leg Day · Glúteos",
             parts = listOf(
                 part("p-lg-1", "Compuestos glúteo", "#4A1942", listOf(
-                    ex("lg1-ex1", "Hip Thrust con Barra Recta", "hip_thrust__bilateral__barbell",
+                    ex("lg1-ex1", "hip_thrust__bilateral__barbell",
                         nSets("lge1", 3, 10, 8.0), restTime = 120),
-                    ex("lg1-ex2", "Peso Muerto Rumano con Barra Recta", "romanian_deadlift__bilateral__barbell",
+                    ex("lg1-ex2", "romanian_deadlift__bilateral__barbell",
                         nSets("lge2", 2, 8, 8.0), restTime = 150),
                 )),
                 part("p-lg-2", "Aislamientos", "#244B3C", listOf(
-                    ex("lg2-ex1", "Patada de Glúteo en Polea", "glutes_patada_gluteo__cable",
+                    ex("lg2-ex1", "glutes_patada_gluteo__cable",
                         nSets("lge3", 2, 12, 8.5), restTime = 75),
-                    ex("lg2-ex2", "Curl Femoral Sentado en Máquina", "curl_isquios_con_sliders__default",
+                    ex("lg2-ex2", "curl_isquios_con_sliders__default",
                         nSets("lge4", 2, 12, 8.5), restTime = 90),
-                    ex("lg2-ex3", "Aducción de Cadera Sentado en Máquina", "hip_adduction__seated__machine__bilateral",
+                    ex("lg2-ex3", "hip_adduction__seated__machine__bilateral",
                         nSets("lge5", 1, 12, 8.0), restTime = 75),
-                    ex("lg2-ex4", "Elevación de Talones de Pie en Máquina", "calf_raise__bilateral__machine",
+                    ex("lg2-ex4", "calf_raise__bilateral__machine",
                         nSets("lge6", 2, 15, 8.5), restTime = 60),
                 )),
             ),
@@ -2470,15 +2478,15 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Pecho · Principiante",
             parts = listOf(
                 part("p-ucb-1", "Pecho máquina", "#1B4965", listOf(
-                    ex("ucb1-ex1", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente__default",
+                    ex("ucb1-ex1", "tren_superior_press_pecho_maquina_convergente__default",
                         nSets("ucbe1", 2, 10, 7.0), restTime = 120),
-                    ex("ucb1-ex2", "Press de Pecho en Máquina Convergente", "tren_superior_press_pecho_maquina_convergente__default",
+                    ex("ucb1-ex2", "tren_superior_fondos__default",
                         nSets("ucbe2", 2, 12, 7.0), restTime = 90),
-                    ex("ucb1-ex3", "Elevaciones Laterales Sentado en Máquina", "seated_lateral_raise__machine",
+                    ex("ucb1-ex3", "standing_lateral_raise__machine",
                         nSets("ucbe3", 2, 12, 7.5), restTime = 60),
-                    ex("ucb1-ex4", "Aperturas en Máquina Pec Deck", "flat_chest_fly__machine",
+                    ex("ucb1-ex4", "flat_chest_fly__machine",
                         nSets("ucbe4", 2, 12, 7.5), restTime = 75),
-                    ex("ucb1-ex5", "Extensión de Tríceps Overhead en Máquina", "overhead_triceps__machine",
+                    ex("ucb1-ex5", "overhead_triceps__machine",
                         nSets("ucbe5", 2, 12, 7.5), restTime = 75),
                 )),
             ),
@@ -2508,13 +2516,13 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Pecho · Intermedio",
             parts = listOf(
                 part("p-uci-1", "Pecho", "#1B4965", listOf(
-                    ex("uci1-ex1", "Press de Banca con Barra", "bench_press__barbell",
+                    ex("uci1-ex1", "bench_press__barbell",
                         nSets("ucie1", 2, 8, 8.0), restTime = 150),
-                    ex("uci1-ex2", "Press de Hombros Sentado en Máquina", "seated_shoulder_press__barbell",
+                    ex("uci1-ex2", "seated_shoulder_press__barbell",
                         nSets("ucie2", 2, 10, 7.5), restTime = 90),
-                    ex("uci1-ex4", "Cruce de Poleas en Polea Alta", "tren_superior_cruce_poleas__high",
+                    ex("uci1-ex4", "tren_superior_cruce_poleas__high",
                         nSets("ucie4", 2, 12, 8.5), restTime = 90),
-                    ex("uci1-ex5", "Extensión de Tríceps Overhead en Polea", "overhead_triceps__barbell",
+                    ex("uci1-ex5", "overhead_triceps__barbell",
                         nSets("ucie5", 2, 12, 8.5), restTime = 75),
                 )),
             ),
@@ -2544,15 +2552,15 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Pecho · Avanzado",
             parts = listOf(
                 part("p-uca-1", "Pecho avanzado", "#1B4965", listOf(
-                    ex("uca1-ex1", "Press de Banca con Barra", "bench_press__barbell",
+                    ex("uca1-ex1", "bench_press__barbell",
                         nSets("ucae1", 3, 6, 8.5), restTime = 180),
-                    ex("uca1-ex2", "Press de Banca con Mancuernas", "bench_press__dumbbells",
+                    ex("uca1-ex2", "bench_press__dumbbells",
                         nSets("ucae2", 2, 8, 8.5), restTime = 120),
-                    ex("uca1-ex3", "Elevaciones Laterales de Pie con Mancuernas", "standing_lateral_raise__dumbbells",
+                    ex("uca1-ex3", "standing_lateral_raise__dumbbells",
                         nSets("ucae3", 2, 15, 8.0), restTime = 60),
-                    ex("uca1-ex4", "Aperturas Inclinadas con Mancuernas", "incline_chest_fly__dumbbells",
+                    ex("uca1-ex4", "incline_chest_fly__dumbbells",
                         nSets("ucae4", 2, 12, 8.0), restTime = 90),
-                    ex("uca1-ex5", "Patada de Tríceps en Polea", "triceps_patada__dumbbells__bilateral",
+                    ex("uca1-ex5", "triceps_patada__dumbbells__bilateral",
                         nSets("ucae5", 2, 12, 8.5), restTime = 75),
                 )),
             ),
@@ -2582,15 +2590,15 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Espalda · Principiante",
             parts = listOf(
                 part("p-ubb-1", "Tirón máquina", "#0F3D5E", listOf(
-                    ex("ubb1-ex1", "Jalón al Pecho en Máquina (Agarre Cerrado)", "lat_pulldown__bilateral__machine",
+                    ex("ubb1-ex1", "lat_pulldown__bilateral__machine",
                         nSets("ubbe1", 2, 10, 7.0), restTime = 120),
-                    ex("ubb1-ex2", "Remo en Máquina", "conventional_row__machine",
+                    ex("ubb1-ex2", "conventional_row__machine",
                         nSets("ubbe2", 2, 10, 7.0), restTime = 90),
-                    ex("ubb1-ex3", "Curl Predicador en Máquina", "preacher_curl__barbell",
+                    ex("ubb1-ex3", "preacher_curl__barbell",
                         nSets("ubbe3", 2, 12, 7.5), restTime = 75),
-                    ex("ubb1-ex4", "Pullover en Máquina", "lying_pullover__dumbbells",
+                    ex("ubb1-ex4", "lying_pullover__dumbbells",
                         nSets("ubbe4", 2, 12, 7.5), restTime = 75),
-                    ex("ubb1-ex5", "Face Pull en Polea", "deltoides_face_pull__default",
+                    ex("ubb1-ex5", "deltoides_face_pull__default",
                         nSets("ubbe5", 2, 15, 7.5), restTime = 60),
                 )),
             ),
@@ -2620,15 +2628,15 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Espalda · Intermedio",
             parts = listOf(
                 part("p-ubi-1", "Espalda", "#0F3D5E", listOf(
-                    ex("ubi1-ex1", "Jalón Neutro en Polea", "lat_pulldown__bilateral__cable",
+                    ex("ubi1-ex1", "lat_pulldown__bilateral__cable",
                         nSets("ubie1", 2, 10, 7.5), restTime = 120),
-                    ex("ubi1-ex2", "Remo en Máquina", "conventional_row__machine",
+                    ex("ubi1-ex2", "conventional_row__machine",
                         nSets("ubie2", 2, 10, 7.5), restTime = 90),
-                    ex("ubi1-ex3", "Curl de Bíceps de Pie con Mancuernas", "standing_biceps_curl__barbell",
+                    ex("ubi1-ex3", "standing_biceps_curl__barbell",
                         nSets("ubie3", 2, 10, 8.5), restTime = 75),
-                    ex("ubi1-ex4", "Pullover en Polea Alta", "lying_pullover__dumbbells",
+                    ex("ubi1-ex4", "lying_pullover__dumbbells",
                         nSets("ubie4", 2, 12, 8.0), restTime = 90),
-                    ex("ubi1-ex5", "Face Pull en Polea", "deltoides_face_pull__default",
+                    ex("ubi1-ex5", "deltoides_face_pull__default",
                         nSets("ubie5", 2, 15, 8.0), restTime = 75),
                 )),
             ),
@@ -2658,15 +2666,15 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Espalda · Avanzado",
             parts = listOf(
                 part("p-uba-1", "Espalda avanzada", "#0F3D5E", listOf(
-                    ex("uba1-ex1", "Dominadas Pronas", "pull_up__pronated__medium",
+                    ex("uba1-ex1", "pull_up__pronated__medium",
                         nSets("ubae1", 2, 6, 8.5), restTime = 150),
-                    ex("uba1-ex2", "Remo Seal con Mancuernas", "seal_row__dumbbells",
+                    ex("uba1-ex2", "seal_row__dumbbells",
                         nSets("ubae2", 2, 8, 8.5), restTime = 120),
-                    ex("uba1-ex3", "Curl Martillo de Pie con Mancuernas", "standing_biceps_curl__barbell",
+                    ex("uba1-ex3", "standing_biceps_curl__barbell",
                         nSets("ubae3", 2, 12, 8.5), restTime = 75),
-                    ex("uba1-ex4", "Remo en Polea", "conventional_row__cable",
+                    ex("uba1-ex4", "conventional_row__cable",
                         nSets("ubae4", 2, 10, 8.0), restTime = 90),
-                    ex("uba1-ex5", "Pullover en Polea Alta", "lying_pullover__dumbbells",
+                    ex("uba1-ex5", "lying_pullover__dumbbells",
                         nSets("ubae5", 2, 12, 8.5), restTime = 75),
                 )),
             ),
@@ -2696,11 +2704,11 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Hombros · Principiante",
             parts = listOf(
                 part("p-udb-1", "Delts máquina", "#4A1942", listOf(
-                    ex("udb1-ex1", "Press de Hombros Sentado en Máquina", "seated_shoulder_press__barbell",
+                    ex("udb1-ex1", "seated_shoulder_press__barbell",
                         nSets("udbe1", 2, 10, 7.0), restTime = 120),
-                    ex("udb1-ex2", "Elevaciones Laterales de Pie en Máquina", "seated_lateral_raise__machine",
+                    ex("udb1-ex2", "seated_lateral_raise__machine",
                         nSets("udbe2", 2, 12, 7.5), restTime = 60),
-                    ex("udb1-ex3", "Extensión de Tríceps Overhead en Máquina", "overhead_triceps__machine",
+                    ex("udb1-ex3", "overhead_triceps__machine",
                         nSets("udbe3", 2, 12, 7.5), restTime = 75),
                 )),
             ),
@@ -2730,15 +2738,15 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Hombros · Intermedio",
             parts = listOf(
                 part("p-udi-1", "Delts", "#4A1942", listOf(
-                    ex("udi1-ex1", "Press de Hombros Sentado con Barra Recta", "seated_shoulder_press__barbell",
+                    ex("udi1-ex1", "seated_shoulder_press__barbell",
                         nSets("udie1", 2, 8, 7.5), restTime = 120),
-                    ex("udi1-ex2", "Elevaciones Laterales de Pie", "standing_lateral_raise__cable",
+                    ex("udi1-ex2", "standing_lateral_raise__cable",
                         sets = nSets("udie2", 2, 12, 8.5), restTime = 60),
-                    ex("udi1-ex3", "Extensión de Tríceps en Polea Alta", "triceps_pushdown__bilateral__cable",
+                    ex("udi1-ex3", "triceps_pushdown__bilateral__cable",
                         nSets("udie3", 2, 12, 8.5), restTime = 75),
-                    ex("udi1-ex4", "Face Pull en Polea", "deltoides_face_pull__default",
+                    ex("udi1-ex4", "deltoides_face_pull__default",
                         nSets("udie4", 2, 15, 8.0), restTime = 75),
-                    ex("udi1-ex5", "Patada de Tríceps en Polea", "triceps_patada__dumbbells__bilateral",
+                    ex("udi1-ex5", "triceps_patada__dumbbells__bilateral",
                         nSets("udie5", 2, 12, 8.0), restTime = 60),
                 )),
             ),
@@ -2768,15 +2776,15 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Hombros · Avanzado",
             parts = listOf(
                 part("p-uda-1", "Delts avanzado", "#4A1942", listOf(
-                    ex("uda1-ex1", "Press Militar de Pie con Barra Recta", "military_press__barbell",
+                    ex("uda1-ex1", "military_press__barbell",
                         nSets("udae1", 3, 5, 8.5), restTime = 150),
-                    ex("uda1-ex2", "Elevaciones Laterales Super ROM con Mancuernas", "lateral_raise_super_rom__dumbbells",
+                    ex("uda1-ex2", "lateral_raise_super_rom__dumbbells",
                         nSets("udae2", 2, 12, 8.0), restTime = 60),
-                    ex("uda1-ex3", "Extensión de Tríceps Overhead con Mancuerna", "overhead_triceps__barbell",
+                    ex("uda1-ex3", "overhead_triceps__barbell",
                         nSets("udae3", 2, 10, 8.0), restTime = 75),
-                    ex("uda1-ex4", "Face Pull en Polea", "deltoides_face_pull__default",
+                    ex("uda1-ex4", "deltoides_face_pull__default",
                         nSets("udae4", 2, 15, 8.0), restTime = 75),
-                    ex("uda1-ex5", "Patada de Tríceps en Polea", "triceps_patada__dumbbells__bilateral",
+                    ex("uda1-ex5", "triceps_patada__dumbbells__bilateral",
                         nSets("udae5", 2, 12, 8.0), restTime = 60),
                 )),
             ),
@@ -2806,13 +2814,13 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Brazos · Principiante",
             parts = listOf(
                 part("p-uab-1", "Brazos máquina", "#5B2A86", listOf(
-                    ex("uab1-ex1", "Curl Predicador en Máquina", "preacher_curl__barbell",
+                    ex("uab1-ex1", "preacher_curl__barbell",
                         nSets("uabe1", 2, 12, 7.5), restTime = 75),
-                    ex("uab1-ex2", "Extensión de Tríceps Overhead en Máquina", "overhead_triceps__machine",
+                    ex("uab1-ex2", "overhead_triceps__machine",
                         nSets("uabe2", 2, 12, 7.5), restTime = 75),
-                    ex("uab1-ex3", "Curl Martillo Predicador con Mancuernas", "preacher_curl__barbell",
-                        nSets("uabe3", 2, 12, 7.5), restTime = 60),
-                    ex("uab1-ex4", "Patada de Tríceps en Polea", "triceps_patada__dumbbells__bilateral",
+                    ex("uab1-ex3", "standing_biceps_curl__dumbbells",
+                        nSets("uabe3", 2, 10, 7.5), restTime = 60),
+                    ex("uab1-ex4", "triceps_patada__dumbbells__bilateral",
                         nSets("uabe4", 2, 12, 7.5), restTime = 60),
                 )),
             ),
@@ -2842,15 +2850,15 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Brazos · Intermedio",
             parts = listOf(
                 part("p-uai-1", "Brazos", "#5B2A86", listOf(
-                    ex("uai1-ex1", "Curl Bayesian", "biceps_curl_bayesian__dumbbells__supinated",
+                    ex("uai1-ex1", "biceps_curl_bayesian__dumbbells__supinated",
                         nSets("uaie1", 2, 10, 8.5), restTime = 75),
-                    ex("uai1-ex2", "Extensión de Tríceps Overhead con Barra EZ", "overhead_triceps__barbell",
+                    ex("uai1-ex2", "overhead_triceps__barbell",
                         nSets("uaie2", 2, 12, 8.5), restTime = 75),
-                    ex("uai1-ex3", "Curl Concentrado con Mancuernas", "concentration_curl__dumbbells",
+                    ex("uai1-ex3", "concentration_curl__dumbbells",
                         nSets("uaie3", 2, 12, 8.5), restTime = 60),
-                    ex("uai1-ex4", "Patada de Tríceps con Mancuerna", "triceps_patada__dumbbells__bilateral",
+                    ex("uai1-ex4", "triceps_patada__dumbbells__bilateral",
                         nSets("uaie4", 2, 12, 8.5), restTime = 75),
-                    ex("uai1-ex5", "Curl Predicador con Barra EZ", "preacher_curl__barbell",
+                    ex("uai1-ex5", "preacher_curl__barbell",
                         nSets("uaie5", 2, 10, 8.5), restTime = 75),
                 )),
             ),
@@ -2880,15 +2888,15 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Brazos · Avanzado",
             parts = listOf(
                 part("p-uaa-1", "Brazos avanzado", "#5B2A86", listOf(
-                    ex("uaa1-ex1", "Curl Bayesian con Mancuernas", "biceps_curl_bayesian__dumbbells__supinated",
+                    ex("uaa1-ex1", "biceps_curl_bayesian__dumbbells__supinated",
                         nSets("uaae1", 3, 10, 8.5), restTime = 75),
-                    ex("uaa1-ex2", "Extensión de Tríceps Overhead con Mancuerna", "overhead_triceps__barbell",
+                    ex("uaa1-ex2", "overhead_triceps__barbell",
                         nSets("uaae2", 2, 10, 8.5), restTime = 75),
-                    ex("uaa1-ex3", "Curl Martillo de Pie con Mancuernas", "standing_biceps_curl__barbell",
+                    ex("uaa1-ex3", "standing_biceps_curl__barbell",
                         nSets("uaae3", 2, 12, 8.5), restTime = 60),
-                    ex("uaa1-ex4", "Patada de Tríceps en Polea", "triceps_patada__dumbbells__bilateral",
+                    ex("uaa1-ex4", "triceps_patada__dumbbells__bilateral",
                         nSets("uaae4", 2, 12, 8.5), restTime = 60),
-                    ex("uaa1-ex5", "Curl Predicador con Barra EZ", "preacher_curl__barbell",
+                    ex("uaa1-ex5", "preacher_curl__barbell",
                         nSets("uaae5", 2, 10, 8.5), restTime = 75),
                 )),
             ),
@@ -2917,15 +2925,15 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Pecho · Especialización",
             parts = listOf(
                 part("p-cs-1", "Pecho", "#1B4965", listOf(
-                    ex("cs1-ex1", "Press de Banca con Barra", "bench_press__barbell",
+                    ex("cs1-ex1", "bench_press__barbell",
                         nSets("cse1", 3, 6, 8.5), restTime = 180),
-                    ex("cs1-ex2", "Press de Banca con Mancuernas", "bench_press__dumbbells",
+                    ex("cs1-ex2", "bench_press__dumbbells",
                         nSets("cse2", 2, 8, 8.5), restTime = 150),
-                    ex("cs1-ex3", "Elevaciones Laterales de Pie con Mancuernas", "standing_lateral_raise__dumbbells",
+                    ex("cs1-ex3", "standing_lateral_raise__dumbbells",
                         nSets("cse3", 2, 15, 8.0), restTime = 60),
-                    ex("cs1-ex4", "Cruce de Poleas en Polea Alta", "tren_superior_cruce_poleas__high",
+                    ex("cs1-ex4", "tren_superior_cruce_poleas__high",
                         nSets("cse4", 2, 12, 8.5), restTime = 90),
-                    ex("cs1-ex5", "Extensión de Tríceps Overhead en Polea", "overhead_triceps__barbell",
+                    ex("cs1-ex5", "overhead_triceps__barbell",
                         nSets("cse5", 2, 12, 8.5), restTime = 75),
                 )),
             ),
@@ -2953,15 +2961,15 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Espalda · Especialización",
             parts = listOf(
                 part("p-bs-1", "Tirón", "#0F3D5E", listOf(
-                    ex("bs1-ex1", "Jalón Neutro en Polea", "lat_pulldown__bilateral__cable",
+                    ex("bs1-ex1", "lat_pulldown__bilateral__cable",
                         nSets("bse1", 3, 8, 8.5), restTime = 150),
-                    ex("bs1-ex2", "Remo con Pecho Apoyado con Mancuernas", "chest_supported_row__dumbbells__medium",
+                    ex("bs1-ex2", "chest_supported_row__dumbbells__medium",
                         nSets("bse2", 2, 8, 8.5), restTime = 150),
-                    ex("bs1-ex3", "Curl Predicador con Barra EZ", "preacher_curl__barbell",
+                    ex("bs1-ex3", "preacher_curl__barbell",
                         nSets("bse3", 2, 10, 8.5), restTime = 90),
-                    ex("bs1-ex4", "Face Pull en Polea", "deltoides_face_pull__default",
+                    ex("bs1-ex4", "deltoides_face_pull__default",
                         nSets("bse4", 2, 15, 8.0), restTime = 75),
-                    ex("bs1-ex5", "Pullover en Polea Alta", "lying_pullover__dumbbells",
+                    ex("bs1-ex5", "lying_pullover__dumbbells",
                         nSets("bse5", 2, 12, 8.5), restTime = 90),
                 )),
             ),
@@ -2989,19 +2997,19 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Pierna · Especialización",
             parts = listOf(
                 part("p-ls-1", "Compuestos", "#7F1D1D", listOf(
-                    ex("ls1-ex1", "Sentadilla Trasera Barra Alta con Barra Recta", "high_bar_back_squat__barbell",
+                    ex("ls1-ex1", "high_bar_back_squat__barbell",
                         nSets("lse1", 3, 5, 8.5), restTime = 210),
-                    ex("ls1-ex2", "Peso Muerto Rumano con Barra Recta", "romanian_deadlift__bilateral__barbell",
+                    ex("ls1-ex2", "romanian_deadlift__bilateral__barbell",
                         nSets("lse2", 2, 8, 8.5), restTime = 180),
                 )),
                 part("p-ls-2", "Aislamientos", "#1E3A8A", listOf(
-                    ex("ls2-ex1", "Extensión de Cuádriceps en Máquina", "quads_extension_cuadriceps__machine__bilateral",
+                    ex("ls2-ex1", "quads_extension_cuadriceps__machine__bilateral",
                         nSets("lse3", 2, 12, 8.5), restTime = 90),
-                    ex("ls2-ex2", "Curl Femoral Sentado en Máquina", "curl_isquios_con_sliders__default",
+                    ex("ls2-ex2", "curl_isquios_con_sliders__default",
                         nSets("lse4", 2, 12, 8.5), restTime = 90),
-                    ex("ls2-ex3", "Aducción de Cadera Sentado en Máquina", "hip_adduction__seated__machine__bilateral",
+                    ex("ls2-ex3", "hip_adduction__seated__machine__bilateral",
                         nSets("lse5", 2, 12, 8.5), restTime = 75),
-                    ex("ls2-ex4", "Elevación de Talones de Pie en Máquina", "calf_raise__bilateral__machine",
+                    ex("ls2-ex4", "calf_raise__bilateral__machine",
                         nSets("lse6", 2, 15, 8.5), restTime = 60),
                 )),
             ),
@@ -3029,17 +3037,17 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Upper · Volumen",
             parts = listOf(
                 part("p-uv-1", "Empuje / Tirón", "#1B4965", listOf(
-                    ex("uv1-ex1", "Press de Banca con Barra", "bench_press__barbell",
+                    ex("uv1-ex1", "bench_press__barbell",
                         nSets("uve1", 3, 6, 8.5), restTime = 180),
-                    ex("uv1-ex2", "Jalón Neutro en Polea", "lat_pulldown__bilateral__cable",
+                    ex("uv1-ex2", "lat_pulldown__bilateral__cable",
                         nSets("uve2", 3, 8, 8.5), restTime = 150),
-                    ex("uv1-ex3", "Press de Hombros Sentado en Máquina", "seated_shoulder_press__barbell",
+                    ex("uv1-ex3", "seated_shoulder_press__barbell",
                         nSets("uve3", 2, 10, 8.0), restTime = 120),
-                    ex("uv1-ex4", "Remo con Pecho Apoyado con Mancuernas", "chest_supported_row__dumbbells__medium",
+                    ex("uv1-ex4", "chest_supported_row__dumbbells__medium",
                         nSets("uve4", 2, 10, 8.0), restTime = 120),
-                    ex("uv1-ex5", "Extensión de Tríceps Overhead en Polea", "overhead_triceps__barbell",
+                    ex("uv1-ex5", "overhead_triceps__barbell",
                         nSets("uve5", 2, 12, 8.5), restTime = 75),
-                    ex("uv1-ex6", "Curl Martillo de Pie con Mancuernas", "standing_biceps_curl__barbell",
+                    ex("uv1-ex6", "standing_biceps_curl__barbell",
                         nSets("uve6", 2, 12, 8.5), restTime = 75),
                 )),
             ),
@@ -3067,19 +3075,19 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Lower · Fuerza",
             parts = listOf(
                 part("p-lf-1", "Fuerza", "#7F1D1D", listOf(
-                    ex("lf1-ex1", "Sentadilla Trasera Barra Alta con Barra Recta", "high_bar_back_squat__barbell",
+                    ex("lf1-ex1", "high_bar_back_squat__barbell",
                         nSets("lfe1", 4, 4, 8.0), restTime = 240),
-                    ex("lf1-ex2", "Peso Muerto Rumano con Barra Recta", "romanian_deadlift__bilateral__barbell",
+                    ex("lf1-ex2", "romanian_deadlift__bilateral__barbell",
                         nSets("lfe2", 3, 5, 8.0), restTime = 210),
                 )),
                 part("p-lf-2", "Soporte", "#1E3A8A", listOf(
-                    ex("lf2-ex1", "Extensión de Cuádriceps en Máquina", "quads_extension_cuadriceps__machine__bilateral",
+                    ex("lf2-ex1", "quads_extension_cuadriceps__machine__bilateral",
                         nSets("lfe3", 2, 10, 8.0), restTime = 90),
-                    ex("lf2-ex2", "Curl Femoral Sentado en Máquina", "curl_isquios_con_sliders__default",
+                    ex("lf2-ex2", "curl_isquios_con_sliders__default",
                         nSets("lfe4", 2, 10, 8.0), restTime = 90),
-                    ex("lf2-ex3", "Aducción de Cadera Sentado en Máquina", "hip_adduction__seated__machine__bilateral",
+                    ex("lf2-ex3", "hip_adduction__seated__machine__bilateral",
                         nSets("lfe5", 2, 12, 8.0), restTime = 75),
-                    ex("lf2-ex4", "Elevación de Talones de Pie en Máquina", "calf_raise__bilateral__machine",
+                    ex("lf2-ex4", "calf_raise__bilateral__machine",
                         nSets("lfe6", 2, 12, 8.0), restTime = 60),
                 )),
             ),
@@ -3107,15 +3115,15 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Deload · Activo",
             parts = listOf(
                 part("p-da-1", "Full ligero", "#244B3C", listOf(
-                    ex("da1-ex1", "Press de Banca con Barra", "bench_press__barbell",
+                    ex("da1-ex1", "bench_press__barbell",
                         nSets("dae1", 2, 8, 6.5), restTime = 120),
-                    ex("da1-ex2", "Jalón Neutro en Polea", "lat_pulldown__bilateral__cable",
+                    ex("da1-ex2", "lat_pulldown__bilateral__cable",
                         nSets("dae2", 2, 10, 6.5), restTime = 120),
-                    ex("da1-ex3", "Sentadilla Trasera Barra Alta con Barra Recta", "high_bar_back_squat__barbell",
+                    ex("da1-ex3", "high_bar_back_squat__barbell",
                         nSets("dae3", 2, 8, 6.5), restTime = 150),
-                    ex("da1-ex4", "Elevaciones Laterales de Pie con Mancuernas", "standing_lateral_raise__dumbbells",
+                    ex("da1-ex4", "standing_lateral_raise__dumbbells",
                         nSets("dae4", 2, 12, 6.5), restTime = 60),
-                    ex("da1-ex5", "Elevación de Talones de Pie en Máquina", "calf_raise__bilateral__machine",
+                    ex("da1-ex5", "calf_raise__bilateral__machine",
                         nSets("dae5", 2, 12, 6.5), restTime = 45),
                 )),
             ),
@@ -3143,15 +3151,15 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Torso · Densidad",
             parts = listOf(
                 part("p-td-1", "Densidad", "#1B4965", listOf(
-                    ex("td1-ex1", "Press de Banca con Mancuernas", "bench_press__dumbbells",
+                    ex("td1-ex1", "bench_press__dumbbells",
                         nSets("tde1", 3, 8, 8.5), restTime = 120),
-                    ex("td1-ex2", "Remo con Pecho Apoyado con Mancuernas", "chest_supported_row__dumbbells__medium",
+                    ex("td1-ex2", "chest_supported_row__dumbbells__medium",
                         nSets("tde2", 3, 8, 8.5), restTime = 90),
-                    ex("td1-ex3", "Elevaciones Laterales de Pie con Mancuernas", "standing_lateral_raise__dumbbells",
+                    ex("td1-ex3", "standing_lateral_raise__dumbbells",
                         nSets("tde3", 2, 15, 8.0), restTime = 45),
-                    ex("td1-ex4", "Face Pull en Polea", "deltoides_face_pull__default",
+                    ex("td1-ex4", "deltoides_face_pull__default",
                         nSets("tde4", 2, 15, 8.0), restTime = 45),
-                    ex("td1-ex5", "Patada de Tríceps en Polea", "triceps_patada__dumbbells__bilateral",
+                    ex("td1-ex5", "triceps_patada__dumbbells__bilateral",
                         nSets("tde5", 2, 12, 8.5), restTime = 60),
                 )),
             ),
@@ -3179,17 +3187,17 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Posterior · Énfasis",
             parts = listOf(
                 part("p-pe-1", "Bisagra", "#4A1942", listOf(
-                    ex("pe1-ex1", "Peso Muerto Rumano con Barra Recta", "romanian_deadlift__bilateral__barbell",
+                    ex("pe1-ex1", "romanian_deadlift__bilateral__barbell",
                         nSets("pee1", 3, 6, 8.5), restTime = 180),
-                    ex("pe1-ex2", "Curl Femoral Sentado en Máquina", "curl_isquios_con_sliders__default",
+                    ex("pe1-ex2", "curl_isquios_con_sliders__default",
                         nSets("pee2", 3, 10, 8.5), restTime = 90),
                 )),
                 part("p-pe-2", "Glúteo y gemelos", "#7F1D1D", listOf(
-                    ex("pe2-ex1", "Hip Thrust con Barra Recta", "hip_thrust__bilateral__barbell",
+                    ex("pe2-ex1", "hip_thrust__bilateral__barbell",
                         nSets("pee3", 3, 8, 8.5), restTime = 120),
-                    ex("pe2-ex2", "Aducción de Cadera Sentado en Máquina", "hip_adduction__seated__machine__bilateral",
+                    ex("pe2-ex2", "hip_adduction__seated__machine__bilateral",
                         nSets("pee4", 2, 12, 8.0), restTime = 75),
-                    ex("pe2-ex3", "Elevación de Talones de Pie en Máquina", "calf_raise__bilateral__machine",
+                    ex("pe2-ex3", "calf_raise__bilateral__machine",
                         nSets("pee5", 2, 15, 8.5), restTime = 60),
                 )),
             ),
@@ -3217,15 +3225,15 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Anterior · Énfasis",
             parts = listOf(
                 part("p-ae-1", "Anterior", "#1E3A8A", listOf(
-                    ex("ae1-ex1", "Sentadilla Trasera Barra Alta con Barra Recta", "high_bar_back_squat__barbell",
+                    ex("ae1-ex1", "high_bar_back_squat__barbell",
                         nSets("aee1", 3, 6, 8.5), restTime = 180),
-                    ex("ae1-ex2", "Press de Banca con Barra", "bench_press__barbell",
+                    ex("ae1-ex2", "bench_press__barbell",
                         nSets("aee3", 2, 8, 8.0), restTime = 150),
-                    ex("ae1-ex3", "Extensión de Cuádriceps en Máquina", "quads_extension_cuadriceps__machine__bilateral",
+                    ex("ae1-ex3", "quads_extension_cuadriceps__machine__bilateral",
                         nSets("aee2", 3, 12, 8.5), restTime = 90),
-                    ex("ae1-ex4", "Aducción de Cadera Sentado en Máquina", "hip_adduction__seated__machine__bilateral",
+                    ex("ae1-ex4", "hip_adduction__seated__machine__bilateral",
                         nSets("aee4", 2, 12, 8.0), restTime = 75),
-                    ex("ae1-ex5", "Elevación de Talones de Pie en Máquina", "calf_raise__bilateral__machine",
+                    ex("ae1-ex5", "calf_raise__bilateral__machine",
                         nSets("aee5", 2, 15, 8.5), restTime = 60),
                 )),
             ),
@@ -3253,17 +3261,17 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
             name = "Full · Exigente",
             parts = listOf(
                 part("p-fd-1", "Full", "#244B3C", listOf(
-                    ex("fd1-ex1", "Sentadilla Trasera Barra Alta con Barra Recta", "high_bar_back_squat__barbell",
+                    ex("fd1-ex1", "high_bar_back_squat__barbell",
                         nSets("fde1", 3, 5, 8.5), restTime = 210),
-                    ex("fd1-ex2", "Press de Banca con Barra", "bench_press__barbell",
+                    ex("fd1-ex2", "bench_press__barbell",
                         nSets("fde2", 3, 6, 8.0), restTime = 180),
-                    ex("fd1-ex3", "Jalón Neutro en Polea", "lat_pulldown__bilateral__cable",
+                    ex("fd1-ex3", "lat_pulldown__bilateral__cable",
                         nSets("fde3", 3, 8, 8.5), restTime = 150),
-                    ex("fd1-ex4", "Peso Muerto Rumano con Barra Recta", "romanian_deadlift__bilateral__barbell",
+                    ex("fd1-ex4", "romanian_deadlift__bilateral__barbell",
                         nSets("fde4", 2, 8, 8.0), restTime = 150),
-                    ex("fd1-ex5", "Elevaciones Laterales de Pie con Mancuernas", "standing_lateral_raise__dumbbells",
+                    ex("fd1-ex5", "standing_lateral_raise__dumbbells",
                         nSets("fde5", 2, 12, 8.0), restTime = 60),
-                    ex("fd1-ex6", "Elevación de Talones de Pie en Máquina", "calf_raise__bilateral__machine",
+                    ex("fd1-ex6", "calf_raise__bilateral__machine",
                         nSets("fde6", 1, 12, 8.5), restTime = 45),
                 )),
             ),
@@ -3293,88 +3301,43 @@ private val V3_FORBIDDEN_CONFIGURATION_TERMS = setOf(
     "band", "kettlebell", "trx", "hex_bar", "unstable", "safety_bar", "slider",
 )
 
-private val V3_DISPLAY_NAMES = mapOf(
-    "back_extension_lumbar__default" to "Extensión Lumbar en Máquina",
-    "bench_press__barbell" to "Press de Banca con Barra",
-    "bench_press__dumbbells" to "Press de Banca con Mancuernas",
-    "belt_squat__bilateral" to "Sentadilla Belt Squat Bilateral",
-    "bench_press__smith_machine" to "Press de Banca en Smith",
-    "bench_press__machine" to "Press de Pecho en Máquina",
-    "bulgarian_split_squat__barbell" to "Sentadilla Búlgara con Barra",
-    "bulgarian_split_squat__dumbbells" to "Sentadilla Búlgara con Mancuernas",
-    "bulgarian_split_squat__smith_machine" to "Sentadilla Búlgara en Smith",
-    "concentration_curl__dumbbells" to "Curl de Bíceps Concentrado con Mancuernas",
-    "conventional_deadlift__bilateral__barbell" to "Peso Muerto Convencional con Barra",
-    "conventional_row__machine" to "Remo Convencional en Máquina",
-    "core_crunch_maquina__default" to "Crunch Abdominal en Máquina",
-    "core_plancha__default" to "Plancha",
-    "core_press_pallof__default" to "Press Pallof en Polea",
-    "crossbody_triceps__cable__bilateral" to "Extensión Cruzada de Tríceps en Polea",
-    "deltoides_face_pull__default" to "Face Pull en Polea",
-    "flat_chest_fly__machine" to "Aperturas de Pecho en Máquina",
-    "flat_chest_fly__dumbbells" to "Aperturas de Pecho con Mancuernas",
-    "forearms_curl_muneca_inverso_sentado__ez_bar" to "Extensión de Muñeca Inversa con Barra EZ",
-    "forearms_curl_muneca_sentado__barbell" to "Curl de Muñeca con Barra",
-    "forearms_curl_muneca_sentado__dumbbells" to "Curl de Muñeca con Mancuernas",
-    "front_squat__barbell" to "Sentadilla Frontal con Barra",
-    "front_squat__smith_machine" to "Sentadilla Frontal en Smith",
-    "high_bar_back_squat__barbell" to "Sentadilla Trasera Barra Alta con Barra",
-    "high_bar_back_squat__smith_machine" to "Sentadilla Trasera Barra Alta en Smith",
-    "low_bar_back_squat__barbell" to "Sentadilla Trasera Barra Baja de Competición",
-    "hip_abduction__seated__machine__bilateral" to "Abducción de Cadera Sentado en Máquina",
-    "hip_thrust__bilateral__machine" to "Hip Thrust en Máquina",
-    "lat_pulldown__bilateral__machine" to "Jalón al Pecho en Máquina",
-    "lat_pulldown__bilateral__cable" to "Jalón al Pecho en Polea",
-    "low_bar_back_squat__smith_machine" to "Sentadilla Trasera Barra Baja en Smith",
-    "lying_leg_curl__bilateral__machine" to "Curl Femoral Tumbado en Máquina",
-    "pendulum_squat__bilateral" to "Sentadilla Péndulo en Máquina",
-    "preacher_curl__machine" to "Curl Predicador en Máquina",
-    "pull_up__pronated__wide" to "Dominadas Pronas con Agarre Amplio",
-    "pullover__bilateral__cable" to "Pullover Bilateral en Polea",
-    "pullover__bilateral__machine" to "Pullover Bilateral en Máquina",
-    "quads_sentadilla_copa__default" to "Sentadilla Copa",
-    "quads_extension_cuadriceps__machine__bilateral" to "Extensión de Cuádriceps en Máquina",
-    "quads_extension_cuadriceps__machine__unilateral" to "Extensión Unilateral de Cuádriceps en Máquina",
-    "quads_sentadilla_hack__machine" to "Sentadilla Hack en Máquina",
-    "quads_prensa_piernas__bilateral" to "Prensa de Piernas",
-    "pull_up__pronated__medium" to "Dominadas Pronas con Agarre Medio",
-    "romanian_deadlift__bilateral__dumbbells" to "Peso Muerto Rumano con Mancuernas",
-    "romanian_deadlift__bilateral__barbell" to "Peso Muerto Rumano con Barra",
-    "seated_lateral_raise__dumbbells" to "Elevaciones Laterales Sentado con Mancuernas",
-    "seated_lateral_raise__machine" to "Elevaciones Laterales Sentado en Máquina",
-    "seated_leg_curl__unilateral__machine" to "Curl Femoral Sentado Unilateral en Máquina",
-    "seated_shoulder_press__barbell" to "Press de Hombros Sentado con Barra",
-    "seated_shoulder_press__machine" to "Press de Hombros Sentado en Máquina",
-    "standing_biceps_curl__dumbbells" to "Curl de Bíceps de Pie con Mancuernas",
-    "standing_biceps_curl__barbell" to "Curl de Bíceps de Pie con Barra",
-    "standing_lateral_raise__cable" to "Elevaciones Laterales de Pie en Polea",
-    "standing_lateral_raise__machine" to "Elevaciones Laterales de Pie en Máquina",
-    "standing_lateral_raise__dumbbells" to "Elevaciones Laterales de Pie con Mancuernas",
-    "standing_leg_curl__unilateral__cable" to "Curl Femoral de Pie Unilateral en Polea",
-    "triceps_patada__dumbbells__bilateral" to "Patada de Tríceps con Mancuernas",
-    "triceps_patada__dumbbells__unilateral" to "Patada Unilateral de Tríceps con Mancuernas",
-    "t_bar_row__t_bar__wide" to "Remo en Barra T con Agarre Amplio",
-    "tren_superior_press_pecho_maquina_convergente__default" to "Press de Pecho Convergente en Máquina",
-    "triceps_patada__cable__bilateral" to "Patada de Tríceps en Polea",
-    "triceps_pushdown__bilateral__cable" to "Extensión de Tríceps en Polea",
-    "calf_raise__bilateral__machine" to "Elevación de Talones en Máquina",
-    "calves_tibial_anterior__default" to "Elevación de Tibial Anterior",
-    "conventional_row__barbell" to "Remo Convencional con Barra",
-    "glute_ham_raise__default" to "Elevación glúteo-femoral",
-    "core_rueda_abdominal__default" to "Rueda Abdominal",
-    "forearms_paseo_del_granjero__hex_bar" to "Paseo del Granjero con Barra Hexagonal",
-    "jm_press__barbell" to "Press JM con Barra",
-    "hams_peso_muerto_convencional_deficit__default" to "Peso Muerto en Déficit",
-    "seated_leg_curl__bilateral__machine" to "Curl Femoral Sentado en Máquina",
-    "biceps_curl_bayesian__cable__supinated" to "Curl Bayesian en Polea",
-    "incline_bench_press__barbell" to "Press Inclinado con Barra",
-    "incline_bench_press__dumbbells" to "Press Inclinado con Mancuernas",
-    "hammer_curl__dumbbells" to "Curl Martillo con Mancuernas",
-    "rear_delt_raise__dumbbells" to "Pájaros con Mancuernas",
-    "lateral_raise_super_rom__cable" to "Elevaciones Laterales Super ROM en Polea",
-    "walking_lunge__dumbbells" to "Zancadas Caminando con Mancuernas",
-    "quads_sentadilla_cajon__default" to "Sentadilla a Cajón",
-)
+/**
+ * Lookup verbatim del asset compilado (plan 2026-09-16):
+ * configurationId → canonicalName de la definición, SIN composición. Se carga
+ * una vez desde el asset (classpath en tests JVM, assets en runtime) y es la
+ * ÚNICA fuente de nombres en SessionTemplates: idéntico en tests y producción.
+ */
+private val CATALOG_CONFIGURATION_NAMES: Map<String, String> by lazy(LazyThreadSafetyMode.PUBLICATION) {
+    loadCatalogConfigurationNames()
+}
+
+private fun catalogConfigurationNames(): Map<String, String> = CATALOG_CONFIGURATION_NAMES
+
+private fun loadCatalogConfigurationNames(): Map<String, String> {
+    // Classpath en tests JVM (los tests resuelven el asset por File porque el
+    // classpath de unit tests no empaqueta main/assets), assets en runtime.
+    val payload = readCatalogAssetPayload() ?: return emptyMap()
+    if (payload.isBlank()) return emptyMap()
+    val catalog = com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader.decodeApproved(payload)
+    val index = com.example.kpkn.domain.exercises.catalogv2.CatalogDisplayNames.buildDisplayNameIndex(catalog)
+    return index + index.mapKeys { (key, _) -> key.trim().lowercase() }
+}
+
+private fun readCatalogAssetPayload(): String? {
+    SessionTemplatesCatalogAsset::class.java.classLoader
+        ?.getResourceAsStream("exercise_catalog_v2.json")
+        ?.bufferedReader()?.use { return it.readText() }
+    // Fallback por File para unit tests JVM (mismo patrón que
+    // ExerciseCatalogContractTest): el working dir es el módulo app.
+    listOf(
+        java.io.File("src/main/assets/exercise_catalog_v2.json"),
+        java.io.File("app/src/main/assets/exercise_catalog_v2.json"),
+        java.io.File("android-native/app/src/main/assets/exercise_catalog_v2.json"),
+    ).firstOrNull { it.isFile }?.let { return it.readText() }
+    return null
+}
+
+private object SessionTemplatesCatalogAsset
 
 // Algunas configuraciones conservan un prefijo histórico distinto al id de
 // definición V2. Mantener estas seis excepciones explícitas evita volver a
@@ -3395,6 +3358,13 @@ private fun v3CatalogDefinitionId(configurationId: String): String =
 private fun isV3ConfigurationAllowed(configurationId: String): Boolean =
     V3_FORBIDDEN_CONFIGURATION_TERMS.none { term -> configurationId.contains(term, ignoreCase = true) }
 
+/**
+ * Tabla de traducción de tokens snake_case reales del asset
+ * exercise_catalog_v2.json. Rol exclusivo: traducir segmentos de
+ * displaySummary (p.ej. "barbell" → "barra") en el fallback de cold-start.
+ * NO es una tabla de nombres: el nombre visible siempre es el canonicalName
+ * verbatim del catálogo; nunca al revés.
+ */
 private val V3_CONFIGURATION_TOKEN_LABELS = mapOf(
     "abduction" to "abducción",
     "adduction" to "aducción",
@@ -3487,11 +3457,19 @@ private fun spanishTemplateText(value: String): String = value
     .replace(Regex("(?i)\\bDay\\b"), "Día")
 
 private fun spanishConfigurationDisplayName(configurationId: String): String {
-    V3_DISPLAY_NAMES[configurationId]?.let { return it }
-    // When the runtime catalog has already been loaded, use its canonical
-    // Spanish name instead of reconstructing prose from internal tokens. The
-    // token fallback below only exists for cold-start/unit-test materialization
-    // before the Android asset cache is initialized.
+    // El nombre visible es el canonicalName verbatim de la definición; nunca
+    // composición. Cadena de resolución (idéntica en tests JVM y runtime):
+    // 1) lookup verbatim del asset (CatalogDisplayNames),
+    // 2) legacy index (mismo verbatim tras reconciliación del adapter),
+    // 3) tokens como último recurso de cold-start.
+    catalogConfigurationNames()[configurationId]
+        ?.trim()
+        ?.takeIf { it.isNotBlank() }
+        ?.let { return it }
+    com.example.kpkn.data.exercises.catalogConfigurationDisplayName(configurationId)
+        ?.trim()
+        ?.takeIf { it.isNotBlank() }
+        ?.let { return it }
     catalogExerciseIndex()[configurationId.lowercase()]?.name
         ?.trim()
         ?.takeIf { it.isNotBlank() }
@@ -4405,6 +4383,7 @@ private fun buildV3SystemTemplates(legacy: List<SessionTemplate>): List<SessionT
     val highFrequency = highFrequencyCommonTemplates()
     val recipePl = plRecipeSessionTemplates()
     val all = (generic + specialized + expanded + highFrequency + recipePl)
+        .map(::reconcilePublishedTemplateNames)
         .map(::applyPublishedComposition)
         .map(::enforceCompositionRestFloors)
         .map(::localizeV3TemplateEditorialText)
@@ -4415,6 +4394,36 @@ private fun buildV3SystemTemplates(legacy: List<SessionTemplate>): List<SessionT
         "El catálogo v3 debe cubrir al menos 70 configuraciones exactas"
     }
     return all.sortedBy { it.sortOrder }
+}
+
+/**
+ * Re-deriva el nombre visible de cada ejercicio publicado desde el id de
+ * configuración (plan 2026-09-16): canonicalName verbatim, sin composición.
+ * Se ejecuta ANTES de publicar el catálogo para que toda plantilla SYSTEM
+ * exponga el nombre exacto del catálogo. Sin índice runtime (cold-start en
+ * tests JVM puros) conserva el nombre del fixture.
+ */
+private fun reconcilePublishedTemplateNames(template: SessionTemplate): SessionTemplate {
+    // recipe-pl ya compone su nombre con el derivado + técnica exacta; el
+    // catálogo runtime no está instalado en tests JVM puros, así que solo
+    // necesita reconciliación la vía genérica/expandida.
+    if (template.id.contains("recipe-pl")) return template
+    fun derivedName(exercise: Exercise): String {
+        val configurationId = exercise.catalogConfigurationId?.trim().orEmpty()
+        if (configurationId.isBlank()) return exercise.name
+        return spanishConfigurationDisplayName(configurationId)
+    }
+    fun reconcile(exercise: Exercise): Exercise {
+        val name = derivedName(exercise)
+        return if (name == exercise.name) exercise else exercise.copy(name = name)
+    }
+    val session = template.session
+    return template.copy(
+        session = session.copy(
+            exercises = session.exercises.map(::reconcile),
+            parts = session.parts.map { part -> part.copy(exercises = part.exercises.map(::reconcile)) },
+        ),
+    )
 }
 
 private fun applyPublishedComposition(template: SessionTemplate): SessionTemplate {

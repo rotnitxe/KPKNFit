@@ -75,9 +75,13 @@ internal fun RestLiveCard(
     modifier: Modifier = Modifier,
 ) {
     val safeTotal = totalSeconds.coerceAtLeast(1)
-    val progress = (remainingSeconds.toFloat() / safeTotal).coerceIn(0f, 1f)
-    val mm = remainingSeconds / 60
-    val ss = remainingSeconds % 60
+    // A delayed/restored tick may briefly carry a stale negative value.  The
+    // card is a countdown surface, so clamp both the progress and the text;
+    // the controller owns any separate "excedido" cue.
+    val safeRemaining = remainingSeconds.coerceAtLeast(0)
+    val progress = (safeRemaining.toFloat() / safeTotal).coerceIn(0f, 1f)
+    val mm = safeRemaining / 60
+    val ss = safeRemaining % 60
     val clock = String.format(Locale.US, "%d:%02d", mm, ss)
     val kindLabel = when (restState?.kind) {
         RestTimerKind.SUPERSET_INTRA -> "SUPERSERIE"

@@ -52,6 +52,50 @@ class SetTechniqueScopeTest {
     }
 
     @Test
+    fun editorMarkerMakesPlannedDropsetVolumeReplaced() {
+        val set = ExerciseSet(
+            id = "editor-drop",
+            targetReps = 8,
+            weight = 40.0,
+            isDropSet = true,
+            plannedIntensityTechniques = listOf(
+                PlannedTechnique(
+                    id = "editor-technique",
+                    type = TechniqueType.DROP_SET,
+                    params = mapOf("count" to "2", "weightPcts" to "-5,-10", "betweenMarked" to "true"),
+                ),
+            ),
+        )
+        assertEquals(SetTechniqueScope.VOLUME_REPLACED, set.techniqueScope())
+        assertTrue(set.isEditorScheduledTechnique())
+        assertTrue(set.isInlineEditorScheduledTechnique())
+    }
+
+    @Test
+    fun normalTechniqueClearsScheduledRowsAndMarker() {
+        val scheduled = ExerciseSet(
+            id = "normal",
+            targetReps = 8,
+            isDropSet = true,
+            dropSets = listOf(DropSetData(weight = 35.0, reps = 3)),
+            restAfterSeconds = 0,
+            plannedIntensityTechniques = listOf(
+                PlannedTechnique(
+                    id = "scheduled",
+                    type = TechniqueType.DROP_SET,
+                    params = mapOf("count" to "1", "betweenMarked" to "true"),
+                ),
+            ),
+        )
+        val normal = scheduled.withTechnique(SeriesTechnique.NORMAL)
+        assertEquals(SetTechniqueScope.NONE, normal.techniqueScope())
+        assertTrue(normal.dropSets.isEmpty())
+        assertTrue(normal.restPauses.isEmpty())
+        assertTrue(normal.plannedIntensityTechniques.none { it.type == TechniqueType.DROP_SET || it.type == TechniqueType.REST_PAUSE })
+        assertNull(normal.restAfterSeconds)
+    }
+
+    @Test
     fun markedRestPauseIsVolumeReplaced() {
         val sets = listOf(
             ExerciseSet(id = "s1", targetReps = 8, weight = 80.0),

@@ -52,6 +52,8 @@ import kotlin.math.roundToInt
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.ExerciseReadinessEngine
 import com.example.kpkn.domain.workout.SetTechniqueScope
+import com.example.kpkn.domain.workout.scheduledTechniquePlan
+import com.example.kpkn.domain.workout.isInlineEditorScheduledTechnique
 import com.example.kpkn.domain.workout.techniqueScope
 import com.example.kpkn.domain.workout.volumeReplacedLabel
 import com.example.kpkn.screens.sessioneditor.components.DropSetPlanDefaults
@@ -853,6 +855,12 @@ internal fun SetInputCardV2(
     val plannedAmrap = exercise.trainingMode == TrainingMode.AMRAP ||
         currentSet.isAmrap ||
         currentSet.intensityMode == IntensityMode.AMRAP
+    // AMRAP is not a failure report by default.  A failure is recorded only
+    // after the athlete explicitly chooses "Llegar al fallo" in the sheet;
+    // otherwise the result remains AMRAP with an optional RIR reserve.
+    val defaultAmrapReachFailure = sessionCompletedSet?.let {
+        it.actualIntensityMode == IntensityMode.FAILURE || it.isFailure
+    } ?: false
     val defaultValue = when (resolvedPlannedUnitMode) {
         UnitModeV2.TIME -> (sessionCompletedSet?.timeSeconds)?.toString()
         UnitModeV2.DISTANCE,
@@ -895,7 +903,7 @@ internal fun SetInputCardV2(
         currentSet.targetRIR != null -> IntensityMode.RIR
         currentSet.targetRPE != null -> IntensityMode.RPE
         currentSet.isFailure -> IntensityMode.FAILURE
-        !isRmLoadPrescription && currentSet.targetPercentageRM != null -> IntensityMode.SOLO_RM
+        currentSet.targetPercentageRM != null -> IntensityMode.SOLO_RM
         effortIntensityMode(currentSet.leftTarget?.intensityMode) != null -> effortIntensityMode(currentSet.leftTarget?.intensityMode)
         effortIntensityMode(currentSet.rightTarget?.intensityMode) != null -> effortIntensityMode(currentSet.rightTarget?.intensityMode)
         currentSet.leftTarget?.targetRIR != null || currentSet.rightTarget?.targetRIR != null -> IntensityMode.RIR
@@ -933,7 +941,14 @@ internal fun SetInputCardV2(
     val initialTechniqueWeight = if (volumeReplacedTechnique) {
         (currentSet.weight?.takeIf { it > 0 } ?: suggestedWeightText?.toDoubleOrNull()?.takeIf { it > 0 })?.toTrimmedNumberString()
     } else null
-    val initialTechniqueValue = if (volumeReplacedTechnique && (resolvedPlannedUnitMode == UnitModeV2.REPS)) "3" else null
+    // Marked chains already store one three-rep follow-up per set.  An inline
+    // editor plan still needs the original main-set target; its three-rep
+    // follow-ups are filled only after the main phase is recorded.
+    val initialTechniqueValue = if (
+        volumeReplacedTechnique &&
+        resolvedPlannedUnitMode == UnitModeV2.REPS &&
+        !currentSet.isInlineEditorScheduledTechnique()
+    ) "3" else null
 
     var weightText by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet?.id) {
         mutableStateOf(draftWeightText ?: completedWeightText ?: initialTechniqueWeight ?: "")
@@ -1083,8 +1098,7 @@ internal fun SetInputCardV2(
             initialDraft?.reachedFailure ?: (
                 sessionCompletedSet?.isFailure == true ||
                     currentSet.isFailure ||
-                    currentSet.intensityMode == IntensityMode.FAILURE ||
-                    volumeReplacedTechnique
+                    currentSet.intensityMode == IntensityMode.FAILURE
             )
         )
     }
@@ -1099,9 +1113,11 @@ internal fun SetInputCardV2(
     ) {
         if (sessionCompletedSet != null) return@LaunchedEffect
         if (!volumeReplacedTechnique) return@LaunchedEffect
-        reachedFailure = true
-        if (resolvedPlannedUnitMode == UnitModeV2.REPS) {
-            updateActiveValueText("3")
+        // A scheduled technique is a volume policy, not an implicit failure
+        // report.  Keep the explicit RPE/RIR/AMRAP/FALLO selection intact;
+        // only a set that is actually planned as FAILURE starts in FALLO.
+        if (currentSet.isFailure || currentSet.intensityMode == IntensityMode.FAILURE) {
+            reachedFailure = true
         }
         val techniqueWeight = (
             currentSet.weight?.takeIf { it > 0.0 }
@@ -1123,8 +1139,14 @@ internal fun SetInputCardV2(
         mutableStateOf(initialDraft?.amrapOverride ?: plannedAmrap)
     }
     var showAmrapSheet by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
-    var amrapReachFailure by remember(exercise.id, setIndex, sideKey, initialDraft?.amrapReachFailure) {
-        mutableStateOf(initialDraft?.amrapReachFailure ?: true)
+    var amrapReachFailure by remember(
+        exercise.id,
+        setIndex,
+        sideKey,
+        sessionCompletedSet?.id,
+        initialDraft?.amrapReachFailure,
+    ) {
+        mutableStateOf(initialDraft?.amrapReachFailure ?: defaultAmrapReachFailure)
     }
     var amrapReserveReps by remember(exercise.id, setIndex, sideKey, initialDraft?.amrapReserveReps) {
         mutableStateOf(initialDraft?.amrapReserveReps)
@@ -1155,7 +1177,7 @@ internal fun SetInputCardV2(
         mutableStateOf(listOf(DropSetEntry(weight = 0.0, reps = 0)))
     }
     var restPauseSets by remember(exercise.id, setIndex, sideKey) {
-        mutableStateOf(listOf(RestPauseData(restTime = 20, reps = 0)))
+        mutableStateOf(listOf(RestPauseData(restTime = RestPausePlanDefaults.PauseSeconds, reps = 0)))
     }
     var partialSets by remember(exercise.id, setIndex, sideKey) {
         mutableStateOf(listOf(0))
@@ -1179,7 +1201,29 @@ internal fun SetInputCardV2(
     var guidedRestPauseRepsText by remember(exercise.id, setIndex, sideKey) {
         mutableStateOf(RestPausePlanDefaults.Reps.toString())
     }
-    LaunchedEffect(currentSet?.id, currentSet?.plannedIntensityTechniques, currentSet?.isDropSet, currentSet?.isRestPause, sideKey) {
+    // Scheduled editor techniques run in the same card controls.  We keep the
+    // phase cursor and captured rows locally until the final phase so the
+    // pager never creates phantom sets or mounts the manual guided panel.
+    var scheduledPhaseIndex by remember(exercise.id, setIndex, sideKey) { mutableIntStateOf(0) }
+    var scheduledMainCapture by remember(exercise.id, setIndex, sideKey) {
+        mutableStateOf<GuidedMainCapture?>(null)
+    }
+    var scheduledDropDrafts by remember(exercise.id, setIndex, sideKey) {
+        mutableStateOf<List<DropSetEntry>>(emptyList())
+    }
+    var scheduledRestPauseDrafts by remember(exercise.id, setIndex, sideKey) {
+        mutableStateOf<List<RestPauseData>>(emptyList())
+    }
+    var scheduledRestRemainingSeconds by remember(exercise.id, setIndex, sideKey) {
+        mutableIntStateOf(0)
+    }
+    LaunchedEffect(
+        currentSet?.id,
+        currentSet?.plannedIntensityTechniques,
+        currentSet?.isDropSet,
+        currentSet?.isRestPause,
+        sideKey,
+    ) {
         // Reset explícito al cambiar de lado para evitar contaminación L→R (fix #1 ALTO)
         dropSetEnabled = false
         restPauseEnabled = false
@@ -1188,7 +1232,7 @@ internal fun SetInputCardV2(
         partialSets = listOf(0)
         isAmrap = initialDraft?.amrapOverride ?: plannedAmrap
         showAmrapSheet = false
-        amrapReachFailure = initialDraft?.amrapReachFailure ?: true
+        amrapReachFailure = initialDraft?.amrapReachFailure ?: defaultAmrapReachFailure
         amrapReserveReps = initialDraft?.amrapReserveReps
         amrapMinimumReps = initialDraft?.amrapMinimumReps ?: plannedRepRange?.min ?: currentSet.targetReps
         showPartialsMode = false
@@ -1201,6 +1245,11 @@ internal fun SetInputCardV2(
         guidedDropWeightText = ""
         guidedDropRepsText = RestPausePlanDefaults.Reps.toString()
         guidedRestPauseRepsText = RestPausePlanDefaults.Reps.toString()
+        scheduledPhaseIndex = 0
+        scheduledMainCapture = null
+        scheduledDropDrafts = emptyList()
+        scheduledRestPauseDrafts = emptyList()
+        scheduledRestRemainingSeconds = 0
         adjustmentsTab = -1
         loadModeMenuExpanded = false
 
@@ -1266,6 +1315,12 @@ internal fun SetInputCardV2(
             }
         }
     }
+    LaunchedEffect(scheduledRestRemainingSeconds, isSettledPage) {
+        if (!isSettledPage) return@LaunchedEffect
+        if (scheduledRestRemainingSeconds <= 0) return@LaunchedEffect
+        delay(1_000)
+        scheduledRestRemainingSeconds = (scheduledRestRemainingSeconds - 1).coerceAtLeast(0)
+    }
     fun resolveDefaultReportedIntensityMode(): IntensityMode? = when {
         sessionCompletedSet?.actualIntensityMode == IntensityMode.RIR -> IntensityMode.RIR
         sessionCompletedSet?.actualIntensityMode == IntensityMode.RPE -> IntensityMode.RPE
@@ -1273,7 +1328,10 @@ internal fun SetInputCardV2(
         currentSet.targetRIR != null || plannedIntensityMode == IntensityMode.RIR -> IntensityMode.RIR
         plannedIntensityMode == IntensityMode.FAILURE -> IntensityMode.FAILURE
         plannedIntensityMode == IntensityMode.RPE -> IntensityMode.RPE
-        isRmLoadPrescription -> IntensityMode.RPE
+        // %RM prescribes the load, not the perceived effort.  Keep the
+        // effort selector empty until the athlete explicitly picks RPE, RIR
+        // or FALLO; never manufacture an RPE 8 value.
+        isRmLoadPrescription -> null
         else -> plannedIntensityMode
     }
     var reportedIntensityMode by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
@@ -1314,7 +1372,7 @@ internal fun SetInputCardV2(
         partialSets = listOf(0)
         isAmrap = currentSet.isAmrap
         showAmrapSheet = false
-        amrapReachFailure = true
+        amrapReachFailure = defaultAmrapReachFailure
         amrapReserveReps = null
         showPartialsMode = false
         isFailedSet = false
@@ -1325,6 +1383,11 @@ internal fun SetInputCardV2(
         guidedDropWeightText = ""
         guidedDropRepsText = RestPausePlanDefaults.Reps.toString()
         guidedRestPauseRepsText = RestPausePlanDefaults.Reps.toString()
+        scheduledPhaseIndex = 0
+        scheduledMainCapture = null
+        scheduledDropDrafts = emptyList()
+        scheduledRestPauseDrafts = emptyList()
+        scheduledRestRemainingSeconds = 0
         adjustmentsTab = -1
         loadModeMenuExpanded = false
         timerRunning = false
@@ -1451,6 +1514,7 @@ internal fun SetInputCardV2(
     }
     LaunchedEffect(exercise.id, setIndex, hasPlannedIntensityInput, reportedIntensityMode, intensityCarouselSelectedIndex) {
         if (isFailedSet || !hasPlannedIntensityInput || reachedFailure) return@LaunchedEffect
+        if (isRmLoadPrescription && reportedIntensityMode == null) return@LaunchedEffect
         if (intensityText.isNotBlank()) return@LaunchedEffect
         val item = intensityCarouselItems.getOrNull(intensityCarouselSelectedIndex)
         if (item != null && !item.isFailure) {
@@ -1478,7 +1542,7 @@ internal fun SetInputCardV2(
         plannedIntensityMode == IntensityMode.FAILURE -> "FALLO"
         plannedIntensityMode == IntensityMode.RIR -> "RIR"
         plannedIntensityMode == IntensityMode.RPE -> "RPE"
-        isRmLoadPrescription -> "RPE"
+        isRmLoadPrescription -> "%RM"
         else -> "RPE"
     }
     val expectedIntensityValue = when {
@@ -1486,7 +1550,7 @@ internal fun SetInputCardV2(
         plannedIntensityMode == IntensityMode.FAILURE -> "F"
         plannedIntensityMode == IntensityMode.RIR -> activePlannedRir?.toString() ?: "-"
         plannedIntensityMode == IntensityMode.RPE -> activePlannedRpe?.toTrimmedNumberString() ?: "-"
-        isRmLoadPrescription -> "-"
+        isRmLoadPrescription -> currentSet.targetPercentageRM?.toTrimmedNumberString() ?: "-"
         else -> activePlannedRpe?.toTrimmedNumberString() ?: "-"
     }
     val plannedIntensityDisplayLabel = if (plannedIntensityMode == IntensityMode.FAILURE && !reachedFailure) {
@@ -1636,7 +1700,11 @@ internal fun SetInputCardV2(
                     color = Color.White.copy(alpha = 0.7f),
                 )
             }
-            if (activeGuidedPhase != null) {
+            // Programmed editor techniques are VOLUME_REPLACED and use the
+            // existing top band/timeline.  The guided surface belongs only to
+            // manual STACKED_ON_SET techniques; rendering it for a scheduled
+            // plan cuts the live card (the bug shown in the beta capture).
+            if (activeGuidedPhase != null && currentSet.techniqueScope() == SetTechniqueScope.STACKED_ON_SET) {
                 GuidedTechniquePanel(
                     phase = activeGuidedPhase,
                     accentColor = sessionAccentColor,
@@ -1722,10 +1790,20 @@ internal fun SetInputCardV2(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     val volumeReplacedLabel = currentSet.volumeReplacedLabel()
-                    if (volumeReplacedLabel != null) {
+            if (volumeReplacedLabel != null) {
                         VolumeReplacedTechniqueBand(label = volumeReplacedLabel)
                     } else {
                         Spacer(Modifier.height(10.dp))
+                    }
+                    if (scheduledRestRemainingSeconds > 0) {
+                        Text(
+                            text = "Pausa técnica · ${scheduledRestRemainingSeconds}s",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.64f),
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                        )
                     }
 
                     Box(
@@ -2298,7 +2376,7 @@ internal fun SetInputCardV2(
                     reachedFailure != initialFailure ||
                     isAmrap != (initialDraft?.amrapOverride ?: plannedAmrap) ||
                     amrapMinimumReps != initialDraft?.amrapMinimumReps ||
-                    amrapReachFailure != (initialDraft?.amrapReachFailure ?: true) ||
+                    amrapReachFailure != (initialDraft?.amrapReachFailure ?: defaultAmrapReachFailure) ||
                     amrapReserveReps != initialDraft?.amrapReserveReps ||
                     partialRepsTotal != (initialDraft?.partialReps ?: 0) ||
                     (supportsIndependentSides && selectedSide != initialSide) ||
@@ -2460,7 +2538,15 @@ internal fun SetInputCardV2(
             SideEffect {
                 if (isActivePage) {
                     recordActionHolder.action = label@{
-                        val phase = guidedPhase
+                        // A stale manual phase must never win over a scheduled
+                        // editor plan (for example after replacing a set
+                        // while its old guided sheet was open).  The visual
+                        // guard hides that panel; this action guard clears its
+                        // route as well.
+                        val scheduledPlanForAction = currentSet
+                            .takeIf { it.isInlineEditorScheduledTechnique() }
+                            ?.scheduledTechniquePlan()
+                        val phase = guidedPhase.takeIf { scheduledPlanForAction == null }
                         if (phase != null) {
                             val capture = guidedMainCapture ?: return@label
                             when (phase) {
@@ -2568,7 +2654,9 @@ internal fun SetInputCardV2(
                             )
                             updateActiveValueText(centeredRepsIndex.toString())
                         }
-                        if (!isFailedSet && hasPlannedIntensityInput && intensityCarouselItems.isNotEmpty()) {
+                        if (!isFailedSet && hasPlannedIntensityInput && intensityCarouselItems.isNotEmpty() &&
+                            !(isRmLoadPrescription && reportedIntensityMode == null && !reachedFailure)
+                        ) {
                             val centeredIntensityIndex = effectiveCarouselSelectedIndex(
                                 selectedIndex = intensityCarouselSelectedIndex,
                                 centeredIndex = intensityWheelCenterIndex.intValue,
@@ -2621,6 +2709,7 @@ internal fun SetInputCardV2(
                             isAmrap && amrapReachFailure -> 10.0
                             isAmrap && !amrapReachFailure -> amrapReserveReps?.toDouble()
                             reachedFailure -> 10.0
+                            isRmLoadPrescription && reportedIntensityMode == null -> null
                             else -> effectiveCarouselIntensityValue(
                                 intensityText = intensityText,
                                 reachedFailure = reachedFailure,
@@ -2642,6 +2731,114 @@ internal fun SetInputCardV2(
                         // AMRAP records the athlete's actual result.  The planned
                         // minimum is surfaced as feedback, never as a silent clamp.
                         val value = typedValue
+
+                        val scheduledPlan = scheduledPlanForAction
+                        if (scheduledPlan != null && !isFailedSet) {
+                            if (scheduledRestRemainingSeconds > 0) {
+                                android.widget.Toast.makeText(
+                                    context,
+                                    "Espera la pausa técnica antes de continuar.",
+                                    android.widget.Toast.LENGTH_SHORT,
+                                ).show()
+                                return@label
+                            }
+                            val phase = scheduledPhaseIndex
+                            val capture = scheduledMainCapture
+                            if (phase == 0 || capture == null) {
+                                scheduledMainCapture = GuidedMainCapture(
+                                    loadMode = loadMode,
+                                    unitMode = resolvedUnitMode,
+                                    weight = weight,
+                                    value = value,
+                                    intensity = intensity,
+                                    amrapOverride = isAmrap,
+                                    bodyWeight = resolvedBodyWeight,
+                                    side = reportingSide,
+                                )
+                                scheduledPhaseIndex = 1
+                                val nextLoad = when (scheduledPlan.kind) {
+                                    com.example.kpkn.domain.workout.ScheduledTechniqueKind.DROP_SET ->
+                                        (weight - scheduledPlan.dropKg).coerceAtLeast(0.0)
+                                    com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE -> weight
+                                }
+                                if (loadMode != LoadModeV2.BODYWEIGHT && nextLoad > 0.0) {
+                                    updateActiveWeightText(nextLoad.toTrimmedNumberString(), markManual = false)
+                                }
+                                updateActiveValueText(scheduledPlan.followUpReps.toString())
+                                scheduledRestRemainingSeconds = if (
+                                    scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE
+                                ) {
+                                    scheduledPlan.pauseSeconds
+                                } else {
+                                    0
+                                }
+                                return@label
+                            }
+
+                            when (scheduledPlan.kind) {
+                                com.example.kpkn.domain.workout.ScheduledTechniqueKind.DROP_SET -> {
+                                    scheduledDropDrafts = scheduledDropDrafts + DropSetEntry(
+                                        weight = weight,
+                                        reps = value.toInt().coerceAtLeast(0),
+                                    )
+                                }
+                                com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE -> {
+                                    scheduledRestPauseDrafts = scheduledRestPauseDrafts + RestPauseData(
+                                        restTime = scheduledPlan.pauseSeconds,
+                                        reps = value.toInt().coerceAtLeast(0),
+                                    )
+                                }
+                            }
+                            val nextPhase = phase + 1
+                            if (nextPhase < scheduledPlan.phaseCount) {
+                                scheduledPhaseIndex = nextPhase
+                                val nextLoad = when (scheduledPlan.kind) {
+                                    com.example.kpkn.domain.workout.ScheduledTechniqueKind.DROP_SET ->
+                                        (weight - scheduledPlan.dropKg).coerceAtLeast(0.0)
+                                    com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE -> weight
+                                }
+                                if (loadMode != LoadModeV2.BODYWEIGHT && nextLoad > 0.0) {
+                                    updateActiveWeightText(nextLoad.toTrimmedNumberString(), markManual = false)
+                                }
+                                updateActiveValueText(scheduledPlan.followUpReps.toString())
+                                scheduledRestRemainingSeconds = if (
+                                    scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE
+                                ) {
+                                    scheduledPlan.pauseSeconds
+                                } else {
+                                    0
+                                }
+                                return@label
+                            }
+
+                            val finalCapture = capture ?: return@label
+                            scheduledPhaseIndex = 0
+                            scheduledMainCapture = null
+                            scheduledRestRemainingSeconds = 0
+                            val scheduledAdvanced = advanced.copy(
+                                dropSets = scheduledDropDrafts.map {
+                                    DropSetData(weight = it.weight, reps = it.reps)
+                                },
+                                restPauses = scheduledRestPauseDrafts,
+                            )
+                            scheduledDropDrafts = emptyList()
+                            scheduledRestPauseDrafts = emptyList()
+                            onRecordV2(
+                                finalCapture.loadMode,
+                                finalCapture.unitMode,
+                                finalCapture.weight,
+                                finalCapture.value,
+                                finalCapture.intensity,
+                                scheduledAdvanced,
+                                finalCapture.amrapOverride,
+                                finalCapture.bodyWeight,
+                                finalCapture.side,
+                            )
+                            if (supportsIndependentSides && !sideLocked) {
+                                selectSide(if (selectedSide == "left") "right" else "left")
+                            }
+                            return@label
+                        }
 
                         if (dropSetEnabled || restPauseEnabled) {
                             val capture = GuidedMainCapture(
@@ -2768,7 +2965,7 @@ internal fun SetInputCardV2(
                             listOf(DropSetEntry(0.0, 0))
                         }
                         restPauseEnabled = pauses.isNotEmpty() || restPauseEnabled
-                        restPauseSets = pauses.ifEmpty { listOf(RestPauseData(restTime = 20, reps = 0)) }
+                        restPauseSets = pauses.ifEmpty { listOf(RestPauseData(restTime = RestPausePlanDefaults.PauseSeconds, reps = 0)) }
                         cardFace = SetCardFace.Front
                     },
                 )

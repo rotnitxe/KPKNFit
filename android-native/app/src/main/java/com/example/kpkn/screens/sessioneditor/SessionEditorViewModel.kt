@@ -42,6 +42,7 @@ import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.workout.SupersetRules
+import com.example.kpkn.domain.workout.normalizeEditorScheduledTechniques
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -422,6 +423,7 @@ class SessionEditorViewModel(
         )
         val draft = SupersetRules.normalizeSession(
             resolveNewestSession(existing, fallbackDraft, persistedDraft)
+                .normalizeEditorScheduledTechniques()
                 .normalizeMobilityCompatibility()
                 .normalizedIdentityFields(),
         )
@@ -484,7 +486,10 @@ class SessionEditorViewModel(
         return SessionEditorUiState(
             session = draft,
             originalSession = SupersetRules.normalizeSession(
-                (existing ?: draft).normalizeMobilityCompatibility().normalizedIdentityFields(),
+                (existing ?: draft)
+                    .normalizeEditorScheduledTechniques()
+                    .normalizeMobilityCompatibility()
+                    .normalizedIdentityFields(),
             ),
             loadErrorMessage = null,
             programId = programId,
@@ -516,6 +521,10 @@ class SessionEditorViewModel(
             ruleTemplates = ruleTemplateStore.loadAll(),
             hasUnsavedChanges = loadedFromDraft,
             isSimpleProgram = program.isSimpleTemporalProgram,
+            protocolLabel = program.sourceProtocolId?.let { id ->
+                com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.firstOrNull { it.id == id }
+                    ?.let { "${it.emoji} ${it.name}" }
+            },
             hasActiveLoops = program.loops.isNotEmpty() && program.loopState != null,
             latestBodyMeasurement = latestBodyMeasurementOrNull(),
             allProgramExerciseCandidates = allProgramExerciseCandidates,
@@ -712,6 +721,9 @@ class SessionEditorViewModel(
                 exercises = exercises,
                 supersetGroups = session.allSupersetGroups(),
                 sessionWarmup = session.warmup,
+                globalMobilitySeries = session.parts
+                    .filter { it.isMobilityGroup }
+                    .flatMap { it.mobilitySeries },
                 restTimerDefaultSeconds = settingsVal.restTimerDefaultSeconds,
             )
         }.getOrNull()
@@ -978,6 +990,9 @@ calculateSessionTimeBreakdown(
                     exercises = session.allExercises(),
                     supersetGroups = session.allSupersetGroups(),
                     sessionWarmup = session.warmup,
+                    globalMobilitySeries = session.parts
+                        .filter { it.isMobilityGroup }
+                        .flatMap { it.mobilitySeries },
                     restTimerDefaultSeconds = settingsForBreakdown.restTimerDefaultSeconds,
                 )
             }.getOrNull() ?: return@launch

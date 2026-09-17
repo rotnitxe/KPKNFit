@@ -248,6 +248,33 @@ class SetExecutionCardUiTest {
         composeRule.onNodeWithText("¿Cambio de planes o añadir técnica de intensidad?").assertDoesNotExist()
     }
 
+    @Test
+    fun scheduledVolumeReplacedKeepsCardWithoutGuidedOverlay() {
+        composeRule.setContent {
+            MaterialTheme {
+                SetInputCardV2(
+                    exercise = bilateralExercise(),
+                    setIndex = 0,
+                    currentSet = scheduledDropset(),
+                    ghostSet = null,
+                    weightSuggestion = null,
+                    initialBodyWeight = 80.0,
+                    recordActionHolder = RecordActionHolder(),
+                    isActivePage = true,
+                    onShowHistory = {},
+                    onSetBodyWeight = {},
+                    onRecordV2 = { _, _, _, _, _, _, _, _, _ -> },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("DROPSET").assertExists()
+        composeRule.onNodeWithText("Opciones avanzadas").assertExists()
+        composeRule.onNodeWithText("Ver ejercicio/Fotos").assertExists()
+        composeRule.onNodeWithText("Confirma las 3 reps de esta mini-serie.").assertDoesNotExist()
+        composeRule.onNodeWithText("Saltar técnica y registrar solo la serie").assertDoesNotExist()
+    }
+
     private fun unilateralExercise() = Exercise(
         id = "uni-ex",
         name = "Split squat",
@@ -283,5 +310,27 @@ class SetExecutionCardUiTest {
         loadModeV2 = LoadModeV2.LOAD,
         unitModeV2 = UnitModeV2.REPS,
         intensityMode = IntensityMode.RPE,
+    )
+
+    private fun scheduledDropset() = ExerciseSet(
+        id = "scheduled-drop-set",
+        targetReps = 8,
+        targetRPE = 8.0,
+        weight = 80.0,
+        loadModeV2 = LoadModeV2.LOAD,
+        unitModeV2 = UnitModeV2.REPS,
+        intensityMode = IntensityMode.RPE,
+        isDropSet = true,
+        plannedIntensityTechniques = listOf(
+            com.example.kpkn.data.models.PlannedTechnique(
+                id = "scheduled-drop",
+                type = com.example.kpkn.data.models.TechniqueType.DROP_SET,
+                params = mapOf(
+                    "weightPcts" to "-5",
+                    "count" to "1",
+                    "betweenMarked" to "true",
+                ),
+            ),
+        ),
     )
 }

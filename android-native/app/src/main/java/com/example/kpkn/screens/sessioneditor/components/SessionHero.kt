@@ -104,6 +104,7 @@ internal fun SessionHero(
     activeDayOfWeek: Int? = null,
     weekStartDay: Int = 1,
     onSelectDay: ((Int) -> Unit)? = null,
+    protocolLabel: String? = null,
 ) {
     // Local HazeState: glass samples ONLY the cover under the pill.
     // Screen-level hazeState stays reserved for dock/FAB chrome (Blur KPKN.md).
@@ -291,6 +292,16 @@ internal fun SessionHero(
                             modifier = Modifier.fillMaxWidth(),
                             verticalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
+                            if (!protocolLabel.isNullOrBlank()) {
+                                Text(
+                                    protocolLabel,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color(0xFFFBBF24),
+                                    letterSpacing = 1.2.sp,
+                                    maxLines = 1,
+                                )
+                            }
                             val titleFontSize = when {
                                 localName.length < 15 -> 34.sp
                                 localName.length < 25 -> 28.sp

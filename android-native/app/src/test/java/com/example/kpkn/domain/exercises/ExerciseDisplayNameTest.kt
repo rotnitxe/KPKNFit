@@ -80,30 +80,66 @@ class ExerciseDisplayNameTest {
     }
 
     @Test
+    fun recipe_technique_surfaces_as_chip_beside_verbatim_name() {
+        val exercise = Exercise(
+            id = "ex-recipe",
+            name = "Press de Banca Plano",
+            exerciseDbId = "bench_press__barbell",
+            catalogRevision = "v2-approved-2026-08-12-a",
+            catalogDefinitionId = "bench_press",
+            catalogConfigurationId = "bench_press__barbell",
+            variantName = "Velocidad",
+            techniqueModifier = com.example.kpkn.data.protocols.TechniqueModifier.SPEED,
+            relationshipNotes = "Velocidad",
+        )
+        val info = ExerciseMuscleInfo(
+            id = "bench_press__barbell",
+            name = "Press de Banca Plano",
+            catalogVariantChips = listOf("Barra"),
+        )
+        val parts = exerciseDisplayParts(exercise, info)
+        assertEquals("Press de Banca Plano", parts.parentName)
+        assertEquals(listOf("Velocidad", "Barra"), parts.chips)
+        assertEquals("Press de Banca Plano · Velocidad · Barra", parts.text)
+    }
+
+    @Test
+    fun legacy_variant_name_without_catalog_identity_stays_as_chip() {
+        val exercise = Exercise(
+            id = "ex-legacy",
+            name = "Press de Banca",
+            variantName = "Smith",
+        )
+        val parts = exerciseDisplayParts(exercise, null)
+        assertEquals("Press de Banca", parts.parentName)
+        assertEquals(listOf("Smith"), parts.chips)
+    }
+
+    @Test
     fun catalog_configuration_id_resolves_to_exact_config_not_default() {
         val index = mapOf(
-            "decline_chest_fly" to ExerciseMuscleInfo(
-                id = "decline_chest_fly",
-                name = "Apertura en Banco Declinado",
+            "incline_chest_fly" to ExerciseMuscleInfo(
+                id = "incline_chest_fly",
+                name = "Apertura en Banco Inclinado",
                 catalogVariantChips = listOf("Mancuerna", "Bilateral"),
             ),
-            "decline_chest_fly__cable" to ExerciseMuscleInfo(
-                id = "decline_chest_fly__cable",
-                name = "Apertura en Banco Declinado",
+            "incline_chest_fly__cable" to ExerciseMuscleInfo(
+                id = "incline_chest_fly__cable",
+                name = "Apertura en Banco Inclinado",
                 catalogVariantChips = listOf("Polea"),
             ),
         )
         val exercise = Exercise(
-            id = "ex-cable",
-            name = "Apertura en Banco Declinado",
-            exerciseDbId = "decline_chest_fly",
+            id = "ex-incline-cable",
+            name = "Apertura en Banco Inclinado",
+            exerciseDbId = "incline_chest_fly",
             catalogRevision = "v2-approved-2026-08-02-c",
-            catalogDefinitionId = "decline_chest_fly",
-            catalogConfigurationId = "decline_chest_fly__cable",
+            catalogDefinitionId = "incline_chest_fly",
+            catalogConfigurationId = "incline_chest_fly__cable",
         )
         val info = resolveCatalogInfoForDisplay(exercise, index)
         val parts = exerciseDisplayParts(exercise, info)
-        assertEquals("decline_chest_fly__cable", info?.id)
+        assertEquals("incline_chest_fly__cable", info?.id)
         assertEquals(listOf("Polea"), parts.chips)
     }
 }

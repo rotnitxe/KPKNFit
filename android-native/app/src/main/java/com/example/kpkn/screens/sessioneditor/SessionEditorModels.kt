@@ -234,6 +234,7 @@ data class SessionEditorUiState(
     val supersetManagerSupersetId: String? = null,
     val supersetDraft: SupersetDraft? = null,
     val isSimpleProgram: Boolean = false,
+    val protocolLabel: String? = null,
     val latestBodyMeasurement: BodyMeasurementEntry? = null,
     val allProgramExerciseCandidates: List<ProgramExerciseCandidate> = emptyList(),
     val competitionMovementIds: Set<String> = emptySet(),

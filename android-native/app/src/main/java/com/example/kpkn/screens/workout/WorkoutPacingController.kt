@@ -156,7 +156,7 @@ class WorkoutPacingController(
         lastPaceNotifyAtMs = 0L
         lastPaceNotifyKind = null
         val initial = computeRemainingSeconds() ?: totalSeconds
-        _sessionTimeRemainingSeconds.value = initial
+        _sessionTimeRemainingSeconds.value = initial.coerceAtLeast(0)
         sessionTimerJob = scope.launch {
             var previous: Int? = null
             while (true) {
@@ -166,7 +166,10 @@ class WorkoutPacingController(
                     break
                 }
                 if (remaining < -3600) break
-                _sessionTimeRemainingSeconds.value = remaining
+                // Keep the observable/UI clock at zero.  Overtime is exposed
+                // through the existing pacing cue/accent, never as a
+                // negative countdown value.
+                _sessionTimeRemainingSeconds.value = remaining.coerceAtLeast(0)
                 fireTimeThresholds(previous, remaining)
                 evaluatePace(fromTimer = true)
                 previous = remaining

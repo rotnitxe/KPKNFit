@@ -1,0 +1,1143 @@
+--------- beginning of system
+08-27 19:02:17.585   682  2680 W ActivityTaskManager: callingPackage for (uid=2000, pid=6456) has no WPC
+--------- beginning of main
+08-27 19:02:17.586   682  2680 V GrammaticalInflectionUtils: AttributionSource: android.content.AttributionSource@994cd4b9 does not have READ_SYSTEM_GRAMMATICAL_GENDER permission.
+08-27 19:02:17.587   682  2680 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_USER_ASPECT_RATIO_OVERRIDE
+08-27 19:02:17.587   682  2680 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_USER_ASPECT_RATIO_FULLSCREEN_OVERRIDE
+08-27 19:02:17.588   682  2680 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_RESIZEABLE_ACTIVITY_OVERRIDES
+08-27 19:02:17.588   682  2680 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_MIN_ASPECT_RATIO_OVERRIDE
+08-27 19:02:17.592   682  2680 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_ORIENTATION_OVERRIDE
+08-27 19:02:17.593   555   571 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+08-27 19:02:17.598   939  1029 I ndroid.systemui: AssetManager2(0x7da5510fe718) locale list changing from [] to [en-US]
+08-27 19:02:17.600   682  2680 I ActivityTaskManager: START u0 {act=android.intent.action.VIEW dat=kpkn://workout/... flg=0x10000000 xflg=0x4 cmp=com.example.kpkn/.MainActivity} with LAUNCH_MULTIPLE from uid 2000 (BAL_ALLOW_PERMISSION) result code=0
+08-27 19:02:17.600   682  1706 D CompatChangeReporter: Compat change id reported: 309578419; UID 10271; state: ENABLED
+08-27 19:02:17.600   939   976 V WindowManagerShell: Transition requested (#30): android.os.BinderProxy@1a6192 TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=964 effectiveUid=10271 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.VIEW dat=kpkn://workout/... flg=0x10000000 cmp=com.example.kpkn/.MainActivity } baseActivity=ComponentInfo{com.example.kpkn/com.example.kpkn.MainActivity} topActivity=ComponentInfo{com.example.kpkn/com.example.kpkn.MainActivity} origActivity=null realActivity=ComponentInfo{com.example.kpkn/com.example.kpkn.MainActivity} numActivities=1 lastActiveTime=2907492 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@de23763} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 159 - 0, 0) topActivityInfo=ActivityInfo{fc3ef60 com.example.kpkn.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isTopActivityNoDisplay=false isSleeping=false locusId=null displayAreaFeatureId=1 isTopActivityTransparent=false isActivityStackTransparent=false lastNonFullscreenBounds=Rect(345, 867 - 999, 2211) capturedLink=null capturedLinkTimestamp=0 requestedVisibleTypes=-9 topActivityRequestOpenInBrowserEducationTimestamp=0 appCompatTaskInfo=AppCompatTaskInfo { topActivityInSizeCompat=false eligibleForLetterboxEducation= false isLetterboxEducationEnabled= true isLetterboxDoubleTapEnabled= false eligibleForUserAspectRatioButton= false topActivityBoundsLetterboxed= false isFromLetterboxDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 topActivityAppBounds=Rect(0, 0 - 1344, 2992) isUserFullscreenOverrideEnabled=false isSystemFullscreenOverrideEnabled=false hasMinAspectRatioOverride=false topActivityLetterboxBounds=null cameraCompatTaskInfo=CameraCompatTaskInfo { freeformCameraCompatMode=inactive}} topActivityMainWindowFrame=null}, pipChange = null, remoteTransition = null, displayChange = null, flags = 0, debugId = 30 }
+08-27 19:02:17.600   939   976 D ShellSplitScreen: logExit: no-op, mLoggerSessionId is null
+08-27 19:02:17.604  1093  1093 W SplitSelectStateCtor: Missing session instanceIds
+08-27 19:02:17.604  1093  1093 D StatsLog: LAUNCHER_SPLIT_SELECTION_EXIT_INTERRUPTED
+08-27 19:02:17.605   555   555 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+08-27 19:02:17.607   939   976 D WindowManagerShell: setLauncherKeepClearAreaHeight: visible=false, height=603
+08-27 19:02:17.609   615   615 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:17.609   682   715 V GrammaticalInflectionUtils: AttributionSource: android.content.AttributionSource@994cd4b9 does not have READ_SYSTEM_GRAMMATICAL_GENDER permission.
+08-27 19:02:17.610   682  1714 I AppsFilter: interaction: PackageSetting{97544d9 com.android.microdroid.empty_payload/10193} -> PackageSetting{d4accb com.example.kpkn/10271} BLOCKED
+08-27 19:02:17.618   682   890 D BackgroundInstallControlService: Package event received: 0
+08-27 19:02:17.628   482   482 D Zygote  : Forked child process 6459
+08-27 19:02:17.630   682   722 I ActivityManager: Start proc 6459:com.example.kpkn/u0a271 for next-top-activity {com.example.kpkn/com.example.kpkn.MainActivity}
+08-27 19:02:17.630   682   722 I ActivityManager: ProcessObserver broadcast disabled
+08-27 19:02:17.632   939  1030 W HWUI    : Image decoding logging dropped!
+08-27 19:02:17.637   682  1714 D CoreBackPreview: Window{8b830bc u0 Splash Screen com.example.kpkn}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@738e79f, mPriority=0, mIsAnimationCallback=false, mOverrideBehavior=0}
+08-27 19:02:17.638  6459  6459 I om.example.kpkn: Late-enabling -Xcheck:jni
+08-27 19:02:17.683  6459  6459 I om.example.kpkn: Using CollectorTypeCMC GC.
+08-27 19:02:17.684  6459  6459 W om.example.kpkn: Unexpected CPU variant for x86: x86_64.
+08-27 19:02:17.684  6459  6459 W om.example.kpkn: Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, goldmont-without-sha-xsaves, tremont, kabylake, alderlake, default
+08-27 19:02:17.693   563   581 I adbd    : jdwp connection from 6459
+08-27 19:02:17.701  6459  6459 D nativeloader: Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
+08-27 19:02:17.711   682   712 V WindowManager: Sent Transition (#30) createdAt=08-27 19:02:17.588 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=964 effectiveUid=10271 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.VIEW dat=kpkn://workout/... flg=0x10000000 cmp=com.example.kpkn/.MainActivity } baseActivity=ComponentInfo{com.example.kpkn/com.example.kpkn.MainActivity} topActivity=ComponentInfo{com.example.kpkn/com.example.kpkn.MainActivity} origActivity=null realActivity=ComponentInfo{com.example.kpkn/com.example.kpkn.MainActivity} numActivities=1 lastActiveTime=2907492 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{4fbaf4a Task{597eb90 #964 type=standard A=10271:com.example.kpkn}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 159 - 0, 0) topActivityInfo=ActivityInfo{bce5ebb com.example.kpkn.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isTopActivityNoDisplay=false isSleeping=false locusId=null displayAreaFeatureId=1 isTopActivityTransparent=false isActivityStackTransparent=false lastNonFullscreenBounds=Rect(345, 867 - 999, 2211) capturedLink=null capturedLinkTimestamp=0 requestedVisibleTypes=-9 topActivityRequestOpenInBrowserEducationTimestamp=0 appCompatTaskInfo=AppCompatTaskInfo { topActivityInSizeCompat=false eligibleForLetterboxEducation= false isLetterboxEducationEnabled= true isLetterboxDoubleTapEnabled= false eligibleForUserAspectRatioButton= false topActivityBoundsLetterboxed= false isFromLetterboxDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 topActivityAppBounds=Rect(0, 0 - 1344, 2992) isUserFullscreenOverrideEnabled=false isSystemFullscreenOverrideEnabled=false hasMinAspectRatioOverride=false topActivityLetterboxBounds=null cameraCompatTaskInfo=CameraCompatTaskInfo { freeformCameraCompatMode=inactive}} topActivityMainWindowFrame=null}, pipChange = null, remoteTransition = null, displayChange = null, flags = 0, debugId = 30 }
+08-27 19:02:17.712   682   712 V WindowManager:     startWCT=WindowContainerTransaction { changes= {} hops= [] errorCallbackToken=null taskFragmentOrganizer=null }
+08-27 19:02:17.713   939   951 V WindowManagerShell: onTransitionReady(transaction=2929167696884)
+08-27 19:02:17.713   682   712 V WindowManager:     info={id=30 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[
+08-27 19:02:17.713   682   712 V WindowManager:         {WCT{RemoteToken{4fbaf4a Task{597eb90 #964 type=standard A=10271:com.example.kpkn}}} m=OPEN f=NONE leash=Surface(name=Task=964)/@0xdc740ec sb=Rect(0, 0 - 1344, 2992) eb=Rect(0, 0 - 1344, 2992) epz=Point(1344, 2992) d=0 taskParent=-1},
+08-27 19:02:17.713   682   712 V WindowManager:         {WCT{RemoteToken{89ddd29 Task{bef646f #1 type=home}}} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xc6ec316 sb=Rect(0, 0 - 1344, 2992) eb=Rect(0, 0 - 1344, 2992) epz=Point(1344, 2992) d=0 taskParent=-1},
+08-27 19:02:17.713   682   712 V WindowManager:         {m=TO_BACK f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{8c9ed30 showWhenLocked=false})/@0xc9d04d6 sb=Rect(0, 0 - 1344, 2992) eb=Rect(0, 0 - 1344, 2992) epz=Point(1344, 2992) d=0}
+08-27 19:02:17.713   682   712 V WindowManager:     ]}
+08-27 19:02:17.721   939   976 V WindowManagerShell: onTransitionReady (#30) android.os.BinderProxy@1a6192: {id=30 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[
+08-27 19:02:17.721   939   976 V WindowManagerShell:         {m=OPEN f=NONE leash=Surface(name=Task=964)/@0xe63089a sb=Rect(0, 0 - 1344, 2992) eb=Rect(0, 0 - 1344, 2992) epz=Point(1344, 2992) d=0 taskParent=-1},
+08-27 19:02:17.721   939   976 V WindowManagerShell:         {m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xde5c5cb sb=Rect(0, 0 - 1344, 2992) eb=Rect(0, 0 - 1344, 2992) epz=Point(1344, 2992) d=0 taskParent=-1},
+08-27 19:02:17.721   939   976 V WindowManagerShell:         {m=TO_BACK f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{8c9ed30 showWhenLocked=false})/@0x31b41a8 sb=Rect(0, 0 - 1344, 2992) eb=Rect(0, 0 - 1344, 2992) epz=Point(1344, 2992) d=0}
+08-27 19:02:17.721   939   976 V WindowManagerShell:     ]}
+08-27 19:02:17.721   939   976 V WindowManagerShell: Playing animation for (#30) android.os.BinderProxy@1a6192@0
+08-27 19:02:17.722   939   976 V ShellRecents: RecentsTransitionHandler.startAnimation: no controller found
+08-27 19:02:17.722   939   976 V WindowManagerShell: Transition doesn't have explicit remote, search filters for match for {id=30 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{m=OPEN f=NONE leash=Surface(name=Task=964)/@0xe63089a sb=Rect(0, 0 - 1344, 2992) eb=Rect(0, 0 - 1344, 2992) epz=Point(1344, 2992) d=0 taskParent=-1},{m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xde5c5cb sb=Rect(0, 0 - 1344, 2992) eb=Rect(0, 0 - 1344, 2992) epz=Point(1344, 2992) d=0 taskParent=-1},{m=TO_BACK f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{8c9ed30 showWhenLocked=false})/@0x31b41a8 sb=Rect(0, 0 - 1344, 2992) eb=Rect(0, 0 - 1344, 2992) epz=Point(1344, 2992) d=0}]}
+08-27 19:02:17.722   939   976 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x0 checks=[{atype=undefined independent=true modes=[CLOSE,TO_BACK] flags=IN_TASK_WITH_EMBEDDED_ACTIVITY mustBeTask=false order=ANY topActivity=null launchCookie=null taskFragmentToken=android.os.BinderProxy@da76986 windowingMode=undefined}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@612f247, appThread = android.app.IApplicationThread$Stub$Proxy@5ccfa74, debugName = overlayBackTransition }}
+08-27 19:02:17.723   939   976 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x0 checks=[{atype=dream independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null windowingMode=undefined},{atype=home independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null windowingMode=undefined}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@64e2b9d, appThread = android.app.IApplicationThread$Stub$Proxy@9009812, debugName = LauncherToDream }}
+08-27 19:02:17.723   939   976 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x100 checks=[{atype=home independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=TOP topActivity=ComponentInfo{com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity} launchCookie=null windowingMode=undefined},{atype=standard independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null windowingMode=undefined},{NOT atype=undefined independent=true modes=[] flags=NONE mustBeTask=true order=ANY topActivity=null launchCookie=null customAnim=true windowingMode=undefined}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@3826be3, appThread = android.app.IApplicationThread$Stub$Proxy@ff949e0, debugName = QuickstepLaunchHome }}
+08-27 19:02:17.723   939   976 V WindowManagerShell:  Delegate animation for (#30) to null
+08-27 19:02:17.723   939   976 V WindowManagerShell: start default transition animation, info = {id=30 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{m=OPEN f=NONE leash=Surface(name=Task=964)/@0xe63089a sb=Rect(0, 0 - 1344, 2992) eb=Rect(0, 0 - 1344, 2992) epz=Point(1344, 2992) d=0 taskParent=-1},{m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xde5c5cb sb=Rect(0, 0 - 1344, 2992) eb=Rect(0, 0 - 1344, 2992) epz=Point(1344, 2992) d=0 taskParent=-1},{m=TO_BACK f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{8c9ed30 showWhenLocked=false})/@0x31b41a8 sb=Rect(0, 0 - 1344, 2992) eb=Rect(0, 0 - 1344, 2992) epz=Point(1344, 2992) d=0}]}
+08-27 19:02:17.723   939   976 V WindowManagerShell: loadAnimation: anim=android.view.animation.AnimationSet@c88f3a7 animAttr=0x13 type=OPEN isEntrance=false
+08-27 19:02:17.723   939   976 V WindowManagerShell: loadAnimation: anim=android.view.animation.AnimationSet@ab6d054 animAttr=0x12 type=OPEN isEntrance=true
+08-27 19:02:17.725   939   976 V WindowManagerShell:  animated by com.android.wm.shell.transition.DefaultTransitionHandler@92ae158
+08-27 19:02:17.733   682   890 D BackgroundInstallControlService: Package event received: 0
+08-27 19:02:17.741   939   976 V WindowManagerShell: Transition animation finished (aborted=false), notifying core (#30) android.os.BinderProxy@1a6192@0
+08-27 19:02:17.743   682   712 V WindowManager: Finish Transition (#30): created at 08-27 19:02:17.588 collect-started=0.047ms request-sent=11.072ms started=12.659ms ready=117.525ms sent=121.301ms commit=29.128ms finished=153.505ms
+08-27 19:02:17.745  1093  1093 D VRI[NexusLauncherActivity]: visibilityChanged oldVisibility=true newVisibility=false
+08-27 19:02:17.745   939   976 V WindowManagerShell: Track 0 became idle
+08-27 19:02:17.745   939   976 V WindowManagerShell: All active transition animations finished
+08-27 19:02:17.757  6459  6459 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.extensions.jar
+08-27 19:02:17.757  6459  6459 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.sidecar.jar
+08-27 19:02:17.759  1093  1093 D NexusLauncherModelDelegate: notifySmartspaceEvent: SmartspaceTargetEvent{mSmartspaceTarget=null, mSmartspaceActionId='null', mEventType=7}
+08-27 19:02:18.022  6472  6472 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: package
+08-27 19:02:18.150  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/base.odex) is kOatUpToDate with filter 'speed-profile' executable 'false'
+08-27 19:02:18.153  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_AdsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:18.154  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_CronetDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:18.156  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_DynamiteLoader_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:18.161  2257  2257 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_DynamiteModulesA_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:18.163  2257  2258 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_DynamiteModulesC_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:18.165  2257  4225 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_GoogleCertificates_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:18.167  2257  2257 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_MapsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:18.169  2257  4225 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_MeasurementDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:18.171  2257  4225 I artd    : GetBestInfo: /data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/split_maps_core_dynamite_ondemand.apk has no usable artifacts
+08-27 19:02:18.173  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000011/dl-PlayCloudSearch.optional_263032100000.apk has no usable artifacts
+08-27 19:02:18.174  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000001/CronetDynamite.apk has no usable artifacts
+08-27 19:02:18.174  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000002/DynamiteLoader.apk has no usable artifacts
+08-27 19:02:18.176  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000018/dl-IdentityCredentialsPlatform.optional_263032100800.apk has no usable artifacts
+08-27 19:02:18.177  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000005/GoogleCertificates.apk has no usable artifacts
+08-27 19:02:18.179  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000019/dl-TfliteDynamiteDynamite.integ_262730502100800.apk has no usable artifacts
+08-27 19:02:18.181  2257  4225 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/8A87D3ADD3A68B58A4F768E677B14023FB08B0E1/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+08-27 19:02:18.182  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000010/dl-VisionOcr.optional_263032100000.apk has no usable artifacts
+08-27 19:02:18.183  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000b/dl-TfliteDynamiteDynamite.integ_260580502100800.apk has no usable artifacts
+08-27 19:02:18.185  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000013/dl-MlkitOcrCommon.optional_263032100800.apk has no usable artifacts
+08-27 19:02:18.186  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000001/dl-TfliteDynamiteDynamite.integ_262730502100800.apk has no usable artifacts
+08-27 19:02:18.189  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000008/dl-Appsearch.optional_250834100800.apk has no usable artifacts
+08-27 19:02:18.190  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000014/dl-MlkitBarcodeUi.optional_263032100800.apk has no usable artifacts
+08-27 19:02:18.193  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000c/dl-MlkitBarcodeUi.optional_250834100800.apk has no usable artifacts
+08-27 19:02:18.195  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000012/dl-Appsearch.optional_263032100800.apk has no usable artifacts
+08-27 19:02:18.196  2257  4225 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/D76594F451C00E79F4C61E3B54BC3D01968BC47C/the.apk has no usable artifacts
+08-27 19:02:18.197  2257  4225 W artd    : Could not get dex checksums for location /data/app/~~OebE3h3aj7bRyFr6lOGvKw==/com.android.vending-A6r2KrtDQrcy5gixqfcP6A==/base.apk, fd=-1
+08-27 19:02:18.198  2257  4225 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/90356F09B5269D8AF0E8BAEAA661BE4AFD715065/the.apk has no usable artifacts
+08-27 19:02:18.528  6459  6459 D nativeloader: Configuring clns-9 for other apk /data/app/~~j5xVpdMt21cibXXmQ9iytg==/com.example.kpkn-obQugP1LVO1M1weYiT39vw==/base.apk. target_sdk_version=35, uses_libraries=, library_path=/data/app/~~j5xVpdMt21cibXXmQ9iytg==/com.example.kpkn-obQugP1LVO1M1weYiT39vw==/lib/x86_64:/data/app/~~j5xVpdMt21cibXXmQ9iytg==/com.example.kpkn-obQugP1LVO1M1weYiT39vw==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.example.kpkn
+08-27 19:02:18.535  6459  6459 D CompatChangeReporter: Compat change id reported: 202956589; UID 10271; state: ENABLED
+08-27 19:02:18.538  6459  6459 I om.example.kpkn: AssetManager2(0x7da5510d6fd8) locale list changing from [] to [en-US]
+08-27 19:02:18.549  6459  6459 V GraphicsEnvironment: Currently set values for:
+08-27 19:02:18.549  6459  6459 V GraphicsEnvironment:   angle_gl_driver_selection_pkgs=[]
+08-27 19:02:18.549  6459  6459 V GraphicsEnvironment:   angle_gl_driver_selection_values=[]
+08-27 19:02:18.549  6459  6459 V GraphicsEnvironment: com.example.kpkn is not listed in per-application setting
+08-27 19:02:18.549  6459  6459 V GraphicsEnvironment: ANGLE allowlist from config: com.dreamgames.royalmatch com.dts.freefiremax com.dxx.firenow com.gramgames.mergedragons com.ludo.king com.mojang.minecraftpe com.my.defense com.nintendo.zaka com.os.airforce com.playrix.fishdomdd.gplay io.teslatech.callbreak jp.konami.prospia net.peakgames.toonblast
+08-27 19:02:18.549  6459  6459 V GraphicsEnvironment: com.example.kpkn is not listed in ANGLE allowlist or settings, returning default
+08-27 19:02:18.549  6459  6459 V GraphicsEnvironment: Neither updatable production driver nor prerelease driver is supported.
+08-27 19:02:18.666  6459  6459 D CompatChangeReporter: Compat change id reported: 312399441; UID 10271; state: ENABLED
+08-27 19:02:18.676  6459  6459 D WM-WrkMgrInitializer: Initializing WorkManager with default configuration.
+08-27 19:02:18.854  6459  6459 D CompatChangeReporter: Compat change id reported: 279646685; UID 10271; state: ENABLED
+08-27 19:02:18.855  6459  6478 E ashmem  : Pinning is deprecated since Android Q. Please use trim or other methods.
+08-27 19:02:18.939  6459  6459 I om.example.kpkn: hiddenapi: Accessing hidden method Landroid/view/WindowManagerGlobal;->getInstance()Landroid/view/WindowManagerGlobal; (runtime_flags=0, domain=platform, api=unsupported) from Lcurtains/internal/WindowManagerSpy$windowManagerInstance$2; (domain=app) using reflection: allowed
+08-27 19:02:18.940  6459  6459 I om.example.kpkn: hiddenapi: Accessing hidden field Landroid/view/WindowManagerGlobal;->mViews:Ljava/util/ArrayList; (runtime_flags=0, domain=platform, api=unsupported) from Lcurtains/internal/WindowManagerSpy$mViewsField$2; (domain=app) using reflection: allowed
+08-27 19:02:18.940  6459  6459 I om.example.kpkn: hiddenapi: Accessing hidden field Landroid/app/ActivityThread;->mH:Landroid/app/ActivityThread$H; (runtime_flags=0, domain=platform, api=unsupported) from Lleakcanary/ServiceWatcher; (domain=app) using reflection: allowed
+08-27 19:02:18.941  6459  6459 I om.example.kpkn: hiddenapi: Accessing hidden method Landroid/app/ActivityThread;->currentActivityThread()Landroid/app/ActivityThread; (runtime_flags=0, domain=platform, api=unsupported) from Lleakcanary/ServiceWatcher$activityThreadInstance$2; (domain=app) using reflection: allowed
+08-27 19:02:18.941  6459  6459 I om.example.kpkn: hiddenapi: Accessing hidden field Landroid/os/Handler;->mCallback:Landroid/os/Handler$Callback; (runtime_flags=0, domain=platform, api=unsupported) from Lleakcanary/ServiceWatcher; (domain=app) using reflection: allowed
+08-27 19:02:18.943  6459  6459 I om.example.kpkn: hiddenapi: Accessing hidden field Landroid/util/Singleton;->mInstance:Ljava/lang/Object; (runtime_flags=0, domain=platform, api=unsupported) from Lleakcanary/ServiceWatcher; (domain=app) using reflection: allowed
+08-27 19:02:18.943  6459  6459 I om.example.kpkn: hiddenapi: Accessing hidden method Landroid/util/Singleton;->get()Ljava/lang/Object; (runtime_flags=0, domain=platform, api=unsupported) from Lleakcanary/ServiceWatcher; (domain=app) using reflection: allowed
+08-27 19:02:18.943  6459  6459 I om.example.kpkn: hiddenapi: Accessing hidden field Landroid/app/ActivityManager;->IActivityManagerSingleton:Landroid/util/Singleton; (runtime_flags=0, domain=platform, api=unsupported) from Lleakcanary/ServiceWatcher; (domain=app) using reflection: allowed
+08-27 19:02:19.215   682  1994 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ENABLE_FAKE_FOCUS
+08-27 19:02:19.215   682  1994 D CompatChangeReporter: Compat change id reported: 324203798; UID 10271; state: ENABLED
+08-27 19:02:19.222   682   890 D BackgroundInstallControlService: Package event received: 0
+08-27 19:02:19.222   682   890 D BackgroundInstallControlService: Package event received: 0
+08-27 19:02:19.243  6459  6487 I DisplayManager: Choreographer implicitly registered for the refresh rate.
+08-27 19:02:19.248  6459  6459 I om.example.kpkn: AssetManager2(0x7da5510e1578) locale list changing from [] to [en-US]
+08-27 19:02:19.320  6459  6487 I EGL_emulation: Opening libGLESv1_CM_emulation.so
+08-27 19:02:19.322  6459  6487 I EGL_emulation: Opening libGLESv2_emulation.so
+08-27 19:02:19.335  6459  6487 W HWUI    : Failed to choose config with EGL_SWAP_BEHAVIOR_PRESERVED, retrying without...
+08-27 19:02:19.335  6459  6487 W HWUI    : Failed to initialize 101010-2 format, error = EGL_SUCCESS
+08-27 19:02:19.364  6459  6459 D CompatChangeReporter: Compat change id reported: 309578419; UID 10271; state: ENABLED
+08-27 19:02:19.365  6459  6459 D DesktopModeFlags: Toggle override initialized to: OVERRIDE_UNSET
+08-27 19:02:19.378  1254  6446 I .gms.persistent: Explicit concurrent mark compact GC freed 2734KB AllocSpace bytes, 0(0B) LOS objects, 24% free, 13MB/18MB, paused 2.058ms,1.588ms total 120.483ms
+08-27 19:02:19.457  6459  6479 D LeakCanary: LeakCanary is running and ready to detect memory leaks.
+08-27 19:02:19.513   682   841 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET, states=14
+08-27 19:02:19.513   682   841 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET6, states=14
+08-27 19:02:19.514   682   841 D InetDiagMessage: Destroyed live tcp sockets for uids={10152} in 1ms
+08-27 19:02:19.514   682   841 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET, states=14
+08-27 19:02:19.514   682   841 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET6, states=14
+08-27 19:02:19.514   682   841 D InetDiagMessage: Destroyed live tcp sockets for uids={20152} in 0ms
+08-27 19:02:19.584  6459  6459 D CompatChangeReporter: Compat change id reported: 352594277; UID 10271; state: ENABLED
+08-27 19:02:19.590  6459  6459 D CompatChangeReporter: Compat change id reported: 349153669; UID 10271; state: ENABLED
+08-27 19:02:19.598  6459  6459 I om.example.kpkn: hiddenapi: Accessing hidden field Lcom/android/internal/policy/DecorView;->mWindow:Lcom/android/internal/policy/PhoneWindow; (runtime_flags=0, domain=platform, api=unsupported) from Lcurtains/internal/WindowSpy$windowField$2; (domain=app) using reflection: allowed
+08-27 19:02:19.605  6459  6459 W HWUI    : Unknown dataspace 0
+08-27 19:02:19.628  6459  6459 D StrictMode: StrictMode policy violation; ~duration=283 ms: android.os.strictmode.DiskReadViolation
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onReadFromDisk(StrictMode.java:1728)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at libcore.io.BlockGuardOs.access(BlockGuardOs.java:74)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at libcore.io.ForwardingOs.access(ForwardingOs.java:128)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at android.app.ActivityThread$AndroidOs.access(ActivityThread.java:8944)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at java.io.UnixFileSystem.checkAccess(UnixFileSystem.java:332)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at java.io.File.exists(File.java:829)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at android.app.ContextImpl.getDataDir(ContextImpl.java:3347)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at android.app.ContextImpl.getPreferencesDir(ContextImpl.java:763)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at android.app.ContextImpl.getSharedPreferencesPath(ContextImpl.java:990)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at android.app.ContextImpl.getSharedPreferences(ContextImpl.java:605)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at com.example.kpkn.ui.locale.LocaleManager.getSavedLanguage(LocaleManager.kt:86)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at com.example.kpkn.ui.locale.LocaleManager.wrapContext(LocaleManager.kt:97)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at com.example.kpkn.MainActivity.attachBaseContext(MainActivity.kt:138)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at android.app.Activity.attach(Activity.java:9042)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:4231)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:4467)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:222)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeNonLifecycleItem(TransactionExecutor.java:133)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeTransactionItems(TransactionExecutor.java:103)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:80)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2823)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at android.os.Handler.dispatchMessage(Handler.java:110)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at android.os.Looper.loopOnce(Looper.java:248)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at android.os.Looper.loop(Looper.java:338)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at android.app.ActivityThread.main(ActivityThread.java:9067)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at java.lang.reflect.Method.invoke(Native Method)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
+08-27 19:02:19.628  6459  6459 D StrictMode: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
+08-27 19:02:19.629  6459  6459 D StrictMode: StrictMode policy violation; ~duration=283 ms: android.os.strictmode.DiskReadViolation
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onReadFromDisk(StrictMode.java:1728)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at libcore.io.BlockGuardOs.access(BlockGuardOs.java:74)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at libcore.io.ForwardingOs.access(ForwardingOs.java:128)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at android.app.ActivityThread$AndroidOs.access(ActivityThread.java:8944)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at java.io.UnixFileSystem.checkAccess(UnixFileSystem.java:332)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at java.io.File.exists(File.java:829)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at android.app.ContextImpl.ensurePrivateDirExists(ContextImpl.java:818)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at android.app.ContextImpl.ensurePrivateDirExists(ContextImpl.java:809)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at android.app.ContextImpl.getPreferencesDir(ContextImpl.java:765)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at android.app.ContextImpl.getSharedPreferencesPath(ContextImpl.java:990)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at android.app.ContextImpl.getSharedPreferences(ContextImpl.java:605)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at com.example.kpkn.ui.locale.LocaleManager.getSavedLanguage(LocaleManager.kt:86)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at com.example.kpkn.ui.locale.LocaleManager.wrapContext(LocaleManager.kt:97)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at com.example.kpkn.MainActivity.attachBaseContext(MainActivity.kt:138)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at android.app.Activity.attach(Activity.java:9042)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:4231)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:4467)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:222)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeNonLifecycleItem(TransactionExecutor.java:133)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeTransactionItems(TransactionExecutor.java:103)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:80)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2823)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at android.os.Handler.dispatchMessage(Handler.java:110)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at android.os.Looper.loopOnce(Looper.java:248)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at android.os.Looper.loop(Looper.java:338)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at android.app.ActivityThread.main(ActivityThread.java:9067)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at java.lang.reflect.Method.invoke(Native Method)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
+08-27 19:02:19.629  6459  6459 D StrictMode: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
+08-27 19:02:19.631  6459  6459 D StrictMode: StrictMode policy violation; ~duration=130 ms: android.os.strictmode.DiskReadViolation
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onReadFromDisk(StrictMode.java:1728)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at libcore.io.BlockGuardOs.access(BlockGuardOs.java:74)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at libcore.io.ForwardingOs.access(ForwardingOs.java:128)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.app.ActivityThread$AndroidOs.access(ActivityThread.java:8944)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at java.io.UnixFileSystem.checkAccess(UnixFileSystem.java:332)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at java.io.File.exists(File.java:829)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.app.ContextImpl.ensurePrivateDirExists(ContextImpl.java:818)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.app.ContextImpl.ensurePrivateDirExists(ContextImpl.java:809)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.app.ContextImpl.getPreferencesDir(ContextImpl.java:765)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.app.ContextImpl.getSharedPreferencesPath(ContextImpl.java:990)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.app.ContextImpl.getSharedPreferences(ContextImpl.java:605)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.content.ContextWrapper.getSharedPreferences(ContextWrapper.java:223)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at com.example.kpkn.data.migrations.LegacyLearnPreferencesCleanup.clearOnce(LegacyLearnPreferencesCleanup.kt:18)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at com.example.kpkn.data.migrations.LegacyLearnPreferencesCleanupKt.clearLegacyLearnPreferencesOnce(LegacyLearnPreferencesCleanup.kt:32)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at com.example.kpkn.MainActivity.onCreate(MainActivity.kt:162)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.app.Activity.performCreate(Activity.java:9155)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.app.Activity.performCreate(Activity.java:9133)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.app.Instrumentation.callActivityOnCreate(Instrumentation.java:1521)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:4262)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:4467)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:222)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeNonLifecycleItem(TransactionExecutor.java:133)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeTransactionItems(TransactionExecutor.java:103)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:80)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2823)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.os.Handler.dispatchMessage(Handler.java:110)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.os.Looper.loopOnce(Looper.java:248)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.os.Looper.loop(Looper.java:338)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at android.app.ActivityThread.main(ActivityThread.java:9067)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at java.lang.reflect.Method.invoke(Native Method)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
+08-27 19:02:19.631  6459  6459 D StrictMode: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
+08-27 19:02:19.632  6459  6459 D StrictMode: StrictMode policy violation; ~duration=130 ms: android.os.strictmode.DiskReadViolation
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onReadFromDisk(StrictMode.java:1728)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at android.app.SharedPreferencesImpl.awaitLoadedLocked(SharedPreferencesImpl.java:283)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at android.app.SharedPreferencesImpl.getBoolean(SharedPreferencesImpl.java:352)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at com.example.kpkn.data.migrations.LegacyLearnPreferencesCleanup.clearOnce(LegacyLearnPreferencesCleanup.kt:19)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at com.example.kpkn.data.migrations.LegacyLearnPreferencesCleanupKt.clearLegacyLearnPreferencesOnce(LegacyLearnPreferencesCleanup.kt:32)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at com.example.kpkn.MainActivity.onCreate(MainActivity.kt:162)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at android.app.Activity.performCreate(Activity.java:9155)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at android.app.Activity.performCreate(Activity.java:9133)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at android.app.Instrumentation.callActivityOnCreate(Instrumentation.java:1521)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:4262)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:4467)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:222)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeNonLifecycleItem(TransactionExecutor.java:133)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeTransactionItems(TransactionExecutor.java:103)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:80)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2823)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at android.os.Handler.dispatchMessage(Handler.java:110)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at android.os.Looper.loopOnce(Looper.java:248)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at android.os.Looper.loop(Looper.java:338)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at android.app.ActivityThread.main(ActivityThread.java:9067)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at java.lang.reflect.Method.invoke(Native Method)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
+08-27 19:02:19.632  6459  6459 D StrictMode: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
+08-27 19:02:19.641   682  1994 I BroadcastQueue: BOOT_COMPLETED_BROADCAST_COMPLETION_LATENCY_REPORTED action:android.intent.action.BOOT_COMPLETED dispatchLatency:1 completeLatency:1904 dispatchRealLatency:1 completeRealLatency:1904 receiversSize:2 userId:0 userType:android.os.usertype.full.SYSTEM
+08-27 19:02:20.405  6459  6459 I om.example.kpkn: hiddenapi: Accessing hidden method Landroid/os/SystemProperties;->addChangeCallback(Ljava/lang/Runnable;)V (runtime_flags=0, domain=platform, api=unsupported) from Landroidx/compose/ui/platform/AndroidComposeView$Companion; (domain=app) using reflection: allowed
+08-27 19:02:20.551  6459  6464 I om.example.kpkn: Compiler allocated 5042KB to compile void android.view.ViewRootImpl.performTraversals()
+08-27 19:02:21.218  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 11MB AllocSpace bytes, 29(16MB) LOS objects, 50% free, 18MB/37MB, paused 3.490ms,2.871ms total 302.373ms
+08-27 19:02:21.578  6459  6459 D HazeSource: onAttach. Adding HazeArea: HazeArea(positionOnScreen=Offset.Unspecified, size=Size.Unspecified, zIndex=0.0, contentLayer=null, contentDrawing=false)
+08-27 19:02:21.610   682  1470 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+08-27 19:02:21.657  6459  6459 D HazeEffect: LocalHazeStyle changed. Current: HazeStyle(backgroundColor=Color(0.0, 0.0, 0.0, 0.0, None), tints=[], blurRadius=Dp.Unspecified, noiseFactor=-1.0, fallbackTint=HazeTint(color=Color(0.0, 0.0, 0.0, 0.0, None), blendMode=SrcOver, brush=null)). New: HazeStyle(backgroundColor=Color(0.0, 0.0, 0.0, 0.0, None), tints=[HazeTint(color=Color(0.0, 0.0, 0.0, 0.0, None), blendMode=SrcOver, brush=null)], blurRadius=20.0.dp, noiseFactor=0.15, fallbackTint=HazeTint(color=Color(0.0, 0.0, 0.0, 0.0, None), blendMode=SrcOver, brush=null))
+08-27 19:02:21.658  6459  6459 D HazeEffect: alpha changed. Current 1.0. New: 0.42
+08-27 19:02:21.659  6459  6459 D HazeEffect: Background Areas observing: SnapshotStateList(value=[HazeArea(positionOnScreen=Offset.Unspecified, size=Size.Unspecified, zIndex=0.0, contentLayer=null, contentDrawing=false)])@72034471
+08-27 19:02:21.660  6459  6459 D HazeEffect: Background Area: HazeArea(positionOnScreen=Offset.Unspecified, size=Size.Unspecified, zIndex=0.0, contentLayer=null, contentDrawing=false). Included=true
+08-27 19:02:21.660  6459  6459 D HazeEffect: backgroundAreas changed. Current []. New: [HazeArea(positionOnScreen=Offset.Unspecified, size=Size.Unspecified, zIndex=0.0, contentLayer=null, contentDrawing=false)]
+08-27 19:02:21.662  6459  6459 D HazeEffect: areaOffsets changed
+08-27 19:02:21.662  6459  6459 D HazeEffect: invalidateRequired=true. Dirty params=[RelativePosition, BlurRadius, NoiseFactor, Tints, Alpha, Areas]
+08-27 19:02:21.676  6459  6459 D HazeEffect: Background Areas observing: SnapshotStateList(value=[HazeArea(positionOnScreen=Offset.Unspecified, size=Size.Unspecified, zIndex=0.0, contentLayer=null, contentDrawing=false)])@72034471
+08-27 19:02:21.676  6459  6459 D HazeEffect: Background Area: HazeArea(positionOnScreen=Offset.Unspecified, size=Size.Unspecified, zIndex=0.0, contentLayer=null, contentDrawing=false). Included=true
+08-27 19:02:21.677  6459  6459 D HazeEffect: invalidateRequired=true. Dirty params=[RelativePosition, BlurRadius, NoiseFactor, Tints, Alpha, Areas]
+08-27 19:02:21.701   682   912 D CoreBackPreview: Window{1d4bc0b u0 com.example.kpkn/com.example.kpkn.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@e297d94, mPriority=0, mIsAnimationCallback=false, mOverrideBehavior=0}
+08-27 19:02:22.190  6459  6465 I om.example.kpkn: Background concurrent mark compact GC freed 24MB AllocSpace bytes, 0(0B) LOS objects, 41% free, 33MB/57MB, paused 8.222ms,2.478ms total 565.777ms
+08-27 19:02:22.238  6459  6459 D HazeSource: onPlaced: positionOnScreen=Offset(0.0, 0.0), size=Size(1344.0, 2992.0), positionOnScreens=Offset(0.0, 0.0)
+08-27 19:02:22.301  6459  6459 D HazeEffect: positionOnScreen changed. Current: Offset.Unspecified. New: Offset(36.0, 2644.0)
+08-27 19:02:22.302  6459  6459 D HazeEffect: size changed. Current: Size.Unspecified. New: Size(1272.0, 240.0)
+08-27 19:02:22.302  6459  6459 D HazeEffect: rootBoundsOnScreen changed. Current: Rect.fromLTRB(0.0, 0.0, 0.0, 0.0). New: Rect.fromLTRB(0.0, 0.0, 1344.0, 2992.0)
+08-27 19:02:22.302  6459  6459 D HazeEffect: onPlaced: positionOnScreen=Offset(36.0, 2644.0), size=Size(1272.0, 240.0)
+08-27 19:02:22.303  6459  6459 D HazeEffect: Background Areas observing: SnapshotStateList(value=[HazeArea(positionOnScreen=Offset(0.0, 0.0), size=Size(1344.0, 2992.0), zIndex=0.0, contentLayer=null, contentDrawing=false)])@72034471
+08-27 19:02:22.303  6459  6459 D HazeEffect: Background Area: HazeArea(positionOnScreen=Offset(0.0, 0.0), size=Size(1344.0, 2992.0), zIndex=0.0, contentLayer=null, contentDrawing=false). Included=true
+08-27 19:02:22.303  6459  6459 D HazeEffect: areaOffsets changed
+08-27 19:02:22.304  6459  6459 D HazeEffect: layerSize changed. Current: Size.Unspecified. New: Size(1344.0, 648.0)
+08-27 19:02:22.304  6459  6459 D HazeEffect: layerOffset changed. Current: Offset(0.0, 0.0). New: Offset(36.0, 300.0)
+08-27 19:02:22.305  6459  6459 D HazeEffect: invalidateRequired=true. Dirty params=[ScreenPosition, RelativePosition, Size, LayerSize, LayerOffset, BlurRadius, NoiseFactor, Tints, Alpha, Areas]
+08-27 19:02:22.317  6459  6459 D HazeSource: onGloballyPositioned: positionOnScreen=Offset(0.0, 0.0), size=Size(1344.0, 2992.0), positionOnScreens=Offset(0.0, 0.0)
+08-27 19:02:22.318  6459  6459 D HazeEffect: onGloballyPositioned: positionOnScreen=Offset(36.0, 2644.0), size=Size(1272.0, 240.0)
+08-27 19:02:22.318  6459  6459 D HazeEffect: Background Areas observing: SnapshotStateList(value=[HazeArea(positionOnScreen=Offset(0.0, 0.0), size=Size(1344.0, 2992.0), zIndex=0.0, contentLayer=null, contentDrawing=false)])@72034471
+08-27 19:02:22.318  6459  6459 D HazeEffect: Background Area: HazeArea(positionOnScreen=Offset(0.0, 0.0), size=Size(1344.0, 2992.0), zIndex=0.0, contentLayer=null, contentDrawing=false). Included=true
+08-27 19:02:22.318  6459  6459 D HazeEffect: invalidateRequired=true. Dirty params=[ScreenPosition, RelativePosition, Size, LayerSize, LayerOffset, BlurRadius, NoiseFactor, Tints, Alpha, Areas]
+08-27 19:02:22.331  6459  6459 D HazeEffect: Background Areas observing: SnapshotStateList(value=[HazeArea(positionOnScreen=Offset(0.0, 0.0), size=Size(1344.0, 2992.0), zIndex=0.0, contentLayer=null, contentDrawing=false)])@72034471
+08-27 19:02:22.331  6459  6459 D HazeEffect: Background Area: HazeArea(positionOnScreen=Offset(0.0, 0.0), size=Size(1344.0, 2992.0), zIndex=0.0, contentLayer=null, contentDrawing=false). Included=true
+08-27 19:02:22.332  6459  6459 D HazeEffect: invalidateRequired=true. Dirty params=[ScreenPosition, RelativePosition, Size, LayerSize, LayerOffset, BlurRadius, NoiseFactor, Tints, Alpha, Areas]
+08-27 19:02:22.333  6459  6459 D HazeSource: start draw()
+08-27 19:02:22.333  6459  6459 D HazeSource: Updated contentLayer in HazeArea: HazeArea(positionOnScreen=Offset(0.0, 0.0), size=Size(1344.0, 2992.0), zIndex=0.0, contentLayer=androidx.compose.ui.graphics.layer.GraphicsLayer@d029626, contentDrawing=true)
+08-27 19:02:22.360  6459  6459 D HazeSource: Drawn content into layer: androidx.compose.ui.graphics.layer.GraphicsLayer@d029626
+08-27 19:02:22.360  6459  6459 D HazeSource: Drawn layer to canvas: androidx.compose.ui.graphics.layer.GraphicsLayer@d029626
+08-27 19:02:22.360  6459  6459 D HazeSource: end draw()
+08-27 19:02:22.361  6459  6459 D HazeEffect: -> start draw()
+08-27 19:02:22.362  6459  6459 D HazeEffect: blurEffect changed. Current dev.chrisbanes.haze.ScrimBlurEffect@3f3a074. New: dev.chrisbanes.haze.RenderEffectBlurEffect@756d99d
+08-27 19:02:22.364  6459  6459 D HazeEffect: Drawing HazeArea GraphicsLayer: androidx.compose.ui.graphics.layer.GraphicsLayer@d029626
+08-27 19:02:22.368  6459  6459 D HazeEffect: getOrCreateRenderEffect: RenderEffectParams(blurRadius=100.0.dp, noiseFactor=0.02, scale=1.0, contentSize=Size(1272.0, 240.0), contentOffset=Offset(36.0, 300.0), tints=[HazeTint(color=Color(0.05490196, 0.05490196, 0.05490196, 0.5803922, sRGB IEC61966-2.1), blendMode=SrcOver, brush=null)], tintAlphaModulate=1.0, mask=null, progressive=null, blurTileMode=Clamp)
+08-27 19:02:22.368  6459  6459 D HazeEffect: getOrCreateRenderEffect. Creating: RenderEffectParams(blurRadius=100.0.dp, noiseFactor=0.02, scale=1.0, contentSize=Size(1272.0, 240.0), contentOffset=Offset(36.0, 300.0), tints=[HazeTint(color=Color(0.05490196, 0.05490196, 0.05490196, 0.5803922, sRGB IEC61966-2.1), blendMode=SrcOver, brush=null)], tintAlphaModulate=1.0, mask=null, progressive=null, blurTileMode=Clamp)
+08-27 19:02:22.375  6459  6459 W HWUI    : Image decoding logging dropped!
+08-27 19:02:22.393  6459  6459 D HazeEffect: -> end draw()
+08-27 19:02:22.466  6459  6464 I om.example.kpkn: Compiler allocated 4806KB to compile void com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader.validateApprovedStructure(com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2)
+08-27 19:02:22.631   682   712 I ActivityTaskManager: Displayed com.example.kpkn/.MainActivity for user 0: +5s42ms
+08-27 19:02:22.641  6459  6469 I HWUI    : Davey! duration=3000ms; Flags=1, FrameTimelineVsyncId=699985, IntendedVsync=2909529667300, Vsync=2909529667300, InputEventId=0, HandleInputStart=2909530993600, AnimationStart=2909531021000, PerformTraversalsStart=2909531057800, DrawStart=2912217475000, FrameDeadline=2909546333966, FrameStartTime=2909530968200, FrameInterval=16666666, WorkloadTarget=16666666, SyncQueued=2912291387400, SyncStart=2912291905700, IssueDrawCommandsStart=2912292087300, SwapBuffers=2912495868400, FrameCompleted=2912530377300, DequeueBufferDuration=40100, QueueBufferDuration=485000, GpuCompleted=2912530377300, SwapBuffersCompleted=2912515870800, DisplayPresentTime=0, CommandSubmissionCompleted=2912495868400, 
+08-27 19:02:22.656   939  1029 W WindowOnBackDispatcher: sendCancelIfRunning: isInProgress=false callback=android.view.ViewRootImpl$$ExternalSyntheticLambda13@17fbf53
+08-27 19:02:22.656   682  2680 D CoreBackPreview: Window{8b830bc u0 Splash Screen com.example.kpkn EXITING}: Setting back callback null
+08-27 19:02:22.664   615   615 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:22.665  1093  1093 D BaseDepthController: setSurface:
+08-27 19:02:22.665  1093  1093 D BaseDepthController: 	mWaitingOnSurfaceValidity: false
+08-27 19:02:22.665  1093  1093 D BaseDepthController: 	mBaseSurface: null
+08-27 19:02:22.665  1093  1093 D BaseDepthController: mSurface is null and mCurrentBlur is: 0
+08-27 19:02:22.666  1093  1093 D StateManager: goToState - fromState: Normal, toState: Normal, partial trace:
+08-27 19:02:22.666  1093  1093 D StateManager: 	at com.android.launcher3.statemanager.StateManager.moveToRestState(go/retraceme 72a59688580715d19f0e415c69e80376c2f062d1648c80db6730905005a27c20:4)
+08-27 19:02:22.666  1093  1093 D StateManager: 	at com.android.launcher3.statemanager.StateManager.moveToRestState(go/retraceme 72a59688580715d19f0e415c69e80376c2f062d1648c80db6730905005a27c20:1)
+08-27 19:02:22.666  1093  1093 D StateManager: 	at com.android.launcher3.statemanager.StatefulActivity.onStop(go/retraceme 72a59688580715d19f0e415c69e80376c2f062d1648c80db6730905005a27c20:34)
+08-27 19:02:22.666  1093  1093 D StatsLog: LAUNCHER_ONSTOP
+08-27 19:02:22.667  1093  1093 D StatsLog: LAUNCHER_GOOGLE_SEARCH_RESTORE_LIST_SIZE_AFTER_ACTIVITY_RESTART
+08-27 19:02:22.682   682   890 D BackgroundInstallControlService: Package event received: 0
+08-27 19:02:22.728  6459  6459 I Choreographer: Skipped 178 frames!  The application may be doing too much work on its main thread.
+08-27 19:02:22.732  6459  6459 D HazeSource: onPreDraw
+08-27 19:02:22.790   682   774 D ActivityManager: sync unfroze 2918 com.google.android.settings.intelligence for 6
+08-27 19:02:22.801   682  2680 W ProcessStats: Tracking association SourceState{8f2f173 system/1000 ImpBg #4131} whose proc state 6 is better than process ProcessState{80ef32 com.google.android.settings.intelligence/10145 pkg=com.google.android.settings.intelligence} proc state 15 (0 skipped)
+08-27 19:02:22.814   682  2680 W WifiService: Permission violation - getConfiguredNetworks not allowed for uid=10145, packageName=com.google.android.settings.intelligence, reason=java.lang.SecurityException: UID 10145 has no location permission
+08-27 19:02:22.817   682  2680 W JobInfo : Job 'com.google.android.settings.intelligence/.modules.routines.impl.RoutinesJobIntentService#1728' has a deadline with no functional constraints. The deadline won't improve job execution latency. Consider removing the deadline.
+08-27 19:02:22.860   682  2680 W JobInfo : Job 'com.google.android.settings.intelligence/.modules.routines.impl.RoutinesJobIntentService#1728' has a deadline with no functional constraints. The deadline won't improve job execution latency. Consider removing the deadline.
+08-27 19:02:23.230  1090  1259 D SatelliteController: iisInCarrierRoamingNbIotNtn: satellite is disabled
+08-27 19:02:23.232   682  2680 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:23.343  6459  6459 I om.example.kpkn: AssetManager2(0x7da5510e5a38) locale list changing from [] to [en-US]
+08-27 19:02:23.345  6459  6459 I TextToSpeech: Sucessfully bound to com.google.android.tts
+08-27 19:02:23.345   682  1994 D TextToSpeechManagerPerUserService: Trying to start connection to TTS engine: com.google.android.tts
+08-27 19:02:23.349   682   890 D BackgroundInstallControlService: Package event received: 0
+08-27 19:02:23.350   682   890 D BackgroundInstallControlService: Package event received: 0
+08-27 19:02:23.354  2521  2521 I GoogleTtsServicePeer: Creating Google TTS service, version googletts.google-speech-apk_20260720.02_p3.956725196
+08-27 19:02:23.354  2521  2521 I VoiceDataManager: checkData: Refreshing list of all available voices...
+08-27 19:02:23.413  2521  2683 I VoiceDataDownloader: getAvailableVoicesInfo en-us
+08-27 19:02:23.413  2521  2683 I VoiceDataDownloader: getAvailableVoicesInfo es-us
+08-27 19:02:23.413  2521  2683 I VoiceGenerator: Cache cleared
+08-27 19:02:23.413  2521  2683 I VoiceDataManager: Calling onVoicesDataChange: updated voices
+08-27 19:02:23.413  2521  2683 I VoiceDataManager: Calling onVoicesDataChange: updated voices
+08-27 19:02:23.413  2521  2683 I VoiceDataManager: Calling onVoicesDataChange: updated voices
+08-27 19:02:23.413  2521  2683 I VoiceDataManager: Calling onVoicesDataChange: updated voices
+08-27 19:02:23.413  2521  2683 I VoiceDataManager: Calling onVoicesDataChange: updated voices
+08-27 19:02:23.413  2521  2683 I VoiceDataManager: Calling onVoicesDataChange: updated voices
+08-27 19:02:23.413  2521  2683 I VoiceDataManager: Calling onVoicesDataChange: updated voices
+08-27 19:02:23.413  2521  2683 I VoiceDataManager: Calling onVoicesDataChange: updated voices
+08-27 19:02:23.493  6459  6459 D HazeSource: onDetach. Removing HazeArea: HazeArea(positionOnScreen=Offset(0.0, 0.0), size=Size(1344.0, 2992.0), zIndex=0.0, contentLayer=androidx.compose.ui.graphics.layer.GraphicsLayer@d029626, contentDrawing=false)
+08-27 19:02:23.493  6459  6459 D HazeSource: Releasing content layer: androidx.compose.ui.graphics.layer.GraphicsLayer@d029626
+08-27 19:02:23.516  6459  6459 D HazeSource: onAttach. Adding HazeArea: HazeArea(positionOnScreen=Offset.Unspecified, size=Size.Unspecified, zIndex=0.0, contentLayer=null, contentDrawing=false)
+08-27 19:02:23.540  6459  6465 I om.example.kpkn: Background concurrent mark compact GC freed 22MB AllocSpace bytes, 13(10MB) LOS objects, 31% free, 53MB/77MB, paused 6.808ms,2.532ms total 248.212ms
+08-27 19:02:23.543  6459  6459 W WindowOnBackDispatcher: OnBackInvokedCallback is not enabled for the application.
+08-27 19:02:23.543  6459  6459 W WindowOnBackDispatcher: Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+08-27 19:02:23.573  6459  6459 D HazeSource: onPlaced: positionOnScreen=Offset(0.0, 0.0), size=Size(1344.0, 2992.0), positionOnScreens=Offset(0.0, 0.0)
+08-27 19:02:23.577  6459  6459 D HazeSource: onGloballyPositioned: positionOnScreen=Offset(0.0, 0.0), size=Size(1344.0, 2992.0), positionOnScreens=Offset(0.0, 0.0)
+08-27 19:02:23.579  6459  6459 D HazeSource: start draw()
+08-27 19:02:23.580  6459  6459 D HazeSource: Updated contentLayer in HazeArea: HazeArea(positionOnScreen=Offset(0.0, 0.0), size=Size(1344.0, 2992.0), zIndex=0.0, contentLayer=androidx.compose.ui.graphics.layer.GraphicsLayer@428593b, contentDrawing=true)
+08-27 19:02:23.582  6459  6459 D HazeSource: Drawn content into layer: androidx.compose.ui.graphics.layer.GraphicsLayer@428593b
+08-27 19:02:23.582  6459  6459 D HazeSource: Drawn layer to canvas: androidx.compose.ui.graphics.layer.GraphicsLayer@428593b
+08-27 19:02:23.582  6459  6459 D HazeSource: end draw()
+08-27 19:02:23.589  6459  6459 D StrictMode: StrictMode policy violation; ~duration=388 ms: android.os.strictmode.DiskReadViolation
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onReadFromDisk(StrictMode.java:1728)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at libcore.io.BlockGuardOs.access(BlockGuardOs.java:74)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at libcore.io.ForwardingOs.access(ForwardingOs.java:128)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at android.app.ActivityThread$AndroidOs.access(ActivityThread.java:8944)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at java.io.UnixFileSystem.checkAccess(UnixFileSystem.java:332)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at java.io.File.exists(File.java:829)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at android.app.ContextImpl.ensurePrivateDirExists(ContextImpl.java:818)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at android.app.ContextImpl.ensurePrivateDirExists(ContextImpl.java:809)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at android.app.ContextImpl.getPreferencesDir(ContextImpl.java:765)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at android.app.ContextImpl.getSharedPreferencesPath(ContextImpl.java:990)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at android.app.ContextImpl.getSharedPreferences(ContextImpl.java:605)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at android.content.ContextWrapper.getSharedPreferences(ContextWrapper.java:223)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at com.example.kpkn.services.cardio.CardioGpsMilestoneNotifier.<init>(CardioGpsMilestoneNotifier.kt:20)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutViewModel.<init>(WorkoutViewModel.kt:143)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutViewModel$Companion$factory$1.create(WorkoutViewModel.kt:5344)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.lifecycle.ViewModelProvider$Factory.create(ViewModelProvider.android.kt:148)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutViewModel$Companion$factory$1.create(WorkoutViewModel.kt:5341)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.lifecycle.ViewModelProvider$Factory.create(ViewModelProvider.android.kt:153)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutViewModel$Companion$factory$1.create(WorkoutViewModel.kt:5341)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.lifecycle.viewmodel.ViewModelProviderImpl_androidKt.createViewModel(ViewModelProviderImpl.android.kt:34)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.lifecycle.viewmodel.ViewModelProviderImpl.getViewModel$lifecycle_viewmodel_release(ViewModelProviderImpl.kt:60)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.lifecycle.viewmodel.ViewModelProviderImpl.getViewModel$lifecycle_viewmodel_release$default(ViewModelProviderImpl.kt:43)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.lifecycle.ViewModelProvider.get(ViewModelProvider.android.kt:92)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.lifecycle.viewmodel.compose.ViewModelKt__ViewModelKt.get(ViewModel.kt:172)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.lifecycle.viewmodel.compose.ViewModelKt.get(Unknown Source:1)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.lifecycle.viewmodel.compose.ViewModelKt__ViewModelKt.viewModel(ViewModel.kt:106)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.lifecycle.viewmodel.compose.ViewModelKt.viewModel(Unknown Source:1)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at com.example.kpkn.screens.workout.WorkoutScreenKt.WorkoutScreen(WorkoutScreen.kt:1445)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at com.example.kpkn.MainActivityKt.KPKNNavGraph$lambda$277$lambda$276$lambda$275(MainActivity.kt:1393)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at com.example.kpkn.MainActivityKt$$ExternalSyntheticLambda62.invoke(D8$$SyntheticClass:0)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:143)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.navigation.compose.NavHostKt$NavHost$32$1.invoke(NavHost.kt:704)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.navigation.compose.NavHostKt$NavHost$32$1.invoke(NavHost.kt:703)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:378)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.saveable.SaveableStateHolderImpl.SaveableStateProvider(SaveableStateHolder.kt:82)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.navigation.compose.NavBackStackEntryProviderKt.SaveableStateProvider(NavBackStackEntryProvider.kt:65)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.navigation.compose.NavBackStackEntryProviderKt.access$SaveableStateProvider(NavBackStackEntryProvider.kt:1)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.navigation.compose.NavBackStackEntryProviderKt$LocalOwnersProvider$1.invoke(NavBackStackEntryProvider.kt:52)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.navigation.compose.NavBackStackEntryProviderKt$LocalOwnersProvider$1.invoke(NavBackStackEntryProvider.kt:51)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:378)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.navigation.compose.NavBackStackEntryProviderKt.LocalOwnersProvider(NavBackStackEntryProvider.kt:47)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.navigation.compose.NavHostKt$NavHost$32.invoke(NavHost.kt:703)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.navigation.compose.NavHostKt$NavHost$32.invoke(NavHost.kt:683)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:143)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.animation.AnimatedContentKt$AnimatedContent$6$1$5.invoke(AnimatedContent.kt:863)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.animation.AnimatedContentKt$AnimatedContent$6$1$5.invoke(AnimatedContent.kt:853)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:131)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.animation.AnimatedVisibilityKt.AnimatedEnterExitImpl(AnimatedVisibility.kt:752)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.animation.AnimatedContentKt$AnimatedContent$6$1.invoke(AnimatedContent.kt:835)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.animation.AnimatedContentKt$AnimatedContent$6$1.invoke(AnimatedContent.kt:818)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.animation.AnimatedContentKt.AnimatedContent(AnimatedContent.kt:873)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.navigation.compose.NavHostKt.NavHost(NavHost.kt:655)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.navigation.compose.NavHostKt.NavHost(NavHost.kt:212)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at com.example.kpkn.MainActivityKt.KPKNNavGraph(MainActivity.kt:1033)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at com.example.kpkn.MainActivityKt.KPKNApp$lambda$123(MainActivity.kt:620)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at com.example.kpkn.MainActivityKt$$ExternalSyntheticLambda89.invoke(D8$$SyntheticClass:0)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:378)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at com.example.kpkn.MainActivityKt.KPKNApp(MainActivity.kt:608)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at com.example.kpkn.MainActivity.onCreate$lambda$12$lambda$11(MainActivity.kt:240)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at com.example.kpkn.MainActivity$$ExternalSyntheticLambda4.invoke(D8$$SyntheticClass:0)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.internal.ComposableLambdaImpl$invoke$1.invoke(ComposableLambda.kt:123)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.internal.ComposableLambdaImpl$invoke$1.invoke(ComposableLambda.kt:123)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.RecomposeScopeImpl.compose(RecomposeScopeImpl.kt:201)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.ComposerImpl.recomposeToGroupEnd(ComposerImpl.kt:1690)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.ComposerImpl.skipCurrentGroup(ComposerImpl.kt:2026)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.ComposerImpl.doCompose-aFTiNEg(ComposerImpl.kt:2659)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.ComposerImpl.recompose-aFTiNEg$runtime(ComposerImpl.kt:2583)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.CompositionImpl.recompose(Composition.kt:1080)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.Recomposer.performRecompose(Recomposer.kt:1406)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.Recomposer.access$performRecompose(Recomposer.kt:159)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.Recomposer$runRecomposeAndApplyChanges$2.invokeSuspend$lambda$2(Recomposer.kt:638)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.runtime.Recomposer$runRecomposeAndApplyChanges$2$$ExternalSyntheticLambda0.invoke(D8$$SyntheticClass:0)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.ui.platform.AndroidUiFrameClock$withFrameNanos$2$callback$1.doFrame(AndroidUiFrameClock.android.kt:39)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.ui.platform.AndroidUiDispatcher.performFrameDispatch(AndroidUiDispatcher.android.kt:108)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.ui.platform.AndroidUiDispatcher.access$performFrameDispatch(AndroidUiDispatcher.android.kt:41)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at androidx.compose.ui.platform.AndroidUiDispatcher$dispatchCallback$1.doFrame(AndroidUiDispatcher.android.kt:69)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at android.view.Choreographer$CallbackRecord.run(Choreographer.java:1568)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at android.view.Choreographer$CallbackRecord.run(Choreographer.java:1579)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at android.view.Choreographer.doCallbacks(Choreographer.java:1179)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at android.view.Choreographer.doFrame(Choreographer.java:1104)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at android.view.Choreographer$FrameDisplayEventReceiver.run(Choreographer.java:1553)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at android.os.Handler.handleCallback(Handler.java:995)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at android.os.Handler.dispatchMessage(Handler.java:103)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at android.os.Looper.loopOnce(Looper.java:248)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at android.os.Looper.loop(Looper.java:338)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at android.app.ActivityThread.main(ActivityThread.java:9067)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at java.lang.reflect.Method.invoke(Native Method)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
+08-27 19:02:23.589  6459  6459 D StrictMode: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
+08-27 19:02:23.590  2521  2521 I LocalSynthesizer: Attempting to load synthesizer for voice: en-us-x-iog-lstm-embedded
+08-27 19:02:23.590  2521  2521 I ExoPlayerImpl: Init 66ad41e [AndroidXMedia3/1.11.0-rc01] [emu64xa, sdk_gphone64_x86_64, Google, 36]
+08-27 19:02:23.591  2521  2521 I ExoPlayerImpl: Init 551a4ff [AndroidXMedia3/1.11.0-rc01] [emu64xa, sdk_gphone64_x86_64, Google, 36]
+08-27 19:02:23.593  2521  2521 I LocalSynthesizer: Voice en-us-x-iog-lstm-embedded is not supported by any existing synthesizers.
+08-27 19:02:23.593  2521  2521 I ComposerWrapperImpl: Initializing new monolithic pipeline. New voice: en-us-x-iog-lstm-embedded
+08-27 19:02:23.593  2521  2521 I PipelineReaderImpl: Initializing monolithic pipeline from disk: /data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/pipeline.pb
+08-27 19:02:23.595  2521  2521 I native  : I0000 00:00:1787857343.594959    2521 android_resource_loader.cc:109] Loading resources for en_us_x_embedded_valerian_vocoded/1299602314617111661
+08-27 19:02:23.596  2521  2521 I native  : I0000 00:00:1787857343.596049    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/burdock_frame_config.pb" (as: FILE) ...
+08-27 19:02:23.596  2521  2521 I native  : I0000 00:00:1787857343.596215    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/burdock_frame_config.pb" of size 68
+08-27 19:02:23.600  2521  2521 I native  : I0000 00:00:1787857343.600811    2521 android_resource_loader.cc:100] Built resource acoustic_frame_config
+08-27 19:02:23.601  2521  2521 I native  : I0000 00:00:1787857343.600982    2521 android_resource_loader.cc:116] Loaded resource:acoustic_frame_config
+08-27 19:02:23.601  2521  2521 I native  : I0000 00:00:1787857343.601092    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/affixes_en_us_android.far" (as: FILE) ...
+08-27 19:02:23.601  2521  2521 I native  : I0000 00:00:1787857343.601241    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/affixes_en_us_android.far" of size 36782
+08-27 19:02:23.602  2521  2521 I native  : I0000 00:00:1787857343.602602    2521 android_resource_loader.cc:100] Built resource affix_word_splitter_grm
+08-27 19:02:23.602  2521  2521 I native  : I0000 00:00:1787857343.602684    2521 android_resource_loader.cc:116] Loaded resource:affix_word_splitter_grm
+08-27 19:02:23.602  2521  2521 I native  : I0000 00:00:1787857343.602760    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/affixes_params_en_us.pb" (as: FILE) ...
+08-27 19:02:23.603  2521  2521 I native  : I0000 00:00:1787857343.603282    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/affixes_params_en_us.pb" of size 420
+08-27 19:02:23.603  2521  2521 I native  : I0000 00:00:1787857343.603415    2521 affix_word_splitter_data.cc:33] Ambiguous affix entries for spelling ['s] -- their grammars should disambiguate them.
+08-27 19:02:23.603  2521  2521 I native  : I0000 00:00:1787857343.603460    2521 affix_word_splitter_data.cc:33] Ambiguous affix entries for spelling ['s] -- their grammars should disambiguate them.
+08-27 19:02:23.603  2521  2521 I native  : I0000 00:00:1787857343.603500    2521 affix_word_splitter_data.cc:33] Ambiguous affix entries for spelling ['s] -- their grammars should disambiguate them.
+08-27 19:02:23.603  2521  2521 I native  : I0000 00:00:1787857343.603540    2521 affix_word_splitter_data.cc:33] Ambiguous affix entries for spelling [s] -- their grammars should disambiguate them.
+08-27 19:02:23.603  2521  2521 I native  : I0000 00:00:1787857343.603581    2521 affix_word_splitter_data.cc:33] Ambiguous affix entries for spelling [s] -- their grammars should disambiguate them.
+08-27 19:02:23.603  2521  2521 I native  : I0000 00:00:1787857343.603619    2521 affix_word_splitter_data.cc:33] Ambiguous affix entries for spelling [s] -- their grammars should disambiguate them.
+08-27 19:02:23.603  2521  2521 I native  : I0000 00:00:1787857343.603660    2521 affix_word_splitter_data.cc:33] Ambiguous affix entries for spelling [ed] -- their grammars should disambiguate them.
+08-27 19:02:23.603  2521  2521 I native  : I0000 00:00:1787857343.603698    2521 affix_word_splitter_data.cc:33] Ambiguous affix entries for spelling [ed] -- their grammars should disambiguate them.
+08-27 19:02:23.603  2521  2521 I native  : I0000 00:00:1787857343.603735    2521 affix_word_splitter_data.cc:33] Ambiguous affix entries for spelling [ed] -- their grammars should disambiguate them.
+08-27 19:02:23.603  2521  2521 I native  : I0000 00:00:1787857343.603777    2521 affix_word_splitter_data.cc:89] Loaded affixes in [/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/affixes_params_en_us.pb].
+08-27 19:02:23.604  2521  2521 I native  : I0000 00:00:1787857343.604567    2521 android_resource_loader.cc:100] Built resource affix_word_splitter
+08-27 19:02:23.604  2521  2521 I native  : I0000 00:00:1787857343.604617    2521 android_resource_loader.cc:116] Loaded resource:affix_word_splitter
+08-27 19:02:23.604  2521  2521 I native  : I0000 00:00:1787857343.604668    2521 android_resource_loader.cc:100] Built resource audio_manipulation_params
+08-27 19:02:23.604  2521  2521 I native  : I0000 00:00:1787857343.604707    2521 android_resource_loader.cc:116] Loaded resource:audio_manipulation_params
+08-27 19:02:23.604  2521  2521 I native  : I0000 00:00:1787857343.604750    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/roman_numeral_android.far" (as: FILE) ...
+08-27 19:02:23.605  2521  2521 I native  : I0000 00:00:1787857343.605173    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/roman_numeral_android.far" of size 5112
+08-27 19:02:23.605  2521  2521 I native  : I0000 00:00:1787857343.605453    2521 android_resource_loader.cc:100] Built resource classify_roman_numerals_grm_fst
+08-27 19:02:23.605  2521  2521 I native  : I0000 00:00:1787857343.605511    2521 android_resource_loader.cc:116] Loaded resource:classify_roman_numerals_grm_fst
+08-27 19:02:23.605  2521  2521 I native  : I0000 00:00:1787857343.605559    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/en_us_pronounce.far" (as: FILE) ...
+08-27 19:02:23.605  2521  2521 I native  : I0000 00:00:1787857343.605651    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/en_us_pronounce.far" of size 5040
+08-27 19:02:23.605  2521  2521 I native  : I0000 00:00:1787857343.605824    2521 android_resource_loader.cc:100] Built resource compound_pronounce_grm_fst
+08-27 19:02:23.605  2521  2521 I native  : I0000 00:00:1787857343.605926    2521 android_resource_loader.cc:116] Loaded resource:compound_pronounce_grm_fst
+08-27 19:02:23.606  2521  2521 I native  : I0000 00:00:1787857343.606007    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/disambiguation_rules_en_us.pb" (as: FILE) ...
+08-27 19:02:23.606  2521  2521 I native  : I0000 00:00:1787857343.606069    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/disambiguation_rules_en_us.pb" of size 317147
+08-27 19:02:23.631  6459  6469 I HWUI    : Davey! duration=3845ms; Flags=0, FrameTimelineVsyncId=700000, IntendedVsync=2909646333962, Vsync=2912613000510, InputEventId=0, HandleInputStart=2912622411600, AnimationStart=2912622447200, PerformTraversalsStart=2913461537500, DrawStart=2913471484900, FrameDeadline=2912563000512, FrameStartTime=2912621460000, FrameInterval=16666666, WorkloadTarget=16666666, SyncQueued=2913477092300, SyncStart=2913477217600, IssueDrawCommandsStart=2913486302600, SwapBuffers=2913487715600, FrameCompleted=2913492177900, DequeueBufferDuration=22700, QueueBufferDuration=509800, GpuCompleted=2913491975600, SwapBuffersCompleted=2913492177900, DisplayPresentTime=0, CommandSubmissionCompleted=2913487715600, 
+08-27 19:02:23.640  2521  2521 I native  : I0000 00:00:1787857343.640895    2521 android_resource_loader.cc:100] Built resource disambiguation_rules
+08-27 19:02:23.641  2521  2521 I native  : I0000 00:00:1787857343.641006    2521 android_resource_loader.cc:116] Loaded resource:disambiguation_rules
+08-27 19:02:23.641  2521  2521 I native  : I0000 00:00:1787857343.641059    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/engine_config_en_us_x_embedded_valerian_vocoded.pb" (as: FILE) ...
+08-27 19:02:23.641  2521  2521 I native  : I0000 00:00:1787857343.641154    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/engine_config_en_us_x_embedded_valerian_vocoded.pb" of size 54
+08-27 19:02:23.641  2521  2521 I native  : I0000 00:00:1787857343.641236    2521 android_resource_loader.cc:100] Built resource engine_config
+08-27 19:02:23.641  2521  2521 I native  : I0000 00:00:1787857343.641278    2521 android_resource_loader.cc:116] Loaded resource:engine_config
+08-27 19:02:23.641  2521  2521 I native  : I0000 00:00:1787857343.641510    2521 android_resource_loader.cc:100] Built resource guided_synthesis
+08-27 19:02:23.641  2521  2521 I native  : I0000 00:00:1787857343.641594    2521 android_resource_loader.cc:116] Loaded resource:guided_synthesis
+08-27 19:02:23.641  2521  2521 I native  : I0000 00:00:1787857343.641915    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/mapping_grammar_en.far" (as: FILE) ...
+08-27 19:02:23.642  2521  2521 I native  : I0000 00:00:1787857343.641986    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/mapping_grammar_en.far" of size 863
+08-27 19:02:23.642  2521  2521 I native  : I0000 00:00:1787857343.642115    2521 android_resource_loader.cc:100] Built resource homograph_mapping_grammar
+08-27 19:02:23.642  2521  2521 I native  : I0000 00:00:1787857343.642208    2521 android_resource_loader.cc:116] Loaded resource:homograph_mapping_grammar
+08-27 19:02:23.642  2521  2521 I native  : I0000 00:00:1787857343.642263    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/lettuce_model.fb" (as: MEMORY) ...
+08-27 19:02:23.642  2521  2521 I native  : I0000 00:00:1787857343.642340    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/lettuce_model.fb" of size 2100680
+08-27 19:02:23.642  2521  2521 I native  : I0000 00:00:1787857343.642583    2521 android_resource_loader.cc:100] Built resource lettuce_model_resource
+08-27 19:02:23.642  2521  2521 I native  : I0000 00:00:1787857343.642661    2521 android_resource_loader.cc:116] Loaded resource:lettuce_model_resource
+08-27 19:02:23.643  2521  2521 I native  : I0000 00:00:1787857343.642974    2521 android_resource_loader.cc:100] Built resource lettuce_model_scorer
+08-27 19:02:23.643  2521  2521 I native  : I0000 00:00:1787857343.643070    2521 android_resource_loader.cc:116] Loaded resource:lettuce_model_scorer
+08-27 19:02:23.643  2521  2521 I native  : I0000 00:00:1787857343.643143    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/lettuce_classify_embedded_us_generated_android.far" (as: FILE) ...
+08-27 19:02:23.643  2521  2521 I native  : I0000 00:00:1787857343.643460    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/lettuce_classify_embedded_us_generated_android.far" of size 4439801
+08-27 19:02:23.662  2521  2521 I native  : I0000 00:00:1787857343.662015    2521 android_resource_loader.cc:100] Built resource lettuce_node_generator_grm
+08-27 19:02:23.662  2521  2521 I native  : I0000 00:00:1787857343.662096    2521 android_resource_loader.cc:116] Loaded resource:lettuce_node_generator_grm
+08-27 19:02:23.662  2521  2521 I native  : I0000 00:00:1787857343.662144    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/lucid_collection_android.far" (as: FILE) ...
+08-27 19:02:23.662  2521  2521 I native  : I0000 00:00:1787857343.662229    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/lucid_collection_android.far" of size 306120
+08-27 19:02:23.663  2521  2521 I native  : I0000 00:00:1787857343.663104    2521 android_resource_loader.cc:100] Built resource lucid_parser_grm_fst
+08-27 19:02:23.663  2521  2521 I native  : I0000 00:00:1787857343.663180    2521 android_resource_loader.cc:116] Loaded resource:lucid_parser_grm_fst
+08-27 19:02:23.663  2521  2521 I native  : I0000 00:00:1787857343.663228    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/markup_triggers.pb" (as: FILE) ...
+08-27 19:02:23.663  2521  2521 I native  : I0000 00:00:1787857343.663278    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/markup_triggers.pb" of size 930
+08-27 19:02:23.663  2521  2521 I native  : I0000 00:00:1787857343.663384    2521 android_resource_loader.cc:100] Built resource markup_triggers
+08-27 19:02:23.663  2521  2521 I native  : I0000 00:00:1787857343.663426    2521 android_resource_loader.cc:116] Loaded resource:markup_triggers
+08-27 19:02:23.663  2521  2521 I native  : I0000 00:00:1787857343.663499    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/morphosyntactic_mapping.pb" (as: FILE) ...
+08-27 19:02:23.664  2521  2521 I native  : I0000 00:00:1787857343.663972    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/morphosyntactic_mapping.pb" of size 6
+08-27 19:02:23.664  2521  2521 I native  : I0000 00:00:1787857343.664060    2521 android_resource_loader.cc:100] Built resource morph_analyzer_attribute_map
+08-27 19:02:23.664  2521  2521 I native  : I0000 00:00:1787857343.664132    2521 android_resource_loader.cc:116] Loaded resource:morph_analyzer_attribute_map
+08-27 19:02:23.664  2521  2521 I native  : I0000 00:00:1787857343.664477    2521 android_resource_loader.cc:100] Built resource multilingual_capabilities
+08-27 19:02:23.664  2521  2521 I native  : I0000 00:00:1787857343.664559    2521 android_resource_loader.cc:116] Loaded resource:multilingual_capabilities
+08-27 19:02:23.664  2521  2521 I native  : I0000 00:00:1787857343.664627    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/en_us_phonology.pb" (as: FILE) ...
+08-27 19:02:23.664  2521  2521 I native  : I0000 00:00:1787857343.664718    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/en_us_phonology.pb" of size 2196
+08-27 19:02:23.665  2521  2521 W native  : W0000 00:00:1787857343.665142    2521 phonology.cc:80] Phonemes @, @` have non-distinctive features. See b/111971558.
+08-27 19:02:23.665  2521  2521 W native  : W0000 00:00:1787857343.665202    2521 phonology.cc:80] Phonemes l, r\ have non-distinctive features. See b/111971558.
+08-27 19:02:23.665  2521  2521 I native  : I0000 00:00:1787857343.665513    2521 android_resource_loader.cc:100] Built resource phonology
+08-27 19:02:23.665  2521  2521 I native  : I0000 00:00:1787857343.665638    2521 android_resource_loader.cc:116] Loaded resource:phonology
+08-27 19:02:23.665  2521  2521 I native  : I0000 00:00:1787857343.665821    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/en_morphology" (as: FILE) ...
+08-27 19:02:23.666  2521  2521 I native  : I0000 00:00:1787857343.666038    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/en_morphology" of size 2753822
+08-27 19:02:23.669  2521  2521 I native  : I0000 00:00:1787857343.669188    2521 model-api.cc:46] Registered model under key morphology
+08-27 19:02:23.673  2521  2521 I native  : I0000 00:00:1787857343.673177    2521 android_resource_loader.cc:100] Built resource analyze_morphology_saft_portable_algo
+08-27 19:02:23.673  2521  2521 I native  : I0000 00:00:1787857343.673273    2521 android_resource_loader.cc:116] Loaded resource:analyze_morphology_saft_portable_algo
+08-27 19:02:23.673  2521  2521 I native  : I0000 00:00:1787857343.673382    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/ipa_to_tts_to-en_us.far" (as: FILE) ...
+08-27 19:02:23.673  2521  2521 I native  : I0000 00:00:1787857343.673455    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/ipa_to_tts_to-en_us.far" of size 465858
+08-27 19:02:23.674  2521  2521 I native  : I0000 00:00:1787857343.674394    2521 android_resource_loader.cc:100] Built resource ipa_to_tts_phoneme_mapper
+08-27 19:02:23.674  2521  2521 I native  : I0000 00:00:1787857343.674478    2521 android_resource_loader.cc:116] Loaded resource:ipa_to_tts_phoneme_mapper
+08-27 19:02:23.674  2521  2521 I native  : I0000 00:00:1787857343.674607    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/en_us.hlex.bin" (as: MEMORY) ...
+08-27 19:02:23.674  2521  2521 I native  : I0000 00:00:1787857343.674715    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/en_us.hlex.bin" of size 5117760
+08-27 19:02:23.674  2521  2521 I native  : I0000 00:00:1787857343.674930    2521 android_resource_loader.cc:100] Built resource lexicon
+08-27 19:02:23.675  2521  2521 I native  : I0000 00:00:1787857343.675009    2521 android_resource_loader.cc:116] Loaded resource:lexicon
+08-27 19:02:23.675  2521  2521 I native  : I0000 00:00:1787857343.675204    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/homographs_model_en_us_embedded.bin" (as: MEMORY) ...
+08-27 19:02:23.675  2521  2521 I native  : I0000 00:00:1787857343.675895    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/homographs_model_en_us_embedded.bin" of size 399120
+08-27 19:02:23.679  2521  2521 I native  : I0000 00:00:1787857343.679729    2521 android_resource_loader.cc:100] Built resource homograph_classifier_model_resource
+08-27 19:02:23.679  2521  2521 I native  : I0000 00:00:1787857343.679887    2521 android_resource_loader.cc:116] Loaded resource:homograph_classifier_model_resource
+08-27 19:02:23.680  2521  2521 I native  : I0000 00:00:1787857343.680130    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/lettuce_node_generator_params_embedded_us_runtime.pb" (as: FILE) ...
+08-27 19:02:23.680  2521  2521 I native  : I0000 00:00:1787857343.680246    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/lettuce_node_generator_params_embedded_us_runtime.pb" of size 2599
+08-27 19:02:24.121   919   919 I wpa_supplicant: wlan0: CTRL-EVENT-BEACON-LOSS 
+08-27 19:02:24.191  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 13MB AllocSpace bytes, 6(14MB) LOS objects, 33% free, 48MB/72MB, paused 2.081ms,3.636ms total 191.245ms
+08-27 19:02:24.192  2521  2521 I native  : I0000 00:00:1787857344.192455    2521 exl_node_generator.cc:58] Setting legal word grammar as macro_only: true
+08-27 19:02:24.193  2521  2521 I native  : I0000 00:00:1787857344.192986    2521 android_resource_loader.cc:100] Built resource lettuce_node_generator
+08-27 19:02:24.193  2521  2521 I native  : I0000 00:00:1787857344.193118    2521 android_resource_loader.cc:116] Loaded resource:lettuce_node_generator
+08-27 19:02:24.193  2521  2521 I native  : I0000 00:00:1787857344.193233    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/burdock_model.params.pb" (as: FILE) ...
+08-27 19:02:24.193  2521  2521 I native  : I0000 00:00:1787857344.193332    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/burdock_model.params.pb" of size 8875
+08-27 19:02:24.194  2521  2521 I native  : I0000 00:00:1787857344.193991    2521 android_resource_loader.cc:100] Built resource lstm_add_specification_resource
+08-27 19:02:24.194  2521  2521 I native  : I0000 00:00:1787857344.194040    2521 android_resource_loader.cc:116] Loaded resource:lstm_add_specification_resource
+08-27 19:02:24.194  2521  2521 I native  : I0000 00:00:1787857344.194286    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/chive_model_fused.pb" (as: FILE) ...
+08-27 19:02:24.194  2521  2521 I native  : I0000 00:00:1787857344.194385    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/chive_model_fused.pb" of size 1281
+08-27 19:02:24.194  2521  2521 I native  : I0000 00:00:1787857344.194540    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/burdock_valerian_model.tflite" (as: MEMORY) ...
+08-27 19:02:24.194  2521  2521 I native  : I0000 00:00:1787857344.194638    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/burdock_valerian_model.tflite" of size 1790608
+08-27 19:02:24.194  2521  2521 E tflite  : third_party/tensorflow/lite/core/subgraph.cc:1089 tensor.data.raw != nullptr was not true.
+08-27 19:02:24.195  2521  2521 I native  : I0000 00:00:1787857344.195074    2521 chive_inference_resource.cc:233] Creating new CHiVE model [model graph]: 
+08-27 19:02:24.195  2521  2521 I native  : I0000 00:00:1787857344.195141    2521 chive_model.cc:179] Creating a single pass CHiVE model
+08-27 19:02:24.196  2521  2521 I native  : I0000 00:00:1787857344.196346    2521 android_resource_loader.cc:100] Built resource chive_inference_config
+08-27 19:02:24.196  2521  2521 I native  : I0000 00:00:1787857344.196386    2521 android_resource_loader.cc:116] Loaded resource:chive_inference_config
+08-27 19:02:24.196  2521  2521 I native  : I0000 00:00:1787857344.196423    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/converter_en_us_android.far" (as: FILE) ...
+08-27 19:02:24.197  2521  2521 I native  : I0000 00:00:1787857344.197391    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/converter_en_us_android.far" of size 1473
+08-27 19:02:24.197  2521  2521 I native  : I0000 00:00:1787857344.197734    2521 android_resource_loader.cc:100] Built resource pron_buffet_to_tts_converter
+08-27 19:02:24.197  2521  2521 I native  : I0000 00:00:1787857344.197838    2521 android_resource_loader.cc:116] Loaded resource:pron_buffet_to_tts_converter
+08-27 19:02:24.197  2521  2521 I native  : I0000 00:00:1787857344.197908    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/regexp_rewrite_embedded.pb" (as: FILE) ...
+08-27 19:02:24.198  2521  2521 I native  : I0000 00:00:1787857344.198034    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/regexp_rewrite_embedded.pb" of size 6025
+08-27 19:02:24.198  2521  2521 I native  : I0000 00:00:1787857344.198556    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/punctuation.pb" (as: FILE) ...
+08-27 19:02:24.198  2521  2521 I native  : I0000 00:00:1787857344.198718    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/punctuation.pb" of size 452
+08-27 19:02:24.261  2521  2521 E native  : E0000 00:00:1787857344.261655    2521 re2.cc:250] Error parsing '^|[^\p{Letter}\\]': invalid character class range: \p{Letter}
+08-27 19:02:24.261  2521  2521 E native  : E0000 00:00:1787857344.261892    2521 replacement_rule.cc:40] Invalid context regexp: invalid character class range: \p{Letter}
+08-27 19:02:24.261  2521  2521 E native  : E0000 00:00:1787857344.261937    2521 replacement_rule.cc:151] Error creating replacement rule.
+08-27 19:02:24.262  2521  2521 E native  : E0000 00:00:1787857344.261979    2521 regexp_rewriter.cc:35] Error creating rule MessageLite at 0x7da3910e4270.
+08-27 19:02:24.262  2521  2521 I native  : I0000 00:00:1787857344.262537    2521 android_resource_loader.cc:100] Built resource rewrite_algo
+08-27 19:02:24.262  2521  2521 I native  : I0000 00:00:1787857344.262851    2521 android_resource_loader.cc:116] Loaded resource:rewrite_algo
+08-27 19:02:24.262  2521  2521 I native  : I0000 00:00:1787857344.262947    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/roman_numeral_contexts.pb" (as: FILE) ...
+08-27 19:02:24.263  2521  2521 I native  : I0000 00:00:1787857344.263185    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/roman_numeral_contexts.pb" of size 9114
+08-27 19:02:24.263  2521  2521 I native  : I0000 00:00:1787857344.263666    2521 android_resource_loader.cc:100] Built resource roman_numeral_context_words
+08-27 19:02:24.264  2521  2521 I native  : I0000 00:00:1787857344.263776    2521 android_resource_loader.cc:116] Loaded resource:roman_numeral_context_words
+08-27 19:02:24.265  2521  2521 I native  : I0000 00:00:1787857344.264996    2521 android_resource_loader.cc:100] Built resource classify_roman_numerals_grm_algo
+08-27 19:02:24.265  2521  2521 I native  : I0000 00:00:1787857344.265097    2521 android_resource_loader.cc:116] Loaded resource:classify_roman_numerals_grm_algo
+08-27 19:02:24.265  2521  2521 I native  : I0000 00:00:1787857344.265202    2521 android_resource_loader.cc:100] Built resource runtime_override
+08-27 19:02:24.265  2521  2521 I native  : I0000 00:00:1787857344.265297    2521 android_resource_loader.cc:116] Loaded resource:runtime_override
+08-27 19:02:24.265  2521  2521 I native  : I0000 00:00:1787857344.265394    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/sb_model.bin" (as: MEMORY) ...
+08-27 19:02:24.265  2521  2521 I native  : I0000 00:00:1787857344.265562    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/sb_model.bin" of size 48272
+08-27 19:02:24.265  2521  2521 I native  : I0000 00:00:1787857344.265701    2521 android_resource_loader.cc:100] Built resource sentence_boundary_model_resource
+08-27 19:02:24.265  2521  2521 I native  : I0000 00:00:1787857344.265825    2521 android_resource_loader.cc:116] Loaded resource:sentence_boundary_model_resource
+08-27 19:02:24.265  2521  2521 I native  : I0000 00:00:1787857344.265942    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/en_verbalize_spec.pb" (as: FILE) ...
+08-27 19:02:24.266  2521  2521 I native  : I0000 00:00:1787857344.266070    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/en_verbalize_spec.pb" of size 3984
+08-27 19:02:24.266  2521  2521 I native  : I0000 00:00:1787857344.266265    2521 android_resource_loader.cc:100] Built resource serialization_spec
+08-27 19:02:24.266  2521  2521 I native  : I0000 00:00:1787857344.266360    2521 android_resource_loader.cc:116] Loaded resource:serialization_spec
+08-27 19:02:24.266  2521  2521 I native  : I0000 00:00:1787857344.266460    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/textnorm_params_embedded_en_us.pb" (as: FILE) ...
+08-27 19:02:24.266  2521  2521 I native  : I0000 00:00:1787857344.266581    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/textnorm_params_embedded_en_us.pb" of size 321
+08-27 19:02:24.266  2521  2521 I native  : I0000 00:00:1787857344.266725    2521 android_resource_loader.cc:100] Built resource textnorm_params
+08-27 19:02:24.266  2521  2521 I native  : I0000 00:00:1787857344.266975    2521 android_resource_loader.cc:116] Loaded resource:textnorm_params
+08-27 19:02:24.267  2521  2521 I native  : I0000 00:00:1787857344.267346    2521 android_resource_loader.cc:100] Built resource icu_transliterator_to_latin
+08-27 19:02:24.267  2521  2521 I native  : I0000 00:00:1787857344.267414    2521 android_resource_loader.cc:116] Loaded resource:icu_transliterator_to_latin
+08-27 19:02:24.267  2521  2521 I native  : I0000 00:00:1787857344.267477    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/g2p_m3_syls0_stress0_en-US.fst" (as: FILE) ...
+08-27 19:02:24.267  2521  2521 I native  : I0000 00:00:1787857344.267550    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/g2p_m3_syls0_stress0_en-US.fst" of size 696736
+08-27 19:02:24.267  2521  2521 I native  : I0000 00:00:1787857344.267624    2521 compact_fst.cc:20] Loading FST from "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/g2p_m3_syls0_stress0_en-US.fst" ...
+08-27 19:02:24.341  2521  2521 I native  : I0000 00:00:1787857344.341383    2521 decoder.cc:51] G2P FST loaded (56 graphemes and 41 phonemes).
+08-27 19:02:24.347  2521  2521 I native  : I0000 00:00:1787857344.347329    2521 android_resource_loader.cc:100] Built resource learned_fst_g2p_mapper
+08-27 19:02:24.347  2521  2521 I native  : I0000 00:00:1787857344.347519    2521 android_resource_loader.cc:116] Loaded resource:learned_fst_g2p_mapper
+08-27 19:02:24.347  2521  2521 I native  : I0000 00:00:1787857344.347640    2521 android_resource_loader.cc:100] Built resource spelling_normalizer
+08-27 19:02:24.347  2521  2521 I native  : I0000 00:00:1787857344.347737    2521 android_resource_loader.cc:116] Loaded resource:spelling_normalizer
+08-27 19:02:24.361  2521  2521 I native  : I0000 00:00:1787857344.361562    2521 android_resource_loader.cc:100] Built resource token_resolver_algo
+08-27 19:02:24.361  2521  2521 I native  : I0000 00:00:1787857344.361658    2521 android_resource_loader.cc:116] Loaded resource:token_resolver_algo
+08-27 19:02:24.361  2521  2521 I native  : I0000 00:00:1787857344.361699    2521 android_resource_loader.cc:100] Built resource utf8_utils
+08-27 19:02:24.361  2521  2521 I native  : I0000 00:00:1787857344.361760    2521 android_resource_loader.cc:116] Loaded resource:utf8_utils
+08-27 19:02:24.361  2521  2521 I native  : I0000 00:00:1787857344.361914    2521 android_resource_loader.cc:100] Built resource lexical_classifier
+08-27 19:02:24.361  2521  2521 I native  : I0000 00:00:1787857344.361976    2521 android_resource_loader.cc:116] Loaded resource:lexical_classifier
+08-27 19:02:24.362  2521  2521 I native  : I0000 00:00:1787857344.362124    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/universal_carrier_pigeon_config.binarypb" (as: FILE) ...
+08-27 19:02:24.362  2521  2521 I native  : I0000 00:00:1787857344.362313    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/universal_carrier_pigeon_config.binarypb" of size 52
+08-27 19:02:24.362  2521  2521 I native  : I0000 00:00:1787857344.362753    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/universal_carrier_pigeon_model.tflite" (as: FILE) ...
+08-27 19:02:24.362  2521  2521 I native  : I0000 00:00:1787857344.362907    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/universal_carrier_pigeon_model.tflite" of size 638952
+08-27 19:02:24.364  2521  2521 I native  : I0000 00:00:1787857344.364540    2521 android_resource_loader.cc:100] Built resource carrier_pigeon_algo
+08-27 19:02:24.364  2521  2521 I native  : I0000 00:00:1787857344.364667    2521 android_resource_loader.cc:116] Loaded resource:carrier_pigeon_algo
+08-27 19:02:24.364  2521  2521 I native  : I0000 00:00:1787857344.364888    2521 android_resource_loader.cc:100] Built resource icu_transliterator
+08-27 19:02:24.365  2521  2521 I native  : I0000 00:00:1787857344.364992    2521 android_resource_loader.cc:116] Loaded resource:icu_transliterator
+08-27 19:02:24.365  2521  2521 I native  : I0000 00:00:1787857344.365065    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/variant_overrides_en_us.pb" (as: FILE) ...
+08-27 19:02:24.365  2521  2521 I native  : I0000 00:00:1787857344.365208    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/variant_overrides_en_us.pb" of size 1525
+08-27 19:02:24.365  2521  2521 I native  : I0000 00:00:1787857344.365552    2521 android_resource_loader.cc:100] Built resource variant_overrides
+08-27 19:02:24.365  2521  2521 I native  : I0000 00:00:1787857344.365661    2521 android_resource_loader.cc:116] Loaded resource:variant_overrides
+08-27 19:02:24.365  2521  2521 I native  : I0000 00:00:1787857344.365734    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/variant_selection_model_en_us_embedded.bin" (as: MEMORY) ...
+08-27 19:02:24.365  2521  2521 I native  : I0000 00:00:1787857344.365901    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/variant_selection_model_en_us_embedded.bin" of size 221608
+08-27 19:02:24.366  2521  2521 I native  : I0000 00:00:1787857344.366042    2521 android_resource_loader.cc:100] Built resource variant_selection_model_data_resource
+08-27 19:02:24.366  2521  2521 I native  : I0000 00:00:1787857344.366144    2521 android_resource_loader.cc:116] Loaded resource:variant_selection_model_data_resource
+08-27 19:02:24.368  2521  2521 I native  : I0000 00:00:1787857344.368231    2521 select_variants.cc:128] Word with override has only one variant: her
+08-27 19:02:24.368  2521  2521 I native  : I0000 00:00:1787857344.368530    2521 android_resource_loader.cc:100] Built resource select_variants_algo
+08-27 19:02:24.368  2521  2521 I native  : I0000 00:00:1787857344.368660    2521 android_resource_loader.cc:116] Loaded resource:select_variants_algo
+08-27 19:02:24.368  2521  2521 I native  : I0000 00:00:1787857344.368780    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/us_verbalization_capabilities.pb" (as: FILE) ...
+08-27 19:02:24.368  2521  2521 I native  : I0000 00:00:1787857344.368939    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/us_verbalization_capabilities.pb" of size 5224
+08-27 19:02:24.369  2521  2521 I native  : I0000 00:00:1787857344.369358    2521 android_resource_loader.cc:100] Built resource verbalization_capabilities
+08-27 19:02:24.369  2521  2521 I native  : I0000 00:00:1787857344.369463    2521 android_resource_loader.cc:116] Loaded resource:verbalization_capabilities
+08-27 19:02:24.369  2521  2521 I native  : I0000 00:00:1787857344.369575    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/verbalize_embedded_android.far" (as: FILE) ...
+08-27 19:02:24.369  2521  2521 I native  : I0000 00:00:1787857344.369704    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/verbalize_embedded_android.far" of size 2342559
+08-27 19:02:24.374  2521  2521 I native  : I0000 00:00:1787857344.374659    2521 android_resource_loader.cc:100] Built resource verbalize_grm_fst
+08-27 19:02:24.374  2521  2521 I native  : I0000 00:00:1787857344.374798    2521 android_resource_loader.cc:116] Loaded resource:verbalize_grm_fst
+08-27 19:02:24.374  2521  2521 I native  : I0000 00:00:1787857344.374945    2521 android_resource_loader.cc:100] Built resource speller_algo
+08-27 19:02:24.375  2521  2521 I native  : I0000 00:00:1787857344.375037    2521 android_resource_loader.cc:116] Loaded resource:speller_algo
+08-27 19:02:24.377  2521  2521 I native  : I0000 00:00:1787857344.377757    2521 android_resource_loader.cc:100] Built resource verbalize_grm_algo
+08-27 19:02:24.377  2521  2521 I native  : I0000 00:00:1787857344.377906    2521 android_resource_loader.cc:116] Loaded resource:verbalize_grm_algo
+08-27 19:02:24.380  2521  2521 I native  : I0000 00:00:1787857344.380527    2521 android_resource_loader.cc:100] Built resource vocoding_resource
+08-27 19:02:24.380  2521  2521 I native  : I0000 00:00:1787857344.380676    2521 android_resource_loader.cc:116] Loaded resource:vocoding_resource
+08-27 19:02:24.380  2521  2521 I native  : I0000 00:00:1787857344.380753    2521 voice_params_resource.cc:31] Voice information: MessageLite at 0x7da4111b07b0
+08-27 19:02:24.380  2521  2521 I native  : I0000 00:00:1787857344.380856    2521 android_resource_loader.cc:100] Built resource voice_params
+08-27 19:02:24.380  2521  2521 I native  : I0000 00:00:1787857344.380951    2521 android_resource_loader.cc:116] Loaded resource:voice_params
+08-27 19:02:24.397  2521  2521 I native  : I0000 00:00:1787857344.397508    2521 android_resource_loader.cc:100] Built resource word_resolver_algo
+08-27 19:02:24.397  2521  2521 I native  : I0000 00:00:1787857344.397676    2521 android_resource_loader.cc:116] Loaded resource:word_resolver_algo
+08-27 19:02:24.397  2521  2521 I native  : I0000 00:00:1787857344.397877    2521 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/xsampa_to_tts_to-en_us.far" (as: FILE) ...
+08-27 19:02:24.398  2521  2521 I native  : I0000 00:00:1787857344.398037    2521 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83/xsampa_to_tts_to-en_us.far" of size 22132
+08-27 19:02:24.398  2521  2521 I native  : I0000 00:00:1787857344.398456    2521 android_resource_loader.cc:100] Built resource xsampa_to_tts_phoneme_mapper
+08-27 19:02:24.398  2521  2521 I native  : I0000 00:00:1787857344.398579    2521 android_resource_loader.cc:116] Loaded resource:xsampa_to_tts_phoneme_mapper
+08-27 19:02:24.398  2521  2521 I native  : I0000 00:00:1787857344.398699    2521 local_pipeline_runner.cc:49] Done loading all resources from: {/data/user_de/0/com.google.android.tts/files/superpacks/en-us/en-us-x-multi-r83}
+08-27 19:02:24.419  2521  2521 I ComposerWrapperImpl: Done initializing en-us-x-iog-lstm-embedded
+08-27 19:02:24.422   682   682 D TextToSpeechManagerPerUserService: Connected successfully to TTS engine: com.google.android.tts
+08-27 19:02:24.426  6459  6469 I TextToSpeech: Connected to TTS engine
+08-27 19:02:24.689  2521  4141 I GoogleTTSServiceImpl: currentLocale = en-US
+08-27 19:02:24.859  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 14MB AllocSpace bytes, 16(360KB) LOS objects, 30% free, 55MB/79MB, paused 2.412ms,3.228ms total 366.628ms
+08-27 19:02:25.108  2521  4141 I GoogleTTSServiceImpl: For default lang en-us is name en-US-language (en-us-x-iog-server)
+08-27 19:02:25.112  6459  6513 I TextToSpeech: Setting up the connection to TTS engine...
+08-27 19:02:25.384  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 14MB AllocSpace bytes, 1(24KB) LOS objects, 29% free, 57MB/81MB, paused 2.661ms,3.656ms total 196.359ms
+08-27 19:02:25.589  6459  6492 I NutritionRepository: Dataset knowledge ready: 19405 docs, v2
+08-27 19:02:25.798  6459  6494 I NutritionRepository: Building FoodIndex with 5766 global + 211 static foods
+08-27 19:02:25.894  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 14MB AllocSpace bytes, 0(0B) LOS objects, 28% free, 61MB/85MB, paused 2.300ms,2.570ms total 199.534ms
+08-27 19:02:26.415  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 14MB AllocSpace bytes, 2(36KB) LOS objects, 27% free, 61MB/85MB, paused 1.726ms,4.254ms total 206.727ms
+08-27 19:02:26.946  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 15MB AllocSpace bytes, 4(76KB) LOS objects, 27% free, 62MB/86MB, paused 2.055ms,2.565ms total 205.594ms
+08-27 19:02:27.527   682   799 I ImeTracker: com.example.kpkn:3c8a6f78: onRequestHide at ORIGIN_SERVER reason HIDE_UNSPECIFIED_WINDOW fromUser false
+08-27 19:02:27.536  1338  1338 I SubtypeOperator: SubtypeOperator$1.onUnbindInput():43 
+08-27 19:02:27.537  1338  1338 I SubtypeOperator: SubtypeOperator$1.onBindInput():33 
+08-27 19:02:27.541  1338  1338 I GoogleInputMethodService: GoogleInputMethodService.onFinishInput():2361 
+08-27 19:02:27.542  1338  1338 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1532 onStartInput(EditorInfo{EditorInfo{packageName=com.example.kpkn, inputType=0, inputTypeString=NULL, enableLearning=false, autoCorrection=false, autoComplete=false, imeOptions=0, privateImeOptions=null, actionName=UNSPECIFIED, actionLabel=null, initialSelStart=-1, initialSelEnd=-1, initialCapsMode=0, label=null, fieldId=0, fieldName=null, extras=null, hintText=null, hintLocales=[]}}, false)
+08-27 19:02:27.542  1338  1338 I LatinIMEBase: LatinIMEBase.updateInputViewCoverNavigation():316 Update input view padding, isNavbarOverInputWindow=true, bottom inset=72
+08-27 19:02:27.543  1254  1590 I FontLog : (REDACTED) Received query %s, URI %s
+08-27 19:02:27.543  1254  1590 I FontLog : (REDACTED) Query [%s] resolved to %s
+08-27 19:02:27.544   682   706 W PackageConfigPersister: App-specific configuration not found for packageName: com.example.kpkn and userId: 0
+08-27 19:02:27.545   682   912 I ImeTracker: system_server:a8ea72f8: onRequestHide at ORIGIN_SERVER reason IME_REQUESTED_CHANGED_LISTENER fromUser false
+08-27 19:02:27.545  1338  6105 I Module  : DeviceLockedStatusModuleProvider$Module.updateDeviceLockedStatusInternal():119 repeatCheckTimes = 0, locked = false
+08-27 19:02:27.545  1338  6105 I Module  : DeviceLockedStatusModuleProvider$Module.updateDeviceLockedStatusInternal():119 repeatCheckTimes = 1, locked = false
+08-27 19:02:27.546  1254  1590 I FontLog : (REDACTED) Fetch %s end status %s
+08-27 19:02:27.550   682   715 I ImeTracker: system_server:a8ea72f8: onCancelled at PHASE_SERVER_SHOULD_HIDE
+08-27 19:02:27.552  1254  1472 I FontLog : (REDACTED) Pulling font file for id = %d, cache size = %d
+08-27 19:02:27.562  1254  1472 I FontLog : (REDACTED) Pulling font file for id = %d, cache size = %d
+08-27 19:02:27.567  6459  6459 I Choreographer: Skipped 289 frames!  The application may be doing too much work on its main thread.
+08-27 19:02:27.570  6459  6459 D HazeSource: onPreDraw
+08-27 19:02:27.591  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 16MB AllocSpace bytes, 1(16KB) LOS objects, 27% free, 64MB/88MB, paused 1.814ms,3.345ms total 273.925ms
+08-27 19:02:27.600   682   715 W ActivityTaskManager: Launch timeout has expired, giving up wake lock!
+08-27 19:02:27.931   682   841 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET, states=14
+08-27 19:02:27.932   682   841 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET6, states=14
+08-27 19:02:27.932   682   841 D InetDiagMessage: Destroyed live tcp sockets for uids={10145} in 1ms
+08-27 19:02:27.935   682   841 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET, states=14
+08-27 19:02:27.935   682   841 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET6, states=14
+08-27 19:02:27.935   682   841 D InetDiagMessage: Destroyed live tcp sockets for uids={20145} in 1ms
+08-27 19:02:28.032  6517  6517 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: package
+08-27 19:02:28.182  2257  4225 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/base.odex) is kOatUpToDate with filter 'speed-profile' executable 'false'
+08-27 19:02:28.183  2257  4225 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_AdsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:28.186  2257  4225 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_CronetDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:28.188  2257  4225 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_DynamiteLoader_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:28.190  2257  4225 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_DynamiteModulesA_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:28.192  2257  4225 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_DynamiteModulesC_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:28.195  2257  4225 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_GoogleCertificates_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:28.198  2257  4225 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_MapsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:28.200  2257  4225 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_MeasurementDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:28.205  2257  4225 I artd    : GetBestInfo: /data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/split_maps_core_dynamite_ondemand.apk has no usable artifacts
+08-27 19:02:28.206  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000011/dl-PlayCloudSearch.optional_263032100000.apk has no usable artifacts
+08-27 19:02:28.207  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000001/CronetDynamite.apk has no usable artifacts
+08-27 19:02:28.207  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000002/DynamiteLoader.apk has no usable artifacts
+08-27 19:02:28.209  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000018/dl-IdentityCredentialsPlatform.optional_263032100800.apk has no usable artifacts
+08-27 19:02:28.210  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000005/GoogleCertificates.apk has no usable artifacts
+08-27 19:02:28.211  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000019/dl-TfliteDynamiteDynamite.integ_262730502100800.apk has no usable artifacts
+08-27 19:02:28.213  2257  4225 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/8A87D3ADD3A68B58A4F768E677B14023FB08B0E1/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+08-27 19:02:28.215  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000010/dl-VisionOcr.optional_263032100000.apk has no usable artifacts
+08-27 19:02:28.217  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000b/dl-TfliteDynamiteDynamite.integ_260580502100800.apk has no usable artifacts
+08-27 19:02:28.218  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000013/dl-MlkitOcrCommon.optional_263032100800.apk has no usable artifacts
+08-27 19:02:28.220  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000001/dl-TfliteDynamiteDynamite.integ_262730502100800.apk has no usable artifacts
+08-27 19:02:28.222  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000008/dl-Appsearch.optional_250834100800.apk has no usable artifacts
+08-27 19:02:28.223  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000014/dl-MlkitBarcodeUi.optional_263032100800.apk has no usable artifacts
+08-27 19:02:28.225  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000c/dl-MlkitBarcodeUi.optional_250834100800.apk has no usable artifacts
+08-27 19:02:28.227  2257  4225 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000012/dl-Appsearch.optional_263032100800.apk has no usable artifacts
+08-27 19:02:28.229  2257  4225 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/D76594F451C00E79F4C61E3B54BC3D01968BC47C/the.apk has no usable artifacts
+08-27 19:02:28.229  2257  4225 W artd    : Could not get dex checksums for location /data/app/~~OebE3h3aj7bRyFr6lOGvKw==/com.android.vending-A6r2KrtDQrcy5gixqfcP6A==/base.apk, fd=-1
+08-27 19:02:28.231  2257  4225 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/90356F09B5269D8AF0E8BAEAA661BE4AFD715065/the.apk has no usable artifacts
+08-27 19:02:28.464  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 20MB AllocSpace bytes, 2(32KB) LOS objects, 27% free, 61MB/85MB, paused 1.352ms,2.550ms total 210.670ms
+08-27 19:02:29.016  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 15MB AllocSpace bytes, 0(0B) LOS objects, 27% free, 63MB/87MB, paused 1.635ms,3.551ms total 200.835ms
+08-27 19:02:29.223   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.223   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.223   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.224   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.224   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.224   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.225   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.225   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.225   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.225   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.225   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.225   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.225   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.226   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.226   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.226   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.226   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.226   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.227   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.227   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.227   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.228   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.228   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.228   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.229   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.229   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.229   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.229   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.229   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.229   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.229   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.229   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.230   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.230   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.230   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.230   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.230   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.230   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.231   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.231   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.231   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.231   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.231   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.232   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.232   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.232   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.233   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.233   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.233   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.233   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.233   682   715 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:29.617  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 16MB AllocSpace bytes, 1(16KB) LOS objects, 27% free, 63MB/87MB, paused 2.436ms,5.039ms total 216.873ms
+08-27 19:02:30.215  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 16MB AllocSpace bytes, 0(0B) LOS objects, 27% free, 63MB/87MB, paused 5.250ms,4.087ms total 224.333ms
+08-27 19:02:30.808  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 16MB AllocSpace bytes, 0(0B) LOS objects, 27% free, 64MB/88MB, paused 1.365ms,3.247ms total 219.571ms
+08-27 19:02:31.431  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 16MB AllocSpace bytes, 0(0B) LOS objects, 27% free, 64MB/88MB, paused 1.682ms,2.333ms total 236.550ms
+08-27 19:02:32.029  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 16MB AllocSpace bytes, 0(0B) LOS objects, 27% free, 64MB/88MB, paused 2.035ms,3.393ms total 222.836ms
+08-27 19:02:32.056   919   919 I wpa_supplicant: wlan0: CTRL-EVENT-BEACON-LOSS 
+08-27 19:02:32.464  6459  6459 D HazeSource: onAttach. Adding HazeArea: HazeArea(positionOnScreen=Offset.Unspecified, size=Size.Unspecified, zIndex=0.0, contentLayer=null, contentDrawing=false)
+08-27 19:02:32.714  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 17MB AllocSpace bytes, 2(32KB) LOS objects, 26% free, 65MB/89MB, paused 2.767ms,4.139ms total 235.292ms
+08-27 19:02:32.937   682   783 D ActivityManager: freezing 2918 com.google.android.settings.intelligence
+08-27 19:02:32.940   682   841 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET, states=14
+08-27 19:02:32.940   682   841 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET6, states=14
+08-27 19:02:32.940   682   841 D InetDiagMessage: Destroyed live tcp sockets for uids={10145} in 1ms
+08-27 19:02:32.942  6459  6459 D HazeEffect: LocalHazeStyle changed. Current: HazeStyle(backgroundColor=Color(0.0, 0.0, 0.0, 0.0, None), tints=[], blurRadius=Dp.Unspecified, noiseFactor=-1.0, fallbackTint=HazeTint(color=Color(0.0, 0.0, 0.0, 0.0, None), blendMode=SrcOver, brush=null)). New: HazeStyle(backgroundColor=Color(0.0, 0.0, 0.0, 0.0, None), tints=[HazeTint(color=Color(0.0, 0.0, 0.0, 0.0, None), blendMode=SrcOver, brush=null)], blurRadius=20.0.dp, noiseFactor=0.15, fallbackTint=HazeTint(color=Color(0.0, 0.0, 0.0, 0.0, None), blendMode=SrcOver, brush=null))
+08-27 19:02:32.942  6459  6459 D HazeEffect: alpha changed. Current 1.0. New: 0.42
+08-27 19:02:32.942  6459  6459 D HazeEffect: Background Areas observing: SnapshotStateList(value=[])@224061644
+08-27 19:02:32.943  6459  6459 D HazeEffect: invalidateRequired=true. Dirty params=[BlurRadius, NoiseFactor, Tints, Alpha]
+08-27 19:02:33.230  1090  1259 D SatelliteController: iisInCarrierRoamingNbIotNtn: satellite is disabled
+08-27 19:02:33.231   682  1994 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:33.321  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 13MB AllocSpace bytes, 1(8028KB) LOS objects, 30% free, 54MB/78MB, paused 2.029ms,2.626ms total 188.217ms
+08-27 19:02:33.777  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 7524KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 1.564ms,2.658ms total 164.470ms
+08-27 19:02:34.203  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5368KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 5.189ms,3.223ms total 168.626ms
+08-27 19:02:34.586  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4756KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 1.663ms,4.247ms total 158.395ms
+08-27 19:02:34.961  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4900KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 1.447ms,2.188ms total 166.889ms
+08-27 19:02:35.326  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4924KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 1.417ms,2.719ms total 159.272ms
+08-27 19:02:35.697  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4892KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 1.398ms,3.286ms total 166.801ms
+08-27 19:02:35.958  6459  6459 D HazeSource: onAttach. Adding HazeArea: HazeArea(positionOnScreen=Offset.Unspecified, size=Size.Unspecified, zIndex=0.0, contentLayer=null, contentDrawing=false)
+08-27 19:02:35.962  6459  6459 D HazeEffect: Background Areas observing: SnapshotStateList(value=[HazeArea(positionOnScreen=Offset.Unspecified, size=Size.Unspecified, zIndex=0.0, contentLayer=null, contentDrawing=false)])@224061644
+08-27 19:02:35.962  6459  6459 D HazeEffect: Background Area: HazeArea(positionOnScreen=Offset.Unspecified, size=Size.Unspecified, zIndex=0.0, contentLayer=null, contentDrawing=false). Included=true
+08-27 19:02:35.962  6459  6459 D HazeEffect: backgroundAreas changed. Current []. New: [HazeArea(positionOnScreen=Offset.Unspecified, size=Size.Unspecified, zIndex=0.0, contentLayer=null, contentDrawing=false)]
+08-27 19:02:35.963  6459  6459 D HazeEffect: areaOffsets changed
+08-27 19:02:35.963  6459  6459 D HazeEffect: invalidateRequired=true. Dirty params=[RelativePosition, BlurRadius, NoiseFactor, Tints, Alpha, Areas]
+08-27 19:02:36.073  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4868KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 1.941ms,3.241ms total 165.096ms
+08-27 19:02:36.670  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4772KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 54MB/78MB, paused 2.458ms,3.488ms total 173.084ms
+08-27 19:02:36.771  6459  6459 D HazeSource: onPlaced: positionOnScreen=Offset(0.0, 0.0), size=Size(1344.0, 2992.0), positionOnScreens=Offset(0.0, 0.0)
+08-27 19:02:36.780  6459  6459 D HazeSource: onPlaced: positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1981.0), positionOnScreens=Offset(0.0, 495.0)
+08-27 19:02:36.901  6459  6459 D HazeEffect: positionOnScreen changed. Current: Offset.Unspecified. New: Offset(36.0, 2500.0)
+08-27 19:02:36.901  6459  6459 D HazeEffect: size changed. Current: Size.Unspecified. New: Size(1272.0, 396.0)
+08-27 19:02:36.902  6459  6459 D HazeEffect: rootBoundsOnScreen changed. Current: Rect.fromLTRB(0.0, 0.0, 0.0, 0.0). New: Rect.fromLTRB(0.0, 0.0, 1344.0, 2992.0)
+08-27 19:02:36.902  6459  6459 D HazeEffect: onPlaced: positionOnScreen=Offset(36.0, 2500.0), size=Size(1272.0, 396.0)
+08-27 19:02:36.903  6459  6459 D HazeEffect: Background Areas observing: SnapshotStateList(value=[HazeArea(positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1981.0), zIndex=0.0, contentLayer=null, contentDrawing=false)])@224061644
+08-27 19:02:36.903  6459  6459 D HazeEffect: Background Area: HazeArea(positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1981.0), zIndex=0.0, contentLayer=null, contentDrawing=false). Included=true
+08-27 19:02:36.903  6459  6459 D HazeEffect: areaOffsets changed
+08-27 19:02:36.903  6459  6459 D HazeEffect: layerSize changed. Current: Size.Unspecified. New: Size(1344.0, 276.0)
+08-27 19:02:36.903  6459  6459 D HazeEffect: layerOffset changed. Current: Offset(0.0, 0.0). New: Offset(36.0, 300.0)
+08-27 19:02:36.904  6459  6459 D HazeEffect: invalidateRequired=true. Dirty params=[ScreenPosition, RelativePosition, Size, LayerSize, LayerOffset, BlurRadius, NoiseFactor, Tints, Alpha, Areas]
+08-27 19:02:36.908  6459  6459 D HazeSource: onGloballyPositioned: positionOnScreen=Offset(0.0, 0.0), size=Size(1344.0, 2992.0), positionOnScreens=Offset(0.0, 0.0)
+08-27 19:02:36.909  6459  6459 D HazeSource: onGloballyPositioned: positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1981.0), positionOnScreens=Offset(0.0, 495.0)
+08-27 19:02:36.911  6459  6459 D HazeEffect: onGloballyPositioned: positionOnScreen=Offset(36.0, 2500.0), size=Size(1272.0, 396.0)
+08-27 19:02:36.912  6459  6459 D HazeEffect: Background Areas observing: SnapshotStateList(value=[HazeArea(positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1981.0), zIndex=0.0, contentLayer=null, contentDrawing=false)])@224061644
+08-27 19:02:36.912  6459  6459 D HazeEffect: Background Area: HazeArea(positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1981.0), zIndex=0.0, contentLayer=null, contentDrawing=false). Included=true
+08-27 19:02:36.912  6459  6459 D HazeEffect: invalidateRequired=true. Dirty params=[ScreenPosition, RelativePosition, Size, LayerSize, LayerOffset, BlurRadius, NoiseFactor, Tints, Alpha, Areas]
+08-27 19:02:36.913  6459  6459 D HazeEffect: Background Areas observing: SnapshotStateList(value=[HazeArea(positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1981.0), zIndex=0.0, contentLayer=null, contentDrawing=false)])@224061644
+08-27 19:02:36.914  6459  6459 D HazeEffect: Background Area: HazeArea(positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1981.0), zIndex=0.0, contentLayer=null, contentDrawing=false). Included=true
+08-27 19:02:36.914  6459  6459 D HazeEffect: invalidateRequired=true. Dirty params=[ScreenPosition, RelativePosition, Size, LayerSize, LayerOffset, BlurRadius, NoiseFactor, Tints, Alpha, Areas]
+08-27 19:02:36.915  6459  6459 D HazeSource: start draw()
+08-27 19:02:36.916  6459  6459 D HazeSource: Drawn content into layer: androidx.compose.ui.graphics.layer.GraphicsLayer@428593b
+08-27 19:02:36.916  6459  6459 D HazeSource: Drawn layer to canvas: androidx.compose.ui.graphics.layer.GraphicsLayer@428593b
+08-27 19:02:36.917  6459  6459 D HazeSource: end draw()
+08-27 19:02:36.917  6459  6459 D HazeSource: start draw()
+08-27 19:02:36.918  6459  6459 D HazeSource: Updated contentLayer in HazeArea: HazeArea(positionOnScreen=Offset(0.0, 0.0), size=Size(1344.0, 2992.0), zIndex=0.0, contentLayer=androidx.compose.ui.graphics.layer.GraphicsLayer@4e63752, contentDrawing=true)
+08-27 19:02:36.924  6459  6459 D HazeSource: start draw()
+08-27 19:02:36.924  6459  6459 D HazeSource: Updated contentLayer in HazeArea: HazeArea(positionOnScreen=Offset(0.0, 495.0), size=Size(1344.0, 1981.0), zIndex=0.0, contentLayer=androidx.compose.ui.graphics.layer.GraphicsLayer@acd9568, contentDrawing=true)
+08-27 19:02:36.980  6459  6459 D HazeSource: Drawn content into layer: androidx.compose.ui.graphics.layer.GraphicsLayer@acd9568
+08-27 19:02:36.980  6459  6459 D HazeSource: Drawn layer to canvas: androidx.compose.ui.graphics.layer.GraphicsLayer@acd9568
+08-27 19:02:36.980  6459  6459 D HazeSource: end draw()
+08-27 19:02:36.981  6459  6459 D HazeEffect: -> start draw()
+08-27 19:02:36.981  6459  6459 D HazeEffect: blurEffect changed. Current dev.chrisbanes.haze.ScrimBlurEffect@a3d6b6f. New: dev.chrisbanes.haze.RenderEffectBlurEffect@9bcc07c
+08-27 19:02:36.981  6459  6459 D HazeEffect: Drawing HazeArea GraphicsLayer: androidx.compose.ui.graphics.layer.GraphicsLayer@acd9568
+08-27 19:02:36.982  6459  6459 D HazeEffect: getOrCreateRenderEffect: RenderEffectParams(blurRadius=100.0.dp, noiseFactor=0.02, scale=1.0, contentSize=Size(1272.0, 396.0), contentOffset=Offset(36.0, 300.0), tints=[HazeTint(color=Color(0.05490196, 0.05490196, 0.05490196, 0.5803922, sRGB IEC61966-2.1), blendMode=SrcOver, brush=null)], tintAlphaModulate=1.0, mask=null, progressive=null, blurTileMode=Clamp)
+08-27 19:02:36.982  6459  6459 D HazeEffect: getOrCreateRenderEffect. Creating: RenderEffectParams(blurRadius=100.0.dp, noiseFactor=0.02, scale=1.0, contentSize=Size(1272.0, 396.0), contentOffset=Offset(36.0, 300.0), tints=[HazeTint(color=Color(0.05490196, 0.05490196, 0.05490196, 0.5803922, sRGB IEC61966-2.1), blendMode=SrcOver, brush=null)], tintAlphaModulate=1.0, mask=null, progressive=null, blurTileMode=Clamp)
+08-27 19:02:36.986  6459  6459 D HazeEffect: -> end draw()
+08-27 19:02:36.986  6459  6459 D HazeSource: Drawn content into layer: androidx.compose.ui.graphics.layer.GraphicsLayer@4e63752
+08-27 19:02:36.986  6459  6459 D HazeSource: Drawn layer to canvas: androidx.compose.ui.graphics.layer.GraphicsLayer@4e63752
+08-27 19:02:36.986  6459  6459 D HazeSource: end draw()
+08-27 19:02:36.995  2521  4141 I GoogleTTSServiceImpl: currentLocale = es-US
+08-27 19:02:36.999  6459  6520 D ProfileInstaller: Installing profile for com.example.kpkn
+08-27 19:02:37.001  2521  4141 I GoogleTTSServiceImpl: currentLocale = es-US
+08-27 19:02:37.003  2521  4141 I GoogleTTSServiceImpl: For default lang es-cl is name es-US-language (es-us-x-esc-server)
+08-27 19:02:37.005  2521  2540 I GoogleTTSServiceImpl: currentLocale = es-US
+08-27 19:02:37.091  6459  6471 I HWUI    : Davey! duration=14351ms; Flags=0, FrameTimelineVsyncId=700129, IntendedVsync=2912629667176, Vsync=2917446333650, InputEventId=0, HandleInputStart=2917461796600, AnimationStart=2917461829300, PerformTraversalsStart=2922364957300, DrawStart=2922365713500, FrameDeadline=2913513000474, FrameStartTime=2917460352400, FrameInterval=16666666, WorkloadTarget=16666666, SyncQueued=2926881088900, SyncStart=2926881260900, IssueDrawCommandsStart=2926881507800, SwapBuffers=2926974754000, FrameCompleted=2926980896400, DequeueBufferDuration=22300, QueueBufferDuration=949700, GpuCompleted=2926980896400, SwapBuffersCompleted=2926976315700, DisplayPresentTime=0, CommandSubmissionCompleted=2926974754000, 
+08-27 19:02:37.238  2521  6508 I LocalSynthesizer: Attempting to load synthesizer for voice: es-us-x-esa-lstm-embedded
+08-27 19:02:37.238  2521  6508 I LocalSynthesizer: Voice es-us-x-esa-lstm-embedded is not supported by any existing synthesizers.
+08-27 19:02:37.238  2521  2540 I GoogleTTSServiceImpl: currentLocale = es-US
+08-27 19:02:37.238  2521  6508 I ComposerWrapperImpl: Initializing new monolithic pipeline. New voice: es-us-x-esa-lstm-embedded
+08-27 19:02:37.238  2521  6508 I PipelineReaderImpl: Initializing monolithic pipeline from disk: /data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/pipeline.pb
+08-27 19:02:37.240  2521  6508 I native  : I0000 00:00:1787857357.239968    6508 android_resource_loader.cc:109] Loading resources for es_us_x_embedded_valerian_vocoded/281616442255667693
+08-27 19:02:37.240  2521  6508 I native  : I0000 00:00:1787857357.240352    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/burdock_frame_config.pb" (as: FILE) ...
+08-27 19:02:37.240  2521  6508 I native  : I0000 00:00:1787857357.240460    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/burdock_frame_config.pb" of size 68
+08-27 19:02:37.240  2521  4141 I GoogleTTSServiceImpl: currentLocale = es-US
+08-27 19:02:37.240  2521  6508 I native  : I0000 00:00:1787857357.240579    6508 android_resource_loader.cc:100] Built resource acoustic_frame_config
+08-27 19:02:37.240  2521  6508 I native  : I0000 00:00:1787857357.240730    6508 android_resource_loader.cc:116] Loaded resource:acoustic_frame_config
+08-27 19:02:37.240  2521  6508 I native  : I0000 00:00:1787857357.240790    6508 android_resource_loader.cc:100] Built resource audio_manipulation_params
+08-27 19:02:37.240  2521  6508 I native  : I0000 00:00:1787857357.240841    6508 android_resource_loader.cc:116] Loaded resource:audio_manipulation_params
+08-27 19:02:37.240  2521  6508 I native  : I0000 00:00:1787857357.240908    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/roman_numeral_android.far" (as: FILE) ...
+08-27 19:02:37.241  2521  6508 I native  : I0000 00:00:1787857357.240987    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/roman_numeral_android.far" of size 2103
+08-27 19:02:37.241  2521  6508 I native  : I0000 00:00:1787857357.241231    6508 android_resource_loader.cc:100] Built resource classify_roman_numerals_grm_fst
+08-27 19:02:37.241  2521  6508 I native  : I0000 00:00:1787857357.241303    6508 android_resource_loader.cc:116] Loaded resource:classify_roman_numerals_grm_fst
+08-27 19:02:37.241  2521  6508 I native  : I0000 00:00:1787857357.241372    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/disambiguation_rules_es_us.pb" (as: FILE) ...
+08-27 19:02:37.241  2521  6508 I native  : I0000 00:00:1787857357.241454    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/disambiguation_rules_es_us.pb" of size 16343
+08-27 19:02:37.244  2521  4141 I GoogleTTSServiceImpl: For default lang es-cl is name es-US-language (es-us-x-esc-server)
+08-27 19:02:37.245  2521  6508 I native  : I0000 00:00:1787857357.245401    6508 android_resource_loader.cc:100] Built resource disambiguation_rules
+08-27 19:02:37.245  2521  6508 I native  : I0000 00:00:1787857357.245505    6508 android_resource_loader.cc:116] Loaded resource:disambiguation_rules
+08-27 19:02:37.245  2521  6508 I native  : I0000 00:00:1787857357.245613    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/engine_config_es_us_x_embedded_valerian_vocoded.pb" (as: FILE) ...
+08-27 19:02:37.245  2521  6508 I native  : I0000 00:00:1787857357.245720    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/engine_config_es_us_x_embedded_valerian_vocoded.pb" of size 54
+08-27 19:02:37.246  2521  6508 I native  : I0000 00:00:1787857357.245821    6508 android_resource_loader.cc:100] Built resource engine_config
+08-27 19:02:37.246  2521  6508 I native  : I0000 00:00:1787857357.246156    6508 android_resource_loader.cc:116] Loaded resource:engine_config
+08-27 19:02:37.246  2521  6508 I native  : I0000 00:00:1787857357.246324    6508 android_resource_loader.cc:100] Built resource guided_synthesis
+08-27 19:02:37.246  2521  6508 I native  : I0000 00:00:1787857357.246382    6508 android_resource_loader.cc:116] Loaded resource:guided_synthesis
+08-27 19:02:37.246  2521  6508 I native  : I0000 00:00:1787857357.246451    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/mapping_grammar_es.far" (as: FILE) ...
+08-27 19:02:37.246  2521  6508 I native  : I0000 00:00:1787857357.246494    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/mapping_grammar_es.far" of size 1439
+08-27 19:02:37.246  2521  6508 I native  : I0000 00:00:1787857357.246635    6508 android_resource_loader.cc:100] Built resource homograph_mapping_grammar
+08-27 19:02:37.246  2521  6508 I native  : I0000 00:00:1787857357.246667    6508 android_resource_loader.cc:116] Loaded resource:homograph_mapping_grammar
+08-27 19:02:37.246  2521  6508 I native  : I0000 00:00:1787857357.246759    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/lettuce_model.fb" (as: MEMORY) ...
+08-27 19:02:37.246  2521  4141 I GoogleTTSServiceImpl: currentLocale = es-US
+08-27 19:02:37.247  2521  6508 I native  : I0000 00:00:1787857357.246863    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/lettuce_model.fb" of size 668088
+08-27 19:02:37.247  2521  6508 I native  : I0000 00:00:1787857357.247216    6508 android_resource_loader.cc:100] Built resource lettuce_model_resource
+08-27 19:02:37.247  2521  6508 I native  : I0000 00:00:1787857357.247256    6508 android_resource_loader.cc:116] Loaded resource:lettuce_model_resource
+08-27 19:02:37.247  2521  6508 I native  : I0000 00:00:1787857357.247377    6508 android_resource_loader.cc:100] Built resource lettuce_model_scorer
+08-27 19:02:37.247  2521  6508 I native  : I0000 00:00:1787857357.247417    6508 android_resource_loader.cc:116] Loaded resource:lettuce_model_scorer
+08-27 19:02:37.247  2521  6508 I native  : I0000 00:00:1787857357.247464    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/lettuce_classify_embedded_us_generated_android.far" (as: FILE) ...
+08-27 19:02:37.247  2521  6508 I native  : I0000 00:00:1787857357.247613    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/lettuce_classify_embedded_us_generated_android.far" of size 6536905
+08-27 19:02:37.269  2521  6508 I native  : I0000 00:00:1787857357.269289    6508 android_resource_loader.cc:100] Built resource lettuce_node_generator_grm
+08-27 19:02:37.269  2521  6508 I native  : I0000 00:00:1787857357.269441    6508 android_resource_loader.cc:116] Loaded resource:lettuce_node_generator_grm
+08-27 19:02:37.269  2521  6508 I native  : I0000 00:00:1787857357.269540    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/feats_android.far" (as: FILE) ...
+08-27 19:02:37.269  2521  6508 I native  : I0000 00:00:1787857357.269655    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/feats_android.far" of size 1638
+08-27 19:02:37.269  2521  6508 I native  : I0000 00:00:1787857357.269867    6508 android_resource_loader.cc:100] Built resource lseq_classifier_grammar
+08-27 19:02:37.269  2521  6508 I native  : I0000 00:00:1787857357.269931    6508 android_resource_loader.cc:116] Loaded resource:lseq_classifier_grammar
+08-27 19:02:37.270  2521  6508 I native  : I0000 00:00:1787857357.269999    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/lucid_collection_android.far" (as: FILE) ...
+08-27 19:02:37.270  2521  6508 I native  : I0000 00:00:1787857357.270208    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/lucid_collection_android.far" of size 8927
+08-27 19:02:37.270  2521  6508 I native  : I0000 00:00:1787857357.270422    6508 android_resource_loader.cc:100] Built resource lucid_parser_grm_fst
+08-27 19:02:37.270  2521  6508 I native  : I0000 00:00:1787857357.270475    6508 android_resource_loader.cc:116] Loaded resource:lucid_parser_grm_fst
+08-27 19:02:37.270  2521  6508 I native  : I0000 00:00:1787857357.270528    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/markup_triggers.pb" (as: FILE) ...
+08-27 19:02:37.270  2521  6508 I native  : I0000 00:00:1787857357.270581    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/markup_triggers.pb" of size 930
+08-27 19:02:37.270  2521  6508 I native  : I0000 00:00:1787857357.270703    6508 android_resource_loader.cc:100] Built resource markup_triggers
+08-27 19:02:37.270  2521  6508 I native  : I0000 00:00:1787857357.270742    6508 android_resource_loader.cc:116] Loaded resource:markup_triggers
+08-27 19:02:37.270  2521  6508 I native  : I0000 00:00:1787857357.270796    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/morphosyntactic_mapping.pb" (as: FILE) ...
+08-27 19:02:37.270  2521  6508 I native  : I0000 00:00:1787857357.270835    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/morphosyntactic_mapping.pb" of size 151
+08-27 19:02:37.270  2521  6508 I native  : I0000 00:00:1787857357.270901    6508 android_resource_loader.cc:100] Built resource morph_analyzer_attribute_map
+08-27 19:02:37.270  2521  6508 I native  : I0000 00:00:1787857357.270928    6508 android_resource_loader.cc:116] Loaded resource:morph_analyzer_attribute_map
+08-27 19:02:37.270  2521  6508 I native  : I0000 00:00:1787857357.270981    6508 android_resource_loader.cc:100] Built resource multilingual_capabilities
+08-27 19:02:37.271  2521  6508 I native  : I0000 00:00:1787857357.271316    6508 android_resource_loader.cc:116] Loaded resource:multilingual_capabilities
+08-27 19:02:37.271  2521  6508 I native  : I0000 00:00:1787857357.271384    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/es_us_phonology.pb" (as: FILE) ...
+08-27 19:02:37.271  2521  6508 I native  : I0000 00:00:1787857357.271449    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/es_us_phonology.pb" of size 2157
+08-27 19:02:37.272  2521  6508 I native  : I0000 00:00:1787857357.272031    6508 android_resource_loader.cc:100] Built resource phonology
+08-27 19:02:37.272  2521  6508 I native  : I0000 00:00:1787857357.272187    6508 android_resource_loader.cc:116] Loaded resource:phonology
+08-27 19:02:37.272  2521  6508 I native  : I0000 00:00:1787857357.272291    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/ipa_to_tts_to-es_us.far" (as: FILE) ...
+08-27 19:02:37.276  2521  6508 I native  : I0000 00:00:1787857357.276598    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/ipa_to_tts_to-es_us.far" of size 356241
+08-27 19:02:37.278  2521  6508 I native  : I0000 00:00:1787857357.278181    6508 android_resource_loader.cc:100] Built resource ipa_to_tts_phoneme_mapper
+08-27 19:02:37.278  2521  6508 I native  : I0000 00:00:1787857357.278272    6508 android_resource_loader.cc:116] Loaded resource:ipa_to_tts_phoneme_mapper
+08-27 19:02:37.278  2521  6508 I native  : I0000 00:00:1787857357.278383    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/es_us.hlex.bin" (as: MEMORY) ...
+08-27 19:02:37.278  2521  6508 I native  : I0000 00:00:1787857357.278501    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/es_us.hlex.bin" of size 3769304
+08-27 19:02:37.278  2521  6508 I native  : I0000 00:00:1787857357.278732    6508 android_resource_loader.cc:100] Built resource lexicon
+08-27 19:02:37.278  2521  6508 I native  : I0000 00:00:1787857357.278787    6508 android_resource_loader.cc:116] Loaded resource:lexicon
+08-27 19:02:37.278  2521  6508 I native  : I0000 00:00:1787857357.278963    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/lettuce_node_generator_params_embedded_us_runtime.pb" (as: FILE) ...
+08-27 19:02:37.279  2521  6508 I native  : I0000 00:00:1787857357.279045    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/lettuce_node_generator_params_embedded_us_runtime.pb" of size 1320
+08-27 19:02:37.313  6459  6459 D InsetsController: hide(ime(), fromIme=false)
+08-27 19:02:37.314  6459  6459 I ImeTracker: com.example.kpkn:3c8a6f78: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+08-27 19:02:37.371  6459  6459 I Choreographer: Skipped 588 frames!  The application may be doing too much work on its main thread.
+08-27 19:02:37.372  6459  6459 D HazeSource: onPreDraw
+08-27 19:02:37.372  6459  6459 D HazeSource: onPreDraw
+08-27 19:02:37.373  6459  6459 D HazeSource: onPreDraw
+08-27 19:02:37.393  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 9288KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 2.896ms,3.711ms total 194.179ms
+08-27 19:02:37.841  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4708KB AllocSpace bytes, 1(24KB) LOS objects, 30% free, 55MB/79MB, paused 1.454ms,4.656ms total 214.691ms
+08-27 19:02:37.916  2521  6508 I native  : I0000 00:00:1787857357.916110    6508 exl_node_generator.cc:58] Setting legal word grammar as macro_only: true
+08-27 19:02:37.916  2521  6508 I native  : I0000 00:00:1787857357.916473    6508 android_resource_loader.cc:100] Built resource lettuce_node_generator
+08-27 19:02:37.917  2521  6508 I native  : I0000 00:00:1787857357.916979    6508 android_resource_loader.cc:116] Loaded resource:lettuce_node_generator
+08-27 19:02:37.917  2521  6508 I native  : I0000 00:00:1787857357.917029    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/burdock_model.params.pb" (as: FILE) ...
+08-27 19:02:37.917  2521  6508 I native  : I0000 00:00:1787857357.917130    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/burdock_model.params.pb" of size 6382
+08-27 19:02:37.917  2521  6508 I native  : I0000 00:00:1787857357.917607    6508 android_resource_loader.cc:100] Built resource lstm_add_specification_resource
+08-27 19:02:37.917  2521  6508 I native  : I0000 00:00:1787857357.917689    6508 android_resource_loader.cc:116] Loaded resource:lstm_add_specification_resource
+08-27 19:02:37.917  2521  6508 I native  : I0000 00:00:1787857357.917726    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/chive_model_fused.pb" (as: FILE) ...
+08-27 19:02:37.917  2521  6508 I native  : I0000 00:00:1787857357.917818    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/chive_model_fused.pb" of size 906
+08-27 19:02:37.917  2521  6508 I native  : I0000 00:00:1787857357.917931    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/burdock_valerian_model.tflite" (as: MEMORY) ...
+08-27 19:02:37.918  2521  6508 I native  : I0000 00:00:1787857357.918029    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/burdock_valerian_model.tflite" of size 1732112
+08-27 19:02:37.918  2521  6508 E tflite  : third_party/tensorflow/lite/core/subgraph.cc:1089 tensor.data.raw != nullptr was not true.
+08-27 19:02:37.918  2521  6508 I native  : I0000 00:00:1787857357.918513    6508 chive_inference_resource.cc:233] Creating new CHiVE model [model graph]: 
+08-27 19:02:37.918  2521  6508 I native  : I0000 00:00:1787857357.918543    6508 chive_model.cc:179] Creating a single pass CHiVE model
+08-27 19:02:37.919  2521  6508 I native  : I0000 00:00:1787857357.918991    6508 android_resource_loader.cc:100] Built resource chive_inference_config
+08-27 19:02:37.919  2521  6508 I native  : I0000 00:00:1787857357.919068    6508 android_resource_loader.cc:116] Loaded resource:chive_inference_config
+08-27 19:02:37.919  2521  6508 I native  : I0000 00:00:1787857357.919104    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/converter_es_us_android.far" (as: FILE) ...
+08-27 19:02:37.919  2521  6508 I native  : I0000 00:00:1787857357.919143    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/converter_es_us_android.far" of size 4268
+08-27 19:02:37.919  2521  6508 I native  : I0000 00:00:1787857357.919389    6508 android_resource_loader.cc:100] Built resource pron_buffet_to_tts_converter
+08-27 19:02:37.919  2521  6508 I native  : I0000 00:00:1787857357.919474    6508 android_resource_loader.cc:116] Loaded resource:pron_buffet_to_tts_converter
+08-27 19:02:37.919  2521  6508 I native  : I0000 00:00:1787857357.919497    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/regexp_rewrite.pb" (as: FILE) ...
+08-27 19:02:37.919  2521  6508 I native  : I0000 00:00:1787857357.919580    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/regexp_rewrite.pb" of size 46149
+08-27 19:02:37.919  2521  6508 I native  : I0000 00:00:1787857357.919729    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/punctuation.pb" (as: FILE) ...
+08-27 19:02:37.919  2521  6508 I native  : I0000 00:00:1787857357.919817    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/punctuation.pb" of size 452
+08-27 19:02:37.939  2521  6508 I native  : I0000 00:00:1787857357.939378    6508 android_resource_loader.cc:100] Built resource rewrite_algo
+08-27 19:02:37.939  2521  6508 I native  : I0000 00:00:1787857357.939512    6508 android_resource_loader.cc:116] Loaded resource:rewrite_algo
+08-27 19:02:37.939  2521  6508 I native  : I0000 00:00:1787857357.939554    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/roman_numeral_contexts.pb" (as: FILE) ...
+08-27 19:02:37.939  2521  6508 I native  : I0000 00:00:1787857357.939667    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/roman_numeral_contexts.pb" of size 10180
+08-27 19:02:37.940  2521  6508 I native  : I0000 00:00:1787857357.940234    6508 android_resource_loader.cc:100] Built resource roman_numeral_context_words
+08-27 19:02:37.940  2521  6508 I native  : I0000 00:00:1787857357.940351    6508 android_resource_loader.cc:116] Loaded resource:roman_numeral_context_words
+08-27 19:02:37.940  2521  6508 I native  : I0000 00:00:1787857357.940754    6508 android_resource_loader.cc:100] Built resource classify_roman_numerals_grm_algo
+08-27 19:02:37.940  2521  6508 I native  : I0000 00:00:1787857357.940862    6508 android_resource_loader.cc:116] Loaded resource:classify_roman_numerals_grm_algo
+08-27 19:02:37.941  2521  6508 I native  : I0000 00:00:1787857357.940906    6508 android_resource_loader.cc:100] Built resource runtime_override
+08-27 19:02:37.941  2521  6508 I native  : I0000 00:00:1787857357.941003    6508 android_resource_loader.cc:116] Loaded resource:runtime_override
+08-27 19:02:37.941  2521  6508 I native  : I0000 00:00:1787857357.941044    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/sb_model.bin" (as: MEMORY) ...
+08-27 19:02:37.941  2521  6508 I native  : I0000 00:00:1787857357.941173    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/sb_model.bin" of size 29488
+08-27 19:02:37.941  2521  6508 I native  : I0000 00:00:1787857357.941309    6508 android_resource_loader.cc:100] Built resource sentence_boundary_model_resource
+08-27 19:02:37.941  2521  6508 I native  : I0000 00:00:1787857357.941391    6508 android_resource_loader.cc:116] Loaded resource:sentence_boundary_model_resource
+08-27 19:02:37.941  2521  6508 I native  : I0000 00:00:1787857357.941431    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/es_verbalize_spec.pb" (as: FILE) ...
+08-27 19:02:37.941  2521  6508 I native  : I0000 00:00:1787857357.941541    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/es_verbalize_spec.pb" of size 2678
+08-27 19:02:37.941  2521  6508 I native  : I0000 00:00:1787857357.941739    6508 android_resource_loader.cc:100] Built resource serialization_spec
+08-27 19:02:37.941  2521  6508 I native  : I0000 00:00:1787857357.941841    6508 android_resource_loader.cc:116] Loaded resource:serialization_spec
+08-27 19:02:37.942  2521  6508 I native  : I0000 00:00:1787857357.941882    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/stresser_us_android.far" (as: FILE) ...
+08-27 19:02:37.942  2521  6508 I native  : I0000 00:00:1787857357.941981    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/stresser_us_android.far" of size 33360
+08-27 19:02:37.942  2521  6508 I native  : I0000 00:00:1787857357.942349    6508 android_resource_loader.cc:100] Built resource stresser_grm_fst
+08-27 19:02:37.942  2521  6508 I native  : I0000 00:00:1787857357.942448    6508 android_resource_loader.cc:116] Loaded resource:stresser_grm_fst
+08-27 19:02:37.942  2521  6508 I native  : I0000 00:00:1787857357.942488    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/textnorm_params_embedded_es_us.pb" (as: FILE) ...
+08-27 19:02:37.942  2521  6508 I native  : I0000 00:00:1787857357.942542    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/textnorm_params_embedded_es_us.pb" of size 350
+08-27 19:02:37.942  2521  6508 I native  : I0000 00:00:1787857357.942673    6508 android_resource_loader.cc:100] Built resource textnorm_params
+08-27 19:02:37.942  2521  6508 I native  : I0000 00:00:1787857357.942757    6508 android_resource_loader.cc:116] Loaded resource:textnorm_params
+08-27 19:02:37.943  2521  6508 I native  : I0000 00:00:1787857357.943324    6508 android_resource_loader.cc:100] Built resource icu_transliterator_to_latin
+08-27 19:02:37.944  2521  6508 I native  : I0000 00:00:1787857357.943443    6508 android_resource_loader.cc:116] Loaded resource:icu_transliterator_to_latin
+08-27 19:02:37.944  2521  6508 I native  : I0000 00:00:1787857357.944214    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/g2p_m3_syls0_stress0_es-US.fst" (as: FILE) ...
+08-27 19:02:37.944  2521  6508 I native  : I0000 00:00:1787857357.944303    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/g2p_m3_syls0_stress0_es-US.fst" of size 407072
+08-27 19:02:37.944  2521  6508 I native  : I0000 00:00:1787857357.944354    6508 compact_fst.cc:20] Loading FST from "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/g2p_m3_syls0_stress0_es-US.fst" ...
+08-27 19:02:37.990  2521  6508 I native  : I0000 00:00:1787857357.989861    6508 decoder.cc:51] G2P FST loaded (62 graphemes and 39 phonemes).
+08-27 19:02:37.994  2521  6508 I native  : I0000 00:00:1787857357.993693    6508 android_resource_loader.cc:100] Built resource learned_fst_g2p_mapper
+08-27 19:02:37.994  2521  6508 I native  : I0000 00:00:1787857357.993872    6508 android_resource_loader.cc:116] Loaded resource:learned_fst_g2p_mapper
+08-27 19:02:37.994  2521  6508 I native  : I0000 00:00:1787857357.993940    6508 android_resource_loader.cc:100] Built resource spelling_normalizer
+08-27 19:02:37.994  2521  6508 I native  : I0000 00:00:1787857357.993969    6508 android_resource_loader.cc:116] Loaded resource:spelling_normalizer
+08-27 19:02:37.994  2521  6508 I native  : I0000 00:00:1787857357.993992    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/model_farm32.pb" (as: FILE) ...
+08-27 19:02:37.994  2521  6508 I native  : I0000 00:00:1787857357.994058    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/model_farm32.pb" of size 400016
+08-27 19:02:37.995  2521  6508 I native  : I0000 00:00:1787857357.994722    6508 android_resource_loader.cc:100] Built resource universal_lseq_classifier_model
+08-27 19:02:37.995  2521  6508 I native  : I0000 00:00:1787857357.994986    6508 android_resource_loader.cc:116] Loaded resource:universal_lseq_classifier_model
+08-27 19:02:37.995  2521  6508 I native  : I0000 00:00:1787857357.995021    6508 android_resource_loader.cc:100] Built resource utf8_utils
+08-27 19:02:37.995  2521  6508 I native  : I0000 00:00:1787857357.995039    6508 android_resource_loader.cc:116] Loaded resource:utf8_utils
+08-27 19:02:37.995  2521  6508 I native  : I0000 00:00:1787857357.995084    6508 android_resource_loader.cc:100] Built resource lexical_classifier
+08-27 19:02:37.995  2521  6508 I native  : I0000 00:00:1787857357.995110    6508 android_resource_loader.cc:116] Loaded resource:lexical_classifier
+08-27 19:02:37.995  2521  6508 I native  : I0000 00:00:1787857357.995143    6508 android_resource_loader.cc:100] Built resource icu_transliterator
+08-27 19:02:37.995  2521  6508 I native  : I0000 00:00:1787857357.995176    6508 android_resource_loader.cc:116] Loaded resource:icu_transliterator
+08-27 19:02:37.996  2521  6508 I native  : I0000 00:00:1787857357.996086    6508 android_resource_loader.cc:100] Built resource token_resolver_algo
+08-27 19:02:37.996  2521  6508 I native  : I0000 00:00:1787857357.996128    6508 android_resource_loader.cc:116] Loaded resource:token_resolver_algo
+08-27 19:02:37.996  2521  6508 I native  : I0000 00:00:1787857357.996487    6508 ranker.cc:119] LinearLseqRanker: using FarmHash32
+08-27 19:02:37.997  2521  6508 I native  : I0000 00:00:1787857357.997127    6508 android_resource_loader.cc:100] Built resource universal_lseq_classifier_algo
+08-27 19:02:37.997  2521  6508 I native  : I0000 00:00:1787857357.997224    6508 android_resource_loader.cc:116] Loaded resource:universal_lseq_classifier_algo
+08-27 19:02:37.997  2521  6508 I native  : I0000 00:00:1787857357.997278    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/variant_overrides_es_us.pb" (as: FILE) ...
+08-27 19:02:37.997  2521  6508 I native  : I0000 00:00:1787857357.997404    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/variant_overrides_es_us.pb" of size 0
+08-27 19:02:37.997  2521  6508 I native  : I0000 00:00:1787857357.997514    6508 android_resource_loader.cc:100] Built resource variant_overrides
+08-27 19:02:37.997  2521  6508 I native  : I0000 00:00:1787857357.997542    6508 android_resource_loader.cc:116] Loaded resource:variant_overrides
+08-27 19:02:37.997  2521  6508 I native  : I0000 00:00:1787857357.997577    6508 android_resource_loader.cc:100] Built resource select_variants_algo
+08-27 19:02:37.997  2521  6508 I native  : I0000 00:00:1787857357.997591    6508 android_resource_loader.cc:116] Loaded resource:select_variants_algo
+08-27 19:02:37.997  2521  6508 I native  : I0000 00:00:1787857357.997612    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/us_verbalization_capabilities.pb" (as: FILE) ...
+08-27 19:02:37.998  2521  6508 I native  : I0000 00:00:1787857357.997650    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/us_verbalization_capabilities.pb" of size 589
+08-27 19:02:37.998  2521  6508 I native  : I0000 00:00:1787857357.997731    6508 android_resource_loader.cc:100] Built resource verbalization_capabilities
+08-27 19:02:37.998  2521  6508 I native  : I0000 00:00:1787857357.997755    6508 android_resource_loader.cc:116] Loaded resource:verbalization_capabilities
+08-27 19:02:37.998  2521  6508 I native  : I0000 00:00:1787857357.997776    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/verbalize_us_android.far" (as: FILE) ...
+08-27 19:02:37.998  2521  6508 I native  : I0000 00:00:1787857357.997797    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/verbalize_us_android.far" of size 3096999
+08-27 19:02:38.003  2521  6508 I native  : I0000 00:00:1787857358.002603    6508 android_resource_loader.cc:100] Built resource verbalize_grm_fst
+08-27 19:02:38.003  2521  6508 I native  : I0000 00:00:1787857358.002725    6508 android_resource_loader.cc:116] Loaded resource:verbalize_grm_fst
+08-27 19:02:38.004  2521  6508 I native  : I0000 00:00:1787857358.004244    6508 android_resource_loader.cc:100] Built resource verbalize_grm_algo
+08-27 19:02:38.004  2521  6508 I native  : I0000 00:00:1787857358.004532    6508 android_resource_loader.cc:116] Loaded resource:verbalize_grm_algo
+08-27 19:02:38.006  2521  6508 I native  : I0000 00:00:1787857358.006276    6508 android_resource_loader.cc:100] Built resource vocoding_resource
+08-27 19:02:38.007  2521  6508 I native  : I0000 00:00:1787857358.006600    6508 android_resource_loader.cc:116] Loaded resource:vocoding_resource
+08-27 19:02:38.007  2521  6508 I native  : I0000 00:00:1787857358.006709    6508 voice_params_resource.cc:31] Voice information: MessageLite at 0x7da4111757d0
+08-27 19:02:38.007  2521  6508 I native  : I0000 00:00:1787857358.006795    6508 android_resource_loader.cc:100] Built resource voice_params
+08-27 19:02:38.007  2521  6508 I native  : I0000 00:00:1787857358.006823    6508 android_resource_loader.cc:116] Loaded resource:voice_params
+08-27 19:02:38.008  2521  6508 I native  : I0000 00:00:1787857358.008560    6508 android_resource_loader.cc:100] Built resource word_resolver_algo
+08-27 19:02:38.009  2521  6508 I native  : I0000 00:00:1787857358.008675    6508 android_resource_loader.cc:116] Loaded resource:word_resolver_algo
+08-27 19:02:38.009  2521  6508 I native  : I0000 00:00:1787857358.008738    6508 data_source.cc:95] Opening data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/xsampa_to_tts_to-es_us.far" (as: FILE) ...
+08-27 19:02:38.009  2521  6508 I native  : I0000 00:00:1787857358.008880    6508 data_source.cc:99] ... Opened data source "/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66/xsampa_to_tts_to-es_us.far" of size 32454
+08-27 19:02:38.009  2521  6508 I native  : I0000 00:00:1787857358.009355    6508 android_resource_loader.cc:100] Built resource xsampa_to_tts_phoneme_mapper
+08-27 19:02:38.009  2521  6508 I native  : I0000 00:00:1787857358.009437    6508 android_resource_loader.cc:116] Loaded resource:xsampa_to_tts_phoneme_mapper
+08-27 19:02:38.009  2521  6508 I native  : I0000 00:00:1787857358.009457    6508 local_pipeline_runner.cc:49] Done loading all resources from: {/data/user_de/0/com.google.android.tts/files/superpacks/es-us/es-us-x-multi-r66}
+08-27 19:02:38.012  2521  6508 I ComposerWrapperImpl: Done initializing es-us-x-esa-lstm-embedded
+08-27 19:02:38.013  2521  6508 I LocalSynthesizer: Attempting to load synthesizer for voice: es-us-x-esa-lstm-embedded
+08-27 19:02:38.013  2521  6508 I LocalSynthesizer: Voice es-us-x-esa-lstm-embedded is already supported by loaded synthesizer es-us-x-multi.
+08-27 19:02:38.013  2521  6508 I ComposerWrapperImpl: Skipping initialization, can already run voice es-us-x-esa-lstm-embedded.
+08-27 19:02:38.021  6524  6524 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: package
+08-27 19:02:38.166  2257  4225 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/base.odex) is kOatUpToDate with filter 'speed-profile' executable 'false'
+08-27 19:02:38.169  2257  2257 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_AdsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:38.173  2257  2257 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_CronetDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:38.174  2257  2257 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_DynamiteLoader_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:38.177  2257  2257 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_DynamiteModulesA_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:38.179  2257  2257 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_DynamiteModulesC_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:38.182  2257  2257 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_GoogleCertificates_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:38.184  2257  2257 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_MapsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:38.186  2257  2257 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/oat/x86_64/split_MeasurementDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+08-27 19:02:38.188  2257  2257 I artd    : GetBestInfo: /data/app/~~pRU1K-a638ZMd72azR_WCQ==/com.google.android.gms-gTTsRafLIL4yC__Zwwbd4Q==/split_maps_core_dynamite_ondemand.apk has no usable artifacts
+08-27 19:02:38.190  2257  2257 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000011/dl-PlayCloudSearch.optional_263032100000.apk has no usable artifacts
+08-27 19:02:38.190  2257  2257 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000001/CronetDynamite.apk has no usable artifacts
+08-27 19:02:38.191  2257  2257 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000002/DynamiteLoader.apk has no usable artifacts
+08-27 19:02:38.193  2257  2257 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000018/dl-IdentityCredentialsPlatform.optional_263032100800.apk has no usable artifacts
+08-27 19:02:38.193  2257  2257 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000005/GoogleCertificates.apk has no usable artifacts
+08-27 19:02:38.195  2257  2257 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000019/dl-TfliteDynamiteDynamite.integ_262730502100800.apk has no usable artifacts
+08-27 19:02:38.197  2257  2257 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/8A87D3ADD3A68B58A4F768E677B14023FB08B0E1/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+08-27 19:02:38.198  2257  2257 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000010/dl-VisionOcr.optional_263032100000.apk has no usable artifacts
+08-27 19:02:38.200  2257  2257 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000b/dl-TfliteDynamiteDynamite.integ_260580502100800.apk has no usable artifacts
+08-27 19:02:38.202  2257  2257 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000013/dl-MlkitOcrCommon.optional_263032100800.apk has no usable artifacts
+08-27 19:02:38.203  2257  2257 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000001/dl-TfliteDynamiteDynamite.integ_262730502100800.apk has no usable artifacts
+08-27 19:02:38.204  2257  2257 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000008/dl-Appsearch.optional_250834100800.apk has no usable artifacts
+08-27 19:02:38.206  2257  2257 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000014/dl-MlkitBarcodeUi.optional_263032100800.apk has no usable artifacts
+08-27 19:02:38.207  2257  2257 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000c/dl-MlkitBarcodeUi.optional_250834100800.apk has no usable artifacts
+08-27 19:02:38.209  2257  2257 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000012/dl-Appsearch.optional_263032100800.apk has no usable artifacts
+08-27 19:02:38.210  2257  2257 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/D76594F451C00E79F4C61E3B54BC3D01968BC47C/the.apk has no usable artifacts
+08-27 19:02:38.211  2257  2257 W artd    : Could not get dex checksums for location /data/app/~~OebE3h3aj7bRyFr6lOGvKw==/com.android.vending-A6r2KrtDQrcy5gixqfcP6A==/base.apk, fd=-1
+08-27 19:02:38.215  2257  2257 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/90356F09B5269D8AF0E8BAEAA661BE4AFD715065/the.apk has no usable artifacts
+08-27 19:02:38.334  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5428KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.249ms,3.504ms total 182.969ms
+08-27 19:02:38.354   682   702 I system_server: Background concurrent mark compact GC freed 24MB AllocSpace bytes, 16(320KB) LOS objects, 41% free, 34MB/58MB, paused 2.406ms,2.059ms total 244.991ms
+08-27 19:02:38.360   682   704 W System  : A resource failed to call release. 
+08-27 19:02:38.718  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5808KB AllocSpace bytes, 0(0B) LOS objects, 29% free, 56MB/80MB, paused 1.421ms,2.654ms total 184.094ms
+08-27 19:02:39.101  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5696KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.096ms,3.284ms total 175.263ms
+08-27 19:02:39.500  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5920KB AllocSpace bytes, 0(0B) LOS objects, 29% free, 56MB/80MB, paused 1.127ms,3.845ms total 179.740ms
+08-27 19:02:39.895  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5764KB AllocSpace bytes, 0(0B) LOS objects, 29% free, 56MB/80MB, paused 1.954ms,4.567ms total 174.121ms
+08-27 19:02:39.992   919   919 I wpa_supplicant: wlan0: CTRL-EVENT-BEACON-LOSS 
+08-27 19:02:40.288  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6028KB AllocSpace bytes, 0(0B) LOS objects, 29% free, 56MB/80MB, paused 1.686ms,2.756ms total 179.895ms
+08-27 19:02:40.690  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6024KB AllocSpace bytes, 0(0B) LOS objects, 29% free, 56MB/80MB, paused 1.805ms,3.111ms total 176.156ms
+08-27 19:02:40.723  6459  6464 I om.example.kpkn: Method exceeds compiler instruction limit: 19646 in void com.example.kpkn.screens.workout.components.SetExecutionCardKt.SetInputCardV2-5FcBcts(com.example.kpkn.data.models.Exercise, int, com.example.kpkn.data.models.ExerciseSet, com.example.kpkn.data.models.CompletedSet, com.example.kpkn.data.models.CompletedSet, com.example.kpkn.screens.workout.WeightSuggestion, long, boolean, com.example.kpkn.data.models.SetOutcomeV2, com.example.kpkn.data.models.HomologatedPerformanceResult, boolean, boolean, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function1, java.lang.Double, com.example.kpkn.screens.workout.RecordActionHolder, boolean, com.example.kpkn.screens.workout.WorkoutSetDraft, kotlin.jvm.functions.Function2, kotlin.jvm.functions.Function0, kotlin.jvm.functions.Function0, java.util.Map, java.util.Map, java.lang.String, java.lang.String, java.lang.String, boolean, java.lang.Double, kotlin.jvm.functions.Function0, com.example.kpkn.screens.workout.AdaptActionHolder, kotlin.jvm.functions.Function9, com.example.kpkn.data.models.ExerciseReadiness, com.example.kpkn.data.models.SetAdjustmentSuggestion, kotlin.jvm.functions.Function1, androidx.compose.runtime.Composer, int, int, int, int, int, int)
+08-27 19:02:41.151  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6536KB AllocSpace bytes, 0(0B) LOS objects, 29% free, 56MB/80MB, paused 1.252ms,3.241ms total 179.172ms
+08-27 19:02:41.570  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5708KB AllocSpace bytes, 0(0B) LOS objects, 29% free, 56MB/80MB, paused 1.727ms,3.620ms total 182.160ms
+08-27 19:02:41.989  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5676KB AllocSpace bytes, 0(0B) LOS objects, 29% free, 56MB/80MB, paused 2.203ms,3.062ms total 187.436ms
+08-27 19:02:42.397  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5856KB AllocSpace bytes, 0(0B) LOS objects, 29% free, 56MB/80MB, paused 1.746ms,3.802ms total 183.348ms
+08-27 19:02:42.796  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5520KB AllocSpace bytes, 0(0B) LOS objects, 29% free, 56MB/80MB, paused 1.654ms,2.579ms total 180.785ms
+08-27 19:02:42.831  6527  6527 W screencap: Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: SurfaceFlingerAIDL
+08-27 19:02:42.835  6527  6527 W BpBinder: Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
+08-27 19:02:42.836  6527  6527 W ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+08-27 19:02:42.867   555   571 E HwcComposer: getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+08-27 19:02:42.867   555   571 E HWComposer: getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+08-27 19:02:42.920  1397  5547 W MediaProvider: isAppCloneUserPair for user 0: false
+08-27 19:02:43.026   682  2680 D ActivityManager: sync unfroze 3905 com.google.android.gms for 6
+08-27 19:02:43.033   682  2680 D ActivityManager: sync unfroze 2432 com.google.android.gms.unstable for 6
+08-27 19:02:43.055   682   912 W ProcessStats: Tracking association SourceState{dd7a4d3 com.google.android.gms/10147 ImpBg #4145} whose proc state 6 is better than process ProcessState{db8aa02 com.google.android.gms.unstable/10147 pkg=com.google.android.gms} proc state 15 (9 skipped)
+08-27 19:02:43.058  3905  3905 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.common.BIND_SHARED_PREFS xflg=0x4 pkg=com.google.android.gms }
+08-27 19:02:43.062  1254  6521 I NetworkScheduler.Stats: (REDACTED) Task %s/%s started execution. cause:%s exec_start_elapsed_seconds: %s
+08-27 19:02:43.097  1254  6521 I NetworkScheduler.Stats: (REDACTED) Task %s/%s finished executing. cause:%s result: %s elapsed_millis: %s uptime_millis: %s exec_start_elapsed_seconds: %s
+08-27 19:02:43.231  1090  1259 D SatelliteController: iisInCarrierRoamingNbIotNtn: satellite is disabled
+08-27 19:02:43.233   682  2680 W IPCThreadState: Sending oneway calls to frozen process.
+08-27 19:02:43.289  2432  2566 I id.gms.unstable: Explicit concurrent mark compact GC freed 512KB AllocSpace bytes, 0(0B) LOS objects, 24% free, 3336KB/4448KB, paused 2.722ms,2.906ms total 246.222ms
+08-27 19:02:43.410   682  2680 I ActivityManager: Broadcasting: Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///... flg=0x400000 }
+08-27 19:02:43.414   682  2680 I ActivityManager: Enqueued broadcast Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///... flg=0x400000 }: 0
+08-27 19:02:43.416   682   912 W JobInfo : Job 'com.google.android.providers.media.module/com.android.providers.media.MediaService#-300' has a deadline with no functional constraints. The deadline won't improve job execution latency. Consider removing the deadline.
+08-27 19:02:43.423   682   712 I ActivityManager: Broadcast completed: result=0
+08-27 19:02:43.438  1397  1947 I MediaProvider: Begin Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///... flg=0x1400010 cmp=com.google.android.providers.media.module/com.android.providers.media.MediaService }
+08-27 19:02:43.454  3905  5106 I gle.android.gms: Explicit concurrent mark compact GC freed 3425KB AllocSpace bytes, 4(144KB) LOS objects, 24% free, 12MB/16MB, paused 2.539ms,2.900ms total 405.771ms
+08-27 19:02:43.483  1397  1403 W FuseDaemon: Reducing the number of considered missed Gc histogram windows from 261 to 100
+08-27 19:02:43.488  1397  1947 I MediaProvider: End Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///... flg=0x1400010 cmp=com.google.android.providers.media.module/com.android.providers.media.MediaService }
+08-27 19:02:43.539  1397  1740 D WM-SystemJobScheduler: Scheduling work ID eb996b97-d877-459e-8d29-553f74030b5dJob ID 131
+08-27 19:02:43.546  1397  1740 D WM-GreedyScheduler: Ignoring {WorkSpec: 2261e1af-c492-45b9-b542-954c61979aa3}. Requires device idle.
+08-27 19:02:43.546  1397  1740 D WM-GreedyScheduler: Ignoring {WorkSpec: 01fab927-4c6f-4932-9ba9-1d04f1d1b501}. Requires device idle.
+08-27 19:02:43.572  6459  6465 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6792KB AllocSpace bytes, 0(0B) LOS objects, 29% free, 56MB/80MB, paused 2.495ms,3.829ms total 487.312ms

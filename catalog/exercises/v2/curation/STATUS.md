@@ -4,6 +4,14 @@ Fecha de corte: 2026-08-10 (curaduría editorial v7.2 — copy humano editorial)
 Revisión: `v2-approved-2026-08-10-c`
 Hash canónico compartido: `20ecd23cb4766c341236e09d336bf1c3d3db3041ec6d8b3dd568de124acc0aa5`
 
+> Actualización de inventario — 2026-09-15: se retiraron las configuraciones
+> `decline_bench_press__machine`, `decline_bench_press__cable`,
+> `decline_chest_fly__machine` y `decline_chest_fly__cable`. La fuente y los
+> artefactos runtime actuales contienen 96 familias, 195 definiciones y 511
+> configuraciones; su SHA-256
+> de artefacto es `d229f99ad5779d881cbf2f22d1d307d10d489a8b3bd747e0342b9d182dd95d6e`.
+> El resto de este documento conserva el registro histórico del corte v7.2.
+
 ## Curaduría v7.2 (2026-08-10): estructura editorial humana aprobada
 
 - Las 196 descripciones de definición se reescribieron a mano con la estructura

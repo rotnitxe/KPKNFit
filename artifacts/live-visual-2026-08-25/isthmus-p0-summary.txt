@@ -1,0 +1,3 @@
+serial=emulator-5554
+fatals=0
+anrs_pkg=1

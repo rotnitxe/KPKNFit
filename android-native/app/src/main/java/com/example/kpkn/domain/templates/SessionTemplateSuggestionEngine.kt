@@ -37,6 +37,60 @@ data class SuggestedWeekPlan(
 
 object SessionTemplateSuggestionEngine {
 
+    /**
+     * Sugerencia para un único día (fallback de SplitApplicationEngine, plan
+     * 2026-09-16). Ordena las candidatas del día con el mismo scoring de
+     * suggestWeek pero sin estado semanal. La diversidad entre días se hereda
+     * del llamador: recibe los ids ya usados (excluidos del pool) y las
+     * plantillas ya elegidas para aplicar las mismas penalizaciones de
+     * arquetipo que scoreCandidate (focus-muscle −60 / focus-category −40).
+     */
+    fun suggestForDay(
+        splitId: String,
+        dayLabel: String,
+        templates: List<SessionTemplate>,
+        exerciseIndex: Map<String, ExerciseMuscleInfo> = emptyMap(),
+        prefs: SuggestionPrefs = SuggestionPrefs(),
+        excludeIds: Set<String> = emptySet(),
+        usedTemplates: List<SessionTemplate> = emptyList(),
+    ): SessionTemplate? {
+        val candidates = SessionTemplateCatalogPolicy.templatesForSplitDay(
+            splitId = splitId,
+            dayLabel = dayLabel,
+            templates = templates,
+        ).filter { candidate -> candidate.id !in excludeIds }
+        val valid = if (exerciseIndex.isEmpty()) {
+            candidates
+        } else {
+            candidates.filter { candidate ->
+                SessionTemplateQualityRules.audit(candidate, exerciseIndex).p0.isEmpty()
+            }
+        }
+        if (valid.isEmpty()) return null
+        val targetDifficulty = prefs.preferredDifficulty
+        val metrics = TemplateScoreCache(exerciseIndex)
+        return valid.maxWithOrNull(
+            compareBy<SessionTemplate> { candidate ->
+                var score = 0.0
+                if (targetDifficulty != null && candidate.difficulty == targetDifficulty) score += 100.0
+                if (!candidate.primaryFocusMuscle.isNullOrBlank()) score += 15.0
+                if (metrics.hasIndex && metrics.p0Count(candidate) == 0) score += 40.0
+                val sameFocusMuscleCount = usedTemplates.count { prior ->
+                    val a = prior.primaryFocusMuscle
+                    val b = candidate.primaryFocusMuscle
+                    a != null && b != null && a.equals(b, ignoreCase = true)
+                }
+                score -= 60.0 * sameFocusMuscleCount
+                val sameFocusCategoryCount = usedTemplates.count { prior ->
+                    prior.focusCategory != null && prior.focusCategory == candidate.focusCategory
+                }
+                score -= 40.0 * sameFocusCategoryCount
+                score -= candidate.sortOrder * 0.001
+                score
+            }.thenBy { it.id },
+        )
+    }
+
     fun suggestWeek(
         split: SplitTemplate,
         templates: List<SessionTemplate> = SESSION_TEMPLATES_SYSTEM,

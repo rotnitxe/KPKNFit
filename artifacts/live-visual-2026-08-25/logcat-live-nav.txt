@@ -1,0 +1,495 @@
+--------- beginning of main
+E/BpTransactionCompletedListener(  554): Failed to transact (-32)
+E/HwcComposer(  554): getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+E/HWComposer(  554): getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+E/FeatureFlagsImplExport(21237): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/ashmem  (21217): Pinning is deprecated since Android Q. Please use trim or other methods.
+--------- beginning of system
+E/TaskPersister(  679): File error accessing recents directory (directory doesn't exist?).
+E/FeatureFlagsImplExport(21258): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(21299): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/BluetoothPowerStatsCollector(  679): Cannot acquire BluetoothActivityEnergyInfo
+E/BluetoothPowerStatsCollector(  679): java.util.concurrent.ExecutionException: java.lang.RuntimeException: error: 11
+E/BluetoothPowerStatsCollector(  679): 	at java.util.concurrent.CompletableFuture.reportGet(CompletableFuture.java:372)
+E/BluetoothPowerStatsCollector(  679): 	at java.util.concurrent.CompletableFuture.get(CompletableFuture.java:2072)
+E/BluetoothPowerStatsCollector(  679): 	at com.android.server.power.stats.BluetoothPowerStatsCollector.collectBluetoothActivityInfo(BluetoothPowerStatsCollector.java:192)
+E/BluetoothPowerStatsCollector(  679): 	at com.android.server.power.stats.BluetoothPowerStatsCollector.collectStats(BluetoothPowerStatsCollector.java:155)
+E/BluetoothPowerStatsCollector(  679): 	at com.android.server.power.stats.PowerStatsCollector.collectAndDeliverStats(PowerStatsCollector.java:176)
+E/BluetoothPowerStatsCollector(  679): 	at com.android.server.power.stats.PowerStatsCollector$$ExternalSyntheticLambda0.run(R8$$SyntheticClass:0)
+E/BluetoothPowerStatsCollector(  679): 	at android.os.Handler.handleCallback(Handler.java:995)
+E/BluetoothPowerStatsCollector(  679): 	at android.os.Handler.dispatchMessage(Handler.java:103)
+E/BluetoothPowerStatsCollector(  679): 	at android.os.Looper.loopOnce(Looper.java:248)
+E/BluetoothPowerStatsCollector(  679): 	at android.os.Looper.loop(Looper.java:338)
+E/BluetoothPowerStatsCollector(  679): 	at android.os.HandlerThread.run(HandlerThread.java:85)
+E/BluetoothPowerStatsCollector(  679): Caused by: java.lang.RuntimeException: error: 11
+E/BluetoothPowerStatsCollector(  679): 	at com.android.server.power.stats.BluetoothPowerStatsCollector$1.onBluetoothActivityEnergyInfoError(BluetoothPowerStatsCollector.java:181)
+E/BluetoothPowerStatsCollector(  679): 	at android.bluetooth.BluetoothAdapter$OnBluetoothActivityEnergyInfoProxy.lambda$onBluetoothActivityEnergyInfoAvailable$0(BluetoothAdapter.java:1037)
+E/BluetoothPowerStatsCollector(  679): 	at android.bluetooth.BluetoothAdapter$OnBluetoothActivityEnergyInfoProxy$$ExternalSyntheticLambda1.run(D8$$SyntheticClass:0)
+E/BluetoothPowerStatsCollector(  679): 	at android.bluetooth.BluetoothUtils.lambda$executeFromBinder$0(BluetoothUtils.java:343)
+E/BluetoothPowerStatsCollector(  679): 	at android.bluetooth.BluetoothUtils$$ExternalSyntheticLambda1.run(D8$$SyntheticClass:0)
+E/BluetoothPowerStatsCollector(  679): 	at com.android.server.SystemServerInitThreadPool$$ExternalSyntheticLambda0.execute(R8$$SyntheticClass:0)
+E/BluetoothPowerStatsCollector(  679): 	at android.bluetooth.BluetoothUtils.executeFromBinder(BluetoothUtils.java:343)
+E/BluetoothPowerStatsCollector(  679): 	at android.bluetooth.BluetoothAdapter$OnBluetoothActivityEnergyInfoProxy.onBluetoothActivityEnergyInfoAvailable(BluetoothAdapter.java:1035)
+E/BluetoothPowerStatsCollector(  679): 	at android.bluetooth.IBluetoothActivityEnergyInfoListener$Stub.onTransact(IBluetoothActivityEnergyInfoListener.java:98)
+E/BluetoothPowerStatsCollector(  679): 	at android.os.Binder.execTransactInternal(Binder.java:1426)
+E/BluetoothPowerStatsCollector(  679): 	at android.os.Binder.execTransact(Binder.java:1365)
+E/FeatureFlagsImplExport(21324): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/tflite  ( 2442): third_party/tensorflow/lite/core/subgraph.cc:1062 tensor.data.raw != nullptr was not true.
+E/HwcComposer(  554): getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+E/HWComposer(  554): getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+E/om.example.kpkn(21217): hiddenapi: Accessing hidden method Landroid/view/accessibility/AccessibilityNodeInfo;->getSelection()Landroid/view/accessibility/AccessibilityNodeInfo$Selection; (runtime_flags=0, domain=platform, api=blocked) from /data/app/~~523oAwm9iBttXP9aOumw0g==/com.example.kpkn-eti46bs0f8ks2FFOioZ5FQ==/base.apk!classes20.dex (domain=app) using linking: denied
+E/om.example.kpkn(21217): hiddenapi: Accessing hidden method Landroid/view/accessibility/AccessibilityNodeInfo;->setSelection(Landroid/view/accessibility/AccessibilityNodeInfo$Selection;)V (runtime_flags=0, domain=platform, api=blocked) from /data/app/~~523oAwm9iBttXP9aOumw0g==/com.example.kpkn-eti46bs0f8ks2FFOioZ5FQ==/base.apk!classes20.dex (domain=app) using linking: denied
+E/om.example.kpkn(21217): hiddenapi: Accessing hidden method Landroid/view/accessibility/AccessibilityNodeInfo;->setSelection(Landroid/view/accessibility/AccessibilityNodeInfo$Selection;)V (runtime_flags=0, domain=platform, api=blocked) from /data/app/~~523oAwm9iBttXP9aOumw0g==/com.example.kpkn-eti46bs0f8ks2FFOioZ5FQ==/base.apk!classes20.dex (domain=app) using linking: denied
+E/FeatureFlagsImplExport(21363): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/tflite  ( 2442): third_party/tensorflow/lite/core/subgraph.cc:1062 tensor.data.raw != nullptr was not true.
+E/FrameTracker(  929): force finish cuj, time out: J<SPLASHSCREEN_EXIT_ANIM>
+E/FeatureFlagsImplExport(21388): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+--------- beginning of crash
+E/AndroidRuntime(21388): FATAL EXCEPTION: main
+E/AndroidRuntime(21388): PID: 21388
+E/AndroidRuntime(21388): java.lang.IllegalStateException: UiAutomationService android.accessibilityservice.IAccessibilityServiceClient$Stub$Proxy@202d0b8already registered!
+E/AndroidRuntime(21388): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3348)
+E/AndroidRuntime(21388): 	at android.os.Parcel.createException(Parcel.java:3324)
+E/AndroidRuntime(21388): 	at android.os.Parcel.readException(Parcel.java:3307)
+E/AndroidRuntime(21388): 	at android.os.Parcel.readException(Parcel.java:3249)
+E/AndroidRuntime(21388): 	at android.view.accessibility.IAccessibilityManager$Stub$Proxy.registerUiTestAutomationService(IAccessibilityManager.java:1154)
+E/AndroidRuntime(21388): 	at android.app.UiAutomationConnection.registerUiTestAutomationServiceLocked(UiAutomationConnection.java:688)
+E/AndroidRuntime(21388): 	at android.app.UiAutomationConnection.connect(UiAutomationConnection.java:117)
+E/AndroidRuntime(21388): 	at android.app.UiAutomation.connectWithTimeout(UiAutomation.java:386)
+E/AndroidRuntime(21388): 	at android.app.UiAutomation.connect(UiAutomation.java:331)
+E/AndroidRuntime(21388): 	at com.android.uiautomator.core.UiAutomationShellWrapper.connect(UiAutomationShellWrapper.java:36)
+E/AndroidRuntime(21388): 	at com.android.commands.uiautomator.DumpCommand.run(DumpCommand.java:78)
+E/AndroidRuntime(21388): 	at com.android.commands.uiautomator.Launcher.main(Launcher.java:83)
+E/AndroidRuntime(21388): 	at com.android.internal.os.RuntimeInit.nativeFinishInit(Native Method)
+E/AndroidRuntime(21388): 	at com.android.internal.os.RuntimeInit.main(RuntimeInit.java:371)
+E/AndroidRuntime(21388): Caused by: android.os.RemoteException: Remote stack trace:
+E/AndroidRuntime(21388): 	at com.android.server.accessibility.UiAutomationManager.registerUiTestAutomationServiceLocked(UiAutomationManager.java:109)
+E/AndroidRuntime(21388): 	at com.android.server.accessibility.AccessibilityManagerService.registerUiTestAutomationService(AccessibilityManagerService.java:1643)
+E/AndroidRuntime(21388): 	at android.view.accessibility.IAccessibilityManager$Stub.onTransact(IAccessibilityManager.java:571)
+E/AndroidRuntime(21388): 	at android.os.Binder.execTransactInternal(Binder.java:1421)
+E/AndroidRuntime(21388): 	at android.os.Binder.execTransact(Binder.java:1365)
+E/AndroidRuntime(21388): 
+E/IPCThreadState(21388): Failed to get extended error: Bad file descriptor
+E/AndroidRuntime(21388): Couldn't report crash. Here's the crash:
+E/AndroidRuntime(21388): java.lang.IllegalStateException: UiAutomationService android.accessibilityservice.IAccessibilityServiceClient$Stub$Proxy@202d0b8already registered!
+E/AndroidRuntime(21388): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3348)
+E/AndroidRuntime(21388): 	at android.os.Parcel.createException(Parcel.java:3324)
+E/AndroidRuntime(21388): 	at android.os.Parcel.readException(Parcel.java:3307)
+E/AndroidRuntime(21388): 	at android.os.Parcel.readException(Parcel.java:3249)
+E/AndroidRuntime(21388): 	at android.view.accessibility.IAccessibilityManager$Stub$Proxy.registerUiTestAutomationService(IAccessibilityManager.java:1154)
+E/AndroidRuntime(21388): 	at android.app.UiAutomationConnection.registerUiTestAutomationServiceLocked(UiAutomationConnection.java:688)
+E/AndroidRuntime(21388): 	at android.app.UiAutomationConnection.connect(UiAutomationConnection.java:117)
+E/AndroidRuntime(21388): 	at android.app.UiAutomation.connectWithTimeout(UiAutomation.java:386)
+E/AndroidRuntime(21388): 	at android.app.UiAutomation.connect(UiAutomation.java:331)
+E/AndroidRuntime(21388): 	at com.android.uiautomator.core.UiAutomationShellWrapper.connect(UiAutomationShellWrapper.java:36)
+E/AndroidRuntime(21388): 	at com.android.commands.uiautomator.DumpCommand.run(DumpCommand.java:78)
+E/AndroidRuntime(21388): 	at com.android.commands.uiautomator.Launcher.main(Launcher.java:83)
+E/AndroidRuntime(21388): 	at com.android.internal.os.RuntimeInit.nativeFinishInit(Native Method)
+E/AndroidRuntime(21388): 	at com.android.internal.os.RuntimeInit.main(RuntimeInit.java:371)
+E/AndroidRuntime(21388): Caused by: android.os.RemoteException: Remote stack trace:
+E/AndroidRuntime(21388): 	at com.android.server.accessibility.UiAutomationManager.registerUiTestAutomationServiceLocked(UiAutomationManager.java:109)
+E/AndroidRuntime(21388): 	at com.android.server.accessibility.AccessibilityManagerService.registerUiTestAutomationService(AccessibilityManagerService.java:1643)
+E/AndroidRuntime(21388): 	at android.view.accessibility.IAccessibilityManager$Stub.onTransact(IAccessibilityManager.java:571)
+E/AndroidRuntime(21388): 	at android.os.Binder.execTransactInternal(Binder.java:1421)
+E/AndroidRuntime(21388): 	at android.os.Binder.execTransact(Binder.java:1365)
+E/AndroidRuntime(21388): 
+E/AndroidRuntime(21388): Error reporting crash. Here's the error:
+E/AndroidRuntime(21388): java.lang.RuntimeException: Bad file descriptor
+E/AndroidRuntime(21388): 	at android.os.BinderProxy.transactNative(Native Method)
+E/AndroidRuntime(21388): 	at android.os.BinderProxy.transact(BinderProxy.java:592)
+E/AndroidRuntime(21388): 	at android.app.IActivityManager$Stub$Proxy.handleApplicationCrash(IActivityManager.java:6016)
+E/AndroidRuntime(21388): 	at com.android.internal.os.RuntimeInit$KillApplicationHandler.uncaughtException(RuntimeInit.java:170)
+E/AndroidRuntime(21388): 	at java.lang.ThreadGroup.uncaughtException(ThreadGroup.java:1071)
+E/AndroidRuntime(21388): 	at java.lang.ThreadGroup.uncaughtException(ThreadGroup.java:1066)
+E/AndroidRuntime(21388): 	at java.lang.Thread.dispatchUncaughtException(Thread.java:2442)
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 21217 status: -2: No such file or directory
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 679 status: -2: No such file or directory
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 1586 status: -2: No such file or directory
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 1062 status: -2: No such file or directory
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 1043 status: -2: No such file or directory
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 996 status: -2: No such file or directory
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 929 status: -2: No such file or directory
+E/ActivityManager(  679): ANR in com.example.kpkn (com.example.kpkn/.MainActivity)
+E/ActivityManager(  679): PID: 21217
+E/ActivityManager(  679): Reason: Input dispatching timed out (cb0e120 com.example.kpkn/com.example.kpkn.MainActivity is not responding. Waited 5013ms for MotionEvent).
+E/ActivityManager(  679): Parent: com.example.kpkn/.MainActivity
+E/ActivityManager(  679): ErrorId: d78c1eb4-bdc6-47a5-9369-01d757f6610e
+E/ActivityManager(  679): Frozen: false
+E/ActivityManager(  679): Load: 3.55 / 1.37 / 1.29
+E/ActivityManager(  679): ----- Output from /proc/pressure/memory -----
+E/ActivityManager(  679): some avg10=1.44 avg60=0.50 avg300=0.20 total=18080646
+E/ActivityManager(  679): full avg10=1.14 avg60=0.35 avg300=0.12 total=9603370
+E/ActivityManager(  679): ----- End output from /proc/pressure/memory -----
+E/ActivityManager(  679): ----- Output from /proc/pressure/cpu -----
+E/ActivityManager(  679): some avg10=35.35 avg60=19.10 avg300=6.96 total=532078794
+E/ActivityManager(  679): full avg10=0.00 avg60=0.00 avg300=0.00 total=0
+E/ActivityManager(  679): ----- End output from /proc/pressure/cpu -----
+E/ActivityManager(  679): ----- Output from /proc/pressure/io -----
+E/ActivityManager(  679): some avg10=0.09 avg60=0.11 avg300=0.02 total=20659090
+E/ActivityManager(  679): full avg10=0.01 avg60=0.02 avg300=0.00 total=6678482
+E/ActivityManager(  679): ----- End output from /proc/pressure/io -----
+E/ActivityManager(  679): 
+E/ActivityManager(  679): CPU usage from 4ms to 5549ms later (2026-08-25 06:36:04.092 to 2026-08-25 06:36:09.636):
+E/ActivityManager(  679):   227% 21217/com.example.kpkn: 138% user + 88% kernel / faults: 71378 minor 1 major
+E/ActivityManager(  679):   47% 679/system_server: 13% user + 34% kernel / faults: 5284 minor 2 major
+E/ActivityManager(  679):   11% 929/com.android.systemui: 2.1% user + 9.2% kernel / faults: 890 minor
+E/ActivityManager(  679):   5.9% 507/android.hardware.graphics.composer3-service.ranchu: 0% user + 5.9% kernel
+E/ActivityManager(  679):   5.2% 500/android.hardware.sensors-service.multihal: 0% user + 5.2% kernel
+E/ActivityManager(  679):   4.1% 2344/artd: 0.7% user + 3.4% kernel / faults: 1899 minor
+E/ActivityManager(  679):   3.6% 1062/com.android.phone: 1.2% user + 2.3% kernel / faults: 449 minor
+E/ActivityManager(  679):   3.2% 21192/kworker/1:2-virtio_vsock: 0% user + 3.2% kernel
+E/ActivityManager(  679):   2.7% 996/com.android.networkstack.process: 0.7% user + 1.9% kernel / faults: 299 minor
+E/ActivityManager(  679):   1.9% 562/adbd: 0.1% user + 1.8% kernel / faults: 1170 minor
+E/ActivityManager(  679): 74% TOTAL: 34% user + 39% kernel + 0.2% iowait + 0.6% softirq
+E/ActivityManager(  679): CPU usage from 86ms to 655ms later (2026-08-25 06:36:04.174 to 2026-08-25 06:36:04.742):
+E/ActivityManager(  679):   290% 21217/com.example.kpkn: 179% user + 111% kernel / faults: 3067 minor
+E/ActivityManager(  679):     77% 21264/DefaultDispatch: 47% user + 30% kernel
+E/ActivityManager(  679):     67% 21217/om.example.kpkn: 54% user + 13% kernel
+E/ActivityManager(  679):     57% 21288/DefaultDispatch: 40% user + 16% kernel
+E/ActivityManager(  679):     50% 21225/ReferenceQueueD: 23% user + 27% kernel
+E/ActivityManager(  679):     33% 21220/Signal Catcher: 10% user + 23% kernel
+E/ActivityManager(  679):     3.3% 21251/Profile Saver: 0% user + 3.3% kernel
+E/ActivityManager(  679):   50% 679/system_server: 3.9% user + 47% kernel / faults: 593 minor 2 major
+E/ActivityManager(  679):     45% 21410/AnrAuxiliaryTas: 0% user + 45% kernel
+E/ActivityManager(  679):     3.9% 21408/AnrMainProcessD: 0% user + 3.9% kernel
+E/ActivityManager(  679):     1.9% 702/android.ui: 0% user + 1.9% kernel
+E/ActivityManager(  679):   3.8% 500/android.hardware.sensors-service.multihal: 0% user + 3.8% kernel
+E/ActivityManager(  679):     1.9% 510/android.hardwar: 0% user + 1.9% kernel
+E/ActivityManager(  679):   3.8% 507/android.hardware.graphics.composer3-service.ranchu: 0% user + 3.8% kernel
+E/ActivityManager(  679):     1.9% 592/_thread: 0% user + 1.9% kernel
+E/ActivityManager(  679):   6.7% 16405/kworker/2:2-mm_percpu_wq: 0% user + 6.7% kernel
+E/ActivityManager(  679):   1.7% 32/ksoftirqd/2: 0% user + 1.7% kernel
+E/ActivityManager(  679): 69% TOTAL: 33% user + 34% kernel + 1.1% iowait
+E/HwcComposer(  554): getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+E/HWComposer(  554): getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+E/FeatureFlagsImplExport(21439): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/etfc    ( 1741): (REDACTED) EOM NON MOBSO INTEGRATED request from %s
+E/FeatureFlagsImplExport(21458): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(21482): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(21506): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(21526): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(21549): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(21570): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(21594): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(21625): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(21644): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(21663): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/HwcComposer(  554): getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+E/HWComposer(  554): getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+E/FeatureFlagsImplExport(21693): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/HwcComposer(  554): getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+E/HWComposer(  554): getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+E/FeatureFlagsImplExport(21722): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 21217 status: -2: No such file or directory
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 679 status: -2: No such file or directory
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 1586 status: -2: No such file or directory
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 1062 status: -2: No such file or directory
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 1043 status: -2: No such file or directory
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 996 status: -2: No such file or directory
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 929 status: -2: No such file or directory
+E/ActivityManager(  679): ANR in com.example.kpkn (com.example.kpkn/.MainActivity)
+E/ActivityManager(  679): PID: 21217
+E/ActivityManager(  679): Reason: Input dispatching timed out (cb0e120 com.example.kpkn/com.example.kpkn.MainActivity is not responding. Waited 5010ms for FocusEvent(hasFocus=true)).
+E/ActivityManager(  679): Parent: com.example.kpkn/.MainActivity
+E/ActivityManager(  679): ErrorId: ccb62809-4515-40ba-926f-96d6bbd0e0ac
+E/ActivityManager(  679): Frozen: false
+E/ActivityManager(  679): Load: 2.94 / 1.74 / 1.44
+E/ActivityManager(  679): ----- Output from /proc/pressure/memory -----
+E/ActivityManager(  679): some avg10=0.02 avg60=0.28 avg300=0.20 total=18336216
+E/ActivityManager(  679): full avg10=0.01 avg60=0.19 avg300=0.12 total=9764719
+E/ActivityManager(  679): ----- End output from /proc/pressure/memory -----
+E/ActivityManager(  679): ----- Output from /proc/pressure/cpu -----
+E/ActivityManager(  679): some avg10=6.13 avg60=13.49 avg300=8.28 total=542014743
+E/ActivityManager(  679): full avg10=0.00 avg60=0.00 avg300=0.00 total=0
+E/ActivityManager(  679): ----- End output from /proc/pressure/cpu -----
+E/ActivityManager(  679): ----- Output from /proc/pressure/io -----
+E/ActivityManager(  679): some avg10=0.00 avg60=0.04 avg300=0.01 total=20813776
+E/ActivityManager(  679): full avg10=0.00 avg60=0.00 avg300=0.00 total=6720675
+E/ActivityManager(  679): ----- End output from /proc/pressure/io -----
+E/ActivityManager(  679): 
+E/ActivityManager(  679): CPU usage from 15570ms to -1ms ago (2026-08-25 06:37:01.464 to 2026-08-25 06:37:17.035):
+E/ActivityManager(  679):   151% 21217/com.example.kpkn: 127% user + 24% kernel / faults: 103645 minor
+E/ActivityManager(  679):   5.2% 679/system_server: 0.8% user + 4.3% kernel / faults: 2695 minor
+E/ActivityManager(  679):   2.7% 507/android.hardware.graphics.composer3-service.ranchu: 0% user + 2.7% kernel
+E/ActivityManager(  679):   2.1% 554/surfaceflinger: 0% user + 2.1% kernel / faults: 3 minor
+E/ActivityManager(  679):   1.4% 500/android.hardware.sensors-service.multihal: 0% user + 1.4% kernel
+E/ActivityManager(  679):   1.2% 562/adbd: 0% user + 1.2% kernel / faults: 7286 minor
+E/ActivityManager(  679):   1% 21019/kworker/1:0-virtio_vsock: 0% user + 1% kernel
+E/ActivityManager(  679):   0.5% 929/com.android.systemui: 0% user + 0.5% kernel / faults: 55 minor
+E/ActivityManager(  679):   0.5% 2344/artd: 0.2% user + 0.3% kernel / faults: 3798 minor
+E/ActivityManager(  679):   0.5% 1448/com.google.android.providers.media.module: 0% user + 0.4% kernel / faults: 479 minor
+E/ActivityManager(  679): 24% TOTAL: 16% user + 7.3% kernel + 0.1% iowait + 0% softirq
+E/ActivityManager(  679): CPU usage from 28ms to 523ms later (2026-08-25 06:37:17.062 to 2026-08-25 06:37:17.557):
+E/ActivityManager(  679):   182% 21217/com.example.kpkn: 130% user + 52% kernel / faults: 613 minor
+E/ActivityManager(  679):     86% 21217/om.example.kpkn: 78% user + 8.6% kernel
+E/ActivityManager(  679):     86% 21224/HeapTaskDaemon: 43% user + 43% kernel
+E/ActivityManager(  679):     4.3% 21225/ReferenceQueueD: 4.3% user + 0% kernel
+E/ActivityManager(  679):   72% 679/system_server: 8.7% user + 63% kernel / faults: 1747 minor 2 major
+E/ActivityManager(  679):     39% 21740/AnrAuxiliaryTas: 0% user + 39% kernel
+E/ActivityManager(  679):     21% 688/Signal Catcher: 6.5% user + 15% kernel
+E/ActivityManager(  679):     2.1% 679/system_server: 0% user + 2.1% kernel
+E/ActivityManager(  679):     2.1% 766/SensorService: 0% user + 2.1% kernel
+E/ActivityManager(  679):   4.2% 507/android.hardware.graphics.composer3-service.ranchu: 0% user + 4.2% kernel
+E/ActivityManager(  679):     2.1% 592/_thread: 0% user + 2.1% kernel
+E/ActivityManager(  679):   2% 38/ksoftirqd/3: 0% user + 2% kernel
+E/ActivityManager(  679): 39% TOTAL: 20% user + 18% kernel
+E/FeatureFlagsImplExport(21748): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 21217 status: -2: No such file or directory
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 679 status: -2: No such file or directory
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 1586 status: -2: No such file or directory
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 1062 status: -2: No such file or directory
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 1043 status: -2: No such file or directory
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 996 status: -2: No such file or directory
+E/system_server(  679): Could not open /dev/binderfs/binder_logs/transactions. Likely a permissions issue. errno: 2
+E/android.os.Debug(  679): Failed to get binder state info for pid: 929 status: -2: No such file or directory
+E/ActivityManager(  679): ANR in com.example.kpkn (com.example.kpkn/.MainActivity)
+E/ActivityManager(  679): PID: 21217
+E/ActivityManager(  679): Reason: Input dispatching timed out (cb0e120 com.example.kpkn/com.example.kpkn.MainActivity is not responding. Waited 5013ms for FocusEvent(hasFocus=true)).
+E/ActivityManager(  679): Parent: com.example.kpkn/.MainActivity
+E/ActivityManager(  679): ErrorId: 66e44867-9d10-4c39-bf2a-7b2c21669322
+E/ActivityManager(  679): Frozen: false
+E/ActivityManager(  679): Load: 2.72 / 1.74 / 1.44
+E/ActivityManager(  679): ----- Output from /proc/pressure/memory -----
+E/ActivityManager(  679): some avg10=0.00 avg60=0.23 avg300=0.19 total=18336267
+E/ActivityManager(  679): full avg10=0.00 avg60=0.16 avg300=0.12 total=9764770
+E/ActivityManager(  679): ----- End output from /proc/pressure/memory -----
+E/ActivityManager(  679): ----- Output from /proc/pressure/cpu -----
+E/ActivityManager(  679): some avg10=6.05 avg60=12.46 avg300=8.23 total=542778941
+E/ActivityManager(  679): full avg10=0.00 avg60=0.00 avg300=0.00 total=0
+E/ActivityManager(  679): ----- End output from /proc/pressure/cpu -----
+E/ActivityManager(  679): ----- Output from /proc/pressure/io -----
+E/ActivityManager(  679): some avg10=0.00 avg60=0.03 avg300=0.01 total=20841305
+E/ActivityManager(  679): full avg10=0.00 avg60=0.00 avg300=0.00 total=6730820
+E/ActivityManager(  679): ----- End output from /proc/pressure/io -----
+E/ActivityManager(  679): 
+E/ActivityManager(  679): CPU usage from 9856ms to -1ms ago (2026-08-25 06:37:17.035 to 2026-08-25 06:37:26.892):
+E/ActivityManager(  679):   152% 21217/com.example.kpkn: 126% user + 25% kernel / faults: 53472 minor
+E/ActivityManager(  679):   16% 679/system_server: 4.1% user + 12% kernel / faults: 5455 minor 2 major
+E/ActivityManager(  679):   2.8% 507/android.hardware.graphics.composer3-service.ranchu: 0% user + 2.8% kernel
+E/ActivityManager(  679):   1.6% 500/android.hardware.sensors-service.multihal: 0% user + 1.6% kernel
+E/ActivityManager(  679):   1.6% 554/surfaceflinger: 0% user + 1.6% kernel / faults: 13 minor
+E/ActivityManager(  679):   1.4% 929/com.android.systemui: 0.2% user + 1.2% kernel / faults: 614 minor
+E/ActivityManager(  679):   1.4% 21019/kworker/1:0-virtio_vsock: 0% user + 1.4% kernel
+E/ActivityManager(  679):   1% 1062/com.android.phone: 0.1% user + 0.9% kernel / faults: 474 minor
+E/ActivityManager(  679):   0.8% 562/adbd: 0% user + 0.8% kernel / faults: 2455 minor
+E/ActivityManager(  679):   0.7% 20282/kworker/u10:1-writeback: 0% user + 0.7% kernel
+E/ActivityManager(  679): 23% TOTAL: 16% user + 7% kernel + 0% iowait + 0.1% softirq
+E/ActivityManager(  679): CPU usage from 25ms to 405ms later (2026-08-25 06:37:26.916 to 2026-08-25 06:37:27.296):
+E/ActivityManager(  679):   172% 21217/com.example.kpkn: 122% user + 49% kernel / faults: 674 minor
+E/ActivityManager(  679):     90% 21217/om.example.kpkn: 86% user + 4% kernel
+E/ActivityManager(  679):     36% 21224/HeapTaskDaemon: 8.1% user + 28% kernel
+E/ActivityManager(  679):     24% 21220/Signal Catcher: 12% user + 12% kernel
+E/ActivityManager(  679):     20% 21225/ReferenceQueueD: 16% user + 4% kernel
+E/ActivityManager(  679):   61% 679/system_server: 8.7% user + 52% kernel / faults: 1493 minor 1 major
+E/ActivityManager(  679):     34% 21740/AnrAuxiliaryTas: 0% user + 34% kernel
+E/ActivityManager(  679):     14% 688/Signal Catcher: 2.9% user + 11% kernel
+E/ActivityManager(  679):     2.9% 753/binder:679_4: 2.9% user + 0% kernel
+E/ActivityManager(  679):   2.7% 306/tombstoned: 0% user + 2.7% kernel
+E/ActivityManager(  679):   2.8% 507/android.hardware.graphics.composer3-service.ranchu: 0% user + 2.8% kernel
+E/ActivityManager(  679):     2.8% 592/_thread: 0% user + 2.8% kernel
+E/ActivityManager(  679): 30% TOTAL: 15% user + 14% kernel
+E/FeatureFlagsImplExport(21791): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(21813): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(21832): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(21851): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/BpTransactionCompletedListener(  554): Failed to transact (-32)
+E/TaskPersister(  679): File error accessing recents directory (directory doesn't exist?).
+E/FeatureFlagsImplExport(21892): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(21915): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(21938): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FrameTracker( 1065): force finish cuj, time out: J<LAUNCHER_OPEN_ALL_APPS::swipe>
+E/FeatureFlagsImplExport(21959): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(21982): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22005): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22025): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22047): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22067): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/HwcComposer(  554): getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+E/HWComposer(  554): getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+E/FeatureFlagsImplExport(22095): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/HwcComposer(  554): getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+E/HWComposer(  554): getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+E/FeatureFlagsImplExport(22127): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/HwcComposer(  554): getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+E/HWComposer(  554): getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+E/FeatureFlagsImplExport(22207): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22222): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22242): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22267): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22287): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22313): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22333): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22353): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22376): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22396): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22419): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22439): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22460): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22483): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22503): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/HwcComposer(  554): getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+E/HWComposer(  554): getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+E/FeatureFlagsImplExport(22535): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22553): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22573): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22596): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22616): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22640): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22660): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22680): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22703): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22722): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22746): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22765): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22785): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22808): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22828): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/HwcComposer(  554): getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+E/HWComposer(  554): getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+E/BluetoothPowerStatsCollector(  679): Cannot acquire BluetoothActivityEnergyInfo
+E/BluetoothPowerStatsCollector(  679): java.util.concurrent.ExecutionException: java.lang.RuntimeException: error: 11
+E/BluetoothPowerStatsCollector(  679): 	at java.util.concurrent.CompletableFuture.reportGet(CompletableFuture.java:372)
+E/BluetoothPowerStatsCollector(  679): 	at java.util.concurrent.CompletableFuture.get(CompletableFuture.java:2072)
+E/BluetoothPowerStatsCollector(  679): 	at com.android.server.power.stats.BluetoothPowerStatsCollector.collectBluetoothActivityInfo(BluetoothPowerStatsCollector.java:192)
+E/BluetoothPowerStatsCollector(  679): 	at com.android.server.power.stats.BluetoothPowerStatsCollector.collectStats(BluetoothPowerStatsCollector.java:155)
+E/BluetoothPowerStatsCollector(  679): 	at com.android.server.power.stats.PowerStatsCollector.collectAndDeliverStats(PowerStatsCollector.java:176)
+E/BluetoothPowerStatsCollector(  679): 	at com.android.server.power.stats.PowerStatsCollector$$ExternalSyntheticLambda0.run(R8$$SyntheticClass:0)
+E/BluetoothPowerStatsCollector(  679): 	at android.os.Handler.handleCallback(Handler.java:995)
+E/BluetoothPowerStatsCollector(  679): 	at android.os.Handler.dispatchMessage(Handler.java:103)
+E/BluetoothPowerStatsCollector(  679): 	at android.os.Looper.loopOnce(Looper.java:248)
+E/BluetoothPowerStatsCollector(  679): 	at android.os.Looper.loop(Looper.java:338)
+E/BluetoothPowerStatsCollector(  679): 	at android.os.HandlerThread.run(HandlerThread.java:85)
+E/BluetoothPowerStatsCollector(  679): Caused by: java.lang.RuntimeException: error: 11
+E/BluetoothPowerStatsCollector(  679): 	at com.android.server.power.stats.BluetoothPowerStatsCollector$1.onBluetoothActivityEnergyInfoError(BluetoothPowerStatsCollector.java:181)
+E/BluetoothPowerStatsCollector(  679): 	at android.bluetooth.BluetoothAdapter$OnBluetoothActivityEnergyInfoProxy.lambda$onBluetoothActivityEnergyInfoAvailable$0(BluetoothAdapter.java:1037)
+E/BluetoothPowerStatsCollector(  679): 	at android.bluetooth.BluetoothAdapter$OnBluetoothActivityEnergyInfoProxy$$ExternalSyntheticLambda1.run(D8$$SyntheticClass:0)
+E/BluetoothPowerStatsCollector(  679): 	at android.bluetooth.BluetoothUtils.lambda$executeFromBinder$0(BluetoothUtils.java:343)
+E/BluetoothPowerStatsCollector(  679): 	at android.bluetooth.BluetoothUtils$$ExternalSyntheticLambda1.run(D8$$SyntheticClass:0)
+E/BluetoothPowerStatsCollector(  679): 	at com.android.server.SystemServerInitThreadPool$$ExternalSyntheticLambda0.execute(R8$$SyntheticClass:0)
+E/BluetoothPowerStatsCollector(  679): 	at android.bluetooth.BluetoothUtils.executeFromBinder(BluetoothUtils.java:343)
+E/BluetoothPowerStatsCollector(  679): 	at android.bluetooth.BluetoothAdapter$OnBluetoothActivityEnergyInfoProxy.onBluetoothActivityEnergyInfoAvailable(BluetoothAdapter.java:1035)
+E/BluetoothPowerStatsCollector(  679): 	at android.bluetooth.IBluetoothActivityEnergyInfoListener$Stub.onTransact(IBluetoothActivityEnergyInfoListener.java:98)
+E/BluetoothPowerStatsCollector(  679): 	at android.os.Binder.execTransactInternal(Binder.java:1426)
+E/BluetoothPowerStatsCollector(  679): 	at android.os.Binder.execTransact(Binder.java:1365)
+E/FeatureFlagsImplExport(22858): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22876): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22895): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22918): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22938): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22957): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(22980): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23000): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23023): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23043): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23062): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23085): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23105): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23128): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23148): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/HwcComposer(  554): getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+E/HWComposer(  554): getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+E/FeatureFlagsImplExport(23178): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23197): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23218): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23241): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23264): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FrameTracker( 1065): force finish cuj, time out: J<LAUNCHER_ALL_APPS_SCROLL>
+E/FeatureFlagsImplExport(23284): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23311): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/SystemServiceRegistry(  679): No service published for: persistent_data_block
+E/SystemServiceRegistry(  679): android.os.ServiceManager$ServiceNotFoundException: No service published for: persistent_data_block
+E/SystemServiceRegistry(  679): 	at android.os.ServiceManager.getServiceOrThrow(ServiceManager.java:203)
+E/SystemServiceRegistry(  679): 	at android.app.SystemServiceRegistry$82.createService(SystemServiceRegistry.java:1110)
+E/SystemServiceRegistry(  679): 	at android.app.SystemServiceRegistry$82.createService(SystemServiceRegistry.java:1107)
+E/SystemServiceRegistry(  679): 	at android.app.SystemServiceRegistry$StaticServiceFetcher.getService(SystemServiceRegistry.java:2405)
+E/SystemServiceRegistry(  679): 	at android.app.SystemServiceRegistry.getSystemService(SystemServiceRegistry.java:1918)
+E/SystemServiceRegistry(  679): 	at android.app.ContextImpl.getSystemService(ContextImpl.java:2315)
+E/SystemServiceRegistry(  679): 	at android.content.Context.getSystemService(Context.java:4630)
+E/SystemServiceRegistry(  679): 	at com.android.server.pm.PackageInstallerSession.markAsSealed(PackageInstallerSession.java:2449)
+E/SystemServiceRegistry(  679): 	at com.android.server.pm.PackageInstallerSession.commit(PackageInstallerSession.java:2198)
+E/SystemServiceRegistry(  679): 	at android.content.pm.PackageInstaller$Session.commit(PackageInstaller.java:1988)
+E/SystemServiceRegistry(  679): 	at com.android.server.pm.PackageManagerShellCommand.doCommitSession(PackageManagerShellCommand.java:4316)
+E/SystemServiceRegistry(  679): 	at com.android.server.pm.PackageManagerShellCommand.doRunInstall(PackageManagerShellCommand.java:1641)
+E/SystemServiceRegistry(  679): 	at com.android.server.pm.PackageManagerShellCommand.runInstall(PackageManagerShellCommand.java:1562)
+E/SystemServiceRegistry(  679): 	at com.android.server.pm.PackageManagerShellCommand.onCommand(PackageManagerShellCommand.java:246)
+E/SystemServiceRegistry(  679): 	at com.android.modules.utils.BasicShellCommandHandler.exec(BasicShellCommandHandler.java:97)
+E/SystemServiceRegistry(  679): 	at android.os.ShellCommand.exec(ShellCommand.java:38)
+E/SystemServiceRegistry(  679): 	at com.android.server.pm.PackageManagerService$IPackageManagerImpl.onShellCommand(PackageManagerService.java:6684)
+E/SystemServiceRegistry(  679): 	at android.os.Binder.shellCommand(Binder.java:1151)
+E/SystemServiceRegistry(  679): 	at android.os.Binder.onTransact(Binder.java:953)
+E/SystemServiceRegistry(  679): 	at android.content.pm.IPackageManager$Stub.onTransact(IPackageManager.java:4729)
+E/SystemServiceRegistry(  679): 	at com.android.server.pm.PackageManagerService$IPackageManagerImpl.onTransact(PackageManagerService.java:6668)
+E/SystemServiceRegistry(  679): 	at android.os.Binder.execTransactInternal(Binder.java:1426)
+E/SystemServiceRegistry(  679): 	at android.os.Binder.execTransact(Binder.java:1365)
+E/SystemServiceRegistry(  679): Manager wrapper not available: persistent_data_block
+E/FeatureFlagsImplExport(23338): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/AppOps  (  679): attributionTag VCN not declared in manifest of android
+E/SmsApplication( 1062): com.google.android.apps.messaging lost android:read_cell_broadcasts:  (fixing)
+E/SmsApplication( 1062): com.google.android.apps.messaging lost android:read_cell_broadcasts:  (fixing)
+E/SmsApplication( 1062): com.google.android.apps.messaging lost android:read_cell_broadcasts:  (fixing)
+E/AtomicFile(  679): Failed to rename /data/system/install_sessions.xml.new to /data/system/install_sessions.xml
+E/AppOps  (  679): attributionTag VCN not declared in manifest of android
+E/RoleControllerServiceImpl(  679): Default/fallback role holder package doesn't qualify for the role, package: com.google.android.gms.supervision, role: android.app.role.SYSTEM_SUPERVISION
+E/RoleControllerServiceImpl(  679): Default/fallback role holder package doesn't qualify for the role, package: com.google.android.gms, role: android.app.role.SYSTEM_CALL_STREAMING
+E/RoleControllerServiceImpl(  679): Default/fallback role holder package doesn't qualify for the role, package: com.google.android.gms, role: android.app.role.SYSTEM_DEPENDENCY_INSTALLER
+E/RoleControllerServiceImpl(  679): Default/fallback role holder package doesn't qualify for the role, package: com.google.android.gms, role: android.app.role.WALLET
+E/FeatureFlagsImplExport(23424): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23449): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23470): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23490): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/Finsky  ( 2104): [338] [Counters] attempted to use a non-positive increment for: 9200
+E/FrameTracker( 1065): force finish cuj, time out: J<LAUNCHER_ALL_APPS_SCROLL>
+E/FeatureFlagsImplExport(23517): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23537): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23560): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/HwcComposer(  554): getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+E/HWComposer(  554): getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+E/FeatureFlagsImplExport(23590): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23605): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FrameTracker( 1065): force finish cuj, time out: J<LAUNCHER_ALL_APPS_SCROLL>
+E/FeatureFlagsImplExport(23628): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23648): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23668): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23691): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23711): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FrameTracker( 1065): force finish cuj, time out: J<LAUNCHER_ALL_APPS_SCROLL>
+E/FeatureFlagsImplExport(23731): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23753): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23776): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23796): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23819): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FrameTracker( 1065): force finish cuj, time out: J<LAUNCHER_ALL_APPS_SCROLL>
+E/FeatureFlagsImplExport(23839): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23862): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/FeatureFlagsImplExport(23882): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/HwcComposer(  554): getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+E/HWComposer(  554): getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+E/FeatureFlagsImplExport(23913): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+E/HwcComposer(  554): getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+E/HWComposer(  554): getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+E/HwcComposer(  554): getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+E/HWComposer(  554): getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+E/FrameTracker( 1065): force finish cuj, time out: J<LAUNCHER_ALL_APPS_SCROLL>
+E/HwcComposer(  554): getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+E/HWComposer(  554): getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+E/FeatureFlagsImplExport(23960): android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device

@@ -1,0 +1,6 @@
+pillY=1056
+anrs_pkg=1
+fatals=0
+max_skipped=1083
+texts=[]
+file=44-isthmus-s3-exact-clean.png

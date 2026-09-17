@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -70,6 +71,7 @@ import java.time.format.DateTimeParseException
 import java.util.Locale
 import kotlin.math.max
 import com.example.kpkn.ui.components.KpknDropdownMenu
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 
 internal data class CanonicalMuscleVolumeUi(
     val muscleId: String,
@@ -119,6 +121,7 @@ private val canonicalMuscleCatalog = listOf(
     "Romboides",
 )
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun VolumeView(
     program: Program,
@@ -234,28 +237,28 @@ fun VolumeView(
             )
         }
 
-        Row(
+        Column(
             modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     text = "Alcance del volumen",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
                     IndirectModeChip(label = "Directo", mode = 0, selected = indirectMode, onSelect = { indirectMode = it })
                     IndirectModeChip(label = "+Secundario", mode = 1, selected = indirectMode, onSelect = { indirectMode = it })
                     IndirectModeChip(label = "+Estabilizador", mode = 2, selected = indirectMode, onSelect = { indirectMode = it })
                 }
             }
             Row(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -265,11 +268,16 @@ fun VolumeView(
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                androidx.compose.material3.Switch(
-                    checked = adjustVolumeByIntensity,
-                    onCheckedChange = { adjustVolumeByIntensity = it },
-                    modifier = Modifier.scale(0.8f)
-                )
+                Box(
+                    modifier = Modifier.width(52.dp).height(32.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    androidx.compose.material3.Switch(
+                        checked = adjustVolumeByIntensity,
+                        onCheckedChange = { adjustVolumeByIntensity = it },
+                        modifier = Modifier.scale(0.8f)
+                    )
+                }
             }
         }
 

@@ -285,9 +285,12 @@ object PlanMaterializer {
         profile: PowerliftingProfile?,
     ): Exercise {
         val meta = metadata.metadata(slot.lift.configurationId)
-        val display = listOfNotNull(meta?.displayName, slot.technique?.displayName()).joinToString(" · ").ifBlank {
-            slot.lift.configurationId
-        }
+            ?: error("Configuración '${slot.lift.configurationId}' sin metadata del catálogo")
+        // El nombre es el canonicalName verbatim del catálogo; la técnica del
+        // slot viaja en variantName/techniqueModifier/relationshipNotes y se
+        // muestra como chip en exerciseDisplayParts, nunca como texto del nombre.
+        val display = meta.displayName
+        require(display.isNotBlank()) { "Nombre vacío para '${slot.lift.configurationId}'" }
         val tm = slot.lift.liftSlot?.let { TrainingMaxResolver.trainingMax(profile, it, recipe.trainingMaxPercent) }
         val oneRm = slot.lift.liftSlot?.let { TrainingMaxResolver.oneRm(profile, it) }
         val working = slot.sets.filter { !it.isWarmup }
@@ -323,7 +326,7 @@ object PlanMaterializer {
             catalogRevision = "v2-approved-2026-08-12-a",
             catalogDefinitionId = slot.lift.configurationId.substringBefore("__"),
             catalogConfigurationId = slot.lift.configurationId,
-            performanceProfileId = meta?.performanceProfileId ?: slot.lift.configurationId,
+            performanceProfileId = meta.performanceProfileId,
             occurrenceId = idProvider.newId(),
             slotRole = slot.role,
             techniqueModifier = slot.technique,

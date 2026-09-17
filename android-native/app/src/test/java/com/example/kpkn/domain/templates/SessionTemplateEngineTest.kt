@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.MobilitySeries
+import com.example.kpkn.data.models.MobilityConfig
 import com.example.kpkn.data.models.MeetResults
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
@@ -22,6 +23,7 @@ import com.example.kpkn.data.sessions.SessionTemplateSourceType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -484,5 +486,144 @@ class SessionTemplateEngineTest {
         assertTrue("Must have both existing and template parts", result.parts.size >= 2)
         assertTrue("Must keep existing part", result.parts.any { it.name == "Existing Part" })
         assertTrue("Must add template part", result.parts.any { it.name == "Template Part" })
+    }
+
+    @Test
+    fun `applyAppend_skipsExercisesWithDuplicateCatalogConfiguration`() {
+        val catalogId = "bench_press__barbell"
+        val target = makeTargetSession(
+            exercises = listOf(makeExercise(id = "existing-ex1", name = "Existing").copy(catalogConfigurationId = catalogId)),
+        )
+        val template = makeTemplate(
+            exercises = listOf(
+                makeExercise(id = "tpl-dup", name = "Duplicate").copy(catalogConfigurationId = catalogId),
+                makeExercise(id = "tpl-new", name = "New").copy(catalogConfigurationId = "flat_chest_fly__dumbbells"),
+            ),
+        )
+
+        val result = SessionTemplateEngine.applyTemplate(
+            template = template,
+            targetSession = target,
+            mode = SessionTemplateApplyMode.APPEND,
+        )
+
+        assertTrue("Must keep existing", result.exercises.any { it.id == "existing-ex1" })
+        assertTrue("Must add non-duplicate", result.allExercises().any { it.catalogConfigurationId == "flat_chest_fly__dumbbells" })
+        assertEquals(
+            "APPEND no debe duplicar configurationId",
+            1,
+            result.allExercises().count { it.catalogConfigurationId == catalogId },
+        )
+    }
+
+    @Test
+    fun `applyAppend_neverFiltersManualCustomExercises`() {
+        val target = makeTargetSession(
+            exercises = listOf(makeExercise(id = "existing-ex1", name = "Existing").copy(exerciseDbId = "custom:mi-ejercicio")),
+        )
+        val template = makeTemplate(
+            exercises = listOf(makeExercise(id = "tpl-custom", name = "Custom").copy(exerciseDbId = "custom:mi-ejercicio")),
+        )
+
+        val result = SessionTemplateEngine.applyTemplate(
+            template = template,
+            targetSession = target,
+            mode = SessionTemplateApplyMode.APPEND,
+        )
+
+        assertTrue("Los custom: nunca se filtran", result.exercises.size >= 2)
+    }
+
+    @Test
+    fun `applyAppend_reportsOmittedExercisesWithPartName`() {
+        val catalogId = "bench_press__barbell"
+        val target = makeTargetSession(
+            exercises = listOf(makeExercise(id = "existing-ex1", name = "Existing").copy(catalogConfigurationId = catalogId)),
+        )
+        val template = makeTemplate(
+            exercises = listOf(
+                makeExercise(id = "tpl-loose-dup", name = "Loose Duplicate").copy(catalogConfigurationId = catalogId),
+            ),
+            parts = listOf(
+                makePart(
+                    id = "tpl-part1",
+                    name = "Fuerza",
+                    exercises = listOf(
+                        makeExercise(id = "tpl-part-dup", name = "Part Duplicate").copy(catalogConfigurationId = catalogId),
+                    ),
+                ),
+            ),
+        )
+
+        val outcome = SessionTemplateEngine.applyTemplateAudited(
+            template = template,
+            targetSession = target,
+            mode = SessionTemplateApplyMode.APPEND,
+        )
+
+        assertEquals("Debe reportar ambas omisiones (sueltas y dentro de un part)", 2, outcome.omittedAppendExercises.size)
+        assertTrue(
+            "La omisión suelta debe llevar partName null y su configurationId",
+            outcome.omittedAppendExercises.any { it.partName == null && it.configurationId == catalogId },
+        )
+        assertTrue(
+            "La omisión del part debe llevar el nombre del part y del ejercicio",
+            outcome.omittedAppendExercises.any { it.partName == "Fuerza" && it.exerciseName == "Part Duplicate" },
+        )
+    }
+
+    @Test
+    fun `applyAppend_keepsMobilityPartWhenAllExercisesAreDuplicates`() {
+        val catalogId = "bench_press__barbell"
+        val target = makeTargetSession(
+            exercises = listOf(makeExercise(id = "existing-ex1", name = "Existing").copy(catalogConfigurationId = catalogId)),
+        )
+        val strengthPart = makePart(
+            id = "tpl-str",
+            name = "Fuerza",
+            exercises = listOf(makeExercise(id = "tpl-str-dup", name = "Dup").copy(catalogConfigurationId = catalogId)),
+        )
+        val mobilityPart = makePart(id = "tpl-mob", name = "Movilidad", exercises = emptyList()).copy(
+            isMobilityGroup = true,
+            mobilitySeries = listOf(MobilitySeries(id = "mob-1", name = "90/90", sets = 2, durationSeconds = 45)),
+            mobilityConfig = MobilityConfig(totalMinutes = 8),
+        )
+        val template = makeTemplate(parts = listOf(strengthPart, mobilityPart))
+
+        val outcome = SessionTemplateEngine.applyTemplateAudited(
+            template = template,
+            targetSession = target,
+            mode = SessionTemplateApplyMode.APPEND,
+        )
+
+        // El clonador regenera ids: los asserts de parts son por nombre.
+        val keptMobility = outcome.session.parts.firstOrNull { it.name == "Movilidad" }
+        assertNotNull("El part de movilidad no debe descartarse aunque no tenga ejercicios", keptMobility)
+        assertEquals(listOf("90/90"), keptMobility?.mobilitySeries?.map { it.name })
+        assertEquals(8, keptMobility?.mobilityConfig?.totalMinutes)
+        assertTrue(
+            "El part de fuerza sin ejercicios ni estado propio sí se descarta",
+            outcome.session.parts.none { it.name == "Fuerza" },
+        )
+        assertEquals("La omisión del part de fuerza queda reportada", 1, outcome.omittedAppendExercises.size)
+    }
+
+    @Test
+    fun `applyAppend_outcomeNeverListsManualCustomExercises`() {
+        val target = makeTargetSession(
+            exercises = listOf(makeExercise(id = "existing-ex1", name = "Existing").copy(exerciseDbId = "custom:mi-ejercicio")),
+        )
+        val template = makeTemplate(
+            exercises = listOf(makeExercise(id = "tpl-custom", name = "Custom").copy(exerciseDbId = "custom:mi-ejercicio")),
+        )
+
+        val outcome = SessionTemplateEngine.applyTemplateAudited(
+            template = template,
+            targetSession = target,
+            mode = SessionTemplateApplyMode.APPEND,
+        )
+
+        assertTrue("Los custom: nunca aparecen en la lista de omitidos", outcome.omittedAppendExercises.isEmpty())
+        assertTrue(outcome.session.exercises.size >= 2)
     }
 }

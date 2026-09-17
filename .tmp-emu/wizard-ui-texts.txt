@@ -1,0 +1,30 @@
+POWERLIFTING  y=195-234 h=39
+¿Dónde levantaste?  y=246-331 h=85
+Fecha  y=514-556 h=42
+Elegir en el calendario  y=556-633 h=77
+?  y=1237-1290 h=53
+Federación  y=1207-1249 h=42
+Elegir  y=1249-1320 h=71
+Pesaje  y=1443-1489 h=46
+–  y=1571-1648 h=77
+—  y=1578-1641 h=63
++  y=1571-1648 h=77
+Clase  y=1729-1775 h=46
+59  y=1848-1894 h=46
+66  y=1848-1894 h=46
+74  y=1848-1894 h=46
+83  y=1848-1894 h=46
+93  y=1848-1894 h=46
+105  y=1848-1894 h=46
+120  y=1848-1894 h=46
+120+  y=1848-1894 h=46
+División y equipo  y=1967-2013 h=46
+Open  y=2086-2132 h=46
+Junior  y=2086-2132 h=46
+Sub-junior  y=2086-2132 h=46
+Master 1  y=2086-2132 h=46
+Master 2  y=2086-2132 h=46
+Classic  y=2236-2282 h=46
+Wraps  y=2236-2282 h=46
+Equipped  y=2236-2282 h=46
+Continuar  y=2771-2817 h=46

@@ -1,0 +1,1291 @@
+diff --git a/android-native/app/src/androidTest/java/com/example/kpkn/screens/home/ConceptosClaveUiTest.kt b/android-native/app/src/androidTest/java/com/example/kpkn/screens/home/ConceptosClaveUiTest.kt
+index 8b0b7eee..48b1db93 100644
+--- a/android-native/app/src/androidTest/java/com/example/kpkn/screens/home/ConceptosClaveUiTest.kt
++++ b/android-native/app/src/androidTest/java/com/example/kpkn/screens/home/ConceptosClaveUiTest.kt
+@@ -14,7 +14,7 @@ import com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledgeKind
+ import com.example.kpkn.data.wikilab.TRAINING_CONCEPTS_DATABASE
+ import com.example.kpkn.domain.concepts.projectConceptoClave
+ import com.example.kpkn.domain.concepts.searchConceptosClave
+-import com.example.kpkn.ui.components.CanonicalKnowledgeTooltip
++import com.example.kpkn.ui.components.CanonicalKnowledgeOverlay
+ import org.junit.Rule
+ import org.junit.Test
+ import org.junit.runner.RunWith
+@@ -70,19 +70,27 @@ class ConceptosClaveUiTest {
+     }
+ 
+     @Test
+-    fun canonicalTooltipKeepsOnlyNameAndIntroForAllKnowledgeKinds() {
++    fun canonicalOverlayKeepsOnlyNameAndIntroForAllKnowledgeKinds() {
+         val entries = listOf(
+             CanonicalKnowledge(CanonicalKnowledgeKind.MUSCLE, "m", "M├║sculo", "Intro m├║sculo"),
+             CanonicalKnowledge(CanonicalKnowledgeKind.JOINT, "j", "Articulaci├│n", "Intro articulaci├│n"),
+             CanonicalKnowledge(CanonicalKnowledgeKind.STABILIZER, "s", "Estabilizador", "Intro estabilizador"),
+             CanonicalKnowledge(CanonicalKnowledgeKind.PATTERN, "p", "Patr├│n", "Intro patr├│n"),
+         )
++        val selected = mutableStateOf(entries.first())
+         composeRule.setContent {
+-            MaterialTheme { entries.forEach { CanonicalKnowledgeTooltip(it) } }
++            MaterialTheme {
++                CanonicalKnowledgeOverlay(
++                    knowledge = selected.value,
++                    onDismiss = {},
++                )
++            }
+         }
+-        entries.forEach {
+-            composeRule.onNodeWithText(it.name).assertExists()
+-            composeRule.onNodeWithText(it.description).assertExists()
++        entries.forEach { entry ->
++            composeRule.runOnIdle { selected.value = entry }
++            composeRule.waitForIdle()
++            composeRule.onNodeWithText(entry.name).assertExists()
++            composeRule.onNodeWithText(entry.description).assertExists()
+         }
+         composeRule.onNodeWithText("biomechanicalReason", substring = true).assertDoesNotExist()
+         composeRule.onNodeWithText("Drenaje", substring = true).assertDoesNotExist()
+diff --git a/android-native/app/src/androidTest/java/com/example/kpkn/screens/workout/WorkoutMobilityCanonicalKnowledgeUiTest.kt b/android-native/app/src/androidTest/java/com/example/kpkn/screens/workout/WorkoutMobilityCanonicalKnowledgeUiTest.kt
+index 58b1b3c1..a25ff1b8 100644
+--- a/android-native/app/src/androidTest/java/com/example/kpkn/screens/workout/WorkoutMobilityCanonicalKnowledgeUiTest.kt
++++ b/android-native/app/src/androidTest/java/com/example/kpkn/screens/workout/WorkoutMobilityCanonicalKnowledgeUiTest.kt
+@@ -69,8 +69,21 @@ class WorkoutMobilityCanonicalKnowledgeUiTest {
+             }
+         }
+ 
+-        composeRule.onNodeWithText("Involucramiento Articular del Ejercicio").assertExists()
+-        composeRule.onNodeWithContentDescription("Tarjeta 1 de", substring = true).performClick()
++        composeRule.onNodeWithText("Informaci├│n articular y muscular").assertExists()
++        composeRule.onNodeWithText("Informaci├│n articular y muscular").performClick()
++        // Chip label comes from formatJointName(jointId), not the canonical long name.
++        val jointId = configuration.profile.jointInvolvement.first().jointId
++        val chip = when (jointId.trim().lowercase()) {
++            "glenohumeral", "shoulder" -> "Hombro"
++            "humeroulnar", "elbow" -> "Codo"
++            "radiocarpal", "wrist" -> "Mu├▒eca"
++            "coxofemoral", "hip" -> "Cadera"
++            "tibiofemoral", "knee" -> "Rodilla"
++            "talocrural", "ankle" -> "Tobillo"
++            "lumbar_spine", "spine_lumbar" -> "Lumbar"
++            else -> jointId.replace('_', ' ').replaceFirstChar { it.uppercase() }
++        }
++        composeRule.onNodeWithText(chip, substring = true).performClick()
+         composeRule.onNodeWithText(canonicalJoint.name).assertExists()
+         composeRule.onNodeWithText(canonicalJoint.description).assertExists()
+         composeRule.onNodeWithText("Principal:", substring = true).assertDoesNotExist()
+diff --git a/android-native/app/src/main/java/com/example/kpkn/domain/calculations/Calculations.kt b/android-native/app/src/main/java/com/example/kpkn/domain/calculations/Calculations.kt
+index c160baa3..9d3ca25c 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/domain/calculations/Calculations.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/domain/calculations/Calculations.kt
+@@ -134,7 +134,11 @@ fun estimateRepsFromPercent1RM(percent: Double): Int {
+     } ?: 1
+ }
+ 
+-private fun roundSuggestedLoad(weight: Double): Double = (weight * 4.0).roundToInt() / 4.0
++private fun roundSuggestedLoad(weight: Double): Double {
++    // Saltos de 0.25 kg, nuncaando a Ôëñ2 decimales.
++    val stepped = (weight * 4.0).roundToInt() / 4.0
++    return kotlin.math.round(stepped * 100.0) / 100.0
++}
+ 
+ private fun assistanceFactor(metric: Double): Double {
+     if (metric <= 0.0) return 0.0
+diff --git a/android-native/app/src/main/java/com/example/kpkn/navigation/DeepLinkRouter.kt b/android-native/app/src/main/java/com/example/kpkn/navigation/DeepLinkRouter.kt
+index 5679724b..7251839d 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/navigation/DeepLinkRouter.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/navigation/DeepLinkRouter.kt
+@@ -50,6 +50,15 @@ object DeepLinkRouter {
+             "profile", "perfil" -> ResolvedRoute(KpknRoute.Profile.route)
+             "program" -> segments.getOrNull(1)?.takeIf { it.isNotBlank() }
+                 ?.let { ResolvedRoute(KpknRoute.ProgramDetail.create(it)) }
++            "workout", "entreno-vivo", "sesion-viva" -> {
++                val programId = segments.getOrNull(1)?.takeIf { it.isNotBlank() }
++                val sessionId = segments.getOrNull(2)?.takeIf { it.isNotBlank() }
++                if (programId != null && sessionId != null) {
++                    ResolvedRoute(KpknRoute.Workout.create(programId, sessionId))
++                } else {
++                    ResolvedRoute(KpknRoute.Training.route)
++                }
++            }
+             "concepts", "conceptos" -> ResolvedRoute(KpknRoute.Concepts.create())
+             "concept", "concepto" -> conceptRoute(segments.getOrNull(1))
+             "wikilab" -> when (second) {
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/home/HomeSessionSection.kt b/android-native/app/src/main/java/com/example/kpkn/screens/home/HomeSessionSection.kt
+index 1ae2c32c..d40e6fb8 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/home/HomeSessionSection.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/home/HomeSessionSection.kt
+@@ -58,14 +58,38 @@ fun HomeSessionSection(
+     modifier: Modifier = Modifier,
+ ) {
+     var activeIndex by remember { mutableIntStateOf(0) }
++    var anchoredSessionId by remember { mutableStateOf<String?>(null) }
++    var isProgrammaticScroll by remember { mutableStateOf(false) }
+ 
+-    LaunchedEffect(sessions) {
+-        val preferred = sessions.indexOfFirst { it.isToday && !it.isCompleted }
++    fun preferredSessionIndex(items: List<TodaySessionItem>): Int {
++        val preferred = items.indexOfFirst { it.isToday && !it.isCompleted }
+             .takeIf { it >= 0 }
+-            ?: sessions.indexOfFirst { it.isToday }.takeIf { it >= 0 }
+-            ?: sessions.indexOfFirst { it.isOngoing }.takeIf { it >= 0 }
++            ?: items.indexOfFirst { !it.isCompleted }.takeIf { it >= 0 }
++            ?: items.indexOfFirst { it.isOngoing }.takeIf { it >= 0 }
++            ?: items.indexOfFirst { it.isToday }.takeIf { it >= 0 }
+             ?: 0
+-        activeIndex = preferred.coerceIn(0, (sessions.size - 1).coerceAtLeast(0))
++        return preferred.coerceIn(0, (items.size - 1).coerceAtLeast(0))
++    }
++
++    LaunchedEffect(sessions.map { it.session.id to it.isCompleted }) {
++        val preferred = preferredSessionIndex(sessions)
++        val preferredId = sessions.getOrNull(preferred)?.session?.id
++        if (preferredId != null && preferredId != anchoredSessionId) {
++            anchoredSessionId = preferredId
++            isProgrammaticScroll = true
++            activeIndex = preferred
++        } else if (sessions.isNotEmpty()) {
++            // Mantener ancla por id si el orden cambi├│.
++            val byId = anchoredSessionId?.let { id -> sessions.indexOfFirst { it.session.id == id } }
++            if (byId != null && byId >= 0 && byId != activeIndex) {
++                isProgrammaticScroll = true
++                activeIndex = byId
++            } else if (activeIndex !in sessions.indices) {
++                isProgrammaticScroll = true
++                activeIndex = preferred
++                anchoredSessionId = preferredId
++            }
++        }
+     }
+ 
+     Column(modifier.fillMaxWidth()) {
+@@ -92,10 +116,23 @@ fun HomeSessionSection(
+ 
+             if (sessions.size > 1) {
+                 val pagerState = rememberPagerState(initialPage = activeIndex) { sessions.size }
+-                LaunchedEffect(activeIndex) {
+-                    if (pagerState.currentPage != activeIndex) pagerState.animateScrollToPage(activeIndex)
++                LaunchedEffect(activeIndex, sessions.size) {
++                    val needsSnap = pagerState.currentPage != activeIndex ||
++                        pagerState.currentPageOffsetFraction != 0f
++                    if (!needsSnap) return@LaunchedEffect
++                    // Cualquier offset fraccional (tambi├®n settled==active) se asienta al instante.
++                    pagerState.scrollToPage(activeIndex)
++                    isProgrammaticScroll = false
++                }
++                LaunchedEffect(pagerState) {
++                    snapshotFlow { pagerState.settledPage }
++                        .collect { settled ->
++                            if (!isProgrammaticScroll && settled != activeIndex) {
++                                activeIndex = settled
++                                anchoredSessionId = sessions.getOrNull(settled)?.session?.id
++                            }
++                        }
+                 }
+-                LaunchedEffect(pagerState.currentPage) { activeIndex = pagerState.currentPage }
+                 HorizontalPager(
+                     state = pagerState,
+                     pageSpacing = 8.dp,
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorControls.kt b/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorControls.kt
+index 91e0852d..686b424d 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorControls.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorControls.kt
+@@ -826,12 +826,16 @@ private fun RingCaption(label: String, pct: Int, color: Color) {
+ 
+ @Composable
+ internal fun AddSetGhostCard(onAddSet: () -> Unit, modifier: Modifier = Modifier) {
++    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
+     Surface(
+         modifier = Modifier
+             .fillMaxWidth()
+             .fillMaxHeight()
+             .clip(RoundedCornerShape(16.dp))
+-            .clickable { onAddSet() },
++            .clickable {
++                focusManager.clearFocus(force = true)
++                onAddSet()
++            },
+         color = DarkEditorSurfaceSoft,
+     ) {
+         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorFormFields.kt b/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorFormFields.kt
+index 3e466d2d..c0a45785 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorFormFields.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorFormFields.kt
+@@ -30,15 +30,19 @@ import androidx.compose.material3.TextButton
+ import androidx.compose.material3.TextField
+ import androidx.compose.material3.TextFieldDefaults
+ import androidx.compose.runtime.Composable
++import androidx.compose.runtime.DisposableEffect
+ import androidx.compose.runtime.LaunchedEffect
+ import androidx.compose.runtime.mutableStateOf
+ import androidx.compose.runtime.remember
++import androidx.compose.runtime.rememberUpdatedState
+ import androidx.compose.runtime.saveable.rememberSaveable
++import androidx.compose.runtime.getValue
++import androidx.compose.runtime.setValue
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.draw.clip
+-import androidx.compose.ui.graphics.Color
+ import androidx.compose.ui.focus.onFocusChanged
++import androidx.compose.ui.graphics.Color
+ import androidx.compose.ui.text.font.FontWeight
+ import androidx.compose.ui.text.input.ImeAction
+ import androidx.compose.ui.text.input.KeyboardType
+@@ -46,8 +50,6 @@ import androidx.compose.ui.text.style.TextOverflow
+ import androidx.compose.ui.unit.dp
+ import androidx.compose.ui.viewinterop.AndroidView
+ import com.example.kpkn.data.models.*
+-import androidx.compose.runtime.getValue
+-import androidx.compose.runtime.setValue
+ import androidx.compose.material.icons.filled.Check
+ import androidx.compose.ui.graphics.lerp
+ import com.example.kpkn.ui.components.KpknAlertDialog
+@@ -66,11 +68,31 @@ internal fun EditorMiniField(
+ ) {
+     var localValue by rememberSaveable(stateKey) { mutableStateOf(value) }
+     var isFocused by remember { mutableStateOf(false) }
++    val latestLocal = rememberUpdatedState(localValue)
++    val latestValue = rememberUpdatedState(value)
++    val latestCommit = rememberUpdatedState(onCommit)
++    val commitWhileTyping = keyboardType == KeyboardType.Number ||
++        keyboardType == KeyboardType.Decimal ||
++        keyboardType == KeyboardType.Ascii
+     LaunchedEffect(stateKey, value, isFocused) {
+         if (!isFocused && value != localValue) {
+             localValue = value
+         }
+     }
++    LaunchedEffect(localValue, isFocused, commitWhileTyping) {
++        if (!isFocused || !commitWhileTyping) return@LaunchedEffect
++        kotlinx.coroutines.delay(150)
++        if (latestLocal.value != latestValue.value && isCommitableEditorInput(latestLocal.value, keyboardType)) {
++            latestCommit.value(latestLocal.value)
++        }
++    }
++    DisposableEffect(stateKey) {
++        onDispose {
++            if (latestLocal.value != latestValue.value) {
++                latestCommit.value(latestLocal.value)
++            }
++        }
++    }
+     OutlinedTextField(
+         value = localValue,
+         onValueChange = {
+@@ -99,6 +121,20 @@ internal fun EditorMiniField(
+     )
+ }
+ 
++/** True when the draft is a complete-enough numeric/rep value to push live. */
++internal fun isCommitableEditorInput(raw: String, keyboardType: KeyboardType): Boolean {
++    val trimmed = raw.trim()
++    if (trimmed.isEmpty()) return false
++    return when (keyboardType) {
++        KeyboardType.Number -> trimmed.safeIntOrNull() != null
++        KeyboardType.Decimal -> trimmed.safeDoubleOrNull() != null
++        KeyboardType.Ascii -> trimmed.safeIntOrNull() != null ||
++            trimmed.safeDoubleOrNull() != null ||
++            trimmed.contains('-') || trimmed.contains('ÔÇô')
++        else -> false
++    }
++}
++
+ @Composable
+ internal fun kpknEditorFieldColors(accentColor: Color? = null) = OutlinedTextFieldDefaults.colors(
+     focusedContainerColor = accentColor?.copy(alpha = 0.20f) ?: Color.White.copy(alpha = 0.16f),
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorRulesEngine.kt b/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorRulesEngine.kt
+index b69ea74a..bb7a6e64 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorRulesEngine.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorRulesEngine.kt
+@@ -288,7 +288,7 @@ object SessionEditorRulesEngine {
+                 )
+                 IntensityMode.SOLO_RM -> set.copy(
+                     intensityMode = IntensityMode.SOLO_RM,
+-                    targetPercentageRM = value.coerceIn(40.0, 100.0),
++                    targetPercentageRM = roundToMax2Decimals(value.coerceIn(40.0, 100.0)),
+                     targetRPE = null,
+                     targetRIR = null,
+                     isFailure = false,
+@@ -310,13 +310,15 @@ object SessionEditorRulesEngine {
+     private fun normalizeSet(set: ExerciseSet, exercise: Exercise): ExerciseSet {
+         val normalized = when (exercise.trainingMode) {
+             TrainingMode.RM -> set.copy(
+-                intensityMode = IntensityMode.LOAD,
++                intensityMode = null,
+                 targetRepsRange = null,
+                 targetRPE = null,
+                 targetRIR = null,
+                 isFailure = false,
+                 isAmrap = false,
+-                targetPercentageRM = (set.targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0),
++                targetPercentageRM = com.example.kpkn.screens.sessioneditor.roundToMax2Decimals(
++                    (set.targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0),
++                ),
+             )
+             TrainingMode.SOLO_RPE -> set.copy(
+                 intensityMode = IntensityMode.RPE,
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorSessionHelpers.kt b/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorSessionHelpers.kt
+index eda4549f..4034f34c 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorSessionHelpers.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorSessionHelpers.kt
+@@ -388,7 +388,7 @@ internal fun Exercise.withSharedPerformanceFromHistory(history: List<WorkoutLog>
+             withReferences.trainingMode == TrainingMode.RM && set.targetPercentageRM == null -> {
+                 set.copy(
+                     targetPercentageRM = 75.0,
+-                    intensityMode = IntensityMode.LOAD,
++                    intensityMode = null,
+                 )
+             }
+             else -> set
+@@ -474,14 +474,16 @@ internal fun ExerciseSet.normalizeSet(exercise: Exercise): ExerciseSet {
+             isFailure = true,
+         )
+         else -> when (exercise.trainingMode) {
++            // En el editor, RM no programa intensidad de esfuerzo (solo %RM).
++            // intensityMode=null: no usar LOAD como "modo de reporte".
+             TrainingMode.RM -> copy(
+-                intensityMode = IntensityMode.LOAD,
++                intensityMode = null,
+                 targetRepsRange = null,
+                 targetRPE = null,
+                 targetRIR = null,
+                 isFailure = false,
+                 isAmrap = false,
+-                targetPercentageRM = (targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0),
++                targetPercentageRM = roundToMax2Decimals((targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0)),
+             )
+             TrainingMode.SOLO_RPE -> copy(
+                 intensityMode = IntensityMode.RPE,
+@@ -519,7 +521,7 @@ internal fun createNextSetTemplate(exercise: Exercise, template: ExerciseSet): E
+     }
+     return base.copy(
+         targetPercentageRM = ((template.targetPercentageRM ?: 100.0) - fatigueDrop).coerceAtLeast(45.0),
+-        intensityMode = IntensityMode.LOAD,
++        intensityMode = null,
+     )
+ }
+ 
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorUiUtils.kt b/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorUiUtils.kt
+index 268688f4..b23883de 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorUiUtils.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorUiUtils.kt
+@@ -15,10 +15,23 @@ internal fun String.safeIntOrNull(): Int? = toIntOrNull()
+ 
+ internal fun String.safeDoubleOrNull(): Double? = replace(",", ".").toDoubleOrNull()
+ 
++/** Redondea a como m├íximo 2 decimales (sin inventar ceros). */
++internal fun roundToMax2Decimals(value: Double): Double =
++    kotlin.math.round(value * 100.0) / 100.0
++
++internal fun formatMax2Decimals(value: Double): String {
++    val rounded = roundToMax2Decimals(value)
++    val asLong = rounded.toLong()
++    return if (rounded == asLong.toDouble()) {
++        asLong.toString()
++    } else {
++        String.format(Locale.US, "%.2f", rounded).trimEnd('0').trimEnd('.')
++    }
++}
++
+ internal fun formatEditableNumber(value: Double?): String {
+     if (value == null) return ""
+-    val asLong = value.toLong()
+-    return if (value == asLong.toDouble()) asLong.toString() else value.toString()
++    return formatMax2Decimals(value)
+ }
+ 
+ internal fun String.toEditorColor(default: Color = Color(0xFF6E8A95)): Color =
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/components/InlineSetRow.kt b/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/components/InlineSetRow.kt
+index 91783152..ce6cf2f6 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/components/InlineSetRow.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/components/InlineSetRow.kt
+@@ -37,10 +37,14 @@ import androidx.compose.material3.Slider
+ import androidx.compose.material3.Surface
+ import androidx.compose.material3.Text
+ import androidx.compose.runtime.Composable
++import androidx.compose.runtime.DisposableEffect
+ import androidx.compose.runtime.LaunchedEffect
++import androidx.compose.runtime.getValue
+ import androidx.compose.runtime.mutableStateOf
+ import androidx.compose.runtime.remember
++import androidx.compose.runtime.rememberUpdatedState
+ import androidx.compose.runtime.saveable.rememberSaveable
++import androidx.compose.runtime.setValue
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.draw.clip
+@@ -66,6 +70,8 @@ import com.example.kpkn.screens.sessioneditor.components.rememberSessionEditorBr
+ import com.example.kpkn.screens.sessioneditor.EditorMiniField
+ import com.example.kpkn.screens.sessioneditor.kpknEditorFieldColors
+ import com.example.kpkn.screens.sessioneditor.formatEditableNumber
++import com.example.kpkn.screens.sessioneditor.formatMax2Decimals
++import com.example.kpkn.screens.sessioneditor.roundToMax2Decimals
+ import com.example.kpkn.screens.sessioneditor.safeIntOrNull
+ import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
+ import com.example.kpkn.screens.sessioneditor.formatEstimatedMetric
+@@ -424,8 +430,8 @@ internal fun InlineSetRow(
+                     ) { input ->
+                         commitEditedField { current ->
+                             current.copy(
+-                                targetPercentageRM = input.safeDoubleOrNull(),
+-                                intensityMode = IntensityMode.LOAD,
++                                targetPercentageRM = input.safeDoubleOrNull()?.let { roundToMax2Decimals(it) },
++                                intensityMode = null,
+                                 targetRPE = null,
+                                 targetRIR = null,
+                                 isFailure = false,
+@@ -668,9 +674,9 @@ internal fun InlineSetRow(
+                     ) {
+                         Text(
+                             text = buildString {
+-                                append(displayedWeight?.let { "${"%.1f".format(it)} kg" } ?: "Usa carga inteligente para estimar la carga inicial")
++                                append(displayedWeight?.let { "${formatMax2Decimals(it)} kg" } ?: "Usa carga inteligente para estimar la carga inicial")
+                                 if (isRmMode && reference1RM != null) {
+-                                    append(" ┬À ${sliderPercent.toInt()}% RM")
++                                    append(" ┬À ${formatMax2Decimals(sliderPercent.toDouble())}% RM")
+                                 }
+                             },
+                             style = MaterialTheme.typography.bodyMedium,
+@@ -682,9 +688,9 @@ internal fun InlineSetRow(
+                                 value = localSliderPercent,
+                                 onValueChange = { localSliderPercent = it },
+                                 onValueChangeFinished = {
+-                                    val v = localSliderPercent.toDouble()
++                                    val v = roundToMax2Decimals(localSliderPercent.toDouble())
+                                     if (v != set.targetPercentageRM) {
+-                                        commitEditedField { current -> current.copy(targetPercentageRM = v, intensityMode = IntensityMode.LOAD) }
++                                        commitEditedField { current -> current.copy(targetPercentageRM = v, intensityMode = null) }
+                                     }
+                                 },
+                                 valueRange = 45f..100f,
+@@ -720,11 +726,33 @@ private fun AccentSetValueField(
+ ) {
+     var localValue by rememberSaveable(stateKey) { mutableStateOf(value) }
+     var isFocused by remember { mutableStateOf(false) }
++    val latestLocal = rememberUpdatedState(localValue)
++    val latestValue = rememberUpdatedState(value)
++    val latestCommit = rememberUpdatedState(onCommit)
++    val commitWhileTyping = keyboardType == KeyboardType.Number ||
++        keyboardType == KeyboardType.Decimal ||
++        keyboardType == KeyboardType.Ascii
+     LaunchedEffect(stateKey, value, isFocused) {
+         if (!isFocused && value != localValue) {
+             localValue = value
+         }
+     }
++    LaunchedEffect(localValue, isFocused, commitWhileTyping) {
++        if (!isFocused || !commitWhileTyping) return@LaunchedEffect
++        kotlinx.coroutines.delay(150)
++        if (latestLocal.value != latestValue.value &&
++            com.example.kpkn.screens.sessioneditor.isCommitableEditorInput(latestLocal.value, keyboardType)
++        ) {
++            latestCommit.value(latestLocal.value)
++        }
++    }
++    DisposableEffect(stateKey) {
++        onDispose {
++            if (latestLocal.value != latestValue.value) {
++                latestCommit.value(latestLocal.value)
++            }
++        }
++    }
+     val surfaceColor = lerp(DarkEditorChip, accentColor, 0.16f)
+     OutlinedTextField(
+         value = localValue,
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/components/sheets/RulesSheet.kt b/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/components/sheets/RulesSheet.kt
+index 43cbaf0e..0a2d2e62 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/components/sheets/RulesSheet.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/components/sheets/RulesSheet.kt
+@@ -27,11 +27,13 @@ import androidx.compose.material3.Switch
+ import androidx.compose.material3.SwitchDefaults
+ import androidx.compose.material3.Text
+ import androidx.compose.runtime.Composable
++import androidx.compose.runtime.DisposableEffect
+ import androidx.compose.runtime.LaunchedEffect
+ import androidx.compose.runtime.getValue
+ import androidx.compose.runtime.mutableIntStateOf
+ import androidx.compose.runtime.mutableStateOf
+ import androidx.compose.runtime.remember
++import androidx.compose.runtime.rememberUpdatedState
+ import androidx.compose.runtime.setValue
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+@@ -117,12 +119,22 @@ private fun SheetMiniField(
+     var local by remember(label) { mutableStateOf(value) }
+     var focused by remember { mutableStateOf(false) }
+     val focusManager = LocalFocusManager.current
++    val latestLocal = rememberUpdatedState(local)
++    val latestValue = rememberUpdatedState(value)
++    val latestCommit = rememberUpdatedState(onCommit)
+ 
+     LaunchedEffect(value) {
+         if (!focused) {
+             local = value
+         }
+     }
++    DisposableEffect(label) {
++        onDispose {
++            if (latestLocal.value != latestValue.value) {
++                latestCommit.value(latestLocal.value)
++            }
++        }
++    }
+     OutlinedTextField(
+         value = local,
+         onValueChange = { local = it },
+@@ -231,6 +243,7 @@ internal fun RulesSheet(
+     @Suppress("UNUSED_PARAMETER")
+     onApplyGlobalIntensityAdjustment
+ 
++    val focusManager = LocalFocusManager.current
+     var activeTab by remember { mutableIntStateOf(0) }
+     LaunchedEffect(uiState.rulesSheetInitialTab) {
+         if (uiState.rulesSheetInitialTab == 1) {
+@@ -1189,6 +1202,8 @@ internal fun RulesSheet(
+         StickyActionBar(
+             modifier = Modifier.align(Alignment.BottomCenter),
+             onApply = {
++                // Flush campos locales (SheetMiniField) antes de aplicar.
++                focusManager.clearFocus(force = true)
+                 val outcome = onApplyRules(activeScopePartId)
+                 if (outcome is ApplyRulesOutcome.Applied) onDismiss()
+             },
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutContextComponents.kt b/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutContextComponents.kt
+index a2c755d4..50b29c07 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutContextComponents.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutContextComponents.kt
+@@ -1464,7 +1464,42 @@ private fun WorkoutSetEditCard(
+                     Spacer(Modifier.width(6.dp))
+                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                         listOf(IntensityMode.RPE to "RPE", IntensityMode.RIR to "RIR", IntensityMode.FAILURE to "Fallo").forEach { (mode, label) ->
+-                            FilterChip(selected = set.intensityMode == mode || (mode == IntensityMode.FAILURE && set.isFailure), onClick = { onUpdateSet(set.id) { when (mode) { IntensityMode.FAILURE -> it.copy(intensityMode = mode, isFailure = true, isAmrap = false, targetRPE = null, targetRIR = null); IntensityMode.RIR -> it.copy(intensityMode = mode, isFailure = false, isAmrap = false, targetRPE = null); IntensityMode.RPE -> it.copy(intensityMode = mode, isFailure = false, isAmrap = false, targetRIR = null); else -> it } } }, label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = if (mode == IntensityMode.FAILURE) Color(0xFFFF5252).copy(alpha = 0.2f) else sessionAccentColor.copy(alpha = 0.2f), selectedLabelColor = if (mode == IntensityMode.FAILURE) Color(0xFFFF5252) else sessionAccentColor))
++                            FilterChip(
++                                selected = set.intensityMode == mode || (mode == IntensityMode.FAILURE && set.isFailure),
++                                onClick = {
++                                    onUpdateSet(set.id) {
++                                        when (mode) {
++                                            IntensityMode.FAILURE -> it.copy(
++                                                intensityMode = mode,
++                                                isFailure = true,
++                                                isAmrap = false,
++                                                targetRPE = null,
++                                                targetRIR = null,
++                                            )
++                                            IntensityMode.RIR -> it.copy(
++                                                intensityMode = mode,
++                                                isFailure = false,
++                                                isAmrap = false,
++                                                targetRPE = null,
++                                                targetRIR = it.targetRIR ?: 2,
++                                            )
++                                            IntensityMode.RPE -> it.copy(
++                                                intensityMode = mode,
++                                                isFailure = false,
++                                                isAmrap = false,
++                                                targetRIR = null,
++                                                targetRPE = it.targetRPE ?: 8.0,
++                                            )
++                                            else -> it
++                                        }
++                                    }
++                                },
++                                label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
++                                colors = FilterChipDefaults.filterChipColors(
++                                    selectedContainerColor = if (mode == IntensityMode.FAILURE) Color(0xFFFF5252).copy(alpha = 0.2f) else sessionAccentColor.copy(alpha = 0.2f),
++                                    selectedLabelColor = if (mode == IntensityMode.FAILURE) Color(0xFFFF5252) else sessionAccentColor,
++                                ),
++                            )
+                         }
+                     }
+                     if (set.intensityMode != IntensityMode.FAILURE) {
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutEditingRules.kt b/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutEditingRules.kt
+index 3c7d8c2c..9c3fc76d 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutEditingRules.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutEditingRules.kt
+@@ -213,7 +213,8 @@ object WorkoutEditingRules {
+                 targetRepsRange = null,
+                 targetDuration = null,
+                 plannedTargetV2 = null,
+-                targetPercentageRM = (set.targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0),
++                targetPercentageRM = (set.targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0)
++                    .let { kotlin.math.round(it * 100.0) / 100.0 },
+                 isAmrap = false,
+             )
+             TrainingMode.SOLO_RPE -> set.copy(
+@@ -259,11 +260,14 @@ object WorkoutEditingRules {
+                 isFailure = true,
+             )
+         } else when (mode) {
++            // RM prescrito por %RM: la intensidad de esfuerzo se reporta en vivo
++            // (RPE/RIR/Fallo). No forzar LOAD ni borrar la elecci├│n del usuario.
+             TrainingMode.RM -> metricNormalized.copy(
+-                intensityMode = IntensityMode.LOAD,
+-                targetRPE = null,
+-                targetRIR = null,
+-                isFailure = false,
++                intensityMode = when (metricNormalized.intensityMode) {
++                    IntensityMode.LOAD -> null
++                    IntensityMode.SOLO_RM -> null
++                    else -> metricNormalized.intensityMode
++                },
+             )
+             TrainingMode.SOLO_RPE -> metricNormalized.copy(
+                 intensityMode = IntensityMode.RPE,
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutSessionHydrator.kt b/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutSessionHydrator.kt
+index 0aa326d4..c69c49ab 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutSessionHydrator.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutSessionHydrator.kt
+@@ -409,11 +409,11 @@ class WorkoutSessionHydrator(
+             sessionProgress = 0.0,
+         )
+         val lastLog = repository.history.value.firstOrNull { it.programId == programId && it.id != sessionId }
+-        val lastDiscomforts = lastLog?.postExerciseReports
+-            ?.flatMap { it.discomfortIds }
++        // Solo molestias marcadas como a├║n presentes (no resueltas) en la sesi├│n pasada.
++        val lastDiscomforts = lastLog?.stillPresentDiscomfortIds
+             ?.filter { it != "none" }
+             ?.distinct()
+-            ?: emptyList()
++            .orEmpty()
+         if (lastDiscomforts.isNotEmpty()) {
+             updateState { it.copy(previousSessionDiscomforts = lastDiscomforts) }
+         }
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutSessionOverlaysHost.kt b/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutSessionOverlaysHost.kt
+index afaa81a4..f7a5ebe5 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutSessionOverlaysHost.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutSessionOverlaysHost.kt
+@@ -393,18 +393,21 @@ internal fun WorkoutSessionOverlaysHost(
+     val currentExerciseForAlert = remember(uiState.currentExerciseIdx, visibleExercises) {
+         visibleExercises.getOrNull(uiState.currentExerciseIdx)
+     }
+-    val persistentDiscomfortLabel = remember(currentExerciseForAlert?.id) {
++    val persistentHit = remember(currentExerciseForAlert?.id) {
+         currentExerciseForAlert?.let { viewModel.persistentDiscomfortForExercise(it) }
+     }
++    val bannerCoveredIds = uiState.previousSessionDiscomforts.toSet()
+     var dismissedPersistentDiscomfortExercise by remember { mutableStateOf<String?>(null) }
+-    val showPersistentDiscomfortAlert = persistentDiscomfortLabel != null &&
++    val showPersistentDiscomfortAlert = persistentHit != null &&
++        persistentHit.id !in bannerCoveredIds &&
+         dismissedPersistentDiscomfortExercise != currentExerciseForAlert?.id &&
+         !showReadinessSheet &&
+         !uiState.showPostExerciseSheet &&
+-        !uiState.showFinishSheet
++        !uiState.showFinishSheet &&
++        !showMobilityBanner
+ 
+     if (showPersistentDiscomfortAlert && currentExerciseForAlert != null) {
+-        val discomfortLabel = persistentDiscomfortLabel ?: ""
++        val discomfortLabel = persistentHit?.label.orEmpty()
+         KpknGlassDialog(
+             onDismissRequest = { dismissedPersistentDiscomfortExercise = currentExerciseForAlert.id },
+             shape = RoundedCornerShape(KpknGlass.DialogCornerRadius),
+@@ -421,7 +424,7 @@ internal fun WorkoutSessionOverlaysHost(
+                     textAlign = TextAlign.Center,
+                 )
+                 Text(
+-                    "En este ejercicio reportaste $persistentDiscomfortLabel. " +
++                    "En este ejercicio reportaste $discomfortLabel. " +
+                         "Preoc├║pate por hacer una correcta t├®cnica y manejar cargas adecuadas para ti. " +
+                         "Si la molestia persiste en el tiempo, te recomendamos que cambies de ejercicio y " +
+                         "que te asesores con un kinesi├│logo.",
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutStepNavigator.kt b/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutStepNavigator.kt
+index 28626f8c..8131f578 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutStepNavigator.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutStepNavigator.kt
+@@ -32,7 +32,8 @@ class WorkoutStepNavigator(
+             preferredSide: String? = null,
+         ): WorkoutEditingState?
+         fun stopRestTimer()
+-        fun persistOngoingState()
++        /** Cursor-only moves should pass [immediate]=false to avoid main-thread runBlocking ANRs. */
++        fun persistOngoingState(immediate: Boolean = true)
+         suspend fun persistOngoingStateAndAwait()
+         fun refreshLoadSuggestions(state: WorkoutUiState)
+         fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?)
+@@ -317,7 +318,6 @@ class WorkoutStepNavigator(
+     }
+ 
+     fun selectExercise(idx: Int) {
+-        if (getState().showPostExerciseSheet) return
+         ports.stopRestTimer()
+         val state = getState()
+         val targetExercise = ports.visibleExercises(state).getOrNull(idx)
+@@ -332,12 +332,14 @@ class WorkoutStepNavigator(
+                 pendingRestSuggestion = null,
+                 restModalState = null,
+                 postExerciseFeedbackTarget = null,
++                showPostExerciseSheet = false,
++                postExerciseTargetIdx = -1,
+                 editingState = ports.buildEditingStateForPosition(it.completedSets, targetExercise, targetSetIdx),
+                 continuityTransitionTarget = null,
+                 continuityFeedbackExerciseId = null,
+             )
+         }
+-        ports.persistOngoingState()
++        ports.persistOngoingState(immediate = false)
+         ports.speakCurrentStepAnnouncementIfEnabled()
+     }
+ 
+@@ -362,7 +364,7 @@ class WorkoutStepNavigator(
+                     continuityFeedbackExerciseId = null,
+                 )
+             }
+-            ports.persistOngoingState()
++            ports.persistOngoingState(immediate = false)
+             if (shouldShowFeedback && state.voiceSessionEnabled) {
+                 ports.announceFinalPostExerciseFeedback(feedbackTarget.unrecordedFeedbackExerciseIds(state))
+             } else if (!shouldShowFeedback) {
+@@ -402,7 +404,7 @@ class WorkoutStepNavigator(
+                     )
+                 }
+                 if (state.voiceSessionEnabled) {
+-                    ports.persistOngoingState()
++                    ports.persistOngoingState(immediate = false)
+                     ports.announcePostExerciseFeedback(feedbackTarget.unrecordedFeedbackExerciseIds(state))
+                     return
+                 }
+@@ -438,7 +440,7 @@ class WorkoutStepNavigator(
+                 )
+             }
+         }
+-        ports.persistOngoingState()
++        ports.persistOngoingState(immediate = false)
+         ports.speakCurrentStepAnnouncementIfEnabled()
+     }
+ 
+@@ -477,11 +479,11 @@ class WorkoutStepNavigator(
+                 continuityFeedbackExerciseId = null,
+             )
+         }
+-        ports.persistOngoingState()
++        ports.persistOngoingState(immediate = false)
+     }
+ 
+     fun selectWorkoutStep(stepKey: String) {
+-        if (getState().showPostExerciseSheet || stepKey.isBlank()) return
++        if (stepKey.isBlank()) return
+         val state = getState()
+         val visible = ports.visibleExercises(state)
+         val targetStep = workoutStepPositions(state).firstOrNull { it.stepKey == stepKey } ?: return
+@@ -499,6 +501,9 @@ class WorkoutStepNavigator(
+                 currentAutoRegulation = null,
+                 pendingRestSuggestion = null,
+                 restModalState = null,
++                showPostExerciseSheet = false,
++                postExerciseTargetIdx = -1,
++                postExerciseFeedbackTarget = null,
+                 editingState = if (targetStep.type == WorkoutStepType.WORKING_SET) {
+                     ports.buildEditingStateForPosition(it.completedSets, targetExercise, position.second)
+                 } else {
+@@ -508,7 +513,8 @@ class WorkoutStepNavigator(
+                 continuityFeedbackExerciseId = null,
+             )
+         }
+-        ports.persistOngoingState()
++        // Cursor navigation only ÔÇö never block main on Room (ANR on Siguiente / rail taps).
++        ports.persistOngoingState(immediate = false)
+     }
+ 
+     fun navigateAdjacentWorkingStep(forward: Boolean) {
+@@ -604,7 +610,7 @@ class WorkoutStepNavigator(
+                 continuityTransitionTarget = null,
+             )
+         }
+-        ports.persistOngoingState()
++        ports.persistOngoingState(immediate = false)
+     }
+ 
+     fun prevSet() {
+@@ -628,7 +634,7 @@ class WorkoutStepNavigator(
+                 continuityTransitionTarget = null,
+             )
+         }
+-        ports.persistOngoingState()
++        ports.persistOngoingState(immediate = false)
+         ports.speakCurrentStepAnnouncementIfEnabled()
+     }
+ 
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutUiModels.kt b/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutUiModels.kt
+index c985f566..c0c18732 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutUiModels.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutUiModels.kt
+@@ -4,6 +4,12 @@ import com.example.kpkn.data.models.*
+ import com.example.kpkn.services.workout.VoiceSessionState
+ import com.example.kpkn.screens.sessioneditor.CatalogSupersetConfig
+ 
++/** Molestia repetida ÔëÑN sesiones en el mismo ejercicio/patr├│n. */
++data class PersistentDiscomfortHit(
++    val id: String,
++    val label: String,
++)
++
+ data class PendingReplacementPersistencePrompt(
+     val exerciseId: String,
+     val replacement: ExerciseMuscleInfo,
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutV2Body.kt b/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutV2Body.kt
+index 0db7432a..1f824e55 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutV2Body.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutV2Body.kt
+@@ -1121,38 +1121,51 @@ internal fun WorkoutV2Body(
+                                 val isActivePage = page == pagerState.settledPage
+                                 val activeSet = targetExercise.sets.getOrNull(activeSetIndex) ?: currentSetForUi
+                                 val cardSide = pageSpec.side ?: (if (targetIsUnilateral) activeSide else null)
+-                                val activeGhostSet = remember(targetExercise.id, activeSetIndex, uiState.exerciseTags[targetExercise.id]) {
+-                                    viewModel.getGhostForSet(
+-                                        exerciseId = targetExercise.id,
+-                                        setIdx = activeSetIndex,
+-                                        exerciseDbId = targetExercise.exerciseDbId ?: targetExercise.exerciseId,
+-                                        activeTag = uiState.exerciseTags[targetExercise.id],
+-                                    )
+-                                }
+-                                val baseWeightSuggestion = viewModel.getWeightSuggestionWithAutoRegulation(
+-                                    targetExercise,
++                                val activeGhostSet = remember(
++                                    isActivePage,
++                                    targetExercise.id,
+                                     activeSetIndex,
+                                     uiState.exerciseTags[targetExercise.id],
+-                                )
+-                                val calibratedWorkingWeight = if (activeSetIndex == 0) {
+-                                    viewModel.getCalibratedWorkingWeight(
+-                                        exercise = targetExercise,
+-                                        baseWorkingWeightKg = baseWeightSuggestion?.suggestedWeight,
++                                ) {
++                                    if (!isActivePage) {
++                                        null
++                                    } else {
++                                        viewModel.getGhostForSet(
++                                            exerciseId = targetExercise.id,
++                                            setIdx = activeSetIndex,
++                                            exerciseDbId = targetExercise.exerciseDbId ?: targetExercise.exerciseId,
++                                            activeTag = uiState.exerciseTags[targetExercise.id],
++                                        )
++                                    }
++                                }
++                                val activeWeightSuggestion = if (!isActivePage) {
++                                    null
++                                } else {
++                                    val baseWeightSuggestion = viewModel.getWeightSuggestionWithAutoRegulation(
++                                        targetExercise,
++                                        activeSetIndex,
+                                         activeTag = uiState.exerciseTags[targetExercise.id],
+                                     )
+-                                } else {
+-                                    null
+-                                }
+-                                val activeWeightSuggestion = baseWeightSuggestion?.let { suggestion ->
+-                                    calibratedWorkingWeight?.let { calibratedWeight ->
+-                                        suggestion.copy(
+-                                            suggestedWeight = calibratedWeight,
+-                                            reason = viewModel.getWarmupCalibrationNote(
+-                                                exercise = targetExercise,
+-                                                workingWeightAnchor = suggestion.suggestedWeight,
+-                                            ) ?: suggestion.reason,
++                                    val calibratedWorkingWeight = if (activeSetIndex == 0) {
++                                        viewModel.getCalibratedWorkingWeight(
++                                            exercise = targetExercise,
++                                            baseWorkingWeightKg = baseWeightSuggestion?.suggestedWeight,
++                                            activeTag = uiState.exerciseTags[targetExercise.id],
+                                         )
+-                                    } ?: suggestion
++                                    } else {
++                                        null
++                                    }
++                                    baseWeightSuggestion?.let { suggestion ->
++                                        calibratedWorkingWeight?.let { calibratedWeight ->
++                                            suggestion.copy(
++                                                suggestedWeight = calibratedWeight,
++                                                reason = viewModel.getWarmupCalibrationNote(
++                                                    exercise = targetExercise,
++                                                    workingWeightAnchor = suggestion.suggestedWeight,
++                                                ) ?: suggestion.reason,
++                                            )
++                                        } ?: suggestion
++                                    }
+                                 }
+                                 val sessionCompletedSet = uiState.completedSets[
+                                     if (targetIsUnilateral) {
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutViewModel.kt b/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutViewModel.kt
+index 7a0a814d..c34e2d73 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutViewModel.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutViewModel.kt
+@@ -400,7 +400,8 @@ class WorkoutViewModel(
+                 override fun buildEditingStateForPosition(completedSets: Map<String, CompletedSet>, exercise: Exercise?, setIdx: Int, preferredSide: String?) =
+                     this@WorkoutViewModel.buildEditingStateForPosition(completedSets, exercise, setIdx, preferredSide)
+                 override fun stopRestTimer() = this@WorkoutViewModel.stopRestTimer()
+-                override fun persistOngoingState() = this@WorkoutViewModel.persistOngoingState()
++                override fun persistOngoingState(immediate: Boolean) =
++                    this@WorkoutViewModel.persistOngoingState(immediate = immediate)
+                 override suspend fun persistOngoingStateAndAwait() = this@WorkoutViewModel.persistOngoingStateAndAwait()
+                 override fun refreshLoadSuggestions(state: WorkoutUiState) = loadSuggestionController.refreshLoadSuggestions(state)
+                 override fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?) = this@WorkoutViewModel.clearDraftForSet(exerciseId, setIdx, side)
+@@ -882,10 +883,11 @@ class WorkoutViewModel(
+         }
+     }
+ 
+-    private fun applyStoredPacingAlertModeIfNeeded() {
+-        val stored = appContext.getSharedPreferences("workout_prefs", Context.MODE_PRIVATE)
+-            .getString("pacing_alert_mode", null)
+-            ?: return
++    private suspend fun applyStoredPacingAlertModeIfNeeded() {
++        val stored = withContext(Dispatchers.IO) {
++            appContext.getSharedPreferences("workout_prefs", Context.MODE_PRIVATE)
++                .getString("pacing_alert_mode", null)
++        } ?: return
+         val mode = PacingAlertMode.fromStored(stored)
+         if (_uiState.value.pacingAlertMode != mode) {
+             pacingController.setPacingAlertMode(mode)
+@@ -4822,52 +4824,58 @@ class WorkoutViewModel(
+     /**
+      * Analiza el historial (m├ís reciente primero) buscando la misma molestia
+      * reportada en al menos [minConsecutiveSessions] sesiones consecutivas que
+-     * contengan este ejercicio/patr├│n de movimiento. Devuelve el label de la
+-     * molestia persistente, o null si no hay patr├│n.
++     * contengan este ejercicio/patr├│n de movimiento.
++     *
++     * Prioriza `stillPresentDiscomfortIds` (molestia no resuelta) frente a
++     * `discomfortIds` crudos del reporte.
+      */
+     fun persistentDiscomfortForExercise(
+         exercise: Exercise,
+         minConsecutiveSessions: Int = 3,
+-    ): String? {
++    ): PersistentDiscomfortHit? {
+         val matchKeys = buildSet {
+             exercise.exerciseId?.let(::add)
+             exercise.exerciseDbId?.let(::add)
+             exercise.canonicalExerciseId?.let(::add)
+             exercise.relativeToCanonicalExerciseId?.let(::add)
+         }
++        fun idsForLog(log: com.example.kpkn.data.models.WorkoutLog): Set<String> {
++            val reports = log.postExerciseReports.filter { report ->
++                report.discomfortIds.any { it != "none" } &&
++                    (
++                        report.exerciseId in matchKeys ||
++                            report.canonicalExerciseId in matchKeys ||
++                            report.exerciseDbId in matchKeys
++                        )
++            }
++            if (reports.isEmpty()) return emptySet()
++            val reported = reports.flatMap { it.discomfortIds }.filter { it != "none" }.toSet()
++            if (reported.isEmpty()) return emptySet()
++            // Preferir molestias marcadas como a├║n presentes al cerrar la sesi├│n.
++            val still = log.stillPresentDiscomfortIds.filter { it != "none" }.toSet()
++            if (still.isNotEmpty()) {
++                val overlap = still.intersect(reported)
++                if (overlap.isNotEmpty()) return overlap
++            }
++            return reported
++        }
+         val sessionsWithDiscomfort = repository.history.value
+             .sortedByDescending { it.date }
+-            .mapNotNull { log ->
+-                val reports = log.postExerciseReports.filter { report ->
+-                    report.discomfortIds.isNotEmpty() &&
+-                        (
+-                            report.exerciseId in matchKeys ||
+-                                report.canonicalExerciseId in matchKeys ||
+-                                report.exerciseDbId in matchKeys
+-                            )
+-                }
+-                if (reports.isEmpty()) null else reports
+-            }
++            .mapNotNull { log -> idsForLog(log).takeIf { it.isNotEmpty() } }
+         if (sessionsWithDiscomfort.isEmpty()) return null
+ 
+-        // Contar concurrencia consecutiva (la sesi├│n m├ís reciente primero).
+         val firstSessionDiscomforts = sessionsWithDiscomfort.first()
+-            .flatMap { it.discomfortIds }
+-            .filter { it != "none" }
+-            .toSet()
+-        if (firstSessionDiscomforts.isEmpty()) return null
+         val consecutive = firstSessionDiscomforts.mapNotNull { discomfortId ->
+             var count = 1
+             for (next in sessionsWithDiscomfort.drop(1)) {
+-                val ids = next.flatMap { it.discomfortIds }.filter { it != "none" }.toSet()
+-                if (discomfortId in ids) count++ else break
++                if (discomfortId in next) count++ else break
+             }
+             if (count >= minConsecutiveSessions) discomfortId else null
+         }
+         if (consecutive.isEmpty()) return null
+-        return consecutive.firstNotNullOfOrNull { id ->
+-            DISCOMFORT_CATALOG.find { it.id == id }?.label ?: id
+-        }
++        val id = consecutive.first()
++        val label = DISCOMFORT_CATALOG.find { it.id == id }?.label ?: id
++        return PersistentDiscomfortHit(id = id, label = label)
+     }
+ 
+     fun latestCompletedSessionSnapshot(): WorkoutShareSnapshot? {
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/workout/components/SetExecutionCard.kt b/android-native/app/src/main/java/com/example/kpkn/screens/workout/components/SetExecutionCard.kt
+index be575b29..a56924e0 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/workout/components/SetExecutionCard.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/workout/components/SetExecutionCard.kt
+@@ -770,31 +770,39 @@ internal fun SetInputCardV2(
+     // Null is meaningful here: the author explicitly left intensity unapplied.
+     // Keep the live card free of an RPE/RIR control in that case; perceived
+     // intensity is collected by the post-exercise feedback slider instead.
++    // IntensityMode.LOAD under TrainingMode.RM is a legacy marker, not effort reporting.
++    val isRmLoadPrescription = exercise.trainingMode == TrainingMode.RM ||
++        (currentSet.intensityMode == IntensityMode.LOAD && currentSet.targetPercentageRM != null)
++    fun effortIntensityMode(mode: IntensityMode?): IntensityMode? =
++        if (mode == IntensityMode.LOAD && isRmLoadPrescription) null else mode
+     val plannedIntensityMode: IntensityMode? = when {
+         plannedAmrap -> IntensityMode.AMRAP
+-        currentSet.intensityMode != null -> currentSet.intensityMode
++        effortIntensityMode(currentSet.intensityMode) != null -> effortIntensityMode(currentSet.intensityMode)
+         currentSet.targetRIR != null -> IntensityMode.RIR
+         currentSet.targetRPE != null -> IntensityMode.RPE
+-        currentSet.targetPercentageRM != null -> IntensityMode.SOLO_RM
+         currentSet.isFailure -> IntensityMode.FAILURE
+-        currentSet.leftTarget?.intensityMode != null -> currentSet.leftTarget?.intensityMode
+-        currentSet.rightTarget?.intensityMode != null -> currentSet.rightTarget?.intensityMode
++        !isRmLoadPrescription && currentSet.targetPercentageRM != null -> IntensityMode.SOLO_RM
++        effortIntensityMode(currentSet.leftTarget?.intensityMode) != null -> effortIntensityMode(currentSet.leftTarget?.intensityMode)
++        effortIntensityMode(currentSet.rightTarget?.intensityMode) != null -> effortIntensityMode(currentSet.rightTarget?.intensityMode)
+         currentSet.leftTarget?.targetRIR != null || currentSet.rightTarget?.targetRIR != null -> IntensityMode.RIR
+         currentSet.leftTarget?.targetRPE != null || currentSet.rightTarget?.targetRPE != null -> IntensityMode.RPE
+         else -> null
+     }
++    val hasEffortReportingModes = plannedIntensityMode in setOf(
++        IntensityMode.RPE,
++        IntensityMode.RIR,
++        IntensityMode.FAILURE,
++        IntensityMode.AMRAP,
++        IntensityMode.SOLO_RM,
++        IntensityMode.LOAD,
++    )
+     val hasPlannedIntensityInput = currentSet.targetRPE != null ||
+         currentSet.targetRIR != null ||
+-        currentSet.targetPercentageRM != null ||
+         currentSet.isFailure ||
+         plannedAmrap ||
+-        currentSet.intensityMode in setOf(
+-            IntensityMode.RPE,
+-            IntensityMode.RIR,
+-            IntensityMode.FAILURE,
+-            IntensityMode.AMRAP,
+-            IntensityMode.SOLO_RM,
+-        ) ||
++        hasEffortReportingModes ||
++        isRmLoadPrescription ||
++        (!isRmLoadPrescription && currentSet.targetPercentageRM != null) ||
+         currentSet.leftTarget?.targetRPE != null ||
+         currentSet.leftTarget?.targetRIR != null ||
+         currentSet.rightTarget?.targetRPE != null ||
+@@ -1073,14 +1081,39 @@ internal fun SetInputCardV2(
+             }
+         }
+     }
++    fun resolveDefaultReportedIntensityMode(): IntensityMode? = when {
++        sessionCompletedSet?.actualIntensityMode == IntensityMode.RIR -> IntensityMode.RIR
++        sessionCompletedSet?.actualIntensityMode == IntensityMode.RPE -> IntensityMode.RPE
++        sessionCompletedSet?.actualIntensityMode == IntensityMode.FAILURE -> IntensityMode.FAILURE
++        currentSet.targetRIR != null || plannedIntensityMode == IntensityMode.RIR -> IntensityMode.RIR
++        plannedIntensityMode == IntensityMode.FAILURE -> IntensityMode.FAILURE
++        plannedIntensityMode == IntensityMode.RPE -> IntensityMode.RPE
++        isRmLoadPrescription -> IntensityMode.RPE
++        else -> plannedIntensityMode
++    }
+     var reportedIntensityMode by remember(exercise.id, setIndex, sessionCompletedSet?.id) {
+-        mutableStateOf(
+-            when {
+-                sessionCompletedSet?.actualIntensityMode == IntensityMode.RIR -> IntensityMode.RIR
+-                currentSet.targetRIR != null || plannedIntensityMode == IntensityMode.RIR -> IntensityMode.RIR
+-                else -> plannedIntensityMode
++        mutableStateOf(resolveDefaultReportedIntensityMode())
++    }
++    LaunchedEffect(
++        currentSet.intensityMode,
++        currentSet.targetRPE,
++        currentSet.targetRIR,
++        currentSet.isFailure,
++        plannedIntensityMode,
++        isRmLoadPrescription,
++    ) {
++        if (sessionCompletedSet != null) return@LaunchedEffect
++        val next = resolveDefaultReportedIntensityMode()
++        if (next != reportedIntensityMode) {
++            reportedIntensityMode = next
++            intensityText = when (next) {
++                IntensityMode.RIR -> (currentSet.targetRIR ?: 2).toString()
++                IntensityMode.RPE -> (currentSet.targetRPE ?: 8.0).toTrimmedNumberString()
++                IntensityMode.FAILURE -> ""
++                else -> intensityText
+             }
+-        )
++            reachedFailure = next == IntensityMode.FAILURE && currentSet.isFailure
++        }
+     }
+     fun intensityStep(): Double =
+         if (reportedIntensityMode == IntensityMode.RIR) 1.0 else if (plannedIntensityMode == IntensityMode.FAILURE) 1.0 else 0.5
+@@ -1239,17 +1272,19 @@ internal fun SetInputCardV2(
+     }
+     val plannedValueLabel = if (isTimeMode) "Tiempo" else "Reps"
+     val expectedIntensityLabel = when {
+-        currentSet.targetPercentageRM != null -> "%RM a trabajar"
+         plannedAmrap || isAmrap -> "AMRAP"
+         plannedIntensityMode == IntensityMode.FAILURE -> "FALLO"
+         plannedIntensityMode == IntensityMode.RIR -> "RIR"
++        plannedIntensityMode == IntensityMode.RPE -> "RPE"
++        isRmLoadPrescription -> "RPE"
+         else -> "RPE"
+     }
+     val expectedIntensityValue = when {
+-        currentSet.targetPercentageRM != null -> "${currentSet.targetPercentageRM.toInt()}%"
+         plannedAmrap || isAmrap -> "AMRAP"
+         plannedIntensityMode == IntensityMode.FAILURE -> "F"
+         plannedIntensityMode == IntensityMode.RIR -> activePlannedRir?.toString() ?: "-"
++        plannedIntensityMode == IntensityMode.RPE -> activePlannedRpe?.toTrimmedNumberString() ?: "-"
++        isRmLoadPrescription -> "-"
+         else -> activePlannedRpe?.toTrimmedNumberString() ?: "-"
+     }
+     val plannedIntensityDisplayLabel = if (plannedIntensityMode == IntensityMode.FAILURE && !reachedFailure) {
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/workout/components/WorkoutCommandDock.kt b/android-native/app/src/main/java/com/example/kpkn/screens/workout/components/WorkoutCommandDock.kt
+index 85067f93..e3fa286a 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/workout/components/WorkoutCommandDock.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/workout/components/WorkoutCommandDock.kt
+@@ -301,4 +301,3 @@ private fun rememberVoicePulse(enabled: Boolean): Pair<Float, Float> {
+     )
+     return pulseScale to pulseAlpha
+ }
+-
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/workout/components/WorkoutWarmupOverlay.kt b/android-native/app/src/main/java/com/example/kpkn/screens/workout/components/WorkoutWarmupOverlay.kt
+index ee91154f..74808194 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/workout/components/WorkoutWarmupOverlay.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/workout/components/WorkoutWarmupOverlay.kt
+@@ -1047,4 +1047,3 @@ private fun formatWarmupPercent(raw: Double): String {
+ }
+ 
+ private fun Double.roundToStep(step: Double): Double = (this / step).roundToInt() * step
+-
+diff --git a/android-native/app/src/test/java/com/example/kpkn/navigation/DeepLinkRouterTest.kt b/android-native/app/src/test/java/com/example/kpkn/navigation/DeepLinkRouterTest.kt
+index 0ef573d2..50aa8137 100644
+--- a/android-native/app/src/test/java/com/example/kpkn/navigation/DeepLinkRouterTest.kt
++++ b/android-native/app/src/test/java/com/example/kpkn/navigation/DeepLinkRouterTest.kt
+@@ -86,6 +86,18 @@ class DeepLinkRouterTest {
+         assertEquals(KpknRoute.Settings.route, DeepLinkRouter.resolve(Uri.parse("kpkn://settings/diagnostics"))?.route)
+     }
+ 
++    @Test
++    fun resolvesLiveWorkoutRoute() {
++        assertEquals(
++            KpknRoute.Workout.create("live-visual-prog", "live-visual-sess"),
++            DeepLinkRouter.resolve(Uri.parse("kpkn://workout/live-visual-prog/live-visual-sess"))?.route,
++        )
++        assertEquals(
++            KpknRoute.Training.route,
++            DeepLinkRouter.resolve(Uri.parse("kpkn://workout/only-program"))?.route,
++        )
++    }
++
+     @Test
+     fun rejectsNonKpknOrInvalidLinks() {
+         val otherHost = DeepLinkRouter.resolve(Uri.parse("https://example.com/nutrition"))
+diff --git a/android-native/app/src/test/java/com/example/kpkn/screens/workout/PlannedIntensityPolicyTest.kt b/android-native/app/src/test/java/com/example/kpkn/screens/workout/PlannedIntensityPolicyTest.kt
+index 5ac19ba0..5d9708f5 100644
+--- a/android-native/app/src/test/java/com/example/kpkn/screens/workout/PlannedIntensityPolicyTest.kt
++++ b/android-native/app/src/test/java/com/example/kpkn/screens/workout/PlannedIntensityPolicyTest.kt
+@@ -144,6 +144,35 @@ class PlannedIntensityPolicyTest {
+         assertFalse(exerciseHasPlannedIntensity(Exercise(id = "plain", name = "Press", sets = listOf(ExerciseSet(id = "plain-set", targetReps = 8)))))
+     }
+ 
++    @Test
++    fun rm_live_normalization_preserves_effort_intensity_and_clears_legacy_load() {
++        val withRpe = WorkoutEditingRules.normalizeLiveEditedSet(
++            mode = com.example.kpkn.data.models.TrainingMode.RM,
++            set = ExerciseSet(
++                id = "rm-rpe",
++                targetReps = 5,
++                targetPercentageRM = 80.0,
++                intensityMode = IntensityMode.RPE,
++                targetRPE = 8.0,
++            ),
++        )
++        val legacyLoad = WorkoutEditingRules.normalizeLiveEditedSet(
++            mode = com.example.kpkn.data.models.TrainingMode.RM,
++            set = ExerciseSet(
++                id = "rm-load",
++                targetReps = 5,
++                targetPercentageRM = 75.0,
++                intensityMode = IntensityMode.LOAD,
++            ),
++        )
++
++        assertEquals(IntensityMode.RPE, withRpe.intensityMode)
++        assertEquals(8.0, withRpe.targetRPE)
++        assertEquals(80.0, withRpe.targetPercentageRM)
++        assertEquals(null, legacyLoad.intensityMode)
++        assertEquals(75.0, legacyLoad.targetPercentageRM)
++    }
++
+     @Test
+     fun load_and_amrap_modes_do_not_require_an_rpe_input() {
+         val load = Exercise(id = "load", name = "Load", sets = listOf(ExerciseSet(id = "load-set", intensityMode = IntensityMode.LOAD)))
+diff --git a/android-native/app/src/test/java/com/example/kpkn/screens/workout/WorkoutFinishSheetEntryTest.kt b/android-native/app/src/test/java/com/example/kpkn/screens/workout/WorkoutFinishSheetEntryTest.kt
+index 3f9638a2..615f0255 100644
+--- a/android-native/app/src/test/java/com/example/kpkn/screens/workout/WorkoutFinishSheetEntryTest.kt
++++ b/android-native/app/src/test/java/com/example/kpkn/screens/workout/WorkoutFinishSheetEntryTest.kt
+@@ -19,13 +19,20 @@ class WorkoutFinishSheetEntryTest {
+         val source = viewModelFile.readText()
+         val trueAssignments = Regex("""showFinishSheet\s*=\s*true""")
+             .findAll(source)
+-            .count()
++            .toList()
+ 
+-        // Single writer inside openFinishSheet().
++        // Both resume and fresh-finish paths live inside openFinishSheet().
+         assertEquals(
+-            "Expected exactly one `showFinishSheet = true` assignment (openFinishSheet).",
+-            1,
+-            trueAssignments,
++            "Expected exactly two `showFinishSheet = true` assignments inside openFinishSheet.",
++            2,
++            trueAssignments.size,
+         )
++        val openFinishIdx = source.indexOf("private fun openFinishSheet()")
++        require(openFinishIdx >= 0) { "openFinishSheet() not found" }
++        trueAssignments.forEach { match ->
++            assert(match.range.first > openFinishIdx) {
++                "Found showFinishSheet = true outside openFinishSheet() at ${match.range.first}"
++            }
++        }
+     }
+ }
+diff --git a/android-native/app/src/test/java/com/example/kpkn/screens/workout/WorkoutStepNavigatorNavigationTest.kt b/android-native/app/src/test/java/com/example/kpkn/screens/workout/WorkoutStepNavigatorNavigationTest.kt
+index 4350daf9..bfc90f2b 100644
+--- a/android-native/app/src/test/java/com/example/kpkn/screens/workout/WorkoutStepNavigatorNavigationTest.kt
++++ b/android-native/app/src/test/java/com/example/kpkn/screens/workout/WorkoutStepNavigatorNavigationTest.kt
+@@ -49,7 +49,7 @@ class WorkoutStepNavigatorNavigationTest {
+                     stopCalls += 1
+                     state = state.copy(isRestTimerRunning = false)
+                 }
+-                override fun persistOngoingState() = Unit
++                override fun persistOngoingState(immediate: Boolean) = Unit
+                 override suspend fun persistOngoingStateAndAwait() = Unit
+                 override fun refreshLoadSuggestions(state: WorkoutUiState) = Unit
+                 override fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?) = Unit
+diff --git a/android-native/app/src/test/java/com/example/kpkn/screens/workout/WorkoutStepNavigatorResumeTest.kt b/android-native/app/src/test/java/com/example/kpkn/screens/workout/WorkoutStepNavigatorResumeTest.kt
+index d677e7ec..cc2217fc 100644
+--- a/android-native/app/src/test/java/com/example/kpkn/screens/workout/WorkoutStepNavigatorResumeTest.kt
++++ b/android-native/app/src/test/java/com/example/kpkn/screens/workout/WorkoutStepNavigatorResumeTest.kt
+@@ -59,7 +59,7 @@ class WorkoutStepNavigatorResumeTest {
+                     preferredSide: String?,
+                 ): WorkoutEditingState? = null
+                 override fun stopRestTimer() = Unit
+-                override fun persistOngoingState() = Unit
++                override fun persistOngoingState(immediate: Boolean) = Unit
+                 override suspend fun persistOngoingStateAndAwait() = Unit
+                 override fun refreshLoadSuggestions(state: WorkoutUiState) = Unit
+                 override fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?) = Unit
+@@ -166,7 +166,7 @@ class WorkoutStepNavigatorResumeTest {
+                     completedSets.containsKey("${exerciseId}_$setIdx")
+                 override fun buildEditingStateForPosition(completedSets: Map<String, CompletedSet>, exercise: Exercise?, setIdx: Int, preferredSide: String?) = null
+                 override fun stopRestTimer() = Unit
+-                override fun persistOngoingState() = Unit
++                override fun persistOngoingState(immediate: Boolean) = Unit
+                 override suspend fun persistOngoingStateAndAwait() = Unit
+                 override fun refreshLoadSuggestions(state: WorkoutUiState) = Unit
+                 override fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?) = Unit

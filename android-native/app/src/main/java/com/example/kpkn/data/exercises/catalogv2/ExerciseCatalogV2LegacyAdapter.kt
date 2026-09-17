@@ -5,6 +5,7 @@ import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.domain.exercises.EmphasisEngine
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
+import com.example.kpkn.domain.exercises.catalogv2.CatalogDisplayNames
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseDefinitionV2
 import com.example.kpkn.domain.exercises.catalogv2.ResolvedExerciseMetadataV2
@@ -27,6 +28,7 @@ fun ExerciseCatalogV2.toLegacyDefaultCatalog(): List<ExerciseMuscleInfo> =
                     familyId = family.id,
                     catalogRevision = catalogRevision,
                     configuration = configuration,
+                    siblingConfigurations = definition.configurations,
                 )
             }
         }
@@ -40,6 +42,7 @@ internal fun ExerciseDefinitionV2.toLegacyInfo(
     catalogRevision: String,
     configuration: ExerciseConfigurationV2,
     legacyId: String = id,
+    siblingConfigurations: List<ExerciseConfigurationV2> = configurations,
 ): ExerciseMuscleInfo {
     val profile = configuration.profile
     fun involved(muscleId: String, role: MuscleRole): InvolvedMuscle =
@@ -62,7 +65,10 @@ internal fun ExerciseDefinitionV2.toLegacyInfo(
     }
     return ExerciseMuscleInfo(
         id = legacyId,
-        name = canonicalName,
+        // Nombre verbatim del catálogo (plan 2026-09-16): canonicalName de la
+        // definición, sin composición. Los matices de configuración se exponen
+        // como chips (catalogVariantChips), nunca como texto del nombre.
+        name = canonicalName.trim(),
         alias = searchTerms.joinToString(", ").ifBlank { null },
         // The resolved profile owns the description for the exact selected
         // configuration. Fall back to the parent prose only for old/draft
@@ -142,6 +148,13 @@ fun ExerciseCatalogV2.toLegacyConfigurationLookup(): Map<String, ExerciseMuscleI
             }
         }
         .associateBy { it.id.lowercase() }
+
+/**
+ * Índice configurationId → canonicalName verbatim de la definición.
+ */
+fun ExerciseCatalogV2.toConfigurationDisplayNameLookup(): Map<String, String> =
+    CatalogDisplayNames.buildDisplayNameIndex(this)
+
 private fun muscleLabel(id: String): String? = mapOf(
     "pectoralis" to "Pectorales",
     "deltoid" to "Deltoides",

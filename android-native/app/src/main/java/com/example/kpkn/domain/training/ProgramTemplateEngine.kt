@@ -14,6 +14,7 @@ object ProgramTemplateEngine {
 
     enum class ApplyStrategy {
         REPLACE_STRUCTURE,
+        REPLACE_ALL,
         CREATE_DRAFT_COPY,
     }
 
@@ -32,19 +33,27 @@ object ProgramTemplateEngine {
             }
         }
 
-    fun resolveApplyStrategy(program: Program, forceCopy: Boolean = false): ApplyStrategy =
-        if (forceCopy || hasSessionContent(program)) ApplyStrategy.CREATE_DRAFT_COPY
-        else ApplyStrategy.REPLACE_STRUCTURE
+    fun resolveApplyStrategy(
+        program: Program,
+        forceCopy: Boolean = false,
+        forceReplace: Boolean = false,
+    ): ApplyStrategy =
+        when {
+            forceReplace -> ApplyStrategy.REPLACE_ALL
+            forceCopy || hasSessionContent(program) -> ApplyStrategy.CREATE_DRAFT_COPY
+            else -> ApplyStrategy.REPLACE_STRUCTURE
+        }
 
     fun applyTemplate(
         current: Program,
         template: ProgramTemplateOption,
         forceCopy: Boolean = false,
+        forceReplace: Boolean = false,
         idProvider: IdProvider = UuidIdProvider,
         applySplitPrefill: Boolean = true,
         generationTemplates: List<SessionTemplate>? = null,
     ): ApplyResult {
-        val strategy = resolveApplyStrategy(current, forceCopy)
+        val strategy = resolveApplyStrategy(current, forceCopy, forceReplace)
         val trackKey = template.trackLabel?.trim()?.lowercase()
         val draft = template.buildProgramDraft(
             when (strategy) {
@@ -52,6 +61,12 @@ object ProgramTemplateEngine {
                     id = idProvider.newId(),
                     name = "${current.name} · ${template.name}",
                     isDraft = true,
+                )
+                ApplyStrategy.REPLACE_ALL -> current.copy(
+                    isDraft = false,
+                    runState = null,
+                    loopState = null,
+                    loopOccurrences = emptyList(),
                 )
                 ApplyStrategy.REPLACE_STRUCTURE -> current
             },

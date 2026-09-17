@@ -1,0 +1,7 @@
+{
+  "programId": "live-visual-prog",
+  "sessionId": "live-visual-sess",
+  "weekId": "live-visual-week",
+  "route": "workout/live-visual-prog/live-visual-sess",
+  "deepLinkHint": "kpkn://workout/live-visual-prog/live-visual-sess"
+}

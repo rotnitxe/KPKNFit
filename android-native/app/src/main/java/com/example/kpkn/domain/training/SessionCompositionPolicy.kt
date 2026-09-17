@@ -508,6 +508,22 @@ object SessionCompositionPolicy {
         if (t1 != null && t2 != null && t1.first.lift.configurationId == t2.first.lift.configurationId && t2.first.technique == null) {
             findings += soft("S3", scope, "T2 usa el mismo ejercicio que T1 sin variante")
         }
+        // D5 del plan 2026-09-16: hallazgo SOFT que reporta slots deliberados
+        // con la misma configuración y la misma técnica en un día, sin
+        // bloquear. La fidelidad de protocolo es ley: variantes con técnica
+        // distinta (PHAT speed vs T1) quedan exentas porque producen nombres
+        // visibles distintos.
+        val seenSlots = mutableSetOf<Pair<String, String?>>()
+        resolved.forEach { (slot, _, _) ->
+            val key = slot.lift.configurationId.trim().lowercase() to slot.technique?.name
+            if (key.first.isNotBlank() && !seenSlots.add(key)) {
+                findings += soft(
+                    "S_duplicate_slot",
+                    scope,
+                    "Slot duplicado: '${slot.lift.configurationId}' con la misma técnica en el mismo día",
+                )
+            }
+        }
         return findings
     }
 

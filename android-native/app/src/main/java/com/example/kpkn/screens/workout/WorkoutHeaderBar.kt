@@ -160,7 +160,11 @@ internal fun WorkoutChronometer(
 
     val hasLimit = sessionTimeRemainingSeconds != null
     val displayRemaining = sessionTimeRemainingSeconds ?: 0
-    val isExceeded = hasLimit && displayRemaining < 0
+    val isExceeded = hasLimit && (
+        pacingAlertMessage == SessionTimeCues.EXHAUSTED ||
+            coachPaceAlert == "excedido" ||
+            (currentTargetMinutes?.takeIf { it > 0 }?.let { elapsedSeconds >= it * 60 } == true)
+    )
     val liveTargetMinutes = currentTargetMinutes?.takeIf { it > 0 }
     val resolvedTargetMinutes = liveTargetMinutes
         ?: if (hasLimit) {
@@ -608,6 +612,7 @@ internal fun WorkoutHeaderBar(
     onNicknameChange: ((String) -> Unit)? = null,
     onCreateSupersetClick: (() -> Unit)? = null,
     bodyHazeState: HazeState? = null,
+    protocolLabel: String? = null,
 ) {
     val headerScale = headerCompactScale()
     fun cs(dp: androidx.compose.ui.unit.Dp): androidx.compose.ui.unit.Dp = dp * headerScale
@@ -712,6 +717,7 @@ internal fun WorkoutHeaderBar(
                     }
                     Text(
                         text = buildString {
+                            if (!protocolLabel.isNullOrBlank()) append("$protocolLabel · ")
                             if (!groupName.isNullOrBlank()) append("$groupName · ")
                             append(sessionName)
                         },

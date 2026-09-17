@@ -5,6 +5,7 @@ import com.example.kpkn.data.models.AspectOption
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.protocols.displayName as techniqueDisplayName
 
 /** Snapshot of user display nicknames. Updated from Settings; never mutate the catalog asset. */
 object ExerciseNicknameResolver {
@@ -24,6 +25,10 @@ data class ExerciseDisplayParts(
  * Builds the user-facing name from the canonical parent and the selected
  * non-default technical options. Defaults are intentionally omitted to keep
  * compact surfaces readable.
+ *
+ * Recipe slots carry their technique in variantName/techniqueModifier/
+ * relationshipNotes (never in Exercise.name); those surface here as chips so
+ * the technique remains visible next to the verbatim catalog name.
  */
 fun exerciseDisplayParts(
     exercise: Exercise,
@@ -35,11 +40,12 @@ fun exerciseDisplayParts(
         nicknameKey = exercise.nicknameKey(),
         nicknames = nicknames,
     )
+    val technique = recipeTechniqueLabel(exercise)
     val v2Chips = catalogInfo?.catalogVariantChips.orEmpty()
     if (v2Chips.isNotEmpty()) {
         return ExerciseDisplayParts(
             parentName = parentName,
-            chips = dedupeChips(v2Chips).filterNot(::isDisplayNoiseChip),
+            chips = dedupeChips((listOfNotNull(technique) + v2Chips)).filterNot(::isDisplayNoiseChip),
         )
     }
     val selected = exercise.selectedAspects.orEmpty()
@@ -54,9 +60,25 @@ fun exerciseDisplayParts(
         ?.takeUnless { value -> options.any { it.name.equals(value, ignoreCase = true) } }
     return ExerciseDisplayParts(
         parentName = parentName,
-        chips = dedupeChips(options.map { it.name } + listOfNotNull(legacyVariant))
+        chips = dedupeChips(listOfNotNull(technique) + options.map { it.name } + listOfNotNull(legacyVariant))
             .filterNot(::isDisplayNoiseChip),
     )
+}
+
+/**
+ * Recipe technique label for display chips. Only recipe fields are read:
+ * catalog-backed sessions always carry variantName (mirroring
+ * techniqueModifier), so a populated legacy variantName on a catalog
+ * exercise must never invent display text.
+ */
+private fun recipeTechniqueLabel(exercise: Exercise): String? {
+    val technique = exercise.techniqueModifier?.techniqueDisplayName()?.trim().orEmpty()
+    if (technique.isNotBlank()) return technique
+    if (exercise.catalogConfigurationId.isNullOrBlank()) {
+        val legacy = exercise.variantName?.trim().orEmpty()
+        if (legacy.isNotBlank()) return legacy
+    }
+    return null
 }
 
 private fun isDisplayNoiseChip(chip: String): Boolean = when (chip.trim().lowercase()) {

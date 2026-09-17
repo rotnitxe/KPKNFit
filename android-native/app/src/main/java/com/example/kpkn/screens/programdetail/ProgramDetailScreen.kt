@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramCalendarizationMode
@@ -98,6 +99,9 @@ fun ProgramDetailScreen(
 
     LaunchedEffect(programId) {
         viewModel.loadFeedbacks(context)
+        viewModel.attachSnapshotStore(
+            com.example.kpkn.domain.training.ProgramSnapshotStore.getInstance(context),
+        )
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -192,6 +196,12 @@ fun ProgramDetailScreen(
                 spinalBattery = augeSnapshot.ringScore(RecoveryChannelId.STRUCTURE),
                 isVolumeCalibrated = p.volumeRecommendations.isNotEmpty() && p.athleteProfileScore != null,
                 blockProgressLabel = viewModel.blockProgressLabel(),
+                protocolLabel = remember(p.sourceProtocolId) {
+                    p.sourceProtocolId?.let { id ->
+                        com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.firstOrNull { it.id == id }
+                            ?.let { "${it.emoji} ${it.name}" }
+                    }
+                },
                 onBack = onBack,
                 onStartPause = { viewModel.toggleStartPause() },
                 onTitleDescriptionChange = { name, description ->
@@ -395,6 +405,8 @@ fun ProgramDetailScreen(
     if (showTmEditor) {
         TrainingMaxWizard(
             initial = p.powerliftingProfile,
+            autoEstimate = viewModel.estimatedTmProfile(),
+            trainingMaxPercent = p.sourceRecipe?.trainingMaxPercent ?: 0.90,
             confirmLabel = "Guardar TM",
             onDismiss = { showTmEditor = false },
             onConfirm = { profile ->
@@ -634,11 +646,11 @@ private fun TrainingPanel(
                         Column(horizontalAlignment = Alignment.End) {
                             if (banner.requiresExplicitConfirmation) {
                                 if (banner.pendingType == PendingProgramActionType.CONFIRM_AUTOREGULATION) {
-                                    TextButton(onClick = { viewModel.acceptAutoregulation() }) {
-                                        Text("ACEPTAR AUGE")
-                                    }
-                                    TextButton(onClick = { viewModel.rejectAutoregulation() }) {
-                                        Text("RECHAZAR")
+                                    TextButton(onClick = {
+                                        viewModel.acceptAutoregulation()
+                                        viewModel.setStructureSubTab(StructureSubTab.SEMANA)
+                                    }) {
+                                        Text("VER PROPUESTA")
                                     }
                                 } else if (banner.kind == BlockTransitionEngine.DecisionKind.INSERT_DELOAD) {
                                     TextButton(onClick = { viewModel.acceptPendingDeload() }) {
@@ -673,15 +685,16 @@ private fun TrainingPanel(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        AutoregulationControlCard(
-            program = program,
-            onModeChange = { viewModel.setAutoregulationMode(it) },
-            onAccept = { viewModel.acceptAutoregulation() },
-            onAcceptProposal = { viewModel.acceptAutoregulation(it) },
-            onReject = { viewModel.rejectAutoregulation() },
-            onOpenTm = onOpenTmEditor,
-            onRematerialize = { viewModel.rematerializePending() },
-        )
+        if (structureSubTab == StructureSubTab.SEMANA) {
+            AutoregulationProposalsCard(
+                program = program,
+                onAccept = { viewModel.acceptAutoregulation() },
+                onAcceptProposal = { viewModel.acceptAutoregulation(it) },
+                onReject = { viewModel.rejectAutoregulation() },
+                onOpenTm = onOpenTmEditor,
+                onRematerialize = { viewModel.rematerializePending() },
+            )
+        }
 
         if (structureSubTab == StructureSubTab.SEMANA) {
             TextButton(
@@ -749,7 +762,16 @@ private fun TrainingPanel(
                 onUpdateProgram = { viewModel.updateProgram(it) },
                 onFocusWeek = ::focusWeek,
                 onCreateSessionForWeek = ::createSessionForWeek,
-                onApplyProgramTemplate = viewModel::applyProgramTemplate,
+                onApplyProgramTemplate = { viewModel.applyProgramTemplate(it) },
+                onApplyProgramTemplateOverwrite = { template, overwrite ->
+                    viewModel.applyProgramTemplate(template, overwrite)
+                },
+                onApplyProtocol = { protocol, overwrite ->
+                    viewModel.applyProtocolOverwrite(protocol, overwrite)
+                },
+                programSnapshots = viewModel.programSnapshots.collectAsStateWithLifecycle().value,
+                onRestoreProgramSnapshot = { viewModel.restoreProgramSnapshot(it) },
+                onRefreshProgramSnapshots = { viewModel.refreshProgramSnapshots() },
                 showSimpleCalendarizationSheet = showSimpleCalendarizationSheet,
                 onShowSimpleCalendarizationSheetChange = { viewModel.setShowSimpleCalendarizationSheet(it) },
                 calendarizationStartDate = calendarizationStartDate,
@@ -1194,16 +1216,14 @@ private fun locateCompetitionWeekDay(program: Program, keyDate: ProgramKeyDate):
 }
 
 @Composable
-private fun AutoregulationControlCard(
+private fun AutoregulationProposalsCard(
     program: Program,
-    onModeChange: (com.example.kpkn.data.models.AutoregulationMode) -> Unit,
     onAccept: () -> Unit,
     onAcceptProposal: (com.example.kpkn.data.models.AutoregulationProposal) -> Unit,
     onReject: () -> Unit,
     onOpenTm: () -> Unit,
     onRematerialize: () -> Unit,
 ) {
-    val mode = program.autoregulationMode
     val pending = program.runState?.pendingAction
     val hasAutoregPending = pending?.type == PendingProgramActionType.CONFIRM_AUTOREGULATION
     val needsRematerialize = program.macrocycles.any { macro ->
@@ -1211,7 +1231,8 @@ private fun AutoregulationControlCard(
     }
     val tm = program.powerliftingProfile
     val recipe = program.sourceRecipe
-    if (recipe == null && tm == null && !hasAutoregPending && !needsRematerialize) return
+    val usesTm = recipe?.let { usesTrainingMax(it) } ?: (tm != null)
+    if (!usesTm && !hasAutoregPending && !needsRematerialize) return
 
     Card(
         modifier = Modifier
@@ -1220,32 +1241,21 @@ private fun AutoregulationControlCard(
         colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
     ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("AUTORREGULACIÓN AUGE", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color.White.copy(alpha = 0.55f))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(
-                    selected = mode == com.example.kpkn.data.models.AutoregulationMode.PROPOSE,
-                    onClick = { onModeChange(com.example.kpkn.data.models.AutoregulationMode.PROPOSE) },
-                    label = { Text("PROPONER") },
-                )
-                FilterChip(
-                    selected = mode == com.example.kpkn.data.models.AutoregulationMode.AUTO,
-                    onClick = { onModeChange(com.example.kpkn.data.models.AutoregulationMode.AUTO) },
-                    label = { Text("AUTO") },
-                )
-                FilterChip(
-                    selected = mode == com.example.kpkn.data.models.AutoregulationMode.OFF,
-                    onClick = { onModeChange(com.example.kpkn.data.models.AutoregulationMode.OFF) },
-                    label = { Text("OFF") },
-                )
+            if (usesTm) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        "TM: SQ ${tm?.squatTM?.let { "%.0f".format(it) } ?: "—"} · BP ${tm?.benchTM?.let { "%.0f".format(it) } ?: "—"} · DL ${tm?.deadliftTM?.let { "%.0f".format(it) } ?: "—"}",
+                        fontSize = 12.sp,
+                        color = Color.White.copy(alpha = 0.75f),
+                        modifier = Modifier.weight(1f),
+                    )
+                    TextButton(onClick = onOpenTm) { Text("EDITAR") }
+                }
             }
-            if (tm != null) {
-                Text(
-                    "TM: SQ ${tm.squatTM?.let { "%.1f".format(it) } ?: "—"} · BP ${tm.benchTM?.let { "%.1f".format(it) } ?: "—"} · DL ${tm.deadliftTM?.let { "%.1f".format(it) } ?: "—"}",
-                    fontSize = 12.sp,
-                    color = Color.White.copy(alpha = 0.75f),
-                )
-            }
-            TextButton(onClick = onOpenTm) { Text("EDITAR TRAINING MAX") }
             if (hasAutoregPending) {
                 Text(pending.message, fontSize = 13.sp, color = Color.White.copy(alpha = 0.85f))
                 pending.proposals.forEach { proposal ->
@@ -1270,6 +1280,14 @@ private fun AutoregulationControlCard(
             }
         }
     }
+}
+
+private fun usesTrainingMax(recipe: com.example.kpkn.data.protocols.TrainingPlanRecipe): Boolean {
+    if (recipe.autoregulationHooks.any { it.kind == com.example.kpkn.data.protocols.AutoregulationHookKind.AMRAP_TM }) return true
+    val progression = recipe.progression
+    return progression is com.example.kpkn.data.protocols.ProgressionRule.RepMaxAutoregulated ||
+        progression is com.example.kpkn.data.protocols.ProgressionRule.AmrapDrivenTm ||
+        progression is com.example.kpkn.data.protocols.ProgressionRule.RepTargetDrivenTm
 }
 
 private fun parseIsoDate(raw: String?): LocalDate? =

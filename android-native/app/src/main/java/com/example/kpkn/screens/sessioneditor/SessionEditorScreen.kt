@@ -686,6 +686,7 @@ fun SessionEditorScreen(
                 SessionHero(
                     session = session,
                     latestBodyMeasurement = uiState.latestBodyMeasurement,
+                    protocolLabel = uiState.protocolLabel,
                     onNameChange = viewModel::updateSessionName,
                     onDescriptionChange = viewModel::updateSessionDescription,
                     onMeetBodyweightChange = viewModel::updateSessionMeetBodyweight,

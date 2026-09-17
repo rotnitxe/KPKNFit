@@ -9,6 +9,7 @@ import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
 import com.example.kpkn.data.protocols.CatalogIds
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
+import com.example.kpkn.data.protocols.displayName
 import com.example.kpkn.data.sessions.SESSION_TEMPLATES_SYSTEM
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateFocusCategory
@@ -98,6 +99,10 @@ class SessionTemplateCatalogTest {
 
     @Test
     fun systemTemplateNamesMatchDatabase() {
+        val derivedIndex = com.example.kpkn.domain.exercises.catalogv2.CatalogDisplayNames
+            .buildDisplayNameIndex(
+                ExerciseCatalogV2Loader.decodeApproved(findCatalogFile().readText()),
+            )
         SESSION_TEMPLATES_SYSTEM.forEach { template ->
             val exercises = template.session.exercises + template.session.parts.flatMap { it.exercises }
             exercises.forEach { exercise ->
@@ -112,8 +117,68 @@ class SessionTemplateCatalogTest {
                     "El nombre '${exercise.name}' en la plantilla '${template.name}' no puede quedar vacío",
                     exercise.name.isNotBlank() && official!!.name.isNotBlank(),
                 )
+                val configurationId = exercise.catalogConfigurationId?.trim().orEmpty()
+                val expected = derivedIndex[configurationId] ?: derivedIndex[configurationId.lowercase()]
+                assertNotNull(
+                    "Configuración '$configurationId' sin nombre derivado en '${template.id}'",
+                    expected,
+                )
+                // El nombre almacenado es el canonical verbatim del catálogo;
+                // la técnica de receta viaja en variantName/techniqueModifier/
+                // relationshipNotes y se muestra como chip en display, nunca
+                // como texto del nombre.
+                assertEquals(
+                    "El nombre '${exercise.name}' en '${template.id}' debe ser el canonical verbatim del catálogo",
+                    expected,
+                    exercise.name,
+                )
             }
         }
+    }
+
+    @Test
+    fun systemTemplatesHaveNoDuplicateCatalogConfigurations() {
+        val offenders = SESSION_TEMPLATES_SYSTEM.mapNotNull { template ->
+            val seen = mutableSetOf<String>()
+            val dupes = template.session.allExercises()
+                .mapNotNull { it.catalogConfigurationId?.trim()?.lowercase() }
+                .filter { !seen.add(it) }
+                .distinct()
+            dupes.takeIf { it.isNotEmpty() }?.let { "${template.id}: $it" }
+        }
+        assertTrue(
+            "Plantillas con configuración duplicada: $offenders",
+            offenders.isEmpty(),
+        )
+        val p0Dupes = SessionTemplateQualityRules.p0Violations(
+            SESSION_TEMPLATES_SYSTEM,
+            exerciseIndexWithAliases,
+        ).flatMap { report ->
+            report.p0.filter { it.code == "DUPLICATE_CATALOG_CONFIGURATION" }
+                .map { "${report.templateId}: ${it.message}" }
+        }
+        assertTrue(
+            "DUPLICATE_CATALOG_CONFIGURATION sin corregir: $p0Dupes",
+            p0Dupes.isEmpty(),
+        )
+    }
+
+    @Test
+    fun v3CompilerNeverUsesColdStartFallback() {
+        val coldStartMarkers = SESSION_TEMPLATES_SYSTEM.flatMap { template ->
+            template.session.allExercises().mapNotNull { exercise ->
+                val name = exercise.name.trim()
+                if (name.equals("Ejercicio de catálogo", ignoreCase = true)) {
+                    "${template.id}/${exercise.catalogConfigurationId}: fallback genérico"
+                } else {
+                    null
+                }
+            }
+        }
+        assertTrue(
+            "El compilador V3 usó el fallback de cold-start: $coldStartMarkers",
+            coldStartMarkers.isEmpty(),
+        )
     }
 
     @Test

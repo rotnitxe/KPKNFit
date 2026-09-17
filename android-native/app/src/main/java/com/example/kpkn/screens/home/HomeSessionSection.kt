@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.adapt
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.kpkn.data.exercises.displayNameWithSelectedChips
 import com.example.kpkn.data.exercises.exerciseCatalogReady
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
@@ -39,6 +40,7 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.LoadAdvisory
 import com.example.kpkn.data.models.LoadAdvisoryLevel
 import com.example.kpkn.data.models.MuscleRecoveryStatus
+import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TodaySessionItem
@@ -49,6 +51,7 @@ import com.example.kpkn.domain.auge.LoadAdvisoryEngine
 import com.example.kpkn.domain.auge.SessionMuscleFilter
 import com.example.kpkn.domain.auge.getAugeMuscleDisplayId
 import com.example.kpkn.domain.auge.lookupMuscleValue
+import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
 import com.example.kpkn.domain.training.CompetitionHomePhase
 import com.example.kpkn.domain.training.HomeCompetitionState
 import com.example.kpkn.screens.sessioneditor.components.SessionBackgroundLayer
@@ -206,7 +209,6 @@ private fun SessionCard(
     onEdit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isToday = item.isToday
     val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()
     val isCatalogReady by exerciseCatalogReady.collectAsStateWithLifecycle()
 
@@ -244,22 +246,6 @@ private fun SessionCard(
                         .background(Color.Black.copy(alpha = 0.3f)),
                 )
 
-                Surface(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(12.dp),
-                    shape = RoundedCornerShape(50),
-                    color = Color.White.copy(alpha = 0.15f),
-                ) {
-                    Text(
-                        if (isToday && !item.isCompleted) "Sesión de hoy" else "Próxima sesión",
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        color = Color.White,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 1.sp,
-                    )
-                }
                 if (loadAdvisory != null &&
                     LoadAdvisoryEngine.rank(loadAdvisory.level) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.ADJUST)
                 ) {
@@ -528,14 +514,27 @@ private fun getSessionDurationDisplay(session: Session, log: WorkoutLog?): Strin
     if (log != null) {
         return "${log.durationMinutes} min promedio"
     }
-    
-    val exercises = session.exercises + session.parts.flatMap { it.exercises }
-    if (exercises.isEmpty()) return "Sin datos"
-    
-    val totalSets = exercises.sumOf { it.sets.size }
-    val estimatedMinutes = (totalSets * 3.5) + 10
-    
-    return "~${estimatedMinutes.toInt()} min"
+
+    val exercises = session.allExercises()
+    val breakdown = runCatching {
+        calculateSessionTimeBreakdown(
+            exercises = exercises,
+            supersetGroups = session.allSupersetGroups(),
+            sessionWarmup = session.warmup,
+            globalMobilitySeries = session.parts
+                .filter { it.isMobilityGroup }
+                .flatMap { it.mobilitySeries },
+        )
+    }.getOrNull()
+    val partFloorSeconds = session.parts.maxOfOrNull { part ->
+        maxOf(
+            (part.targetDurationMinutes ?: 0).coerceAtLeast(0),
+            (part.mobilityConfig?.totalMinutes ?: 0).coerceAtLeast(0),
+        ) * 60
+    } ?: 0
+    val estimatedSeconds = maxOf(breakdown?.totalSeconds ?: 0, partFloorSeconds)
+    if (estimatedSeconds <= 0) return "Sin datos"
+    return "~${(estimatedSeconds / 60.0).toInt().coerceAtLeast(1)} min"
 }
 
 @Composable
@@ -683,12 +682,19 @@ internal fun formatTodayPrescription(session: Session): String? {
         ?: session.allExercises().firstOrNull()
         ?: return null
     val working = main.sets.filter { !it.isEmptySlot }
-    if (working.isEmpty()) return main.name.takeIf { it.isNotBlank() }
+    if (working.isEmpty()) return main.displayNameWithSelectedChips().takeIf { it.isNotBlank() }
     val reps = working.first().targetRepsRange?.format()
         ?: working.first().targetReps?.toString()
         ?: "—"
     val percent = working.first().targetPercentageRM
     val rpe = working.mapNotNull { it.targetRPE }.firstOrNull()
+    val rir = working.mapNotNull { it.targetRIR }.firstOrNull()
+    val amrapSet = working.firstOrNull {
+        it.isAmrap || it.intensityMode == IntensityMode.AMRAP
+    }
+    val failurePlanned = working.any {
+        it.isFailure || it.intensityMode == IntensityMode.FAILURE
+    }
     val kg = working.first().weight
         ?: percent?.let { p -> main.reference1RM?.let { rm -> rm * p / 100.0 } }
     val load = when {
@@ -697,9 +703,18 @@ internal fun formatTodayPrescription(session: Session): String? {
         percent != null -> "${percent.toInt()}%"
         else -> null
     }
-    val rpePart = rpe?.let { " RPE ${if (it % 1.0 == 0.0) it.toInt().toString() else it.toString()}" }.orEmpty()
+    val intensityPart = when {
+        amrapSet != null -> {
+            val minimum = amrapSet.targetRepsRange?.min ?: amrapSet.targetReps
+            " AMRAP" + (minimum?.let { " (mín. $it)" } ?: "")
+        }
+        failurePlanned -> " FALLO"
+        rir != null -> " RIR $rir"
+        rpe != null -> " RPE ${if (rpe % 1.0 == 0.0) rpe.toInt().toString() else rpe.toString()}"
+        else -> ""
+    }
     val loadPart = load?.let { " @ $it" }.orEmpty()
-    return "${main.name}: ${working.size}×$reps$loadPart$rpePart"
+    return "${main.displayNameWithSelectedChips()}: ${working.size}×$reps$loadPart$intensityPart"
 }
 
 internal fun axialHintsForSession(session: Session): List<AxialSessionExercise> =

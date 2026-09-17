@@ -412,20 +412,55 @@ object SplitApplicationEngine {
             } else {
                 emptyMap()
             }
+            // Fallback per-día enrutado por el sugeridor (plan 2026-09-16):
+            // hereda la penalización de diversidad entre días del mismo
+            // arquetipo en vez de elegir plantilla independientemente por día.
+            // El acumulador incluye las elecciones fallback previas (no solo
+            // las de suggestWeek) para que dos días fallback no repitan
+            // plantilla ni músculo principal.
+            val usedTemplateIds = mutableSetOf<String>()
+            val usedTemplates = mutableListOf<SessionTemplate>()
+            byDayIndex.values.forEach { used ->
+                if (used != null) {
+                    usedTemplateIds += used.id
+                    usedTemplates += used
+                }
+            }
             return normalizeMainSessions(
                 trainingDays.mapIndexed { index, day ->
                     val base = blankSession(day)
-                    val template = byDayIndex[index]
-                        ?: splitId?.let {
-                            SessionTemplateCatalogPolicy.templatesForSplitDay(
+                    val suggested = byDayIndex[index]
+                    val template = suggested ?: splitId?.let {
+                        SessionTemplateSuggestionEngine.suggestForDay(
+                            splitId = it,
+                            dayLabel = day.label,
+                            templates = templates,
+                            exerciseIndex = exerciseIndex,
+                            prefs = prefs.copy(
+                                preferredDifficulty = prefs.preferredDifficulty ?: split?.difficulty,
+                            ),
+                            excludeIds = usedTemplateIds,
+                            usedTemplates = usedTemplates,
+                        ) ?: run {
+                            val lastResort = SessionTemplateCatalogPolicy.templatesForSplitDay(
                                 splitId = it,
                                 dayLabel = day.label,
                                 templates = templates,
-                            ).firstOrNull { candidate ->
+                            )
+                            lastResort.firstOrNull { candidate ->
+                                candidate.id !in usedTemplateIds &&
+                                    (exerciseIndex.isEmpty() ||
+                                        SessionTemplateQualityRules.audit(candidate, exerciseIndex).p0.isEmpty())
+                            } ?: lastResort.firstOrNull { candidate ->
                                 exerciseIndex.isEmpty() ||
                                     SessionTemplateQualityRules.audit(candidate, exerciseIndex).p0.isEmpty()
                             }
                         }
+                    }
+                    if (template != null && suggested == null) {
+                        usedTemplateIds += template.id
+                        usedTemplates += template
+                    }
                     if (template == null) base
                     else SessionTemplateEngine.applyTemplate(template, base, SessionTemplateApplyMode.REPLACE).copy(
                         name = day.label,

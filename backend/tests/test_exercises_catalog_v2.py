@@ -66,7 +66,23 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
     def test_editorial_android_ios_artifacts_have_one_hash_and_revision(self) -> None:
         self.assertEqual(
             verify_shared_catalog_artifacts(),
-            "920eaa6e9b2da4abe91c7a7cc2e24894f1e37b68bf793ff753e7963f6afc8c67",
+            "d229f99ad5779d881cbf2f22d1d307d10d489a8b3bd747e0342b9d182dd95d6e",
+        )
+
+    def test_retired_decline_variants_are_absent_from_the_shared_catalog(self) -> None:
+        configuration_ids = {
+            configuration["id"]
+            for family in self.catalog["families"]
+            for definition in family["definitions"]
+            for configuration in definition["configurations"]
+        }
+        self.assertTrue(
+            {
+                "decline_bench_press__machine",
+                "decline_bench_press__cable",
+                "decline_chest_fly__machine",
+                "decline_chest_fly__cable",
+            }.isdisjoint(configuration_ids),
         )
 
     def test_reverse_fly_is_one_parent_with_explicit_machine_and_cable_configs(self) -> None:

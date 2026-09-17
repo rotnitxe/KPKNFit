@@ -1,0 +1,417 @@
+--------- beginning of main
+09-15 22:55:10.008  5705  5705 I om.example.kpkn: Late-enabling -Xcheck:jni
+09-15 22:55:10.048  5705  5705 I om.example.kpkn: Using CollectorTypeCMC GC.
+09-15 22:55:10.050  5705  5705 W om.example.kpkn: Unexpected CPU variant for x86: x86_64.
+09-15 22:55:10.050  5705  5705 W om.example.kpkn: Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, goldmont-without-sha-xsaves, tremont, kabylake, alderlake, default
+09-15 22:55:10.131  5705  5705 D nativeloader: Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
+09-15 22:55:10.408  5705  5705 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.extensions.jar
+09-15 22:55:10.408  5705  5705 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.sidecar.jar
+09-15 22:55:11.685  5705  5705 D nativeloader: Configuring clns-9 for other apk /data/app/~~kfJjkr2sdA0KSUcxlHbTXQ==/com.example.kpkn-D8mMnj9b6ziyXsz0QrH5lw==/base.apk. target_sdk_version=35, uses_libraries=, library_path=/data/app/~~kfJjkr2sdA0KSUcxlHbTXQ==/com.example.kpkn-D8mMnj9b6ziyXsz0QrH5lw==/lib/x86_64:/data/app/~~kfJjkr2sdA0KSUcxlHbTXQ==/com.example.kpkn-D8mMnj9b6ziyXsz0QrH5lw==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.example.kpkn
+09-15 22:55:11.700  5705  5705 D CompatChangeReporter: Compat change id reported: 202956589; UID 10219; state: ENABLED
+09-15 22:55:11.708  5705  5705 I om.example.kpkn: AssetManager2(0x71151800d758) locale list changing from [] to [en-US]
+09-15 22:55:11.722  5705  5705 V GraphicsEnvironment: Currently set values for:
+09-15 22:55:11.722  5705  5705 V GraphicsEnvironment:   angle_gl_driver_selection_pkgs=[]
+09-15 22:55:11.722  5705  5705 V GraphicsEnvironment:   angle_gl_driver_selection_values=[]
+09-15 22:55:11.722  5705  5705 V GraphicsEnvironment: com.example.kpkn is not listed in per-application setting
+09-15 22:55:11.722  5705  5705 V GraphicsEnvironment: ANGLE allowlist from config: com.dreamgames.royalmatch com.dts.freefiremax com.dxx.firenow com.gramgames.mergedragons com.ludo.king com.mojang.minecraftpe com.my.defense com.nintendo.zaka com.os.airforce com.playrix.fishdomdd.gplay io.teslatech.callbreak jp.konami.prospia net.peakgames.toonblast
+09-15 22:55:11.722  5705  5705 V GraphicsEnvironment: com.example.kpkn is not listed in ANGLE allowlist or settings, returning default
+09-15 22:55:11.722  5705  5705 V GraphicsEnvironment: Neither updatable production driver nor prerelease driver is supported.
+09-15 22:55:12.005  5705  5705 D CompatChangeReporter: Compat change id reported: 312399441; UID 10219; state: ENABLED
+09-15 22:55:12.055  5705  5705 D CompatChangeReporter: Compat change id reported: 279646685; UID 10219; state: ENABLED
+09-15 22:55:12.077  5705  5705 D WM-WrkMgrInitializer: Initializing WorkManager with default configuration.
+09-15 22:55:12.681  5705  5725 E ashmem  : Pinning is deprecated since Android Q. Please use trim or other methods.
+09-15 22:55:12.772  5705  5705 I om.example.kpkn: hiddenapi: Accessing hidden method Landroid/view/WindowManagerGlobal;->getInstance()Landroid/view/WindowManagerGlobal; (runtime_flags=0, domain=platform, api=unsupported) from Lcurtains/internal/WindowManagerSpy$windowManagerInstance$2; (domain=app) using reflection: allowed
+09-15 22:55:12.774  5705  5705 I om.example.kpkn: hiddenapi: Accessing hidden field Landroid/view/WindowManagerGlobal;->mViews:Ljava/util/ArrayList; (runtime_flags=0, domain=platform, api=unsupported) from Lcurtains/internal/WindowManagerSpy$mViewsField$2; (domain=app) using reflection: allowed
+09-15 22:55:12.777  5705  5705 I om.example.kpkn: hiddenapi: Accessing hidden field Landroid/app/ActivityThread;->mH:Landroid/app/ActivityThread$H; (runtime_flags=0, domain=platform, api=unsupported) from Lleakcanary/ServiceWatcher; (domain=app) using reflection: allowed
+09-15 22:55:12.778  5705  5705 I om.example.kpkn: hiddenapi: Accessing hidden method Landroid/app/ActivityThread;->currentActivityThread()Landroid/app/ActivityThread; (runtime_flags=0, domain=platform, api=unsupported) from Lleakcanary/ServiceWatcher$activityThreadInstance$2; (domain=app) using reflection: allowed
+09-15 22:55:12.778  5705  5705 I om.example.kpkn: hiddenapi: Accessing hidden field Landroid/os/Handler;->mCallback:Landroid/os/Handler$Callback; (runtime_flags=0, domain=platform, api=unsupported) from Lleakcanary/ServiceWatcher; (domain=app) using reflection: allowed
+09-15 22:55:12.780  5705  5705 I om.example.kpkn: hiddenapi: Accessing hidden field Landroid/util/Singleton;->mInstance:Ljava/lang/Object; (runtime_flags=0, domain=platform, api=unsupported) from Lleakcanary/ServiceWatcher; (domain=app) using reflection: allowed
+09-15 22:55:12.780  5705  5705 I om.example.kpkn: hiddenapi: Accessing hidden method Landroid/util/Singleton;->get()Ljava/lang/Object; (runtime_flags=0, domain=platform, api=unsupported) from Lleakcanary/ServiceWatcher; (domain=app) using reflection: allowed
+09-15 22:55:12.780  5705  5705 I om.example.kpkn: hiddenapi: Accessing hidden field Landroid/app/ActivityManager;->IActivityManagerSingleton:Landroid/util/Singleton; (runtime_flags=0, domain=platform, api=unsupported) from Lleakcanary/ServiceWatcher; (domain=app) using reflection: allowed
+09-15 22:55:13.243  5705  5705 I Choreographer: Skipped 69 frames!  The application may be doing too much work on its main thread.
+--------- beginning of system
+09-15 22:55:13.250  5705  5734 I DisplayManager: Choreographer implicitly registered for the refresh rate.
+09-15 22:55:13.261  5705  5705 I om.example.kpkn: AssetManager2(0x71151800da78) locale list changing from [] to [en-US]
+09-15 22:55:13.373  5705  5734 I EGL_emulation: Opening libGLESv1_CM_emulation.so
+09-15 22:55:13.377  5705  5734 I EGL_emulation: Opening libGLESv2_emulation.so
+09-15 22:55:13.390  5705  5734 W HWUI    : Failed to choose config with EGL_SWAP_BEHAVIOR_PRESERVED, retrying without...
+09-15 22:55:13.391  5705  5734 W HWUI    : Failed to initialize 101010-2 format, error = EGL_SUCCESS
+09-15 22:55:13.452  5705  5705 D CompatChangeReporter: Compat change id reported: 309578419; UID 10219; state: ENABLED
+09-15 22:55:13.456  5705  5705 D DesktopModeFlags: Toggle override initialized to: OVERRIDE_UNSET
+09-15 22:55:13.488  5705  5726 D LeakCanary: LeakCanary is running and ready to detect memory leaks.
+09-15 22:55:13.745  5705  5737 E SQLiteQuery: exception: Row too big to fit into CursorWindow requiredPos=2, totalRows=3; query: SELECT * FROM programs ORDER BY name ASC
+09-15 22:55:13.778  5705  5741 E ProgramRepository: loadFromDb failed
+09-15 22:55:13.778  5705  5741 E ProgramRepository: android.database.sqlite.SQLiteBlobTooBigException: Row too big to fit into CursorWindow requiredPos=2, totalRows=3
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at android.database.sqlite.SQLiteConnection.nativeExecuteForCursorWindow(Native Method)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at android.database.sqlite.SQLiteConnection.executeForCursorWindow(SQLiteConnection.java:1048)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at android.database.sqlite.SQLiteSession.executeForCursorWindow(SQLiteSession.java:873)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at android.database.sqlite.SQLiteQuery.fillWindow(SQLiteQuery.java:62)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at android.database.sqlite.SQLiteCursor.fillWindow(SQLiteCursor.java:153)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at android.database.sqlite.SQLiteCursor.onMove(SQLiteCursor.java:123)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at android.database.AbstractCursor.moveToPosition(AbstractCursor.java:269)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at android.database.AbstractCursor.moveToNext(AbstractCursor.java:301)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at androidx.room.driver.SupportSQLiteStatement$SupportAndroidSQLiteStatement.step(SupportSQLiteStatement.android.kt:183)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at com.example.kpkn.data.db.ProgramDao_Impl.getAll$lambda$1(ProgramDao_Impl.kt:67)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at com.example.kpkn.data.db.ProgramDao_Impl$$ExternalSyntheticLambda2.invoke(D8$$SyntheticClass:0)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invokeSuspend(DBUtil.kt:68)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:8)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:4)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at androidx.room.driver.SupportSQLiteConnectionPool.useConnection(SupportSQLiteConnectionPool.android.kt:42)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at androidx.room.RoomConnectionManager.useConnection(RoomConnectionManager.android.kt:126)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at androidx.room.RoomDatabase.useConnection$room_runtime_release(RoomDatabase.android.kt:593)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$$inlined$compatCoroutineExecute$DBUtil__DBUtil_androidKt$1.invokeSuspend(DBUtil.android.kt:113)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:101)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1156)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:651)
+09-15 22:55:13.778  5705  5741 E ProgramRepository: 	at java.lang.Thread.run(Thread.java:1119)
+09-15 22:55:13.981  5705  5705 D CompatChangeReporter: Compat change id reported: 352594277; UID 10219; state: ENABLED
+09-15 22:55:14.002  5705  5705 D CompatChangeReporter: Compat change id reported: 349153669; UID 10219; state: ENABLED
+09-15 22:55:14.017  5705  5705 I om.example.kpkn: hiddenapi: Accessing hidden field Lcom/android/internal/policy/DecorView;->mWindow:Lcom/android/internal/policy/PhoneWindow; (runtime_flags=0, domain=platform, api=unsupported) from Lcurtains/internal/WindowSpy$windowField$2; (domain=app) using reflection: allowed
+09-15 22:55:14.039  5705  5705 W HWUI    : Unknown dataspace 0
+09-15 22:55:14.070  5705  5705 D StrictMode: StrictMode policy violation; ~duration=654 ms: android.os.strictmode.DiskReadViolation
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onReadFromDisk(StrictMode.java:1728)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at libcore.io.BlockGuardOs.access(BlockGuardOs.java:74)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at libcore.io.ForwardingOs.access(ForwardingOs.java:128)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at android.app.ActivityThread$AndroidOs.access(ActivityThread.java:8944)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at java.io.UnixFileSystem.checkAccess(UnixFileSystem.java:332)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at java.io.File.exists(File.java:829)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at android.app.ContextImpl.getDataDir(ContextImpl.java:3347)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at android.app.ContextImpl.getPreferencesDir(ContextImpl.java:763)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at android.app.ContextImpl.getSharedPreferencesPath(ContextImpl.java:990)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at android.app.ContextImpl.getSharedPreferences(ContextImpl.java:605)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at com.example.kpkn.ui.locale.LocaleManager.getSavedLanguage(LocaleManager.kt:86)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at com.example.kpkn.ui.locale.LocaleManager.wrapContext(LocaleManager.kt:97)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at com.example.kpkn.MainActivity.attachBaseContext(MainActivity.kt:143)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at android.app.Activity.attach(Activity.java:9042)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:4231)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:4467)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:222)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeNonLifecycleItem(TransactionExecutor.java:133)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeTransactionItems(TransactionExecutor.java:103)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:80)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2823)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at android.os.Handler.dispatchMessage(Handler.java:110)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at android.os.Looper.loopOnce(Looper.java:248)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at android.os.Looper.loop(Looper.java:338)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at android.app.ActivityThread.main(ActivityThread.java:9067)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at java.lang.reflect.Method.invoke(Native Method)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
+09-15 22:55:14.070  5705  5705 D StrictMode: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
+09-15 22:55:14.073  5705  5705 D StrictMode: StrictMode policy violation; ~duration=654 ms: android.os.strictmode.DiskReadViolation
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onReadFromDisk(StrictMode.java:1728)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at libcore.io.BlockGuardOs.access(BlockGuardOs.java:74)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at libcore.io.ForwardingOs.access(ForwardingOs.java:128)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at android.app.ActivityThread$AndroidOs.access(ActivityThread.java:8944)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at java.io.UnixFileSystem.checkAccess(UnixFileSystem.java:332)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at java.io.File.exists(File.java:829)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at android.app.ContextImpl.ensurePrivateDirExists(ContextImpl.java:818)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at android.app.ContextImpl.ensurePrivateDirExists(ContextImpl.java:809)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at android.app.ContextImpl.getPreferencesDir(ContextImpl.java:765)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at android.app.ContextImpl.getSharedPreferencesPath(ContextImpl.java:990)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at android.app.ContextImpl.getSharedPreferences(ContextImpl.java:605)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at com.example.kpkn.ui.locale.LocaleManager.getSavedLanguage(LocaleManager.kt:86)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at com.example.kpkn.ui.locale.LocaleManager.wrapContext(LocaleManager.kt:97)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at com.example.kpkn.MainActivity.attachBaseContext(MainActivity.kt:143)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at android.app.Activity.attach(Activity.java:9042)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:4231)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:4467)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:222)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeNonLifecycleItem(TransactionExecutor.java:133)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeTransactionItems(TransactionExecutor.java:103)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:80)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2823)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at android.os.Handler.dispatchMessage(Handler.java:110)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at android.os.Looper.loopOnce(Looper.java:248)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at android.os.Looper.loop(Looper.java:338)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at android.app.ActivityThread.main(ActivityThread.java:9067)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at java.lang.reflect.Method.invoke(Native Method)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
+09-15 22:55:14.073  5705  5705 D StrictMode: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
+09-15 22:55:14.077  5705  5705 D StrictMode: StrictMode policy violation; ~duration=290 ms: android.os.strictmode.DiskReadViolation
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onReadFromDisk(StrictMode.java:1728)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at libcore.io.BlockGuardOs.access(BlockGuardOs.java:74)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at libcore.io.ForwardingOs.access(ForwardingOs.java:128)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at android.app.ActivityThread$AndroidOs.access(ActivityThread.java:8944)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at java.io.UnixFileSystem.checkAccess(UnixFileSystem.java:332)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at java.io.File.exists(File.java:829)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at android.app.ContextImpl.ensurePrivateDirExists(ContextImpl.java:818)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at android.app.ContextImpl.ensurePrivateDirExists(ContextImpl.java:809)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at android.app.ContextImpl.getFilesDir(ContextImpl.java:854)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at android.content.ContextWrapper.getFilesDir(ContextWrapper.java:288)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at com.example.kpkn.data.media.WorkoutMediaStore.<init>(WorkoutMediaStore.kt:16)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at com.example.kpkn.data.repository.WorkoutMediaRepository.<init>(WorkoutMediaRepository.kt:33)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at com.example.kpkn.data.repository.WorkoutMediaRepository$Companion.init(WorkoutMediaRepository.kt:155)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at com.example.kpkn.MainActivity.onCreate(MainActivity.kt:166)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at android.app.Activity.performCreate(Activity.java:9155)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at android.app.Activity.performCreate(Activity.java:9133)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at android.app.Instrumentation.callActivityOnCreate(Instrumentation.java:1521)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:4262)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:4467)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:222)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeNonLifecycleItem(TransactionExecutor.java:133)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeTransactionItems(TransactionExecutor.java:103)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:80)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2823)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at android.os.Handler.dispatchMessage(Handler.java:110)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at android.os.Looper.loopOnce(Looper.java:248)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at android.os.Looper.loop(Looper.java:338)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at android.app.ActivityThread.main(ActivityThread.java:9067)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at java.lang.reflect.Method.invoke(Native Method)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
+09-15 22:55:14.077  5705  5705 D StrictMode: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
+09-15 22:55:14.080  5705  5705 D StrictMode: StrictMode policy violation; ~duration=275 ms: android.os.strictmode.DiskReadViolation
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onReadFromDisk(StrictMode.java:1728)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at libcore.io.BlockGuardOs.access(BlockGuardOs.java:74)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at libcore.io.ForwardingOs.access(ForwardingOs.java:128)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at android.app.ActivityThread$AndroidOs.access(ActivityThread.java:8944)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at java.io.UnixFileSystem.checkAccess(UnixFileSystem.java:332)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at java.io.File.exists(File.java:829)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at android.app.ContextImpl.ensurePrivateDirExists(ContextImpl.java:818)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at android.app.ContextImpl.ensurePrivateDirExists(ContextImpl.java:809)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at android.app.ContextImpl.getFilesDir(ContextImpl.java:854)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at android.content.ContextWrapper.getFilesDir(ContextWrapper.java:288)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at com.example.kpkn.data.media.WorkoutMediaLegacyImporter.<init>(WorkoutMediaLegacyImporter.kt:37)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at com.example.kpkn.data.repository.WorkoutMediaRepository.<init>(WorkoutMediaRepository.kt:36)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at com.example.kpkn.data.repository.WorkoutMediaRepository.<init>(WorkoutMediaRepository.kt:30)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at com.example.kpkn.data.repository.WorkoutMediaRepository$Companion.init(WorkoutMediaRepository.kt:155)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at com.example.kpkn.MainActivity.onCreate(MainActivity.kt:166)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at android.app.Activity.performCreate(Activity.java:9155)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at android.app.Activity.performCreate(Activity.java:9133)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at android.app.Instrumentation.callActivityOnCreate(Instrumentation.java:1521)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:4262)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:4467)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:222)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeNonLifecycleItem(TransactionExecutor.java:133)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeTransactionItems(TransactionExecutor.java:103)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:80)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2823)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at android.os.Handler.dispatchMessage(Handler.java:110)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at android.os.Looper.loopOnce(Looper.java:248)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at android.os.Looper.loop(Looper.java:338)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at android.app.ActivityThread.main(ActivityThread.java:9067)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at java.lang.reflect.Method.invoke(Native Method)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
+09-15 22:55:14.080  5705  5705 D StrictMode: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
+09-15 22:55:14.081  5705  5705 D StrictMode: StrictMode policy violation; ~duration=275 ms: android.os.strictmode.DiskReadViolation
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onReadFromDisk(StrictMode.java:1728)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at libcore.io.BlockGuardOs.access(BlockGuardOs.java:74)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at libcore.io.ForwardingOs.access(ForwardingOs.java:128)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.app.ActivityThread$AndroidOs.access(ActivityThread.java:8944)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at java.io.UnixFileSystem.checkAccess(UnixFileSystem.java:332)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at java.io.File.exists(File.java:829)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.app.ContextImpl.ensurePrivateDirExists(ContextImpl.java:818)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.app.ContextImpl.ensurePrivateDirExists(ContextImpl.java:809)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.app.ContextImpl.getPreferencesDir(ContextImpl.java:765)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.app.ContextImpl.getSharedPreferencesPath(ContextImpl.java:990)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.app.ContextImpl.getSharedPreferences(ContextImpl.java:605)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.content.ContextWrapper.getSharedPreferences(ContextWrapper.java:223)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at com.example.kpkn.data.migrations.LegacyLearnPreferencesCleanup.clearOnce(LegacyLearnPreferencesCleanup.kt:18)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at com.example.kpkn.data.migrations.LegacyLearnPreferencesCleanupKt.clearLegacyLearnPreferencesOnce(LegacyLearnPreferencesCleanup.kt:32)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at com.example.kpkn.MainActivity.onCreate(MainActivity.kt:167)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.app.Activity.performCreate(Activity.java:9155)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.app.Activity.performCreate(Activity.java:9133)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.app.Instrumentation.callActivityOnCreate(Instrumentation.java:1521)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:4262)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:4467)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:222)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeNonLifecycleItem(TransactionExecutor.java:133)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeTransactionItems(TransactionExecutor.java:103)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:80)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2823)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.os.Handler.dispatchMessage(Handler.java:110)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.os.Looper.loopOnce(Looper.java:248)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.os.Looper.loop(Looper.java:338)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at android.app.ActivityThread.main(ActivityThread.java:9067)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at java.lang.reflect.Method.invoke(Native Method)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
+09-15 22:55:14.081  5705  5705 D StrictMode: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
+09-15 22:55:14.085  5705  5705 D StrictMode: StrictMode policy violation; ~duration=274 ms: android.os.strictmode.DiskReadViolation
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onReadFromDisk(StrictMode.java:1728)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at android.app.SharedPreferencesImpl.awaitLoadedLocked(SharedPreferencesImpl.java:283)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at android.app.SharedPreferencesImpl.getBoolean(SharedPreferencesImpl.java:352)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at com.example.kpkn.data.migrations.LegacyLearnPreferencesCleanup.clearOnce(LegacyLearnPreferencesCleanup.kt:19)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at com.example.kpkn.data.migrations.LegacyLearnPreferencesCleanupKt.clearLegacyLearnPreferencesOnce(LegacyLearnPreferencesCleanup.kt:32)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at com.example.kpkn.MainActivity.onCreate(MainActivity.kt:167)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at android.app.Activity.performCreate(Activity.java:9155)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at android.app.Activity.performCreate(Activity.java:9133)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at android.app.Instrumentation.callActivityOnCreate(Instrumentation.java:1521)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:4262)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:4467)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:222)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeNonLifecycleItem(TransactionExecutor.java:133)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.executeTransactionItems(TransactionExecutor.java:103)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:80)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2823)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at android.os.Handler.dispatchMessage(Handler.java:110)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at android.os.Looper.loopOnce(Looper.java:248)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at android.os.Looper.loop(Looper.java:338)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at android.app.ActivityThread.main(ActivityThread.java:9067)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at java.lang.reflect.Method.invoke(Native Method)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
+09-15 22:55:14.085  5705  5705 D StrictMode: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
+09-15 22:55:14.626  5705  5705 W om.example.kpkn: Verification of void androidx.compose.ui.platform.AndroidComposeView.<init>(android.content.Context, kotlin.coroutines.CoroutineContext) took 104.166ms (9331.25 bytecodes/s) (0B arena alloc)
+09-15 22:55:15.544  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5526KB AllocSpace bytes, 28(4844KB) LOS objects, 49% free, 16MB/33MB, paused 13.981ms,2.367ms total 152.666ms
+09-15 22:55:15.549  5705  5710 I om.example.kpkn: Compiler allocated 5042KB to compile void android.view.ViewRootImpl.performTraversals()
+09-15 22:55:16.117  5705  5705 I om.example.kpkn: hiddenapi: Accessing hidden method Landroid/os/SystemProperties;->addChangeCallback(Ljava/lang/Runnable;)V (runtime_flags=0, domain=platform, api=unsupported) from Landroidx/compose/ui/platform/AndroidComposeView$Companion; (domain=app) using reflection: allowed
+09-15 22:55:16.747  5705  5710 I om.example.kpkn: Compiler allocated 4806KB to compile void com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader.validateApprovedStructure(com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2)
+09-15 22:55:16.794  5705  5710 I om.example.kpkn: Compiler allocated 5051KB to compile void com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader.validateApprovedStructure(com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2)
+09-15 22:55:17.315  5705  5729 I om.example.kpkn: IncrementDisableThreadFlip blocked for 6.935ms
+09-15 22:55:17.379  5705  5711 I om.example.kpkn: Background concurrent mark compact GC freed 18MB AllocSpace bytes, 1(7896KB) LOS objects, 42% free, 32MB/56MB, paused 2.314ms,6.113ms total 190.570ms
+09-15 22:55:17.802  5705  5711 I om.example.kpkn: Background concurrent mark compact GC freed 14MB AllocSpace bytes, 11(4172KB) LOS objects, 29% free, 56MB/80MB, paused 3.246ms,4.389ms total 207.973ms
+09-15 22:55:18.490  5705  5711 I om.example.kpkn: Background concurrent mark compact GC freed 23MB AllocSpace bytes, 18(12MB) LOS objects, 32% free, 49MB/73MB, paused 3.615ms,4.546ms total 264.236ms
+09-15 22:55:18.504  5705  5705 W HWUI    : Image decoding logging dropped!
+09-15 22:55:18.816  5705  5715 I HWUI    : Davey! duration=4735ms; Flags=1, FrameTimelineVsyncId=2983968, IntendedVsync=64693592386960, Vsync=64693609053626, InputEventId=0, HandleInputStart=64693620744600, AnimationStart=64693620769800, PerformTraversalsStart=64693620803900, DrawStart=64697944804700, FrameDeadline=64693609053626, FrameStartTime=64693620732000, FrameInterval=16666666, WorkloadTarget=16666666, SyncQueued=64698059293200, SyncStart=64698060131900, IssueDrawCommandsStart=64698060590100, SwapBuffers=64698278204600, FrameCompleted=64698329206100, DequeueBufferDuration=1647500, QueueBufferDuration=261400, GpuCompleted=64698329206100, SwapBuffersCompleted=64698310749500, DisplayPresentTime=0, CommandSubmissionCompleted=64698278204600, 
+09-15 22:55:18.883  5705  5705 I Choreographer: Skipped 264 frames!  The application may be doing too much work on its main thread.
+09-15 22:55:18.968  5705  5705 W HWUI    : Image decoding logging dropped!
+09-15 22:55:19.251  5705  5711 W om.example.kpkn: Suspending all threads took: 6.861ms
+09-15 22:55:19.272  5705  5729 I om.example.kpkn: IncrementDisableThreadFlip blocked for 7.947ms
+09-15 22:55:19.373  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 15MB AllocSpace bytes, 2(40KB) LOS objects, 29% free, 56MB/80MB, paused 8.833ms,8.941ms total 366.520ms
+09-15 22:55:19.566  5705  5773 D ProfileInstaller: Installing profile for com.example.kpkn
+09-15 22:55:19.577  5705  5715 I HWUI    : Davey! duration=5101ms; Flags=0, FrameTimelineVsyncId=2983990, IntendedVsync=64693992386944, Vsync=64698392386768, InputEventId=0, HandleInputStart=64698407101600, AnimationStart=64698407138500, PerformTraversalsStart=64698844155900, DrawStart=64698844516400, FrameDeadline=64698359053436, FrameStartTime=64698406149900, FrameInterval=16666666, WorkloadTarget=16666666, SyncQueued=64699067904400, SyncStart=64699068063300, IssueDrawCommandsStart=64699068282000, SwapBuffers=64699075338700, FrameCompleted=64699093768500, DequeueBufferDuration=21200, QueueBufferDuration=737300, GpuCompleted=64699093768500, SwapBuffersCompleted=64699076706200, DisplayPresentTime=0, CommandSubmissionCompleted=64699075338700, 
+09-15 22:55:19.587  5705  5705 I Choreographer: Skipped 42 frames!  The application may be doing too much work on its main thread.
+09-15 22:55:19.680  5705  5705 D InsetsController: hide(ime(), fromIme=false)
+09-15 22:55:19.681  5705  5705 I ImeTracker: com.example.kpkn:4c4d502f: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+09-15 22:55:19.717  5705  5716 I HWUI    : Davey! duration=817ms; Flags=0, FrameTimelineVsyncId=2984127, IntendedVsync=64698409053434, Vsync=64699109053406, InputEventId=0, HandleInputStart=64699111916700, AnimationStart=64699111950800, PerformTraversalsStart=64699152193100, DrawStart=64699152493000, FrameDeadline=64699125720072, FrameStartTime=64699110164900, FrameInterval=16666666, WorkloadTarget=16666666, SyncQueued=64699178665700, SyncStart=64699181051500, IssueDrawCommandsStart=64699182833200, SwapBuffers=64699210032100, FrameCompleted=64699229344400, DequeueBufferDuration=212200, QueueBufferDuration=320000, GpuCompleted=64699229344400, SwapBuffersCompleted=64699211061300, DisplayPresentTime=0, CommandSubmissionCompleted=64699210032100, 
+09-15 22:55:20.122  5705  5729 I NutritionRepository: Dataset knowledge ready: 19405 docs, v2
+09-15 22:55:20.248  5705  5729 I NutritionRepository: Building FoodIndex with 5766 global + 478 static foods
+09-15 22:55:20.273  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 21MB AllocSpace bytes, 2(36KB) LOS objects, 27% free, 62MB/86MB, paused 3.035ms,2.536ms total 168.852ms
+09-15 22:55:20.693  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 17MB AllocSpace bytes, 4(68KB) LOS objects, 27% free, 62MB/86MB, paused 1.750ms,2.685ms total 147.770ms
+09-15 22:55:21.085  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 17MB AllocSpace bytes, 2(32KB) LOS objects, 27% free, 62MB/86MB, paused 1.333ms,2.882ms total 148.213ms
+09-15 22:55:21.474  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 16MB AllocSpace bytes, 0(0B) LOS objects, 27% free, 63MB/87MB, paused 1.932ms,2.356ms total 154.717ms
+09-15 22:55:21.872  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 16MB AllocSpace bytes, 1(16KB) LOS objects, 27% free, 63MB/87MB, paused 1.568ms,2.110ms total 164.520ms
+09-15 22:55:22.651  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 21MB AllocSpace bytes, 0(0B) LOS objects, 26% free, 65MB/89MB, paused 2.318ms,4.383ms total 487.769ms
+09-15 22:55:23.148  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 19MB AllocSpace bytes, 0(0B) LOS objects, 26% free, 65MB/89MB, paused 2.513ms,3.712ms total 176.286ms
+09-15 22:55:23.606  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 18MB AllocSpace bytes, 2(32KB) LOS objects, 26% free, 65MB/89MB, paused 1.572ms,2.843ms total 161.765ms
+09-15 22:55:24.080  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 12MB AllocSpace bytes, 1(7896KB) LOS objects, 30% free, 53MB/77MB, paused 3.643ms,3.110ms total 135.499ms
+09-15 22:55:24.520  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5712KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.082ms,3.915ms total 135.566ms
+09-15 22:55:24.981  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3800KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.133ms,3.154ms total 135.387ms
+09-15 22:55:25.406  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3980KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 4.887ms,2.078ms total 165.858ms
+09-15 22:55:25.897  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3996KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.197ms,6.564ms total 171.555ms
+09-15 22:55:26.275  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3288KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.042ms,2.038ms total 119.751ms
+09-15 22:55:26.620  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3256KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.023ms,3.019ms total 113.874ms
+09-15 22:55:26.987  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3424KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.065ms,2.605ms total 117.541ms
+09-15 22:55:27.344  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3448KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.009ms,2.496ms total 120.217ms
+09-15 22:55:27.685  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3976KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 2.196ms,3.472ms total 112.066ms
+09-15 22:55:28.052  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3980KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.065ms,3.612ms total 132.054ms
+09-15 22:55:28.432  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3768KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.025ms,3.948ms total 126.334ms
+09-15 22:55:28.811  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4360KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.417ms,2.264ms total 121.346ms
+09-15 22:55:29.166  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4676KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.595ms,2.228ms total 112.216ms
+09-15 22:55:29.528  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4536KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.857ms,2.383ms total 115.358ms
+09-15 22:55:29.878  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4392KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.107ms,2.746ms total 116.506ms
+09-15 22:55:30.232  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4208KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.003ms,2.271ms total 113.336ms
+09-15 22:55:30.603  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4476KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.008ms,2.051ms total 118.669ms
+09-15 22:55:30.965  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4428KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.051ms,2.052ms total 116.407ms
+09-15 22:55:31.324  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4376KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.068ms,2.012ms total 118.721ms
+09-15 22:55:31.686  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3912KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.385ms,2.874ms total 114.256ms
+09-15 22:55:32.035  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4004KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.671ms,2.541ms total 114.053ms
+09-15 22:55:32.622  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4292KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 4.476ms,2.644ms total 248.724ms
+09-15 22:55:33.014  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4260KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 2.958ms,2.502ms total 146.240ms
+09-15 22:55:33.385  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3576KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.255ms,2.711ms total 127.450ms
+09-15 22:55:33.763  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3304KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.021ms,2.947ms total 118.932ms
+09-15 22:55:34.201  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3932KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 2.760ms,4.290ms total 161.057ms
+09-15 22:55:34.584  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3892KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 2.646ms,2.512ms total 121.902ms
+09-15 22:55:34.936  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3292KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.002ms,5.031ms total 123.787ms
+09-15 22:55:35.316  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4144KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 1.015ms,2.285ms total 124.579ms
+09-15 22:55:35.680  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4140KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 1.680ms,2.329ms total 125.764ms
+09-15 22:55:36.124  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3560KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 52MB/76MB, paused 1.043ms,3.072ms total 151.062ms
+09-15 22:55:36.512  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3260KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 1.721ms,2.063ms total 124.513ms
+09-15 22:55:36.893  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3720KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 1.169ms,3.505ms total 130.036ms
+09-15 22:55:37.285  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4320KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 1.450ms,2.964ms total 132.110ms
+09-15 22:55:37.677  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4132KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 1.720ms,4.192ms total 132.010ms
+09-15 22:55:38.063  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3836KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 1.635ms,2.671ms total 138.153ms
+09-15 22:55:38.464  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4172KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 2.243ms,3.674ms total 136.233ms
+09-15 22:55:38.864  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4512KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 1.012ms,2.192ms total 120.244ms
+09-15 22:55:39.216  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4420KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 1.041ms,2.329ms total 115.683ms
+09-15 22:55:39.560  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4024KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 1.058ms,2.684ms total 112.017ms
+09-15 22:55:39.928  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4304KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 1.011ms,2.455ms total 117.077ms
+09-15 22:55:40.277  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4212KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 1.715ms,2.624ms total 120.777ms
+09-15 22:55:40.672  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3800KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 1.601ms,3.893ms total 149.085ms
+09-15 22:55:41.072  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4116KB AllocSpace bytes, 0(0B) LOS objects, 31% free, 53MB/77MB, paused 2.526ms,2.301ms total 131.779ms
+09-15 22:55:41.434  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4276KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 1.809ms,2.034ms total 118.572ms
+09-15 22:55:41.888  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4268KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 2.753ms,7.874ms total 182.515ms
+09-15 22:55:42.567  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4872KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 14.119ms,7.709ms total 310.372ms
+09-15 22:55:42.941  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4420KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 1.232ms,2.303ms total 120.243ms
+09-15 22:55:43.299  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4520KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 1.017ms,1.989ms total 114.827ms
+09-15 22:55:43.650  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3764KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 2.879ms,2.923ms total 123.062ms
+09-15 22:55:43.999  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4308KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 1.443ms,1.984ms total 119.229ms
+09-15 22:55:44.380  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4580KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 2.443ms,3.088ms total 134.765ms
+09-15 22:55:44.752  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3800KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 1.050ms,4.004ms total 136.224ms
+09-15 22:55:45.128  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3724KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 1.025ms,2.187ms total 131.252ms
+09-15 22:55:45.558  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4368KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 1.602ms,3.645ms total 144.328ms
+09-15 22:55:46.023  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4236KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 1.648ms,3.099ms total 130.454ms
+09-15 22:55:46.410  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4476KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 1.189ms,2.621ms total 129.479ms
+09-15 22:55:46.853  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4076KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 2.156ms,3.648ms total 142.902ms
+09-15 22:55:47.241  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3732KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 1.118ms,3.280ms total 143.701ms
+09-15 22:55:47.617  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3424KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 1.477ms,2.981ms total 126.304ms
+09-15 22:55:47.993  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3516KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 1.020ms,1.995ms total 115.327ms
+09-15 22:55:48.344  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3688KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 2.035ms,2.095ms total 118.464ms
+09-15 22:55:48.705  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3916KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 1.796ms,1.981ms total 124.422ms
+09-15 22:55:49.065  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3400KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 1.701ms,1.993ms total 117.017ms
+09-15 22:55:49.418  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3672KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 1.481ms,2.613ms total 115.024ms
+09-15 22:55:49.789  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3864KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 1.101ms,4.112ms total 131.629ms
+09-15 22:55:50.153  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4008KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 3.862ms,3.294ms total 119.107ms
+09-15 22:55:50.509  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3468KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 53MB/77MB, paused 2.163ms,2.617ms total 120.370ms
+09-15 22:55:50.866  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3640KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 54MB/78MB, paused 1.014ms,2.400ms total 114.549ms
+09-15 22:55:51.234  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4156KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 54MB/78MB, paused 1.004ms,2.918ms total 121.797ms
+09-15 22:55:51.608  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5000KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 54MB/78MB, paused 1.020ms,2.673ms total 132.796ms
+09-15 22:55:51.977  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3884KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 54MB/78MB, paused 1.240ms,2.560ms total 125.306ms
+09-15 22:55:52.657  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5396KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 54MB/78MB, paused 5.314ms,3.013ms total 313.312ms
+09-15 22:55:53.028  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4392KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 54MB/78MB, paused 1.727ms,2.167ms total 118.682ms
+09-15 22:55:53.391  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3428KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 54MB/78MB, paused 2.701ms,2.478ms total 120.892ms
+09-15 22:55:53.744  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 3904KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 54MB/78MB, paused 1.392ms,2.254ms total 120.710ms
+09-15 22:55:54.020  5705  5720 I om.example.kpkn: Waiting for a blocking GC ProfileSaver
+09-15 22:55:54.116  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4036KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 54MB/78MB, paused 1.920ms,2.373ms total 132.419ms
+09-15 22:55:54.116  5705  5720 I om.example.kpkn: WaitForGcToComplete blocked ProfileSaver on NativeAlloc for 96.230ms
+09-15 22:55:54.637  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4396KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 54MB/78MB, paused 5.166ms,2.647ms total 199.352ms
+09-15 22:55:55.108  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4296KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 54MB/78MB, paused 4.670ms,4.642ms total 179.722ms
+09-15 22:55:55.541  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4240KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 54MB/78MB, paused 1.058ms,2.096ms total 131.100ms
+09-15 22:55:55.972  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 4600KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 54MB/78MB, paused 2.713ms,4.230ms total 142.295ms
+09-15 22:55:56.099  5705  5705 E om.example.kpkn: hiddenapi: Accessing hidden method Landroid/view/accessibility/AccessibilityNodeInfo;->getSelection()Landroid/view/accessibility/AccessibilityNodeInfo$Selection; (runtime_flags=0, domain=platform, api=blocked) from /data/app/~~kfJjkr2sdA0KSUcxlHbTXQ==/com.example.kpkn-D8mMnj9b6ziyXsz0QrH5lw==/base.apk (domain=app) using linking: denied
+09-15 22:55:56.103  5705  5705 E om.example.kpkn: hiddenapi: Accessing hidden method Landroid/view/accessibility/AccessibilityNodeInfo;->setSelection(Landroid/view/accessibility/AccessibilityNodeInfo$Selection;)V (runtime_flags=0, domain=platform, api=blocked) from /data/app/~~kfJjkr2sdA0KSUcxlHbTXQ==/com.example.kpkn-D8mMnj9b6ziyXsz0QrH5lw==/base.apk (domain=app) using linking: denied
+09-15 22:55:56.103  5705  5705 E om.example.kpkn: hiddenapi: Accessing hidden method Landroid/view/accessibility/AccessibilityNodeInfo;->setSelection(Landroid/view/accessibility/AccessibilityNodeInfo$Selection;)V (runtime_flags=0, domain=platform, api=blocked) from /data/app/~~kfJjkr2sdA0KSUcxlHbTXQ==/com.example.kpkn-D8mMnj9b6ziyXsz0QrH5lw==/base.apk (domain=app) using linking: denied
+09-15 22:55:56.254  5705  5705 D CompatChangeReporter: Compat change id reported: 270674727; UID 10219; state: ENABLED
+09-15 22:55:56.513  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5916KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.378ms,3.933ms total 207.096ms
+09-15 22:55:57.005  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5564KB AllocSpace bytes, 0(0B) LOS objects, 30% free, 55MB/79MB, paused 1.239ms,3.320ms total 172.316ms
+09-15 22:55:57.566  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5560KB AllocSpace bytes, 0(0B) LOS objects, 29% free, 56MB/80MB, paused 1.115ms,4.041ms total 202.447ms
+09-15 22:55:58.035  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5504KB AllocSpace bytes, 0(0B) LOS objects, 29% free, 57MB/81MB, paused 1.262ms,3.208ms total 168.110ms
+09-15 22:55:58.523  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5524KB AllocSpace bytes, 0(0B) LOS objects, 29% free, 57MB/81MB, paused 2.821ms,5.349ms total 190.869ms
+09-15 22:55:59.009  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5476KB AllocSpace bytes, 0(0B) LOS objects, 29% free, 58MB/82MB, paused 2.151ms,3.496ms total 188.536ms
+09-15 22:55:59.538  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5524KB AllocSpace bytes, 0(0B) LOS objects, 29% free, 58MB/82MB, paused 2.185ms,3.959ms total 173.545ms
+09-15 22:55:59.985  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5428KB AllocSpace bytes, 0(0B) LOS objects, 28% free, 59MB/83MB, paused 1.632ms,3.309ms total 174.654ms
+09-15 22:56:00.523  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5588KB AllocSpace bytes, 0(0B) LOS objects, 28% free, 59MB/83MB, paused 2.115ms,2.877ms total 156.953ms
+09-15 22:56:00.982  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5620KB AllocSpace bytes, 0(0B) LOS objects, 28% free, 60MB/84MB, paused 2.307ms,2.957ms total 175.204ms
+09-15 22:56:01.460  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5900KB AllocSpace bytes, 0(0B) LOS objects, 28% free, 61MB/85MB, paused 3.013ms,2.318ms total 180.321ms
+09-15 22:56:01.944  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6288KB AllocSpace bytes, 0(0B) LOS objects, 27% free, 61MB/85MB, paused 2.194ms,3.146ms total 180.993ms
+09-15 22:56:02.746  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6940KB AllocSpace bytes, 0(0B) LOS objects, 27% free, 62MB/86MB, paused 5.334ms,2.928ms total 359.964ms
+09-15 22:56:03.495  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6080KB AllocSpace bytes, 0(0B) LOS objects, 27% free, 62MB/86MB, paused 4.762ms,2.978ms total 326.263ms
+09-15 22:56:04.079  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6164KB AllocSpace bytes, 0(0B) LOS objects, 27% free, 63MB/87MB, paused 2.196ms,3.383ms total 199.640ms
+09-15 22:56:04.597  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 5708KB AllocSpace bytes, 0(0B) LOS objects, 27% free, 64MB/88MB, paused 2.228ms,3.622ms total 196.757ms
+09-15 22:56:05.044  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6076KB AllocSpace bytes, 0(0B) LOS objects, 27% free, 64MB/88MB, paused 2.070ms,2.997ms total 167.136ms
+09-15 22:56:05.492  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6436KB AllocSpace bytes, 0(0B) LOS objects, 26% free, 65MB/89MB, paused 2.110ms,2.133ms total 170.437ms
+09-15 22:56:06.027  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6268KB AllocSpace bytes, 0(0B) LOS objects, 26% free, 65MB/89MB, paused 3.008ms,3.299ms total 198.409ms
+09-15 22:56:06.526  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6664KB AllocSpace bytes, 0(0B) LOS objects, 26% free, 66MB/90MB, paused 2.073ms,3.345ms total 193.250ms
+09-15 22:56:06.988  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6824KB AllocSpace bytes, 0(0B) LOS objects, 26% free, 67MB/91MB, paused 2.107ms,2.235ms total 171.985ms
+09-15 22:56:07.435  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6312KB AllocSpace bytes, 0(0B) LOS objects, 26% free, 67MB/91MB, paused 1.329ms,2.464ms total 181.483ms
+09-15 22:56:07.933  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6376KB AllocSpace bytes, 0(0B) LOS objects, 25% free, 68MB/92MB, paused 2.315ms,2.143ms total 202.643ms
+09-15 22:56:08.468  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6628KB AllocSpace bytes, 0(0B) LOS objects, 25% free, 69MB/93MB, paused 2.283ms,3.917ms total 212.266ms
+09-15 22:56:08.949  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6404KB AllocSpace bytes, 0(0B) LOS objects, 25% free, 69MB/93MB, paused 2.791ms,5.174ms total 197.528ms
+09-15 22:56:09.481  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6380KB AllocSpace bytes, 0(0B) LOS objects, 25% free, 70MB/94MB, paused 1.319ms,3.200ms total 211.042ms
+09-15 22:56:10.009  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6212KB AllocSpace bytes, 0(0B) LOS objects, 25% free, 70MB/94MB, paused 3.104ms,3.997ms total 224.098ms
+09-15 22:56:10.551  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6304KB AllocSpace bytes, 0(0B) LOS objects, 25% free, 71MB/95MB, paused 2.095ms,6.043ms total 239.703ms
+09-15 22:56:11.031  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6556KB AllocSpace bytes, 0(0B) LOS objects, 24% free, 72MB/96MB, paused 2.323ms,3.181ms total 189.706ms
+09-15 22:56:11.515  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6576KB AllocSpace bytes, 0(0B) LOS objects, 24% free, 72MB/96MB, paused 1.898ms,2.203ms total 193.757ms
+09-15 22:56:12.001  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6844KB AllocSpace bytes, 0(0B) LOS objects, 24% free, 73MB/97MB, paused 2.076ms,2.120ms total 207.936ms
+09-15 22:56:12.721  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6620KB AllocSpace bytes, 0(0B) LOS objects, 24% free, 73MB/97MB, paused 1.161ms,2.348ms total 211.472ms
+09-15 22:56:13.217  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6848KB AllocSpace bytes, 0(0B) LOS objects, 24% free, 74MB/98MB, paused 1.715ms,4.459ms total 216.163ms
+09-15 22:56:13.712  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6712KB AllocSpace bytes, 0(0B) LOS objects, 24% free, 75MB/99MB, paused 2.890ms,2.568ms total 199.884ms
+09-15 22:56:14.211  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6620KB AllocSpace bytes, 0(0B) LOS objects, 24% free, 75MB/99MB, paused 2.448ms,2.636ms total 213.093ms
+09-15 22:56:14.763  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6940KB AllocSpace bytes, 0(0B) LOS objects, 23% free, 76MB/100MB, paused 3.376ms,2.840ms total 241.771ms
+09-15 22:56:15.321  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6896KB AllocSpace bytes, 0(0B) LOS objects, 23% free, 77MB/101MB, paused 1.432ms,3.297ms total 237.748ms
+09-15 22:56:15.939  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 7212KB AllocSpace bytes, 0(0B) LOS objects, 23% free, 78MB/102MB, paused 2.410ms,3.658ms total 286.417ms
+09-15 22:56:16.492  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 7180KB AllocSpace bytes, 0(0B) LOS objects, 23% free, 78MB/102MB, paused 2.784ms,2.847ms total 236.335ms
+09-15 22:56:17.047  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 7268KB AllocSpace bytes, 0(0B) LOS objects, 23% free, 79MB/103MB, paused 3.462ms,2.687ms total 256.040ms
+09-15 22:56:17.680  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 7208KB AllocSpace bytes, 0(0B) LOS objects, 23% free, 80MB/104MB, paused 4.330ms,8.058ms total 300.238ms
+09-15 22:56:18.285  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 6932KB AllocSpace bytes, 0(0B) LOS objects, 22% free, 80MB/104MB, paused 3.501ms,2.797ms total 284.332ms
+09-15 22:56:18.773  5705  5729 I NutritionRepository: FoodIndex built: 6244 foods indexed
+09-15 22:56:18.851  5705  5711 I om.example.kpkn: NativeAlloc concurrent mark compact GC freed 8304KB AllocSpace bytes, 0(0B) LOS objects, 23% free, 79MB/103MB, paused 1.645ms,2.128ms total 240.345ms

@@ -13,6 +13,7 @@ import com.example.kpkn.data.models.TechniqueType
 import com.example.kpkn.data.models.plannedRepAnchor
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
+import com.example.kpkn.domain.workout.ScheduledTechniqueDefaults
 import java.util.UUID
 
 object UltraFastEngine {
@@ -87,7 +88,7 @@ object UltraFastEngine {
         if (dbId != null && dbId in UltraFastConfig.PROTECTED_CATALOG_IDS) return true
         if (cfgId != null && cfgId in UltraFastConfig.PROTECTED_CATALOG_IDS) return true
 
-        // Family + bar check
+        // Family check (el nombre es el canonical verbatim del catálogo)
         val isSquat = UltraFastConfig.isSquatFamily(combinedName)
         val isDeadlift = UltraFastConfig.isDeadliftFamily(combinedName)
         val isBench = UltraFastConfig.isBenchFamily(combinedName) && combinedName.contains("plano")
@@ -103,8 +104,15 @@ object UltraFastEngine {
             return isBar || "peso muerto" in combinedName
         }
         if (isBench) {
-            val isBar = UltraFastConfig.isBarbellEquipment(equipmentLower, combinedName)
-            return isBar
+            // El nombre verbatim ya no lleva implemento: la protección de
+            // banca decide por id de catálogo (fast path) o equipment del
+            // índice. Sin ninguno de los dos no se puede confirmar barra →
+            // no proteger por nombre.
+            if (cfgId != null || dbId != null || equipmentLower.isNotBlank()) {
+                val isBar = UltraFastConfig.isBarbellEquipment(equipmentLower, combinedName)
+                return isBar
+            }
+            return false
         }
         return false
     }
@@ -513,8 +521,8 @@ fun ExerciseSet.withTechnique(technique: SeriesTechnique): ExerciseSet = when (t
     }
 }
 
-const val MARKED_DROPSET_WEIGHT_DROP_KG = 5.0
-const val MARKED_REST_PAUSE_SECONDS = 15
+const val MARKED_DROPSET_WEIGHT_DROP_KG = ScheduledTechniqueDefaults.DROP_KG
+const val MARKED_REST_PAUSE_SECONDS = ScheduledTechniqueDefaults.REST_PAUSE_SECONDS
 
 /**
  * Dropset / rest-pause between marked incomplete sets.

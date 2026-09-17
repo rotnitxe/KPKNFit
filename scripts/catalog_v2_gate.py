@@ -118,9 +118,7 @@ EXPECTED_AXIS_ORDER = {
     "incline_chest_fly": [
         "implement"
     ],
-    "decline_chest_fly": [
-        "implement"
-    ],
+    "decline_chest_fly": [],
     "hip_abduction": [
         "implement",
         "station",

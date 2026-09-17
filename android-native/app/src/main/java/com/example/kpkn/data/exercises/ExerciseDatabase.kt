@@ -39,6 +39,9 @@ private var exerciseDatabaseByIdCache: Map<String, ExerciseMuscleInfo> = emptyMa
 private var v2ConfigurationLookupCache: Map<String, ExerciseMuscleInfo> = emptyMap()
 
 @Volatile
+private var v2ConfigurationDisplayNameCache: Map<String, String> = emptyMap()
+
+@Volatile
 private var approvedExerciseCatalogV2Cache: ExerciseCatalogV2? = null
 
 @Volatile
@@ -63,6 +66,9 @@ fun initializeExerciseDatabase(context: Context) {
         exerciseDatabaseCache = exercises
         v2ConfigurationLookupCache = v2Catalog.toLegacyConfigurationLookup()
             .mapValues { (_, value) -> normalizeExerciseLabels(value) }
+        v2ConfigurationDisplayNameCache = com.example.kpkn.domain.exercises.catalogv2.CatalogDisplayNames
+            .buildDisplayNameIndex(v2Catalog)
+            .mapKeys { (key, _) -> key.trim().lowercase() }
         exerciseDatabaseByIdCache = (exercises.associateBy { it.id.lowercase() } + v2ConfigurationLookupCache)
         VariantGroupIndex.rebuild(exercises)
         com.example.kpkn.domain.training.CompositionMetadataHolder.current =
@@ -109,6 +115,19 @@ fun exerciseCatalogSnapshot(): List<ExerciseMuscleInfo> = exerciseDatabaseCache.
 
 /** Explicit v2 index; callers cannot construct identities from visible names. */
 fun catalogExerciseIndex(): Map<String, ExerciseMuscleInfo> = exerciseDatabaseByIdCache
+
+/**
+ * canonicalName verbatim de la definición para una configuración v2 (plan
+ * 2026-09-16). Sin composición: la desambiguación vive en los chips.
+ */
+fun catalogConfigurationDisplayName(configurationId: String?): String? {
+    val normalized = configurationId?.trim()?.lowercase().orEmpty()
+    if (normalized.isBlank()) return null
+    return v2ConfigurationDisplayNameCache[normalized]
+}
+
+/** Índice completo configurationId → canonicalName verbatim (reconciliación D6). */
+fun catalogConfigurationDisplayNameIndex(): Map<String, String> = v2ConfigurationDisplayNameCache
 
 /**
  * Approved catalog identity for Aprende and other read-only encyclopedic

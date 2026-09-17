@@ -120,6 +120,7 @@ fun CompactHeroBanner(
     onReduceVolumeCurrentWeek: () -> Unit,
     openVolumeSheetToken: Int = 0,
     blockProgressLabel: String? = null,
+    protocolLabel: String? = null,
     modifier: Modifier = Modifier,
 ) {
     val coverGradient = remember(coverValue) { resolveGradient(coverValue) }
@@ -213,6 +214,16 @@ fun CompactHeroBanner(
                         CompactHeroPill(
                             label = blockProgressLabel,
                             accent = Color(0xFF67E8F9),
+                            contentColor = primaryTextColor,
+                            containerColor = glassColor,
+                            borderColor = strokeColor,
+                        )
+                    }
+
+                    if (!protocolLabel.isNullOrBlank()) {
+                        CompactHeroPill(
+                            label = protocolLabel,
+                            accent = Color(0xFFFBBF24),
                             contentColor = primaryTextColor,
                             containerColor = glassColor,
                             borderColor = strokeColor,

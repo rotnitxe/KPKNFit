@@ -26,6 +26,14 @@ internal fun buildIntensityCarouselItems(
     if (plannedIntensityMode == IntensityMode.FAILURE) {
         return buildPlannedFailureCarouselItems(targetRir, targetRpe)
     }
+    if (plannedIntensityMode == IntensityMode.SOLO_RM && reportedIntensityMode == null) {
+        // RM prescribes load.  Start with an explicit empty effort choice so
+        // the wheel cannot imply RPE 0/8 before the athlete selects a mode.
+        // Keep the same explicit RPE → FALLO → RIR affordance used by a
+        // planned-failure set; RM must allow any of the three real reports.
+        return listOf(IntensityCarouselItem(display = "—")) +
+            buildPlannedFailureCarouselItems(targetRir = null, targetRpe = null)
+    }
     return when (reportedIntensityMode) {
         IntensityMode.RIR -> buildRirCarouselItems(targetRir)
         IntensityMode.RPE -> buildRpeCarouselItems()

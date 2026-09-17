@@ -85,6 +85,47 @@ class ProgramTemplateEngineTest {
     }
 
     @Test
+    fun applyTemplate_with_sessions_and_forceReplace_overwrites_in_place() {
+        val program = Program(
+            id = "p2r",
+            name = "Con sesiones",
+            structure = ProgramStructure.SIMPLE,
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "mc",
+                    name = "M",
+                    blocks = listOf(
+                        Block(
+                            id = "b",
+                            name = "B",
+                            mesocycles = listOf(
+                                Mesocycle(
+                                    id = "m",
+                                    name = "M",
+                                    weeks = listOf(
+                                        ProgramWeek(
+                                            id = "w",
+                                            name = "W",
+                                            sessions = listOf(Session(id = "s", name = "Día")),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val template = PROGRAM_TEMPLATES.first { it.id == "simple-4" }
+        val result = ProgramTemplateEngine.applyTemplate(program, template, forceReplace = true)
+
+        assertEquals(ProgramTemplateEngine.ApplyStrategy.REPLACE_ALL, result.strategy)
+        assertFalse(result.createdCopy)
+        assertEquals("p2r", result.program.id)
+        assertFalse(result.program.isDraft)
+    }
+
+    @Test
     fun applyTemplate_prefills_sessions_from_split_when_program_has_no_content() {
         val program = Program(id = "p3", name = "Vacío", structure = ProgramStructure.SIMPLE)
         val template = PROGRAM_TEMPLATES.first { it.id == "power-12-3" }

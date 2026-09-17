@@ -301,6 +301,8 @@ class WorkoutViewModel(
                 this@WorkoutViewModel.persistLoadModeToProfile(exerciseId, loadMode)
             override fun registerManualLoadOverride(exerciseId: String, setIdx: Int, side: String?, load: Double) =
                 this@WorkoutViewModel.registerManualLoadOverride(exerciseId, setIdx, side, load)
+            override fun applyScheduledLoadOverride(exerciseId: String, setIdx: Int, side: String?, load: Double) =
+                this@WorkoutViewModel.applyScheduledLoadOverride(exerciseId, setIdx, side, load)
             override fun refreshLoadSuggestions(state: WorkoutUiState, onlyExerciseId: String?) =
                 this@WorkoutViewModel.refreshLoadSuggestions(state, onlyExerciseId = onlyExerciseId)
             override suspend fun persistOngoingStateAndAwait() = this@WorkoutViewModel.persistOngoingStateAndAwait()
@@ -1495,6 +1497,18 @@ class WorkoutViewModel(
         return WeightSuggestion(suggestedWeight = load, reason = reason)
     }
 
+    /**
+     * Lifecycle-safe command boundary for live workout actions.  Composables
+     * must not own recorder coroutines: their remembered scope is cancelled
+     * when the pager/finish sheet leaves composition, which used to surface
+     * the literal "The coroutine scope left the composition" failure.
+     */
+    fun launchWorkoutCommand(command: suspend () -> Unit) {
+        viewModelScope.launch {
+            command()
+        }
+    }
+
     suspend fun recordSetV2(
         weight: Double,
         value: Double,
@@ -2132,6 +2146,19 @@ class WorkoutViewModel(
         val key = workoutSetKey(exerciseId, setIdx, side)
         _uiState.update {
             it.copy(manualLoadOverrides = it.manualLoadOverrides + (key to load.coerceAtLeast(0.0)))
+        }
+    }
+
+    /**
+     * Keeps the next phase's deterministic load in the ongoing live state.
+     * It intentionally uses the existing optional override map (no Room
+     * migration) and is separate from the user's explicit load action.
+     */
+    private fun applyScheduledLoadOverride(exerciseId: String, setIdx: Int, side: String?, load: Double) {
+        val safeLoad = load.takeIf { it > 0.0 } ?: return
+        val key = workoutSetKey(exerciseId, setIdx, side)
+        _uiState.update {
+            it.copy(manualLoadOverrides = it.manualLoadOverrides + (key to safeLoad))
         }
     }
 

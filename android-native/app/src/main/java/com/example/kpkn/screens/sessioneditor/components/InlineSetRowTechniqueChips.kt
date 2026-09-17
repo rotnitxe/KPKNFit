@@ -35,12 +35,13 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.PlannedTechnique
 import com.example.kpkn.data.models.TechniqueType
+import com.example.kpkn.domain.workout.ScheduledTechniqueDefaults
 import java.util.UUID
 
 /** Canonical rest-pause defaults — not user-configurable in the editor. */
 internal object RestPausePlanDefaults {
-    const val PauseSeconds = 15
-    const val Reps = 3
+    const val PauseSeconds = ScheduledTechniqueDefaults.REST_PAUSE_SECONDS
+    const val Reps = ScheduledTechniqueDefaults.FOLLOW_UP_REPS
     const val MinCount = 1
     const val MaxCount = 5
     const val DefaultCount = 2
@@ -51,8 +52,8 @@ internal object DropSetPlanDefaults {
     const val MaxDrops = 3
     const val DefaultDrops = 1
     /** Small absolute drop so the next set still allows ~3 reps, not a dump. */
-    const val DropKg = 5.0
-    const val DropReps = 3
+    const val DropKg = ScheduledTechniqueDefaults.DROP_KG
+    const val DropReps = ScheduledTechniqueDefaults.FOLLOW_UP_REPS
 
     fun weightPctsFor(dropCount: Int): String = when (dropCount.coerceIn(MinDrops, MaxDrops)) {
         1 -> "-5"
@@ -100,6 +101,8 @@ internal fun InlineSetRowTechniqueChips(
                                     it.type != TechniqueType.DROP_SET
                                 },
                                 isDropSet = false,
+                                dropSets = emptyList(),
+                                restAfterSeconds = null,
                             )
                         }
                         showDropSetConfig = false
@@ -112,6 +115,10 @@ internal fun InlineSetRowTechniqueChips(
                                 params = mapOf(
                                     "weightPcts" to DropSetPlanDefaults.weightPctsFor(drops),
                                     "count" to drops.toString(),
+                                    // Editor-created techniques are volume-replaced.  The
+                                    // marker is deliberately persisted in the existing params
+                                    // blob so manual STACKED_ON_SET techniques keep their flow.
+                                    "betweenMarked" to "true",
                                 ),
                             )
                             current.copy(
@@ -119,6 +126,9 @@ internal fun InlineSetRowTechniqueChips(
                                     .filter { it.type != TechniqueType.REST_PAUSE } + newTechnique,
                                 isDropSet = true,
                                 isRestPause = false,
+                                dropSets = emptyList(),
+                                restPauses = emptyList(),
+                                restAfterSeconds = null,
                             )
                         }
                         showDropSetConfig = true
@@ -138,6 +148,8 @@ internal fun InlineSetRowTechniqueChips(
                                     it.type != TechniqueType.REST_PAUSE
                                 },
                                 isRestPause = false,
+                                restPauses = emptyList(),
+                                restAfterSeconds = null,
                             )
                         }
                         showRestPauseConfig = false
@@ -150,6 +162,7 @@ internal fun InlineSetRowTechniqueChips(
                                     "count" to RestPausePlanDefaults.DefaultCount.toString(),
                                     "pauseSeconds" to RestPausePlanDefaults.PauseSeconds.toString(),
                                     "reps" to RestPausePlanDefaults.Reps.toString(),
+                                    "betweenMarked" to "true",
                                 ),
                             )
                             current.copy(
@@ -157,6 +170,9 @@ internal fun InlineSetRowTechniqueChips(
                                     .filter { it.type != TechniqueType.DROP_SET } + newTechnique,
                                 isRestPause = true,
                                 isDropSet = false,
+                                dropSets = emptyList(),
+                                restPauses = emptyList(),
+                                restAfterSeconds = null,
                             )
                         }
                         showRestPauseConfig = true
@@ -195,9 +211,10 @@ internal fun InlineSetRowTechniqueChips(
                                 onClick = {
                                     onUpdate { current ->
                                         val updated = dsTechnique.copy(
-                                            params = mapOf(
+                                            params = dsTechnique.params + mapOf(
                                                 "weightPcts" to DropSetPlanDefaults.weightPctsFor(n),
                                                 "count" to n.toString(),
+                                                "betweenMarked" to "true",
                                             ),
                                         )
                                         current.copy(
@@ -246,10 +263,11 @@ internal fun InlineSetRowTechniqueChips(
                                 onClick = {
                                     onUpdate { current ->
                                         val updated = rpTechnique.copy(
-                                            params = mapOf(
+                                            params = rpTechnique.params + mapOf(
                                                 "count" to n.toString(),
                                                 "pauseSeconds" to RestPausePlanDefaults.PauseSeconds.toString(),
                                                 "reps" to RestPausePlanDefaults.Reps.toString(),
+                                                "betweenMarked" to "true",
                                             ),
                                         )
                                         current.copy(

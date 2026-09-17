@@ -132,6 +132,13 @@ fun MacrocycleEditorLegacy(
     onFocusWeek: (blockId: String, weekId: String) -> Unit = { _, _ -> },
     onCreateSessionForWeek: (weekId: String, preferredDayOfWeek: Int, keyDateId: String?) -> Unit = { _, _, _ -> },
     onApplyProgramTemplate: (com.example.kpkn.data.programs.ProgramTemplateOption) -> Unit = {},
+    onApplyProgramTemplateOverwrite: (com.example.kpkn.data.programs.ProgramTemplateOption, Boolean) -> Unit = { template, overwrite ->
+        if (overwrite) onApplyProgramTemplate(template) else onApplyProgramTemplate(template)
+    },
+    onApplyProtocol: (Protocol, Boolean) -> Unit = { _, _ -> },
+    programSnapshots: List<com.example.kpkn.domain.training.ProgramSnapshot> = emptyList(),
+    onRestoreProgramSnapshot: (String) -> Unit = {},
+    onRefreshProgramSnapshots: () -> Unit = {},
     showSimpleCalendarizationSheet: Boolean = false,
     onShowSimpleCalendarizationSheetChange: (Boolean) -> Unit = {},
     calendarizationStartDate: String = "",
@@ -187,6 +194,8 @@ fun MacrocycleEditorLegacy(
     var editingMeso by remember { mutableStateOf<EditingMesoTarget?>(null) }
     var pendingTemplate by remember { mutableStateOf<ProgramTemplateOption?>(null) }
     var pendingProtocol by remember { mutableStateOf<Protocol?>(null) }
+    var overwriteExisting by remember { mutableStateOf(true) }
+    var showSnapshots by remember { mutableStateOf(false) }
     var pendingCompetitionKeyDateDelete by remember { mutableStateOf<String?>(null) }
 
     val editingTimelineStartDate = macrocycleTimelineStartDate ?: localEditingTimelineStartDate
@@ -284,11 +293,16 @@ fun MacrocycleEditorLegacy(
             hasTimelineStartDate = !program.timelineStartDate.isNullOrBlank(),
             showRoadmap = showAdvancedRoadmap,
             isSimpleCalendarized = program.simpleProgramKind == SimpleProgramKind.CALENDARIZED,
+            snapshotCount = programSnapshots.size,
             onToggleRoadmap = { setRoadmapExpanded(!showAdvancedRoadmap) },
             onOpenKeyDates = { setKeyDatesSheetOpen(true) },
             onOpenLibrary = { setLibrarySheetOpen(true) },
             onOpenLoops = { setLoopsSheetOpen(true) },
             onOpenSimpleCalendarization = { onShowSimpleCalendarizationSheetChange(true) },
+            onOpenSnapshots = {
+                onRefreshProgramSnapshots()
+                showSnapshots = true
+            },
         )
         val temporalIssues = remember(program) { program.validateTemporalStructure() }
         if (temporalIssues.isNotEmpty()) {
@@ -711,6 +725,7 @@ fun MacrocycleEditorLegacy(
     }
 
     pendingProtocol?.let { protocol ->
+        val hasContent = ProgramTemplateEngine.hasSessionContent(program)
         KpknAlertDialog(
             onDismissRequest = { pendingProtocol = null },
             title = { Text(protocol.name, fontWeight = FontWeight.Black) },
@@ -722,12 +737,25 @@ fun MacrocycleEditorLegacy(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary,
                     )
-                    if (ProgramTemplateEngine.hasSessionContent(program)) {
-                        Text(
-                            "Este programa ya tiene sesiones. Se creará una copia borrador para no perder el original.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                        )
+                    if (hasContent) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = overwriteExisting,
+                                onCheckedChange = { overwriteExisting = it },
+                            )
+                            Text(
+                                "Reemplazar todo el programa actual (se guarda copia en Historial).",
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                        if (!overwriteExisting) {
+                            Text(
+                                "Se creará una copia borrador para no perder el original.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                     if (program.structure == ProgramStructure.SIMPLE && protocol.materializesAsComplex) {
                         Text(
@@ -740,30 +768,19 @@ fun MacrocycleEditorLegacy(
             },
             confirmButton = {
                 Button(onClick = {
-                    val base = if (ProgramTemplateEngine.hasSessionContent(program)) {
-                        program.copy(
-                            id = "${program.id}_protocol_${System.nanoTime()}",
-                            name = "${program.name} · ${protocol.name}",
-                            isDraft = true,
-                        )
-                    } else {
-                        program
-                    }
-                    val updated = ProgramProtocolEngine.applyProtocol(
-                        base,
-                        protocol,
-                        enhancedDayDifferentiation = true,
-                    )
-                    if (base.id != program.id) onAddProgramCopy(updated) else onUpdateProgram(updated)
+                    onApplyProtocol(protocol, overwriteExisting && hasContent)
                     pendingProtocol = null
                     setLibrarySheetOpen(false)
-                }) { Text("Aplicar protocolo") }
+                }) {
+                    Text(if (overwriteExisting && hasContent) "Reemplazar todo" else "Aplicar protocolo")
+                }
             },
             dismissButton = { TextButton(onClick = { pendingProtocol = null }) { Text("Cancelar") } },
         )
     }
 
     pendingTemplate?.let { template ->
+        val hasContent = ProgramTemplateEngine.hasSessionContent(program)
         KpknAlertDialog(
             onDismissRequest = { pendingTemplate = null },
             title = { Text(template.name, fontWeight = FontWeight.Black) },
@@ -780,23 +797,77 @@ fun MacrocycleEditorLegacy(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    if (ProgramTemplateEngine.hasSessionContent(program)) {
-                        Text(
-                            "Este programa ya tiene sesiones. Se creará una copia borrador para no perder el original.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                        )
+                    if (hasContent) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = overwriteExisting,
+                                onCheckedChange = { overwriteExisting = it },
+                            )
+                            Text(
+                                "Reemplazar todo el programa actual (se guarda copia en Historial).",
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                        if (!overwriteExisting) {
+                            Text(
+                                "Se creará una copia borrador para no perder el original.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                 }
             },
             confirmButton = {
                 Button(onClick = {
-                    onApplyProgramTemplate(template)
+                    onApplyProgramTemplateOverwrite(template, overwriteExisting && hasContent)
                     pendingTemplate = null
                     setLibrarySheetOpen(false)
-                }) { Text("Aplicar plantilla") }
+                }) {
+                    Text(if (overwriteExisting && hasContent) "Reemplazar todo" else "Aplicar plantilla")
+                }
             },
             dismissButton = { TextButton(onClick = { pendingTemplate = null }) { Text("Cancelar") } },
+        )
+    }
+
+    if (showSnapshots) {
+        KpknAlertDialog(
+            onDismissRequest = { showSnapshots = false },
+            title = { Text("Historial del programa", fontWeight = FontWeight.Black) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (programSnapshots.isEmpty()) {
+                        Text(
+                            "Aún no hay copias. Al reemplazar con protocolo o plantilla se guarda una aquí.",
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                    programSnapshots.sortedByDescending { it.savedAtMs }.take(10).forEach { snapshot ->
+                        val date = runCatching {
+                            java.time.Instant.ofEpochMilli(snapshot.savedAtMs)
+                                .atZone(java.time.ZoneId.systemDefault())
+                                .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM HH:mm"))
+                        }.getOrDefault("")
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Text(
+                                "$date · ${snapshot.reason}",
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.weight(1f),
+                            )
+                            TextButton(onClick = {
+                                onRestoreProgramSnapshot(snapshot.id)
+                                showSnapshots = false
+                            }) { Text("Restaurar") }
+                        }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { showSnapshots = false }) { Text("Cerrar") } },
         )
     }
 
@@ -859,11 +930,13 @@ private fun MacrocycleToolbar(
     hasTimelineStartDate: Boolean,
     showRoadmap: Boolean,
     isSimpleCalendarized: Boolean,
+    snapshotCount: Int = 0,
     onToggleRoadmap: () -> Unit,
     onOpenKeyDates: () -> Unit,
     onOpenLibrary: () -> Unit,
     onOpenLoops: () -> Unit,
     onOpenSimpleCalendarization: () -> Unit,
+    onOpenSnapshots: () -> Unit = {},
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
@@ -926,6 +999,10 @@ private fun MacrocycleToolbar(
                 OutlinedButton(onClick = onToggleRoadmap) { Text(if (showRoadmap) "Ocultar roadmap" else "Roadmap") }
             }
             OutlinedButton(onClick = onOpenLibrary) { Text("Plantillas") }
+            OutlinedButton(
+                onClick = onOpenSnapshots,
+                enabled = snapshotCount > 0,
+            ) { Text(if (snapshotCount > 0) "Historial ($snapshotCount)" else "Historial") }
         }
     }
 }

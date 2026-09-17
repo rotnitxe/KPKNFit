@@ -6,12 +6,13 @@ import com.example.kpkn.data.models.TechniqueType
 /**
  * Two dropset / rest-pause logics that must not be mixed:
  *
- * - [STACKED_ON_SET]: intensity technique *inside* a working set (editor chips,
+ * - [STACKED_ON_SET]: intensity technique *inside* a working set (manual/live
  *   card reverse). Mini-series live in `CompletedSet.dropSets` / `restPauses`.
  *   Between-set rest stays blocked until the technique is closed.
  * - [VOLUME_REPLACED]: the set *is* the dropset/RP used to save volume or time
- *   (`applyMarkedSeriesTechnique`, relator CONVERT, UltraFast densify). Rest is
- *   0 (dropset chain) or 15s (RP). No in-card guided flow.
+ *   (`betweenMarked=true`, `applyMarkedSeriesTechnique`, relator CONVERT,
+ *   UltraFast densify). Rest is 0 (dropset chain) or 15s (RP). No in-card
+ *   guided flow.
  */
 enum class SetTechniqueScope {
     NONE,

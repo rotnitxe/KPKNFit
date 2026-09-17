@@ -19,6 +19,19 @@ data class CatalogV2SelectionGateIssue(
 )
 
 fun Session.catalogV2SelectionIssues(): List<CatalogV2SelectionGateIssue> {
+    return catalogV2SelectionIssues(null)
+}
+
+/**
+ * Variante con índice de nombres derivados (plan 2026-09-16): además de la
+ * identidad, valida que el nombre visible coincida con el derivado del
+ * catálogo (condición catalog_name_divergence). El llamador debe reconciliar
+ * primero con SessionCatalogNameReconciler para auto-curar en vez de bloquear
+ * por datos históricos.
+ */
+fun Session.catalogV2SelectionIssues(
+    displayNameIndex: Map<String, String>? = null,
+): List<CatalogV2SelectionGateIssue> {
     val exercises = allExercises()
     val catalogExercises = exercises.filterNot(::isManualCustomExercise)
     val issues = mutableListOf<CatalogV2SelectionGateIssue>()
@@ -44,6 +57,18 @@ fun Session.catalogV2SelectionIssues(): List<CatalogV2SelectionGateIssue> {
                 code = "legacy_chip_state_present",
                 detail = "selectedAspects",
             )
+        }
+        val configurationId = exercise.catalogConfigurationId?.trim().orEmpty()
+        if (displayNameIndex != null && configurationId.isNotBlank()) {
+            val derived = displayNameIndex[configurationId]
+                ?: displayNameIndex[configurationId.lowercase()]
+            if (derived != null && exercise.name.trim() != derived.trim()) {
+                issues += CatalogV2SelectionGateIssue(
+                    exerciseId = exercise.id,
+                    code = "catalog_name_divergence",
+                    detail = "El nombre no coincide con el catálogo; se corrigió al guardar",
+                )
+            }
         }
     }
 

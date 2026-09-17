@@ -1,0 +1,54 @@
+
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:975:I/Choreographer( 3948): Skipped 251 frames!  The application may be doing too much work on its main thread.
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:976:D/HazeSource( 3948): onPreDraw
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:977:D/ActivityManager(  677): sync unfroze 1828 com.google.android.dialer for 6
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1559:E/ActivityManager(  677): ANR in com.example.kpkn (com.example.kpkn/.MainActivity)
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1560:E/ActivityManager(  677): PID: 3948
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1561:E/ActivityManager(  677): Reason: Input dispatching timed out (33f681 com.example.kpkn/com.example.kpkn.MainActivity is not responding. Waited 5002ms for MotionEvent).
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1579:E/ActivityManager(  677): CPU usage from 76337ms to -3ms ago (2026-08-25 18:18:22.015 to 2026-08-25 18:19:38.355) with 99% awake:
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1580:E/ActivityManager(  677):   72% 677/system_server: 12% user + 60% kernel / faults: 132811 minor 847 major
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1581:E/ActivityManager(  677):   5% 494/android.hardware.sensors-service.multihal: 0.1% user + 4.9% kernel / faults: 6 minor
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1591:E/ActivityManager(  677): CPU usage from 76ms to 893ms later (2026-08-25 18:19:38.428 to 2026-08-25 18:19:39.245):
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1592:E/ActivityManager(  677):   89% 677/system_server: 23% user + 65% kernel / faults: 669 minor 2 major
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1593:E/ActivityManager(  677):     54% 4030/AnrAuxiliaryTas: 6.2% user + 48% kernel
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1599:E/ActivityManager(  677):   128% 3948/com.example.kpkn: 94% user + 33% kernel / faults: 1427 minor 5 major
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1600:E/ActivityManager(  677):     90% 3979/arch_disk_io_1: 79% user + 11% kernel
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1601:E/ActivityManager(  677):     11% 3950/Signal Catcher: 3.7% user + 7.5% kernel
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1682:D/FoodImporter( 3948): OFF import done: 5400 products (0 DB-filled), 11405 skipped
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1683:I/SQLiteConnection( 3948): Long db operation: /data/user/0/com.example.kpkn/databases/kpkn.db
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1684:I/ImeTracker(  677): com.example.kpkn:2e5175a1: onRequestHide at ORIGIN_SERVER reason HIDE_UNSPECIFIED_WINDOW fromUser false
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1685:W/IPCThreadState(  677): Sending oneway calls to frozen process.
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1686:W/IPCThreadState(  677): Sending oneway calls to frozen process.
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1772:I/ImeTracker(  677): com.example.kpkn:8e60bf83: onRequestHide at ORIGIN_SERVER reason HIDE_SAME_WINDOW_FOCUSED_WITHOUT_EDITOR fromUser false
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1773:I/GoogleInputMethodService( 1384): GoogleInputMethodService.onFinishInput():2043 
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1774:I/Module  ( 1384): DeviceLockedStatusModuleProvider$Module.updateDeviceLockedStatus():100 repeatCheckTimes = 0, locked = false
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1806:I/Choreographer( 3948): Skipped 1014 frames!  The application may be doing too much work on its main thread.
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1807:D/HazeSource( 3948): onPreDraw
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:1808:I/om.example.kpkn( 3948): NativeAlloc concurrent mark compact GC freed 18MB AllocSpace bytes, 54(1112KB) LOS objects, 41% free, 34MB/58MB, paused 1.823ms,3.852ms total 175.538ms
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2171:E/ActivityManager(  677): ANR in com.example.kpkn (com.example.kpkn/.MainActivity)
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2172:E/ActivityManager(  677): PID: 3948
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2173:E/ActivityManager(  677): Reason: Input dispatching timed out (33f681 com.example.kpkn/com.example.kpkn.MainActivity is not responding. Waited 5001ms for FocusEvent(hasFocus=false)).
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2191:E/ActivityManager(  677): CPU usage from 11800ms to -2ms ago (2026-08-25 18:19:38.355 to 2026-08-25 18:19:50.157):
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2192:E/ActivityManager(  677):   168% 3948/com.example.kpkn: 111% user + 56% kernel / faults: 97567 minor 70 major
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2193:E/ActivityManager(  677):   25% 677/system_server: 5.4% user + 20% kernel / faults: 7369 minor 92 major
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2194:E/ActivityManager(  677):   8.3% 494/android.hardware.sensors-service.multihal: 0% user + 8.2% kernel
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2203:E/ActivityManager(  677): CPU usage from 139ms to 631ms later (2026-08-25 18:19:50.294 to 2026-08-25 18:19:50.786):
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2204:E/ActivityManager(  677):   224% 3948/com.example.kpkn: 185% user + 38% kernel / faults: 3183 minor
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2205:E/ActivityManager(  677):     99% 3948/om.example.kpkn: 86% user + 12% kernel
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2206:E/ActivityManager(  677):     99% 3981/DefaultDispatch: 86% user + 12% kernel
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2207:E/ActivityManager(  677):     25% 3955/ReferenceQueueD: 8.6% user + 17% kernel
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2386:I/ImeTracker(  677): com.example.kpkn:2e5175a1: setFinished at PHASE_CLIENT_SET_IME_VISIBILITY with STATUS_TIMEOUT
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2387:I/ImeTracker(  677): com.example.kpkn:8e60bf83: setFinished at PHASE_CLIENT_SET_IME_VISIBILITY with STATUS_TIMEOUT
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2388:I/IPCThreadState( 1737): oneway function results for code 2 on binder at 0x73dfc3a34f60 will be dropped but finished with status UNKNOWN_TRANSACTION
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2389:D/android.hardware.audio@7.1-impl.ranchu(  482): threadLoop: entering standby, frames: 498304
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2455:W/ProcessStats(  677): Tracking association SourceState{6007178 system/1000 ImpBg #2396} whose proc state 6 is better than process ProcessState{500f34d com.google.android.dialer/10142 pkg=com.google.android.dialer} proc state 15 (0 skipped)
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2456:D/WM-DelayedWorkTracker( 1828): Scheduling work f66c9ef6-ceaf-43c6-9e26-824da30227ae
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2457:D/WM-GreedyScheduler( 1828): Starting tracking for f66c9ef6-ceaf-43c6-9e26-824da30227ae
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2474:I/DialerVvmCarrierIdentifierImpl( 1828): com.android.dialer.voicemail.service.impl.carriermapping.VvmCarrierIdentifierImpl.getVvmCarrierNameBlocking:120 Looking up carrier name for phone account handle: 1 [CONTEXT ratelimit_period="1 MINUTES" skipped=113 ]
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2475:I/DialerRestVoicemailEnabledFn( 1828): com.android.dialer.voicemail.service.impl.vvmclients.rest.RestVoicemailEnabledFn.isEnabled:67 device is supported, enabling. [CONTEXT ratelimit_period="1 MINUTES" skipped=721 ]
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2476:I/DialerVvmExecutorImpl( 1828): com.android.dialer.voicemail.service.impl.scheduler.VvmExecutorImpl.execute:229 Beginning VVM action: SYNC with retryCount: 0 for ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0} [CONTEXT enable_persistent_logger=true ]
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2477:E/DialerRestVvmCarrierService( 1828): com.android.dialer.voicemail.service.impl.vvmclients.rest.RestVvmCarrierService.getMsisdn:420 Retrieved phone number in an unexpected format: +15551234567 [CONTEXT disable_client_error_logging=true ]
+> artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2490:I/DialerAndroidAutoStatusLookupImpl( 1828): com.android.dialer.androidautostatuslookup.impl.AndroidAutoStatusLookupImpl.isAndroidAutoConnected:97 Android Auto connected in 0 mode [CONTEXT ratelimit_period="1 MINUTES" skipped=12 ]
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2491:I/DialerLogcatLoggingBindings( 1828): com.android.dialer.logging.logcat.LogcatLoggingBindings.logImpression:54 Impression: ANDROID_API_UNEXPECTED_PHONE_NUMBER_FORMAT
+  artifacts\live-visual-2026-08-25\logcat-anr-live-restore.txt:2492:I/DialerLogcatLoggingBindings( 1828): com.android.dialer.logging.logcat.LogcatLoggingBindings.logImpression:47 Impression: VVM_SYNC_STARTED
+

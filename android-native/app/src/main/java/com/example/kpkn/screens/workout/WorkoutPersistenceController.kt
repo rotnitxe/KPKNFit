@@ -4,6 +4,7 @@ import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.OngoingWorkoutState
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -76,33 +77,44 @@ class WorkoutPersistenceController(
 
     fun flushForBackground() {
         scope.launch(persistDispatcher) {
-            runCatching { flushForBackgroundSuspend() }
-                .onFailure { error ->
+            try {
+                flushForBackgroundSuspend()
+            } catch (error: CancellationException) {
+                // Lifecycle cancellation is expected; the next foreground
+                // interaction can retry the pending snapshot.
+                throw error
+            } catch (error: Throwable) {
                     KpknDiagnosticLogger.event(
                         namespace = "workout",
                         name = "ongoing_flush_failed",
                         fields = mapOf(
+                            "workoutSessionId" to sessionId,
                             "exceptionType" to error.javaClass.name,
                             "exceptionMessage" to error.message,
                         ),
+                        sessionId = sessionId,
                     )
-                }
+            }
         }
     }
 
     fun flushForBackgroundBlocking() {
-        runCatching {
+        try {
             runBlocking(Dispatchers.IO) {
                 flushForBackgroundSuspend()
             }
-        }.onFailure { error ->
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
             KpknDiagnosticLogger.event(
                 namespace = "workout",
                 name = "ongoing_flush_failed",
                 fields = mapOf(
+                    "workoutSessionId" to sessionId,
                     "exceptionType" to error.javaClass.name,
                     "exceptionMessage" to error.message,
                 ),
+                sessionId = sessionId,
             )
         }
     }
@@ -114,21 +126,30 @@ class WorkoutPersistenceController(
                 KpknDiagnosticLogger.event(
                     namespace = "workout",
                     name = "ongoing_persist_skipped",
-                    fields = mapOf("reason" to "no_session_or_identity"),
+                    fields = mapOf(
+                        "reason" to "no_session_or_identity",
+                        "workoutSessionId" to sessionId,
+                    ),
+                    sessionId = sessionId,
                 )
                 return@withLock
             }
-            runCatching { writeOngoing(apply) }
-                .onFailure { error ->
+            try {
+                writeOngoing(apply)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Throwable) {
                     KpknDiagnosticLogger.event(
                         namespace = "workout",
                         name = "ongoing_persist_failed",
                         fields = mapOf(
+                            "workoutSessionId" to sessionId,
                             "exceptionType" to error.javaClass.name,
                             "exceptionMessage" to error.message,
                         ),
+                        sessionId = sessionId,
                     )
-                }
+            }
         }
     }
 

@@ -1,0 +1,3467 @@
+INFO         | Android emulator version 36.5.11.0 (build_id 15261927) (CL:N/A)
+INFO         | Graphics backend: gfxstream
+DEBUG   | Current emulator version 36.5.11 is the same as the required version 36.5.11.
+INFO         | Found AVD name 'Medium_Phone_API_36.0'
+INFO         | Found AVD target architecture: x86_64
+INFO         | argv[0]: 'C:\Users\valen\AppData\Local\Android\Sdk\emulator\emulator.exe'; program directory: 'C:\Users\valen\AppData\Local\Android\Sdk\emulator'
+INFO         | Found systemPath C:\Users\valen\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\
+DEBUG   | autoconfig: -skin 1080x2400
+DEBUG   | autoconfig: -skindir (null)
+DEBUG   | init, loading C:\Users\valen\AppData\Local\Android\Sdk\emulator\lib\advancedFeatures.ini
+WARNING      | Please update the emulator to one that supports the feature(s): VulkanVirtualQueue
+DEBUG   | parseAndApplyOverrides, overrides='-Vulkan'
+INFO         | Feature 'Vulkan' (21) is overridden to 'disabled'
+DEBUG   | autoconfig: -kernel C:\Users\valen\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\kernel-ranchu
+DEBUG   | Target arch = 'x86_64'
+DEBUG   | Auto-detect: Kernel image requires new device naming scheme.
+DEBUG   | Auto-detect: Kernel does not support YAFFS2 partitions.
+DEBUG   | autoconfig: -ramdisk C:\Users\valen\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\ramdisk.img
+DEBUG   | Using initial system image: C:\Users\valen\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\system.img
+DEBUG   | Using initial vendor image: C:\Users\valen\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\vendor.img
+DEBUG   | autoconfig: -data C:\Users\valen\.android\avd\..\avd\Medium_Phone.avd\userdata-qemu.img
+DEBUG   | autoconfig: -initdata (null)
+DEBUG   | autoconfig: -cache C:\Users\valen\.android\avd\..\avd\Medium_Phone.avd\cache.img
+DEBUG   | Physical RAM size: 2048MB
+DEBUG   | VM heap size 336MB is below hardware specified minimum of 512MB,setting it to that value
+DEBUG   | System image is read only
+INFO         | IPv4 server found: 192.168.100.1
+INFO         | Ignore IPv6 address: 60ec:dbc:6102:0:60ec:dbc:6102:0
+INFO         | Ignore IPv6 address: 60ec:dbc:6102:0:60ec:dbc:6102:0
+INFO         | Ignore IPv6 address: 60ec:dbc:6102:0:60ec:dbc:6102:0
+INFO         | Ignore IPv6 address: 78f2:dbc:6102:0:60ec:dbc:6102:0
+INFO         | Ignore IPv6 address: 78f2:dbc:6102:0:60ec:dbc:6102:0
+INFO         | Ignore IPv6 address: 78f2:dbc:6102:0:60ec:dbc:6102:0
+INFO         | Ignore IPv6 address: 98f8:dbc:6102:0:60ec:dbc:6102:0
+INFO         | Ignore IPv6 address: 98f8:dbc:6102:0:60ec:dbc:6102:0
+INFO         | Ignore IPv6 address: 9003:ebc:6102:0:60ec:dbc:6102:0
+INFO         | Ignore IPv6 address: 9003:ebc:6102:0:60ec:dbc:6102:0
+INFO         | Ignore IPv6 address: 9003:ebc:6102:0:60ec:dbc:6102:0
+INFO         | Ignore IPv6 address: a809:ebc:6102:0:60ec:dbc:6102:0
+INFO         | Ignore IPv6 address: a809:ebc:6102:0:60ec:dbc:6102:0
+INFO         | Ignore IPv6 address: a809:ebc:6102:0:60ec:dbc:6102:0
+INFO         | Ignore IPv6 address: 980f:ebc:6102:0:60ec:dbc:6102:0
+INFO         | Ignore IPv6 address: 980f:ebc:6102:0:60ec:dbc:6102:0
+INFO         | Ignore IPv6 address: 980f:ebc:6102:0:60ec:dbc:6102:0
+DEBUG   | Found 1 DNS servers:
+DEBUG   | 	192.168.100.1
+INFO         | Guest GLES Driver: Auto (ext controls)
+ERROR        | gpuChoiceBasedOnGpuOptions: Selected GPU option 'angle_indirect' is not valid, switching to 'auto' mode.
+DEBUG   | emuglConfig_init: gpu_mode_requested: auto, no_window: 0
+
+DEBUG   | emuglConfig_get_vulkan_runtime_full_path: Checking for vulkan-1.dll versions
+DEBUG   | querying file version info API...
+DEBUG   | found kernelbase.dll
+DEBUG   | GetFileVersionInfoSizeW found. On Windows 10?
+DEBUG   | GetFileVersionInfoW found. On Windows 10?
+DEBUG   | VerQueryValueW found. Can query file versions
+DEBUG   | querying file version info API...
+DEBUG   | vulkan-1.dll version: 1.4.309.0
+DEBUG   | C:\Users\valen\AppData\Local\Android\Sdk\emulator\lib64\vulkan\vulkan-1.dll version: 1.4.344.0
+DEBUG   | emuglConfig_get_vulkan_runtime_full_path: Using vulkan runtime path: vulkan-1.dll
+DEBUG   | emuglConfig_get_vulkan_hardware_gpu_support_info: Successfully created vulkan instance
+
+DEBUG   | emuglConfig_get_vulkan_hardware_gpu_support_info: Physical devices count is 2
+
+INFO         | emuglConfig_get_vulkan_hardware_gpu_support_info: Found physical GPU 'AMD Radeon RX 6600M', type: VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU, apiVersion: 1.4.315, driverVersion: 2.0.353
+
+INFO         | emuglConfig_get_vulkan_hardware_gpu_support_info: Found physical GPU 'AMD Radeon(TM) Graphics', type: VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU, apiVersion: 1.3.260, driverVersion: 2.0.279
+
+INFO         | emuglConfig_init: vulkan_mode_selected:host gles_mode_selected:host
+DEBUG   | setCurrentRenderer: host host gles:Host vulkan:Host
+DEBUG   | emuglConfig_init: GPU emulation enabled using Vulkan:'host' GLES:'host' modes
+
+DEBUG   | GPU emulation enabled using Vulkan:'host' GLES:'host' modes
+INFO         | Checking system compatibility:
+INFO         |   Checking: hasCompatibleHypervisor
+DEBUG   | Checking whether Windows Hypervisor Platform (WHPX) is available.
+DEBUG   | WinHvPlatform.dll found. Looking for WHvGetCapability...
+DEBUG   | WHvGetCapability found. Querying WHPX capabilities...
+DEBUG   | WHPX (10.0.26200) is installed and usable.
+INFO         |      Ok: Hypervisor compatibility to run avd: `Medium_Phone_API_36.0` are met
+INFO         |   Checking: hasSufficientSystem
+INFO         |      Ok: System requirements to run avd: `Medium_Phone_API_36.0` are met
+INFO         |   Checking: hasSufficientHwGpu
+INFO         |      Ok: Hardware GPU requirements to run avd: `Medium_Phone_API_36.0` are passed
+INFO         |   Checking: hasSufficientDiskSpace
+INFO         |      Ok: Disk space requirements to run avd: `Medium_Phone_API_36.0` are met
+DEBUG   | Starting hostapd main loop.
+DEBUG   | found magic skin width=1080 height=2400 bpp=16
+
+DEBUG   | Requested console port 5554: Inferring adb port 5555.
+DEBUG   | CPU Acceleration: working
+DEBUG   | CPU Acceleration status: WHPX(10.0.26200) is installed and usable.
+DEBUG   | handleCpuAcceleration: feature check for hvf
+WARNING      | Emulator does not support more than 6 cores. Number of cores set to 6
+DEBUG   | Uwb feature is enabled
+DEBUG   | Bluetooth requested by guest
+DEBUG   | started modem simulator host server at port: 57767
+INFO         | Warning: "Unable to open monitor interface to \\\\.\\DISPLAY1:" "La operación se completó correctamente." (:0, )
+INFO         | Critical: Failed to load opengl32sw (No se puede encontrar el módulo especificado.) (:0, )
+INFO         | Warning: Software OpenGL failed. Falling back to system OpenGL. (:0, )
+DEBUG   | emulator_window_framebuffer_create: 1080x2400
+
+INFO         | Storing crashdata in: C:\Users\valen\AppData\Local\Temp\\AndroidEmulator\emu-crash-36.5.11.db, detection is enabled for process: 39400
+INFO         | Initializing gfxstream backend
+INFO         | android_startOpenglesRenderer: gpu info
+INFO         | GPU #1
+  Make: 1002
+  Model: AMD Radeon RX 6600M
+  Device ID: 73ff
+
+DEBUG   | gfxstreamFeature:GlPipeChecksum = 1
+DEBUG   | gfxstreamFeature:Vulkan = 0
+DEBUG   | gfxstreamFeature:HasSharedSlotsHostMemoryAllocator = 1
+DEBUG   | gfxstreamFeature:VulkanSnapshots = 0
+DEBUG   | gfxstreamFeature:NoDelayCloseColorBuffer = 0
+DEBUG   | gfxstreamFeature:VirtioGpuNativeSync = 0
+DEBUG   | gfxstreamFeature:VulkanShaderFloat16Int8 = 1
+DEBUG   | gfxstreamFeature:NativeTextureDecompression = 0
+DEBUG   | gfxstreamFeature:VulkanNativeSwapchain = 0
+DEBUG   | gfxstreamFeature:VirtioGpuFenceContexts = 0
+DEBUG   | gfxstreamFeature:AsyncComposeSupport = 0
+DEBUG   | gfxstreamFeature:ExternalBlob = 0
+DEBUG   | gfxstreamFeature:SystemBlob = 0
+DEBUG   | gfxstreamFeature:GrallocSync = 0
+DEBUG   | gfxstreamFeature:GlAsyncSwap = 1
+DEBUG   | gfxstreamFeature:GlDma = 1
+DEBUG   | gfxstreamFeature:GlDma2 = 0
+DEBUG   | gfxstreamFeature:GlDirectMem = 1
+DEBUG   | gfxstreamFeature:GlesDynamicVersion = 1
+DEBUG   | gfxstreamFeature:RefCountPipe = 1
+DEBUG   | gfxstreamFeature:HostComposition = 1
+DEBUG   | gfxstreamFeature:VulkanNullOptionalStrings = 1
+DEBUG   | gfxstreamFeature:Yuv420888ToNv21 = 0
+DEBUG   | gfxstreamFeature:YuvCache = 1
+DEBUG   | gfxstreamFeature:VulkanIgnoredHandles = 1
+DEBUG   | gfxstreamFeature:VirtioGpuNext = 0
+DEBUG   | gfxstreamFeature:VulkanQueueSubmitWithCommands = 1
+DEBUG   | gfxstreamFeature:VulkanBatchedDescriptorSetUpdate = 0
+DEBUG   | gfxstreamFeature:Minigbm = 0
+DEBUG   | gfxstreamFeature:HwcMultiConfigs = 1
+DEBUG   | gfxstreamFeature:VulkanAllocateDeviceMemoryOnly = 0
+DEBUG   | gfxstreamFeature:VulkanAllocateHostMemory = 0
+DEBUG   | gfxstreamFeature:GuestVulkanOnly = 0
+DEBUG   | gfxstreamFeature:BypassVulkanDeviceFeatureOverrides = 0
+DEBUG   | gfxstreamFeature:VulkanDebugUtils = 0
+DEBUG   | gfxstreamFeature:VulkanCommandBufferCheckpoints = 0
+DEBUG   | gfxstreamFeature:VulkanVirtualQueue = 1
+DEBUG   | gfxstreamFeature:VulkanRobustness = 0
+DEBUG   | RenderWindow: CMD_INITIALIZE w=1080 h=2400
+DEBUG   | FrameBuffer::initialize()
+DEBUG   | Creating Framebuffer: 1080x2400, useSubWindow=1
+DEBUG   | create display 0
+DEBUG   | setDisplayPose 0 x 0 y 0 w 1080 h 2400 dpi 0
+DEBUG   | (anonymous namespace)::WinEngine::WinEngine: Trying to load opengl32.dll
+
+VERBOSE | SharedLibrary::open for [opengl32.dll]: not found in map, open for the first time
+VERBOSE | SharedLibrary::open for [opengl32.dll] (win32): call LoadLibrary
+VERBOSE | SharedLibrary::open succeeded for [opengl32.dll]. File name: [C:\WINDOWS\SYSTEM32\opengl32.DLL]
+DEBUG   | (anonymous namespace)::WinEngine::WinEngine: Library loaded at 000002618A148030
+
+DEBUG   | (anonymous namespace)::WinEngine::WinEngine: Dispatch initialized
+
+DEBUG   | call eglInitialize
+VERBOSE | glGetClipPlanef not found
+VERBOSE | glAlphaFuncx not found
+VERBOSE | glClearColorx not found
+VERBOSE | glClearDepthx not found
+VERBOSE | glColor4x not found
+VERBOSE | glDepthRangex not found
+VERBOSE | glFogx not found
+VERBOSE | glFogxv not found
+VERBOSE | glFrustumx not found
+VERBOSE | glClipPlanex not found
+VERBOSE | glGetFixedv not found
+VERBOSE | glGetLightxv not found
+VERBOSE | glGetMaterialxv not found
+VERBOSE | glGetTexEnvxv not found
+VERBOSE | glGetTexParameterxv not found
+VERBOSE | glLightModelx not found
+VERBOSE | glLightModelxv not found
+VERBOSE | glLightx not found
+VERBOSE | glLightxv not found
+VERBOSE | glLineWidthx not found
+VERBOSE | glLoadMatrixx not found
+VERBOSE | glMaterialx not found
+VERBOSE | glMaterialxv not found
+VERBOSE | glMultMatrixx not found
+VERBOSE | glMultiTexCoord4x not found
+VERBOSE | glNormal3x not found
+VERBOSE | glOrthox not found
+VERBOSE | glPointParameterx not found
+VERBOSE | glPointParameterxv not found
+VERBOSE | glPointSizex not found
+VERBOSE | glPolygonOffsetx not found
+VERBOSE | glRotatex not found
+VERBOSE | glSampleCoveragex not found
+VERBOSE | glScalex not found
+VERBOSE | glTexEnvxv not found
+VERBOSE | glTranslatex not found
+VERBOSE | glGetClipPlanex not found
+VERBOSE | SharedLibrary::open for [libshadertranslator.dll]: not found in map, open for the first time
+VERBOSE | SharedLibrary::open for [libshadertranslator.dll] (win32): call LoadLibrary
+VERBOSE | SharedLibrary::open succeeded for [libshadertranslator.dll]. File name: [C:\Users\valen\AppData\Local\Android\Sdk\emulator\lib64\libshadertranslator.dll]
+DEBUG   | glvk interop final: 0
+DEBUG   | Performing composition using CompositorGl.
+INFO         | Graphics Adapter Vendor Google (ATI Technologies Inc.)
+INFO         | Graphics Adapter Android Emulator OpenGL ES Translator (AMD Radeon RX 6600M)
+INFO         | Graphics API Version OpenGL ES 3.0 (4.5.0 Core Profile Context 26.8.1.260806)
+INFO         | Graphics API Extensions GL_OES_EGL_sync GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_depth24 GL_OES_depth32 GL_OES_element_index_uint GL_OES_texture_float GL_OES_texture_float_linear GL_OES_compressed_paletted_texture GL_OES_compressed_ETC1_RGB8_texture GL_OES_depth_texture GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_packed_depth_stencil GL_OES_vertex_half_float GL_OES_texture_npot GL_OES_rgb8_rgba8 GL_OVR_multiview2 GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_texture_format_BGRA8888 GL_APPLE_texture_format_BGRA8888 GL_EXT_texture_buffer 
+INFO         | Graphics Device Extensions N/A
+DEBUG   | Renderer initialized successfully
+INFO         | Setting vsync to 60 hz
+DEBUG   | CMD_SET_VSYNC_HZ
+DEBUG   | Exited a loader RenderThread @000002619D43CF40
+INFO         | Sending adb public key [QAAAAHnGTMM3PKUgi8uxBWMUYkf/a9WVZiOhL2ZjNbZ5N5Et0rlrSy3sV+yaI40pnut/gmbYmP39dX55LugBJL0V3m2pW38mzvp/lX7bo0T8mf53la1MGzRI2ouwZn9VgFU4mBbeUv186ld1VbPglsO/r/b9CA3jQqefP9c0m1l3SadRkDD4JFtuv+WELiEIqftVApQTAsm4oQFeEPb9K+8Al722IyD+h+25on22q6HEIW6zfFpFVMFOxJxYPesgHVrDxNro46WTsvF7oaMMNeoRO7WRsB+W0+Zp9hP57+MH4mY2CIWl9ZSB4INfGKWniImluSYuTSKAmSNgeJFYEtB65ibjQS+OPZ3TmKJwgKTTI/sSHwDn1eyJmK+Eg7gtKWGhXkOUmgINkyY5q+7T5Fjcm+dXF49PcV3i65eDKz/zG48NFc2dvdrmmw/av47Ycdxr4KbnAN/JG7jMhpWp+TBcZdhD24pava7CWe8C6ECq3RwtKl2RqoYIGwaS/WmMxbEflQ/4Pj3xQiL+TPAHn2MnQEAMee/1/8OP5g15EvhE+LKNbKk3FPzpOiwh813A7hEivgvY6ihb6gtDmHXEtQtWGKy5cdbzKiF97edYAUmg4OpxTnzi5hyJMpDYIDVs+EtBfDaAxreh2gXtF5csy3/QFDjV/4TUsC/QwpZx80KJwRyCsbVnVwEAAQA= @unknown]
+INFO         | Userspace boot properties:
+INFO         |   androidboot.boot_devices=pci0000:00/0000:00:03.0 pci0000:00/0000:00:06.0
+INFO         |   androidboot.dalvik.vm.heapsize=512m
+INFO         |   androidboot.debug.hwui.renderer=skiagl
+INFO         |   androidboot.debug.sf.nobootanimation=1
+INFO         |   androidboot.hardware=ranchu
+INFO         |   androidboot.hardware.gltransport=pipe
+INFO         |   androidboot.logcat=*:V
+INFO         |   androidboot.opengles.version=196609
+INFO         |   androidboot.qemu=1
+INFO         |   androidboot.qemu.adb.pubkey=QAAAAHnGTMM3PKUgi8uxBWMUYkf/a9WVZiOhL2ZjNbZ5N5Et0rlrSy3sV+yaI40pnut/gmbYmP39dX55LugBJL0V3m2pW38mzvp/lX7bo0T8mf53la1MGzRI2ouwZn9VgFU4mBbeUv186ld1VbPglsO/r/b9CA3jQqefP9c0m1l3SadRkDD4JFtuv+WELiEIqftVApQTAsm4oQFeEPb9K+8Al722IyD+h+25on22q6HEIW6zfFpFVMFOxJxYPesgHVrDxNro46WTsvF7oaMMNeoRO7WRsB+W0+Zp9hP57+MH4mY2CIWl9ZSB4INfGKWniImluSYuTSKAmSNgeJFYEtB65ibjQS+OPZ3TmKJwgKTTI/sSHwDn1eyJmK+Eg7gtKWGhXkOUmgINkyY5q+7T5Fjcm+dXF49PcV3i65eDKz/zG48NFc2dvdrmmw/av47Ycdxr4KbnAN/JG7jMhpWp+TBcZdhD24pava7CWe8C6ECq3RwtKl2RqoYIGwaS/WmMxbEflQ/4Pj3xQiL+TPAHn2MnQEAMee/1/8OP5g15EvhE+LKNbKk3FPzpOiwh813A7hEivgvY6ihb6gtDmHXEtQtWGKy5cdbzKiF97edYAUmg4OpxTnzi5hyJMpDYIDVs+EtBfDaAxreh2gXtF5csy3/QFDjV/4TUsC/QwpZx80KJwRyCsbVnVwEAAQA= @unknown
+INFO         |   androidboot.qemu.avd_name=Medium_Phone_API_36.0
+INFO         |   androidboot.qemu.camera_hq_edge_processing=0
+INFO         |   androidboot.qemu.camera_protocol_ver=1
+INFO         |   androidboot.qemu.cpuvulkan.version=4202496
+INFO         |   androidboot.qemu.gltransport.drawFlushInterval=800
+INFO         |   androidboot.qemu.gltransport.name=pipe
+INFO         |   androidboot.qemu.hwcodec.avcdec=2
+INFO         |   androidboot.qemu.hwcodec.hevcdec=2
+INFO         |   androidboot.qemu.hwcodec.vpxdec=2
+INFO         |   androidboot.qemu.settings.system.screen_off_timeout=2147483647
+INFO         |   androidboot.qemu.skin=1080x2400
+INFO         |   androidboot.qemu.virtiowifi=1
+INFO         |   androidboot.qemu.vsync=60
+INFO         |   androidboot.serialno=EMULATOR36X5X11X0
+INFO         |   androidboot.vbmeta.digest=43d61dbc053c8dbf3adaff951e5bdfcf174ece9dd24ffe8e6120f951cb412b2a
+INFO         |   androidboot.vbmeta.hash_alg=sha256
+INFO         |   androidboot.vbmeta.size=6784
+INFO         |   androidboot.veritymode=enforcing
+INFO         | Android bootconfig:
+INFO         |   androidboot.boot_devices="pci0000:00/0000:00:03.0 pci0000:00/0000:00:06.0"
+INFO         |   androidboot.dalvik.vm.heapsize="512m"
+INFO         |   androidboot.debug.hwui.renderer="skiagl"
+INFO         |   androidboot.debug.sf.nobootanimation="1"
+INFO         |   androidboot.hardware="ranchu"
+INFO         |   androidboot.hardware.gltransport="pipe"
+INFO         |   androidboot.logcat="*:V"
+INFO         |   androidboot.opengles.version="196609"
+INFO         |   androidboot.qemu="1"
+INFO         |   androidboot.qemu.adb.pubkey="QAAAAHnGTMM3PKUgi8uxBWMUYkf/a9WVZiOhL2ZjNbZ5N5Et0rlrSy3sV+yaI40pnut/gmbYmP39dX55LugBJL0V3m2pW38mzvp/lX7bo0T8mf53la1MGzRI2ouwZn9VgFU4mBbeUv186ld1VbPglsO/r/b9CA3jQqefP9c0m1l3SadRkDD4JFtuv+WELiEIqftVApQTAsm4oQFeEPb9K+8Al722IyD+h+25on22q6HEIW6zfFpFVMFOxJxYPesgHVrDxNro46WTsvF7oaMMNeoRO7WRsB+W0+Zp9hP57+MH4mY2CIWl9ZSB4INfGKWniImluSYuTSKAmSNgeJFYEtB65ibjQS+OPZ3TmKJwgKTTI/sSHwDn1eyJmK+Eg7gtKWGhXkOUmgINkyY5q+7T5Fjcm+dXF49PcV3i65eDKz/zG48NFc2dvdrmmw/av47Ycdxr4KbnAN/JG7jMhpWp+TBcZdhD24pava7CWe8C6ECq3RwtKl2RqoYIGwaS/WmMxbEflQ/4Pj3xQiL+TPAHn2MnQEAMee/1/8OP5g15EvhE+LKNbKk3FPzpOiwh813A7hEivgvY6ihb6gtDmHXEtQtWGKy5cdbzKiF97edYAUmg4OpxTnzi5hyJMpDYIDVs+EtBfDaAxreh2gXtF5csy3/QFDjV/4TUsC/QwpZx80KJwRyCsbVnVwEAAQA= @unknown"
+INFO         |   androidboot.qemu.avd_name="Medium_Phone_API_36.0"
+INFO         |   androidboot.qemu.camera_hq_edge_processing="0"
+INFO         |   androidboot.qemu.camera_protocol_ver="1"
+INFO         |   androidboot.qemu.cpuvulkan.version="4202496"
+INFO         |   androidboot.qemu.gltransport.drawFlushInterval="800"
+INFO         |   androidboot.qemu.gltransport.name="pipe"
+INFO         |   androidboot.qemu.hwcodec.avcdec="2"
+INFO         |   androidboot.qemu.hwcodec.hevcdec="2"
+INFO         |   androidboot.qemu.hwcodec.vpxdec="2"
+INFO         |   androidboot.qemu.settings.system.screen_off_timeout="2147483647"
+INFO         |   androidboot.qemu.skin="1080x2400"
+INFO         |   androidboot.qemu.virtiowifi="1"
+INFO         |   androidboot.qemu.vsync="60"
+INFO         |   androidboot.serialno="EMULATOR36X5X11X0"
+INFO         |   androidboot.vbmeta.digest="43d61dbc053c8dbf3adaff951e5bdfcf174ece9dd24ffe8e6120f951cb412b2a"
+INFO         |   androidboot.vbmeta.hash_alg="sha256"
+INFO         |   androidboot.vbmeta.size="6784"
+INFO         |   androidboot.veritymode="enforcing"
+DEBUG   | Found 1 DNS servers:
+DEBUG   | 	192.168.100.1
+INFO         | Content of hardware configuration file:
+INFO         | 	hw.cpu.arch = x86_64
+INFO         | 	hw.cpu.ncore = 6
+INFO         | 	hw.ramSize = 2048
+INFO         | 	hw.screen = multi-touch
+INFO         | 	hw.mainKeys = false
+INFO         | 	hw.touchpad0 = false
+INFO         | 	hw.touchpad0.width = 600
+INFO         | 	hw.touchpad0.height = 400
+INFO         | 	hw.trackBall = false
+INFO         | 	hw.keyboard = true
+INFO         | 	hw.keyboard.lid = false
+INFO         | 	hw.keyboard.charmap = qwerty2
+INFO         | 	hw.dPad = false
+INFO         | 	hw.rotaryInput = false
+INFO         | 	hw.gsmModem = true
+INFO         | 	hw.gps = true
+INFO         | 	hw.battery = true
+INFO         | 	hw.accelerometer = true
+INFO         | 	hw.accelerometer_uncalibrated = true
+INFO         | 	hw.gyroscope = true
+INFO         | 	hw.audioInput = true
+INFO         | 	hw.audioOutput = true
+INFO         | 	hw.sdCard = true
+INFO         | 	disk.cachePartition = true
+INFO         | 	disk.cachePartition.path = C:\Users\valen\.android\avd\..\avd\Medium_Phone.avd\cache.img
+INFO         | 	disk.cachePartition.size = 66m
+INFO         | 	test.quitAfterBootTimeOut = -1
+INFO         | 	test.delayAdbTillBootComplete = 0
+INFO         | 	test.monitorAdb = 0
+INFO         | 	hw.lcd.width = 1080
+INFO         | 	hw.lcd.height = 2400
+INFO         | 	hw.lcd.depth = 16
+INFO         | 	hw.lcd.circular = false
+INFO         | 	hw.lcd.density = 420
+INFO         | 	hw.lcd.transparent = false
+INFO         | 	hw.lcd.backlight = true
+INFO         | 	hw.lcd.vsync = 60
+INFO         | 	hw.gltransport = pipe
+INFO         | 	hw.gltransport.asg.writeBufferSize = 1048576
+INFO         | 	hw.gltransport.asg.writeStepSize = 4096
+INFO         | 	hw.gltransport.asg.dataRingSize = 32768
+INFO         | 	hw.gltransport.drawFlushInterval = 800
+INFO         | 	hw.displayRegion.0.1.xOffset = -1
+INFO         | 	hw.displayRegion.0.1.yOffset = -1
+INFO         | 	hw.displayRegion.0.1.width = 0
+INFO         | 	hw.displayRegion.0.1.height = 0
+INFO         | 	hw.displayRegion.0.2.xOffset = -1
+INFO         | 	hw.displayRegion.0.2.yOffset = -1
+INFO         | 	hw.displayRegion.0.2.width = 0
+INFO         | 	hw.displayRegion.0.2.height = 0
+INFO         | 	hw.displayRegion.0.3.xOffset = -1
+INFO         | 	hw.displayRegion.0.3.yOffset = -1
+INFO         | 	hw.displayRegion.0.3.width = 0
+INFO         | 	hw.displayRegion.0.3.height = 0
+INFO         | 	hw.display1.width = 0
+INFO         | 	hw.display1.height = 0
+INFO         | 	hw.display1.density = 0
+INFO         | 	hw.display1.xOffset = -1
+INFO         | 	hw.display1.yOffset = -1
+INFO         | 	hw.display1.flag = 0
+INFO         | 	hw.display2.width = 0
+INFO         | 	hw.display2.height = 0
+INFO         | 	hw.display2.density = 0
+INFO         | 	hw.display2.xOffset = -1
+INFO         | 	hw.display2.yOffset = -1
+INFO         | 	hw.display2.flag = 0
+INFO         | 	hw.display3.width = 0
+INFO         | 	hw.display3.height = 0
+INFO         | 	hw.display3.density = 0
+INFO         | 	hw.display3.xOffset = -1
+INFO         | 	hw.display3.yOffset = -1
+INFO         | 	hw.display3.flag = 0
+INFO         | 	hw.multi_display_window = false
+INFO         | 	hw.hotplug_multi_display = false
+INFO         | 	hw.gpu.enabled = true
+INFO         | 	hw.gpu.mode = host
+INFO         | 	hw.initialOrientation = portrait
+INFO         | 	hw.camera.back = virtualscene
+INFO         | 	hw.camera.back.orientation = 90
+INFO         | 	hw.camera.front = emulated
+INFO         | 	hw.camera.front.orientation = 90
+INFO         | 	vm.heapSize = 512
+INFO         | 	hw.sensors.light = true
+INFO         | 	hw.sensors.pressure = true
+INFO         | 	hw.sensors.humidity = true
+INFO         | 	hw.sensors.proximity = true
+INFO         | 	hw.sensors.magnetic_field = true
+INFO         | 	hw.sensors.magnetic_field_uncalibrated = true
+INFO         | 	hw.sensors.gyroscope_uncalibrated = true
+INFO         | 	hw.sensors.orientation = true
+INFO         | 	hw.sensors.temperature = true
+INFO         | 	hw.sensors.rgbclight = false
+INFO         | 	hw.sensor.hinge = false
+INFO         | 	hw.sensor.hinge.count = 0
+INFO         | 	hw.sensor.hinge.type = 0
+INFO         | 	hw.sensor.hinge.sub_type = 0
+INFO         | 	hw.sensor.hinge.resizable.config = 1
+INFO         | 	hw.sensor.hinge.fold_to_displayRegion.0.1_at_posture = 1
+INFO         | 	hw.sensor.roll = false
+INFO         | 	hw.sensor.roll.count = 0
+INFO         | 	hw.sensor.roll.resize_to_displayRegion.0.1_at_posture = 6
+INFO         | 	hw.sensor.roll.resize_to_displayRegion.0.2_at_posture = 6
+INFO         | 	hw.sensor.roll.resize_to_displayRegion.0.3_at_posture = 6
+INFO         | 	hw.sensors.heart_rate = false
+INFO         | 	hw.sensors.wrist_tilt = false
+INFO         | 	hw.sensors.heading = false
+INFO         | 	hw.useext4 = true
+INFO         | 	hw.arc = false
+INFO         | 	hw.arc.autologin = false
+INFO         | 	hw.device.name = medium_phone
+INFO         | 	kernel.path = C:\Users\valen\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\kernel-ranchu
+INFO         | 	kernel.newDeviceNaming = yes
+INFO         | 	kernel.supportsYaffs2 = no
+INFO         | 	disk.ramdisk.path = C:\Users\valen\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\ramdisk.img
+INFO         | 	disk.systemPartition.initPath = C:\Users\valen\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\system.img
+INFO         | 	disk.systemPartition.size = 2225m
+INFO         | 	disk.vendorPartition.initPath = C:\Users\valen\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\vendor.img
+INFO         | 	disk.vendorPartition.size = 800m
+INFO         | 	disk.dataPartition.path = C:\Users\valen\.android\avd\..\avd\Medium_Phone.avd\userdata-qemu.img
+INFO         | 	disk.dataPartition.size = 6g
+INFO         | 	disk.encryptionKeyPartition.path = C:\Users\valen\.android\avd\..\avd\Medium_Phone.avd\encryptionkey.img
+INFO         | 	PlayStore.enabled = true
+INFO         | 	avd.name = Medium_Phone_API_36.0
+INFO         | 	avd.id = Medium_Phone_API_36.0
+INFO         | 	fastboot.forceColdBoot = false
+INFO         | 	userdata.useQcow2 = true
+INFO         | 	firstboot.bootFromDownloadableSnapshot = true
+INFO         | 	firstboot.bootFromLocalSnapshot = true
+INFO         | 	firstboot.saveToLocalSnapshot = true
+INFO         | 	android.sdk.root = C:\Users\valen\AppData\Local\Android\Sdk
+INFO         | 	android.avd.home = C:\Users\valen\.android\avd
+INFO         | 	environment.width = 0
+INFO         | 	environment.height = 0
+INFO         | .
+INFO         | QEMU options list:
+INFO         | 	 argv[00] = "C:\Users\valen\AppData\Local\Android\Sdk\emulator\qemu\windows-x86_64\qemu-system-x86_64.exe"
+INFO         | 	 argv[01] = "-dns-server"
+INFO         | 	 argv[02] = "192.168.100.1"
+INFO         | 	 argv[03] = "-mem-path"
+INFO         | 	 argv[04] = "C:\Users\valen\.android\avd\Medium_Phone.avd\snapshots\default_boot\ram.img"
+INFO         | 	 argv[05] = "-serial"
+INFO         | 	 argv[06] = "null"
+INFO         | 	 argv[07] = "-android-ports"
+INFO         | 	 argv[08] = "5554,5555"
+INFO         | 	 argv[09] = "-device"
+INFO         | 	 argv[10] = "goldfish_pstore,addr=0xff018000,size=0x10000,file=C:\Users\valen\.android\avd\..\avd\Medium_Phone.avd\data\misc\pstore\pstore.bin"
+INFO         | 	 argv[11] = "-cpu"
+INFO         | 	 argv[12] = "android64"
+INFO         | 	 argv[13] = "-enable-whpx"
+INFO         | 	 argv[14] = "-smp"
+INFO         | 	 argv[15] = "cores=6"
+INFO         | 	 argv[16] = "-m"
+INFO         | 	 argv[17] = "2048"
+INFO         | 	 argv[18] = "-lcd-density"
+INFO         | 	 argv[19] = "420"
+INFO         | 	 argv[20] = "-nodefaults"
+INFO         | 	 argv[21] = "-kernel"
+INFO         | 	 argv[22] = "C:\Users\valen\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\kernel-ranchu"
+INFO         | 	 argv[23] = "-initrd"
+INFO         | 	 argv[24] = "C:\Users\valen\.android\avd\..\avd\Medium_Phone.avd\initrd"
+INFO         | 	 argv[25] = "-drive"
+INFO         | 	 argv[26] = "if=none,index=0,id=system,if=none,file=C:\Users\valen\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\system.img,read-only"
+INFO         | 	 argv[27] = "-device"
+INFO         | 	 argv[28] = "virtio-blk-pci,drive=system,modern-pio-notify"
+INFO         | 	 argv[29] = "-drive"
+INFO         | 	 argv[30] = "if=none,index=1,id=cache,if=none,file=C:\Users\valen\.android\avd\..\avd\Medium_Phone.avd\cache.img.qcow2,overlap-check=none,cache=unsafe,l2-cache-size=1048576"
+INFO         | 	 argv[31] = "-device"
+INFO         | 	 argv[32] = "virtio-blk-pci,drive=cache,modern-pio-notify"
+INFO         | 	 argv[33] = "-drive"
+INFO         | 	 argv[34] = "if=none,index=2,id=userdata,if=none,file=C:\Users\valen\.android\avd\..\avd\Medium_Phone.avd\userdata-qemu.img.qcow2,overlap-check=none,cache=unsafe,l2-cache-size=1048576"
+INFO         | 	 argv[35] = "-device"
+INFO         | 	 argv[36] = "virtio-blk-pci,drive=userdata,modern-pio-notify"
+INFO         | 	 argv[37] = "-drive"
+INFO         | 	 argv[38] = "if=none,index=3,id=encrypt,if=none,file=C:\Users\valen\.android\avd\..\avd\Medium_Phone.avd\encryptionkey.img.qcow2,overlap-check=none,cache=unsafe,l2-cache-size=1048576"
+INFO         | 	 argv[39] = "-device"
+INFO         | 	 argv[40] = "virtio-blk-pci,drive=encrypt,modern-pio-notify"
+INFO         | 	 argv[41] = "-drive"
+INFO         | 	 argv[42] = "if=none,index=4,id=vendor,if=none,file=C:\Users\valen\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\vendor.img,read-only"
+INFO         | 	 argv[43] = "-device"
+INFO         | 	 argv[44] = "virtio-blk-pci,drive=vendor,modern-pio-notify"
+INFO         | 	 argv[45] = "-netdev"
+INFO         | 	 argv[46] = "user,id=mynet"
+INFO         | 	 argv[47] = "-device"
+INFO         | 	 argv[48] = "virtio-net-pci,netdev=mynet"
+INFO         | 	 argv[49] = "-chardev"
+INFO         | 	 argv[50] = "null,id=forhvc0"
+INFO         | 	 argv[51] = "-chardev"
+INFO         | 	 argv[52] = "null,id=forhvc1"
+INFO         | 	 argv[53] = "-device"
+INFO         | 	 argv[54] = "virtio-serial-pci,ioeventfd=off"
+INFO         | 	 argv[55] = "-device"
+INFO         | 	 argv[56] = "virtconsole,chardev=forhvc0"
+INFO         | 	 argv[57] = "-device"
+INFO         | 	 argv[58] = "virtconsole,chardev=forhvc1"
+INFO         | 	 argv[59] = "-chardev"
+INFO         | 	 argv[60] = "netsim,id=uwb"
+INFO         | 	 argv[61] = "-device"
+INFO         | 	 argv[62] = "virtconsole,chardev=uwb,name=uwb"
+INFO         | 	 argv[63] = "-chardev"
+INFO         | 	 argv[64] = "netsim,id=bluetooth"
+INFO         | 	 argv[65] = "-device"
+INFO         | 	 argv[66] = "virtserialport,chardev=bluetooth,name=bluetooth"
+INFO         | 	 argv[67] = "-device"
+INFO         | 	 argv[68] = "virtio-serial,ioeventfd=off"
+INFO         | 	 argv[69] = "-chardev"
+INFO         | 	 argv[70] = "socket,port=57764,host=::1,nowait,nodelay,reconnect=10,ipv6,id=modem"
+INFO         | 	 argv[71] = "-device"
+INFO         | 	 argv[72] = "virtserialport,chardev=modem,name=modem"
+INFO         | 	 argv[73] = "-device"
+INFO         | 	 argv[74] = "virtio-rng-pci"
+INFO         | 	 argv[75] = "-show-cursor"
+INFO         | 	 argv[76] = "-device"
+INFO         | 	 argv[77] = "virtio_input_multi_touch_pci_1"
+INFO         | 	 argv[78] = "-device"
+INFO         | 	 argv[79] = "virtio_input_multi_touch_pci_2"
+INFO         | 	 argv[80] = "-device"
+INFO         | 	 argv[81] = "virtio_input_multi_touch_pci_3"
+INFO         | 	 argv[82] = "-device"
+INFO         | 	 argv[83] = "virtio_input_multi_touch_pci_4"
+INFO         | 	 argv[84] = "-device"
+INFO         | 	 argv[85] = "virtio_input_multi_touch_pci_5"
+INFO         | 	 argv[86] = "-device"
+INFO         | 	 argv[87] = "virtio_input_multi_touch_pci_6"
+INFO         | 	 argv[88] = "-device"
+INFO         | 	 argv[89] = "virtio_input_multi_touch_pci_7"
+INFO         | 	 argv[90] = "-device"
+INFO         | 	 argv[91] = "virtio_input_multi_touch_pci_8"
+INFO         | 	 argv[92] = "-device"
+INFO         | 	 argv[93] = "virtio_input_multi_touch_pci_9"
+INFO         | 	 argv[94] = "-device"
+INFO         | 	 argv[95] = "virtio_input_multi_touch_pci_10"
+INFO         | 	 argv[96] = "-device"
+INFO         | 	 argv[97] = "virtio_input_multi_touch_pci_11"
+INFO         | 	 argv[98] = "-device"
+INFO         | 	 argv[99] = "virtio-keyboard-pci"
+INFO         | 	 argv[100] = "-netdev"
+INFO         | 	 argv[101] = "user,id=virtio-wifi,dhcpstart=10.0.2.16"
+INFO         | 	 argv[102] = "-device"
+INFO         | 	 argv[103] = "virtio-wifi-pci,netdev=virtio-wifi"
+INFO         | 	 argv[104] = "-device"
+INFO         | 	 argv[105] = "virtio-vsock-pci,guest-cid=77"
+INFO         | 	 argv[106] = "-L"
+INFO         | 	 argv[107] = "C:\Users\valen\AppData\Local\Android\Sdk\emulator/lib/pc-bios"
+INFO         | 	 argv[108] = "-soundhw"
+INFO         | 	 argv[109] = "virtio-snd-pci"
+INFO         | 	 argv[110] = "-vga"
+INFO         | 	 argv[111] = "none"
+INFO         | 	 argv[112] = "-append"
+INFO         | 	 argv[113] = "8250.nr_uarts=1 clocksource=pit no_timer_check console=0 loop.max_part=7 ramoops.mem_address=0xff018000 ramoops.mem_size=0x10000 memmap=0x10000$0xff018000 printk.devkmsg=on bootconfig"
+INFO         | 	 argv[114] = "-android-hw"
+INFO         | 	 argv[115] = "C:\Users\valen\.android\avd\..\avd\Medium_Phone.avd\hardware-qemu.ini"
+INFO         | Concatenated QEMU options: C:\Users\valen\AppData\Local\Android\Sdk\emulator\qemu\windows-x86_64\qemu-system-x86_64.exe -dns-server 192.168.100.1 -mem-path C:\Users\valen\.android\avd\Medium_Phone.avd\snapshots\default_boot\ram.img -serial null -android-ports 5554,5555 -device goldfish_pstore,addr=0xff018000,size=0x10000,file=C:\Users\valen\.android\avd\..\avd\Medium_Phone.avd\data\misc\pstore\pstore.bin -cpu android64 -enable-whpx -smp cores=6 -m 2048 -lcd-density 420 -nodefaults -kernel C:\Users\valen\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\kernel-ranchu -initrd C:\Users\valen\.android\avd\..\avd\Medium_Phone.avd\initrd -drive if=none,index=0,id=system,if=none,file=C:\Users\valen\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\system.img,read-only -device virtio-blk-pci,drive=system,modern-pio-notify -drive if=none,index=1,id=cache,if=none,file=C:\Users\valen\.android\avd\..\avd\Medium_Phone.avd\cache.img.qcow2,overlap-check=none,cache=unsafe,l2-cache-size=1048576 -device virtio-blk-pci,drive=cache,modern-pio-notify -drive if=none,index=2,id=userdata,if=none,file=C:\Users\valen\.android\avd\..\avd\Medium_Phone.avd\userdata-qemu.img.qcow2,overlap-check=none,cache=unsafe,l2-cache-size=1048576 -device virtio-blk-pci,drive=userdata,modern-pio-notify -drive if=none,index=3,id=encrypt,if=none,file=C:\Users\valen\.android\avd\..\avd\Medium_Phone.avd\encryptionkey.img.qcow2,overlap-check=none,cache=unsafe,l2-cache-size=1048576 -device virtio-blk-pci,drive=encrypt,modern-pio-notify -drive if=none,index=4,id=vendor,if=none,file=C:\Users\valen\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\vendor.img,read-only -device virtio-blk-pci,drive=vendor,modern-pio-notify -netdev user,id=mynet -device virtio-net-pci,netdev=mynet -chardev null,id=forhvc0 -chardev null,id=forhvc1 -device virtio-serial-pci,ioeventfd=off -device virtconsole,chardev=forhvc0 -device virtconsole,chardev=forhvc1 -chardev netsim,id=uwb -device virtconsole,chardev=uwb,name=uwb -chardev netsim,id=bluetooth -device virtserialport,chardev=bluetooth,name=bluetooth -device virtio-serial,ioeventfd=off -chardev socket,port=57764,host=::1,nowait,nodelay,reconnect=10,ipv6,id=modem -device virtserialport,chardev=modem,name=modem -device virtio-rng-pci -show-cursor -device virtio_input_multi_touch_pci_1 -device virtio_input_multi_touch_pci_2 -device virtio_input_multi_touch_pci_3 -device virtio_input_multi_touch_pci_4 -device virtio_input_multi_touch_pci_5 -device virtio_input_multi_touch_pci_6 -device virtio_input_multi_touch_pci_7 -device virtio_input_multi_touch_pci_8 -device virtio_input_multi_touch_pci_9 -device virtio_input_multi_touch_pci_10 -device virtio_input_multi_touch_pci_11 -device virtio-keyboard-pci -netdev user,id=virtio-wifi,dhcpstart=10.0.2.16 -device virtio-wifi-pci,netdev=virtio-wifi -device virtio-vsock-pci,guest-cid=77 -L C:\Users\valen\AppData\Local\Android\Sdk\emulator/lib/pc-bios -soundhw virtio-snd-pci -vga none -append "8250.nr_uarts=1 clocksource=pit no_timer_check console=0 loop.max_part=7 ramoops.mem_address=0xff018000 ramoops.mem_size=0x10000 memmap=0x10000$0xff018000 printk.devkmsg=on bootconfig" -android-hw C:\Users\valen\.android\avd\..\avd\Medium_Phone.avd\hardware-qemu.ini
+DEBUG   | Android qemu version 36.5.11.0 (build_id 15261927) (CL:N/A)
+DEBUG   | Starting QEMU main loop
+DEBUG   | android_fopen: Failed to open /qemu.conf, err: 2
+DEBUG   | registered 'boot-properties' qemud service
+DEBUG   | Adding boot property: 'ro.opengles.version' = '196609'
+DEBUG   | Adding boot property: 'qemu.sf.fake_camera' = 'front'
+DEBUG   | Adding boot property: 'qemu.adb.secure' = '1'
+DEBUG   | Adding boot property: 'dalvik.vm.heapsize' = '512m'
+DEBUG   | Adding boot property: 'qemu.hw.mainkeys' = '0'
+DEBUG   | Adding boot property: 'qemu.sf.lcd_density' = '420'
+WHPX on Windows 10.0.26200 detected.
+Windows Hypervisor Platform accelerator is operational
+DEBUG   | goldfish_events.have-dpad: false
+DEBUG   | goldfish_events.have-trackball: false
+DEBUG   | goldfish_events.have-camera: true
+DEBUG   | goldfish_events.have-keyboard: false
+DEBUG   | goldfish_events.have-lidswitch: false
+DEBUG   | goldfish_events.have-tabletmode: false
+DEBUG   | goldfish_events.have-touch: false
+DEBUG   | goldfish_events.have-multitouch: false
+DEBUG   | Adding boot property: 'net.wifi_mac_prefix' = '5554'
+INFO         | Monitoring duration of emulator setup.
+DEBUG   | Adding boot property: 'qemu.timezone' = 'Unknown/Unknown'
+DEBUG   | android_hw_fingerprint_init: fingerprint qemud listen service initialized
+INFO         | Successfully initialized netsim WiFi
+INFO         | Activated packet streamer for bluetooth emulation
+INFO         | Activated packet streamer for uwb emulation
+DEBUG   | emulator_window_fb_rotate
+DEBUG   | CMD_SET_DISPLAY_CONFIGS
+INFO         | Setting display: 0 configuration to: 1080x2400, dpi: 420x420 
+DEBUG   | CMD_SET_DISPLAY_ACTIVE_CONFIG
+DEBUG   | setDisplayPose 0 x 0 y 0 w 1080 h 2400 dpi 0
+INFO         | setDisplayActiveConfig: id:0, 1080x2400
+DEBUG   | emulatorSetupEnvironment: cameraBack:virtualscene cameraFront:emulated
+INFO         | emulatorSetupEnvironment: Setting up screen background view and display layout at env:1080x2400, lcd:1080x2400
+WARNING      | getEnvironmentConfig: No environment config is provided
+INFO         | getEnvironmentConfig: Using default virtual scene contents for the environment.
+DEBUG   | Initializing VirtualSceneManager with mode:mesh3dscene, filename:Toren1BD.obj
+DEBUG   | Initializing a scene with mode:mesh3dscene, filename:Toren1BD.obj
+DEBUG   | Initializing scene with 'mesh3dscene' mode, file:Toren1BD.obj
+DEBUG   | emulatorSetupEnvironment: took 140695950255710 ms
+DEBUG   | Adjusting window size by 0.38x for hw_lcd_density
+DEBUG   | adisplay_init: Creating skin display surface 1080x2400
+DEBUG   | Path:C:\Users\valen\AppData\Local\Android\Sdk\platform-tools\adb.exe protocol version: 41
+DEBUG   | Path:C:\Users\valen\AppData\Local\Android\Sdk\platform-tools\adb.exe protocol version: 41
+DEBUG   | Found: 2 adb executables
+DEBUG   | Adb: C:\Users\valen\AppData\Local\Android\Sdk\platform-tools\adb.exe
+DEBUG   | Adb: C:\Users\valen\AppData\Local\Android\Sdk\platform-tools\adb.exe
+DEBUG   | Path:C:\Users\valen\AppData\Local\Android\Sdk\platform-tools\adb.exe protocol version: 41
+DEBUG   | Path:C:\Users\valen\AppData\Local\Android\Sdk\platform-tools\adb.exe protocol version: 41
+INFO         | Checking system compatibility:
+INFO         |   Checking: hasCompatibleHypervisor
+INFO         |      Ok: Hypervisor compatibility to run avd: `Medium_Phone_API_36.0` are met
+INFO         |   Checking: hasSufficientSystem
+INFO         |      Ok: System requirements to run avd: `Medium_Phone_API_36.0` are met
+INFO         |   Checking: hasSufficientHwGpu
+INFO         |      Ok: Hardware GPU requirements to run avd: `Medium_Phone_API_36.0` are passed
+INFO         |   Checking: hasSufficientDiskSpace
+INFO         |      Ok: Disk space requirements to run avd: `Medium_Phone_API_36.0` are met
+DEBUG   | Sending CMD_REPAINT to reposting thread
+DEBUG   | Reposting thread dequeueing a CMD_REPAINT
+DEBUG   | Sending CMD_REPAINT to reposting thread
+DEBUG   | Reposting framebuffer.
+DEBUG   | Sending CMD_REPAINT to reposting thread
+DEBUG   | No repost: no last posted color buffer
+DEBUG   | Reposting thread dequeueing a CMD_REPAINT
+DEBUG   | Reposting framebuffer.
+DEBUG   | No repost: no last posted color buffer
+DEBUG   | Reposting thread dequeueing a CMD_REPAINT
+DEBUG   | Reposting framebuffer.
+DEBUG   | No repost: no last posted color buffer
+DEBUG   | config multidisplay with config.ini 0x0 0x0 0x0
+DEBUG   | Begin setupSubWindow
+DEBUG   | No acpi ini file provided, using default
+DEBUG   | added one RIL client
+DEBUG   | Exit setupSubWindow (successful setup)
+DEBUG   | Crash info: hw.gpu.enabled=yes
+INFO         | GPU Vendor=[Google (ATI Technologies Inc.)]
+DEBUG   | Crash info: hw.cpu.ncore=8
+INFO         | GPU Renderer=[Android Emulator OpenGL ES Translator (AMD Radeon RX 6600M)]
+DEBUG   | Crash info: avd_space=140707698809008
+INFO         | GPU Version=[OpenGL ES 3.0 (4.5.0 Core Profile Context 26.8.1.260806)]
+DEBUG   | Crash info: disk.dataPartition.size=6G
+DEBUG   | Begin setupSubWindow
+DEBUG   | Crash info: hw.sensor.hinge=?
+DEBUG   | Exit setupSubWindow (nothing to do)
+DEBUG   | Crash info: hw.gpu.mode=angle_indirect
+DEBUG   | Crash info: hw.lcd.height=2400
+DEBUG   | Crash info: hw.ramSize=2048
+DEBUG   | Crash info: hw.lcd.width=1080
+DEBUG   | Crash info: PlayStore.enabled=true
+DEBUG   | Crash info: cpu_cores=16
+DEBUG   | Crash info: free_ram=11898
+DEBUG   | Crash info: ro.build.fingerprint=google/sdk_gphone64_x86_64/emu64xa:16/BE2A.250530.026.D1/13818094:user/dev-keys
+DEBUG   | Crash info: sessionId=aa3ad5bc-bfc1-4702-8dbb-12cd3b011149
+USER_INFO    | Emulator is performing a full startup. This may take upto two minutes, or more.
+DEBUG   | Using the same userId as Android Studio for metrics. id=82512595-fd1c-45e7-91ff-5296a38e6ec8
+INFO         | Warning: QMetaObject::connectSlotsByName: No matching signal for on_rgbcSensorValueWidget_valueChanged() (:0, )
+INFO         | Warning: QMetaObject::connectSlotsByName: No matching signal for on_posture_valueChanged(int) (:0, )
+INFO         | Warning: QObject::connect: Cannot queue arguments of type 'std::vector<android::emulation::control::SnapshotInfo>'
+(Make sure 'std::vector<android::emulation::control::SnapshotInfo>' is registered using qRegisterMetaType().) (:0, )
+INFO         | AVD supportsNativeGLES=1, supportsGuestAngle=1
+INFO         | Guest Angle is still unstable for API > 35.
+INFO         | Warning: QObject::connect: No such signal ToolWindow::microphoneEnabledChanged() in C:/buildbot/src/googleplex-android/emu-36-5-release/external/qemu/android/android-ui/modules/aemu-ui-qt/src/android/skin/qt/extended-window.cpp:160 (:0, )
+INFO         | Warning: QObject::connect:  (sender name:   'ToolControls') (:0, )
+INFO         | Warning: QObject::connect:  (receiver name: 'microphonePage') (:0, )
+INFO         | Warning: QObject::connect: No such signal MicrophonePage::microphoneEnabledChanged() in C:/buildbot/src/googleplex-android/emu-36-5-release/external/qemu/android/android-ui/modules/aemu-ui-qt/src/android/skin/qt/extended-window.cpp:162 (:0, )
+INFO         | Warning: QObject::connect:  (sender name:   'microphonePage') (:0, )
+INFO         | Warning: QObject::connect:  (receiver name: 'ToolControls') (:0, )
+INFO         | Created extended window in 717.933ms
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | No repost: no last posted color buffer
+DEBUG   | Begin setupSubWindow
+DEBUG   | Exit setupSubWindow (successful setup)
+DEBUG   | Sending CMD_REPAINT to reposting thread
+DEBUG   | Reposting thread dequeueing a CMD_REPAINT
+DEBUG   | Reposting framebuffer.
+DEBUG   | No repost: no last posted color buffer
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | No repost: no last posted color buffer
+DEBUG   | Begin setupSubWindow
+DEBUG   | Exit setupSubWindow (successful setup)
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | No repost: no last posted color buffer
+DEBUG   | Begin setupSubWindow
+DEBUG   | Exit setupSubWindow (successful setup)
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | No repost: no last posted color buffer
+DEBUG   | Begin setupSubWindow
+DEBUG   | Exit setupSubWindow (successful setup)
+DEBUG   | Begin setupSubWindow
+DEBUG   | Exit setupSubWindow (nothing to do)
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | No repost: no last posted color buffer
+DEBUG   | No acpi ini file provided, using default
+DEBUG   | Sending CMD_REPAINT to reposting thread
+DEBUG   | Reposting thread dequeueing a CMD_REPAINT
+DEBUG   | Begin setupSubWindow
+DEBUG   | Reposting framebuffer.
+DEBUG   | Exit setupSubWindow (nothing to do)
+DEBUG   | No repost: no last posted color buffer
+DEBUG   | Begin setupSubWindow
+DEBUG   | Exit setupSubWindow (nothing to do)
+WARNING      | adb command 'C:\Users\valen\AppData\Local\Android\Sdk\platform-tools\adb.exe -s emulator-5554 shell getprop sys.boot_completed ' failed: 'adb.exe: device offline'
+WARNING      | adb command 'C:\Users\valen\AppData\Local\Android\Sdk\platform-tools\adb.exe -s emulator-5554 shell getprop sys.boot_completed ' failed: 'adb.exe: device offline'
+INFO         | Critical: UpdateLayeredWindowIndirect failed for ptDst=(144, 131), size=(300x21), dirty=(300x21 0, 0) (Uno de los dispositivos conectados al sistema no funciona.) (:0, )
+DEBUG   | Started new RenderThread (total 1) @00000261A32DAF60
+DEBUG   | Started new RenderThread (total 2) @00000261A3D9DA20
+DEBUG   | Started new RenderThread (total 3) @00000261A8A11E90
+DEBUG   | Started new RenderThread (total 4) @00000261A8A11DB0
+DEBUG   | setDisplayPose 0 x -1 y -1 w 1080 h 2400 dpi 420
+DEBUG   | Started new RenderThread (total 5) @00000261A8A12210
+DEBUG   | Started new RenderThread (total 6) @00000261A8D95E10
+DEBUG   | _hwFingerprint_connect: connect finger print listen is called
+DEBUG   | got message from guest system fingerprint HAL
+DEBUG   | Started new RenderThread (total 7) @00000261B4DC7490
+DEBUG   | Started new RenderThread (total 8) @00000261A3D9F460
+DEBUG   | Started new RenderThread (total 9) @000002624B066A20
+DEBUG   | Started new RenderThread (total 10) @000002625142D380
+INFO         | Boot completed in 33761 ms
+INFO         | Increasing screen off timeout, logcat buffer size to 2M.
+DEBUG   | Started new RenderThread (total 11) @000002624FCE1C70
+DEBUG   | Started new RenderThread (total 12) @00000261A88163E0
+DEBUG   | Started new RenderThread (total 13) @00000261A64E15D0
+DEBUG   | Started new RenderThread (total 14) @000002624B0664E0
+VERBOSE | glReadPixels seems OK for tex(internal:0x8058 fmt:0x1908 type:0x1401) read(fmt:0x1908 type:0x1401).
+DEBUG   | Registering pipe service multidisplay
+DEBUG   | MultiDisplayPipe created 000002625EBD1F60
+DEBUG   | MultiDisplayPipe recevied QUERY
+DEBUG   | MultiDisplayPipe send add id 0 width 1080 height 2400 dpi 420 flag 0
+INFO         | IPv4 server found: 192.168.100.1
+INFO         | Ignore IPv6 address: 6085:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 6085:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 6085:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 788b:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 788b:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 788b:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 9891:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 9891:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 909c:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 909c:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 909c:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: a8a2:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: a8a2:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: a8a2:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 98a8:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 98a8:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 98a8:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | IPv4 server found: 192.168.100.1
+INFO         | Ignore IPv6 address: 6085:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 6085:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 6085:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 788b:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 788b:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 788b:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 9891:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 9891:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 909c:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 909c:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 909c:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: a8a2:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: a8a2:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: a8a2:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 98a8:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 98a8:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 98a8:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | IPv4 server found: 192.168.100.1
+INFO         | Ignore IPv6 address: 6085:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 6085:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 6085:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 788b:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 788b:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 788b:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 9891:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 9891:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 909c:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 909c:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 909c:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: a8a2:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: a8a2:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: a8a2:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 98a8:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 98a8:1d6f:6202:0:6085:1d6f:6202:0
+INFO         | Ignore IPv6 address: 98a8:1d6f:6202:0:6085:1d6f:6202:0
+WARNING      | adb command 'C:\Users\valen\AppData\Local\Android\Sdk\platform-tools\adb.exe -s emulator-5554 shell dumpsys package com.google.android.gms ' failed: 'Activity Resolver Table:
+  Full MIME Types:
+      image/avif:
+        bf4975a com.google.android.gms/.pay.deeplink.AliasProcessAdditionalMimeTypesActivity filter 6de0d8b
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/avif"
+          StaticType: "image/gif"
+          StaticType: "image/heic"
+          StaticType: "image/heif"
+          StaticType: "image/jpeg_r"
+          StaticType: "image/raw"
+      image/heic:
+        bf4975a com.google.android.gms/.pay.deeplink.AliasProcessAdditionalMimeTypesActivity filter 6de0d8b
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/avif"
+          StaticType: "image/gif"
+          StaticType: "image/heic"
+          StaticType: "image/heif"
+          StaticType: "image/jpeg_r"
+          StaticType: "image/raw"
+      image/heif:
+        bf4975a com.google.android.gms/.pay.deeplink.AliasProcessAdditionalMimeTypesActivity filter 6de0d8b
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/avif"
+          StaticType: "image/gif"
+          StaticType: "image/heic"
+          StaticType: "image/heif"
+          StaticType: "image/jpeg_r"
+          StaticType: "image/raw"
+      image/jpeg:
+        c95467c com.google.android.gms/.pay.deeplink.AliasProcessImageResourceActivity filter 6f0fb05
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/bmp"
+          StaticType: "image/jpeg"
+          StaticType: "image/jpg"
+          StaticType: "image/png"
+          StaticType: "image/webp"
+      image/webp:
+        c95467c com.google.android.gms/.pay.deeplink.AliasProcessImageResourceActivity filter 6f0fb05
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/bmp"
+          StaticType: "image/jpeg"
+          StaticType: "image/jpg"
+          StaticType: "image/png"
+          StaticType: "image/webp"
+      application/vnd.apple.pkpasses:
+        2abca02 com.google.android.gms/.pay.deeplink.AliasSavePkPassActivity filter a3dcf13
+          Action: "android.intent.action.VIEW"
+          Category: "android.intent.category.DEFAULT"
+          Scheme: "content"
+          StaticType: "application/vnd.apple.pkpass"
+          StaticType: "application/vnd.apple.pkpasses"
+          StaticType: "application/octet-stream"
+      image/bmp:
+        c95467c com.google.android.gms/.pay.deeplink.AliasProcessImageResourceActivity filter 6f0fb05
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/bmp"
+          StaticType: "image/jpeg"
+          StaticType: "image/jpg"
+          StaticType: "image/png"
+          StaticType: "image/webp"
+      image/gif:
+        bf4975a com.google.android.gms/.pay.deeplink.AliasProcessAdditionalMimeTypesActivity filter 6de0d8b
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/avif"
+          StaticType: "image/gif"
+          StaticType: "image/heic"
+          StaticType: "image/heif"
+          StaticType: "image/jpeg_r"
+          StaticType: "image/raw"
+      image/jpg:
+        c95467c com.google.android.gms/.pay.deeplink.AliasProcessImageResourceActivity filter 6f0fb05
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/bmp"
+          StaticType: "image/jpeg"
+          StaticType: "image/jpg"
+          StaticType: "image/png"
+          StaticType: "image/webp"
+      image/png:
+        c95467c com.google.android.gms/.pay.deeplink.AliasProcessImageResourceActivity filter 6f0fb05
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/bmp"
+          StaticType: "image/jpeg"
+          StaticType: "image/jpg"
+          StaticType: "image/png"
+          StaticType: "image/webp"
+      image/raw:
+        bf4975a com.google.android.gms/.pay.deeplink.AliasProcessAdditionalMimeTypesActivity filter 6de0d8b
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/avif"
+          StaticType: "image/gif"
+          StaticType: "image/heic"
+          StaticType: "image/heif"
+          StaticType: "image/jpeg_r"
+          StaticType: "image/raw"
+      */*:
+        158040e com.google.android.gms/.gestureexchange.ui.IntentFulfillmentActivity filter 48a2e2f
+          Action: "android.intent.action.SEND"
+          Action: "android.intent.action.SEND_MULTIPLE"
+          StaticType: "*"
+          mPriority=0, mOrder=0, mHasStaticPartialTypes=true, mHasDynamicPartialTypes=false
+        7d38f63 com.google.android.gms/.nearby.sharing.main.MainActivity filter 4566760
+          Action: "android.intent.action.SEND"
+          Action: "com.google.android.gms.nearby.sharing.UNIFIED"
+          Action: "android.intent.action.SEND_MULTIPLE"
+          Action: "com.google.android.gms.SHARE_NEARBY"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "*"
+          mPriority=0, mOrder=0, mHasStaticPartialTypes=true, mHasDynamicPartialTypes=false
+        7d38f63 com.google.android.gms/.nearby.sharing.main.MainActivity filter 5e5bebf
+          Action: "com.google.android.gms.RECEIVE_NEARBY"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "*"
+          mPriority=0, mOrder=0, mHasStaticPartialTypes=true, mHasDynamicPartialTypes=false
+        9360145 com.google.android.gms/.nearby.sharing.migration.TransparentTrampolineActivity filter f701dcb
+          Action: "com.google.android.gms.RECEIVE_NEARBY"
+          Action: "com.google.android.gms.nearby.QUICK_SHARE"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "*"
+          mPriority=0, mOrder=0, mHasStaticPartialTypes=true, mHasDynamicPartialTypes=false
+        9360145 com.google.android.gms/.nearby.sharing.migration.TransparentTrampolineActivity filter b3a6cc1
+          Action: "com.google.android.gms.SHARE_NEARBY"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "*"
+          mPriority=0, mOrder=0, mHasStaticPartialTypes=true, mHasDynamicPartialTypes=false
+        96dc854 com.google.android.gms/.nearby.sharing.unified.UnifiedActivity filter bc013fd
+          Action: "com.google.android.gms.nearby.sharing.UNIFIED"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "*"
+          mPriority=0, mOrder=0, mHasStaticPartialTypes=true, mHasDynamicPartialTypes=false
+      application/vnd.google.wallet.walletable-resource+image:
+        d1b2550 com.google.android.gms/.pay.deeplink.AliasProcessWalletableResourceActivity filter 5cd7349
+          Action: "android.intent.action.VIEW"
+          Category: "android.intent.category.DEFAULT"
+          Scheme: "walletable-resource"
+          StaticType: "application/vnd.google.wallet.walletable-resource+image"
+      image/jpeg_r:
+        bf4975a com.google.android.gms/.pay.deeplink.AliasProcessAdditionalMimeTypesActivity filter 6de0d8b
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/avif"
+          StaticType: "image/gif"
+          StaticType: "image/heic"
+          StaticType: "image/heif"
+          StaticType: "image/jpeg_r"
+          StaticType: "image/raw"
+      application/octet-stream:
+        12d1377 com.google.android.gms/.credential.manager.credentialexchange.ExportCredentialsActivity filter 129bbe4
+          Action: "androidx.identitycredentials.action.IMPORT_CREDENTIALS"
+          Category: "android.intent.category.DEFAULT"
+          Scheme: "content"
+          StaticType: "application/octet-stream"
+        2abca02 com.google.android.gms/.pay.deeplink.AliasSavePkPassActivity filter a3dcf13
+          Action: "android.intent.action.VIEW"
+          Category: "android.intent.category.DEFAULT"
+          Scheme: "content"
+          StaticType: "application/vnd.apple.pkpass"
+          StaticType: "application/vnd.apple.pkpasses"
+          StaticType: "application/octet-stream"
+      application/vnd.google.wallet.walletable-resource+barcode:
+        510844e com.google.android.gms/.pay.deeplink.AliasProcessWalletableBarcodeResourceActivity filter 2ac496f
+          Action: "android.intent.action.VIEW"
+          Category: "android.intent.category.DEFAULT"
+          Scheme: "walletable-resource"
+          StaticType: "application/vnd.google.wallet.walletable-resource+barcode"
+      android/gestureexchange:
+        402e7d3 com.google.android.gms/.gestureexchange.ui.GestureExchangeActivity filter 2081a09
+          Action: "android.nfc.action.NDEF_DISCOVERED"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "android/gestureexchange"
+      application/vnd.apple.pkpass:
+        2abca02 com.google.android.gms/.pay.deeplink.AliasSavePkPassActivity filter a3dcf13
+          Action: "android.intent.action.VIEW"
+          Category: "android.intent.category.DEFAULT"
+          Scheme: "content"
+          StaticType: "application/vnd.apple.pkpass"
+          StaticType: "application/vnd.apple.pkpasses"
+          StaticType: "application/octet-stream"
+
+  Base MIME Types:
+      android:
+        402e7d3 com.google.android.gms/.gestureexchange.ui.GestureExchangeActivity filter 2081a09
+          Action: "android.nfc.action.NDEF_DISCOVERED"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "android/gestureexchange"
+      image:
+        c95467c com.google.android.gms/.pay.deeplink.AliasProcessImageResourceActivity filter 6f0fb05
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/bmp"
+          StaticType: "image/jpeg"
+          StaticType: "image/jpg"
+          StaticType: "image/png"
+          StaticType: "image/webp"
+        c95467c com.google.android.gms/.pay.deeplink.AliasProcessImageResourceActivity filter 6f0fb05
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/bmp"
+          StaticType: "image/jpeg"
+          StaticType: "image/jpg"
+          StaticType: "image/png"
+          StaticType: "image/webp"
+        c95467c com.google.android.gms/.pay.deeplink.AliasProcessImageResourceActivity filter 6f0fb05
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/bmp"
+          StaticType: "image/jpeg"
+          StaticType: "image/jpg"
+          StaticType: "image/png"
+          StaticType: "image/webp"
+        c95467c com.google.android.gms/.pay.deeplink.AliasProcessImageResourceActivity filter 6f0fb05
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/bmp"
+          StaticType: "image/jpeg"
+          StaticType: "image/jpg"
+          StaticType: "image/png"
+          StaticType: "image/webp"
+        c95467c com.google.android.gms/.pay.deeplink.AliasProcessImageResourceActivity filter 6f0fb05
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/bmp"
+          StaticType: "image/jpeg"
+          StaticType: "image/jpg"
+          StaticType: "image/png"
+          StaticType: "image/webp"
+        bf4975a com.google.android.gms/.pay.deeplink.AliasProcessAdditionalMimeTypesActivity filter 6de0d8b
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/avif"
+          StaticType: "image/gif"
+          StaticType: "image/heic"
+          StaticType: "image/heif"
+          StaticType: "image/jpeg_r"
+          StaticType: "image/raw"
+        bf4975a com.google.android.gms/.pay.deeplink.AliasProcessAdditionalMimeTypesActivity filter 6de0d8b
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/avif"
+          StaticType: "image/gif"
+          StaticType: "image/heic"
+          StaticType: "image/heif"
+          StaticType: "image/jpeg_r"
+          StaticType: "image/raw"
+        bf4975a com.google.android.gms/.pay.deeplink.AliasProcessAdditionalMimeTypesActivity filter 6de0d8b
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/avif"
+          StaticType: "image/gif"
+          StaticType: "image/heic"
+          StaticType: "image/heif"
+          StaticType: "image/jpeg_r"
+          StaticType: "image/raw"
+        bf4975a com.google.android.gms/.pay.deeplink.AliasProcessAdditionalMimeTypesActivity filter 6de0d8b
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/avif"
+          StaticType: "image/gif"
+          StaticType: "image/heic"
+          StaticType: "image/heif"
+          StaticType: "image/jpeg_r"
+          StaticType: "image/raw"
+        bf4975a com.google.android.gms/.pay.deeplink.AliasProcessAdditionalMimeTypesActivity filter 6de0d8b
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/avif"
+          StaticType: "image/gif"
+          StaticType: "image/heic"
+          StaticType: "image/heif"
+          StaticType: "image/jpeg_r"
+          StaticType: "image/raw"
+        bf4975a com.google.android.gms/.pay.deeplink.AliasProcessAdditionalMimeTypesActivity filter 6de0d8b
+          Action: "android.intent.action.SEND"
+          Category: "android.intent.category.DEFAULT"
+          StaticType: "image/avif"
+          StaticType: "image/gif"
+          StaticType: "image/heic"
+          StaticType: "image/heif"
+          StaticType: "image/jpeg_r"
+          StaticType: "image/raw"
+      application:
+        12d1377 com.google.android.gms/.credential.manager.credentialexchange.ExportCredentialsActivity filter 129bbe4
+          Action: "androidx.identitycredentials.action.IMPORT_CREDENTIALS"
+          Category: "android.intent.category.DEFAULT"
+          Scheme: "content"
+          StaticType: "application/
+DEBUG   | Started new RenderThread (total 15) @000002624B066780
+DEBUG   | Started new RenderThread (total 16) @00000261A3CC9C30
+DEBUG   | Started new RenderThread (total 17) @000002625142D0E0
+DEBUG   | Started new RenderThread (total 18) @00000261A8816220
+DEBUG   | Waiting for exit signal RenderThread @00000261A8816220
+DEBUG   | Waiting for exit signal RenderThread @000002625142D0E0
+DEBUG   | Waiting for exit signal RenderThread @00000261A3CC9C30
+DEBUG   | Exited a RenderThread @00000261A3CC9C30
+DEBUG   | Exited a RenderThread @000002625142D0E0
+DEBUG   | Exited a RenderThread @00000261A8816220
+DEBUG   | Started new RenderThread (total 16) @00000261A8D95FD0
+DEBUG   | Started new RenderThread (total 17) @000002626A9F0960
+DEBUG   | Started new RenderThread (total 18) @00000261A3CC9C30
+DEBUG   | Started new RenderThread (total 19) @000002624FCE1D50
+DEBUG   | Started new RenderThread (total 20) @00000261A64E1170
+DEBUG   | Waiting for exit signal RenderThread @00000261A88163E0
+DEBUG   | Waiting for exit signal RenderThread @000002624FCE1D50
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F0960
+DEBUG   | Waiting for exit signal RenderThread @00000261A64E1170
+DEBUG   | Waiting for exit signal RenderThread @00000261A3CC9C30
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D95FD0
+DEBUG   | Waiting for exit signal RenderThread @000002624B066780
+DEBUG   | Exited a RenderThread @00000261A88163E0
+DEBUG   | Exited a RenderThread @000002624B066780
+DEBUG   | Exited a RenderThread @00000261A8D95FD0
+DEBUG   | Exited a RenderThread @000002626A9F0960
+DEBUG   | Exited a RenderThread @00000261A3CC9C30
+DEBUG   | Exited a RenderThread @000002624FCE1D50
+DEBUG   | Exited a RenderThread @00000261A64E1170
+DEBUG   | Started new RenderThread (total 14) @00000261A3CC9DF0
+DEBUG   | Started new RenderThread (total 15) @00000261A3CC9C30
+DEBUG   | Started new RenderThread (total 16) @000002626A9F0500
+DEBUG   | Started new RenderThread (total 17) @000002626A9F0A40
+DEBUG   | Started new RenderThread (total 18) @000002626A9F0DC0
+DEBUG   | Started new RenderThread (total 19) @000002625142C9E0
+DEBUG   | Started new RenderThread (total 20) @000002626525AF70
+DEBUG   | Started new RenderThread (total 21) @00000261A8D92B90
+DEBUG   | Started new RenderThread (total 22) @00000261A3D9EC80
+DEBUG   | Started new RenderThread (total 23) @000002625F3C3640
+DEBUG   | Started new RenderThread (total 24) @000002626525BC90
+DEBUG   | Waiting for exit signal RenderThread @00000261A3CC9DF0
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F0500
+DEBUG   | Exited a RenderThread @00000261A3CC9DF0
+DEBUG   | Exited a RenderThread @000002626A9F0500
+DEBUG   | Started new RenderThread (total 23) @000002626A3CB650
+DEBUG   | Waiting for exit signal RenderThread @00000261A3D9EC80
+DEBUG   | Exited a RenderThread @00000261A3D9EC80
+DEBUG   | Started new RenderThread (total 23) @000002626C386100
+DEBUG   | Started new RenderThread (total 24) @000002626C385CA0
+DEBUG   | Started new RenderThread (total 25) @00000261B4DC78F0
+DEBUG   | Started new RenderThread (total 26) @0000026246FF54F0
+DEBUG   | Started new RenderThread (total 27) @000002625142D1C0
+ERROR        | bad color buffer handle 294
+DEBUG   | Waiting for exit signal RenderThread @00000261A3CC9C30
+DEBUG   | Waiting for exit signal RenderThread @000002626A3CB650
+DEBUG   | Waiting for exit signal RenderThread @00000261B4DC78F0
+DEBUG   | Waiting for exit signal RenderThread @000002626C385CA0
+DEBUG   | Exited a RenderThread @00000261A3CC9C30
+DEBUG   | Exited a RenderThread @000002626A3CB650
+DEBUG   | Exited a RenderThread @000002626C385CA0
+DEBUG   | Exited a RenderThread @00000261B4DC78F0
+DEBUG   | Started new RenderThread (total 24) @000002626FD5A380
+ERROR        | bad color buffer handle 306
+DEBUG   | Started new RenderThread (total 25) @000002625142D0E0
+DEBUG   | Started new RenderThread (total 26) @00000261A88CDA10
+DEBUG   | Started new RenderThread (total 27) @000002625142D460
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF54F0
+DEBUG   | Exited a RenderThread @0000026246FF54F0
+DEBUG   | Started new RenderThread (total 27) @000002626C385E60
+DEBUG   | Waiting for exit signal RenderThread @000002626C385E60
+DEBUG   | Exited a RenderThread @000002626C385E60
+DEBUG   | Started new RenderThread (total 27) @000002626525B4B0
+DEBUG   | Waiting for exit signal RenderThread @000002626525B4B0
+DEBUG   | Waiting for exit signal RenderThread @000002625142C9E0
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C3640
+DEBUG   | Waiting for exit signal RenderThread @000002626525AF70
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D92B90
+DEBUG   | Waiting for exit signal RenderThread @000002625142D1C0
+DEBUG   | Waiting for exit signal RenderThread @000002626525BC90
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F0DC0
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F0A40
+DEBUG   | Exited a RenderThread @000002626A9F0A40
+DEBUG   | Exited a RenderThread @000002626A9F0DC0
+DEBUG   | Exited a RenderThread @000002625142C9E0
+DEBUG   | Exited a RenderThread @000002626525AF70
+DEBUG   | Exited a RenderThread @00000261A8D92B90
+DEBUG   | Exited a RenderThread @000002625F3C3640
+DEBUG   | Exited a RenderThread @000002626525BC90
+DEBUG   | Exited a RenderThread @000002625142D1C0
+DEBUG   | Exited a RenderThread @000002626525B4B0
+DEBUG   | Started new RenderThread (total 19) @000002626FD5AE00
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5AE00
+DEBUG   | Exited a RenderThread @000002626FD5AE00
+DEBUG   | Started new RenderThread (total 19) @000002626BB4EA10
+DEBUG   | Started new RenderThread (total 20) @000002625142CBA0
+DEBUG   | Started new RenderThread (total 21) @00000261A40C7CA0
+DEBUG   | Waiting for exit signal RenderThread @000002625142D0E0
+DEBUG   | Exited a RenderThread @000002625142D0E0
+DEBUG   | Started new RenderThread (total 21) @000002626A258280
+DEBUG   | Waiting for exit signal RenderThread @000002626A258280
+DEBUG   | Exited a RenderThread @000002626A258280
+DEBUG   | Started new RenderThread (total 21) @00000261A8D95FD0
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D95FD0
+DEBUG   | Exited a RenderThread @00000261A8D95FD0
+DEBUG   | Started new RenderThread (total 21) @00000261A3D9EE40
+DEBUG   | Waiting for exit signal RenderThread @00000261A3D9EE40
+DEBUG   | Exited a RenderThread @00000261A3D9EE40
+DEBUG   | Started new RenderThread (total 21) @000002625142CF20
+DEBUG   | Waiting for exit signal RenderThread @000002625142CF20
+DEBUG   | Exited a RenderThread @000002625142CF20
+DEBUG   | Started new RenderThread (total 21) @000002626BB4E770
+DEBUG   | Waiting for exit signal RenderThread @000002626BB4E770
+DEBUG   | Exited a RenderThread @000002626BB4E770
+DEBUG   | Started new RenderThread (total 21) @00000261A88CD690
+DEBUG   | Waiting for exit signal RenderThread @00000261A88CD690
+DEBUG   | Waiting for exit signal RenderThread @000002626C386100
+DEBUG   | Exited a RenderThread @000002626C386100
+DEBUG   | Exited a RenderThread @00000261A88CD690
+DEBUG   | Started new RenderThread (total 20) @000002626A4CB710
+DEBUG   | Waiting for exit signal RenderThread @000002626A4CB710
+DEBUG   | Exited a RenderThread @000002626A4CB710
+DEBUG   | Started new RenderThread (total 20) @000002626FD5A7E0
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A7E0
+DEBUG   | Exited a RenderThread @000002626FD5A7E0
+DEBUG   | Started new RenderThread (total 20) @00000261A8D95FD0
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D95FD0
+DEBUG   | Exited a RenderThread @00000261A8D95FD0
+DEBUG   | Started new RenderThread (total 20) @000002626A9F07A0
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F07A0
+DEBUG   | Waiting for exit signal RenderThread @000002625142CBA0
+DEBUG   | Waiting for exit signal RenderThread @000002625142D460
+DEBUG   | Waiting for exit signal RenderThread @00000261A88CDA10
+DEBUG   | Exited a RenderThread @00000261A88CDA10
+DEBUG   | Exited a RenderThread @000002625142D460
+DEBUG   | Exited a RenderThread @000002625142CBA0
+DEBUG   | Exited a RenderThread @000002626A9F07A0
+DEBUG   | Started new RenderThread (total 17) @000002626FD5A9A0
+DEBUG   | Started new RenderThread (total 18) @0000026246FF55D0
+DEBUG   | Started new RenderThread (total 19) @000002625A628AA0
+DEBUG   | Started new RenderThread (total 20) @0000026246FF5790
+DEBUG   | Started new RenderThread (total 21) @000002625F3C2F40
+ERROR        | bad color buffer handle 410
+DEBUG   | Started new RenderThread (total 22) @000002625F3C3020
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C3020
+DEBUG   | Exited a RenderThread @000002625F3C3020
+DEBUG   | Started new RenderThread (total 22) @000002625C993DE0
+DEBUG   | Waiting for exit signal RenderThread @000002625C993DE0
+DEBUG   | Exited a RenderThread @000002625C993DE0
+DEBUG   | Started new RenderThread (total 22) @000002625BB6DC10
+DEBUG   | Waiting for exit signal RenderThread @000002625BB6DC10
+DEBUG   | Exited a RenderThread @000002625BB6DC10
+DEBUG   | Started new RenderThread (total 22) @000002626C385D80
+DEBUG   | Waiting for exit signal RenderThread @000002626C385D80
+DEBUG   | Exited a RenderThread @000002626C385D80
+DEBUG   | Started new RenderThread (total 22) @000002625142CC80
+DEBUG   | Waiting for exit signal RenderThread @000002625142CC80
+DEBUG   | Exited a RenderThread @000002625142CC80
+DEBUG   | Started new RenderThread (total 22) @000002626FD5A1C0
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A1C0
+DEBUG   | Exited a RenderThread @000002626FD5A1C0
+DEBUG   | Started new RenderThread (total 22) @000002625F3C2A00
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C2A00
+DEBUG   | Exited a RenderThread @000002625F3C2A00
+DEBUG   | Started new RenderThread (total 22) @000002625C993DE0
+DEBUG   | Waiting for exit signal RenderThread @000002625C993DE0
+DEBUG   | Exited a RenderThread @000002625C993DE0
+DEBUG   | Started new RenderThread (total 22) @00000262795C4FF0
+DEBUG   | Waiting for exit signal RenderThread @00000262795C4FF0
+DEBUG   | Exited a RenderThread @00000262795C4FF0
+DEBUG   | Started new RenderThread (total 22) @00000262795C5610
+DEBUG   | Waiting for exit signal RenderThread @00000262795C5610
+DEBUG   | Exited a RenderThread @00000262795C5610
+DEBUG   | Started new RenderThread (total 22) @00000262795C4FF0
+DEBUG   | Waiting for exit signal RenderThread @00000262795C4FF0
+DEBUG   | Waiting for exit signal RenderThread @000002625A628AA0
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF55D0
+DEBUG   | Exited a RenderThread @0000026246FF55D0
+DEBUG   | Exited a RenderThread @000002625A628AA0
+DEBUG   | Exited a RenderThread @00000262795C4FF0
+DEBUG   | Started new RenderThread (total 20) @000002626FD5AC40
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5AC40
+DEBUG   | Exited a RenderThread @000002626FD5AC40
+DEBUG   | Started new RenderThread (total 20) @000002626BB4E3F0
+DEBUG   | Waiting for exit signal RenderThread @000002626BB4E3F0
+DEBUG   | Exited a RenderThread @000002626BB4E3F0
+DEBUG   | Started new RenderThread (total 20) @00000262795C4B90
+DEBUG   | Waiting for exit signal RenderThread @00000262795C4B90
+DEBUG   | Exited a RenderThread @00000262795C4B90
+DEBUG   | Started new RenderThread (total 20) @000002625C994080
+DEBUG   | Waiting for exit signal RenderThread @000002625C994080
+DEBUG   | Exited a RenderThread @000002625C994080
+DEBUG   | Started new RenderThread (total 20) @000002626FD5AC40
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5AC40
+DEBUG   | Exited a RenderThread @000002626FD5AC40
+DEBUG   | Started new RenderThread (total 20) @000002625F3C3100
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C3100
+DEBUG   | Exited a RenderThread @000002625F3C3100
+DEBUG   | Started new RenderThread (total 20) @000002626A9F05E0
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F05E0
+DEBUG   | Exited a RenderThread @000002626A9F05E0
+DEBUG   | Started new RenderThread (total 20) @00000261A3CC9DF0
+DEBUG   | Waiting for exit signal RenderThread @00000261A3CC9DF0
+DEBUG   | Exited a RenderThread @00000261A3CC9DF0
+DEBUG   | Started new RenderThread (total 20) @000002625F3C3640
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C3640
+DEBUG   | Exited a RenderThread @000002625F3C3640
+DEBUG   | Started new RenderThread (total 20) @000002625142CF20
+DEBUG   | Waiting for exit signal RenderThread @000002625142CF20
+DEBUG   | Exited a RenderThread @000002625142CF20
+DEBUG   | Started new RenderThread (total 20) @00000261A8816300
+DEBUG   | Waiting for exit signal RenderThread @00000261A8816300
+DEBUG   | Exited a RenderThread @00000261A8816300
+DEBUG   | Started new RenderThread (total 20) @000002625BB6DCF0
+DEBUG   | Waiting for exit signal RenderThread @000002625BB6DCF0
+DEBUG   | Exited a RenderThread @000002625BB6DCF0
+DEBUG   | Started new RenderThread (total 20) @00000261A64E1410
+DEBUG   | Waiting for exit signal RenderThread @00000261A64E1410
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF5790
+DEBUG   | Exited a RenderThread @0000026246FF5790
+DEBUG   | Exited a RenderThread @00000261A64E1410
+DEBUG   | Started new RenderThread (total 19) @000002625F3C2A00
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C2A00
+DEBUG   | Exited a RenderThread @000002625F3C2A00
+DEBUG   | Started new RenderThread (total 19) @000002624FCE19D0
+DEBUG   | Waiting for exit signal RenderThread @000002624FCE19D0
+DEBUG   | Exited a RenderThread @000002624FCE19D0
+DEBUG   | Started new RenderThread (total 19) @000002626FD5A460
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A460
+DEBUG   | Exited a RenderThread @000002626FD5A460
+DEBUG   | Started new RenderThread (total 19) @000002626A9F0C00
+DEBUG   | Started new RenderThread (total 20) @000002625F3C32C0
+DEBUG   | Started new RenderThread (total 21) @00000261A32DA5C0
+DEBUG   | Waiting for exit signal RenderThread @00000261A32DA5C0
+DEBUG   | Exited a RenderThread @00000261A32DA5C0
+DEBUG   | Started new RenderThread (total 21) @0000026246FF5330
+DEBUG   | Started new RenderThread (total 22) @000002626FD5A620
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A620
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C32C0
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F0C00
+DEBUG   | Exited a RenderThread @000002626A9F0C00
+DEBUG   | Exited a RenderThread @000002625F3C32C0
+DEBUG   | Exited a RenderThread @000002626FD5A620
+DEBUG   | Started new RenderThread (total 20) @000002626FD5A700
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A700
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF5330
+DEBUG   | Exited a RenderThread @0000026246FF5330
+DEBUG   | Exited a RenderThread @000002626FD5A700
+DEBUG   | Started new RenderThread (total 19) @000002625142CC80
+DEBUG   | Waiting for exit signal RenderThread @000002625142CC80
+DEBUG   | Exited a RenderThread @000002625142CC80
+DEBUG   | Started new RenderThread (total 19) @000002625C993DE0
+DEBUG   | Waiting for exit signal RenderThread @000002625C993DE0
+DEBUG   | Exited a RenderThread @000002625C993DE0
+DEBUG   | Started new RenderThread (total 19) @000002626A9F0DC0
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F0DC0
+DEBUG   | Exited a RenderThread @000002626A9F0DC0
+DEBUG   | Started new RenderThread (total 19) @000002624FCE1F10
+DEBUG   | Started new RenderThread (total 20) @000002625F3C3560
+DEBUG   | Started new RenderThread (total 21) @00000261A64E16B0
+DEBUG   | Started new RenderThread (total 22) @00000261A64E1170
+DEBUG   | Started new RenderThread (total 23) @000002625C9982B0
+DEBUG   | Waiting for exit signal RenderThread @00000261A64E16B0
+DEBUG   | Exited a RenderThread @00000261A64E16B0
+DEBUG   | Started new RenderThread (total 23) @000002626BB4EE70
+DEBUG   | Waiting for exit signal RenderThread @000002626BB4EE70
+DEBUG   | Exited a RenderThread @000002626BB4EE70
+DEBUG   | Started new RenderThread (total 23) @000002626BB4E850
+DEBUG   | Started new RenderThread (total 24) @00000261B51AC560
+DEBUG   | Started new RenderThread (total 25) @00000261B51AC640
+DEBUG   | Started new RenderThread (total 26) @0000026246FF5790
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF5790
+DEBUG   | Exited a RenderThread @0000026246FF5790
+DEBUG   | Started new RenderThread (total 26) @000002625AEC0030
+DEBUG   | Waiting for exit signal RenderThread @000002626BB4E850
+DEBUG   | Waiting for exit signal RenderThread @000002625AEC0030
+DEBUG   | Exited a RenderThread @000002626BB4E850
+DEBUG   | Exited a RenderThread @000002625AEC0030
+DEBUG   | Started new RenderThread (total 25) @00000261B51AC720
+DEBUG   | Waiting for exit signal RenderThread @00000261B51AC720
+DEBUG   | Exited a RenderThread @00000261B51AC720
+DEBUG   | Started new RenderThread (total 25) @000002625142CC80
+DEBUG   | Waiting for exit signal RenderThread @000002625142CC80
+DEBUG   | Waiting for exit signal RenderThread @00000261B51AC640
+DEBUG   | Waiting for exit signal RenderThread @000002624FCE1F10
+DEBUG   | Exited a RenderThread @000002624FCE1F10
+DEBUG   | Exited a RenderThread @00000261B51AC640
+DEBUG   | Exited a RenderThread @000002625142CC80
+DEBUG   | Started new RenderThread (total 23) @000002626BB4EBD0
+DEBUG   | Started new RenderThread (total 24) @000002625C9980F0
+DEBUG   | Started new RenderThread (total 25) @000002626C385D80
+DEBUG   | Started new RenderThread (total 26) @000002626A9F0C00
+DEBUG   | Waiting for exit signal RenderThread @000002626BB4EBD0
+DEBUG   | Exited a RenderThread @000002626BB4EBD0
+DEBUG   | Started new RenderThread (total 26) @00000261B5187B90
+DEBUG   | Waiting for exit signal RenderThread @00000261B5187B90
+DEBUG   | Exited a RenderThread @00000261B5187B90
+DEBUG   | Started new RenderThread (total 26) @00000261A8D95FD0
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D95FD0
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F0C00
+DEBUG   | Waiting for exit signal RenderThread @000002626C385D80
+DEBUG   | Exited a RenderThread @000002626C385D80
+DEBUG   | Exited a RenderThread @000002626A9F0C00
+DEBUG   | Exited a RenderThread @00000261A8D95FD0
+DEBUG   | Started new RenderThread (total 24) @000002625142D0E0
+DEBUG   | Started new RenderThread (total 25) @00000261B51AC8E0
+DEBUG   | Started new RenderThread (total 26) @0000026246FF54F0
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF54F0
+DEBUG   | Exited a RenderThread @0000026246FF54F0
+DEBUG   | Started new RenderThread (total 26) @000002626BB4E4D0
+DEBUG   | Waiting for exit signal RenderThread @000002626BB4E4D0
+DEBUG   | Exited a RenderThread @000002626BB4E4D0
+DEBUG   | Started new RenderThread (total 26) @000002625F3C3020
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C3020
+DEBUG   | Exited a RenderThread @000002625F3C3020
+DEBUG   | Started new RenderThread (total 26) @00000261A8815F80
+DEBUG   | Waiting for exit signal RenderThread @00000261A8815F80
+DEBUG   | Exited a RenderThread @00000261A8815F80
+DEBUG   | Started new RenderThread (total 26) @0000026246FF5330
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF5330
+DEBUG   | Exited a RenderThread @0000026246FF5330
+DEBUG   | Started new RenderThread (total 26) @000002625142CC80
+DEBUG   | Waiting for exit signal RenderThread @000002625142CC80
+DEBUG   | Exited a RenderThread @000002625142CC80
+DEBUG   | Started new RenderThread (total 26) @00000261A3D9DBE0
+DEBUG   | Waiting for exit signal RenderThread @00000261A3D9DBE0
+DEBUG   | Exited a RenderThread @00000261A3D9DBE0
+DEBUG   | Started new RenderThread (total 26) @000002625BF756B0
+DEBUG   | Waiting for exit signal RenderThread @000002625BF756B0
+DEBUG   | Exited a RenderThread @000002625BF756B0
+DEBUG   | Started new RenderThread (total 26) @000002626A9F07A0
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F07A0
+DEBUG   | Exited a RenderThread @000002626A9F07A0
+DEBUG   | Started new RenderThread (total 26) @000002626A9F0340
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F0340
+DEBUG   | Exited a RenderThread @000002626A9F0340
+DEBUG   | Started new RenderThread (total 26) @000002626C386100
+DEBUG   | Waiting for exit signal RenderThread @000002626C386100
+DEBUG   | Exited a RenderThread @000002626C386100
+DEBUG   | Started new RenderThread (total 26) @000002625C997D70
+DEBUG   | Waiting for exit signal RenderThread @000002625C997D70
+DEBUG   | Exited a RenderThread @000002625C997D70
+DEBUG   | Started new RenderThread (total 26) @00000261A3D9E4A0
+DEBUG   | Waiting for exit signal RenderThread @00000261A3D9E4A0
+DEBUG   | Exited a RenderThread @00000261A3D9E4A0
+DEBUG   | Started new RenderThread (total 26) @000002625142D540
+DEBUG   | Waiting for exit signal RenderThread @000002625142D540
+DEBUG   | Exited a RenderThread @000002625142D540
+DEBUG   | Started new RenderThread (total 26) @00000261B5187570
+DEBUG   | Waiting for exit signal RenderThread @00000261B5187570
+DEBUG   | Exited a RenderThread @00000261B5187570
+DEBUG   | Started new RenderThread (total 26) @000002625142CC80
+DEBUG   | Waiting for exit signal RenderThread @000002625142CC80
+DEBUG   | Exited a RenderThread @000002625142CC80
+DEBUG   | Started new RenderThread (total 26) @000002625C993B40
+DEBUG   | Waiting for exit signal RenderThread @000002625C993B40
+DEBUG   | Exited a RenderThread @000002625C993B40
+DEBUG   | Started new RenderThread (total 26) @000002626C386100
+DEBUG   | Waiting for exit signal RenderThread @000002626C386100
+DEBUG   | Exited a RenderThread @000002626C386100
+DEBUG   | Started new RenderThread (total 26) @000002626FD5A1C0
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A1C0
+DEBUG   | Exited a RenderThread @000002626FD5A1C0
+DEBUG   | Started new RenderThread (total 26) @000002626FD5A700
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A700
+DEBUG   | Exited a RenderThread @000002626FD5A700
+DEBUG   | Started new RenderThread (total 26) @000002625BF75170
+DEBUG   | Waiting for exit signal RenderThread @000002625BF75170
+DEBUG   | Exited a RenderThread @000002625BF75170
+DEBUG   | Started new RenderThread (total 26) @00000261A8D960B0
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D960B0
+DEBUG   | Exited a RenderThread @00000261A8D960B0
+DEBUG   | Started new RenderThread (total 26) @000002625F3C3020
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C3020
+DEBUG   | Exited a RenderThread @000002625F3C3020
+DEBUG   | Started new RenderThread (total 26) @00000261B51AC800
+DEBUG   | Waiting for exit signal RenderThread @00000261B51AC800
+DEBUG   | Exited a RenderThread @00000261B51AC800
+DEBUG   | Started new RenderThread (total 26) @0000026246FF56B0
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF56B0
+DEBUG   | Exited a RenderThread @0000026246FF56B0
+DEBUG   | Started new RenderThread (total 26) @000002625F3C2840
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C2840
+DEBUG   | Exited a RenderThread @000002625F3C2840
+DEBUG   | Started new RenderThread (total 26) @00000261A8D95FD0
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D95FD0
+DEBUG   | Exited a RenderThread @00000261A8D95FD0
+DEBUG   | Started new RenderThread (total 26) @00000261A8816060
+DEBUG   | Waiting for exit signal RenderThread @00000261A8816060
+DEBUG   | Exited a RenderThread @00000261A8816060
+DEBUG   | Started new RenderThread (total 26) @000002625F3C2AE0
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C2AE0
+DEBUG   | Exited a RenderThread @000002625F3C2AE0
+DEBUG   | Started new RenderThread (total 26) @00000261B51AC480
+DEBUG   | Waiting for exit signal RenderThread @00000261B51AC480
+DEBUG   | Exited a RenderThread @00000261B51AC480
+DEBUG   | Started new RenderThread (total 26) @000002625142CC80
+DEBUG   | Waiting for exit signal RenderThread @000002625142CC80
+DEBUG   | Exited a RenderThread @000002625142CC80
+DEBUG   | Started new RenderThread (total 26) @0000026246FF54F0
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF54F0
+DEBUG   | Exited a RenderThread @0000026246FF54F0
+DEBUG   | Started new RenderThread (total 26) @0000026246FF5870
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF5870
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A9A0
+DEBUG   | Exited a RenderThread @000002626FD5A9A0
+DEBUG   | Exited a RenderThread @0000026246FF5870
+DEBUG   | Started new RenderThread (total 25) @000002625142D540
+DEBUG   | Waiting for exit signal RenderThread @000002625142D540
+DEBUG   | Exited a RenderThread @000002625142D540
+DEBUG   | Started new RenderThread (total 25) @000002624FCE1D50
+DEBUG   | Waiting for exit signal RenderThread @000002624FCE1D50
+DEBUG   | Exited a RenderThread @000002624FCE1D50
+DEBUG   | Started new RenderThread (total 25) @000002624FCE1E30
+DEBUG   | Waiting for exit signal RenderThread @000002624FCE1E30
+DEBUG   | Exited a RenderThread @000002624FCE1E30
+DEBUG   | Started new RenderThread (total 25) @000002626BB4E690
+DEBUG   | Waiting for exit signal RenderThread @000002626BB4E690
+DEBUG   | Exited a RenderThread @000002626BB4E690
+DEBUG   | Started new RenderThread (total 25) @000002625142D540
+DEBUG   | Waiting for exit signal RenderThread @000002625142D540
+DEBUG   | Exited a RenderThread @000002625142D540
+DEBUG   | Started new RenderThread (total 25) @00000261B5187AB0
+DEBUG   | Waiting for exit signal RenderThread @00000261B5187AB0
+DEBUG   | Exited a RenderThread @00000261B5187AB0
+DEBUG   | Started new RenderThread (total 25) @000002625142D1C0
+DEBUG   | Waiting for exit signal RenderThread @000002625142D1C0
+DEBUG   | Exited a RenderThread @000002625142D1C0
+DEBUG   | Started new RenderThread (total 25) @000002625142D2A0
+DEBUG   | Waiting for exit signal RenderThread @000002625142D2A0
+DEBUG   | Exited a RenderThread @000002625142D2A0
+DEBUG   | Started new RenderThread (total 25) @000002626BB4E770
+DEBUG   | Waiting for exit signal RenderThread @000002626BB4E770
+DEBUG   | Exited a RenderThread @000002626BB4E770
+DEBUG   | Started new RenderThread (total 25) @0000026246FF56B0
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF56B0
+DEBUG   | Exited a RenderThread @0000026246FF56B0
+DEBUG   | Started new RenderThread (total 25) @000002626FD5A700
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A700
+DEBUG   | Exited a RenderThread @000002626FD5A700
+DEBUG   | Started new RenderThread (total 25) @000002626A9F0DC0
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F0DC0
+DEBUG   | Exited a RenderThread @000002626A9F0DC0
+DEBUG   | Started new RenderThread (total 25) @00000261A8816300
+DEBUG   | Waiting for exit signal RenderThread @00000261A8816300
+DEBUG   | Exited a RenderThread @00000261A8816300
+DEBUG   | Started new RenderThread (total 25) @00000261A8D95FD0
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D95FD0
+DEBUG   | Exited a RenderThread @00000261A8D95FD0
+DEBUG   | Started new RenderThread (total 25) @000002626FD5A700
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A700
+DEBUG   | Exited a RenderThread @000002626FD5A700
+DEBUG   | Started new RenderThread (total 25) @000002626FD5A540
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A540
+DEBUG   | Exited a RenderThread @000002626FD5A540
+DEBUG   | Started new RenderThread (total 25) @0000026246FF54F0
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF54F0
+DEBUG   | Exited a RenderThread @0000026246FF54F0
+DEBUG   | Started new RenderThread (total 25) @000002626C386100
+DEBUG   | Waiting for exit signal RenderThread @000002626C386100
+DEBUG   | Waiting for exit signal RenderThread @00000261B51AC8E0
+DEBUG   | Waiting for exit signal RenderThread @000002625142D0E0
+DEBUG   | Exited a RenderThread @000002625142D0E0
+DEBUG   | Exited a RenderThread @00000261B51AC8E0
+DEBUG   | Exited a RenderThread @000002626C386100
+DEBUG   | Started new RenderThread (total 23) @000002625F3C32C0
+DEBUG   | Started new RenderThread (total 24) @000002625142CAC0
+DEBUG   | Started new RenderThread (total 25) @000002625C997910
+DEBUG   | Started new RenderThread (total 26) @000002625F3C2A00
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C2A00
+DEBUG   | Exited a RenderThread @000002625F3C2A00
+DEBUG   | Started new RenderThread (total 26) @000002629D971590
+DEBUG   | Waiting for exit signal RenderThread @000002629D971590
+DEBUG   | Exited a RenderThread @000002629D971590
+DEBUG   | Started new RenderThread (total 26) @000002629D971830
+DEBUG   | Waiting for exit signal RenderThread @000002629D971830
+DEBUG   | Exited a RenderThread @000002629D971830
+DEBUG   | Started new RenderThread (total 26) @00000261B51872D0
+DEBUG   | Waiting for exit signal RenderThread @00000261B51872D0
+DEBUG   | Exited a RenderThread @00000261B51872D0
+DEBUG   | Started new RenderThread (total 26) @000002624FCE1F10
+DEBUG   | Waiting for exit signal RenderThread @000002624FCE1F10
+DEBUG   | Exited a RenderThread @000002624FCE1F10
+DEBUG   | Started new RenderThread (total 26) @00000261B51872D0
+DEBUG   | Waiting for exit signal RenderThread @00000261B51872D0
+DEBUG   | Exited a RenderThread @00000261B51872D0
+DEBUG   | Started new RenderThread (total 26) @00000261B5187110
+DEBUG   | Waiting for exit signal RenderThread @00000261B5187110
+DEBUG   | Exited a RenderThread @00000261B5187110
+DEBUG   | Started new RenderThread (total 26) @00000261A8D95FD0
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D95FD0
+DEBUG   | Exited a RenderThread @00000261A8D95FD0
+DEBUG   | Started new RenderThread (total 26) @0000026246FF5870
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF5870
+DEBUG   | Exited a RenderThread @0000026246FF5870
+DEBUG   | Started new RenderThread (total 26) @0000026246FF56B0
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF56B0
+DEBUG   | Exited a RenderThread @0000026246FF56B0
+DEBUG   | Started new RenderThread (total 26) @0000026246FF5330
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF5330
+DEBUG   | Exited a RenderThread @0000026246FF5330
+DEBUG   | Started new RenderThread (total 26) @000002629D9719F0
+DEBUG   | Waiting for exit signal RenderThread @000002629D9719F0
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C32C0
+DEBUG   | Exited a RenderThread @000002625F3C32C0
+DEBUG   | Exited a RenderThread @000002629D9719F0
+DEBUG   | Started new RenderThread (total 25) @00000261B5187110
+DEBUG   | Waiting for exit signal RenderThread @00000261B5187110
+DEBUG   | Exited a RenderThread @00000261B5187110
+DEBUG   | Started new RenderThread (total 25) @000002625142D620
+DEBUG   | Waiting for exit signal RenderThread @000002625142D620
+DEBUG   | Exited a RenderThread @000002625142D620
+DEBUG   | Started new RenderThread (total 25) @00000261A3D9D860
+DEBUG   | Waiting for exit signal RenderThread @00000261A3D9D860
+DEBUG   | Exited a RenderThread @00000261A3D9D860
+DEBUG   | Started new RenderThread (total 25) @00000261A3D9E740
+DEBUG   | Waiting for exit signal RenderThread @00000261A3D9E740
+DEBUG   | Exited a RenderThread @00000261A3D9E740
+DEBUG   | Started new RenderThread (total 25) @000002626C385D80
+DEBUG   | Waiting for exit signal RenderThread @000002626C385D80
+DEBUG   | Exited a RenderThread @000002626C385D80
+DEBUG   | Started new RenderThread (total 25) @000002626FD5A1C0
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A1C0
+DEBUG   | Exited a RenderThread @000002626FD5A1C0
+DEBUG   | Started new RenderThread (total 25) @0000026246FF54F0
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF54F0
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Exited a RenderThread @0000026246FF54F0
+DEBUG   | Started new RenderThread (total 25) @000002626BB4EBD0
+INFO         | Critical: UpdateLayeredWindowIndirect failed for ptDst=(144, 131), size=(300x21), dirty=(300x21 0, 0) (Uno de los dispositivos conectados al sistema no funciona.) (:0, )
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Sending CMD_REPAINT to reposting thread
+DEBUG   | Reposting thread dequeueing a CMD_REPAINT
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Begin setupSubWindow
+DEBUG   | Exit setupSubWindow (nothing to do)
+DEBUG   | Begin setupSubWindow
+DEBUG   | Exit setupSubWindow (nothing to do)
+DEBUG   | Sending CMD_REPAINT to reposting thread
+DEBUG   | Reposting thread dequeueing a CMD_REPAINT
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Begin setupSubWindow
+DEBUG   | setupSubwindow: draw last posted cb
+DEBUG   | Exit setupSubWindow (successful setup)
+DEBUG   | Begin setupSubWindow
+DEBUG   | Exit setupSubWindow (nothing to do)
+DEBUG   | Begin setupSubWindow
+DEBUG   | Exit setupSubWindow (nothing to do)
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Sending CMD_REPAINT to reposting thread
+DEBUG  DEBUG   | Begin setupSubWindow
+ | Reposting thread dequeueing a CMD_REPAINT
+DEBUG   | Exit setupSubWindow (nothing to do)
+DEBUG   | Reposting framebuffer.
+DEBUG   | Begin setupSubWindow
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Exit setupSubWindow (nothing to do)
+DEBUG   | Started new RenderThread (total 26) @000002625F3C3020
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C3020
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Exited a RenderThread @000002625F3C3020
+DEBUG   | Started new RenderThread (total 26) @000002626C386020
+DEBUG   | Waiting for exit signal RenderThread @000002626C386020
+DEBUG   | Exited a RenderThread @000002626C386020
+DEBUG   | Started new RenderThread (total 26) @000002626BB4E070
+DEBUG   | Waiting for exit signal RenderThread @000002626BB4E070
+DEBUG   | Exited a RenderThread @000002626BB4E070
+DEBUG   | Started new RenderThread (total 26) @000002626C385D80
+DEBUG   | Waiting for exit signal RenderThread @000002626C385D80
+DEBUG   | Exited a RenderThread @000002626C385D80
+DEBUG   | Started new RenderThread (total 26) @000002626FD5A540
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A540
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Exited a RenderThread @000002626FD5A540
+DEBUG   | Started new RenderThread (total 26) @00000261A3D9D780
+DEBUG   | Waiting for exit signal RenderThread @00000261A3D9D780
+DEBUG   | Waiting for exit signal RenderThread @000002626BB4EBD0
+DEBUG   | Exited a RenderThread @000002626BB4EBD0
+DEBUG   | Exited a RenderThread @00000261A3D9D780
+DEBUG   | Started new RenderThread (total 25) @000002625142CC80
+DEBUG   | Started new RenderThread (total 26) @000002625142C9E0
+DEBUG   | Waiting for exit signal RenderThread @000002625142C9E0
+DEBUG   | Exited a RenderThread @000002625142C9E0
+DEBUG   | Started new RenderThread (total 26) @000002625C993C20
+DEBUG   | Waiting for exit signal RenderThread @000002625C993C20
+DEBUG   | Waiting for exit signal RenderThread @000002625C997910
+DEBUG   | Waiting for exit signal RenderThread @000002625142CAC0
+DEBUG   | Exited a RenderThread @000002625142CAC0
+DEBUG   | Exited a RenderThread @000002625C997910
+DEBUG   | Exited a RenderThread @000002625C993C20
+DEBUG   | Started new RenderThread (total 24) @000002625C997750
+DEBUG   | Started new RenderThread (total 25) @000002626C3861E0
+DEBUG   | Waiting for exit signal RenderThread @000002625142CC80
+DEBUG   | Waiting for exit signal RenderThread @000002626C3861E0
+DEBUG   | Waiting for exit signal RenderThread @000002625C997750
+DEBUG   | Exited a RenderThread @000002625142CC80
+DEBUG   | Exited a RenderThread @000002625C997750
+DEBUG   | Exited a RenderThread @000002626C3861E0
+DEBUG   | Started new RenderThread (total 23) @000002626C385840
+DEBUG   | Started new RenderThread (total 24) @000002625F3C2A00
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C2A00
+DEBUG   | Exited a RenderThread @000002625F3C2A00
+DEBUG   | Started new RenderThread (total 24) @00000261B51AC800
+DEBUG   | Started new RenderThread (total 25) @00000261A8816140
+DEBUG   | Started new RenderThread (total 26) @000002626FD5A1C0
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A1C0
+DEBUG   | Exited a RenderThread @000002626FD5A1C0
+DEBUG   | Started new RenderThread (total 26) @000002625F3C2A00
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C2A00
+DEBUG   | Exited a RenderThread @000002625F3C2A00
+DEBUG   | Started new RenderThread (total 26) @000002626C386020
+DEBUG   | Waiting for exit signal RenderThread @000002626C386020
+DEBUG   | Exited a RenderThread @000002626C386020
+DEBUG   | Started new RenderThread (total 26) @000002626A9F0A40
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F0A40
+DEBUG   | Exited a RenderThread @000002626A9F0A40
+DEBUG   | Started new RenderThread (total 26) @000002626C385D80
+DEBUG   | Waiting for exit signal RenderThread @000002626C385D80
+DEBUG   | Exited a RenderThread @000002626C385D80
+DEBUG   | Started new RenderThread (total 26) @000002625C997AD0
+DEBUG   | Waiting for exit signal RenderThread @000002625C997AD0
+DEBUG   | Exited a RenderThread @000002625C997AD0
+DEBUG   | Started new RenderThread (total 26) @00000261B51AC640
+DEBUG   | Waiting for exit signal RenderThread @00000261B51AC640
+DEBUG   | Exited a RenderThread @00000261B51AC640
+DEBUG   | Started new RenderThread (total 26) @00000261A3D9D5C0
+DEBUG   | Waiting for exit signal RenderThread @00000261A3D9D5C0
+DEBUG   | Exited a RenderThread @00000261A3D9D5C0
+DEBUG   | Started new RenderThread (total 26) @000002625C997C90
+DEBUG   | Waiting for exit signal RenderThread @000002625C997C90
+DEBUG   | Exited a RenderThread @000002625C997C90
+DEBUG   | Started new RenderThread (total 26) @000002625C1800C0
+DEBUG   | Waiting for exit signal RenderThread @000002625C1800C0
+DEBUG   | Exited a RenderThread @000002625C1800C0
+DEBUG   | Started new RenderThread (total 26) @0000026246FF55D0
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF55D0
+DEBUG   | Waiting for exit signal RenderThread @00000261A8816140
+DEBUG   | Waiting for exit signal RenderThread @00000261B51AC800
+DEBUG   | Exited a RenderThread @00000261B51AC800
+DEBUG   | Exited a RenderThread @00000261A8816140
+DEBUG   | Exited a RenderThread @0000026246FF55D0
+DEBUG   | Started new RenderThread (total 24) @0000026246FF54F0
+DEBUG   | Started new RenderThread (total 25) @00000261A3D9E740
+DEBUG   | Waiting for exit signal RenderThread @00000261A3D9E740
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF54F0
+DEBUG   | Exited a RenderThread @0000026246FF54F0
+DEBUG   | Exited a RenderThread @00000261A3D9E740
+DEBUG   | Started new RenderThread (total 24) @00000261A8D95FD0
+DEBUG   | Started new RenderThread (total 25) @00000261A8D960B0
+DEBUG   | Started new RenderThread (total 26) @00000261B5187570
+DEBUG   | Waiting for exit signal RenderThread @00000261B5187570
+DEBUG   | Exited a RenderThread @00000261B5187570
+DEBUG   | Started new RenderThread (total 26) @000002625A5CF1C0
+DEBUG   | Waiting for exit signal RenderThread @000002625A5CF1C0
+DEBUG   | Exited a RenderThread @000002625A5CF1C0
+DEBUG   | Started new RenderThread (total 26) @000002625142D460
+DEBUG   | Waiting for exit signal RenderThread @000002625142D460
+DEBUG   | Exited a RenderThread @000002625142D460
+DEBUG   | Started new RenderThread (total 26) @00000261A3D9D780
+DEBUG   | Waiting for exit signal RenderThread @00000261A3D9D780
+DEBUG   | Exited a RenderThread @00000261A3D9D780
+DEBUG   | Started new RenderThread (total 26) @00000261A8D96270
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D96270
+DEBUG   | Exited a RenderThread @00000261A8D96270
+DEBUG   | Started new RenderThread (total 26) @00000261A8D96430
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D96430
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D960B0
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D95FD0
+DEBUG   | Exited a RenderThread @00000261A8D95FD0
+DEBUG   | Exited a RenderThread @00000261A8D960B0
+DEBUG   | Exited a RenderThread @00000261A8D96430
+DEBUG   | Started new RenderThread (total 24) @000002625142C9E0
+DEBUG   | Started new RenderThread (total 25) @000002625F3C2A00
+DEBUG   | Waiting for exit signal RenderThread @000002626C385840
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C2A00
+DEBUG   | Waiting for exit signal RenderThread @000002625142C9E0
+DEBUG   | Exited a RenderThread @000002626C385840
+DEBUG   | Exited a RenderThread @000002625142C9E0
+DEBUG   | Exited a RenderThread @000002625F3C2A00
+DEBUG   | Started new RenderThread (total 23) @0000026246FF56B0
+DEBUG   | Started new RenderThread (total 24) @000002625C993DE0
+DEBUG   | Started new RenderThread (total 25) @000002626BB4E070
+DEBUG   | Started new RenderThread (total 26) @000002625F3C2A00
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C2A00
+DEBUG   | Exited a RenderThread @000002625F3C2A00
+DEBUG   | Started new RenderThread (total 26) @000002625C1807C0
+DEBUG   | Waiting for exit signal RenderThread @000002625C1807C0
+DEBUG   | added one remote client
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Exited a RenderThread @000002625C1807C0
+DEBUG   | Started new RenderThread (total 26) @00000261B51AC9C0
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Waiting for exit signal RenderThread @00000261B51AC9C0
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Waiting for exit signal RenderThread @000002626BB4E070
+DEBUG   | Waiting for exit signal RenderThread @000002625C993DE0
+DEBUG   | Exited a RenderThread @000002625C993DE0
+DEBUG   | Exited a RenderThread @000002626BB4E070
+DEBUG   | Exited a RenderThread @00000261B51AC9C0
+DEBUG   | Started new RenderThread (total 24) @000002626FD5A540
+DEBUG   | Started new RenderThread (total 25) @000002626C385D80
+DEBUG   | Started new RenderThread (total 26) @000002626A9F0CE0
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF56B0
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F0CE0
+DEBUG   | Waiting for exit signal RenderThread @000002626C385D80
+DEBUG   | Exited a RenderThread @0000026246FF56B0
+DEBUG   | Exited a RenderThread @000002626C385D80
+DEBUG   | Exited a RenderThread @000002626A9F0CE0
+DEBUG   | Started new RenderThread (total 24) @000002625C998550
+DEBUG   | Started new RenderThread (total 25) @00000261A88163E0
+DEBUG   | Started new RenderThread (total 26) @000002625C997F30
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A540
+DEBUG   | Exited a RenderThread @000002626FD5A540
+DEBUG   | Started new RenderThread (total 26) @000002626FD5A1C0
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A1C0
+DEBUG   | Waiting for exit signal RenderThread @000002625C997F30
+DEBUG   | Waiting for exit signal RenderThread @00000261A88163E0
+DEBUG   | Exited a RenderThread @00000261A88163E0
+DEBUG   | Exited a RenderThread @000002625C997F30
+DEBUG   | Exited a RenderThread @000002626FD5A1C0
+DEBUG   | Started new RenderThread (total 24) @000002625F3C3640
+DEBUG   | Started new RenderThread (total 25) @000002626A9F0880
+DEBUG   | Started new RenderThread (total 26) @000002625F3C3020
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C3020
+DEBUG   | Exited a RenderThread @000002625F3C3020
+DEBUG   | Started new RenderThread (total 26) @000002625C993A60
+DEBUG   | Waiting for exit signal RenderThread @000002625C993A60
+DEBUG   | Exited a RenderThread @000002625C993A60
+DEBUG   | Started new RenderThread (total 26) @000002626FBFFF40
+DEBUG   | Waiting for exit signal RenderThread @000002626FBFFF40
+DEBUG   | Exited a RenderThread @000002626FBFFF40
+DEBUG   | Started new RenderThread (total 26) @000002626BB4E5B0
+DEBUG   | Waiting for exit signal RenderThread @000002626BB4E5B0
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F0880
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C3640
+DEBUG   | Exited a RenderThread @000002625F3C3640
+DEBUG   | Exited a RenderThread @000002626A9F0880
+DEBUG   | Exited a RenderThread @000002626BB4E5B0
+DEBUG   | Started new RenderThread (total 24) @00000261B51AC480
+DEBUG   | Started new RenderThread (total 25) @000002625F3C3640
+DEBUG   | Started new RenderThread (total 26) @000002626FD5A700
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A700
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C3640
+DEBUG   | Exited a RenderThread @000002625F3C3640
+DEBUG   | Exited a RenderThread @000002626FD5A700
+DEBUG   | Started new RenderThread (total 25) @000002626A9F05E0
+DEBUG   | Started new RenderThread (total 26) @00000261B5187570
+DEBUG   | Waiting for exit signal RenderThread @00000261B51AC480
+WARNING      | ClipboardPipe: the clipboard is too large (36061), ignoring.
+WARNING      | ClipboardPipe: the clipboard is too large (36061), ignoring.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Exited a RenderThread @00000261B51AC480
+DEBUG   | Started new RenderThread (total 26) @000002625142D0E0
+DEBUG   | Waiting for exit signal RenderThread @000002625142D0E0
+WARNING      | ClipboardPipe: the clipboard is too large (36061), ignoring.
+DEBUG   | Waiting for exit signal RenderThread @00000261B5187570
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F05E0
+DEBUG   | Exited a RenderThread @000002626A9F05E0
+DEBUG   | Exited a RenderThread @00000261B5187570
+DEBUG   | Exited a RenderThread @000002625142D0E0
+DEBUG   | Started new RenderThread (total 24) @000002624FCE1D50
+DEBUG   | Waiting for exit signal RenderThread @000002624FCE1D50
+DEBUG   | Exited a RenderThread @000002624FCE1D50
+DEBUG   | Started new RenderThread (total 24) @000002625C993B40
+DEBUG   | Started new RenderThread (total 25) @000002626FD5A9A0
+DEBUG   | Started new RenderThread (total 26) @00000261B5187110
+DEBUG   | Waiting for exit signal RenderThread @000002625C993B40
+DEBUG   | Exited a RenderThread @000002625C993B40
+DEBUG   | Started new RenderThread (total 26) @00000261B5187810
+DEBUG   | Waiting for exit signal RenderThread @00000261B5187810
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Exited a RenderThread @00000261B5187810
+DEBUG   | Started new RenderThread (total 26) @000002626FC00640
+DEBUG   | Waiting for exit signal RenderThread @000002626FC00640
+DEBUG   | Exited a RenderThread @000002626FC00640
+DEBUG   | Started new RenderThread (total 26) @000002626FBFFCA0
+DEBUG   | Waiting for exit signal RenderThread @000002626FBFFCA0
+DEBUG   | Exited a RenderThread @000002626FBFFCA0
+DEBUG   | Started new RenderThread (total 26) @000002626A3C7580
+DEBUG   | Waiting for exit signal RenderThread @000002626A3C7580
+DEBUG   | Exited a RenderThread @000002626A3C7580
+DEBUG   | Started new RenderThread (total 26) @000002626FC003A0
+DEBUG   | Waiting for exit signal RenderThread @000002626FC003A0
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Waiting for exit signal RenderThread @00000261B5187110
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A9A0
+DEBUG   | Exited a RenderThread @000002626FD5A9A0
+DEBUG   | Exited a RenderThread @00000261B5187110
+DEBUG   | Exited a RenderThread @000002626FC003A0
+DEBUG   | Started new RenderThread (total 24) @000002626A9F0180
+DEBUG   | Started new RenderThread (total 25) @00000261B51AC8E0
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Waiting for exit signal RenderThread @000002625C998550
+DEBUG   | Exited a RenderThread @000002625C998550
+DEBUG   | Started new RenderThread (total 25) @000002626FD5A540
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A540
+DEBUG   | Exited a RenderThread @000002626FD5A540
+DEBUG   | Started new RenderThread (total 25) @000002624FCE1E30
+DEBUG   | Waiting for exit signal RenderThread @000002624FCE1E30
+DEBUG   | Exited a RenderThread @000002624FCE1E30
+DEBUG   | Started new RenderThread (total 25) @000002626C385D80
+DEBUG   | Waiting for exit signal RenderThread @000002626C385D80
+DEBUG   | Exited a RenderThread @000002626C385D80
+DEBUG   | Started new RenderThread (total 25) @000002625142D540
+DEBUG   | Waiting for exit signal RenderThread @000002625142D540
+DEBUG   | Exited a RenderThread @000002625142D540
+DEBUG   | Started new RenderThread (total 25) @000002624FCE19D0
+DEBUG   | Waiting for exit signal RenderThread @000002624FCE19D0
+DEBUG   | Exited a RenderThread @000002624FCE19D0
+DEBUG   | Started new RenderThread (total 25) @00000262795C5530
+DEBUG   | Waiting for exit signal RenderThread @00000262795C5530
+DEBUG   | Exited a RenderThread @00000262795C5530
+DEBUG   | Started new RenderThread (total 25) @0000026246FF55D0
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF55D0
+DEBUG   | Exited a RenderThread @0000026246FF55D0
+DEBUG   | Started new RenderThread (total 25) @00000261B4DC78F0
+DEBUG   | Waiting for exit signal RenderThread @00000261B4DC78F0
+DEBUG   | Exited a RenderThread @00000261B4DC78F0
+DEBUG   | Started new RenderThread (total 25) @00000262795C4C70
+DEBUG   | Waiting for exit signal RenderThread @00000262795C4C70
+DEBUG   | Exited a RenderThread @00000262795C4C70
+DEBUG   | Started new RenderThread (total 25) @00000261A8D960B0
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D960B0
+DEBUG   | Exited a RenderThread @00000261A8D960B0
+DEBUG   | Started new RenderThread (total 25) @00000261A8D95FD0
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D95FD0
+DEBUG   | Exited a RenderThread @00000261A8D95FD0
+DEBUG   | Started new RenderThread (total 25) @000002626FD5A540
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A540
+DEBUG   | Exited a RenderThread @000002626FD5A540
+DEBUG   | Started new RenderThread (total 25) @00000261B4DC7730
+DEBUG   | Waiting for exit signal RenderThread @00000261B4DC7730
+DEBUG   | Exited a RenderThread @00000261B4DC7730
+DEBUG   | Started new RenderThread (total 25) @000002625142D620
+DEBUG   | Waiting for exit signal RenderThread @000002625142D620
+DEBUG   | Exited a RenderThread @000002625142D620
+DEBUG   | Started new RenderThread (total 25) @000002626FD5A540
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A540
+DEBUG   | Exited a RenderThread @000002626FD5A540
+DEBUG   | Started new RenderThread (total 25) @00000261B51AC3A0
+DEBUG   | Waiting for exit signal RenderThread @00000261B51AC3A0
+DEBUG   | Exited a RenderThread @00000261B51AC3A0
+DEBUG   | Started new RenderThread (total 25) @00000261B5187810
+DEBUG   | Waiting for exit signal RenderThread @00000261B5187810
+DEBUG   | Exited a RenderThread @00000261B5187810
+DEBUG   | Started new RenderThread (total 25) @00000261B5186D90
+DEBUG   | Waiting for exit signal RenderThread @00000261B5186D90
+DEBUG   | Exited a RenderThread @00000261B5186D90
+DEBUG   | Started new RenderThread (total 25) @00000261B51AC720
+DEBUG   | Waiting for exit signal RenderThread @00000261B51AC720
+DEBUG   | Exited a RenderThread @00000261B51AC720
+DEBUG   | Started new RenderThread (total 25) @000002626A9F0500
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F0500
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Exited a RenderThread @000002626A9F0500
+DEBUG   | Started new RenderThread (total 25) @000002625142CE40
+DEBUG   | Waiting for exit signal RenderThread @000002625142CE40
+DEBUG   | Exited a RenderThread @000002625142CE40
+DEBUG   | Started new RenderThread (total 25) @0000026246FF54F0
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF54F0
+DEBUG   | Exited a RenderThread @0000026246FF54F0
+DEBUG   | Started new RenderThread (total 25) @00000261A8816300
+DEBUG   | Waiting for exit signal RenderThread @00000261A8816300
+DEBUG   | Exited a RenderThread @00000261A8816300
+DEBUG   | Started new RenderThread (total 25) @00000261A8D95FD0
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D95FD0
+DEBUG   | Exited a RenderThread @00000261A8D95FD0
+DEBUG   | Started new RenderThread (total 25) @000002624FCE19D0
+DEBUG   | Waiting for exit signal RenderThread @000002624FCE19D0
+DEBUG   | Exited a RenderThread @000002624FCE19D0
+DEBUG   | Started new RenderThread (total 25) @000002625142C9E0
+DEBUG   | Waiting for exit signal RenderThread @000002625142C9E0
+DEBUG   | Exited a RenderThread @000002625142C9E0
+DEBUG   | Started new RenderThread (total 25) @000002624FCE18F0
+DEBUG   | Waiting for exit signal RenderThread @000002624FCE18F0
+DEBUG   | Exited a RenderThread @000002624FCE18F0
+DEBUG   | Started new RenderThread (total 25) @00000261A3D9E4A0
+DEBUG   | Waiting for exit signal RenderThread @00000261A3D9E4A0
+DEBUG   | Exited a RenderThread @00000261A3D9E4A0
+DEBUG   | Started new RenderThread (total 25) @00000261A8D95FD0
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D95FD0
+DEBUG   | Exited a RenderThread @00000261A8D95FD0
+DEBUG   | Started new RenderThread (total 25) @0000026246FF5790
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF5790
+DEBUG   | Exited a RenderThread @0000026246FF5790
+DEBUG   | Started new RenderThread (total 25) @000002625F3C3100
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C3100
+DEBUG   | Exited a RenderThread @000002625F3C3100
+DEBUG   | Started new RenderThread (total 25) @00000261A3D9E120
+DEBUG   | Waiting for exit signal RenderThread @00000261A3D9E120
+DEBUG   | Exited a RenderThread @00000261A3D9E120
+DEBUG   | Started new RenderThread (total 25) @00000261B5187570
+DEBUG   | Waiting for exit signal RenderThread @00000261B5187570
+DEBUG   | Exited a RenderThread @00000261B5187570
+DEBUG   | Started new RenderThread (total 25) @00000261B4DC78F0
+DEBUG   | Waiting for exit signal RenderThread @00000261B4DC78F0
+DEBUG   | Exited a RenderThread @00000261B4DC78F0
+DEBUG   | Started new RenderThread (total 25) @00000261A8D95FD0
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D95FD0
+DEBUG   | Waiting for exit signal RenderThread @00000261B51AC8E0
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F0180
+DEBUG   | Exited a RenderThread @000002626A9F0180
+DEBUG   | Exited a RenderThread @00000261B51AC8E0
+DEBUG   | Exited a RenderThread @00000261A8D95FD0
+DEBUG   | Started new RenderThread (total 23) @000002626FD5A700
+DEBUG   | Started new RenderThread (total 24) @000002625C993FA0
+DEBUG   | Started new RenderThread (total 25) @0000026246FF55D0
+DEBUG   | Started new RenderThread (total 26) @000002625142CAC0
+DEBUG   | Waiting for exit signal RenderThread @000002625142CAC0
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Exited a RenderThread @000002625142CAC0
+DEBUG   | Started new RenderThread (total 26) @000002624FCE18F0
+DEBUG   | Waiting for exit signal RenderThread @000002624FCE18F0
+DEBUG   | Exited a RenderThread @000002624FCE18F0
+DEBUG   | Started new RenderThread (total 26) @000002626FC00640
+DEBUG   | Waiting for exit signal RenderThread @000002626FC00640
+DEBUG   | Exited a RenderThread @000002626FC00640
+DEBUG   | Started new RenderThread (total 26) @00000261A3D9DB00
+DEBUG   | Waiting for exit signal RenderThread @00000261A3D9DB00
+DEBUG   | Exited a RenderThread @00000261A3D9DB00
+DEBUG   | Started new RenderThread (total 26) @00000261B51AC640
+DEBUG   | Waiting for exit signal RenderThread @00000261B51AC640
+DEBUG   | Exited a RenderThread @00000261B51AC640
+DEBUG   | Started new RenderThread (total 26) @000002625142CAC0
+DEBUG   | Waiting for exit signal RenderThread @000002625142CAC0
+DEBUG   | Exited a RenderThread @000002625142CAC0
+DEBUG   | Started new RenderThread (total 26) @000002625142CF20
+DEBUG   | Waiting for exit signal RenderThread @000002625142CF20
+DEBUG   | Exited a RenderThread @000002625142CF20
+DEBUG   | Started new RenderThread (total 26) @0000026271344190
+DEBUG   | Waiting for exit signal RenderThread @0000026271344190
+DEBUG   | Exited a RenderThread @0000026271344190
+DEBUG   | Started new RenderThread (total 26) @00000262795C4C70
+DEBUG   | Waiting for exit signal RenderThread @00000262795C4C70
+DEBUG   | Exited a RenderThread @00000262795C4C70
+DEBUG   | Started new RenderThread (total 26) @00000262713439B0
+DEBUG   | Waiting for exit signal RenderThread @00000262713439B0
+DEBUG   | Exited a RenderThread @00000262713439B0
+DEBUG   | Started new RenderThread (total 26) @000002626A9F0B20
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F0B20
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF55D0
+DEBUG   | Waiting for exit signal RenderThread @000002625C993FA0
+DEBUG   | Exited a RenderThread @000002625C993FA0
+DEBUG   | Exited a RenderThread @0000026246FF55D0
+DEBUG   | Exited a RenderThread @000002626A9F0B20
+DEBUG   | Started new RenderThread (total 24) @000002626A9F0F80
+DEBUG   | Started new RenderThread (total 25) @000002626A9F0B20
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Started new RenderThread (total 26) @000002626FC001E0
+DEBUG   | Waiting for exit signal RenderThread @000002626FC001E0
+DEBUG   | Exited a RenderThread @000002626FC001E0
+DEBUG   | Started new RenderThread (total 26) @000002626A9F0CE0
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F0CE0
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A700
+DEBUG   | Exited a RenderThread @000002626FD5A700
+DEBUG   | Exited a RenderThread @000002626A9F0CE0
+DEBUG   | Started new RenderThread (total 25) @0000026246FF55D0
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF55D0
+DEBUG   | Exited a RenderThread @0000026246FF55D0
+DEBUG   | Started new RenderThread (total 25) @00000261A8816300
+DEBUG   | Waiting for exit signal RenderThread @00000261A8816300
+DEBUG   | Exited a RenderThread @00000261A8816300
+DEBUG   | Started new RenderThread (total 25) @0000026246FF55D0
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF55D0
+DEBUG   | Exited a RenderThread @0000026246FF55D0
+DEBUG   | Started new RenderThread (total 25) @000002625F3C3640
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C3640
+DEBUG   | Exited a RenderThread @000002625F3C3640
+DEBUG   | Started new RenderThread (total 25) @000002626A9F0C00
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F0C00
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F0B20
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F0F80
+DEBUG   | Exited a RenderThread @000002626A9F0F80
+DEBUG   | Exited a RenderThread @000002626A9F0B20
+DEBUG   | Exited a RenderThread @000002626A9F0C00
+DEBUG   | Started new RenderThread (total 23) @00000262795C56F0
+DEBUG   | Started new RenderThread (total 24) @00000261B51872D0
+DEBUG   | Started new RenderThread (total 25) @00000262795C4AB0
+DEBUG   | Waiting for exit signal RenderThread @00000262795C4AB0
+DEBUG   | Waiting for exit signal RenderThread @00000261B51872D0
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Exited a RenderThread @00000261B51872D0
+DEBUG   | Exited a RenderThread @00000262795C4AB0
+DEBUG   | Started new RenderThread (total 24) @000002626FC008E0
+DEBUG   | Waiting for exit signal RenderThread @000002626FC008E0
+DEBUG   | Exited a RenderThread @000002626FC008E0
+DEBUG   | Started new RenderThread (total 24) @000002625F3C2920
+DEBUG   | Started new RenderThread (total 25) @000002626FC00640
+DEBUG   | Started new RenderThread (total 26) @0000026246FF54F0
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF54F0
+DEBUG   | Exited a RenderThread @0000026246FF54F0
+DEBUG   | Started new RenderThread (total 26) @000002625142D0E0
+DEBUG   | Waiting for exit signal RenderThread @000002625142D0E0
+DEBUG   | Exited a RenderThread @000002625142D0E0
+DEBUG   | Started new RenderThread (total 26) @000002626A9F0EA0
+DEBUG   | Waiting for exit signal RenderThread @000002626A9F0EA0
+DEBUG   | Exited a RenderThread @000002626A9F0EA0
+DEBUG   | Started new RenderThread (total 26) @0000026246FF55D0
+DEBUG   | Waiting for exit signal RenderThread @0000026246FF55D0
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Waiting for exit signal RenderThread @000002626FC00640
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C2920
+DEBUG   | Exited a RenderThread @000002625F3C2920
+DEBUG   | Exited a RenderThread @000002626FC00640
+DEBUG   | Exited a RenderThread @0000026246FF55D0
+DEBUG   | Started new RenderThread (total 24) @000002626F0DE6E0
+DEBUG   | Started new RenderThread (total 25) @00000261B4DC7570
+DEBUG   | Started new RenderThread (total 26) @000002626FC00640
+DEBUG   | Waiting for exit signal RenderThread @000002626FC00640
+DEBUG   | Waiting for exit signal RenderThread @00000261B4DC7570
+DEBUG   | Waiting for exit signal RenderThread @000002626F0DE6E0
+DEBUG   | Exited a RenderThread @000002626F0DE6E0
+DEBUG   | Exited a RenderThread @00000261B4DC7570
+DEBUG   | Exited a RenderThread @000002626FC00640
+DEBUG   | Started new RenderThread (total 24) @00000261B51AC9C0
+DEBUG   | Started new RenderThread (total 25) @00000261B51AC640
+DEBUG   | Started new RenderThread (total 26) @00000261B51AC720
+DEBUG   | Started new RenderThread (total 27) @000002626BB4EBD0
+ERROR        | bad color buffer handle 1334
+DEBUG   | Started new RenderThread (total 28) @000002625142CE40
+DEBUG   | Waiting for exit signal RenderThread @000002625142CE40
+DEBUG   | Waiting for exit signal RenderThread @00000261B51AC640
+DEBUG   | Waiting for exit signal RenderThread @00000261B51AC720
+DEBUG   | Exited a RenderThread @00000261B51AC640
+DEBUG   | Exited a RenderThread @00000261B51AC720
+DEBUG   | Exited a RenderThread @000002625142CE40
+DEBUG   | Started new RenderThread (total 26) @00000261A8D95FD0
+DEBUG   | Started new RenderThread (total 27) @000002624FCE1D50
+DEBUG   | Waiting for exit signal RenderThread @000002626BB4EBD0
+DEBUG   | Exited a RenderThread @000002626BB4EBD0
+DEBUG   | Started new RenderThread (total 27) @00000262795C48F0
+ERROR        | bad color buffer handle 1368
+DEBUG   | Started new RenderThread (total 28) @000002625AEC02D0
+DEBUG   | Waiting for exit signal RenderThread @000002625AEC02D0
+DEBUG   | Exited a RenderThread @000002625AEC02D0
+DEBUG   | Started new RenderThread (total 28) @000002625AEC0570
+DEBUG   | Waiting for exit signal RenderThread @000002625AEC0570
+DEBUG   | Waiting for exit signal RenderThread @00000262795C48F0
+DEBUG   | Exited a RenderThread @00000262795C48F0
+DEBUG   | Exited a RenderThread @000002625AEC0570
+DEBUG   | Started new RenderThread (total 27) @000002625AEC0490
+DEBUG   | Waiting for exit signal RenderThread @000002625AEC0490
+DEBUG   | Exited a RenderThread @000002625AEC0490
+DEBUG   | Started new RenderThread (total 27) @00000261A8D960B0
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D960B0
+DEBUG   | Waiting for exit signal RenderThread @00000261B51AC9C0
+DEBUG   | Exited a RenderThread @00000261B51AC9C0
+DEBUG   | Exited a RenderThread @00000261A8D960B0
+DEBUG   | Started new RenderThread (total 26) @000002625C993FA0
+DEBUG   | Waiting for exit signal RenderThread @000002625C993FA0
+DEBUG   | Exited a RenderThread @000002625C993FA0
+DEBUG   | Started new RenderThread (total 26) @00000261A8816060
+DEBUG   | Waiting for exit signal RenderThread @00000261A8816060
+DEBUG   | Exited a RenderThread @00000261A8816060
+DEBUG   | Started new RenderThread (total 26) @000002625142CC80
+DEBUG   | Waiting for exit signal RenderThread @000002625142CC80
+DEBUG   | Exited a RenderThread @000002625142CC80
+DEBUG   | Started new RenderThread (total 26) @00000261A3D9D5C0
+DEBUG   | Waiting for exit signal RenderThread @00000261A3D9D5C0
+DEBUG   | Exited a RenderThread @00000261A3D9D5C0
+DEBUG   | Started new RenderThread (total 26) @000002625AEC02D0
+DEBUG   | Waiting for exit signal RenderThread @000002625AEC02D0
+DEBUG   | Exited a RenderThread @000002625AEC02D0
+DEBUG   | Started new RenderThread (total 26) @00000261A3D9E120
+DEBUG   | Waiting for exit signal RenderThread @00000261A3D9E120
+DEBUG   | Exited a RenderThread @00000261A3D9E120
+DEBUG   | Started new RenderThread (total 26) @00000262795C5530
+DEBUG   | Waiting for exit signal RenderThread @00000262795C5530
+DEBUG   | Clipboard update, guest->host, value=''
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Exited a RenderThread @00000262795C5530
+DEBUG   | Started new RenderThread (total 26) @000002626FE28460
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Reposting framebuffer.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Sending CMD_REPAINT to reposting thread
+DEBUG   | Reposting thread dequeueing a CMD_REPAINT
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Begin setupSubWindow
+DEBUG   | setupSubwindow: draw last posted cb
+DEBUG   | Exit setupSubWindow (successful setup)
+DEBUG   | Begin setupSubWindow
+DEBUG   | Exit setupSubWindow (nothing to do)
+DEBUG   | Begin setupSubWindow
+DEBUG   | Exit setupSubWindow (nothing to do)
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Sending CMD_REPAINT to reposting thread
+DEBUG   | Reposting thread dequeueing a CMD_REPAINT
+DEBUG   | Begin setupSubWindow
+DEBUG   | Reposting framebuffer.
+DEBUG   | Exit setupSubWindow (nothing to do)
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Begin setupSubWindow
+DEBUG   | Exit setupSubWindow (nothing to do)
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | call repost from subWindowRepaint callback
+DEBUG   | Reposting framebuffer.
+DEBUG   | Has last posted colorbuffer and is initialized; post.
+DEBUG   | Waiting for exit signal RenderThread @000002626FE28460
+DEBUG   | Emulator killed by console kill command.
+
+INFO         | Wait for emulator (pid 39400) 20 seconds to shutdown gracefully before kill;you can set environment variable ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL(in seconds) to change the default value (20 seconds)
+
+WARNING      | Not saving state: RAM not mapped as shared
+INFO         | Saving snapshot 'default_boot' using 3 ms
+INFO         | Wait for emulator (pid 39400) 20 seconds to shutdown gracefully before kill;you can set environment variable ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL(in seconds) to change the default value (20 seconds)
+
+DEBUG   | Waiting for exit signal RenderThread @00000261A8A12210
+DEBUG   | Waiting for exit signal RenderThread @00000261A32DAF60
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C3560
+DEBUG   | Waiting for exit signal RenderThread @00000261A64E15D0
+DEBUG   | Waiting for exit signal RenderThread @00000261A8A11E90
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D95FD0
+DEBUG   | Waiting for exit signal RenderThread @000002626FD5A380
+DEBUG  Waiting for exit signal RenderThread @00000261A3D9F460
+DEBUG   | Waiting for exit signal RenderThread @00000261A8D95E10
+DEBUG   | Waiting for exit signal RenderThread @00000261B51AC560
+DEBUG   | Waiting for exit signal RenderThread @000002624FCE1D50
+DEBUG   | Waiting for exit signal RenderThread @000002625142D380
+DEBUG   | Waiting for exit signal RenderThread @000002625C9982B0
+DEBUG   | Waiting for exit signal RenderThread @000002625C9980F0
+DEBUG   | Waiting for exit signal RenderThread @00000261A8A11DB0
+DEBUG   | Waiting for exit signal RenderThread @000002624B066A20
+DEBUG   | Waiting for exit signal RenderThread @00000261A64E1170
+DEBUG   | Waiting for exit signal RenderThread @000002626BB4EA10
+DEBUG   | Exited a RenderThread @00000261A32DAF60
+DEBUG   | Waiting for exit signal RenderThread @000002625F3C2F40
+DEBUG   | Waiting for exit signal RenderThread @00000261B4DC7490
+DEBUG   | Waiting for exit signal RenderThread @000002624B0664E0
+DEBUG   | Waiting for exit signal RenderThread @00000261A40C7CA0
+DEBUG   | Waiting for exit signal RenderThread @000002624FCE1C70
+DEBUG   | Waiting for exit signal RenderThread @00000261A3D9DA20
+DEBUG   | Waiting for exit signal RenderThread @00000262795C56F0
+DEBUG   | Exited a RenderThread @00000261A3D9DA20
+DEBUG   | Exited a RenderThread @00000261A8A11E90
+DEBUG   | Exited a RenderThread @00000261A8A11DB0
+DEBUG   | Exited a RenderThread @00000261A8A12210
+DEBUG   | Exited a RenderThread @00000261A8D95E10
+DEBUG   | Exited a RenderThread @00000261B4DC7490
+DEBUG   | Exited a RenderThread @00000261A3D9F460
+DEBUG   | Exited a RenderThread @000002624B066A20
+DEBUG   | Exited a RenderThread @000002625142D380
+DEBUG   | Exited a RenderThread @000002624FCE1C70
+DEBUG   | Exited a RenderThread @00000261A64E15D0
+DEBUG   | Exited a RenderThread @000002624B0664E0
+DEBUG   | Exited a RenderThread @000002626FD5A380
+DEBUG   | Exited a RenderThread @000002626BB4EA10
+DEBUG   | Exited a RenderThread @00000261A40C7CA0
+DEBUG   | Exited a RenderThread @000002625F3C2F40
+DEBUG   | Exited a RenderThread @000002625F3C3560
+DEBUG   | Exited a RenderThread @00000261A64E1170
+DEBUG   | Exited a RenderThread @000002625C9982B0
+DEBUG   | Exited a RenderThread @00000261B51AC560
+DEBUG   | Exited a RenderThread @000002625C9980F0
+DEBUG   | Exited a RenderThread @00000262795C56F0
+DEBUG   | Exited a RenderThread @00000261A8D95FD0
+DEBUG   | Exited a RenderThread @000002624FCE1D50
+DEBUG   | Exited a RenderThread @000002626FE28460
+WARNING      | Emulator client has not yet been configured.. Call configure me first!
+DEBUG   | Error reading from client fd: error
+DEBUG   | No client connected yet.
+DEBUG   | Done with QEMU main loop
+DEBUG   | ScenesManager::removeAll
+DEBUG   | Uninitializing VirtualSceneManager
+DEBUG   | ScenesManager::removeScene
+DEBUG   | User configuration saved to C:\Users\valen\.android\avd\..\avd\Medium_Phone.avd\emulator-user.ini
+DEBUG   | sending STOP to modem simulator host server
+DEBUG   | received exit request from parent process
+DEBUG   | waiting for monitor thread to join
+DEBUG   | requested to exit now
+WARNING      | Netsim Wifi localhost:57779 is gone due to CANCELLED
+INFO         | emuDirName: 'C:\Users\valen\AppData\Local\Android\Sdk\emulator'
+INFO         | try dir C:\Users\valen\AppData\Local\Android\Sdk\emulator
+INFO         | Trying emulator path 'C:\Users\valen\AppData\Local\Android\Sdk\emulator\qemu\windows-x86_64\qemu-system-x86_64.exe'
+INFO         | Found target-specific 64-bit emulator binary: C:\Users\valen\AppData\Local\Android\Sdk\emulator\qemu\windows-x86_64\qemu-system-x86_64.exe
+INFO         | Adding library search path: 'C:\Users\valen\AppData\Local\Android\Sdk\emulator\lib64'
+INFO         | Adding library search path: 'C:\Users\valen\AppData\Local\Android\Sdk\emulator\lib64\gles_angle'
+INFO         | Adding library search path: 'C:\Users\valen\AppData\Local\Android\Sdk\emulator\lib64\vulkan'
+INFO         | Quoted param: [C:\Users\valen\AppData\Local\Android\Sdk\emulator\qemu\windows-x86_64\qemu-system-x86_64.exe]
+INFO         | Quoted param: [-avd]
+INFO         | Quoted param: [Medium_Phone_API_36.0]
+INFO         | Quoted param: [-port]
+INFO         | Quoted param: [5554]
+INFO         | Quoted param: [-gpu]
+INFO         | Quoted param: [angle_indirect]
+INFO         | Quoted param: [-feature]
+INFO         | Quoted param: [-Vulkan]
+INFO         | Quoted param: [-no-snapshot-load]
+INFO         | Quoted param: [-no-snapshot-save]
+INFO         | Quoted param: [-no-boot-anim]
+INFO         | Quoted param: [-verbose]
+DEBUG   | emulator: Running :C:\Users\valen\AppData\Local\Android\Sdk\emulator\qemu\windows-x86_64\qemu-system-x86_64.exe
+DEBUG   | qemu backend: argv[00] = "C:\Users\valen\AppData\Local\Android\Sdk\emulator\qemu\windows-x86_64\qemu-system-x86_64.exe"
+DEBUG   | qemu backend: argv[01] = "-avd"
+DEBUG   | qemu backend: argv[02] = "Medium_Phone_API_36.0"
+DEBUG   | qemu backend: argv[03] = "-port"
+DEBUG   | qemu backend: argv[04] = "5554"
+DEBUG   | qemu backend: argv[05] = "-gpu"
+DEBUG   | qemu backend: argv[06] = "angle_indirect"
+DEBUG   | qemu backend: argv[07] = "-feature"
+DEBUG   | qemu backend: argv[08] = "-Vulkan"
+DEBUG   | qemu backend: argv[09] = "-no-snapshot-load"
+DEBUG   | qemu backend: argv[10] = "-no-snapshot-save"
+DEBUG   | qemu backend: argv[11] = "-no-boot-anim"
+DEBUG   | qemu backend: argv[12] = "-verbose"
+DEBUG   | Concatenated backend parameters:  C:\Users\valen\AppData\Local\Android\Sdk\emulator\qemu\windows-x86_64\qemu-system-x86_64.exe -avd Medium_Phone_API_36.0 -port 5554 -gpu angle_indirect -feature -Vulkan -no-snapshot-load -no-snapshot-save -no-boot-anim -verbose

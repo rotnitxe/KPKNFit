@@ -39,8 +39,12 @@ class AprendeCatalogAuditTest {
     }
 
     private val catalogSha256: String by lazy {
+        // El hash fija el CONTENIDO del asset, no sus bytes de disco: se
+        // normaliza CRLF→LF para que el checkout de Windows (w/crlf) no rompa
+        // la comparación contra el blob LF que git almacena.
+        val normalized = catalogSource.readText().replace("\r\n", "\n")
         MessageDigest.getInstance("SHA-256")
-            .digest(catalogSource.readBytes())
+            .digest(normalized.toByteArray(Charsets.UTF_8))
             .joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
     }
 

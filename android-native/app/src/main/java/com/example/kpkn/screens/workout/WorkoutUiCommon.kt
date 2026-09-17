@@ -109,8 +109,10 @@ internal fun formatSessionChronometerText(
     targetMinutes: Int?,
 ): String {
     if (!hasLimit) return formatElapsed(elapsedSeconds.coerceAtLeast(0))
-    val absRemaining = abs(remainingSeconds)
-    val remainingText = "${if (remainingSeconds < 0) "-" else ""}${formatElapsed(absRemaining)}"
+    // The header is a countdown, not an overtime stopwatch.  Keep the
+    // exceeded state in the separate cue/accent, but never render a negative
+    // clock (the old "-00:37" made the live limit look broken).
+    val remainingText = formatElapsed(remainingSeconds.coerceAtLeast(0))
     val limitSeconds = (targetMinutes?.takeIf { it > 0 } ?: 0) * 60
     return if (limitSeconds > 0) {
         "$remainingText / ${formatElapsed(limitSeconds)}"

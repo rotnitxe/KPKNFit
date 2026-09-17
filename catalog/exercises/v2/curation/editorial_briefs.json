@@ -2093,21 +2093,6 @@
           "techniqueSummary": "Barra en banco declinado: el ángulo apunta directo a la parte baja del pecho. El respaldo declinado cambia la línea del empuje hacia el pecho inferior y acorta la sensación de recorrido en el hombro.",
           "variantRationale": "Barra en banco declinado: el ángulo apunta directo a la parte baja del pecho. Complemento útil para el press plano con carga libre."
         },
-        "decline_bench_press__cable": {
-          "benefits": [
-            "El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-            "El especialista en dar densidad a la parte inferior del torso."
-          ],
-          "description": "Con polea, con la cabeza por debajo de las caderas, el empuje apunta a la parte baja del pecho y el recorrido se acorta. El pectoral trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-          "executionCues": [
-            "Polea en banco declinado: tensión constante que mantiene la parte baja del pecho bajo una tensión intensa. El respaldo declinado cambia la línea del empuje hacia el pecho inferior y acorta la sensación de recorrido en el hombro."
-          ],
-          "setupCues": [
-            "Preparación: Polea en banco declinado: tensión constante que mantiene la parte baja del pecho bajo una tensión intensa."
-          ],
-          "techniqueSummary": "Polea en banco declinado: tensión constante que mantiene la parte baja del pecho bajo una tensión intensa. El respaldo declinado cambia la línea del empuje hacia el pecho inferior y acorta la sensación de recorrido en el hombro.",
-          "variantRationale": "Polea en banco declinado: tensión constante que mantiene la parte baja del pecho bajo una tensión intensa. Variante alternativa que se agradece a mitad de rutina."
-        },
         "decline_bench_press__dumbbells": {
           "benefits": [
             "El pectoral trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
@@ -2138,21 +2123,6 @@
           "techniqueSummary": "Kettlebell en banco declinado: inestabilidad extra y trabajo enfocado en el pecho bajo. El respaldo declinado cambia la línea del empuje hacia el pecho inferior y acorta la sensación de recorrido en el hombro.",
           "variantRationale": "Kettlebell en banco declinado: inestabilidad extra y trabajo enfocado en el pecho bajo. Para quien busca salir de la zona cómoda."
         },
-        "decline_bench_press__machine": {
-          "benefits": [
-            "El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-            "El especialista en dar densidad a la parte inferior del torso."
-          ],
-          "description": "Con máquina, con la cabeza por debajo de las caderas, el empuje apunta a la parte baja del pecho y el recorrido se acorta. El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-          "executionCues": [
-            "Máquina declinada: recorrido fijo y foco total en la parte baja del pecho. El respaldo declinado cambia la línea del empuje hacia el pecho inferior y acorta la sensación de recorrido en el hombro."
-          ],
-          "setupCues": [
-            "Preparación: Máquina declinada: recorrido fijo y foco total en la parte baja del pecho."
-          ],
-          "techniqueSummary": "Máquina declinada: recorrido fijo y foco total en la parte baja del pecho. El respaldo declinado cambia la línea del empuje hacia el pecho inferior y acorta la sensación de recorrido en el hombro.",
-          "variantRationale": "Máquina declinada: recorrido fijo y foco total en la parte baja del pecho. La opción más limpia para rematar el pectoral inferior."
-        },
         "decline_bench_press__smith_machine": {
           "benefits": [
             "En la Smith, la guía fija permite concentrar todo el esfuerzo del pectoral.",
@@ -2173,21 +2143,6 @@
     },
     "decline_chest_fly": {
       "configurations": {
-        "decline_chest_fly__cable": {
-          "benefits": [
-            "Con la polea, la tensión sobre el pectoral se mantiene viva de principio a fin.",
-            "El acabado inferior del pectoral tiene aquí su herramienta específica."
-          ],
-          "description": "Con polea, en declive, los brazos dibujan un arco amplio y el borde inferior del pectoral toma el protagonismo. Con la polea, la tensión sobre el pectoral se mantiene viva de principio a fin.",
-          "executionCues": [
-            "Polea en apertura declinada: tensión constante en el pectoral inferior de punta a punta. El ángulo declinado dirige el arco hacia la zona inferior del pecho; la amplitud se detiene antes de perder la posición del hombro."
-          ],
-          "setupCues": [
-            "Preparación: Polea en apertura declinada: tensión constante en el pectoral inferior de punta a punta."
-          ],
-          "techniqueSummary": "Polea en apertura declinada: tensión constante en el pectoral inferior de punta a punta. El ángulo declinado dirige el arco hacia la zona inferior del pecho; la amplitud se detiene antes de perder la posición del hombro.",
-          "variantRationale": "Polea en apertura declinada: tensión constante en el pectoral inferior de punta a punta. Cambio de ángulo que se perciben como una novedad refrescante."
-        },
         "decline_chest_fly__dumbbells": {
           "benefits": [
             "Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
@@ -2202,21 +2157,6 @@
           ],
           "techniqueSummary": "Mancuernas en apertura declinada: el arco baja y el pectoral inferior se estira a fondo. El ángulo declinado dirige el arco hacia la zona inferior del pecho; la amplitud se detiene antes de perder la posición del hombro.",
           "variantRationale": "Mancuernas en apertura declinada: el arco baja y el pectoral inferior se estira a fondo. La variante que completa la parte baja del pecho."
-        },
-        "decline_chest_fly__machine": {
-          "benefits": [
-            "El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-            "El acabado inferior del pectoral tiene aquí su herramienta específica."
-          ],
-          "description": "Con máquina, en declive, los brazos dibujan un arco amplio y el borde inferior del pectoral toma el protagonismo. El pectoral trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-          "executionCues": [
-            "Máquina declinada de aperturas: el guiado apunta directo a la parte baja del pecho. El ángulo declinado dirige el arco hacia la zona inferior del pecho; la amplitud se detiene antes de perder la posición del hombro."
-          ],
-          "setupCues": [
-            "Preparación: Máquina declinada de aperturas: el guiado apunta directo a la parte baja del pecho."
-          ],
-          "techniqueSummary": "Máquina declinada de aperturas: el guiado apunta directo a la parte baja del pecho. El ángulo declinado dirige el arco hacia la zona inferior del pecho; la amplitud se detiene antes de perder la posición del hombro.",
-          "variantRationale": "Máquina declinada de aperturas: el guiado apunta directo a la parte baja del pecho. Cómoda, estable y útil para acumular trabajo para completar el pecho."
         }
       },
       "description": "Las Aperturas Declinadas ponen el torso cabeza abajo para apuntar al borde inferior del pectoral: el arco se abre desde un ángulo que rara vez se entrena aislado. Se ejecutan en banco declinado con las piernas aseguradas, abriendo las mancuernas con los codos suaves y cerrando sobre el pecho bajo. El acabado inferior del pectoral tiene aquí su herramienta específica."

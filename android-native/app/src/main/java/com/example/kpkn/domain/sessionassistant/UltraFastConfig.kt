@@ -30,27 +30,26 @@ object UltraFastConfig {
     // Catalog DB ids for protected basics (best-effort, name fallback covers rest)
     val PROTECTED_CATALOG_IDS = setOf(
         // sentadillas
-        "quads_sentadilla_barra_alta",
-        "quads_sentadilla_barra_baja",
-        "quads_sentadilla_frontal_barra",
-        "quads_sentadilla_zercher_barra",
-        "quads_sentadilla_bulgara_barra",
-        "quads_sentadilla_bulgara_mancuernas", // keep but will be filtered by bar check
+        "high_bar_back_squat__barbell",
+        "low_bar_back_squat__barbell",
+        "front_squat__barbell",
+        "bulgarian_split_squat__barbell",
+        "bulgarian_split_squat__dumbbells", // keep but will be filtered by bar check
+        "bulgarian_split_squat__smith_machine",
         // peso muerto
-        "hams_peso_muerto_barra",
-        "hams_peso_muerto_rumano_barra",
-        "hams_peso_muerto_sumo_barra",
-        "hams_peso_muerto_zercher_barra",
-        "back_peso_muerto_convencional_barra",
+        "conventional_deadlift__bilateral__barbell",
+        "romanian_deadlift__bilateral__barbell",
+        "sumo_deadlift__barbell",
         // press banca plano barra
-        "pecs_press_banca_plano_barra",
-        "tren_superior_press_banca_plano_barra",
+        "bench_press__barbell",
     )
 
-    // Name kernels for protected families (lowercase, accent-insensitive handled by contains)
-    val SQUAT_KERNELS = setOf("sentadilla")
+    // Name kernels for protected families (lowercase, accent-insensitive handled by contains).
+    // El nombre es el canonical verbatim del catálogo ("Press de Banca Plano",
+    // sin sufijo de implemento): no exigir tokens de equipo aquí.
+    val SQUAT_KERNELS = setOf("sentadilla", "squat")
     val DEADLIFT_KERNELS = setOf("peso muerto", "deadlift")
-    val BENCH_KERNELS = setOf("press banca", "bench press")
+    val BENCH_KERNELS = setOf("banca", "bench press", "press de banca")
 
     fun isSquatFamily(nameLower: String): Boolean = SQUAT_KERNELS.any { it in nameLower }
     fun isDeadliftFamily(nameLower: String): Boolean = DEADLIFT_KERNELS.any { it in nameLower }
