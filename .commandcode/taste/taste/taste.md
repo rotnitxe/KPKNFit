@@ -109,3 +109,9 @@
 - Prefers large catalog image work delivered in small reviewable batches (e.g., tranches of ~15, grouped by muscle zone like chest/back) so each batch can be reviewed and corrected before continuing. Confidence: 0.8
 - When asked to commit and push, wants the entire working tree committed/pushed including files the agent did not touch, not just the agent's own changes. Confidence: 0.85
 - Absolutely prohibits losing any code, work, or app functionality during git/refactor operations; expects safeguards (e.g., backup branch, soft-only undos, keeping excluded binaries on disk) so nothing is ever deleted. Confidence: 0.95
+- Requires emulator APK updates/reinstalls to preserve existing on-device app data (reinstall without wipe/clear, e.g. install -r) so manually entered test data is never lost and never has to be re-entered. Confidence: 0.85
+- Requires all subagents to run on meta/muse-spark-1.3-contributor regardless of the session main model, valuing it as the best price/intelligence balance. Confidence: 0.9
+- Prefers Muse Spark contributor subagents pinned to medium reasoningEffort. Confidence: 0.9
+- Rejects very low weekly/per-muscle training volume in templates and protocols (calls ~5 weekly sets per muscle "bajísimo"); expects weekly and per-session volume to be audited against effective minimums. Confidence: 0.85
+- Wants selecting a template/protocol with a pre-selected routine to consult volume-calibration status and use it to determine sets for that routine. Confidence: 0.9
+- Treats indirect/spillover volume as non-problematic and wants tolerance on volume ceilings: e.g. squat contributing to glutes counts as indirect volume, allowing MRV/ceiling to be exceeded by 1-2 sets without failing. Confidence: 0.85
