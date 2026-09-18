@@ -171,7 +171,11 @@ object SplitApplicationEngine {
         return impactSummary(request).affectedSessions > 0
     }
 
-    fun apply(request: SplitApplicationRequest): Program {
+    fun apply(
+        request: SplitApplicationRequest,
+        volumeRecommendations: List<com.example.kpkn.data.models.VolumeRecommendation> = emptyList(),
+        exerciseList: List<ExerciseMuscleInfo>? = null,
+    ): Program {
         val blockAssignments = if (request.advancedMode == AdvancedSplitMode.PER_BLOCK) request.perBlockSelections else emptyMap()
         val selectedSplit = resolveRequestedSplit(request, request.selectedSplit.id)
         val effectiveStartDay = if (ProgramCalendarEngine.isCalendarized(request.program)) {
@@ -236,17 +240,23 @@ object SplitApplicationEngine {
                                     weeks = meso.weeks.map { week ->
                                         if (!shouldApplyToWeek(request, block.id, week.id)) week
                                         else week.copy(
-                                            sessions = buildSessionsForSplit(
-                                                splitId = blockSplit.id,
-                                                pattern = blockSplit.pattern,
-                                                sessionDescriptions = blockSplit.sessionDescriptions,
-                                                startDay = effectiveStartDay,
-                                            existingSessions = week.sessions,
-                                            migrationMode = request.migrationMode,
-                                                templates = effectiveTemplates(request),
-                                                // Difficulty and safety preferences follow the split
-                                                // actually applied to this block, not the global picker.
-                                                prefs = prefsForBlock(request, blockSplit),
+                                            sessions = scaleSplitSessions(
+                                                sessions = buildSessionsForSplit(
+                                                    splitId = blockSplit.id,
+                                                    pattern = blockSplit.pattern,
+                                                    sessionDescriptions = blockSplit.sessionDescriptions,
+                                                    startDay = effectiveStartDay,
+                                                    existingSessions = week.sessions,
+                                                    migrationMode = request.migrationMode,
+                                                    templates = effectiveTemplates(request),
+                                                    // Difficulty and safety preferences follow the split
+                                                    // actually applied to this block, not the global picker.
+                                                    prefs = prefsForBlock(request, blockSplit),
+                                                ),
+                                                volumeRecommendations = volumeRecommendations.ifEmpty {
+                                                    request.program.volumeRecommendations
+                                                },
+                                                exerciseList = exerciseList,
                                             )
                                         )
                                     }
@@ -258,6 +268,24 @@ object SplitApplicationEngine {
             }
         )
         return reconcileSchedule(applied, effectiveStartDay)
+    }
+
+    /**
+     * Escala la semana recién construida al MAV calibrado. Sin recomendaciones
+     * o sin índice de ejercicios no se toca nada. Solo clona sets existentes.
+     */
+    internal fun scaleSplitSessions(
+        sessions: List<Session>,
+        volumeRecommendations: List<com.example.kpkn.data.models.VolumeRecommendation>,
+        exerciseList: List<ExerciseMuscleInfo>?,
+    ): List<Session> {
+        if (exerciseList == null || volumeRecommendations.isEmpty()) return sessions
+        return TemplateVolumeScaler.scaleWeekSessions(
+            sessions = sessions,
+            exerciseList = exerciseList,
+            recommendations = volumeRecommendations,
+            idProvider = UuidIdProvider,
+        ).sessions
     }
 
     /** Exact PREBUILT gate used by UI and by [apply] before persistence. */

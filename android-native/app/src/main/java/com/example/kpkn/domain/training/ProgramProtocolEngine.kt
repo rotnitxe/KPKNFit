@@ -22,6 +22,7 @@ object ProgramProtocolEngine {
         idProvider: IdProvider = UuidIdProvider,
         @Suppress("UNUSED_PARAMETER") enhancedDayDifferentiation: Boolean = false,
         metadata: ExerciseCompositionMetadataProvider? = null,
+        exerciseList: List<com.example.kpkn.data.models.ExerciseMuscleInfo>? = null,
     ): Program {
         require(protocol.isVisibleForApplication) {
             "El protocolo '${protocol.id}' no está publicado: falta una receta verificable día por día."
@@ -48,12 +49,50 @@ object ProgramProtocolEngine {
             sourceProtocolId = protocol.id,
         )
         val hydrated = hydrateProgramGoals(applied)
-        val executable = if (ProgramCalendarEngine.isCalendarized(hydrated)) {
-            ProgramCalendarEngine.materializeWeekDates(hydrated)
+        val scaled = scaleToCalibratedVolume(hydrated, exerciseList, idProvider)
+        val executable = if (ProgramCalendarEngine.isCalendarized(scaled)) {
+            ProgramCalendarEngine.materializeWeekDates(scaled)
         } else {
-            hydrated
+            scaled
         }
         return ProgramExecutionContract.requireExecutable(executable)
+    }
+
+    /**
+     * Auto-escala series al MAV calibrado cuando el programa trae calibración.
+     * Sin calibrar no se toca nada (la UI pide calibrar antes). Solo clona
+     * sets existentes con UUID nuevo; nunca añade ejercicios ni cambia plantillas.
+     */
+    internal fun scaleToCalibratedVolume(
+        program: Program,
+        exerciseList: List<com.example.kpkn.data.models.ExerciseMuscleInfo>?,
+        idProvider: IdProvider,
+    ): Program {
+        if (exerciseList == null) return program
+        if (!VolumeCalibrationGate.isVolumeCalibrated(program)) return program
+        return program.copy(
+            macrocycles = program.macrocycles.map { macro ->
+                macro.copy(
+                    blocks = macro.blocks.map { block ->
+                        block.copy(
+                            mesocycles = block.mesocycles.map { meso ->
+                                meso.copy(
+                                    weeks = meso.weeks.map { week ->
+                                        val scaled = TemplateVolumeScaler.scaleWeekSessions(
+                                            sessions = week.sessions,
+                                            exerciseList = exerciseList,
+                                            recommendations = program.volumeRecommendations,
+                                            idProvider = idProvider,
+                                        )
+                                        week.copy(sessions = scaled.sessions)
+                                    },
+                                )
+                            },
+                        )
+                    },
+                )
+            },
+        )
     }
 
     /** Attach recorded S/B/D goals to the exact competition configurations. */

@@ -52,6 +52,7 @@ object ProgramTemplateEngine {
         idProvider: IdProvider = UuidIdProvider,
         applySplitPrefill: Boolean = true,
         generationTemplates: List<SessionTemplate>? = null,
+        exerciseList: List<com.example.kpkn.data.models.ExerciseMuscleInfo>? = null,
     ): ApplyResult {
         val strategy = resolveApplyStrategy(current, forceCopy, forceReplace)
         val trackKey = template.trackLabel?.trim()?.lowercase()
@@ -165,7 +166,8 @@ object ProgramTemplateEngine {
                 )
             },
         )
-        val executable = hydrateProgramGoals(materialized).alignTemporalMetadata()
+        val scaled = ProgramProtocolEngine.scaleToCalibratedVolume(materialized, exerciseList, idProvider)
+        val executable = hydrateProgramGoals(scaled).alignTemporalMetadata()
         if (applySplitPrefill) ProgramExecutionContract.requireExecutable(executable)
         return ApplyResult(
             program = executable,
