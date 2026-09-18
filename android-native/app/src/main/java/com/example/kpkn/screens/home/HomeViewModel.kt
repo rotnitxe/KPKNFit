@@ -70,6 +70,46 @@ import java.util.UUID
     val showCreateProgramSheet: StateFlow<Boolean> = _showCreateProgramSheet.asStateFlow()
     private val _pendingProgramName = MutableStateFlow<String?>(null)
     val pendingProgramName: StateFlow<String?> = _pendingProgramName.asStateFlow()
+    private val _pendingVolumeTemplateId = MutableStateFlow<String?>(null)
+    val pendingVolumeTemplateId: StateFlow<String?> = _pendingVolumeTemplateId.asStateFlow()
+    private val _pendingVolumeProtocol =
+        MutableStateFlow<com.example.kpkn.data.protocols.Protocol?>(null)
+    val pendingVolumeProtocol: StateFlow<com.example.kpkn.data.protocols.Protocol?> =
+        _pendingVolumeProtocol.asStateFlow()
+    private val _pendingVolumeProfile =
+        MutableStateFlow<com.example.kpkn.data.models.PowerliftingProfile?>(null)
+    val pendingVolumeProfile: StateFlow<com.example.kpkn.data.models.PowerliftingProfile?> =
+        _pendingVolumeProfile.asStateFlow()
+
+    fun requestVolumeCalibrationForTemplate(templateId: String) {
+        _pendingVolumeTemplateId.value = templateId
+    }
+
+    fun requestVolumeCalibrationForProtocol(
+        protocol: com.example.kpkn.data.protocols.Protocol,
+        profile: com.example.kpkn.data.models.PowerliftingProfile?,
+        preferredName: String?,
+    ) {
+        _pendingVolumeProtocol.value = protocol
+        _pendingVolumeProfile.value = profile
+        _pendingProgramName.value = preferredName?.trim()?.takeIf { it.isNotEmpty() }
+    }
+
+    fun consumeVolumeCalibrationRequest(): Triple<String?, com.example.kpkn.data.protocols.Protocol?, com.example.kpkn.data.models.PowerliftingProfile?> {
+        val template = _pendingVolumeTemplateId.value
+        val protocol = _pendingVolumeProtocol.value
+        val profile = _pendingVolumeProfile.value
+        _pendingVolumeTemplateId.value = null
+        _pendingVolumeProtocol.value = null
+        _pendingVolumeProfile.value = null
+        return Triple(template, protocol, profile)
+    }
+
+    fun dismissVolumeCalibrationRequest() {
+        _pendingVolumeTemplateId.value = null
+        _pendingVolumeProtocol.value = null
+        _pendingVolumeProfile.value = null
+    }
 
     fun openCreateProgramSheet(preferredName: String? = null) {
         _pendingProgramName.value = preferredName?.trim()?.takeIf { it.isNotEmpty() }

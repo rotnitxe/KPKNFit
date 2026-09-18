@@ -57,6 +57,8 @@ import com.example.kpkn.screens.home.components.WelcomeOnboardingOverlay
 import com.example.kpkn.screens.nutrition.NutritionViewModel
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
 import com.example.kpkn.screens.programs.CreateProgramTemplateSheet
+import com.example.kpkn.data.models.ProgramMode
+import com.example.kpkn.screens.programdetail.components.VolumeCalibrationSheet
 import com.example.kpkn.screens.programs.ProgramsViewModel
 import com.example.kpkn.screens.programs.ProtocolDetailSheet
 import com.example.kpkn.screens.programs.TrainingMaxWizard
@@ -106,6 +108,9 @@ fun HomeScreen(
     val programsVm: ProgramsViewModel = viewModel()
     val showCreateProgramSheet by viewModel.showCreateProgramSheet.collectAsState()
     val pendingProgramName by viewModel.pendingProgramName.collectAsState()
+    val pendingVolumeTemplateId by viewModel.pendingVolumeTemplateId.collectAsState()
+    val pendingVolumeProtocol by viewModel.pendingVolumeProtocol.collectAsState()
+    val pendingVolumeProfile by viewModel.pendingVolumeProfile.collectAsState()
     var selectedProtocol by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
     var protocolForTm by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
     var templateError by remember { mutableStateOf<String?>(null) }
@@ -374,15 +379,14 @@ fun HomeScreen(
                 },
                 onCreateFromTemplate = { template ->
                     createScope.launch {
-                        programsVm.createProgramFromTemplate(template.id)
-                            .onSuccess { id ->
-                                viewModel.onProgramCreated(id, activate = pendingProgramName != null)
-                                onNavigateToProgram(id)
+                        when (val outcome = programsVm.createProgramFromTemplateGated(template.id)) {
+                            is ProgramsViewModel.TemplateApplyOutcome.Created -> {
+                                viewModel.onProgramCreated(outcome.programId, activate = pendingProgramName != null)
+                                onNavigateToProgram(outcome.programId)
                             }
-                            .onFailure { error ->
-                                templateError = error.message?.takeIf { it.isNotBlank() }
-                                    ?: "No se pudo crear el programa desde la plantilla."
-                            }
+                            ProgramsViewModel.TemplateApplyOutcome.RequiresCalibration ->
+                                viewModel.requestVolumeCalibrationForTemplate(template.id)
+                        }
                     }
                 },
                 onSelectProtocol = { protocol ->
@@ -408,14 +412,22 @@ fun HomeScreen(
                 onDismiss = {
                     val id = programsVm.createProgramFromProtocol(protocol.id, preferredName = pendingProgramName)
                     protocolForTm = null
-                    viewModel.onProgramCreated(id, activate = true)
-                    onNavigateToProgram(id)
+                    if (id != null) {
+                        viewModel.onProgramCreated(id, activate = true)
+                        onNavigateToProgram(id)
+                    } else {
+                        viewModel.requestVolumeCalibrationForProtocol(protocol, null, pendingProgramName)
+                    }
                 },
                 onConfirm = { profile ->
                     val id = programsVm.createProgramFromProtocol(protocol.id, profile, pendingProgramName)
                     protocolForTm = null
-                    viewModel.onProgramCreated(id, activate = true)
-                    onNavigateToProgram(id)
+                    if (id != null) {
+                        viewModel.onProgramCreated(id, activate = true)
+                        onNavigateToProgram(id)
+                    } else {
+                        viewModel.requestVolumeCalibrationForProtocol(protocol, profile, pendingProgramName)
+                    }
                 },
             )
         }
@@ -426,6 +438,74 @@ fun HomeScreen(
                 text = { Text(message) },
                 confirmButton = {
                     TextButton(onClick = { templateError = null }) { Text("Entendido") }
+                },
+            )
+        }
+        pendingVolumeTemplateId?.let { templateId ->
+            VolumeCalibrationSheet(
+                currentMode = ProgramMode.HYPERTROPHY,
+                onDismiss = {
+                    val tid = templateId
+                    viewModel.dismissVolumeCalibrationRequest()
+                    createScope.launch {
+                        when (val outcome = programsVm.createProgramFromTemplateGated(tid, skipCalibration = true)) {
+                            is ProgramsViewModel.TemplateApplyOutcome.Created -> {
+                                viewModel.onProgramCreated(outcome.programId, activate = pendingProgramName != null)
+                                onNavigateToProgram(outcome.programId)
+                            }
+                            else -> {}
+                        }
+                    }
+                },
+                onSave = { result ->
+                    viewModel.dismissVolumeCalibrationRequest()
+                    createScope.launch {
+                        programsVm.applyCalibrationToLatestDraft(result)
+                        when (val outcome = programsVm.createProgramFromTemplateGated(templateId)) {
+                            is ProgramsViewModel.TemplateApplyOutcome.Created -> {
+                                viewModel.onProgramCreated(outcome.programId, activate = pendingProgramName != null)
+                                onNavigateToProgram(outcome.programId)
+                            }
+                            ProgramsViewModel.TemplateApplyOutcome.RequiresCalibration ->
+                                templateError = "No se pudo crear el programa ni con calibración."
+                        }
+                    }
+                },
+            )
+        }
+        pendingVolumeProtocol?.let { protocol ->
+            VolumeCalibrationSheet(
+                currentMode = ProgramMode.POWERLIFTING,
+                onDismiss = {
+                    val prot = protocol
+                    val prof = pendingVolumeProfile
+                    val name = pendingProgramName
+                    viewModel.dismissVolumeCalibrationRequest()
+                    val id = programsVm.createProgramFromProtocol(
+                        prot.id,
+                        prof,
+                        name,
+                        skipCalibration = true,
+                    )
+                    if (id != null) {
+                        viewModel.onProgramCreated(id, activate = true)
+                        onNavigateToProgram(id)
+                    }
+                },
+                onSave = { result ->
+                    viewModel.dismissVolumeCalibrationRequest()
+                    val id = programsVm.createProgramFromProtocol(
+                        protocol.id,
+                        pendingVolumeProfile,
+                        pendingProgramName,
+                        calibration = result,
+                    )
+                    if (id != null) {
+                        viewModel.onProgramCreated(id, activate = true)
+                        onNavigateToProgram(id)
+                    } else {
+                        templateError = "No se pudo crear el programa ni con calibración."
+                    }
                 },
             )
         }

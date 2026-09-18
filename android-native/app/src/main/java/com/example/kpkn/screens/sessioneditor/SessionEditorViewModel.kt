@@ -489,6 +489,7 @@ class SessionEditorViewModel(
         val competitionKeyDaysInWeek = buildCompetitionKeyDaysInWeek(program, week)
 
         return SessionEditorUiState(
+            programSnapshotForVolume = program,
             session = draft,
             originalSession = SupersetRules.normalizeSession(
                 (existing ?: draft)

@@ -599,6 +599,7 @@ class ProgramDetailViewModel(
                         current = current,
                         template = template,
                         forceReplace = overwrite,
+                        exerciseList = com.example.kpkn.data.exercises.exerciseCatalogSnapshot(),
                     )
                 }
             }
@@ -668,17 +669,18 @@ class ProgramDetailViewModel(
             }
             val result = runCatching {
                 withContext(kotlinx.coroutines.Dispatchers.Default) {
+                    val catalog = com.example.kpkn.data.exercises.exerciseCatalogSnapshot()
                     if (overwrite) {
-                        com.example.kpkn.domain.training.ProgramProtocolEngine.applyProtocol(current, protocol)
+                        com.example.kpkn.domain.training.ProgramProtocolEngine.applyProtocol(current, protocol, exerciseList = catalog)
                     } else if (com.example.kpkn.domain.training.ProgramTemplateEngine.hasSessionContent(current)) {
                         val base = current.copy(
                             id = idProvider.newId(),
                             name = "${current.name} · ${protocol.name}",
                             isDraft = true,
                         )
-                        com.example.kpkn.domain.training.ProgramProtocolEngine.applyProtocol(base, protocol)
+                        com.example.kpkn.domain.training.ProgramProtocolEngine.applyProtocol(base, protocol, exerciseList = catalog)
                     } else {
-                        com.example.kpkn.domain.training.ProgramProtocolEngine.applyProtocol(current, protocol)
+                        com.example.kpkn.domain.training.ProgramProtocolEngine.applyProtocol(current, protocol, exerciseList = catalog)
                     }
                 }
             }

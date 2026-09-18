@@ -21,6 +21,7 @@ import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -111,6 +112,18 @@ class ProgramsViewModelTest {
     }
 
     @Test
+    fun createProgramFromProtocol_requires_calibration_before_materializing() {
+        com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
+        val vm = ProgramsViewModel(ApplicationProvider.getApplicationContext())
+        val profile = com.example.kpkn.data.models.PowerliftingProfile(
+            squat1RM = 200.0,
+            bench1RM = 140.0,
+            deadlift1RM = 240.0,
+        )
+        assertNull(vm.createProgramFromProtocol("kpkn-native-sbd-4", profile))
+    }
+
+    @Test
     fun createProgramFromProtocol_materializes_recipe_and_training_max() {
         com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
         val vm = ProgramsViewModel(ApplicationProvider.getApplicationContext())
@@ -119,7 +132,14 @@ class ProgramsViewModelTest {
             bench1RM = 140.0,
             deadlift1RM = 240.0,
         )
-        val id = vm.createProgramFromProtocol("kpkn-native-sbd-4", profile)
+        val calibration = com.example.kpkn.screens.programdetail.components.buildVolumeCalibration(
+            style = com.example.kpkn.data.models.TrainingStyle.POWERLIFTER,
+            technique = 2,
+            consistency = 2,
+            strength = 2,
+            mobility = 2,
+        )
+        val id = vm.createProgramFromProtocol("kpkn-native-sbd-4", profile, calibration = calibration)!!
         val created = ProgramRepository.getInstance().getProgramById(id)!!
         assertEquals(ProgramStructure.COMPLEX, created.structure)
         assertNotNull(created.sourceRecipe)
@@ -128,13 +148,28 @@ class ProgramsViewModelTest {
     }
 
     @Test
+    fun createProgramFromTemplate_requires_calibration_before_materializing() = runBlocking {
+        com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
+        val vm = ProgramsViewModel(ApplicationProvider.getApplicationContext())
+        val outcome = vm.createProgramFromTemplateGated("simple-1")
+        assertEquals(ProgramsViewModel.TemplateApplyOutcome.RequiresCalibration, outcome)
+    }
+
+    @Test
     fun createProgramFromTemplate_activates_program_and_materializes_executable_sessions() = runBlocking {
         com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
         val vm = ProgramsViewModel(ApplicationProvider.getApplicationContext())
         val repository = ProgramRepository.getInstance()
+        val calibration = com.example.kpkn.screens.programdetail.components.buildVolumeCalibration(
+            style = com.example.kpkn.data.models.TrainingStyle.BODYBUILDER,
+            technique = 2,
+            consistency = 2,
+            strength = 2,
+            mobility = 2,
+        )
 
         listOf("simple-1", "power-12-3").forEach { templateId ->
-            val result = vm.createProgramFromTemplate(templateId)
+            val result = vm.createProgramFromTemplate(templateId, calibration = calibration)
             assertTrue("create $templateId debe devolver Result.success", result.isSuccess)
             val id = result.getOrThrow()
             val created = repository.getProgramById(id)
@@ -150,5 +185,9 @@ class ProgramsViewModelTest {
                 },
             )
         }
+
+        // También verifica que skipCalibration = true materializa sin calibración
+        val uncalibratedResult = vm.createProgramFromTemplate("simple-1", skipCalibration = true)
+        assertTrue("skipCalibration debe materializar", uncalibratedResult.isSuccess)
     }
 }

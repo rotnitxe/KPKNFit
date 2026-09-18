@@ -199,21 +199,57 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         return programId
     }
 
-    suspend fun createProgramFromTemplate(templateId: String): Result<String> = withContext(Dispatchers.Default) {
+    sealed interface TemplateApplyOutcome {
+        data class Created(val programId: String) : TemplateApplyOutcome
+        data object RequiresCalibration : TemplateApplyOutcome
+    }
+
+    suspend fun createProgramFromTemplate(
+        templateId: String,
+        skipCalibration: Boolean = false,
+        calibration: com.example.kpkn.screens.programdetail.components.VolumeCalibrationResult? = null,
+    ): Result<String> = withContext(Dispatchers.Default) {
         runCatching {
+            when (val outcome = createProgramFromTemplateGated(templateId, skipCalibration, calibration)) {
+                is TemplateApplyOutcome.Created -> outcome.programId
+                TemplateApplyOutcome.RequiresCalibration ->
+                    error("REQUIRES_CALIBRATION")
+            }
+        }
+    }
+
+    /**
+     * Crea el programa pero exige calibración antes de materializar cuando la
+     * plantilla trae rutina pre-seleccionada. Sin calibrar no se escala ni se
+     * persiste nada a menos que [skipCalibration] sea true (omisión del usuario).
+     */
+    suspend fun createProgramFromTemplateGated(
+        templateId: String,
+        skipCalibration: Boolean = false,
+        calibration: com.example.kpkn.screens.programdetail.components.VolumeCalibrationResult? = null,
+    ): TemplateApplyOutcome =
+        withContext(Dispatchers.Default) {
             val template = resolveProgramTemplate(templateId)
             val programId = UUID.randomUUID().toString()
+            val pending = calibration ?: pendingCalibrationForCreate
             val base = Program(
                 id = programId,
                 name = template.name,
                 coverImage = "gradient://ember",
                 structure = template.type,
-                mode = when (template.trackLabel) {
+                mode = pending?.mode ?: when (template.trackLabel) {
                     "Powerlifting" -> ProgramMode.POWERLIFTING
                     "Powerbuilding" -> ProgramMode.POWERBUILDING
                     else -> ProgramMode.HYPERTROPHY
                 },
+                volumeRecommendations = pending?.recommendations.orEmpty(),
+                athleteProfileScore = pending?.score,
+                volumeSystem = if (pending != null) com.example.kpkn.data.models.VolumeSystem.KPNK else null,
             )
+            if (!skipCalibration && !com.example.kpkn.domain.training.VolumeCalibrationGate.isVolumeCalibrated(base)) {
+                return@withContext TemplateApplyOutcome.RequiresCalibration
+            }
+            pendingCalibrationForCreate = null
             val result = ProgramTemplateEngine.applyTemplate(
                 current = base,
                 template = template,
@@ -223,11 +259,49 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
                 // system-catalog fallback, so only pass USER-aware candidates once
                 // there is an actual list to use.
                 generationTemplates = generationTemplates.value.takeIf { it.isNotEmpty() },
+                exerciseList = com.example.kpkn.data.exercises.exerciseCatalogSnapshot(),
             )
             repository.addProgram(result.program)
             repository.startProgram(result.program.id)
-            result.program.id
+            TemplateApplyOutcome.Created(result.program.id)
         }
+
+    /**
+     * Misma puerta para protocolos: exige calibración antes de materializar la
+     * rutina pre-seleccionada. Devuelve null si falta calibrar a menos que
+     * [skipCalibration] sea true (omisión del usuario).
+     */
+    fun createProgramFromProtocolGated(
+        protocolId: String,
+        profile: PowerliftingProfile? = null,
+        preferredName: String? = null,
+        calibration: com.example.kpkn.screens.programdetail.components.VolumeCalibrationResult? = null,
+        skipCalibration: Boolean = false,
+    ): String? {
+        val protocol = PROTOCOL_LIBRARY.first { it.id == protocolId }
+        val programId = UUID.randomUUID().toString()
+        val base = Program(
+            id = programId,
+            name = preferredName?.trim()?.takeIf { it.isNotEmpty() } ?: protocol.name,
+            coverImage = "gradient://ember",
+            structure = ProgramStructure.SIMPLE,
+            mode = ProgramMode.POWERLIFTING,
+            powerliftingProfile = profile,
+            selectedSplitId = protocol.defaultSplit,
+            volumeRecommendations = calibration?.recommendations.orEmpty(),
+            athleteProfileScore = calibration?.score,
+            volumeSystem = if (calibration != null) com.example.kpkn.data.models.VolumeSystem.KPNK else null,
+        )
+        if (!skipCalibration && !com.example.kpkn.domain.training.VolumeCalibrationGate.isVolumeCalibrated(base)) {
+            return null
+        }
+        val applied = ProgramProtocolEngine.applyProtocol(
+            base,
+            protocol,
+            exerciseList = com.example.kpkn.data.exercises.exerciseCatalogSnapshot(),
+        )
+        repository.addProgram(applied)
+        return programId
     }
 
     fun estimatedProfileFromHistory(): PowerliftingProfile? {
@@ -259,21 +333,22 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         protocolId: String,
         profile: PowerliftingProfile? = null,
         preferredName: String? = null,
-    ): String {
-        val protocol = PROTOCOL_LIBRARY.first { it.id == protocolId }
-        val programId = UUID.randomUUID().toString()
-        val base = Program(
-            id = programId,
-            name = preferredName?.trim()?.takeIf { it.isNotEmpty() } ?: protocol.name,
-            coverImage = "gradient://ember",
-            structure = ProgramStructure.SIMPLE,
-            mode = ProgramMode.POWERLIFTING,
-            powerliftingProfile = profile,
-            selectedSplitId = protocol.defaultSplit,
-        )
-        val applied = ProgramProtocolEngine.applyProtocol(base, protocol)
-        repository.addProgram(applied)
-        return programId
+        calibration: com.example.kpkn.screens.programdetail.components.VolumeCalibrationResult? = null,
+        skipCalibration: Boolean = false,
+    ): String? = createProgramFromProtocolGated(protocolId, profile, preferredName, calibration, skipCalibration)
+
+    /**
+     * La calibración del sheet previo a crear programa no tiene programa aún:
+     * se guarda como borrador pendiente que el siguiente create consume. Como
+     * el base de create* parte de Program() vacío, aquí se registra en
+     * memoria para que el reintento la aplique al materializar+escalar.
+     */
+    private var pendingCalibrationForCreate: com.example.kpkn.screens.programdetail.components.VolumeCalibrationResult? = null
+
+    fun applyCalibrationToLatestDraft(
+        calibration: com.example.kpkn.screens.programdetail.components.VolumeCalibrationResult,
+    ) {
+        pendingCalibrationForCreate = calibration
     }
 
     fun addToQueue(programId: String) {

@@ -275,6 +275,24 @@ internal fun SessionEditorViewModel.applyTemplateInternal(template: SessionTempl
                 com.example.kpkn.data.exercises.catalogConfigurationDisplayNameIndex(),
             )
         }
+        // Escala a cuota de sesión del MAV calibrado; sin calibrar se aplica
+        // tal cual (la invitación a calibrar vive en la pestaña Volumen).
+        val programForVolume = currentUiState.programSnapshotForVolume
+        val scaledNote = if (
+            programForVolume != null &&
+            com.example.kpkn.domain.training.VolumeCalibrationGate.isVolumeCalibrated(programForVolume)
+        ) {
+            val scaled = com.example.kpkn.domain.training.TemplateVolumeScaler.scaleSingleSession(
+                session = result,
+                exerciseList = com.example.kpkn.data.exercises.exerciseCatalogSnapshot(),
+                recommendations = programForVolume.volumeRecommendations,
+            )
+            result = scaled.sessions.firstOrNull() ?: result
+            val added = scaled.addedSetsByMuscle.values.sum()
+            if (added > 0) " Se añadieron $added series por tu calibración de volumen." else ""
+        } else {
+            ""
+        }
         val latest = currentUiState
         val latestSession = latest.activeVariantSession ?: latest.session
         if (latest.activeVariant != activeVariant ||
@@ -304,7 +322,7 @@ internal fun SessionEditorViewModel.applyTemplateInternal(template: SessionTempl
                 sheet = SessionEditorSheet.NONE,
                 templateApplyDecision = null,
                 templateSearchQuery = "",
-                snackbarMessage = "Plantilla \"${template.name}\" aplicada.$omittedNote",
+                snackbarMessage = "Plantilla \"${template.name}\" aplicada.$omittedNote$scaledNote",
             )
         }
     }

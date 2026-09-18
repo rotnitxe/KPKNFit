@@ -240,6 +240,8 @@ data class SessionEditorUiState(
     val competitionMovementIds: Set<String> = emptySet(),
     val competitionKeyDaysInWeek: Set<Int> = emptySet(),
     // ─── Session Templates ────────────────────────────────────────────────────
+    /** Snapshot del programa para la puerta/escala de volumen calibrado. */
+    val programSnapshotForVolume: com.example.kpkn.data.models.Program? = null,
     /** Free-text filter applied to the template picker list. */
     val templateSearchQuery: String = "",
     /**

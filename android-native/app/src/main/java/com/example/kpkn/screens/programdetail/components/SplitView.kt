@@ -1156,7 +1156,15 @@ private fun applySplitSafely(
     onError: (String) -> Unit,
 ) {
     try {
-        onApply(SplitApplicationEngine.apply(request))
+        // La escala al MAV calibrado corre dentro de apply() vía
+        // request.program.volumeRecommendations; sin calibrar no se toca nada
+        // (la invitación a calibrar vive en la pestaña Volumen).
+        onApply(
+            SplitApplicationEngine.apply(
+                request,
+                exerciseList = com.example.kpkn.data.exercises.exerciseCatalogSnapshot(),
+            ),
+        )
     } catch (error: Exception) {
         onError(
             error.message?.takeIf { it.isNotBlank() }

@@ -30,7 +30,11 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.adapt
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramMode
+import com.example.kpkn.data.models.VolumeSystem
+import com.example.kpkn.screens.programdetail.components.VolumeCalibrationSheet
 import com.example.kpkn.screens.programs.ProgramStats
 import com.example.kpkn.screens.programs.ProgramsViewModel
 import com.example.kpkn.ui.components.EmptyStateView
@@ -61,6 +65,13 @@ fun ProgramsScreen(
     var selectedProtocol by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
     var protocolForTm by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
     var templateError by remember { mutableStateOf<String?>(null) }
+    var pendingCalibrationTemplateId by remember { mutableStateOf<String?>(null) }
+    var pendingCalibrationProtocol by remember {
+        mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(
+            null,
+        )
+    }
+    var pendingCalibrationProfile by remember { mutableStateOf<PowerliftingProfile?>(null) }
     val createScope = rememberCoroutineScope()
 
     LaunchedEffect(openCreateSheetOnStart, Unit) {
@@ -217,15 +228,16 @@ fun ProgramsScreen(
             },
             onCreateFromTemplate = { template ->
                 createScope.launch {
-                    viewModel.createProgramFromTemplate(template.id)
-                        .onSuccess { id ->
+                    when (val outcome = viewModel.createProgramFromTemplateGated(template.id)) {
+                        is ProgramsViewModel.TemplateApplyOutcome.Created -> {
                             showCreateSheet = false
-                            onNavigateToProgram(id)
+                            onNavigateToProgram(outcome.programId)
                         }
-                        .onFailure { error ->
-                            templateError = error.message?.takeIf { it.isNotBlank() }
-                                ?: "No se pudo crear el programa desde la plantilla."
+                        ProgramsViewModel.TemplateApplyOutcome.RequiresCalibration -> {
+                            showCreateSheet = false
+                            pendingCalibrationTemplateId = template.id
                         }
+                    }
                 }
             },
             onSelectProtocol = { protocol ->
@@ -251,12 +263,85 @@ fun ProgramsScreen(
             onDismiss = {
                 val id = viewModel.createProgramFromProtocol(protocol.id)
                 protocolForTm = null
-                onNavigateToProgram(id)
+                if (id != null) {
+                    onNavigateToProgram(id)
+                } else {
+                    pendingCalibrationProtocol = protocol
+                    pendingCalibrationProfile = null
+                }
             },
             onConfirm = { profile ->
                 val id = viewModel.createProgramFromProtocol(protocol.id, profile)
                 protocolForTm = null
-                onNavigateToProgram(id)
+                if (id != null) {
+                    onNavigateToProgram(id)
+                } else {
+                    pendingCalibrationProtocol = protocol
+                    pendingCalibrationProfile = profile
+                }
+            },
+        )
+    }
+    pendingCalibrationTemplateId?.let { templateId ->
+        VolumeCalibrationSheet(
+            currentMode = ProgramMode.HYPERTROPHY,
+            onDismiss = {
+                val tid = templateId
+                pendingCalibrationTemplateId = null
+                createScope.launch {
+                    when (val outcome = viewModel.createProgramFromTemplateGated(tid, skipCalibration = true)) {
+                        is ProgramsViewModel.TemplateApplyOutcome.Created ->
+                            onNavigateToProgram(outcome.programId)
+                        else -> {}
+                    }
+                }
+            },
+            onSave = { result ->
+                pendingCalibrationTemplateId = null
+                createScope.launch {
+                    viewModel.applyCalibrationToLatestDraft(result)
+                    when (val outcome = viewModel.createProgramFromTemplateGated(templateId)) {
+                        is ProgramsViewModel.TemplateApplyOutcome.Created ->
+                            onNavigateToProgram(outcome.programId)
+                        ProgramsViewModel.TemplateApplyOutcome.RequiresCalibration ->
+                            pendingCalibrationTemplateId = templateId
+                    }
+                }
+            },
+        )
+    }
+    val pendingProtocol = pendingCalibrationProtocol
+    if (pendingProtocol != null) {
+        val pendingProfile = pendingCalibrationProfile
+        VolumeCalibrationSheet(
+            currentMode = ProgramMode.POWERLIFTING,
+            onDismiss = {
+                val prot = pendingProtocol
+                val prof = pendingProfile
+                pendingCalibrationProtocol = null
+                pendingCalibrationProfile = null
+                val id = viewModel.createProgramFromProtocol(
+                    prot.id,
+                    prof,
+                    skipCalibration = true,
+                )
+                if (id != null) {
+                    onNavigateToProgram(id)
+                }
+            },
+            onSave = { result ->
+                pendingCalibrationProtocol = null
+                pendingCalibrationProfile = null
+                val id = viewModel.createProgramFromProtocol(
+                    pendingProtocol.id,
+                    pendingProfile,
+                    calibration = result,
+                )
+                if (id != null) {
+                    onNavigateToProgram(id)
+                } else {
+                    templateError = "No se pudo crear el programa ni con calibración."
+                }
             },
         )
     }
