@@ -658,59 +658,66 @@ class ProgramDetailViewModel(
         repository.addProgram(ProgramCalendarEngine.materializeWeekDates(copy))
     }
 
+    private var protocolApplyJob: kotlinx.coroutines.Job? = null
+
     fun applyProtocolOverwrite(
         protocol: com.example.kpkn.data.protocols.Protocol,
-        overwrite: Boolean = false,
+        overwrite: Boolean = true,
     ) {
-        viewModelScope.launch {
+        if (protocolApplyJob?.isActive == true) return
+        protocolApplyJob = viewModelScope.launch {
             val current = program.value ?: return@launch
-            if (overwrite) {
-                pushProgramSnapshot(current, "Antes de \"${protocol.name}\"")
-            }
             val result = runCatching {
-                withContext(kotlinx.coroutines.Dispatchers.Default) {
-                    val catalog = com.example.kpkn.data.exercises.exerciseCatalogSnapshot()
-                    if (overwrite) {
-                        com.example.kpkn.domain.training.ProgramProtocolEngine.applyProtocol(current, protocol, exerciseList = catalog)
-                    } else if (com.example.kpkn.domain.training.ProgramTemplateEngine.hasSessionContent(current)) {
-                        val base = current.copy(
-                            id = idProvider.newId(),
-                            name = "${current.name} · ${protocol.name}",
-                            isDraft = true,
-                        )
-                        com.example.kpkn.domain.training.ProgramProtocolEngine.applyProtocol(base, protocol, exerciseList = catalog)
-                    } else {
-                        com.example.kpkn.domain.training.ProgramProtocolEngine.applyProtocol(current, protocol, exerciseList = catalog)
-                    }
+                check(!overwrite || repository.ongoingWorkout.value?.programId != current.id) {
+                    "Termina o descarta la sesión en curso antes de reemplazar el plan."
                 }
+                val applied = withContext(kotlinx.coroutines.Dispatchers.Default) {
+                    val base = if (overwrite) current else current.copy(
+                        id = idProvider.newId(),
+                        name = "${current.name} · ${protocol.name}",
+                        isDraft = true,
+                    )
+                    com.example.kpkn.domain.training.ProgramProtocolEngine.applyProtocol(
+                        base, protocol, exerciseList = com.example.kpkn.data.exercises.exerciseCatalogSnapshot(),
+                    )
+                }
+                if (overwrite) {
+                    check(repository.getProgramById(current.id) == current) {
+                        "El programa cambió mientras se preparaba el plan. Revisa los cambios y vuelve a aplicar."
+                    }
+                    withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        pushProgramSnapshot(current, "Antes de \"${protocol.name}\"")
+                    }
+                    repository.replaceProgramSafely(applied)
+                } else {
+                    addProgramCopy(applied)
+                    repository.flushPendingWrites()
+                }
+                repository.getProgramById(applied.id) ?: applied
             }
             result.fold(
                 onSuccess = { applied ->
-                    if (!overwrite && applied.id != current.id) {
-                        addProgramCopy(applied)
-                        _uiState.update {
-                            it.copy(
-                                snackbarMessage = "Se creó una copia con el protocolo \"${protocol.name}\".",
-                                pendingOpenProgramId = applied.id,
-                            )
-                        }
-                    } else {
-                        updateProgram(applied)
+                    if (overwrite) {
                         selectFirstRoadmapPosition(applied)
                         refreshProgramSnapshots(applied.id)
-                        _uiState.update {
-                            it.copy(
-                                snackbarMessage = "Protocolo \"${protocol.name}\" aplicado. Reemplazó todo el programa.",
-                                pendingOpenProgramId = null,
-                            )
-                        }
+                    }
+                    _uiState.update {
+                        it.copy(
+                            snackbarMessage = if (overwrite) {
+                                "Plan \"${protocol.name}\" aplicado. Se reemplazó el programa sin crear una copia."
+                            } else {
+                                "Se creó una copia con el plan \"${protocol.name}\"."
+                            },
+                            pendingOpenProgramId = if (overwrite) null else applied.id,
+                        )
                     }
                 },
                 onFailure = { error ->
+                    if (error is kotlinx.coroutines.CancellationException) throw error
                     _uiState.update {
                         it.copy(
-                            snackbarMessage = error.message?.takeIf { msg -> msg.isNotBlank() }
-                                ?: "No se pudo aplicar el protocolo. Intenta de nuevo.",
+                            snackbarMessage = error.message?.takeIf(String::isNotBlank)
+                                ?: "No se pudo aplicar el plan. Intenta de nuevo.",
                         )
                     }
                 },

@@ -87,9 +87,23 @@ fun SessionEditorViewModel.selectRoadmapDay(dayOfWeek: Int): SessionEditorSaveRe
 fun SessionEditorViewModel.createSessionForDay(dayOfWeek: Int): SessionEditorSaveResult {
     val state = currentUiState
     if (state.hasUnsavedChanges) {
-        persistRecoverableSession(state)
+        viewModelScope.launch(Dispatchers.IO) {
+            val ok = persistRecoverableSession(state)
+            withContext(Dispatchers.Main) {
+                if (!ok) {
+                    updateUi { it.copy(snackbarMessage = "Error al guardar el borrador de la sesión actual") }
+                    return@withContext
+                }
+                completeCreateSessionForDay(dayOfWeek)
+            }
+        }
+        return SessionEditorSaveResult(success = true, message = "")
     }
+    return completeCreateSessionForDay(dayOfWeek)
+}
 
+private fun SessionEditorViewModel.completeCreateSessionForDay(dayOfWeek: Int): SessionEditorSaveResult {
+    val state = currentUiState
     val existingOnDay = state.weekSessions.firstOrNull { it.dayOfWeek == dayOfWeek }
     if (existingOnDay != null) {
         requestSessionSwitch(existingOnDay.id)
@@ -261,7 +275,7 @@ internal fun SessionEditorViewModel.switchToSession(
     loadHistory()
 }
 
-fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScope.SESSION_ONLY, skipRefresh: Boolean = false): SessionEditorSaveResult {
+suspend fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScope.SESSION_ONLY, skipRefresh: Boolean = false): SessionEditorSaveResult {
     val state = currentUiState
     val rawDraft = state.session ?: return SessionEditorSaveResult(false, "No hay una sesión activa para guardar.")
     val normalized = rawDraft.normalizeEditorScheduledTechniques().normalizeSession()
@@ -315,7 +329,7 @@ fun SessionEditorViewModel.saveSession(scope: SessionSaveScope = SessionSaveScop
     val trainedSessionIds = trainedSessionIdsForMesocycleGuard()
     var wroteTargetWeek = false
     val pendingTransfer = state.pendingTransferToDays
-    val mutateOk = kotlinx.coroutines.runBlocking(Dispatchers.IO + NonCancellable) {
+    val mutateOk = withContext(Dispatchers.IO + NonCancellable) {
         repository.mutateProgramNow(programId) { current ->
             val updatedProgram = if (effectiveScope == SessionSaveScope.MESOCYCLE) {
                 applySessionToMesocycle(current, state, draft, trainedSessionIds)

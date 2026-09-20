@@ -296,6 +296,8 @@ private fun HistoryLogEntry(log: NutritionLog) {
     val pro = log.foods.sumOf { it.protein }
     val car = log.foods.sumOf { it.carbs }
     val fat = log.foods.sumOf { it.fats }
+    val uncertainFoods = log.foods.count { it.isUncertain }
+    val hasRange = log.foods.any { it.caloriesMin != null || it.caloriesMax != null }
 
     Surface(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 2.dp),
@@ -330,6 +332,24 @@ private fun HistoryLogEntry(log: NutritionLog) {
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (hasRange || uncertainFoods > 0) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        if (hasRange) {
+                            AssistChip(
+                                onClick = {},
+                                label = { Text("Rango estimado", style = MaterialTheme.typography.labelSmall) },
+                                enabled = false,
+                            )
+                        }
+                        if (uncertainFoods > 0) {
+                            AssistChip(
+                                onClick = {},
+                                label = { Text("Incertidumbre ($uncertainFoods)", style = MaterialTheme.typography.labelSmall) },
+                                enabled = false,
+                            )
+                        }
+                    }
+                }
             }
         }
     }

@@ -1,0 +1,527 @@
+package com.example.kpkn.screens.onboarding
+
+import android.app.DatePickerDialog
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlin.math.roundToInt
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
+import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ProgramMode
+import com.example.kpkn.screens.programdetail.components.VolumeCalibrationSheet
+import com.example.kpkn.screens.programs.TrainingMaxWizard
+import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.programs.CatalogEntry
+import com.example.kpkn.data.programs.PersonalizedPlanCatalog
+import com.example.kpkn.screens.nutrition.NutritionWizardStep
+import com.example.kpkn.screens.nutrition.NutritionWizardUiState
+import com.example.kpkn.screens.nutrition.NutritionWizardStepContent
+import com.example.kpkn.screens.sessioneditor.components.ExercisePickerSheet
+import com.example.kpkn.screens.sessioneditor.components.ExerciseCatalogInfoDialog
+import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.kpknGlassOrFallback
+import java.time.LocalDate
+import kotlinx.coroutines.launch
+
+private val Yellow = Color(0xFFF4D35E)
+private val Teal = Color(0xFF58C7C1)
+private val Panel = Color.White.copy(alpha = 0.07f)
+private val Muted = Color.White.copy(alpha = 0.64f)
+private val equipmentLabels = mapOf(
+    "general_gym" to "Gimnasio completo",
+    "machine" to "Máquinas",
+    "bodyweight" to "Peso corporal",
+    "band" to "Bandas",
+    "dumbbells" to "Mancuernas",
+    "cable" to "Polea",
+    "smith_machine" to "Máquina Smith",
+    "support" to "Apoyo estable",
+    "pull_up_bar" to "Barra de dominadas",
+    "ball" to "Balón",
+    "cardio" to "Equipo de cardio",
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SetupWizardScreen(
+    mode: SetupWizardMode = SetupWizardMode.FULL,
+    nutritionMode: String = "create",
+    nutritionPlanId: String? = null,
+    onDone: (String?) -> Unit,
+    onCancel: () -> Unit,
+    viewModel: SetupWizardViewModel = viewModel(),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val nutritionState by viewModel.nutritionEditor.uiState.collectAsStateWithLifecycle()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = rememberCoroutineScope()
+    var showDiscard by remember { mutableStateOf(false) }
+    var pickerDay by remember { mutableStateOf<Int?>(null) }
+    var pickerQuery by remember { mutableStateOf("") }
+    var detailExercise by remember { mutableStateOf<ExerciseMuscleInfo?>(null) }
+    var showVolumeCalibration by remember { mutableStateOf(false) }
+    var showTrainingMax by remember { mutableStateOf(false) }
+    LaunchedEffect(mode, nutritionMode, nutritionPlanId) { viewModel.initialize(mode, nutritionMode, nutritionPlanId) }
+    LaunchedEffect(state.receiptId) { state.receiptId?.let(onDone) }
+    val chapters = viewModel.chapters(mode)
+    val index = chapters.indexOf(state.draft.chapter).coerceAtLeast(0)
+    val requestExit = { if (!state.isCommitting && state.dirty) showDiscard = true else if (!state.isCommitting) onCancel() }
+    BackHandler { if (index > 0) viewModel.back() else requestExit() }
+
+    Box(Modifier.fillMaxSize().background(Color.Black).windowInsetsPadding(WindowInsets.safeDrawing)) {
+        Column(Modifier.fillMaxSize().imePadding()) {
+            WizardHeader(state.draft.chapter, chapters, state.draft.name, index, { if (index > 0) viewModel.back() else requestExit() })
+            AnimatedContent(state.draft.chapter, modifier = Modifier.weight(1f), label = "setup-chapter") { chapter ->
+                when (chapter) {
+                    SetupWizardChapter.PROFILE -> ProfileChapter(state.draft, state.errors, viewModel)
+                    SetupWizardChapter.TRAINING -> TrainingChapter(state.draft, state.errors, viewModel)
+                    SetupWizardChapter.WEEK -> WeekChapter(state.draft, state.errors, state.previewError, viewModel, onAddExercises = { day -> pickerDay = day; pickerQuery = "" }, onOpenVolumeCalibration = { showVolumeCalibration = true }, onOpenTrainingMax = { showTrainingMax = true })
+                    SetupWizardChapter.RINGS -> RingsChapter(state.draft, state.errors, viewModel)
+                    SetupWizardChapter.NUTRITION -> NutritionChapter(state.draft, nutritionState, viewModel)
+                    SetupWizardChapter.REVIEW -> ReviewChapter(state, nutritionState, viewModel)
+                }
+            }
+            if (state.errors.isNotEmpty()) ErrorPanel(state.errors)
+            WizardFooter(
+                first = index == 0,
+                last = index == chapters.lastIndex,
+                enabled = viewModel.canContinue() && !state.isCommitting && !state.isLoading,
+                committing = state.isCommitting || state.isLoading,
+                onBack = viewModel::back,
+                onNext = { if (index == chapters.lastIndex) scope.launch { viewModel.commit(context) } else viewModel.next() },
+                onCancel = requestExit,
+            )
+        }
+        if (state.isLoading || state.isCommitting) {
+            Surface(color = Color.Black.copy(alpha = 0.72f), modifier = Modifier.fillMaxSize()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        CircularProgressIndicator(color = Teal)
+                        Text(if (state.isCommitting) "Guardando configuración…" else "Cargando…", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+    }
+    if (showDiscard) KpknAlertDialog(
+        title = if (state.isCommitting) "Guardando configuración" else "¿Descartar este borrador?",
+        text = if (state.isCommitting) "Espera a que termine el guardado para salir." else "Tus elecciones no se aplicarán hasta confirmar.",
+        confirmLabel = if (state.isCommitting) "Cerrar" else "Descartar",
+        dismissLabel = if (state.isCommitting) null else "Conservar borrador",
+        onDismissRequest = { if (!state.isCommitting) showDiscard = false },
+        onDismiss = if (state.isCommitting) null else { { showDiscard = false; onCancel() } },
+        onConfirm = { if (!state.isCommitting) { viewModel.clear(); showDiscard = false; onCancel() } },
+    )
+    pickerDay?.let { day ->
+        ModalBottomSheet(onDismissRequest = { pickerDay = null }) {
+            ExercisePickerSheet(
+                query = pickerQuery,
+                catalog = exerciseCatalogSnapshot(),
+                workoutLogs = ProgramRepository.getInstance().history.value,
+                editingExisting = false,
+                onSearch = { pickerQuery = it },
+                onSelect = { info -> viewModel.addExercise(day, info); pickerDay = null },
+                onMultiSelect = { infos -> infos.forEach { viewModel.addExercise(day, it) }; pickerDay = null; infos.map { it.id } },
+                onOpenExerciseDetail = { id -> detailExercise = exerciseCatalogSnapshot().firstOrNull { it.id == id } },
+                onDismiss = { pickerDay = null },
+            )
+        }
+    }
+    detailExercise?.let { exercise ->
+        ExerciseCatalogInfoDialog(exercise = exercise, catalog = exerciseCatalogSnapshot(), associatedDiscomforts = emptyList(), onOpenExercise = { id -> detailExercise = exerciseCatalogSnapshot().firstOrNull { it.id == id } }, onDismiss = { detailExercise = null })
+    }
+    if (showVolumeCalibration) VolumeCalibrationSheet(ProgramMode.HYPERTROPHY, onDismiss = { showVolumeCalibration = false }, onSave = { result -> viewModel.update { it.copy(volumeRecommendations = result.recommendations, athleteProfileScore = result.score) }; showVolumeCalibration = false })
+    if (showTrainingMax) TrainingMaxWizard(initial = state.draft.powerliftingProfile, onDismiss = { showTrainingMax = false }, onConfirm = { profile -> viewModel.update { it.copy(powerliftingProfile = profile) }; showTrainingMax = false })
+}
+
+@Composable
+private fun WizardHeader(chapter: SetupWizardChapter, chapters: List<SetupWizardChapter>, name: String, index: Int, onBack: () -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack, modifier = Modifier.size(48.dp)) { Icon(Icons.Default.ArrowBack, "Atrás", tint = Color.White) }
+            Column(Modifier.weight(1f)) {
+                Text("Configuración inicial", color = Teal, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                Text(chapter.title(), color = Color.White, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+            }
+            if (name.isNotBlank()) Text(name, color = Muted, style = MaterialTheme.typography.labelMedium, maxLines = 2, modifier = Modifier.width(96.dp))
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            chapters.forEachIndexed { i, _ -> Box(Modifier.weight(1f).height(4.dp).clip(RoundedCornerShape(99.dp)).background(if (i <= index) Color.White else Color.White.copy(alpha = .12f))) }
+        }
+    }
+}
+
+@Composable
+private fun WizardFooter(first: Boolean, last: Boolean, enabled: Boolean, committing: Boolean, onBack: () -> Unit, onNext: () -> Unit, onCancel: () -> Unit) {
+    Row(Modifier.fillMaxWidth().kpknGlassOrFallback(null, RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)).navigationBarsPadding().padding(14.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        if (!first) TextButton(onClick = onBack, enabled = !committing, modifier = Modifier.height(52.dp)) { Text("Atrás", color = Color.White) }
+        Button(onClick = onNext, enabled = enabled, modifier = Modifier.weight(1f).height(52.dp), colors = ButtonDefaults.buttonColors(containerColor = Yellow, contentColor = Color(0xFF171717))) { Text(if (committing) "Guardando…" else if (last) "Confirmar configuración" else "Continuar", fontWeight = FontWeight.Bold) }
+        IconButton(onClick = onCancel, enabled = !committing, modifier = Modifier.size(52.dp)) { Icon(Icons.Default.Close, "Salir", tint = Color.White) }
+    }
+}
+
+@Composable
+private fun ProfileChapter(draft: SetupWizardDraft, errors: Map<String, String>, vm: SetupWizardViewModel) {
+    ScrollChapter("Empezamos por ti", "Tu experiencia nos ayuda a preparar un punto de partida adecuado.") {
+        OutlinedTextField(draft.name, vm::setName, Modifier.fillMaxWidth(), label = { Text("Nombre") }, singleLine = true, isError = "name" in errors)
+        AgeControl(draft.ageYears, vm, errors["age"])
+        BirthDateControl(draft.birthDateIso, vm, errors["birthDate"])
+        LabeledChoices("Experiencia", SetupExperience.entries, draft.experience, { it.label }) { vm.update { d -> d.copy(experience = it) } }
+    }
+}
+
+@Composable
+private fun AgeControl(age: Int?, vm: SetupWizardViewModel, error: String?) {
+    Text("Edad", color = Color.White, fontWeight = FontWeight.Bold)
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = { age?.let { vm.setAge(it - 1) } }, enabled = age != null, modifier = Modifier.size(48.dp)) { Icon(Icons.Default.Remove, "Restar un año", tint = Color.White) }
+        Text(age?.let { "$it años" } ?: "Sin indicar", color = Color.White, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+        IconButton(onClick = { vm.setAge((age ?: 12) + 1) }, modifier = Modifier.size(48.dp)) { Icon(Icons.Default.Add, "Sumar un año", tint = Color.White) }
+    }
+    Slider(value = (age ?: 13).toFloat(), onValueChange = { vm.setAge(it.roundToInt()) }, valueRange = 13f..100f, steps = 0, colors = SliderDefaults.colors(thumbColor = Yellow, activeTrackColor = Yellow, inactiveTrackColor = Color.White.copy(alpha = 0.24f)), modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Edad ${age?.let { "$it años" } ?: "sin indicar"}" })
+    if (error != null) Text(error, color = Color(0xFFFFB4AB), style = MaterialTheme.typography.bodySmall)
+}
+
+@Composable
+private fun BirthDateControl(value: String?, vm: SetupWizardViewModel, error: String?) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    OutlinedTextField(value.orEmpty(), {}, Modifier.fillMaxWidth().clickable { openDatePicker(context, vm) }, readOnly = true, label = { Text("Fecha de nacimiento, opcional") }, placeholder = { Text("Seleccionar fecha") }, singleLine = true, isError = error != null, supportingText = { Text(error ?: "Alternativa a introducir la edad") })
+    TextButton(onClick = { openDatePicker(context, vm) }) { Text("Elegir fecha", color = Teal) }
+}
+
+private fun openDatePicker(context: android.content.Context, vm: SetupWizardViewModel) {
+    val today = LocalDate.now()
+    DatePickerDialog(context, { _, year, month, day -> vm.setBirthDate(LocalDate.of(year, month + 1, day).toString()) }, today.year - 25, today.monthValue - 1, today.dayOfMonth).show()
+}
+
+@Composable
+private fun TrainingChapter(draft: SetupWizardDraft, errors: Map<String, String>, vm: SetupWizardViewModel) {
+    ScrollChapter("¿Cómo quieres entrenar?", "Elige tu enfoque, tus días y el equipo disponible.") {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(checked = draft.includeTraining, onCheckedChange = { enabled -> vm.update { it.copy(includeTraining = enabled) } })
+            Text("Incluir programa de entrenamiento", color = Color.White)
+        }
+        if (!draft.includeTraining) Text("Puedes posponer el programa y continuar con el resto de la configuración.", color = Muted)
+        LabeledChoices("Ruta", SetupTrainingPath.entries, draft.trainingPath, { it.label }) { vm.update { d -> d.copy(trainingPath = it) } }
+        LabeledChoices("Objetivo", SetupGoal.entries, draft.goal, { it.label }, compact = true) { vm.update { d -> d.copy(goal = it) } }
+        LabeledChoices("Enfoque", SetupFocus.entries, draft.focus, { it.label }, compact = true) { vm.update { d -> d.copy(focus = it) } }
+        Text("Días por semana", color = Color.White, fontWeight = FontWeight.Bold)
+        Stepper(draft.daysPerWeek, 1..6, "días") { vm.update { d -> d.copy(daysPerWeek = it, selectedWeekdays = d.selectedWeekdays.take(it).toSet()) } }
+        Text("Tiempo por sesión", color = Color.White, fontWeight = FontWeight.Bold)
+        Stepper(draft.minutesPerSession, 20..100, "minutos", 5) { vm.update { d -> d.copy(minutesPerSession = it) } }
+        Text("Equipo disponible", color = Color.White, fontWeight = FontWeight.Bold)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { SetupEquipment.entries.forEach { equipment -> ChoiceChip(equipment.label, equipment in draft.equipment) { vm.update { d -> d.copy(equipment = if (equipment in d.equipment) d.equipment - equipment else d.equipment + equipment) } } } }
+    }
+}
+
+@Composable
+private fun WeekChapter(
+    draft: SetupWizardDraft,
+    errors: Map<String, String>,
+    previewError: String?,
+    vm: SetupWizardViewModel,
+    onAddExercises: (Int) -> Unit,
+    onOpenVolumeCalibration: () -> Unit,
+    onOpenTrainingMax: () -> Unit,
+) {
+    val entries = remember { PersonalizedPlanCatalog.entries() }
+    var catalogFilter by remember { mutableStateOf("Todos") }
+    val visibleEntries = entries.filter { catalogFilter == "Todos" || it.classification.label() == catalogFilter }
+    val compatible = entries.filter { entry -> draft.daysPerWeek?.let { it in entry.supportedFrequencies } != false && entry.supportedFocuses.any { it.name == draft.focus.name } }
+    val selectedEntry = entries.firstOrNull { it.id == draft.selectedCatalogId }
+    ScrollChapter("Elige tu semana", "Selecciona tus días y el plan que mejor encaje contigo.") {
+        Text("Días de entrenamiento", color = Color.White, fontWeight = FontWeight.Bold)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) { listOf("L" to 1, "M" to 2, "X" to 3, "J" to 4, "V" to 5, "S" to 6, "D" to 7).forEach { (label, day) -> ChoiceChip(label, day in draft.selectedWeekdays, Modifier.size(48.dp)) { vm.update { d -> if (day in d.selectedWeekdays) d.copy(selectedWeekdays = d.selectedWeekdays - day) else if (d.selectedWeekdays.size < (d.daysPerWeek ?: 0)) d.copy(selectedWeekdays = d.selectedWeekdays + day) else d } } } }
+        Text("Descanso: ${7 - draft.selectedWeekdays.size} días", color = Muted)
+        if (draft.trainingPath == SetupTrainingPath.PERSONALIZE) {
+            Text("Catálogo · frecuencia ${draft.daysPerWeek ?: "—"} · equipo ${draft.equipment.joinToString { it.label }.ifBlank { "cualquiera" }} · foco ${draft.focus.label}", color = Muted, style = MaterialTheme.typography.bodySmall)
+            if (selectedEntry?.source == com.example.kpkn.data.programs.CatalogSource.NATIVE) {
+                OutlinedButton(onClick = onOpenVolumeCalibration, modifier = Modifier.fillMaxWidth()) { Text("Ajustar mi volumen") }
+            }
+            if (selectedEntry?.source == com.example.kpkn.data.programs.CatalogSource.PROTOCOL) {
+                OutlinedButton(onClick = onOpenTrainingMax, modifier = Modifier.fillMaxWidth()) { Text("Definir Training Max (opcional)") }
+                Text(if (draft.powerliftingProfile == null) "Sin 1RM todavía: podrás definirlo después para completar las cargas del protocolo." else "Training Max guardado para este protocolo.", color = Muted, style = MaterialTheme.typography.bodySmall)
+            }
+            previewError?.let { Text(it, color = Color(0xFFFFB4AB), style = MaterialTheme.typography.bodySmall) }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("Todos", "Simple", "Avanzado").forEach { filter ->
+                    ChoiceChip(filter, filter == catalogFilter, onClick = { catalogFilter = filter })
+                }
+            }
+            visibleEntries.forEach { entry -> CatalogPlanPanel(entry, entry in compatible, draft.selectedCatalogId == entry.id) { vm.update { d -> d.copy(selectedCatalogId = entry.id) } } }
+        } else {
+            draft.selectedWeekdays.sorted().forEach { day ->
+                val session = draft.sessions.firstOrNull { it.weekday == day }
+                SessionDraftPanel(day, session, vm, onAddExercises)
+            }
+            if (draft.selectedWeekdays.isEmpty()) Text("Selecciona al menos un día para empezar a construir sesiones.", color = Muted)
+        }
+    }
+}
+
+@Composable
+private fun CatalogPlanPanel(entry: CatalogEntry, eligible: Boolean, selected: Boolean, onClick: () -> Unit) {
+    SelectablePanel(entry.title, "${entry.technicalSubtitle} · ${entry.classification.label()}\n${entry.description}\nEquipo: ${entry.requiredEquipment.map { equipmentLabels[it] ?: "Equipo específico" }.joinToString()}. ${entry.disclaimer.orEmpty()}", selected, onClick)
+    if (!eligible) Text("No encaja con tus días o enfoque actuales. Puedes cambiar esos filtros para habilitarlo.", color = Color(0xFFFFD38A), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 12.dp))
+}
+
+@Composable
+private fun SessionDraftPanel(day: Int, session: SetupSessionDraft?, vm: SetupWizardViewModel, onAddExercises: (Int) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Día $day · ${session?.title ?: "Sesión nueva"}", color = Color.White, fontWeight = FontWeight.Bold)
+        if (session == null) {
+            Button(onClick = { vm.update { d -> d.copy(sessions = d.sessions + SetupSessionDraft(day, "Sesión del día $day")) }; onAddExercises(day) }) { Text("Añadir ejercicios") }
+        } else {
+            session.exercises.forEachIndexed { index, item ->
+                Surface(color = Panel, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(item.name, color = Color.White, modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                            IconButton(onClick = { vm.removeExercise(day, item.id) }) { Icon(Icons.Default.Close, "Borrar", tint = Color.White) }
+                        }
+                        Text("${item.sets} series · ${item.reps} repeticiones", color = Muted)
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            TextButton(onClick = { vm.moveExercise(day, item.id, -1) }, enabled = index > 0) { Text("Subir") }
+                            TextButton(onClick = { vm.moveExercise(day, item.id, 1) }, enabled = index < session.exercises.lastIndex) { Text("Bajar") }
+                            TextButton(onClick = { vm.changeSets(day, item.id, (item.sets ?: 3) - 1) }) { Text("− serie") }
+                            TextButton(onClick = { vm.changeSets(day, item.id, (item.sets ?: 3) + 1) }) { Text("+ serie") }
+                            TextButton(onClick = { vm.changeReps(day, item.id, ((item.reps ?: 10) - 1).coerceAtLeast(1).toString()) }) { Text("− rep") }
+                            TextButton(onClick = { vm.changeReps(day, item.id, ((item.reps ?: 10) + 1).toString()) }) { Text("+ rep") }
+                        }
+                    }
+                }
+            }
+            OutlinedButton(onClick = { onAddExercises(day) }, modifier = Modifier.fillMaxWidth()) { Text("Añadir ejercicios") }
+        }
+    }
+}
+
+@Composable
+private fun RingsChapter(draft: SetupWizardDraft, errors: Map<String, String>, vm: SetupWizardViewModel) {
+    val answers = draft.ringsAnswers ?: SetupRingsAnswers()
+    ScrollChapter("Tu punto de partida", "Estimación inicial, no registro clínico ni entrenamiento inventado.") {
+        LabeledChoices("¿Entrenaste en los últimos 7 días?", listOf("Sí", "No", "No lo sé"), when (answers.recentTraining) { true -> "Sí"; false -> "No"; else -> null }, { it }) { selected -> vm.update { d -> d.copy(ringsAnswers = answers.copy(recentTraining = selected == "Sí")) } }
+        if (answers.recentTraining == true) Stepper(answers.sessionsLastSevenDays, 1..7, "sesiones") { value -> vm.update { d -> d.copy(ringsAnswers = answers.copy(sessionsLastSevenDays = value)) } }
+        LabeledChoices("Tipo de actividad", listOf("Fuerza", "Cardio", "Mixta", "No sé"), null, { it }) { selected -> vm.update { d -> d.copy(ringsAnswers = answers.copy(intensity = listOf("Fuerza", "Cardio", "Mixta", "No sé").indexOf(selected) + 1)) } }
+        Rating("Intensidad percibida", answers.intensity, "fácil", "muy exigente") { value -> vm.update { d -> d.copy(ringsAnswers = answers.copy(intensity = value)) } }
+        Rating("Sensación muscular", answers.muscleFeeling, "fresco", "fatigado") { value -> vm.update { d -> d.copy(ringsAnswers = answers.copy(muscleFeeling = value)) } }
+        Rating("Energía", answers.energy, "fresco", "fatigado") { value -> vm.update { d -> d.copy(ringsAnswers = answers.copy(energy = value)) } }
+        Rating("Zona estructural", answers.structureFeeling, "fresco", "fatigado") { value -> vm.update { d -> d.copy(ringsAnswers = answers.copy(structureFeeling = value)) } }
+        Surface(color = Panel, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) { Text(if (answers.energy == null && answers.muscleFeeling == null) "Sin calibrar: puedes omitir este paso." else "Estimación inicial preparada para revisar.", color = Color.White, modifier = Modifier.padding(14.dp)) }
+    }
+}
+
+@Composable
+private fun NutritionChapter(draft: SetupWizardDraft, nutritionState: NutritionWizardUiState, vm: SetupWizardViewModel) {
+    ScrollChapter("Tu alimentación", "Paso ${nutritionState.stepIndex + 1}/${NutritionWizardStep.entries.size} · ${nutritionState.step.title()}") {
+        if (draft.includeNutrition) {
+            NutritionWizardStepContent(nutritionState.copy(errors = if (nutritionState.errors.isNotEmpty()) nutritionState.errors else emptyMap()), vm.nutritionEditor)
+        } else {
+            Text("La nutrición queda pospuesta. Podrás configurarla más adelante.", color = Color.White)
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(checked = draft.includeNutrition, onCheckedChange = { enabled -> vm.update { it.copy(includeNutrition = enabled) } })
+            Text("Incluir nutrición en esta configuración", color = Color.White)
+        }
+    }
+}
+
+private fun NutritionWizardStep.title(): String = when (this) {
+    NutritionWizardStep.GOAL -> "Objetivo"
+    NutritionWizardStep.DATA -> "Datos"
+    NutritionWizardStep.GOALS -> "Actividad y meta"
+    NutritionWizardStep.REVIEW -> "Calorías y macros"
+}
+
+@Composable
+private fun ReviewChapter(state: SetupWizardState, nutritionState: NutritionWizardUiState, vm: SetupWizardViewModel) {
+    val draft = state.draft
+    ScrollChapter("Revisa tu plan", "Comprueba sesiones, métricas y qué se activará al confirmar.") {
+        SummaryRow("Nombre", draft.name.ifBlank { "Sin indicar" })
+        SummaryRow("Edad", draft.ageYears?.let { "$it años" } ?: draft.birthDateIso ?: "Sin indicar")
+        SummaryRow("Objetivo", draft.goal?.label ?: "Sin indicar")
+        SummaryRow("Enfoque", draft.focus.label)
+        SummaryRow("Semana", "${draft.selectedWeekdays.size} días · ${draft.minutesPerSession ?: "—"} min")
+        SummaryRow("Plan", PersonalizedPlanCatalog.find(draft.selectedCatalogId.orEmpty())?.title ?: if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) "Desde cero" else "Sin seleccionar")
+        SummaryRow("RINGS", if (draft.ringsAnswers == null) "Sin calibrar" else "Evidencia capturada")
+        if (state.isPreviewLoading) CircularProgressIndicator(color = Teal)
+        state.previewError?.let { Text(it, color = Color(0xFFFFB4AB)) }
+        state.programPreview?.let { preview ->
+            Text("Vista previa del programa", color = Color.White, fontWeight = FontWeight.Bold)
+            Text(preview.name, color = Teal, style = MaterialTheme.typography.titleMedium)
+            val sessions = preview.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.flatMap { it.sessions }
+            sessions.forEach { session ->
+                Surface(color = Panel, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("Día ${session.dayOfWeek ?: 1} · ${session.name}", color = Color.White, fontWeight = FontWeight.Bold)
+                        session.allExercises().forEach { exercise -> Text("${exercise.name} · ${exercise.sets.size} series", color = Muted) }
+                    }
+                }
+            }
+        }
+        state.previewReport?.let { report ->
+            Text("Volumen, frecuencia y limitaciones", color = Color.White, fontWeight = FontWeight.Bold)
+            Text(report.toString(), color = Muted, style = MaterialTheme.typography.bodySmall)
+        }
+        if (draft.includeNutrition) {
+            Text("Nutrición · ${nutritionState.effectiveKcal} kcal", color = Color.White, fontWeight = FontWeight.Bold)
+            nutritionState.effectiveMacros?.let { macros -> Text("Proteína ${macros.proteinG.toInt()} g · Carbohidratos ${macros.carbsG.toInt()} g · Grasas ${macros.fatG.toInt()} g", color = Muted) }
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(checked = draft.includeTraining, onCheckedChange = { enabled -> vm.update { it.copy(includeTraining = enabled) } })
+            Text("Incluir programa", color = Color.White)
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(checked = draft.includeNutrition, onCheckedChange = { enabled -> vm.update { it.copy(includeNutrition = enabled) } })
+            Text("Incluir nutrición", color = Color.White)
+        }
+        if (draft.includeTraining) Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(checked = draft.activateProgram, onCheckedChange = { enabled -> vm.update { it.copy(activateProgram = enabled) } })
+            Text("Activar programa al guardar", color = Color.White)
+        }
+        if (draft.includeNutrition) Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(checked = draft.activateNutrition, onCheckedChange = { enabled -> vm.update { it.copy(activateNutrition = enabled) } })
+            Text("Activar nutrición al guardar", color = Color.White)
+        }
+        if ((draft.includeTraining && draft.activateProgram) || (draft.includeNutrition && draft.activateNutrition)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(checked = draft.confirmActivation, onCheckedChange = { enabled -> vm.update { it.copy(confirmActivation = enabled) } })
+                Text("Confirmo que quiero activar las selecciones marcadas", color = Color.White)
+            }
+        }
+        if (state.errors.isNotEmpty()) ErrorPanel(state.errors)
+    }
+}
+
+@Composable
+private fun ErrorPanel(errors: Map<String, String>) { Surface(color = Color(0xFF481D22), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) { Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) { errors.values.distinct().forEach { Text(it, color = Color(0xFFFFD5D5), style = MaterialTheme.typography.bodySmall) } } } }
+
+@Composable
+private fun ScrollChapter(title: String, subtitle: String, content: @Composable ColumnScope.() -> Unit) { Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 18.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) { Text(title, color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black); Text(subtitle, color = Muted); content() } }
+
+@Composable
+private fun <T> LabeledChoices(title: String, options: List<T>, selected: T?, label: (T) -> String, compact: Boolean = false, onSelected: (T) -> Unit) {
+    Text(title, color = Color.White, fontWeight = FontWeight.Bold)
+    if (compact) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            options.forEach { option ->
+                val optionLabel = label(option)
+                val isSelected = option == selected
+                FilterChip(
+                    selected = isSelected,
+                    onClick = { onSelected(option) },
+                    label = { Text(optionLabel) },
+                    modifier = Modifier.heightIn(min = 48.dp).semantics {
+                        this.selected = isSelected
+                        role = Role.RadioButton
+                        contentDescription = "$optionLabel${if (isSelected) ", seleccionado" else ""}"
+                    },
+                    colors = FilterChipDefaults.filterChipColors(
+                        containerColor = Panel,
+                        labelColor = Color.White,
+                        selectedContainerColor = Teal.copy(alpha = 0.20f),
+                        selectedLabelColor = Color.White,
+                    ),
+                )
+            }
+        }
+    } else {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            options.forEach { option -> SelectablePanel(label(option), "", option == selected) { onSelected(option) } }
+        }
+    }
+}
+
+@Composable
+private fun ChoiceChip(label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) { FilterChip(selected = selected, onClick = onClick, label = { Text(label) }, modifier = modifier.semantics { this.selected = selected; role = Role.Checkbox; contentDescription = "$label${if (selected) ", seleccionado" else ""}" }) }
+
+@Composable
+private fun Stepper(value: Int?, range: IntRange, label: String, step: Int = 1, onChange: (Int) -> Unit) { Row(verticalAlignment = Alignment.CenterVertically) { IconButton(onClick = { value?.let { onChange((it - step).coerceAtLeast(range.first)) } }, enabled = value != null, modifier = Modifier.size(48.dp)) { Icon(Icons.Default.Remove, "Reducir $label", tint = Color.White) }; Text(value?.let { "$it $label" } ?: "Sin indicar", color = Color.White, modifier = Modifier.weight(1f), textAlign = TextAlign.Center); IconButton(onClick = { onChange(((value ?: range.first - step) + step).coerceAtMost(range.last)) }, modifier = Modifier.size(48.dp)) { Icon(Icons.Default.Add, "Aumentar $label", tint = Color.White) } } }
+
+@Composable
+private fun Rating(label: String, value: Int?, low: String, high: String, onChange: (Int) -> Unit) { Text(label, color = Color.White, fontWeight = FontWeight.Bold); Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) { (1..5).forEach { score -> ChoiceChip(score.toString(), value == score, Modifier.size(48.dp)) { onChange(score) } } }; Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("1 · $low", color = Muted, style = MaterialTheme.typography.labelSmall); Text("5 · $high", color = Muted, style = MaterialTheme.typography.labelSmall) } }
+
+@Composable
+private fun SelectablePanel(title: String, subtitle: String, selected: Boolean = false, onClick: () -> Unit) { Surface(color = if (selected) Teal.copy(alpha = .20f) else Panel, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth().border(1.dp, if (selected) Teal else Color.White.copy(alpha = .10f), RoundedCornerShape(16.dp)).clickable(role = Role.RadioButton, onClick = onClick).semantics { this.selected = selected }) { Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) { Text(title, color = Color.White, fontWeight = FontWeight.Bold); if (subtitle.isNotBlank()) Text(subtitle, color = Muted, style = MaterialTheme.typography.bodySmall) } } }
+
+@Composable
+private fun SummaryRow(label: String, value: String) { Row(Modifier.fillMaxWidth().padding(vertical = 5.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) { Text(label, color = Muted, modifier = Modifier.width(92.dp)); Text(value, color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = TextAlign.End) } }
+
+private fun SetupWizardChapter.title(): String = when (this) { SetupWizardChapter.PROFILE -> "Tu perfil"; SetupWizardChapter.TRAINING -> "Tu entrenamiento"; SetupWizardChapter.WEEK -> "Tu semana"; SetupWizardChapter.RINGS -> "Tu punto de partida"; SetupWizardChapter.NUTRITION -> "Tu alimentación"; SetupWizardChapter.REVIEW -> "Tu plan" }
+private fun com.example.kpkn.data.programs.CatalogClassification.label(): String = if (this == com.example.kpkn.data.programs.CatalogClassification.SIMPLE) "Simple" else "Avanzado"

@@ -493,6 +493,7 @@ fun KPKNApp(
         currentRoute?.startsWith("workout") == true ||
         currentRoute?.startsWith(KpknRoute.ExerciseCatalog.route) == true ||
         currentRoute?.startsWith(KpknRoute.NutritionWizard.BASE_ROUTE) == true ||
+        currentRoute?.startsWith(KpknRoute.SetupWizard.BASE_ROUTE) == true ||
         currentRoute == KpknRoute.CompetitionDetail.route ||
         resolvedRoute?.startsWith("competition/") == true
     val primaryProgramId = activeProgram?.id ?: allPrograms.firstOrNull()?.id
@@ -1098,6 +1099,9 @@ private fun KPKNNavGraph(
                 onNavigateToNutritionWizard = {
                     navController.navigate(KpknRoute.NutritionWizard.create("create")) { launchSingleTop = true }
                 },
+                onOpenSetupWizard = {
+                    navController.navigate(KpknRoute.SetupWizard.create()) { launchSingleTop = true }
+                },
                 onNavigate = { destination ->
                     when (destination) {
                         destination.takeIf { it.startsWith("concepts?") } -> {
@@ -1235,6 +1239,24 @@ private fun KPKNNavGraph(
             NutritionWizardScreen(
                 mode = backStackEntry.arguments?.getString(KpknRoute.NutritionWizard.ARG_MODE) ?: "create",
                 planId = backStackEntry.arguments?.getString(KpknRoute.NutritionWizard.ARG_PLAN_ID)?.takeIf { it.isNotBlank() },
+                onDone = { navController.popBackStack() },
+                onCancel = { navController.popBackStack() },
+            )
+        }
+        composable(
+            route = KpknRoute.SetupWizard.route,
+            arguments = listOf(navArgument(KpknRoute.SetupWizard.ARG_MODE) {
+                type = NavType.StringType
+                defaultValue = "FULL"
+            }),
+        ) { entry ->
+            val mode = runCatching {
+                com.example.kpkn.screens.onboarding.SetupWizardMode.valueOf(
+                    entry.arguments?.getString(KpknRoute.SetupWizard.ARG_MODE) ?: "FULL",
+                )
+            }.getOrDefault(com.example.kpkn.screens.onboarding.SetupWizardMode.FULL)
+            com.example.kpkn.screens.onboarding.SetupWizardScreen(
+                mode = mode,
                 onDone = { navController.popBackStack() },
                 onCancel = { navController.popBackStack() },
             )
@@ -1494,8 +1516,7 @@ private fun KPKNNavGraph(
 }
 
 private fun createProgramAndOpen(navController: androidx.navigation.NavHostController) {
-    ProgramCreationRequests.openSheet = true
-    navController.navigate(KpknRoute.Training.route) { launchSingleTop = true }
+    navController.navigate(KpknRoute.SetupWizard.create("TRAINING_ONLY")) { launchSingleTop = true }
 }
 
 @Composable

@@ -282,11 +282,6 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             cache = adaptiveCache,
             nowMs = nowMs,
         )
-        if (advisoryResult.cache.lastAdvisoryDay != adaptiveCache.lastAdvisoryDay ||
-            advisoryResult.cache.lastAdvisoryLevelByChannel != adaptiveCache.lastAdvisoryLevelByChannel
-        ) {
-            augeRepo.saveAdaptiveCache(advisoryResult.cache)
-        }
         val actionable = advisoryResult.advisories.filter {
             LoadAdvisoryEngine.rank(it.level) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.ADJUST)
         }
@@ -294,7 +289,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         val autoDeloadMessage = actionable.firstOrNull()?.body
         val snapshots = history
             .sortedBy { AugeUtils.logDateMs(it) }
-            .mapNotNull { it.ringStartSnapshot }
+            .mapNotNull { it.ringStartSnapshot?.takeUnless { snapshot -> snapshot.isInitialEstimate } }
         val hoursToNormal = mapOf(
             RecoveryChannelId.MUSCULAR to muscularHoursToNormal(batteries.muscular, perMuscle),
             RecoveryChannelId.SYSTEM to RecoveryBands.hoursUntilNormal(
@@ -313,6 +308,14 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             AxialLoadMonitor.sparkline(snapshots, channel)
         }
         if (generation != recomputeGeneration.get()) return
+        val cacheToPersist = if (
+            advisoryResult.cache.lastAdvisoryDay != adaptiveCache.lastAdvisoryDay ||
+            advisoryResult.cache.lastAdvisoryLevelByChannel != adaptiveCache.lastAdvisoryLevelByChannel
+        ) {
+            advisoryResult.cache
+        } else {
+            null
+        }
         _snapshot.value = _snapshot.value.copy(
             batteries = batteries,
             perMuscle = perMuscle,
@@ -360,6 +363,16 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 "generation" to generation,
             ),
         )
+        if (cacheToPersist != null && generation == recomputeGeneration.get()) {
+            augeWriteMutex.lock()
+            try {
+                if (generation == recomputeGeneration.get()) {
+                    augeRepo.saveAdaptiveCache(cacheToPersist)
+                }
+            } finally {
+                augeWriteMutex.unlock()
+            }
+        }
     }
 
     // ─── Public actions ───────────────────────────────────────────────────────

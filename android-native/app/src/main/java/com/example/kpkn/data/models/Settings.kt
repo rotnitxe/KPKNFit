@@ -93,6 +93,7 @@ data class Settings(
 
     val algorithmSettings: AlgorithmSettings = AlgorithmSettings(),
     val augePredictionBias: PredictionBiasProfile = PredictionBiasProfile(),
+    val initialRecoveryEvidence: InitialRecoveryEvidence? = null,
 
     val reducedMotionMode: Boolean = false,
     val hapticIntensity: HapticIntensity = HapticIntensity.MEDIUM,

@@ -60,6 +60,7 @@ fun HomeRingsSection(
     hasActiveProgram: Boolean = true,
     isLoading: Boolean = false,
     dashboard: RecoveryDashboard? = null,
+    dataLabel: String? = null,
     snapshot: AugeSnapshot? = null,
     showModelUpdateNotice: Boolean = false,
     onDismissAdvisory: (String) -> Unit = {},
@@ -112,6 +113,21 @@ fun HomeRingsSection(
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+        dashboard?.takeIf { !isLoading }?.let { board ->
+            val causes = board.channels.flatMap { it.causes }.distinct().take(2).joinToString(" · ")
+            val coverageLine = buildString {
+                append("Cobertura de datos: ")
+                append(board.confidenceLabel)
+                (dataLabel ?: board.dataLabel)?.let { append(" · ").append(it) }
+                if (causes.isNotBlank()) append(" · ").append(causes)
+            }
+            Text(
+                text = coverageLine,
+                modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 8.dp),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 

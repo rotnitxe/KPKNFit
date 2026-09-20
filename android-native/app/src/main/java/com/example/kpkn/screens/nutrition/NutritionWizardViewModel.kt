@@ -384,7 +384,9 @@ class NutritionWizardViewModel(
         updateDraft(updated, dirty = true)
     }
 
-    fun save(): NutritionPlan? {
+    fun restoreDraft(draft: NutritionWizardDraft) = updateDraft(draft, dirty = false)
+
+    fun preparePlan(planIdOverride: String? = null): NutritionPlan? {
         val state = _uiState.value
         val errors = validateStep(NutritionWizardStep.REVIEW, state.draft, state.recommendation)
         if (errors.isNotEmpty()) {
@@ -395,7 +397,7 @@ class NutritionWizardViewModel(
         val recommendation = state.recommendation ?: return null
         val metric = draft.goalMetric
         val target = resolveTargetSi(draft)
-        val planId = draft.planId ?: UUID.randomUUID().toString()
+        val planId = planIdOverride ?: draft.planId ?: UUID.randomUUID().toString()
         val existing = nutritionRepository.nutritionPlans.value.firstOrNull { it.id == planId }
         val vitals = programRepository.settings.value.userVitals
         val latest = latestValidByMetric(nutritionRepository.bodyProgressRepository.observations.value)
@@ -473,6 +475,14 @@ class NutritionWizardViewModel(
                 ),
             ),
         )
+        return plan
+    }
+
+    fun save(): NutritionPlan? {
+        val plan = preparePlan() ?: return null
+        val draft = _uiState.value.draft
+        val metric = draft.goalMetric
+        val startValue = plan.startValue
         nutritionRepository.addNutritionPlan(plan)
         nutritionRepository.activatePlan(plan.id)
         viewModelScope.launch {

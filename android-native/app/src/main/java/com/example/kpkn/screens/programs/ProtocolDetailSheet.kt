@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.protocols.Protocol
 import com.example.kpkn.data.protocols.SlotSource
+import com.example.kpkn.data.protocols.displayName
+import androidx.compose.runtime.remember
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.KpknSheetWhiteButton
 
@@ -28,10 +30,18 @@ fun ProtocolDetailSheet(
     protocol: Protocol,
     onDismiss: () -> Unit,
     onContinue: () -> Unit,
+    continueLabel: String = "Usar este plan",
+    onCreateCopy: (() -> Unit)? = null,
 ) {
     val recipe = protocol.recipe
     val sampleWeek = recipe?.weeks?.firstOrNull()
     val spec = protocol.fidelitySpec
+    val catalogNames = remember(protocol.id) {
+        com.example.kpkn.data.exercises.catalogConfigurationDisplayNameIndex()
+    }
+    val entry = remember(protocol.id) {
+        com.example.kpkn.data.programs.PersonalizedPlanCatalog.find("protocol:${protocol.id}")
+    }
     KpknSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
@@ -41,7 +51,8 @@ fun ProtocolDetailSheet(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text("${protocol.emoji} ${protocol.name}", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Color.White)
+            Text(entry?.title ?: protocol.name, fontWeight = FontWeight.Black, fontSize = 20.sp, color = Color.White)
+            Text(protocol.name, color = Color.White.copy(alpha = 0.65f), style = MaterialTheme.typography.labelMedium)
             Text(protocol.author, color = Color.White.copy(alpha = 0.75f), style = MaterialTheme.typography.bodySmall)
             protocol.source.primaryUrl?.let {
                 Text(it, color = Color.White.copy(alpha = 0.55f), style = MaterialTheme.typography.labelSmall)
@@ -74,12 +85,19 @@ fun ProtocolDetailSheet(
                 Text("Semana tipo ${week.weekName.ifBlank { week.weekNumber.toString() }}", fontWeight = FontWeight.Bold, color = Color.White)
                 week.days.forEach { day ->
                     Text(
-                        "${day.label}: " + day.slots.take(6).joinToString(" → ") { slot ->
-                            val sets = slot.sets.size
-                            val reps = slot.sets.firstOrNull()?.reps ?: slot.sets.firstOrNull()?.repsMin
-                            val pct = slot.sets.firstOrNull()?.percent?.let { "${it.toInt()}%" } ?: "RPE"
-                            val tag = if (slot.source == SlotSource.KPKN_DEFAULT) " [KPKN]" else ""
-                            "${slot.lift.configurationId.substringBefore("__")} $sets×$reps @$pct$tag"
+                        "${day.label}\n" + day.slots.joinToString("\n") { slot ->
+                            val prescription = slot.sets.firstOrNull()
+                            val reps = prescription?.reps?.toString()
+                                ?: prescription?.repsMin?.let { min ->
+                                    prescription.repsMax?.let { max -> "$min–$max" } ?: "$min+"
+                                } ?: "Según prescripción"
+                            val intensity = prescription?.percent?.let { " · ${it.toInt()}%" }
+                                ?: prescription?.rpe?.let { " · RPE $it" }
+                                ?: prescription?.rir?.let { " · RIR $it" }.orEmpty()
+                            val technique = slot.technique?.let { " · ${it.displayName()}" }.orEmpty()
+                            val tag = if (slot.source == SlotSource.KPKN_DEFAULT) " · Aporte KPKN" else ""
+                            val name = catalogNames[slot.lift.configurationId] ?: "Ejercicio pendiente de catálogo"
+                            "$name · ${slot.sets.size} × $reps$intensity$technique$tag"
                         },
                         color = Color.White.copy(alpha = 0.75f),
                         style = MaterialTheme.typography.bodySmall,
@@ -93,7 +111,12 @@ fun ProtocolDetailSheet(
                     )
                 }
             }
-            KpknSheetWhiteButton(text = "Usar este protocolo", onClick = onContinue)
+            KpknSheetWhiteButton(text = continueLabel, onClick = onContinue)
+            onCreateCopy?.let { createCopy ->
+                TextButton(onClick = createCopy, modifier = Modifier.fillMaxWidth()) {
+                    Text("Crear una copia", color = Color.White)
+                }
+            }
             TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
                 Text("Cancelar", color = Color.White.copy(alpha = 0.85f))
             }

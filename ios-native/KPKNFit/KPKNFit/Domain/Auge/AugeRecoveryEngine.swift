@@ -816,6 +816,48 @@ enum AugeRecoveryEngine {
         return Int(AugeUtils.clamp(100.0 - normalizedLoad, 0.0, 100.0))
     }
 
+    private struct InitialRecoveryContribution {
+        let muscular: Int?
+        let system: Int?
+        let structure: Int?
+        let confidence: Int
+        let isEstimated: Bool
+        let anchorMs: Int64?
+    }
+
+    private static func initialRecoveryContribution(
+        evidence: InitialRecoveryEvidence?,
+        nowMs: Int64,
+        history: [WorkoutLog]
+    ) -> InitialRecoveryContribution {
+        guard let normalized = evidence?.normalized() else {
+            return InitialRecoveryContribution(muscular: nil, system: nil, structure: nil, confidence: 0, isEstimated: false, anchorMs: nil)
+        }
+        guard nowMs < normalized.expiresAtMs else {
+            return InitialRecoveryContribution(muscular: nil, system: nil, structure: nil, confidence: 0, isEstimated: false, anchorMs: nil)
+        }
+        let hasRealOverlap = history.contains { log in
+            let time = AugeUtils.logDateMs(log)
+            return time >= normalized.coveredFromMs && time <= normalized.coveredToMs
+        }
+        guard !hasRealOverlap else {
+            return InitialRecoveryContribution(muscular: nil, system: nil, structure: nil, confidence: 65, isEstimated: false, anchorMs: nil)
+        }
+        func estimate(_ score: Int) -> Int {
+            let elapsedHours = max(0.0, Double(nowMs - normalized.capturedAtMs) / 3_600_000.0)
+            let recovered = 100.0 - Double(100 - score) * exp(-elapsedHours / 72.0)
+            return min(100, max(0, Int(recovered.rounded())))
+        }
+        return InitialRecoveryContribution(
+            muscular: estimate(normalized.muscularScore),
+            system: estimate(normalized.systemScore),
+            structure: estimate(normalized.structureScore),
+            confidence: min(100, max(0, normalized.confidence)),
+            isEstimated: true,
+            anchorMs: normalized.capturedAtMs
+        )
+    }
+
     // ─── 4. BATERÍAS GLOBALES ─────────────────────────────────────────────────
 
     static func calculateGlobalBatteries(
@@ -888,8 +930,22 @@ enum AugeRecoveryEngine {
         let finalMuscular = Int(AugeUtils.clamp(Double(max(decelMuscular, floor.muscular)) + avgMuscleDelta, 0.0, 100.0))
         let finalCnc = max(0, min(100, Int(AugeUtils.decelerateBattery(max(Double(cncBattery), Double(floor.cns))))))
         let finalSpinal = max(0, min(100, Int(AugeUtils.decelerateBattery(max(Double(spinalBattery), Double(floor.spinal))))))
-
-        return GlobalBatteries(muscular: finalMuscular, cnc: finalCnc, spinal: finalSpinal)
+        let initial = initialRecoveryContribution(evidence: settings.initialRecoveryEvidence, nowMs: Int64(nowMs()), history: history)
+        let hasMuscularManual = wellbeing?.manualMuscularBattery != nil
+            || wellbeing?.manualMuscleBatteries.isEmpty == false
+            || !(wellbeing?.manualMuscleOverridesV2 ?? [:]).isEmpty
+        let muscularEstimated = initial.isEstimated && !hasMuscularManual && initial.muscular != nil
+        let systemEstimated = initial.isEstimated && wellbeing?.manualNeuralBattery == nil && initial.system != nil
+        let structureEstimated = initial.isEstimated && wellbeing?.manualSpinalBattery == nil && initial.structure != nil
+        func combine(_ real: Int, _ initial: Int?, _ enabled: Bool, _ minimum: Int) -> Int {
+            guard enabled, let initial else { return real }
+            return max(minimum, min(100, real - (100 - initial)))
+        }
+        return GlobalBatteries(
+            muscular: combine(finalMuscular, initial.muscular, muscularEstimated, floor.muscular),
+            cnc: combine(finalCnc, initial.system, systemEstimated, floor.cns),
+            spinal: combine(finalSpinal, initial.structure, structureEstimated, floor.spinal)
+        )
     }
 
     // ─── 5. PER-MUSCLE BATTERIES (todos los pilares) ──────────────────────────

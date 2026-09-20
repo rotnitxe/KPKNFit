@@ -1021,12 +1021,11 @@ fun SessionEditorScreen(
         onSave = { saveScope ->
             focusManager.clearFocus(force = true)
             val hasPendingSwitch = uiState.pendingSessionSwitchId != null
-            val saveResult = viewModel.saveSession(saveScope)
-            if (saveResult.success && !hasPendingSwitch) {
-                // Exit immediately after a successful save; waiting on snackbar blocks navigation.
-                onSavedAndExit()
-            } else {
-                scope.launch {
+            scope.launch {
+                val saveResult = viewModel.saveSession(saveScope)
+                if (saveResult.success && !hasPendingSwitch) {
+                    onSavedAndExit()
+                } else {
                     snackbarHostState.showKpknSnackbar(
                         saveResult.message,
                         if (saveResult.success) SnackbarType.SUCCESS else SnackbarType.DANGER,
@@ -1172,8 +1171,8 @@ fun SessionEditorScreen(
                     Button(
                         onClick = {
                             focusManager.clearFocus(force = true)
-                            val result = viewModel.saveSession()
                             scope.launch {
+                                val result = viewModel.saveSession()
                                 if (result.success) {
                                     showDiscardDialog = false
                                     onSavedAndExit()

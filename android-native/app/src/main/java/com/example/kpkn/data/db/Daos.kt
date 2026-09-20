@@ -4,6 +4,27 @@ import androidx.room.*
 
 data class DateCount(val date: String, val count: Int)
 
+@Dao
+interface SetupDraftDao {
+    @Query("SELECT * FROM setup_drafts WHERE draftId = :draftId LIMIT 1")
+    suspend fun getDraft(draftId: String): SetupDraftEntity?
+
+    @Upsert
+    suspend fun upsertDraft(entity: SetupDraftEntity)
+
+    @Query("DELETE FROM setup_drafts WHERE draftId = :draftId")
+    suspend fun deleteDraft(draftId: String)
+}
+
+@Dao
+interface SetupCommitReceiptDao {
+    @Query("SELECT * FROM setup_commit_receipts WHERE commitId = :commitId LIMIT 1")
+    suspend fun get(commitId: String): SetupCommitReceiptEntity?
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insert(entity: SetupCommitReceiptEntity)
+}
+
 // ─── Programs ─────────────────────────────────────────────────────────────────
 
 @Dao
@@ -262,6 +283,9 @@ interface NutritionDao {
 
     @Upsert
     suspend fun upsertPlan(entity: NutritionPlanEntity)
+
+    @Query("UPDATE nutrition_plans SET isActive = 0")
+    suspend fun deactivateAllPlans()
 
     @Query("DELETE FROM nutrition_plans WHERE id = :id")
     suspend fun deletePlan(id: String)

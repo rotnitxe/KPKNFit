@@ -44,7 +44,9 @@ class ProgramSnapshotStore(context: Context) {
             reason = reason,
         )
         val next = (current + snapshot).takeLast(MAX_VERSIONS)
-        prefs.edit().putString(keyFor(program.id), json.encodeToString(next)).commit()
+        check(prefs.edit().putString(keyFor(program.id), json.encodeToString(next)).commit()) {
+            "No se pudo guardar la copia recuperable del programa. No se aplicaron cambios."
+        }
         return next
     }
 

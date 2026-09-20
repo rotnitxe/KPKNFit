@@ -260,7 +260,7 @@ object PlanMaterializer {
     }
 
     private fun groupParts(day: DayRecipe, exercises: List<Exercise>, idProvider: IdProvider): List<SessionPart> {
-        val buckets = linkedMapOf<String, MutableList<Exercise>>()
+        val parts = mutableListOf<SessionPart>()
         day.slots.zip(exercises).forEach { (slot, exercise) ->
             val name = when (slot.role) {
                 SlotRole.SPEED -> "Velocidad"
@@ -269,11 +269,14 @@ object PlanMaterializer {
                 SlotRole.T2_SUPPLEMENTAL -> "Suplementario"
                 SlotRole.T3_ACCESSORY -> "Accesorios"
             }
-            buckets.getOrPut(name) { mutableListOf() }.add(exercise)
+            val previous = parts.lastOrNull()
+            if (previous?.name == name) {
+                parts[parts.lastIndex] = previous.copy(exercises = previous.exercises + exercise)
+            } else {
+                parts += SessionPart(id = idProvider.newId(), name = name, exercises = listOf(exercise))
+            }
         }
-        return buckets.map { (name, items) ->
-            SessionPart(id = idProvider.newId(), name = name, exercises = items)
-        }
+        return parts
     }
 
     private fun materializeSlot(

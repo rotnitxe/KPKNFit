@@ -470,6 +470,31 @@ def calculate_daily_readiness(
     }
 
 
+def _initial_recovery_contribution(settings: Settings, now: float, history: list[WorkoutLog]) -> dict:
+    evidence = settings.initialRecoveryEvidence
+    if evidence is None or now >= evidence.expiresAtMs:
+        return {"muscular": None, "system": None, "structure": None, "confidence": 0, "estimated": False}
+    has_real_overlap = any(
+        evidence.coveredFromMs <= _parse_date_ms(log.date) <= evidence.coveredToMs
+        for log in history
+    )
+    if has_real_overlap:
+        return {"muscular": None, "system": None, "structure": None, "confidence": 65, "estimated": False}
+    elapsed_hours = max(0.0, (now - evidence.capturedAtMs) / 3_600_000)
+
+    def estimate(score: int) -> int:
+        recovered = 100.0 - (100 - _clamp(score, 0, 100)) * math.exp(-elapsed_hours / 72.0)
+        return round(_clamp(recovered, 0, 100))
+
+    return {
+        "muscular": estimate(evidence.muscularScore),
+        "system": estimate(evidence.systemScore),
+        "structure": estimate(evidence.structureScore),
+        "confidence": round(_clamp(evidence.confidence, 0, 100)),
+        "estimated": True,
+    }
+
+
 # ── Global batteries ─────────────────────────────────────
 
 def calculate_global_batteries(
@@ -558,6 +583,18 @@ def calculate_global_batteries(
     final_cns = _clamp(100 - cns_f - cns_penalty + cd, 0, 100)
     final_musc = _clamp(100 - musc_f + md, 0, 100)
     final_spinal = _clamp(100 - spinal_f + sd, 0, 100)
+
+    initial = _initial_recovery_contribution(settings, now, history)
+    has_muscular_manual = any(bool(log.manualMuscleOverridesV2) for log in daily_wellbeing)
+
+    def combine(real: float, initial_score: int | None, enabled: bool) -> float:
+        if not enabled or initial_score is None:
+            return real
+        return _clamp(real - (100 - initial_score), 0, 100)
+
+    final_musc = combine(final_musc, initial["muscular"], initial["estimated"] and not has_muscular_manual)
+    final_cns = combine(final_cns, initial["system"], initial["estimated"])
+    final_spinal = combine(final_spinal, initial["structure"], initial["estimated"])
 
     verdict = "Todos tus sistemas están óptimos. Es un buen día para buscar récords personales (PRs)."
     if final_cns < 30:

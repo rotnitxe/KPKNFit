@@ -1170,6 +1170,17 @@ fun WorkoutScreen(
                         onRemoveChecklistItem = { viewModel.removeSessionChecklistItem(it) },
                         bodyWeight = viewModel.currentBodyWeight(),
                         aboveCarousel = {
+                            uiState.activeStepKey?.let { stepKey ->
+                                Text(
+                                    text = "Paso activo · $stepKey",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
                             val stepper = liveSetStepperHolder.snapshot
                             if (stepper != null) {
                                 WorkoutSetPager(

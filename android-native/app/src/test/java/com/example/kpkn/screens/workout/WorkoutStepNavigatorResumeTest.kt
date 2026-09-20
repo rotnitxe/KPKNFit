@@ -60,7 +60,7 @@ class WorkoutStepNavigatorResumeTest {
                 ): WorkoutEditingState? = null
                 override fun stopRestTimer() = Unit
                 override fun persistOngoingState(immediate: Boolean) = Unit
-                override suspend fun persistOngoingStateAndAwait() = Unit
+                override suspend fun persistOngoingStateAndAwait() = WorkoutPersistResult.Ok
                 override fun refreshLoadSuggestions(state: WorkoutUiState) = Unit
                 override fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?) = Unit
                 override fun computeImbalanceNotice(
@@ -168,7 +168,7 @@ class WorkoutStepNavigatorResumeTest {
                 override fun buildEditingStateForPosition(completedSets: Map<String, CompletedSet>, exercise: Exercise?, setIdx: Int, preferredSide: String?) = null
                 override fun stopRestTimer() = Unit
                 override fun persistOngoingState(immediate: Boolean) = Unit
-                override suspend fun persistOngoingStateAndAwait() = Unit
+                override suspend fun persistOngoingStateAndAwait() = WorkoutPersistResult.Ok
                 override fun refreshLoadSuggestions(state: WorkoutUiState) = Unit
                 override fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?) = Unit
                 override fun computeImbalanceNotice(exercise: Exercise, setIdx: Int, completedSets: Map<String, CompletedSet>) = null
@@ -227,7 +227,7 @@ class WorkoutStepNavigatorResumeTest {
                 override fun buildEditingStateForPosition(completedSets: Map<String, CompletedSet>, exercise: Exercise?, setIdx: Int, preferredSide: String?) = null
                 override fun stopRestTimer() = Unit
                 override fun persistOngoingState(immediate: Boolean) = Unit
-                override suspend fun persistOngoingStateAndAwait() = Unit
+                override suspend fun persistOngoingStateAndAwait() = WorkoutPersistResult.Ok
                 override fun refreshLoadSuggestions(state: WorkoutUiState) = Unit
                 override fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?) = Unit
                 override fun computeImbalanceNotice(exercise: Exercise, setIdx: Int, completedSets: Map<String, CompletedSet>) = null

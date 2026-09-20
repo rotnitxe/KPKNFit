@@ -182,10 +182,14 @@ object TemplateVolumeScaler {
                             // A bounded allowance applies only to indirect collateral work.
                             // Existing excess is preserved, never used to raise the ceiling.
                             val blocked = contributions.any { (affected, contribution) ->
-                                val ceiling = targets[affected]?.ceiling ?: return@any false
-                                val tolerance = if (affected != muscle) INDIRECT_MRV_TOLERANCE else 0.0
-                                val rejected = (projected[affected] ?: 0.0) + contribution > ceiling + tolerance + EPSILON
-                                if (rejected) diagnostic?.invoke("REJECT target=$muscle exercise=${exercise.catalogConfigurationId} affected=$affected before=${projected[affected]} delta=$contribution ceiling=$ceiling tolerance=$tolerance")
+                                val target = targets[affected] ?: return@any false
+                                val limit = if (affected != muscle) {
+                                    target.target.toDouble() + INDIRECT_MRV_TOLERANCE
+                                } else {
+                                    target.ceiling.toDouble()
+                                }
+                                val rejected = (projected[affected] ?: 0.0) + contribution > limit + EPSILON
+                                if (rejected) diagnostic?.invoke("REJECT target=$muscle exercise=${exercise.catalogConfigurationId} affected=$affected before=${projected[affected]} delta=$contribution limit=$limit")
                                 rejected
                             }
                             if (blocked) {
@@ -314,6 +318,16 @@ object TemplateVolumeScaler {
         fun canAddDirectSet(muscle: String, exercise: Exercise): Boolean {
             val current = findExercise(exercise.id) ?: return false
             if (current.sets.isEmpty()) return false
+            val primaryMuscles = directMap(exercise)
+                .filter { (_, contribution) -> contribution >= 1.0 }
+                .keys
+                .toList()
+                .ifEmpty { listOf(muscle) }
+            if (!primaryMuscles.all { canAddDirectSetForMuscle(it, exercise, current) }) return false
+            return true
+        }
+
+        private fun canAddDirectSetForMuscle(muscle: String, exercise: Exercise, current: Exercise): Boolean {
             val perMuscle = session.allExercises().sumOf { other ->
                 val sets = VolumeCalculator.countEffectiveSets(
                     if (other.id == current.id) current.sets else other.sets,

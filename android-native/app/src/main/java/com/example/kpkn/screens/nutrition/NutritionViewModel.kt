@@ -11,6 +11,7 @@ import com.example.kpkn.domain.body.bmi
 import com.example.kpkn.domain.body.latestCompatibleComposition
 import com.example.kpkn.domain.body.latestValidByMetric
 import com.example.kpkn.domain.nutrition.*
+import com.example.kpkn.domain.time.ActivityLocalDate
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -358,7 +359,9 @@ class NutritionViewModel : ViewModel() {
 
     fun duplicateLog(log: NutritionLog) {
         val duplicated = duplicateLog(log, _selectedDate.value)
-        nutritionRepo.addNutritionLog(duplicated)
+        viewModelScope.launch {
+            runCatching { nutritionRepo.saveNutritionLog(duplicated) }
+        }
     }
 
     fun createPlan(plan: NutritionPlan) {
@@ -472,7 +475,12 @@ class NutritionViewModel : ViewModel() {
         // an explicitly migrated settings goal); never invent a 2,000-kcal
         // target when no plan is active.
         val targetKcal = plan?.calorieTarget?.takeIf { it > 0 } ?: settings.dailyCalorieGoal ?: 0
-        val workoutsToday = history.filter { it.date.take(10) == date }
+        val activityDay = LocalDate.parse(date)
+        val workoutsToday = history.filter { log ->
+            val logDay = log.actualDate?.take(10)?.let(LocalDate::parse)
+                ?: ActivityLocalDate.fromInstantIsoOrDatePrefix(log.date)
+            logDay == activityDay
+        }
         val trainingBurn = workoutsToday.sumOf { it.energySummary?.totalKcal?.mid ?: 0 }
         TrainingEnergyEngine.calculateDailyEnergyBalance(
             consumedKcal = consumedKcal,

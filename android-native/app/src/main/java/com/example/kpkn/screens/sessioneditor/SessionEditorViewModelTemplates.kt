@@ -297,7 +297,8 @@ internal fun SessionEditorViewModel.applyTemplateInternal(template: SessionTempl
         val latestSession = latest.activeVariantSession ?: latest.session
         if (latest.activeVariant != activeVariant ||
             latestSession?.id != expectedSessionId ||
-            latestSession.contentHashForAuge() != expectedContentHash
+            latestSession.contentHashForAuge() != expectedContentHash ||
+            !SessionTemplateEngine.canApplyTemplate(template, latestSession)
         ) {
             updateUi {
                 it.copy(
@@ -310,7 +311,21 @@ internal fun SessionEditorViewModel.applyTemplateInternal(template: SessionTempl
         if (latest.activeVariantSession == null) {
             updateUi { it.copy(activeVariant = WeekVariant.A) }
         }
-        updateSession { result }
+        updateSession { current ->
+            current.copy(
+                exercises = result.exercises,
+                parts = result.parts,
+                warmup = result.warmup,
+                supersetGroups = result.supersetGroups,
+                origin = result.origin,
+                cardioFirst = result.cardioFirst,
+                targetDurationMinutes = result.targetDurationMinutes,
+                sessionB = result.sessionB,
+                sessionC = result.sessionC,
+                sessionD = result.sessionD,
+                trainingBackup = result.trainingBackup,
+            )
+        }
         val omittedNote = if (mode == SessionTemplateApplyMode.APPEND && outcome.omittedAppendExercises.isNotEmpty()) {
             val omittedCount = outcome.omittedAppendExercises.size
             " $omittedCount ejercicio(s) ya estaban en la sesión y no se duplicaron."

@@ -10,19 +10,16 @@ import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.db.dbJson
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.DatabaseBackupHelper
-import com.example.kpkn.data.db.toEntity
-import com.example.kpkn.data.db.NutritionActiveStateEntity
 import com.example.kpkn.data.db.LearnedResolutionEntity
 import com.example.kpkn.data.db.toMealTemplate
 import com.example.kpkn.data.db.toPantryItem
-import androidx.room.withTransaction
+import com.example.kpkn.data.settings.LearnedResolutionBackup
+import com.example.kpkn.data.settings.SettingsExportPayload
+import com.example.kpkn.data.settings.SettingsJsonBackup
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import com.example.kpkn.data.models.ApiKeys
-import com.example.kpkn.data.models.ApiProvider
-import com.example.kpkn.data.models.Settings
-import com.example.kpkn.data.models.NutritionCalibrationProfile
 import com.example.kpkn.data.models.MeasurementSchedule
+import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.profile.ProfilePhotoStore
 import com.example.kpkn.data.secure.LegacyAiCredentialCleanup
 import com.example.kpkn.data.repository.AugeRepository
@@ -32,18 +29,15 @@ import com.example.kpkn.data.repository.NutritionCalibrationRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.SessionTemplateRepository
 import com.example.kpkn.data.repository.CustomExerciseRepository
-import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.services.nutrition.NutritionNotificationManager
 import com.example.kpkn.services.diagnostics.KpknDiagnosticStorage
 import com.example.kpkn.services.workout.WorkoutReminderManager
 import com.example.kpkn.ui.locale.LocaleManager
-import com.example.kpkn.domain.body.validateBodyValue
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import java.io.File
 import java.time.LocalDateTime
@@ -196,15 +190,9 @@ class SettingsViewModel : ViewModel() {
             appContext,
             programRepository.settings.value.profilePicture,
         )
-        return SettingsExportPayload(
-            schemaVersion = EXPORT_SCHEMA_VERSION,
-            exportedAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-            // Never carry a legacy provider URI in a portable backup. The token
-            // is emitted only when the private JPEG was actually read.
-            settings = programRepository.settings.value.copy(
-                apiKeys = ApiKeys(),
-                profilePicture = ProfilePhotoStore.STORAGE_TOKEN.takeIf { profilePhotoJpegBase64 != null },
-            ),
+        return SettingsJsonBackup.buildPayload(
+            context = appContext,
+            settings = programRepository.settings.value,
             profilePhotoJpegBase64 = profilePhotoJpegBase64,
             programs = programRepository.programs.value,
             workoutLogs = programRepository.history.value,
@@ -230,6 +218,7 @@ class SettingsViewModel : ViewModel() {
             adaptiveCache = augeRepository.getAdaptiveCache(),
             sessionTemplates = SessionTemplateRepository.getInstance(appContext).userTemplates.value,
             customExercises = CustomExerciseRepository.customExercises.value,
+            db = db,
         )
     }
 
@@ -258,72 +247,41 @@ class SettingsViewModel : ViewModel() {
                 } ?: throw Exception("No se pudo leer el archivo")
 
                 val payload = dbJson.decodeFromString<SettingsExportPayload>(jsonString)
-                require(payload.schemaVersion in 1..EXPORT_SCHEMA_VERSION) {
-                    "Formato de exportación no compatible: ${payload.schemaVersion}"
-                }
                 val db = KpknDatabase.getInstance(context)
-                if (payload.profilePhotoJpegBase64 == null) {
-                    ProfilePhotoStore.delete(context.applicationContext)
-                }
-                val restoredPhotoToken = payload.profilePhotoJpegBase64?.let {
-                    ProfilePhotoStore.saveBase64(context.applicationContext, it)
-                }
-
-                db.withTransaction {
-                    // Import is a restore, not a merge: stale rows must not survive a backup restore.
-                    db.clearAllTables()
-                    db.settingsDao().upsert(
-                        payload.settings.copy(
-                            apiProvider = ApiProvider.LOCAL,
-                            apiKeys = ApiKeys(),
-                            profilePicture = restoredPhotoToken,
-                        ).toEntity(),
+                val rollbackName = DatabaseBackupHelper.createSnapshot(context)
+                val rollbackFile = File(context.filesDir, "snapshots/$rollbackName")
+                try {
+                    SettingsJsonBackup.importPayload(
+                        context = context,
+                        payload = payload,
+                        db = db,
+                        nutritionRepository = nutritionRepository,
+                        onMeasurementSchedule = { schedule ->
+                            val bodyRepository = BodyProgressRepository.getInstance(context.applicationContext)
+                            bodyRepository.refreshFromStorage()
+                            bodyRepository.updateMeasurementSchedule(schedule)
+                            val calibrationRepository = NutritionCalibrationRepository.getInstance(context.applicationContext)
+                            if (payload.calibrationProfile != null) {
+                                calibrationRepository.save(payload.calibrationProfile)
+                            } else if (payload.schemaVersion >= SettingsJsonBackup.EXPORT_SCHEMA_VERSION && payload.includesCalibrationSection) {
+                                calibrationRepository.clear()
+                            } else if (payload.schemaVersion < SettingsJsonBackup.EXPORT_SCHEMA_VERSION && payload.calibrationProfile == null) {
+                                calibrationRepository.clear()
+                            }
+                        },
                     )
-                    payload.programs.forEach { db.programDao().upsert(it.toEntity()) }
-                    payload.workoutLogs.forEach { db.workoutLogDao().insert(it.toEntity()) }
-                    payload.activeProgramState?.let { db.stateDao().upsertActiveProgram(it.toEntity()) }
-                    payload.ongoingWorkout?.let { db.stateDao().upsertOngoingWorkout(it.toEntity()) }
-                    payload.nutritionLogs.forEach { db.nutritionDao().upsertLog(it.toEntity()) }
-                    payload.nutritionPlans.forEach { db.nutritionDao().upsertPlan(it.toEntity()) }
-                    payload.activeNutritionPlanId?.let {
-                        db.nutritionDao().upsertActiveState(NutritionActiveStateEntity(activePlanId = it))
+                    DatabaseBackupHelper.deleteSnapshot(rollbackFile)
+                } catch (error: Throwable) {
+                    if (rollbackFile.exists()) {
+                        DatabaseBackupHelper.restoreSnapshot(context, rollbackFile)
+                        programRepository.refreshData()
+                        nutritionRepository.refreshData(context)
+                        SessionTemplateRepository.getInstance(context.applicationContext).refreshFromStorage()
+                        CustomExerciseRepository.refreshFromStorage()
+                        DatabaseBackupHelper.deleteSnapshot(rollbackFile)
                     }
-                    payload.pantryItems.forEach { db.nutritionDao().upsertPantryItem(it.toEntity()) }
-                    payload.mealTemplates.forEach { db.nutritionDao().upsertTemplate(it.toEntity()) }
-                    payload.customFoods.forEach { db.nutritionDao().upsertCustomFood(it.toEntity()) }
-                    payload.learnedResolutions.forEach { db.learnedResolutionDao().upsert(it.toEntity()) }
-                    payload.bodyObservations
-                        .filter { validateBodyValue(it.metric, it.valueSi).valid }
-                        .forEach { db.bodyProgressDao().upsertObservation(it.toEntity()) }
-                    payload.bodyGoals
-                        .filter { it.targetValueSi.isFinite() }
-                        .forEach { db.bodyProgressDao().upsertGoal(it.toEntity()) }
-                    payload.dailyGoalSnapshots.forEach {
-                        db.nutritionDao().insertDailyGoalSnapshot(it.toEntity())
-                    }
-                    payload.sessionTemplates.forEach { db.sessionTemplateDao().upsert(it.toEntity()) }
-                    payload.customExercises.forEach { db.customExerciseDao().upsert(it.toEntity()) }
+                    throw error
                 }
-
-                val bodyRepository = BodyProgressRepository.getInstance(context.applicationContext)
-                bodyRepository.refreshFromStorage()
-                bodyRepository.updateMeasurementSchedule(payload.measurementSchedule ?: MeasurementSchedule())
-                val calibrationRepository = NutritionCalibrationRepository.getInstance(context.applicationContext)
-                if (payload.calibrationProfile != null) calibrationRepository.save(payload.calibrationProfile) else calibrationRepository.clear()
-                if (payload.foodCatalogMeta != null) {
-                    nutritionRepository.restoreFoodCatalogMeta(payload.foodCatalogMeta)
-                } else {
-                    context.applicationContext.getSharedPreferences("nutrition_food_catalog", Context.MODE_PRIVATE).edit().clear().commit()
-                }
-
-                val augeRepository = AugeRepository.getInstance(context.applicationContext)
-                augeRepository.importBackupSlice(
-                    wellbeingLogs = payload.wellbeingLogs,
-                    sleepLogs = payload.sleepLogs,
-                    sleepLogsExtended = payload.sleepLogsExtended,
-                    postSessionFeedback = payload.postSessionFeedback,
-                    adaptiveCache = payload.adaptiveCache,
-                )
 
                 programRepository.refreshData()
                 nutritionRepository.refreshData(context)
@@ -460,77 +418,68 @@ class SettingsViewModel : ViewModel() {
     fun deleteSnapshot(file: File): Boolean {
         return DatabaseBackupHelper.deleteSnapshot(file)
     }
+
+    fun exportDatabaseSnapshot(
+        context: Context,
+        destination: Uri,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit,
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val snapshotName = DatabaseBackupHelper.createSnapshot(context)
+                val snapshotFile = File(context.filesDir, "snapshots/$snapshotName")
+                context.contentResolver.openOutputStream(destination)?.use { output ->
+                    snapshotFile.inputStream().use { input -> input.copyTo(output) }
+                } ?: error("No se pudo abrir el archivo de destino")
+                DatabaseBackupHelper.deleteSnapshot(snapshotFile)
+            }.onSuccess {
+                withContext(Dispatchers.Main) { onSuccess() }
+            }.onFailure { error ->
+                withContext(Dispatchers.Main) { onError(error.message ?: "Error desconocido") }
+            }
+        }
+    }
+
+    fun importDatabaseSnapshot(
+        context: Context,
+        uri: Uri,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit,
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val rollbackName = DatabaseBackupHelper.createSnapshot(context)
+                val rollbackFile = File(context.filesDir, "snapshots/$rollbackName")
+                val tempImport = File(context.cacheDir, "import_snapshot_${System.currentTimeMillis()}.db")
+                try {
+                    context.contentResolver.openInputStream(uri)?.use { input ->
+                        tempImport.outputStream().use { output -> input.copyTo(output) }
+                    } ?: error("No se pudo leer el archivo")
+                    DatabaseBackupHelper.restoreSnapshot(context, tempImport)
+                    programRepository.refreshData()
+                    nutritionRepository.refreshData(context)
+                    SessionTemplateRepository.getInstance(context.applicationContext).refreshFromStorage()
+                    CustomExerciseRepository.refreshFromStorage()
+                    DatabaseBackupHelper.deleteSnapshot(rollbackFile)
+                } catch (error: Throwable) {
+                    if (rollbackFile.exists()) {
+                        DatabaseBackupHelper.restoreSnapshot(context, rollbackFile)
+                        programRepository.refreshData()
+                        nutritionRepository.refreshData(context)
+                        SessionTemplateRepository.getInstance(context.applicationContext).refreshFromStorage()
+                        CustomExerciseRepository.refreshFromStorage()
+                        DatabaseBackupHelper.deleteSnapshot(rollbackFile)
+                    }
+                    throw error
+                } finally {
+                    tempImport.delete()
+                }
+            }.onSuccess {
+                withContext(Dispatchers.Main) { onSuccess() }
+            }.onFailure { error ->
+                withContext(Dispatchers.Main) { onError(error.message ?: "Error al importar snapshot") }
+            }
+        }
+    }
 }
-
-@Serializable
-private data class SettingsExportPayload(
-    val schemaVersion: Int = 1,
-    val exportedAt: String,
-    val settings: Settings,
-    val profilePhotoJpegBase64: String? = null,
-    val programs: List<com.example.kpkn.data.models.Program>,
-    val workoutLogs: List<com.example.kpkn.data.models.WorkoutLog>,
-    val activeProgramState: com.example.kpkn.data.models.ActiveProgramState?,
-    val ongoingWorkout: com.example.kpkn.data.models.OngoingWorkoutState?,
-    val nutritionLogs: List<com.example.kpkn.data.models.NutritionLog>,
-    val nutritionPlans: List<com.example.kpkn.data.models.NutritionPlan>,
-    val activeNutritionPlanId: String?,
-    val pantryItems: List<com.example.kpkn.data.models.PantryItem>,
-    val mealTemplates: List<com.example.kpkn.data.models.MealTemplate>,
-    val customFoods: List<com.example.kpkn.data.models.FoodItem> = emptyList(),
-    val learnedResolutions: List<LearnedResolutionBackup> = emptyList(),
-    val foodCatalogMeta: NutritionRepository.FoodCatalogMeta? = null,
-    val bodyObservations: List<com.example.kpkn.data.models.BodyObservation> = emptyList(),
-    val bodyGoals: List<com.example.kpkn.data.models.BodyGoal> = emptyList(),
-    val measurementSchedule: com.example.kpkn.data.models.MeasurementSchedule? = null,
-    val calibrationProfile: NutritionCalibrationProfile? = null,
-    val dailyGoalSnapshots: List<com.example.kpkn.data.models.DailyGoalSnapshot> = emptyList(),
-    val wellbeingLogs: List<com.example.kpkn.data.models.DailyWellbeingLog>,
-    val sleepLogs: List<com.example.kpkn.data.models.SleepLog>,
-    val sleepLogsExtended: List<com.example.kpkn.data.models.SleepLogExtended> = emptyList(),
-    val postSessionFeedback: List<com.example.kpkn.data.models.PostSessionFeedback>,
-    val adaptiveCache: com.example.kpkn.data.models.AugeAdaptiveCache? = null,
-    val sessionTemplates: List<SessionTemplate> = emptyList(),
-    val customExercises: List<com.example.kpkn.data.models.ExerciseMuscleInfo> = emptyList(),
-)
-
-@Serializable
-private data class LearnedResolutionBackup(
-    val id: String,
-    val queryKey: String,
-    val foodId: String,
-    val portionGrams: Double? = null,
-    val cookingMethod: String? = null,
-    val count: Int = 1,
-    val lastUsedAt: Long = 0L,
-    val createdAt: Long = 0L,
-    val syncedAt: Long? = null,
-    val weightBasis: String? = null,
-    val portionMinGrams: Double? = null,
-    val portionMaxGrams: Double? = null,
-    val preparation: String? = null,
-    val oilProfile: String? = null,
-    val confidence: Double = 1.0,
-    val lastConfirmedAt: Long = 0L,
-) {
-    fun toEntity() = LearnedResolutionEntity(
-        id = id,
-        queryKey = queryKey,
-        foodId = foodId,
-        portionGrams = portionGrams,
-        cookingMethod = cookingMethod,
-        count = count,
-        lastUsedAt = lastUsedAt,
-        createdAt = createdAt,
-        syncedAt = syncedAt,
-        weightBasis = weightBasis,
-        portionMinGrams = portionMinGrams,
-        portionMaxGrams = portionMaxGrams,
-        preparation = preparation,
-        oilProfile = oilProfile,
-        confidence = confidence,
-        lastConfirmedAt = lastConfirmedAt,
-    )
-}
-
-private const val EXPORT_SCHEMA_VERSION = 4

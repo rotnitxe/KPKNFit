@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -67,16 +68,23 @@ class WorkoutContinuousVoiceEngine internal constructor(
     private var resumeJob: Job? = null
     private var fallbackJob: Job? = null
     private var routeRevokedJob: Job? = null
+    /** Stop/pause/resume/start never compete with droppable grammar/audio traffic. */
+    private val controlCommands = Channel<EngineCommand>(Channel.UNLIMITED)
     private val commands = Channel<EngineCommand>(
         capacity = 32,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
 
     private fun enqueueLifecycle(command: EngineCommand) {
-        if (commands.trySend(command).isSuccess) return
+        if (controlCommands.trySend(command).isSuccess) return
         scope?.launch {
-            runCatching { commands.send(command) }
+            runCatching { controlCommands.send(command) }
         }
+    }
+
+    private suspend fun receiveNextCommand(): EngineCommand = select {
+        controlCommands.onReceive { it }
+        commands.onReceive { it }
     }
     private val queuedGrammarKey = AtomicLong(Long.MIN_VALUE)
     private val generationCounter = AtomicLong(0L)
@@ -312,7 +320,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
         discardPcmOnly = true
         _rmsLevel.value = 0f
         val acknowledgement = CompletableDeferred<Unit>()
-        commands.send(
+        controlCommands.send(
             EngineCommand.Pause(
                 generation = generationCounter.get(),
                 releaseMic = releaseMic,
@@ -332,7 +340,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
         resumeJob = ownerScope.launch(Dispatchers.IO) {
             if (delayMs > 0) delay(delayMs)
             if (activeRequested && generation == generationCounter.get()) {
-                commands.send(
+                controlCommands.send(
                     EngineCommand.Resume(
                         generation = generation,
                         holdMicRouteAcrossPause = holdMicRouteAcrossPause,
@@ -369,7 +377,7 @@ class WorkoutContinuousVoiceEngine internal constructor(
             return true
         }
         val acknowledgement = CompletableDeferred<Unit>()
-        commands.send(
+        controlCommands.send(
             EngineCommand.Stop(
                 generation = generation,
                 acknowledgement = acknowledgement,
@@ -1103,13 +1111,19 @@ class WorkoutContinuousVoiceEngine internal constructor(
             while (kotlin.coroutines.coroutineContext.isActive) {
                 var handledCommand = false
                 while (true) {
+                    val control = controlCommands.tryReceive().getOrNull()
+                    if (control != null) {
+                        handledCommand = true
+                        handleCommand(control)
+                        continue
+                    }
                     val command = commands.tryReceive().getOrNull() ?: break
                     handledCommand = true
                     handleCommand(command)
                 }
 
                 if (!running) {
-                    handleCommand(commands.receive())
+                    handleCommand(receiveNextCommand())
                     continue
                 }
 

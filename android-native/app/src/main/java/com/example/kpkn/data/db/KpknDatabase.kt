@@ -59,8 +59,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         PerformanceSnapshotEntity::class,
         AugeAdaptiveCacheEntity::class,
         WorkoutMediaEntity::class,
+        SetupDraftEntity::class,
+        SetupCommitReceiptEntity::class,
     ],
-    version = 26,
+    version = 27,
     exportSchema = true,
 )
 abstract class KpknDatabase : RoomDatabase() {
@@ -81,6 +83,8 @@ abstract class KpknDatabase : RoomDatabase() {
     abstract fun performanceRangeDao(): PerformanceRangeDao
     abstract fun performanceSnapshotDao(): PerformanceSnapshotDao
     abstract fun workoutMediaDao(): WorkoutMediaDao
+    abstract fun setupDraftDao(): SetupDraftDao
+    abstract fun setupCommitReceiptDao(): SetupCommitReceiptDao
 
     companion object {
         @Volatile private var INSTANCE: KpknDatabase? = null
@@ -689,6 +693,13 @@ abstract class KpknDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_26_27 = object : Migration(26, 27) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS `setup_drafts` (`draftId` TEXT NOT NULL, `payloadJson` TEXT NOT NULL, `revision` INTEGER NOT NULL, `catalogRevision` TEXT, `updatedAtEpochMs` INTEGER NOT NULL, PRIMARY KEY(`draftId`))")
+                db.execSQL("CREATE TABLE IF NOT EXISTS `setup_commit_receipts` (`commitId` TEXT NOT NULL, `draftId` TEXT, `programId` TEXT, `nutritionPlanId` TEXT, `bodyGoalIdsJson` TEXT NOT NULL, `committedAtEpochMs` INTEGER NOT NULL, PRIMARY KEY(`commitId`))")
+            }
+        }
+
         fun getInstance(context: Context): KpknDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -722,6 +733,7 @@ abstract class KpknDatabase : RoomDatabase() {
                     MIGRATION_23_24,
                     MIGRATION_24_25,
                     MIGRATION_25_26,
+                    MIGRATION_26_27,
                 )
                 .build()
                 .also { INSTANCE = it }

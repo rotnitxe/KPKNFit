@@ -783,6 +783,45 @@ class ProgramDetailViewModelTest {
     }
 
     @Test
+    fun replacing_protocol_keeps_program_identity_and_does_not_open_a_copy() = runBlocking {
+        com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
+        val id = nextId()
+        val original = makeSimpleProgram(id)
+        repository.addProgram(original)
+        repository.flushPendingWrites()
+        val vm = ProgramDetailViewModel(id)
+        val protocol = com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.first { it.id == "gzclp" }
+        vm.applyProtocolOverwrite(protocol, overwrite = true)
+        withTimeout(20_000) {
+            while (vm.uiState.value.snackbarMessage.isNullOrBlank()) delay(25)
+        }
+        assertTrue(vm.uiState.value.snackbarMessage.orEmpty(), vm.uiState.value.snackbarMessage.orEmpty().contains("sin crear una copia"))
+        assertEquals(listOf(id), repository.programs.value.map { it.id })
+        assertEquals(original.name, repository.getProgramById(id)?.name)
+        assertEquals(protocol.id, repository.getProgramById(id)?.sourceProtocolId)
+        assertNull(vm.uiState.value.pendingOpenProgramId)
+    }
+
+    @Test
+    fun copying_protocol_is_an_explicit_separate_action() = runBlocking {
+        com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
+        val id = nextId()
+        val original = makeSimpleProgram(id)
+        repository.addProgram(original)
+        repository.flushPendingWrites()
+        val vm = ProgramDetailViewModel(id)
+        val protocol = com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.first { it.id == "gzclp" }
+        vm.applyProtocolOverwrite(protocol, overwrite = false)
+        withTimeout(20_000) {
+            while (vm.uiState.value.snackbarMessage.isNullOrBlank()) delay(25)
+        }
+        assertEquals(2, repository.programs.value.size)
+        assertEquals(original.name, repository.getProgramById(id)?.name)
+        assertNotEquals(id, vm.uiState.value.pendingOpenProgramId)
+        assertNotNull(vm.uiState.value.pendingOpenProgramId)
+    }
+
+    @Test
     fun applyProgramTemplate_reselects_week_in_new_graph() = runBlocking {
         com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
         val id = nextId()

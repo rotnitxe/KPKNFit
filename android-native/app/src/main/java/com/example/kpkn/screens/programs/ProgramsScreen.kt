@@ -76,7 +76,7 @@ fun ProgramsScreen(
 
     LaunchedEffect(openCreateSheetOnStart, Unit) {
         if (openCreateSheetOnStart || ProgramCreationRequests.openSheet) {
-            showCreateSheet = true
+            onCreateProgram()
             ProgramCreationRequests.openSheet = false
             onCreateSheetOpened()
         }
@@ -87,7 +87,7 @@ fun ProgramsScreen(
             title = "Comienza Hoy",
             subtitle = "Aún no tienes programas configurados",
             actionLabel = "Crear primer programa",
-            onAction = { showCreateSheet = true },
+            onAction = onCreateProgram,
             modifier = Modifier.fillMaxSize().statusBarsPadding(),
         )
     } else {
@@ -118,7 +118,7 @@ fun ProgramsScreen(
                         )
                     }
                     Button(
-                        onClick = { showCreateSheet = true },
+                        onClick = onCreateProgram,
                         modifier = Modifier.wrapContentWidth(),
                         shape = MaterialTheme.shapes.extraLarge,
                         colors = ButtonDefaults.buttonColors(

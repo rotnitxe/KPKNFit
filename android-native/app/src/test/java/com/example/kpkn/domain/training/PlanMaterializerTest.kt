@@ -135,6 +135,29 @@ class PlanMaterializerTest {
     }
 
     @Test
+    fun materialize_preserves_slot_order_across_role_changes() {
+        val recipes = PROTOCOL_LIBRARY.filter { it.isVisibleForApplication }.mapNotNull { it.recipe }
+        recipes.forEach { recipe ->
+            val program = PlanMaterializer.materialize(
+                Program(id = "order", name = "Order"), recipe,
+                CatalogCompositionTestSupport.metadata, SeqIds(),
+                profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0),
+            )
+            val sessions = program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }
+                .flatMap { it.weeks }.flatMap { it.sessions }
+            val days = recipe.weeks.sortedWith(compareBy({ it.blockIndex }, { it.weekNumber })).flatMap { it.days }
+            assertEquals(recipe.id, days.size, sessions.size)
+            days.zip(sessions).forEach { (day, session) ->
+                assertEquals(
+                    "${recipe.id}/${day.label}",
+                    day.slots.map { it.lift.configurationId },
+                    session.allExercises().map { it.catalogConfigurationId },
+                )
+            }
+        }
+    }
+
+    @Test
     fun rematerializeWeek_does_not_rewrite_executed_weeks() {
         val recipe = sampleRecipe()
         val program = PlanMaterializer.materialize(

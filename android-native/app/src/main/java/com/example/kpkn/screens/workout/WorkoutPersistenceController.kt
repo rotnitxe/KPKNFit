@@ -24,7 +24,7 @@ class WorkoutPersistenceController(
     private val sessionId: String,
     private val getState: () -> WorkoutUiState,
     private val visibleExercises: (WorkoutUiState) -> List<Exercise>,
-    private val writeOngoing: suspend ((OngoingWorkoutState) -> OngoingWorkoutState) -> Unit,
+    private val writeOngoing: suspend ((OngoingWorkoutState) -> OngoingWorkoutState) -> WorkoutPersistResult,
     private val flushPendingWrites: suspend () -> Unit = {},
     private val persistDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO,
 ) {
@@ -58,12 +58,12 @@ class WorkoutPersistenceController(
     }
 
     @Suppress("UNUSED_PARAMETER")
-    suspend fun persistAndAwait(state: WorkoutUiState = getState()) {
+    suspend fun persistAndAwait(state: WorkoutUiState = getState()): WorkoutPersistResult {
         debounceJob?.cancel()
         debounceJob = null
         immediateCoalesceJob?.cancel()
         immediateCoalesceJob = null
-        persistFreshLocked()
+        return persistFreshLocked()
     }
 
     suspend fun flushForBackgroundSuspend() {
@@ -119,8 +119,8 @@ class WorkoutPersistenceController(
         }
     }
 
-    private suspend fun persistFreshLocked() {
-        persistMutex.withLock {
+    private suspend fun persistFreshLocked(): WorkoutPersistResult {
+        return persistMutex.withLock {
             val apply = buildOngoingUpdate(getState())
             if (apply == null) {
                 KpknDiagnosticLogger.event(
@@ -132,23 +132,24 @@ class WorkoutPersistenceController(
                     ),
                     sessionId = sessionId,
                 )
-                return@withLock
+                return@withLock WorkoutPersistResult.Skipped
             }
             try {
                 writeOngoing(apply)
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
-                    KpknDiagnosticLogger.event(
-                        namespace = "workout",
-                        name = "ongoing_persist_failed",
-                        fields = mapOf(
-                            "workoutSessionId" to sessionId,
-                            "exceptionType" to error.javaClass.name,
-                            "exceptionMessage" to error.message,
-                        ),
-                        sessionId = sessionId,
-                    )
+                KpknDiagnosticLogger.event(
+                    namespace = "workout",
+                    name = "ongoing_persist_failed",
+                    fields = mapOf(
+                        "workoutSessionId" to sessionId,
+                        "exceptionType" to error.javaClass.name,
+                        "exceptionMessage" to error.message,
+                    ),
+                    sessionId = sessionId,
+                )
+                WorkoutPersistResult.Failed(error)
             }
         }
     }

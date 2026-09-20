@@ -3,6 +3,7 @@ package com.example.kpkn.data.repository
 import android.content.Context
 import com.example.kpkn.data.db.*
 import com.example.kpkn.data.food.DatasetKnowledgeStore
+import com.example.kpkn.data.persistence.PersistenceWriteCoordinator
 import com.example.kpkn.data.food.FOOD_ALIASES
 import com.example.kpkn.data.food.buildFoodDatabase
 import com.example.kpkn.data.food.findFoodByNormalized
@@ -186,14 +187,24 @@ class NutritionRepository private constructor(
     }
 
     fun updateNutritionLog(log: NutritionLog) {
-        _nutritionLogs.update { list -> list.map { if (it.id == log.id) log else it } }
-        scope.launch { db.nutritionDao().upsertLog(log.toEntity()) }
-        captureDailyGoalSnapshot(log.date.take(10))
+        scope.launch {
+            runCatching { saveNutritionLog(log) }
+        }
     }
 
     fun deleteNutritionLog(logId: String) {
-        _nutritionLogs.update { list -> list.filter { it.id != logId } }
-        scope.launch { db.nutritionDao().deleteLog(logId) }
+        scope.launch {
+            runCatching { deleteNutritionLogAndAwait(logId) }
+        }
+    }
+
+    suspend fun deleteNutritionLogAndAwait(logId: String) = foodSaveMutex.withLock {
+        withContext(Dispatchers.IO) {
+            val existing = db.nutritionDao().getAllLogs().firstOrNull { it.id == logId }?.toNutritionLog()
+            db.withTransaction { db.nutritionDao().deleteLog(logId) }
+            _nutritionLogs.update { list -> list.filter { it.id != logId } }
+            existing?.date?.take(10)?.let { captureDailyGoalSnapshot(it) }
+        }
     }
 
     fun clearNutritionLogs() {
@@ -404,6 +415,20 @@ class NutritionRepository private constructor(
     val activeNutritionPlan: NutritionPlan?
         get() = _nutritionPlans.value.find { it.id == _activeNutritionPlanId.value }
 
+    suspend fun publishSetupCommit(plan: NutritionPlan?, activateNutrition: Boolean) {
+        if (plan == null) return
+        val committedPlans = withContext(Dispatchers.IO) {
+            db.nutritionDao().getAllPlans().map { it.toNutritionPlan() }
+        }
+        val committedActiveId = withContext(Dispatchers.IO) {
+            db.nutritionDao().getActiveState()?.activePlanId
+        }
+        withContext(Dispatchers.Main.immediate) {
+            _nutritionPlans.value = committedPlans
+            _activeNutritionPlanId.value = committedActiveId
+        }
+    }
+
     fun addNutritionPlan(plan: NutritionPlan) {
         _nutritionPlans.update { plans ->
             val existingIndex = plans.indexOfFirst { it.id == plan.id }
@@ -413,7 +438,13 @@ class NutritionRepository private constructor(
                 plans + plan
             }
         }
-        scope.launch { db.nutritionDao().upsertPlan(plan.toEntity()) }
+        scope.launch {
+            PersistenceWriteCoordinator.mutex.withLock {
+                if (_nutritionPlans.value.firstOrNull { it.id == plan.id } == plan) {
+                    db.nutritionDao().upsertPlan(plan.toEntity())
+                }
+            }
+        }
 
         // Keep the typed body goal normalized and linked to the plan. The body
         // feature can render it without depending on an active nutrition plan;

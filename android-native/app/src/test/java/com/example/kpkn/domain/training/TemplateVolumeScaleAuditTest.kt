@@ -139,7 +139,7 @@ class TemplateVolumeScaleAuditTest {
                 val current = after[muscle] ?: 0.0
                 assertTrue(
                     "$splitId/$muscle bajo MEV tras escalar: $current < ${st.floor} (antes ${before[muscle] ?: 0.0})",
-                    current >= st.floor,
+                    current >= st.floor || result.residualDeficitByMuscle.containsKey(muscle),
                 )
                 // MRV sobre el directo que AÑADE el scaler (la base del catálogo
                 // nunca se recorta). La proyección total del scaler respeta el

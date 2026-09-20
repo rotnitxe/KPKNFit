@@ -190,6 +190,16 @@ fun NutritionWizardScreen(
 }
 
 @Composable
+fun NutritionWizardStepContent(state: NutritionWizardUiState, vm: NutritionWizardViewModel) {
+    when (state.step) {
+        NutritionWizardStep.GOAL -> GoalStep(state, vm)
+        NutritionWizardStep.DATA -> DataStep(state, vm)
+        NutritionWizardStep.GOALS -> GoalsStep(state, vm)
+        NutritionWizardStep.REVIEW -> ReviewStep(state, vm)
+    }
+}
+
+@Composable
 private fun GoalStep(state: NutritionWizardUiState, vm: NutritionWizardViewModel) {
     val haze = LocalHazeState.current
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 18.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {

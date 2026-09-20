@@ -55,6 +55,11 @@ object SessionTemplateEngine {
 
     fun canApplyTemplate(template: SessionTemplate, targetSession: Session): Boolean =
         template.publicationStatus != SessionTemplatePublicationStatus.HIDDEN_UNVERIFIED &&
+            !targetSession.isMeetDay &&
+            !targetSession.isCompetitionSession &&
+            targetSession.competitionDetails == null &&
+            targetSession.competitionRecordId == null &&
+            targetSession.competitionKeyDateId == null &&
             when (template.kind) {
                 SessionTemplateKind.TRAINING -> true
                 SessionTemplateKind.MEET_DAY -> false
@@ -317,12 +322,34 @@ object SessionTemplateEngine {
         }.filter { it.exercises.isNotEmpty() || it.mobilitySeries.isNotEmpty() || it.mobilityConfig != null }
         val (keptExercises, droppedExercises) = cloned.exercises.partition { !it.isDuplicateAppend() }
         droppedExercises.forEach { omitted += it.toOmitted(null) }
+        val keptIds = (keptExercises + keptParts.flatMap { it.exercises }).map { it.id }.toSet()
+        val keptPartIds = keptParts.map { it.id }.toSet()
+        val keptGroups = cloned.supersetGroups.mapNotNull { group ->
+            val members = group.exerciseOrder.filter { it in keptIds }.distinct()
+            if (members.size < 2) return@mapNotNull null
+            group.copy(
+                exerciseOrder = members,
+                visualPlacement = group.visualPlacement?.let { placement ->
+                    placement.copy(
+                        partId = placement.partId?.takeIf { it in keptPartIds },
+                        anchorExerciseId = placement.anchorExerciseId?.takeIf { it in keptIds },
+                    )
+                },
+            )
+        }
+        val keptGroupIds = keptGroups.map { it.id }.toSet()
+        fun Exercise.withValidGroup(): Exercise =
+            if (supersetGroupRefOrLegacyId()?.let { it !in keptGroupIds } == true) {
+                copy(supersetId = null, supersetGroupRef = null)
+            } else this
         return TemplateApplyOutcome(
             session = target.copy(
-                parts = target.parts + keptParts,
-                exercises = target.exercises + keptExercises,
+                parts = target.parts + keptParts.map { part ->
+                    part.copy(exercises = part.exercises.map { it.withValidGroup() })
+                },
+                exercises = target.exercises + keptExercises.map { it.withValidGroup() },
                 warmup = target.warmup + cloned.warmup,
-                supersetGroups = target.allSupersetGroups() + cloned.supersetGroups,
+                supersetGroups = target.allSupersetGroups() + keptGroups,
                 origin = SessionOrigin.USER_DRAFT,
             ),
             omittedAppendExercises = omitted,

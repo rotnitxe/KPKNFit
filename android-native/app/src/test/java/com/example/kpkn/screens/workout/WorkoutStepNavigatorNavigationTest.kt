@@ -50,7 +50,7 @@ class WorkoutStepNavigatorNavigationTest {
                     state = state.copy(isRestTimerRunning = false)
                 }
                 override fun persistOngoingState(immediate: Boolean) = Unit
-                override suspend fun persistOngoingStateAndAwait() = Unit
+                override suspend fun persistOngoingStateAndAwait() = WorkoutPersistResult.Ok
                 override fun refreshLoadSuggestions(state: WorkoutUiState) = Unit
                 override fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?) = Unit
                 override fun computeImbalanceNotice(

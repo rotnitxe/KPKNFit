@@ -55,7 +55,7 @@ object AxialLoadMonitor {
         val heavy = recent.count { it.second >= nowMs - 7L * day && it.third >= p75 }
         val trend = recent
             .sortedBy { it.second }
-            .mapNotNull { it.first.ringStartSnapshot?.structure }
+            .mapNotNull { it.first.ringStartSnapshot?.takeUnless { snapshot -> snapshot.isInitialEstimate }?.structure }
             .takeLast(8)
         return AxialLoadReport(
             insufficientData = insufficient,

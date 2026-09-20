@@ -86,6 +86,87 @@ class SessionTemplateEngineTest {
     }
 
     @Test
+    fun `training templates reject competition destinations in both modes`() {
+        val template = makeTemplate()
+        val targets = listOf(
+            makeTargetSession().copy(isMeetDay = true),
+            makeTargetSession().copy(isCompetitionSession = true),
+            makeTargetSession().copy(competitionRecordId = "record"),
+            makeTargetSession().copy(competitionKeyDateId = "date"),
+            makeTargetSession().copy(competitionDetails = com.example.kpkn.data.models.CompetitionDetails()),
+        )
+        targets.forEach { target ->
+            assertFalse(SessionTemplateEngine.canApplyTemplate(template, target))
+            SessionTemplateApplyMode.entries.forEach { mode ->
+                assertTrue(runCatching {
+                    SessionTemplateEngine.applyTemplate(template, target, mode)
+                }.exceptionOrNull() is IllegalArgumentException)
+            }
+        }
+    }
+
+    @Test
+    fun `append dissolves a superset when dedup leaves a single member`() {
+        val duplicate = makeExercise(id = "duplicate").copy(
+            catalogConfigurationId = "bench", supersetId = "group", supersetGroupRef = "group",
+        )
+        val retained = makeExercise(id = "retained").copy(
+            catalogConfigurationId = "row", supersetId = "group", supersetGroupRef = "group",
+        )
+        val template = makeTemplate(exercises = listOf(duplicate, retained))
+        val target = makeTargetSession(exercises = listOf(
+            makeExercise(id = "original").copy(catalogConfigurationId = "bench"),
+        ))
+        val result = SessionTemplateEngine.applyTemplate(template, target, SessionTemplateApplyMode.APPEND)
+        assertEquals(2, result.allExercises().size)
+        assertTrue(result.allSupersetGroups().isEmpty())
+        val row = result.allExercises().single { it.catalogConfigurationId == "row" }
+        assertEquals(null, row.supersetId)
+        assertEquals(null, row.supersetGroupRef)
+    }
+
+    @Test
+    fun `append rebuilds superset order and drops removed anchors`() {
+        val exercises = listOf("bench", "row", "curl").map { configuration ->
+            makeExercise(id = configuration).copy(
+                catalogConfigurationId = configuration,
+                supersetId = "group",
+                supersetGroupRef = "group",
+            )
+        }
+        val template = makeTemplate(exercises = exercises).let {
+            it.copy(session = it.session.copy(supersetGroups = listOf(
+                SupersetGroup(
+                    id = "group",
+                    exerciseOrder = exercises.map { exercise -> exercise.id },
+                    visualPlacement = SupersetVisualPlacement(anchorExerciseId = "bench"),
+                ),
+            )))
+        }
+        val target = makeTargetSession(exercises = listOf(
+            makeExercise(id = "original").copy(catalogConfigurationId = "bench"),
+        ))
+        val result = SessionTemplateEngine.applyTemplate(template, target, SessionTemplateApplyMode.APPEND)
+        val group = result.supersetGroups.single()
+        assertEquals(result.exercises.drop(1).map { it.id }, group.exerciseOrder)
+        assertEquals(null, group.visualPlacement?.anchorExerciseId)
+        assertTrue(result.exercises.drop(1).all { it.supersetGroupRef == group.id })
+    }
+
+    @Test
+    fun `append does not add a group when every member is omitted`() {
+        val exercises = listOf("bench", "row").map { configuration ->
+            makeExercise(id = configuration).copy(catalogConfigurationId = configuration, supersetId = "group")
+        }
+        val target = makeTargetSession(exercises = exercises.map { it.copy(supersetId = null) })
+        val result = SessionTemplateEngine.applyTemplate(
+            makeTemplate(exercises = exercises), target, SessionTemplateApplyMode.APPEND,
+        )
+        assertEquals(target.exercises, result.exercises)
+        assertTrue(result.allSupersetGroups().isEmpty())
+    }
+
+    @Test
     fun `applyReplace_clearsExistingExercises`() {
         val template = makeTemplate(
             exercises = listOf(makeExercise(id = "tpl-ex1", name = "Template Exercise")),
@@ -432,7 +513,7 @@ class SessionTemplateEngineTest {
     }
 
     @Test
-    fun `applyReplace copies cardioFirst and duration and clears meet variants`() {
+    fun `applyReplace copies cardioFirst and duration and clears variants`() {
         val template = makeTemplate(
             exercises = listOf(makeExercise(id = "tpl-ex", name = "Template Exercise")),
         ).let {
@@ -450,8 +531,7 @@ class SessionTemplateEngineTest {
             cardioFirst = false,
             targetDurationMinutes = 40,
             sessionB = Session(id = "b", name = "B"),
-            isMeetDay = true,
-            isCompetitionSession = true,
+            trainingBackup = com.example.kpkn.data.models.TrainingBackup(),
         )
 
         val result = SessionTemplateEngine.applyTemplate(
@@ -464,6 +544,7 @@ class SessionTemplateEngineTest {
         assertEquals(75, result.targetDurationMinutes)
         assertEquals("Keep my name", result.name)
         assertEquals(null, result.sessionB)
+        assertEquals(null, result.trainingBackup)
         assertFalse(result.isMeetDay)
         assertFalse(result.isCompetitionSession)
     }

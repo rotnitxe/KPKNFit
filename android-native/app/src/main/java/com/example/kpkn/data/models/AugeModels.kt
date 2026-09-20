@@ -63,6 +63,11 @@ data class GlobalBatteries(
     val muscular: Int,  // 0-100
     val cnc: Int,       // 0-100 (Central Nervous System)
     val spinal: Int,    // 0-100
+    val sourceLabel: String? = null,
+    val sourceConfidence: Int? = null,
+    val sourceId: String? = null,
+    val sourceAnchorMs: Long? = null,
+    val sourceExpiresAtMs: Long? = null,
 ) {
     val system: Int get() = cnc
     val structure: Int get() = spinal
@@ -154,6 +159,7 @@ data class RecoveryDashboard(
     val recommendation: String,
     val confidenceLabel: String,
     val channels: List<RecoveryChannelSnapshot> = emptyList(),
+    val dataLabel: String? = null,
 )
 
 fun RecoveryDashboard.channelScore(id: RecoveryChannelId, fallback: Int = 100): Int =

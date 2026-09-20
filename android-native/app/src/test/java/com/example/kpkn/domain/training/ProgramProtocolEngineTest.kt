@@ -131,11 +131,11 @@ class ProgramProtocolEngineTest {
             enhancedDayDifferentiation = true,
         )
         val sessions = applied.macrocycles.first().blocks.first().mesocycles.first().weeks.first().sessions
-        val mains = sessions.map { it.exercises.first().catalogConfigurationId }
+        val mains = sessions.map { it.allExercises().first().catalogConfigurationId }
         assertTrue(mains.contains("low_bar_back_squat__barbell"))
         assertTrue(mains.contains("conventional_deadlift__bilateral__barbell"))
         assertTrue(mains.contains("bench_press__barbell"))
-        assertTrue(sessions.map { it.exercises.size }.distinct().size >= 2)
+        assertTrue(sessions.map { it.allExercises().size }.distinct().size >= 2)
     }
 
     @Test
@@ -199,18 +199,18 @@ class ProgramProtocolEngineTest {
         assertEquals(3, firstWeek.sessions.first().dayOfWeek)
         assertEquals(4, firstWeek.sessions.size)
         val mainIds = firstWeek.sessions.map { session ->
-            session.exercises.first().catalogConfigurationId
+            session.allExercises().first().catalogConfigurationId
         }
         assertEquals("low_bar_back_squat__barbell", mainIds[0])
         assertEquals("conventional_deadlift__bilateral__barbell", mainIds[1])
         assertEquals("bench_press__barbell", mainIds[2])
         assertEquals("bench_press__barbell", mainIds[3])
         firstWeek.sessions.forEach { session ->
-            val main = session.exercises.first()
+            val main = session.allExercises().first()
             assertTrue((main.restTime ?: 0) >= 180)
             assertTrue(main.sets.any { it.targetPercentageRM != null })
         }
-        val squat = firstWeek.sessions.first().exercises.first()
+        val squat = firstWeek.sessions.first().allExercises().first()
         assertTrue(squat.isCompetitionLift)
         assertEquals(listOf(40.0, 55.0, 65.0), squat.warmupSets.map { it.percentageOfWorkingWeight })
         val phases = applied.macrocycles.first().blocks.map { it.goal }
@@ -224,19 +224,19 @@ class ProgramProtocolEngineTest {
             phases,
         )
         val baseSets = applied.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
-            .sessions.flatMap { it.exercises }.sumOf { it.sets.size }
+            .sessions.flatMap { it.allExercises() }.sumOf { it.sets.size }
         val taperSets = applied.macrocycles.first().blocks.last().mesocycles.first().weeks.first()
-            .sessions.flatMap { it.exercises }.sumOf { it.sets.size }
+            .sessions.flatMap { it.allExercises() }.sumOf { it.sets.size }
         assertTrue("Taper debe reducir volumen", taperSets <= baseSets)
         val peak = applied.macrocycles.first().blocks[2].mesocycles.first().weeks.first()
         val taper = applied.macrocycles.first().blocks.last().mesocycles.first().weeks.first()
-        val peakMainPct = peak.sessions.flatMap { it.exercises.take(1) }
+        val peakMainPct = peak.sessions.flatMap { it.allExercises().take(1) }
             .flatMap { it.sets }.mapNotNull { it.targetPercentageRM }.average()
-        val taperMainPct = taper.sessions.flatMap { it.exercises.take(1) }
+        val taperMainPct = taper.sessions.flatMap { it.allExercises().take(1) }
             .flatMap { it.sets }.mapNotNull { it.targetPercentageRM }.average()
         assertTrue("Taper debe reducir %RM respecto a Peak", taperMainPct < peakMainPct)
 
-        val anchoredMain = firstWeek.sessions.first().exercises.first()
+        val anchoredMain = firstWeek.sessions.first().allExercises().first()
             .copy(reference1RM = 200.0)
         val anchoredSet = anchoredMain.sets.first()
         assertEquals(200.0 * (anchoredSet.targetPercentageRM ?: 0.0) / 100.0,
@@ -257,7 +257,7 @@ class ProgramProtocolEngineTest {
             SeqIds(),
         )
         val main = applied.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
-            .sessions.flatMap { it.exercises }
+            .sessions.flatMap { it.allExercises() }
             .filter { it.isCompetitionLift }
         assertTrue(main.all { it.reference1RM != null && it.reference1RM in setOf(180.0, 108.0, 198.0) })
         val squat = main.first { it.catalogConfigurationId == "low_bar_back_squat__barbell" }

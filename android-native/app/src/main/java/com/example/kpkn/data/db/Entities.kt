@@ -343,6 +343,25 @@ fun BodyGoalEntity.toBodyGoal(): com.example.kpkn.data.models.BodyGoal? = runCat
     )
 }.getOrNull()
 
+@Entity(tableName = "setup_drafts")
+data class SetupDraftEntity(
+    @PrimaryKey val draftId: String,
+    val payloadJson: String,
+    val revision: Long,
+    val catalogRevision: String?,
+    val updatedAtEpochMs: Long,
+)
+
+@Entity(tableName = "setup_commit_receipts")
+data class SetupCommitReceiptEntity(
+    @PrimaryKey val commitId: String,
+    val draftId: String?,
+    val programId: String?,
+    val nutritionPlanId: String?,
+    val bodyGoalIdsJson: String,
+    val committedAtEpochMs: Long,
+)
+
 @Entity(tableName = "nutrition_pantry")
 data class PantryItemEntity(@PrimaryKey val id: String, val name: String, val data: String)
 fun PantryItem.toEntity() = PantryItemEntity(id = id, name = name, data = dbJson.encodeToString(this))

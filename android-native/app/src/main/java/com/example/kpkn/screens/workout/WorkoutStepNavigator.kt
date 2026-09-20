@@ -34,7 +34,7 @@ class WorkoutStepNavigator(
         fun stopRestTimer()
         /** Cursor-only moves should pass [immediate]=false so they ride the draft debounce instead of the immediate coalesce window. */
         fun persistOngoingState(immediate: Boolean = true)
-        suspend fun persistOngoingStateAndAwait()
+        suspend fun persistOngoingStateAndAwait(): WorkoutPersistResult
         fun refreshLoadSuggestions(state: WorkoutUiState)
         fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?)
         fun computeImbalanceNotice(

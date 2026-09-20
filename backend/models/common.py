@@ -213,6 +213,24 @@ class NutritionLog(BaseModel):
     fats: Optional[float] = None
 
 
+class InitialRecoveryEvidence(BaseModel):
+    capturedAtMs: int
+    coveredFromMs: int
+    coveredToMs: int
+    expiresAtMs: int
+    sessions: int
+    activityType: Literal["STRENGTH", "CARDIO", "MIXED"]
+    intensity: Literal["EASY", "MODERATE", "HARD", "VERY_HARD"]
+    zones: list[str] = []
+    sensations: dict[str, Optional[int]] = {}
+    muscularScore: int
+    systemScore: int
+    structureScore: int
+    confidence: int
+    estimatorVersion: int = 1
+    sourceId: str = "initial-recovery"
+
+
 class DailyWellbeingLog(BaseModel):
     id: str
     date: str
@@ -291,6 +309,7 @@ class Settings(BaseModel):
     userVitals: UserVitals = Field(default_factory=UserVitals)
     algorithmSettings: AlgorithmSettings = Field(default_factory=AlgorithmSettings)
     batteryCalibration: Optional[BatteryCalibration] = None
+    initialRecoveryEvidence: Optional[InitialRecoveryEvidence] = None
     startWeekOn: Optional[int] = None
     workDays: Optional[list[int]] = None
     wakeTimeWork: Optional[str] = None

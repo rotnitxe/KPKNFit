@@ -62,6 +62,7 @@ data class RingStartSnapshot(
     val muscular: Int,
     val energy: Int,
     val structure: Int,
+    val isInitialEstimate: Boolean = false,
 )
 
 @Serializable

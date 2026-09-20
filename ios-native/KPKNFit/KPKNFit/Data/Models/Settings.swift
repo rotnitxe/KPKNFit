@@ -45,6 +45,7 @@ public struct AppSettings: Codable {
     public var sleepTargetHours: Double = 8.0
     public var smartSleepEnabled: Bool = false
     public var algorithmSettings: AlgorithmSettings = AlgorithmSettings()
+    public var initialRecoveryEvidence: InitialRecoveryEvidence? = nil
     public var augePredictionBias: PredictionBiasProfile = PredictionBiasProfile()
     public var reducedMotionMode: Bool = false
     public var hapticIntensity: HapticIntensity = .MEDIUM

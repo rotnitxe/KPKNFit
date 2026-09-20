@@ -40,6 +40,7 @@ class WorkoutPersistenceDebounceTest {
             writeOngoing = { apply ->
                 val base = OngoingWorkoutState(programId = "prog", session = session, startTime = 0L)
                 writtenIndex = apply(base).activeSetIndex
+                WorkoutPersistResult.Ok
             },
             persistDispatcher = dispatcher,
         )
@@ -72,6 +73,7 @@ class WorkoutPersistenceDebounceTest {
             writeOngoing = { apply ->
                 val base = OngoingWorkoutState(programId = "prog", session = session, startTime = 0L)
                 writes += apply(base).activeSetIndex ?: -1
+                WorkoutPersistResult.Ok
             },
             persistDispatcher = dispatcher,
         )
@@ -110,6 +112,7 @@ class WorkoutPersistenceDebounceTest {
             writeOngoing = { apply ->
                 val base = OngoingWorkoutState(programId = "prog", session = session, startTime = 0L)
                 writes += apply(base).activeSetIndex ?: -1
+                WorkoutPersistResult.Ok
             },
             persistDispatcher = dispatcher,
         )
@@ -144,6 +147,7 @@ class WorkoutPersistenceDebounceTest {
             writeOngoing = { apply ->
                 val base = OngoingWorkoutState(programId = "prog", session = session, startTime = 0L)
                 writes += apply(base).activeSetIndex ?: -1
+                WorkoutPersistResult.Ok
             },
             persistDispatcher = dispatcher,
         )

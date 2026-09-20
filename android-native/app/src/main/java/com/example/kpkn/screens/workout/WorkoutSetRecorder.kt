@@ -88,7 +88,7 @@ class WorkoutSetRecorder(
         /** Applies a scheduled technique's next-load prescription to the live card. */
         fun applyScheduledLoadOverride(exerciseId: String, setIdx: Int, side: String?, load: Double)
         fun refreshLoadSuggestions(state: WorkoutUiState, onlyExerciseId: String? = null)
-        suspend fun persistOngoingStateAndAwait()
+        suspend fun persistOngoingStateAndAwait(): WorkoutPersistResult
         fun nextSet(stopRest: Boolean = true)
         fun nextIncompleteStepAfter(state: WorkoutUiState): WorkoutStep?
         fun sessionForActiveMode(base: Session, mode: WeekVariant): Session
@@ -563,7 +563,20 @@ class WorkoutSetRecorder(
                 ports.registerManualLoadOverride(exercise.id, targetSetIdx, resolvedSide, weight)
             }
             ports.refreshLoadSuggestions(getState(), onlyExerciseId = exercise.id)
-            ports.persistOngoingStateAndAwait()
+            val persistResult = ports.persistOngoingStateAndAwait()
+            if (!persistResult.succeeded) {
+                KpknDiagnosticLogger.event(
+                    namespace = "workout",
+                    name = "set_recorded_aborted",
+                    fields = mapOf(
+                        "sessionId" to state.session?.id,
+                        "exerciseId" to exercise.id,
+                        "setIndex" to targetSetIdx,
+                        "persistResult" to persistResult.javaClass.simpleName,
+                    ),
+                )
+                return
+            }
 
             KpknDiagnosticLogger.event(
                 namespace = "workout",

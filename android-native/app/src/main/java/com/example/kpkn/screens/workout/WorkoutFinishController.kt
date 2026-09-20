@@ -306,7 +306,12 @@ class WorkoutFinishController(
                     settings = repository.settings.value,
                     postExerciseFeedback = state.postExerciseFeedbackByExerciseId,
                 )
-                val actualDate = completionInstantIso.take(10).takeIf { it.length == 10 }
+                val actualDate = runCatching {
+                    com.example.kpkn.domain.time.ActivityLocalDate.formatIsoDate(
+                        com.example.kpkn.domain.time.ActivityLocalDate.fromInstantIso(completionInstantIso),
+                    )
+                }.getOrNull()?.takeIf { it.length == 10 }
+                    ?: completionInstantIso.take(10).takeIf { it.length == 10 }
                     ?: LocalDate.now().toString()
                 val scheduledDate = scheduledDateForSession(state.weekId, session)
                 val scheduleDeltaDays = scheduledDate
@@ -372,7 +377,19 @@ class WorkoutFinishController(
                     },
                     omittedExercises = omittedExercises,
                     energySummary = finalEnergySummary,
-                    ringStartSnapshot = closingFeedback.ringStartSnapshot,
+                    ringStartSnapshot = closingFeedback.ringStartSnapshot?.let { snapshot ->
+                        val capturedAt = runCatching { java.time.Instant.parse(snapshot.capturedAtIso).toEpochMilli() }.getOrNull()
+                        val estimated = capturedAt?.let { instant ->
+                            com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicy.resolve(
+                                com.example.kpkn.domain.auge.InitialRecoveryPolicyInput(
+                                    evidence = repository.settings.value.initialRecoveryEvidence,
+                                    nowMs = instant,
+                                    workoutLogs = repository.history.value,
+                                ),
+                            ).isEstimated
+                        } ?: false
+                        snapshot.copy(isInitialEstimate = snapshot.isInitialEstimate || estimated)
+                    },
                     stillPresentDiscomfortIds = (
                         closingFeedback.stillPresentDiscomfortIds +
                             state.postExerciseFeedbackByExerciseId.values.flatMap { it.stillPresentDiscomfortIds }

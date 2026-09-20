@@ -117,6 +117,28 @@ fun SettingsScreen(
     val backupImportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         pendingImport = uri
     }
+    val dbSnapshotExportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/x-sqlite3"),
+    ) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        viewModel.exportDatabaseSnapshot(
+            context = context,
+            destination = uri,
+            onSuccess = { Toast.makeText(context, "Copia .db exportada correctamente", Toast.LENGTH_LONG).show() },
+            onError = { error -> Toast.makeText(context, "No se pudo exportar: $error", Toast.LENGTH_LONG).show() },
+        )
+    }
+    val dbSnapshotImportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        viewModel.importDatabaseSnapshot(
+            context = context,
+            uri = uri,
+            onSuccess = { Toast.makeText(context, "Base de datos restaurada", Toast.LENGTH_LONG).show() },
+            onError = { error -> Toast.makeText(context, "No se pudo importar: $error", Toast.LENGTH_LONG).show() },
+        )
+    }
     val telemetryFolderLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
         uri ?: return@rememberLauncherForActivityResult
         KpknDiagnosticStorage.configure(context, uri)
@@ -231,17 +253,31 @@ fun SettingsScreen(
                 SettingsCard {
                     SettingsActionRow(
                         icon = Icons.Default.Backup,
-                        title = "Exportar backup",
-                        description = "Guarda tus rutinas, historial, nutrición, progreso y foto en un archivo JSON.",
+                        title = "Exportar backup (JSON)",
+                        description = "Rutinas, historial, nutrición, AUGE, competiciones, tags de contexto, rendimiento y metadatos de medios. No incluye el catálogo global de alimentos ni WikiLab (se regeneran).",
                         actionLabel = "Exportar",
                         onClick = { backupExportLauncher.launch("kpkn-backup.json") },
                     )
                     SettingsActionRow(
                         icon = Icons.Default.Restore,
-                        title = "Importar backup",
-                        description = "Reemplaza los datos actuales por un archivo exportado anteriormente.",
+                        title = "Importar backup (JSON)",
+                        description = "Restaura lo que trae el archivo. Datos no incluidos en backups antiguos (competiciones, tags, etc.) se conservan. Antes de importar se guarda un snapshot local para deshacer si falla.",
                         actionLabel = "Importar",
                         onClick = { backupImportLauncher.launch(arrayOf("application/json", "text/plain")) },
+                    )
+                    SettingsActionRow(
+                        icon = Icons.Default.SettingsBackupRestore,
+                        title = "Copia completa (.db)",
+                        description = "Snapshot binario de toda la base Room (incluye catálogo global y WikiLab). Recomendado para migrar de dispositivo.",
+                        actionLabel = "Exportar .db",
+                        onClick = { dbSnapshotExportLauncher.launch("kpkn-backup.db") },
+                    )
+                    SettingsActionRow(
+                        icon = Icons.Default.SettingsBackupRestore,
+                        title = "Restaurar copia (.db)",
+                        description = "Reemplaza la base local por un archivo .db exportado antes. Crea un snapshot de rollback automático.",
+                        actionLabel = "Importar .db",
+                        onClick = { dbSnapshotImportLauncher.launch(arrayOf("application/x-sqlite3", "application/octet-stream", "*/*")) },
                     )
                 }
             }
@@ -323,7 +359,13 @@ fun SettingsScreen(
         KpknAlertDialog(
             onDismissRequest = { pendingImport = null },
             title = { Text("¿Importar este backup?") },
-            text = { Text("Se reemplazarán los datos actuales por el contenido del archivo. Esta acción no recupera cambios posteriores al backup.") },
+            text = {
+                Text(
+                    "Se restaurarán rutinas, historial, nutrición y AUGE según el JSON. " +
+                        "Si el archivo es antiguo, competiciones y datos de contexto no listados se mantienen. " +
+                        "Se crea un snapshot local antes de importar por si algo falla.",
+                )
+            },
             confirmButton = {
                 TextButton(onClick = {
                     pendingImport = null

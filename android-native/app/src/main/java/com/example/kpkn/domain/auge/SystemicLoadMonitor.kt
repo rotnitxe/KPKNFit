@@ -43,7 +43,7 @@ object SystemicLoadMonitor {
         val chronicWeekly = recent.sumOf { it.third } / 4.0
         val acwr = if (insufficient || chronicWeekly <= 0.0) null else AugeClassifiers.computeAcwr(acute, chronicWeekly)
         val sessions7 = recent.count { it.second >= nowMs - 7L * day }
-        val trend = recent.sortedBy { it.second }.mapNotNull { it.first.ringStartSnapshot?.energy }.takeLast(8)
+        val trend = recent.sortedBy { it.second }.mapNotNull { it.first.ringStartSnapshot?.takeUnless { snapshot -> snapshot.isInitialEstimate }?.energy }.takeLast(8)
         return SystemicLoadReport(
             insufficientData = insufficient,
             acwr = acwr,

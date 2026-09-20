@@ -29,6 +29,8 @@ import kotlin.math.roundToInt
  */
 object AugeRecoveryEngine {
 
+    private const val ACUTE_FEEDBACK_WINDOW_MS = 14L * 24 * 3_600 * 1_000
+
     // ─── Perfiles de recuperación (horas base) ────────────────────────────────
 
     private val RECOVERY_PROFILES = mapOf(
@@ -485,7 +487,11 @@ object AugeRecoveryEngine {
 
         var multiplier = nutritionMultiplier
 
-        val feedbackPenaltyPct = calculateMuscleFeedbackPenaltyPct(muscleName, feedbacks)
+        val acuteFeedbacks = feedbacks.filter { fb ->
+            val fbMs = parseWellbeingDate(fb.date)
+            fbMs == 0L || (now - fbMs) <= ACUTE_FEEDBACK_WINDOW_MS
+        }
+        val feedbackPenaltyPct = calculateMuscleFeedbackPenaltyPct(muscleName, acuteFeedbacks)
         val discomfortPenaltyPct = calculateMuscleDiscomfortPenaltyPct(
             muscleName = muscleName,
             history = history,
@@ -550,7 +556,11 @@ object AugeRecoveryEngine {
                 sessionSoftAccum += capped
                 sessionMuscleStress += capped
                 if (hoursSince <= 168.0 && capped > 0.0) {
-                    effectiveSetsCount += log.completedExercises.sumOf { it.sets.count(::isSetEffective) }
+                    effectiveSetsCount += log.completedExercises.sumOf { ex ->
+                        val involvement = involvedMusclesFor(ex, resolveDbInfo(ex, exerciseDb))
+                            .any { muscleMatchesCategory(it.muscle, muscleName) }
+                        if (involvement) ex.sets.count(::isSetEffective) else 0
+                    }
                     lastSessionDate = max(lastSessionDate, logTime)
                 }
                 accumulatedFatigue += sessionMuscleStress
@@ -652,13 +662,6 @@ object AugeRecoveryEngine {
         }
         battery = min(battery, domsCap)
 
-        val status = when {
-            battery >= 95 -> RecoveryStatus.FRESH
-            battery >= 85 -> RecoveryStatus.OPTIMAL
-            battery >= 40 -> RecoveryStatus.RECOVERING
-            else          -> RecoveryStatus.EXHAUSTED
-        }
-
         var hoursToRecovery = 0
         if (battery < 90 && accumulatedFatigue > 0) {
             val targetFatigue = -90.0 * ln(0.9) * capacity / 100.0
@@ -676,6 +679,13 @@ object AugeRecoveryEngine {
         battery = clamp(battery - discomfortPenaltyPct * 0.35, 0.0, 100.0)
         // Apply deltas first, then enforce physiological floor so calibration cannot sink below floor
         battery = max(clamp(battery + myDelta, 0.0, 100.0), floor)
+
+        val status = when {
+            battery >= 95 -> RecoveryStatus.FRESH
+            battery >= 85 -> RecoveryStatus.OPTIMAL
+            battery >= 40 -> RecoveryStatus.RECOVERING
+            else          -> RecoveryStatus.EXHAUSTED
+        }
 
         return MuscleRecoveryStatus(
             muscleName             = muscleName,
@@ -1214,10 +1224,33 @@ object AugeRecoveryEngine {
             floor.spinal.toDouble(),
         ).toInt().coerceIn(0, 100)
 
+        val initialContribution = InitialRecoveryEvidencePolicy.resolve(
+            InitialRecoveryPolicyInput(
+                evidence = settings.initialRecoveryEvidence,
+                nowMs = evaluationNow,
+                workoutLogs = history,
+            ),
+        )
+        val muscularEstimated = initialContribution.isEstimated && wellbeing?.manualMuscularBattery == null && wellbeing?.manualMuscleOverridesV2.isNullOrEmpty() && wellbeing?.manualMuscleBatteries.isNullOrEmpty()
+        val systemEstimated = initialContribution.isEstimated && wellbeing?.manualNeuralBattery == null
+        val structureEstimated = initialContribution.isEstimated && wellbeing?.manualSpinalBattery == null
+        val estimated = muscularEstimated || systemEstimated || structureEstimated
+        fun combine(real: Int, initial: Int?, enabled: Boolean, minimum: Int): Int =
+            if (enabled && initial != null) (real - (100 - initial)).coerceIn(minimum, 100) else real
         return GlobalBatteries(
-            muscular = finalMuscular,
-            cnc      = finalCnc,
-            spinal   = finalSpinal,
+            muscular = combine(finalMuscular, initialContribution.muscular, muscularEstimated, floor.muscular),
+            cnc = combine(finalCnc, initialContribution.system, systemEstimated, floor.cns),
+            spinal = combine(finalSpinal, initialContribution.structure, structureEstimated, floor.spinal),
+            sourceLabel = when {
+                estimated -> "Estimación inicial"
+                history.isNotEmpty() -> "Historial real"
+                wellbeing?.manualMuscularBattery != null || wellbeing?.manualNeuralBattery != null || wellbeing?.manualSpinalBattery != null -> "Ajuste manual"
+                else -> "Sin calibrar"
+            },
+            sourceConfidence = initialContribution.confidence.takeIf { estimated },
+            sourceId = if (estimated) "declared-wizard" else if (history.isNotEmpty()) "workout-history" else null,
+            sourceAnchorMs = initialContribution.anchorMs.takeIf { estimated },
+            sourceExpiresAtMs = settings.initialRecoveryEvidence?.expiresAtMs?.takeIf { estimated },
         )
     }
 
@@ -1417,6 +1450,7 @@ object AugeRecoveryEngine {
             recommendation = recommendation,
             confidenceLabel = confidenceLabel(confidenceAverage),
             channels = channels,
+            dataLabel = batteries.sourceLabel,
         )
     }
 

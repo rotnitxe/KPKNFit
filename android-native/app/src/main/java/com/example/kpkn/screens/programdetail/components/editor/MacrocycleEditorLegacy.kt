@@ -726,57 +726,20 @@ fun MacrocycleEditorLegacy(
     }
 
     pendingProtocol?.let { protocol ->
-        val hasContent = ProgramTemplateEngine.hasSessionContent(program)
-        KpknAlertDialog(
-            onDismissRequest = { pendingProtocol = null },
-            title = { Text(protocol.name, fontWeight = FontWeight.Black) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(protocol.description)
-                    Text(
-                        "${protocol.blocks.size} bloques · ${protocol.blocks.sumOf { it.weeks }} semanas",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    if (hasContent) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(
-                                checked = overwriteExisting,
-                                onCheckedChange = { overwriteExisting = it },
-                            )
-                            Text(
-                                "Reemplazar todo el programa actual (se guarda copia en Historial).",
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                        if (!overwriteExisting) {
-                            Text(
-                                "Se creará una copia borrador para no perder el original.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                    if (program.structure == ProgramStructure.SIMPLE && protocol.materializesAsComplex) {
-                        Text(
-                            "Se convertirá a programa avanzado (COMPLEX) para poder aplicar el protocolo.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                }
+        com.example.kpkn.screens.programs.ProtocolDetailSheet(
+            protocol = protocol,
+            onDismiss = { pendingProtocol = null },
+            continueLabel = "Reemplazar plan",
+            onContinue = {
+                onApplyProtocol(protocol, true)
+                pendingProtocol = null
+                setLibrarySheetOpen(false)
             },
-            confirmButton = {
-                Button(onClick = {
-                    onApplyProtocol(protocol, overwriteExisting && hasContent)
-                    pendingProtocol = null
-                    setLibrarySheetOpen(false)
-                }) {
-                    Text(if (overwriteExisting && hasContent) "Reemplazar todo" else "Aplicar protocolo")
-                }
+            onCreateCopy = {
+                onApplyProtocol(protocol, false)
+                pendingProtocol = null
+                setLibrarySheetOpen(false)
             },
-            dismissButton = { TextButton(onClick = { pendingProtocol = null }) { Text("Cancelar") } },
         )
     }
 
@@ -2036,127 +1999,12 @@ internal fun LegacyLibrarySection(
     onApplyProtocol: (Protocol) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) }
-    val simpleTemplates = remember { PROGRAM_TEMPLATES.filter { it.type == ProgramStructure.SIMPLE } }
-    val advancedTemplates = remember { PROGRAM_TEMPLATES.filter { it.type == ProgramStructure.COMPLEX } }
-
-    KpknSheet(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text("Plantillas / protocolos", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Color.White)
-            Text(
-                "Elige una plantilla Simple/Avanzada o un protocolo. Se pedirá confirmación antes de aplicar.",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.65f),
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                KpknSheetLightChip(
-                    label = "SIMPLE",
-                    selected = selectedTab == 0,
-                    modifier = Modifier.weight(1f),
-                    onClick = { selectedTab = 0 },
-                )
-                KpknSheetLightChip(
-                    label = "AVANZADO",
-                    selected = selectedTab == 1,
-                    modifier = Modifier.weight(1f),
-                    onClick = { selectedTab = 1 },
-                )
-                KpknSheetLightChip(
-                    label = "PROTOCOLOS",
-                    selected = selectedTab == 2,
-                    modifier = Modifier.weight(1f),
-                    onClick = { selectedTab = 2 },
-                )
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 420.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                when (selectedTab) {
-                    0 -> simpleTemplates.forEach { template ->
-                        TemplatePreviewCard(template = template, onClick = { onApplyTemplate(template) })
-                    }
-                    1 -> advancedTemplates.forEach { template ->
-                        TemplatePreviewCard(template = template, onClick = { onApplyTemplate(template) })
-                    }
-                    else -> {
-                        val visibleProtocols = PROTOCOL_LIBRARY.filter { it.isVisibleForApplication }
-                        if (visibleProtocols.isEmpty()) {
-                            Text(
-                                "No hay protocolos verificables publicados todavía. Las recetas de terceros se mantienen fuera del catálogo hasta poder reproducirlas fielmente.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.White.copy(alpha = 0.72f),
-                            )
-                        }
-                        visibleProtocols.forEach { protocol ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onApplyProtocol(protocol) },
-                            shape = RoundedCornerShape(18.dp),
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text(protocol.name, fontWeight = FontWeight.Black)
-                                Text(
-                                    protocol.description,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                Text(
-                                    "${protocol.blocks.sumOf { it.weeks }} semanas · ${protocol.blocks.size} bloques · ${protocol.sessionCategories.size} partes por sesión",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
-                                if (protocol.sessionCategories.isNotEmpty()) {
-                                    Text(
-                                        protocol.sessionCategories.joinToString(" · "),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-    }
-}
-
-@Composable
-private fun TemplatePreviewCard(
-    template: ProgramTemplateOption,
-    onClick: () -> Unit,
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(18.dp),
-    ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("${template.emoji} ${template.name}", fontWeight = FontWeight.Black)
-            Text(template.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(
-                "${template.trackLabel ?: "Programa"} · ${template.blockNames.size} bloques · ${template.weeks} semanas",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary,
-            )
-        }
-    }
+    com.example.kpkn.screens.programs.CreateProgramTemplateSheet(
+        onDismiss = onDismiss,
+        onCreateBlank = null,
+        onCreateFromTemplate = onApplyTemplate,
+        onSelectProtocol = onApplyProtocol,
+    )
 }
 
 @Composable

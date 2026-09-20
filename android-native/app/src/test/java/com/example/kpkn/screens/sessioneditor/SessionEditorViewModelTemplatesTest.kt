@@ -100,6 +100,32 @@ class SessionEditorViewModelTemplatesTest {
         assertTrue(vm.uiState.value.snackbarMessage.orEmpty().contains("aplicada"))
     }
 
+    @Test
+    fun applying_template_preserves_metadata_edited_before_async_commit() = runBlocking {
+        val programId = "program-template-metadata"
+        val sessionId = "session-template-metadata"
+        repository.addProgram(programWithSession(programId, Session(id = sessionId, name = "Antes")))
+        val vm = createViewModel(programId, sessionId)
+        awaitSession(vm)
+        val queued = kotlinx.coroutines.test.StandardTestDispatcher()
+        Dispatchers.setMain(queued)
+        try {
+            vm.selectTemplate(trainingTemplate())
+            vm.updateSession { it.copy(name = "Después", description = "Notas nuevas", dayOfWeek = 4) }
+            withTimeout(10_000) {
+                while (vm.uiState.value.session!!.allExercises().isEmpty()) {
+                    queued.scheduler.runCurrent()
+                    delay(25)
+                }
+            }
+            org.junit.Assert.assertEquals("Después", vm.uiState.value.session!!.name)
+            org.junit.Assert.assertEquals("Notas nuevas", vm.uiState.value.session!!.description)
+            org.junit.Assert.assertEquals(4, vm.uiState.value.session!!.dayOfWeek)
+        } finally {
+            Dispatchers.setMain(dispatcher)
+        }
+    }
+
     private fun trainingTemplate() = SessionTemplate(
         id = "sys-training-fixture",
         sourceType = SessionTemplateSourceType.SYSTEM,

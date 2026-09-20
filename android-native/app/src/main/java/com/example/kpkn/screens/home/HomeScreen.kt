@@ -98,6 +98,7 @@ fun HomeScreen(
     onNutritionOverlayChange: HomeGlassOverlayChange = { _, _ -> },
     onOnboardingOverlayChange: HomeGlassOverlayChange = { _, _ -> },
     onNavigateToNutritionWizard: () -> Unit = {},
+    onOpenSetupWizard: () -> Unit = {},
     viewModel: HomeViewModel = rememberHomeViewModel(),
     @Suppress("UNUSED_PARAMETER") nutritionViewModel: NutritionViewModel? = null,
 ) {
@@ -115,7 +116,7 @@ fun HomeScreen(
     var protocolForTm by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
     var templateError by remember { mutableStateOf<String?>(null) }
     val createScope = rememberCoroutineScope()
-    val openCreate = { viewModel.openCreateProgramSheet() }
+    val openCreate = onCreateProgram
     val augeViewModel = rememberAugeViewModel()
     val augePerMuscle by augeViewModel.perMuscle.collectAsState()
     val augeSnapshot by augeViewModel.snapshot.collectAsState()
@@ -188,42 +189,12 @@ fun HomeScreen(
         }
     }
 
-    // ── Onboarding de bienvenida (primera vez) ────────────────────────────────
     val onboardingState by viewModel.onboardingState.collectAsState()
-    val latestOnboardingOverlayChange by rememberUpdatedState(onOnboardingOverlayChange)
-    val onboardingRegistration = remember {
-        object {
-            var active: HomeGlassOverlay? = null
-        }
-    }
-    LaunchedEffect(onboardingState) {
-        val content: HomeGlassOverlay? =
-            if (onboardingState.show) {
-                { rootHazeState ->
-                    WelcomeOnboardingOverlay(
-                        state = onboardingState,
-                        hazeState = rootHazeState,
-                        onDismiss = viewModel::dismissOnboarding,
-                        onSaveName = viewModel::updateDisplayName,
-                        onCreateProgram = viewModel::createOnboardingProgram,
-                        onNavigateToNutritionWizard = onNavigateToNutritionWizard,
-                        onAllTasksDone = viewModel::completeOnboarding,
-                    )
-                }
-            } else {
-                null
-            }
-        val previous = onboardingRegistration.active
-        latestOnboardingOverlayChange(content, previous)
-        onboardingRegistration.active = content
-    }
-    DisposableEffect(Unit) {
-        onDispose {
-            val owned = onboardingRegistration.active
-            onboardingRegistration.active = null
-            if (owned != null) {
-                latestOnboardingOverlayChange(null, owned)
-            }
+    val latestOpenSetupWizard by rememberUpdatedState(onOpenSetupWizard)
+    LaunchedEffect(onboardingState.show) {
+        if (onboardingState.show) {
+            viewModel.dismissOnboarding()
+            latestOpenSetupWizard()
         }
     }
     val listState = rememberLazyListState()

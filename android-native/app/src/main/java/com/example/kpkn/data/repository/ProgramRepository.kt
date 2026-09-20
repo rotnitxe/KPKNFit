@@ -3,6 +3,7 @@ package com.example.kpkn.data.repository
 import android.content.Context
 import com.example.kpkn.data.db.*
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.persistence.PersistenceWriteCoordinator
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.ExerciseNicknameResolver
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
@@ -141,9 +142,11 @@ class ProgramRepository private constructor(
         programWriteSequence.incrementAndGet().also { version -> newestProgramWrite[programId] = version }
 
     private suspend fun persistProgramIfNewest(program: Program, version: Long) {
-        programWriteMutex.withLock {
-            if (newestProgramWrite[program.id] == version) {
-                db.programDao().upsert(program.toEntity())
+        PersistenceWriteCoordinator.mutex.withLock {
+            programWriteMutex.withLock {
+                if (newestProgramWrite[program.id] == version) {
+                    db.programDao().upsert(program.toEntity())
+                }
             }
         }
     }
@@ -828,18 +831,23 @@ class ProgramRepository private constructor(
      * Updates ongoing state in memory and waits until Room has the same snapshot.
      * Use for structural session events (recorded set, skip, pause, finish prep).
      */
-    suspend fun updateOngoingWorkoutAndFlush(update: (OngoingWorkoutState) -> OngoingWorkoutState) {
-        withContext(Dispatchers.IO + NonCancellable) {
+    suspend fun updateOngoingWorkoutAndFlush(update: (OngoingWorkoutState) -> OngoingWorkoutState): com.example.kpkn.screens.workout.WorkoutPersistResult {
+        return withContext(Dispatchers.IO + NonCancellable) {
             writeOngoingLocked(update)
         }
     }
 
-    private suspend fun writeOngoingLocked(update: (OngoingWorkoutState) -> OngoingWorkoutState) {
-        ongoingWorkoutMutex.withLock {
-            val current = _ongoingWorkout.value ?: return@withLock
+    private suspend fun writeOngoingLocked(update: (OngoingWorkoutState) -> OngoingWorkoutState): com.example.kpkn.screens.workout.WorkoutPersistResult {
+        return ongoingWorkoutMutex.withLock {
+            val current = _ongoingWorkout.value ?: return@withLock com.example.kpkn.screens.workout.WorkoutPersistResult.Cancelled
             val next = update(current).normalizedIdentityFields()
-            _ongoingWorkout.value = next
-            db.stateDao().upsertOngoingWorkout(next.toEntity())
+            try {
+                db.stateDao().upsertOngoingWorkout(next.toEntity())
+                _ongoingWorkout.value = next
+                com.example.kpkn.screens.workout.WorkoutPersistResult.Ok
+            } catch (error: Throwable) {
+                com.example.kpkn.screens.workout.WorkoutPersistResult.Failed(error)
+            }
         }
     }
 
@@ -945,8 +953,107 @@ class ProgramRepository private constructor(
     fun updateSettings(update: (Settings) -> Settings) {
         _settings.update(update)
         ExerciseNicknameResolver.nicknames = _settings.value.exerciseNicknames
-        scope.launch { db.settingsDao().upsert(_settings.value.toEntity()) }
+        scope.launch {
+            PersistenceWriteCoordinator.mutex.withLock {
+                db.settingsDao().upsert(_settings.value.toEntity())
+            }
+        }
     }
+
+    suspend fun publishSetupCommit(settings: Settings, program: Program?, activateProgram: Boolean) {
+        if (program != null) reserveProgramWrite(program.id)
+        val committedActive = if (activateProgram) {
+            withContext(Dispatchers.IO) { db.stateDao().getActiveProgram()?.toActiveProgramState() }
+        } else null
+        withContext(Dispatchers.Main.immediate) {
+            _settings.value = settings
+            ExerciseNicknameResolver.nicknames = settings.exerciseNicknames
+            if (program != null) {
+                _programs.update { current ->
+                    val index = current.indexOfFirst { it.id == program.id }
+                    if (index < 0) current + program else current.toMutableList().also { it[index] = program }
+                }
+                if (activateProgram) _activeProgramState.value = committedActive
+            }
+        }
+    }
+
+    suspend fun replaceProgramSafely(replacement: Program): ReplaceProgramResult {
+        return withContext(Dispatchers.IO + NonCancellable) {
+            PersistenceWriteCoordinator.mutex.withLock {
+                ongoingWorkoutMutex.withLock {
+                    programWriteMutex.withLock {
+                    activeStateWriteMutex.withLock {
+                        check(_isReady.value) { "Los programas todavía se están cargando." }
+                        check(_programs.value.any { it.id == replacement.id }) { "El programa de destino ya no existe." }
+                        check(!_ongoingWorkoutCorrupt.value && _ongoingWorkout.value?.programId != replacement.id) {
+                            "Termina o descarta la sesión en curso antes de reemplazar el plan."
+                        }
+                        val active = _activeProgramState.value?.takeIf { it.programId == replacement.id }
+                        val replacementToStore: Program
+                        val replacementActive: ActiveProgramState?
+                        if (active == null) {
+                            replacementToStore = normalizeProgramWithCompetitions(replacement)
+                            replacementActive = null
+                        } else {
+                            val seedProgram = normalizeProgramWithCompetitions(replacement.copy(runState = null))
+                            val seedState = ProgramActiveStateEngine.repairForProgram(
+                                seedProgram,
+                                ActiveProgramState(programId = seedProgram.id),
+                            ) ?: ActiveProgramState(programId = seedProgram.id)
+                            val run = ProgramRunState(
+                                runId = ProgramProgressEngine.newRunId(),
+                                cycleNumber = seedState.currentCycleNumber ?: 1,
+                                weekInstanceId = seedState.currentWeekInstanceId ?: seedState.currentWeekId.takeIf { it.isNotBlank() },
+                                weekId = seedState.currentWeekId.takeIf { it.isNotBlank() }
+                                    ?.let { ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it },
+                                macrocycleId = seedState.currentMacrocycleId,
+                                blockId = seedState.currentBlockId,
+                                mesocycleId = seedState.currentMesocycleId,
+                                status = ProgramRunStatus.ACTIVE,
+                            )
+                            replacementToStore = seedProgram.copy(runState = run)
+                            replacementActive = ProgramActiveStateEngine.repairForProgram(
+                                replacementToStore,
+                                seedState.copy(
+                                    status = active.status,
+                                    programRunId = run.runId,
+                                ),
+                            ) ?: seedState.copy(status = active.status, programRunId = run.runId)
+                        }
+
+                        val programVersion = reserveProgramWrite(replacementToStore.id)
+                        val activeVersion = replacementActive?.let { reserveActiveStateWrite() }
+                        db.withTransaction {
+                            if (newestProgramWrite[replacementToStore.id] == programVersion) {
+                                db.programDao().upsert(replacementToStore.toEntity())
+                            }
+                            if (replacementActive != null && activeVersion != null) {
+                                persistActiveProgramStateLocked(replacementActive, activeVersion)
+                            }
+                        }
+
+                        _programs.update { programs ->
+                            val index = programs.indexOfFirst { it.id == replacementToStore.id }
+                            if (index < 0) programs + replacementToStore
+                            else programs.toMutableList().also { it[index] = replacementToStore }
+                        }
+                        if (replacementActive != null && newestActiveStateWrite == activeVersion) {
+                            _activeProgramState.value = replacementActive
+                        }
+                        ReplaceProgramResult(
+                            programId = replacementToStore.id,
+                            keptActiveRun = replacementActive != null,
+                            ongoingWorkoutProtected = _ongoingWorkout.value?.programId == replacementToStore.id,
+                        )
+                    }
+                }
+            }
+        }
+        }
+    }
+
+    data class ReplaceProgramResult(val programId: String, val keptActiveRun: Boolean, val ongoingWorkoutProtected: Boolean)
 
     fun getContextPerformanceState(contextKey: String): ContextPerformanceStateV2? =
         _contextPerformance.value[contextKey]

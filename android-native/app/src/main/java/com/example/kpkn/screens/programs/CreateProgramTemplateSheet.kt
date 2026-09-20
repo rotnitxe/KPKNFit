@@ -1,12 +1,9 @@
 package com.example.kpkn.screens.programs
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -27,11 +24,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.ProgramStructure
-import com.example.kpkn.data.programs.PROGRAM_TEMPLATES
+import com.example.kpkn.data.programs.CatalogSource
+import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.ProgramTemplateOption
+import com.example.kpkn.data.programs.PublicationState
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.protocols.Protocol
-import com.example.kpkn.data.protocols.isVisibleForApplication
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.KpknSheetLightChip
 import com.example.kpkn.ui.components.KpknSheetTokens
@@ -40,142 +38,70 @@ import com.example.kpkn.ui.components.KpknSheetWhiteButton
 @Composable
 fun CreateProgramTemplateSheet(
     onDismiss: () -> Unit,
-    onCreateBlank: () -> Unit,
+    onCreateBlank: (() -> Unit)?,
     onCreateFromTemplate: (ProgramTemplateOption) -> Unit,
     onSelectProtocol: (Protocol) -> Unit = {},
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
-    val simpleTemplates = remember { PROGRAM_TEMPLATES.filter { it.type == ProgramStructure.SIMPLE } }
-    val advancedTemplates = remember { PROGRAM_TEMPLATES.filter { it.type == ProgramStructure.COMPLEX } }
-    val protocols = remember { PROTOCOL_LIBRARY.filter { it.isVisibleForApplication } }
-
+    val entries = remember {
+        PersonalizedPlanCatalog.entries().filter {
+            it.publication == PublicationState.PUBLISHED && it.source != CatalogSource.NATIVE
+        }
+    }
+    val visible = entries.filter { entry ->
+        val advanced = entry.template?.type == ProgramStructure.COMPLEX ||
+            (entry.recipe?.distinctBlockCount ?: 1) > 1
+        advanced == (selectedTab == 1)
+    }
     KpknSheet(onDismissRequest = onDismiss) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 8.dp),
+            Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("Nuevo programa", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Color.White)
+            Text("Planes personalizados", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Color.White)
             Text(
-                "Elige Simple, Avanzado o un protocolo citado, o crea un programa vacío.",
+                "Elige una estructura y revisa su método antes de aplicarla. Simple describe la estructura, no la dificultad.",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.65f),
+                color = Color.White.copy(alpha = 0.7f),
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                KpknSheetLightChip(
-                    label = "SIMPLE",
-                    selected = selectedTab == 0,
-                    modifier = Modifier.weight(1f),
-                    onClick = { selectedTab = 0 },
-                )
-                KpknSheetLightChip(
-                    label = "AVANZADO",
-                    selected = selectedTab == 1,
-                    modifier = Modifier.weight(1f),
-                    onClick = { selectedTab = 1 },
-                )
-                KpknSheetLightChip(
-                    label = "PROTOCOLOS",
-                    selected = selectedTab == 2,
-                    modifier = Modifier.weight(1f),
-                    onClick = { selectedTab = 2 },
-                )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("Simple", "Avanzado").forEachIndexed { index, title ->
+                    KpknSheetLightChip(
+                        label = title,
+                        selected = selectedTab == index,
+                        modifier = Modifier.weight(1f),
+                        onClick = { selectedTab = index },
+                    )
+                }
             }
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 420.dp)
-                    .verticalScroll(rememberScrollState()),
+                Modifier.fillMaxWidth().heightIn(max = 420.dp).verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                when (selectedTab) {
-                    2 -> protocols.forEach { protocol ->
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onSelectProtocol(protocol) },
-                            shape = RoundedCornerShape(16.dp),
-                            color = KpknSheetTokens.Panel,
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp),
-                            ) {
-                                Text(
-                                    "${protocol.emoji} ${protocol.name}",
-                                    fontWeight = FontWeight.Black,
-                                    color = Color.White,
-                                )
-                                Text(
-                                    protocol.author,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White.copy(alpha = 0.7f),
-                                )
-                                Text(
-                                    protocol.description,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color.White.copy(alpha = 0.75f),
-                                )
-                                val level = protocol.fidelitySpec?.claimedLevel ?: protocol.recipe?.claimedLevel
-                                val source = protocol.source.primaryReference ?: protocol.author
-                                val days = protocol.recipe?.daysPerWeek ?: protocol.sessionCategories.size
-                                val weeks = protocol.recipe?.weeks?.size ?: protocol.blocks.sumOf { it.weeks }
-                                Text(
-                                    listOfNotNull(
-                                        level?.let { "Nivel $it" },
-                                        source,
-                                        "$weeks sem · $days d/sem",
-                                    ).joinToString(" · "),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color.White.copy(alpha = 0.55f),
-                                )
-                            }
-                        }
-                    }
-                    else -> {
-                        val templates = if (selectedTab == 0) simpleTemplates else advancedTemplates
-                        templates.forEach { template ->
-                            Surface(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { onCreateFromTemplate(template) },
-                                shape = RoundedCornerShape(16.dp),
-                                color = KpknSheetTokens.Panel,
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                                ) {
-                                    Text(
-                                        "${template.emoji} ${template.name}",
-                                        fontWeight = FontWeight.Black,
-                                        color = Color.White,
-                                    )
-                                    Text(
-                                        template.description,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = Color.White.copy(alpha = 0.75f),
-                                    )
-                                    Text(
-                                        "${template.weeks} semanas · ${template.blockNames.size} bloque(s)",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = Color.White.copy(alpha = 0.55f),
-                                    )
-                                }
-                            }
+                visible.forEach { entry ->
+                    Surface(
+                        onClick = {
+                            entry.template?.let(onCreateFromTemplate)
+                                ?: PROTOCOL_LIBRARY.firstOrNull { it.id == entry.sourceId }?.let(onSelectProtocol)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        color = KpknSheetTokens.Panel,
+                    ) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(entry.title, fontWeight = FontWeight.Bold, color = Color.White)
+                            Text(entry.description, color = Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.bodySmall)
+                            Text(entry.technicalSubtitle, color = Color.White.copy(alpha = 0.65f), style = MaterialTheme.typography.labelMedium)
                         }
                     }
                 }
             }
-            KpknSheetWhiteButton(text = "Programa vacío", onClick = onCreateBlank)
-            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
-                Text("Cancelar", color = Color.White.copy(alpha = 0.85f))
+            onCreateBlank?.let { create ->
+                KpknSheetWhiteButton(text = "Crear desde cero", onClick = create)
             }
-            Spacer(Modifier.height(8.dp))
+            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
+                Text("Cancelar", color = Color.White)
+            }
         }
     }
 }

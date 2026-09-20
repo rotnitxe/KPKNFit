@@ -2238,8 +2238,8 @@ class WorkoutViewModel(
     }
 
     /** Suspend variant of durable persist (preferred inside coroutines / recordSetV2). */
-    private suspend fun persistOngoingStateAndAwait(state: WorkoutUiState = _uiState.value) {
-        persistence.persistAndAwait(state)
+    private suspend fun persistOngoingStateAndAwait(state: WorkoutUiState = _uiState.value): WorkoutPersistResult {
+        return persistence.persistAndAwait(state)
     }
 
     private fun stateWithLiveTimers(state: WorkoutUiState = _uiState.value): WorkoutUiState {
