@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A1B2C3D4E5F60718293A4B5C /* InitialRecoveryEvidence.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5061728394A5B6C /* InitialRecoveryEvidence.swift */; };
 		00EB007ADED2E894D87E11CE /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 404C1D5C34A3D2F8F5BF43C5 /* Settings.swift */; };
 		02A340BD97A82ACC96DB8827 /* CookingFactors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD9F51CEFB456A291E005ADA /* CookingFactors.swift */; };
 		032CE2EF1A3F00B8A326CF85 /* FoodImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6AFCBFB4D9C59DFED8C1071 /* FoodImporter.swift */; };
@@ -226,6 +227,7 @@
 		191C2B8A4B65BFCA4BF84730 /* SetAdjustmentOverlay.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SetAdjustmentOverlay.swift; sourceTree = "<group>"; };
 		1982AA7C7A3F69FC1652E859 /* SetEditorCards.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SetEditorCards.swift; sourceTree = "<group>"; };
 		1A89FCE8BEB93A29410CF978 /* AugeModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Data/Models/AugeModels.swift; sourceTree = SOURCE_ROOT; };
+		B1C2D3E4F5061728394A5B6C /* InitialRecoveryEvidence.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Data/Models/InitialRecoveryEvidence.swift; sourceTree = SOURCE_ROOT; };
 		1DD2A010FACE5086F0E0A29E /* ProfileScreen.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProfileScreen.swift; sourceTree = "<group>"; };
 		1DFE7DC76240BF22B5EA1785 /* FoodDescriptionParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FoodDescriptionParser.swift; sourceTree = "<group>"; };
 		2104FAFCE286D75C2BD3C98C /* WorkoutExtensions.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KPKNFit/Presentation/Screens/Workout/WorkoutExtensions.swift; sourceTree = SOURCE_ROOT; };
@@ -580,6 +582,7 @@
 				63C1801BD5F4F66E389CF0D6 /* ProgramModels.swift */,
 				30E29568DD60617FE25A2095 /* SessionModels.swift */,
 				1A89FCE8BEB93A29410CF978 /* AugeModels.swift */,
+				B1C2D3E4F5061728394A5B6C /* InitialRecoveryEvidence.swift */,
 				8E2128CCA6F01014D913EE26 /* WorkoutModels.swift */,
 				8A94B1672EEB584D00A9EE12 /* SettingsModels.swift */,
 				27114BAD0236782AA823DAED /* AugeAdaptiveModels.swift */,
@@ -1542,6 +1545,7 @@
 				7A13BBF8E0386273E40BD42D /* HomeSessionSection.swift in Sources */,
 				0A1C553D358888723125FAA8 /* HomeScreen.swift in Sources */,
 				E48631043B3F36E2F94B85E3 /* AugeModels.swift in Sources */,
+				A1B2C3D4E5F60718293A4B5C /* InitialRecoveryEvidence.swift in Sources */,
 				08CC5D4BE594AB21951003EB /* PostSessionSheetView.swift in Sources */,
 				F81238C8D8BC4DE102384541 /* PostExerciseSheetView.swift in Sources */,
 				3FD6C4E48DD5E053837B0A69 /* AugeViewModel.swift in Sources */,
