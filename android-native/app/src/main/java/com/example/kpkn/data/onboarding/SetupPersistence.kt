@@ -11,9 +11,15 @@ import com.example.kpkn.data.db.SettingsEntity
 import com.example.kpkn.data.db.SetupCommitReceiptEntity
 import com.example.kpkn.data.db.SetupDraftEntity
 import com.example.kpkn.data.db.toEntity
+import com.example.kpkn.data.db.toActiveProgramState
+import com.example.kpkn.data.db.toNutritionPlan
+import com.example.kpkn.data.db.toProgram
+import com.example.kpkn.data.db.toSettings
+import com.example.kpkn.data.db.toWellbeingLog
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.BodyGoal
 import com.example.kpkn.data.models.DailyWellbeingLog
+import com.example.kpkn.data.models.DailyGoalSnapshot
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Settings
@@ -54,6 +60,10 @@ data class SetupCommitRequest(
     val derivedBodyGoals: List<BodyGoal> = emptyList(),
     /** Optional partial wellbeing payload; absent when there is no explicit adjustment/discomfort. */
     val initialWellbeing: DailyWellbeingLog? = null,
+    /** Preferred path: merge only the fields touched by this setup scope. */
+    val settingsPatch: SetupSettingsPatch? = null,
+    /** Historical daily target captured atomically when nutrition is activated. */
+    val dailyGoalSnapshot: DailyGoalSnapshot? = null,
 )
 
 data class SetupCommitResult(
@@ -118,11 +128,27 @@ class SetupCommitCoordinator(
             withContext(Dispatchers.IO) {
             var result: SetupCommitResult? = null
             var shouldPublish = false
+            var committedSettings: Settings? = null
+            var committedProgram: Program? = null
+            var committedNutritionPlan: NutritionPlan? = null
+            var committedProgramIsActive = false
+            var committedNutritionIsActive = false
             db.withTransaction {
                 val prior = db.setupCommitReceiptDao().get(request.commitId)
                 if (prior != null) {
                     result = prior.toResult()
+                    committedSettings = db.settingsDao().get()?.toSettings() ?: request.settings
+                    committedProgram = prior.programId?.let { db.programDao().getById(it)?.toProgram() }
+                    committedNutritionPlan = prior.nutritionPlanId?.let { id ->
+                        db.nutritionDao().getAllPlans().firstOrNull { it.id == id }?.toNutritionPlan()
+                    }
+                    committedProgramIsActive = prior.programId != null && db.stateDao().getActiveProgram()?.toActiveProgramState()?.programId == prior.programId
+                    committedNutritionIsActive = prior.nutritionPlanId != null && db.nutritionDao().getActiveState()?.activePlanId == prior.nutritionPlanId
+                    request.draftId?.let { db.setupDraftDao().deleteDraft(it) }
+                    shouldPublish = true
                 } else {
+                    val currentSettings = db.settingsDao().get()?.toSettings() ?: request.settings
+                    val settingsToPersist = request.settingsPatch?.applyTo(currentSettings) ?: request.settings
                     request.program?.let { program ->
                         check(db.programDao().getById(program.id) == null) {
                             "El programa ya existe. Usa la acción de reemplazo desde su detalle."
@@ -147,9 +173,13 @@ class SetupCommitCoordinator(
                             db.nutritionDao().upsertActiveState(NutritionActiveStateEntity(activePlanId = plan.id))
                         }
                     }
-                    db.settingsDao().upsert(request.settings.toEntity())
+                    db.settingsDao().upsert(settingsToPersist.toEntity())
                     request.derivedBodyGoals.forEach { db.bodyProgressDao().upsertGoal(it.toEntity()) }
-                    request.initialWellbeing?.let { db.augeDao().upsertWellbeing(it.toEntity()) }
+                    request.initialWellbeing?.let { incoming ->
+                        val existing = db.augeDao().getWellbeingForDate(incoming.date)?.toWellbeingLog()
+                        db.augeDao().upsertWellbeing(mergeWellbeing(existing, incoming).toEntity())
+                    }
+                    request.dailyGoalSnapshot?.let { db.nutritionDao().insertDailyGoalSnapshot(it.toEntity()) }
                     val next = SetupCommitResult(
                         commitId = request.commitId,
                         programId = request.program?.id,
@@ -159,13 +189,17 @@ class SetupCommitCoordinator(
                     db.setupCommitReceiptDao().insert(next.toEntity(request.draftId))
                     request.draftId?.let { db.setupDraftDao().deleteDraft(it) }
                     result = next
+                    committedSettings = settingsToPersist
+                    committedProgram = request.program
+                    committedNutritionPlan = request.nutritionPlan
                     shouldPublish = true
                 }
             }
             val committed = requireNotNull(result)
             if (shouldPublish) {
-                programRepository?.publishSetupCommit(request.settings, request.program, request.activateProgram)
-                nutritionRepository?.publishSetupCommit(request.nutritionPlan, request.activateNutrition)
+                val settings = requireNotNull(committedSettings)
+                programRepository?.publishSetupCommit(settings, committedProgram, committedProgram != null && (committedProgramIsActive || request.activateProgram))
+                nutritionRepository?.publishSetupCommit(committedNutritionPlan, committedNutritionPlan != null && (committedNutritionIsActive || request.activateNutrition))
             }
             committed
             }
@@ -187,6 +221,20 @@ class SetupCommitCoordinator(
         bodyGoalIdsJson = persistenceJson.encodeToString(bodyGoalIds),
         committedAtEpochMs = System.currentTimeMillis(),
     )
+
+    private fun mergeWellbeing(existing: DailyWellbeingLog?, incoming: DailyWellbeingLog): DailyWellbeingLog {
+        if (existing == null) return incoming
+        val fields = existing.capturedFields + incoming.capturedFields
+        val incomingHas = { key: String -> key in incoming.capturedFields }
+        return existing.copy(
+            id = existing.id,
+            manualMuscleBatteries = if (incomingHas("muscle_batteries")) existing.manualMuscleBatteries + incoming.manualMuscleBatteries else existing.manualMuscleBatteries,
+            manualNeuralBattery = if (incomingHas("energy")) incoming.manualNeuralBattery else existing.manualNeuralBattery,
+            manualSpinalBattery = if (incomingHas("structure")) incoming.manualSpinalBattery else existing.manualSpinalBattery,
+            preWorkoutDiscomforts = if (incomingHas("discomforts")) incoming.preWorkoutDiscomforts else existing.preWorkoutDiscomforts,
+            capturedFields = fields,
+        )
+    }
 }
 
 class PersistenceFactory private constructor(

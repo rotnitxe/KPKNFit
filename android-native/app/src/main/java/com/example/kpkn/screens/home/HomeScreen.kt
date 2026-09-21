@@ -53,7 +53,6 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.auge.LoadAdvisoryEngine
 import com.example.kpkn.screens.auge.rememberAugeViewModel
-import com.example.kpkn.screens.home.components.WelcomeOnboardingOverlay
 import com.example.kpkn.screens.nutrition.NutritionViewModel
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
 import com.example.kpkn.screens.programs.CreateProgramTemplateSheet

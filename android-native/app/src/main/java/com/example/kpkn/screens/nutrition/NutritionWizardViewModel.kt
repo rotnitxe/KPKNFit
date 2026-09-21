@@ -62,6 +62,8 @@ data class NutritionWizardDraft(
     val weightText: String = "",
     val equationSex: EerSex? = null,
     val activity: EerActivity = EerActivity.INACTIVE,
+    /** True when the user explicitly declined or does not know eligibility. */
+    val eligibilityUnknown: Boolean = false,
     val medicalRestriction: Boolean = false,
     val pregnant: Boolean = false,
     val lactating: Boolean = false,

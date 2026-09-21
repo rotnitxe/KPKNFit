@@ -7,6 +7,7 @@ import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.dbJson
 import com.example.kpkn.data.db.toCompetitionRecord
 import com.example.kpkn.data.db.toEntity
+import com.example.kpkn.data.db.SetupDraftEntity
 import com.example.kpkn.data.models.CompetitionRecord
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Settings
@@ -149,6 +150,36 @@ class SettingsJsonBackupTest {
             )
             assertEquals(1, db.competitionRecordDao().getAll().size)
             assertEquals("comp-1", db.competitionRecordDao().getAll().single().toCompetitionRecord().id)
+        } finally {
+            db.close()
+        }
+    }
+
+    @Test
+    fun `setup drafts and receipts are portable only in schema v6 section`() = runBlocking {
+        val db = KpknDatabase.createInMemory(context)
+        try {
+            val draft = SetupDraftBackup("setup-wizard:full", "{\"draftScope\":\"full\"}", 4, "catalog", 20L)
+            val receipt = SetupCommitReceiptBackup("commit-1", "setup-wizard:full", "program-1", null, "[]", 30L)
+            SettingsJsonBackup.importPayload(
+                context = context,
+                payload = minimalPayload().copy(includesSetupSection = true, setupDrafts = listOf(draft), setupCommitReceipts = listOf(receipt)),
+                db = db,
+                nutritionRepository = nutritionRepo(db),
+                onMeasurementSchedule = {},
+            )
+            assertEquals(1, db.setupDraftDao().getAllDrafts().size)
+            assertEquals(1, db.setupCommitReceiptDao().getAll().size)
+
+            db.setupDraftDao().upsertDraft(SetupDraftEntity("keep-me", "{}", 1, null, 40L))
+            SettingsJsonBackup.importPayload(
+                context = context,
+                payload = minimalPayload().copy(schemaVersion = 5, includesSetupSection = false),
+                db = db,
+                nutritionRepository = nutritionRepo(db),
+                onMeasurementSchedule = {},
+            )
+            assertTrue(db.setupDraftDao().getAllDrafts().any { it.draftId == "keep-me" })
         } finally {
             db.close()
         }

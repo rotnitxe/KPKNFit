@@ -4,6 +4,8 @@ import android.content.Context
 import com.example.kpkn.data.db.BackupTableManifest
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.LearnedResolutionEntity
+import com.example.kpkn.data.db.SetupCommitReceiptEntity
+import com.example.kpkn.data.db.SetupDraftEntity
 import com.example.kpkn.data.db.NutritionActiveStateEntity
 import com.example.kpkn.data.db.NutritionCalibrationProfileEntity
 import com.example.kpkn.data.db.dbJson
@@ -84,6 +86,25 @@ object SettingsJsonBackup {
         val performanceRanges = db.performanceRangeDao().getAll().map { it.toPerformanceRangeData() }
         val performanceSnapshots = db.performanceSnapshotDao().getRecent(10_000).map { it.toPerformanceSnapshotData() }
         val workoutMedia = db.workoutMediaDao().getAll().map { it.toWorkoutMedia() }
+        val setupDrafts = db.setupDraftDao().getAllDrafts().map {
+            SetupDraftBackup(
+                draftId = it.draftId,
+                payloadJson = it.payloadJson,
+                revision = it.revision,
+                catalogRevision = it.catalogRevision,
+                updatedAtEpochMs = it.updatedAtEpochMs,
+            )
+        }
+        val setupCommitReceipts = db.setupCommitReceiptDao().getAll().map {
+            SetupCommitReceiptBackup(
+                commitId = it.commitId,
+                draftId = it.draftId,
+                programId = it.programId,
+                nutritionPlanId = it.nutritionPlanId,
+                bodyGoalIdsJson = it.bodyGoalIdsJson,
+                committedAtEpochMs = it.committedAtEpochMs,
+            )
+        }
         return SettingsExportPayload(
             schemaVersion = EXPORT_SCHEMA_VERSION,
             exportedAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
@@ -131,6 +152,9 @@ object SettingsJsonBackup {
             includesWorkoutMediaSection = true,
             includesCalibrationSection = true,
             includesFoodCatalogMetaSection = true,
+            includesSetupSection = true,
+            setupDrafts = setupDrafts,
+            setupCommitReceipts = setupCommitReceipts,
         )
     }
 
@@ -144,7 +168,8 @@ object SettingsJsonBackup {
         require(payload.schemaVersion in 1..EXPORT_SCHEMA_VERSION) {
             "Formato de exportación no compatible: ${payload.schemaVersion}"
         }
-        val v5 = payload.schemaVersion >= EXPORT_SCHEMA_VERSION
+        val v5 = payload.schemaVersion >= 5
+        val hasSetup = payload.schemaVersion >= 6 && payload.includesSetupSection
         val tablesToClear = BackupTableManifest.tablesToClearForImport(
             schemaVersion = payload.schemaVersion,
             hasCompetitionSection = v5 && payload.includesCompetitionSection,
@@ -152,7 +177,8 @@ object SettingsJsonBackup {
             hasPerformanceSection = v5 && payload.includesPerformanceSection,
             hasWorkoutMediaSection = v5 && payload.includesWorkoutMediaSection,
             hasCalibrationSection = v5 && payload.includesCalibrationSection,
-        ).filterNot { it == "setup_drafts" || it == "setup_commit_receipts" }
+            hasSetupSection = hasSetup,
+        )
         val settingsProfileToken = when {
             payload.profilePhotoJpegBase64 != null -> ProfilePhotoStore.STORAGE_TOKEN
             payload.settings.profilePicture.isNullOrBlank() -> null
@@ -192,6 +218,11 @@ object SettingsJsonBackup {
             }
             payload.sessionTemplates.forEach { db.sessionTemplateDao().upsert(it.toEntity()) }
             payload.customExercises.forEach { db.customExerciseDao().upsert(it.toEntity()) }
+
+            if (hasSetup) {
+                payload.setupDrafts.orEmpty().forEach { db.setupDraftDao().upsertDraft(it.toEntity()) }
+                payload.setupCommitReceipts.orEmpty().forEach { db.setupCommitReceiptDao().insert(it.toEntity()) }
+            }
 
             payload.wellbeingLogs.forEach { db.augeDao().upsertWellbeing(it.toEntity()) }
             payload.sleepLogsExtended.forEach { db.augeDao().upsertSleepLogExtended(it.toExtendedEntity()) }
@@ -321,7 +352,33 @@ data class SettingsExportPayload(
     val includesWorkoutMediaSection: Boolean = false,
     val includesCalibrationSection: Boolean = false,
     val includesFoodCatalogMetaSection: Boolean = false,
+    val includesSetupSection: Boolean = false,
+    val setupDrafts: List<SetupDraftBackup> = emptyList(),
+    val setupCommitReceipts: List<SetupCommitReceiptBackup> = emptyList(),
 )
+
+@Serializable
+data class SetupDraftBackup(
+    val draftId: String,
+    val payloadJson: String,
+    val revision: Long,
+    val catalogRevision: String? = null,
+    val updatedAtEpochMs: Long,
+) {
+    fun toEntity() = SetupDraftEntity(draftId, payloadJson, revision, catalogRevision, updatedAtEpochMs)
+}
+
+@Serializable
+data class SetupCommitReceiptBackup(
+    val commitId: String,
+    val draftId: String? = null,
+    val programId: String? = null,
+    val nutritionPlanId: String? = null,
+    val bodyGoalIdsJson: String = "[]",
+    val committedAtEpochMs: Long,
+) {
+    fun toEntity() = SetupCommitReceiptEntity(commitId, draftId, programId, nutritionPlanId, bodyGoalIdsJson, committedAtEpochMs)
+}
 
 @Serializable
 data class LearnedResolutionBackup(

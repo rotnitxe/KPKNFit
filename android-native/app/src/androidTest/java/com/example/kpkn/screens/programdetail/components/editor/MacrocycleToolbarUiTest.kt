@@ -1,4 +1,4 @@
-package com.example.kpkn.screens.programdetail.components.editor
+package com.example.kpkn.screens.programdetail.components
 
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.BoxWithConstraints

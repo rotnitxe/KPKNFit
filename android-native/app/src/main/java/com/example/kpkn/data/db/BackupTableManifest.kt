@@ -10,7 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  */
 object BackupTableManifest {
 
-    const val JSON_BACKUP_SCHEMA_VERSION = 5
+    const val JSON_BACKUP_SCHEMA_VERSION = 6
 
     enum class Category { USER_DATA, REGENERABLE, CACHE }
 
@@ -94,9 +94,12 @@ object BackupTableManifest {
         hasPerformanceSection: Boolean,
         hasWorkoutMediaSection: Boolean,
         hasCalibrationSection: Boolean,
+        hasSetupSection: Boolean = false,
     ): List<String> {
-        val tables = coreJsonBackedTables.toMutableList()
-        if (schemaVersion >= JSON_BACKUP_SCHEMA_VERSION) {
+        val tables = coreJsonBackedTables.filterNot { table ->
+            (table == "setup_drafts" || table == "setup_commit_receipts") && !(schemaVersion >= 6 && hasSetupSection)
+        }.toMutableList()
+        if (schemaVersion >= 5) {
             if (hasCompetitionSection) tables += "competition_records"
             if (hasWorkoutV2Section) {
                 tables += listOf(

@@ -9,6 +9,9 @@ interface SetupDraftDao {
     @Query("SELECT * FROM setup_drafts WHERE draftId = :draftId LIMIT 1")
     suspend fun getDraft(draftId: String): SetupDraftEntity?
 
+    @Query("SELECT * FROM setup_drafts ORDER BY updatedAtEpochMs DESC")
+    suspend fun getAllDrafts(): List<SetupDraftEntity>
+
     @Upsert
     suspend fun upsertDraft(entity: SetupDraftEntity)
 
@@ -20,6 +23,9 @@ interface SetupDraftDao {
 interface SetupCommitReceiptDao {
     @Query("SELECT * FROM setup_commit_receipts WHERE commitId = :commitId LIMIT 1")
     suspend fun get(commitId: String): SetupCommitReceiptEntity?
+
+    @Query("SELECT * FROM setup_commit_receipts ORDER BY committedAtEpochMs DESC")
+    suspend fun getAll(): List<SetupCommitReceiptEntity>
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(entity: SetupCommitReceiptEntity)

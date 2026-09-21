@@ -17,6 +17,8 @@ import com.example.kpkn.data.models.InitialRecoveryMuscleScope
 import com.example.kpkn.data.models.VolumeCalibrationProfile
 import com.example.kpkn.data.models.TrainingStyle
 import com.example.kpkn.domain.training.PersonalizationReport
+import com.example.kpkn.domain.onboarding.WizChatMachineState
+import com.example.kpkn.domain.onboarding.WizChatProgress
 import com.example.kpkn.screens.nutrition.NutritionWizardDraft
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
@@ -89,6 +91,7 @@ data class SetupSessionDraft(
 
 @Serializable
 data class SetupRingsAnswers(
+    val startAction: String? = null,
     val recentTraining: Boolean? = null,
     val recencyDays: Int? = null,
     val sessionsLastSevenDays: Int? = null,
@@ -115,6 +118,8 @@ typealias InitialRingsAnswers = SetupRingsAnswers
 data class SetupWizardDraft(
     val draftId: String = "",
     val commitId: String = "",
+    /** Canonical persisted scope; RESUME is only a navigation intent. */
+    val draftScope: String = "full",
     val revision: Int = 1,
     val chapter: SetupWizardChapter = SetupWizardChapter.PROFILE,
     val name: String = "",
@@ -159,6 +164,7 @@ data class SetupWizardDraft(
     val manualMuscleOverrides: Map<String, Int> = emptyMap(),
     val manualEnergyOverride: Int? = null,
     val manualStructureOverride: Int? = null,
+    val wizChat: WizChatProgress = WizChatProgress(),
 )
 
 data class SetupWizardState(
@@ -174,10 +180,23 @@ data class SetupWizardState(
     val isPreviewLoading: Boolean = false,
     val previewError: String? = null,
     val requiresActivationConfirmation: Boolean = false,
+    val machineState: WizChatMachineState = WizChatMachineState.Loading,
+    val messages: List<com.example.kpkn.domain.onboarding.WizChatMessage> = emptyList(),
+    val planCandidates: List<SetupPlanCandidate> = emptyList(),
+    val nutritionPlanPreview: NutritionPlan? = null,
+    val nutritionErrors: Map<String, String> = emptyMap(),
 ) {
     val showNutritionPreview: Boolean get() = nutritionDraft != null
     val nutritionDraft: NutritionWizardDraft? get() = draft.nutritionDraft
 }
+
+data class SetupPlanCandidate(
+    val id: String,
+    val title: String,
+    val subtitle: String,
+    val description: String,
+    val source: String,
+)
 
 typealias SetupWizardUiState = SetupWizardState
 

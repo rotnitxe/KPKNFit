@@ -148,11 +148,12 @@ sealed class KpknRoute(val route: String) {
         const val BASE_ROUTE = "nutrition/wizard"
     }
     object SetupEntry : KpknRoute("setup/entry")
-    object SetupWizard : KpknRoute("setup/wizard?mode={mode}") {
+    object SetupWizard : KpknRoute("setup/wizard?mode={mode}&draftId={draftId}") {
         const val BASE_ROUTE = "setup/wizard"
         const val ARG_MODE = "mode"
+        const val ARG_DRAFT_ID = "draftId"
 
-        fun create(mode: String = "FULL"): String = "$BASE_ROUTE?mode=${Uri.encode(mode)}"
+        fun create(mode: String = "FULL", draftId: String? = null): String = "$BASE_ROUTE?mode=${Uri.encode(mode)}&draftId=${Uri.encode(draftId.orEmpty())}"
     }
     object NutritionCalibration : KpknRoute("nutrition/calibration")
     object MealHistory : KpknRoute("nutrition/meal-history")

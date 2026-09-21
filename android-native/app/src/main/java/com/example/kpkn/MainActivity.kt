@@ -1069,8 +1069,8 @@ private fun KPKNNavGraph(
     NavHost(navController = navController, startDestination = KpknRoute.SetupEntry.route) {
         composable(KpknRoute.SetupEntry.route) {
             com.example.kpkn.screens.onboarding.SetupEntryScreen(
-                onStart = { resume ->
-                    navController.navigate(KpknRoute.SetupWizard.create(if (resume) "RESUME" else "FULL"))
+                onStart = { mode, draftId ->
+                    navController.navigate(KpknRoute.SetupWizard.create(mode, draftId))
                 },
                 onCompleted = {
                     navController.navigate(KpknRoute.Home.route) {
@@ -1282,6 +1282,9 @@ private fun KPKNNavGraph(
             arguments = listOf(navArgument(KpknRoute.SetupWizard.ARG_MODE) {
                 type = NavType.StringType
                 defaultValue = "FULL"
+            }, navArgument(KpknRoute.SetupWizard.ARG_DRAFT_ID) {
+                type = NavType.StringType
+                defaultValue = ""
             }),
         ) { entry ->
             val mode = runCatching {
@@ -1289,8 +1292,10 @@ private fun KPKNNavGraph(
                     entry.arguments?.getString(KpknRoute.SetupWizard.ARG_MODE) ?: "FULL",
                 )
             }.getOrDefault(com.example.kpkn.screens.onboarding.SetupWizardMode.FULL)
+            val draftId = entry.arguments?.getString(KpknRoute.SetupWizard.ARG_DRAFT_ID).orEmpty().ifBlank { null }
             com.example.kpkn.screens.onboarding.SetupWizardScreen(
                 mode = mode,
+                draftId = draftId,
                 onDone = {
                     navController.navigate(KpknRoute.Home.route) {
                         popUpTo(KpknRoute.SetupEntry.route) { inclusive = true }
