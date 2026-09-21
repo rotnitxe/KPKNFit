@@ -1,4 +1,10 @@
 # Taste
+- Prefers well-designed wizards with varied interactive inputs rather than mostly typing; explicitly wants sliders/selectors for age or birth date and training choices. Confidence: 0.9
+- Wants training setup to offer both building a plan from scratch and personalizing a curated plan, with the wizard asking for target muscle focus (or full body) and desired weekly training frequency. Confidence: 0.9
+- Wants templates and protocols unified in the user-facing catalog as personalized plans, classified Simple/Advanced according to whether there is more than one block/mesocycle; titles and descriptions should be approachable without losing technical substance. Confidence: 0.9
+- Prioritizes a comprehensive offering of simple, repeating one-week training plans, covering machines-only, bodyweight/no-gym options and mixed strength/cardio rather than focusing only on complex periodized programs. Confidence: 0.9
+- Defines muscle-focus personalization as three concrete changes together: put focus exercises first in sessions, increase focus volume toward the upper portion of MAV, and increase focus training frequency; not merely rename the plan. Confidence: 0.9
+- Wants onboarding to precalibrate RINGS from recent activity and training so initial percentages reflect the user's actual starting situation rather than uniformly starting at 100%. Confidence: 0.9
 - Wants plans read and analyzed for feasibility, correctness, and wrong assumptions before implementation — expects the agent to verify against the actual repo and improve the plan if needed. Confidence: 0.9
 - Prefers to think and design together before coding; explicitly asked "no implementemos aún, sigamos pensando" (don't implement yet, let's keep thinking). Confidence: 0.8
 - Wants plans that cover the complete feature — base functionality plus new layers — not just the newly added part (objected when a plan covered only the AI integration and omitted the core reporting feature). Confidence: 0.9
@@ -7,7 +13,7 @@
 - Prefers radical cleanup and perfectly curated data over preserving legacy/duplicates; willing to start from scratch or reinstall the app for quality ("no quiero que mantengas legacys"). Confidence: 0.8
 - Endorses real validation over compile-only checks: connected/instrumented tests must run, emulator build+install+relaunch, and physical-device validation for voice flows. Confidence: 0.7
 - Asks for a git commit of completed work after implementation. Confidence: 0.7
-- Delegates implementation work to other agents — named sub-agents ("usa como sub-agente a GPT 5.6 Luna") or separate agent sessions ("lo hará otro agente", "el plan lo hará otro agente") — keeping the current session for deciding, planning, and writing the brief the other agent follows. Confidence: 0.7
+- Delegates implementation and code exploration to subagents, reserving the main session for feasibility analysis, planning, and synthesis; the main agent should explore code directly only when a subagent returns poor-quality evidence. Confidence: 0.9
 - Uses DeepSeek for AI features, explicitly the `deepseek-v4-flash` model — not Gemini, GPT, Pro, or older/deprecated models. Confidence: 0.9
 - Communicates in Spanish (Chilean, informal register) and expects responses in Spanish. Confidence: 0.9
 - Verifies claimed fixes and pushes back strongly when the issue persists ("no arreglaste niuna mierda", "NO ARREGLASTE NINGUNA MIERDA, SIGUE EL MISMO PUTO ERROR"); fixes should be proven to actually resolve the problem (verified against the real runtime/server, not just static inspection or logs) before being reported as done. Confidence: 0.9
@@ -27,7 +33,7 @@
 - Wants clear typographic hierarchy in expanded catalog cards: the exercise title (`titleMedium`/`titleLarge`) must be visibly larger than the section label ("Selecciona las opciones", `labelLarge`/`labelMedium`). Confidence: 0.6
 - Requires catalog descriptions to be implement-neutral: a definition that supports multiple equipment variants must not assume a single one a priori (e.g., Sentadilla Búlgara shouldn't read as dumbbells-only), and this should be generalized to any other definition with similar assumptions. Confidence: 0.7
 - Wants search to localize technical option values to Spanish so natural-language queries resolve the correct variant (pulley height low/mid/high → baja/media/alta, bench angle flat/incline/decline → plano/inclinado/declinado, grip width wide/close → amplio/cerrado). Confidence: 0.7
-- Wants to work autonomously with routine commands auto-accepted (no approval prompts), while destructive git commands (git reset, stash, clean, restore, checkout --, rebase, push --force) must always require confirmation. Confidence: 0.9
+- Wants to work autonomously with routine commands auto-accepted (no approval prompts), while destructive git commands (git reset, stash, clean, restore, checkout --, rebase, push --force) must always require confirmation. When troubleshooting with tools available, expects the agent to run diagnostics and fix the issue directly rather than ask the user to execute commands and paste results ("arreglalo tu"). Confidence: 0.9
 - Delivers (and expects) signed release APKs to Google Drive under `G:\Mi unidad` with a versioned filename like "KPKN Beta 10.2.apk", replacing the previous build in place. Confidence: 0.7
 - Requires release APKs to be correctly signed before delivery — verifies with apksigner (v2/v3 schemes and certificate matching the prior version so it installs as an update). Confidence: 0.6
 - Runs Gradle build/test tasks through the project's anti-hang wrapper `.opencode/scripts/run-gradle.ps1 -Tasks "..."` rather than calling gradlew directly. Confidence: 0.7
@@ -110,8 +116,8 @@
 - When asked to commit and push, wants the entire working tree committed/pushed including files the agent did not touch, not just the agent's own changes. Confidence: 0.85
 - Absolutely prohibits losing any code, work, or app functionality during git/refactor operations; expects safeguards (e.g., backup branch, soft-only undos, keeping excluded binaries on disk) so nothing is ever deleted. Confidence: 0.95
 - Requires emulator APK updates/reinstalls to preserve existing on-device app data (reinstall without wipe/clear, e.g. install -r) so manually entered test data is never lost and never has to be re-entered. Confidence: 0.85
-- Requires all subagents to run on meta/muse-spark-1.3-contributor regardless of the session main model, valuing it as the best price/intelligence balance. Confidence: 0.9
-- Prefers Muse Spark contributor subagents pinned to medium reasoningEffort. Confidence: 0.9
+- Wants Luna Max agents deployed for every implementation going forward, with the main assistant orchestrating, to improve efficiency and reduce quota cost; also requests Luna Max for delegated roadmap code exploration. This supersedes the earlier general preference for Muse Spark contributor subagents. Confidence: 0.95
+- Prefers medium reasoningEffort for Muse Spark contributor subagents, but explicitly requests Max when using Luna for roadmap code exploration. Confidence: 0.9
 - Rejects very low weekly/per-muscle training volume in templates and protocols (calls ~5 weekly sets per muscle "bajísimo"); expects weekly and per-session volume to be audited against effective minimums. Confidence: 0.85
 - Wants selecting a template/protocol with a pre-selected routine to consult volume-calibration status and use it to determine sets for that routine. Confidence: 0.9
 - Treats indirect/spillover volume as non-problematic and wants tolerance on volume ceilings: e.g. squat contributing to glutes counts as indirect volume, allowing MRV/ceiling to be exceeded by 1-2 sets without failing. Confidence: 0.85

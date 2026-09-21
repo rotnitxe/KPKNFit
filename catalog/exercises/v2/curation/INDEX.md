@@ -1,8 +1,8 @@
 # Índice del catálogo de ejercicios v2
 
 Revisión: `v2-approved-2026-08-12-a` · Ontología: `wikilab-v3-2026-08-08`
-96 familias · 196 definiciones · 512 configuraciones
-Hash canónico: `871390f3aa412bdf…`
+96 familias · 197 definiciones · 510 configuraciones
+Hash canónico: `ae4e82d2097a0b80…`
 
 Artefacto informativo generado por `scripts/merge_catalog_v2_families.py`.
 No editar a mano: se regenera en cada merge.
@@ -200,8 +200,9 @@ No editar a mano: se regenera en cada merge.
 | upper_vertical_pull_abduction | deltoides_remo_menton | Remo al Mentón |  | 1 |
 | upper_vertical_pull_lat_pulldown | lat_pulldown | Jalón al Pecho | implement, laterality | 6 |
 | upper_vertical_pull_pull_up | pull_up | Dominadas | grip_type, grip_width | 9 |
-| upper_vertical_pull_pullover | lying_pullover | Pull Over en Banca | implement | 5 |
-| upper_vertical_pull_pullover | pullover | Pull Over | implement, laterality | 4 |
+| upper_vertical_pull_pullover | lying_pullover | Pull Over en Banca | implement | 4 |
+| upper_vertical_pull_pullover | pullover | Pull Over de Pie en Polea | laterality | 2 |
+| upper_vertical_pull_pullover | seated_machine_pullover | Pull Over Sentado en Máquina |  | 1 |
 | upper_vertical_push | deltoides_push_press | Push Press |  | 1 |
 | upper_vertical_push_military_press | military_press | Press Militar | implement | 6 |
 | upper_vertical_push_seated_press | seated_shoulder_press | Press de Hombros Sentado | implement | 6 |

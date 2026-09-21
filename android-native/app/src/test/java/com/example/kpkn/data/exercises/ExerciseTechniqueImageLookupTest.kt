@@ -598,6 +598,49 @@ class ExerciseTechniqueImageLookupTest {
     }
 
     @Test
+    fun approved_chest_and_back_batch_images_map_to_their_catalog_implement() {
+        fun res(
+            definitionId: String,
+            configurationId: String,
+        ) = ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = definitionId,
+            exerciseDbId = configurationId,
+            exerciseId = "ex-$definitionId",
+            catalogConfigurationId = configurationId,
+        )
+
+        assertEquals(R.drawable.exercise_incline_bench_press_barbell, res("incline_bench_press", "incline_bench_press__barbell"))
+        assertEquals(R.drawable.exercise_incline_bench_press_dumbbells, res("incline_bench_press", "incline_bench_press__dumbbells"))
+        assertEquals(R.drawable.exercise_incline_bench_press_smith_machine, res("incline_bench_press", "incline_bench_press__smith_machine"))
+        assertEquals(R.drawable.exercise_incline_bench_press_machine, res("incline_bench_press", "incline_bench_press__machine"))
+        assertEquals(R.drawable.exercise_incline_bench_press_cable, res("incline_bench_press", "incline_bench_press__cable"))
+        assertEquals(R.drawable.exercise_incline_bench_press_kettlebell, res("incline_bench_press", "incline_bench_press__kettlebell"))
+
+        assertEquals(R.drawable.exercise_decline_bench_press_barbell, res("decline_bench_press", "decline_bench_press__barbell"))
+        assertEquals(R.drawable.exercise_decline_bench_press_dumbbells, res("decline_bench_press", "decline_bench_press__dumbbells"))
+        assertEquals(R.drawable.exercise_decline_bench_press_smith_machine, res("decline_bench_press", "decline_bench_press__smith_machine"))
+        assertEquals(R.drawable.exercise_decline_bench_press_kettlebell, res("decline_bench_press", "decline_bench_press__kettlebell"))
+
+        assertEquals(R.drawable.exercise_flat_chest_fly_dumbbells, res("flat_chest_fly", "flat_chest_fly__dumbbells"))
+        assertEquals(R.drawable.exercise_flat_chest_fly_cable, res("flat_chest_fly", "flat_chest_fly__cable"))
+        assertEquals(R.drawable.exercise_flat_chest_fly_machine, res("flat_chest_fly", "flat_chest_fly__machine"))
+        assertEquals(R.drawable.exercise_decline_chest_fly_dumbbells, res("decline_chest_fly", "decline_chest_fly__dumbbells"))
+        assertEquals(R.drawable.exercise_incline_chest_fly_dumbbells, res("incline_chest_fly", "incline_chest_fly__dumbbells"))
+        assertEquals(R.drawable.exercise_incline_chest_fly_cable, res("incline_chest_fly", "incline_chest_fly__cable"))
+        assertEquals(R.drawable.exercise_incline_chest_fly_machine, res("incline_chest_fly", "incline_chest_fly__machine"))
+        assertEquals(R.drawable.exercise_floor_press_barbell, res("floor_press", "floor_press__barbell"))
+
+        assertEquals(R.drawable.exercise_conventional_row_barbell, res("conventional_row", "conventional_row__barbell"))
+        assertEquals(R.drawable.exercise_conventional_row_dumbbells, res("conventional_row", "conventional_row__dumbbells"))
+        assertEquals(R.drawable.exercise_chest_supported_row_dumbbells_medium, res("chest_supported_row", "chest_supported_row__dumbbells__medium"))
+        assertEquals(R.drawable.exercise_chest_supported_row_machine_medium, res("chest_supported_row", "chest_supported_row__machine__medium"))
+        assertEquals(R.drawable.exercise_chest_supported_row_cable_mid_medium, res("chest_supported_row", "chest_supported_row__cable__mid__medium"))
+        assertEquals(R.drawable.exercise_lat_pulldown_cable, res("lat_pulldown", "lat_pulldown__bilateral__cable"))
+        assertEquals(R.drawable.exercise_lat_pulldown_machine, res("lat_pulldown", "lat_pulldown__bilateral__machine"))
+        assertEquals(R.drawable.exercise_seal_row_barbell, res("seal_row", "seal_row__barbell"))
+    }
+
+    @Test
     fun laterality_token_is_not_treated_as_implement() {
         val barbell = ExerciseTechniqueImageLookup.resolveImageResId(
             catalogDefinitionId = "hip_thrust",

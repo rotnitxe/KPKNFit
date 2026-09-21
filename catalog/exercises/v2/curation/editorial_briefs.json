@@ -4832,21 +4832,6 @@
           ],
           "techniqueSummary": "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
           "variantRationale": "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco. Variante alternativa del pullover."
-        },
-        "lying_pullover__machine": {
-          "benefits": [
-            "En la máquina, la trayectoria guiada concentra todo el esfuerzo del pectoral.",
-            "El expansor de la caja torácica con más historia del fisicoculturismo."
-          ],
-          "description": "Con máquina, tumbado en la banca, la carga viaja con los brazos extendidos por detrás de la cabeza y regresa sobre el pecho. En la máquina, la trayectoria guiada concentra todo el esfuerzo del pectoral.",
-          "executionCues": [
-            "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-          ],
-          "setupCues": [
-            "Preparación: Máquina de pullover: el guiado acompaña el arco detrás de la cabeza."
-          ],
-          "techniqueSummary": "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-          "variantRationale": "Máquina de pullover: el guiado acompaña el arco detrás de la cabeza. La opción cómoda y estable del ejercicio."
         }
       },
       "description": "El Pull Over en Banca estira el pectoral y el dorsal en un arco por encima de la cabeza: tumbado, la carga viaja desde el pecho hasta atrás de la nuca y regresa. Se ejecuta con una mancuerna a dos manos, bajando hasta sentir el estiramiento en las costillas y subiendo sin doblar los codos de más. El tríceps y el dorsal asisten el retorno. El expansor de la caja torácica con más historia del fisicoculturismo."
@@ -5474,67 +5459,37 @@
     "pullover": {
       "configurations": {
         "pullover__bilateral__cable": {
+          "description": "De pie frente a una polea alta, la barra recorre un arco desde sobre la cabeza hasta los muslos con los brazos casi extendidos. La tensión continua permite aislar el dorsal sin convertirlo en un jalón de codos flexionados.",
           "benefits": [
-            "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
-            "El aislador del dorsal que da amplitud sin necesidad de colgarse de nada."
+            "La polea conserva resistencia a lo largo del arco y permite percibir la extensión de hombro en el dorsal ancho sin depender de la gravedad.",
+            "La postura de pie exige fijar costillas y pelvis, de modo que el torso acompaña el gesto sin sustituir el trabajo del dorsal."
           ],
-          "description": "Con polea y a dos lados, de pie o frente a la polea, el brazo baja por detrás del cuerpo extendido y regresa a la línea del torso. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
-          "executionCues": [
-            "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-          ],
+          "techniqueSummary": "Con barra recta y agarre prono a la anchura de los hombros, los brazos conservan una leve flexión mientras descienden en arco hacia los muslos; el tronco se inclina apenas y no cambia de posición.",
+          "variantRationale": "El trabajo bilateral distribuye la resistencia de la barra entre ambos dorsales y ofrece una trayectoria simétrica para comparar el control escapular.",
           "setupCues": [
-            "Preparación: Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo."
+            "Preparación: La barra recta cuelga de una polea alta y el cuerpo queda un paso detrás de la vertical del cable."
           ],
-          "techniqueSummary": "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-          "variantRationale": "Polea alta con ambas manos: el arco largo deja el dorsal estirado a fondo. El pullover de polea tradicional."
-        },
-        "pullover__bilateral__machine": {
-          "benefits": [
-            "En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
-            "El aislador del dorsal que da amplitud sin necesidad de colgarse de nada."
-          ],
-          "description": "Con máquina y a dos lados, de pie o frente a la polea, el brazo baja por detrás del cuerpo extendido y regresa a la línea del torso. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
           "executionCues": [
-            "Máquina con ambas manos: el guiado hace el arco estable y estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-          ],
-          "setupCues": [
-            "Preparación: Máquina con ambas manos: el guiado hace el arco estable y estable."
-          ],
-          "techniqueSummary": "Máquina con ambas manos: el guiado hace el arco estable y estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-          "variantRationale": "Máquina con ambas manos: el guiado hace el arco estable y estable. La opción cómoda del pullover."
+            "Agarre prono a la anchura de los hombros, brazos casi rectos; la barra describe un arco continuo hasta los muslos sin balanceo del tronco."
+          ]
         },
         "pullover__unilateral__cable": {
+          "description": "Con una empuñadura y de pie frente a la polea alta, un brazo dibuja el arco hacia el costado de la cadera mientras el torso permanece estable. La tensión constante deja visible cualquier diferencia entre dorsales.",
           "benefits": [
-            "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del dorsal ancho se aísla y las asimetrías quedan al descubierto.",
-            "El aislador del dorsal que da amplitud sin necesidad de colgarse de nada."
+            "La empuñadura individual permite recorrer el arco de cada hombro por separado y detectar diferencias de movilidad o control escapular.",
+            "La polea mantiene carga desde la posición alta hasta la cadera, por lo que el dorsal recibe tensión sin necesitar impulso del tronco."
           ],
-          "description": "Con polea y a un lado, de pie o frente a la polea, el brazo baja por detrás del cuerpo extendido y regresa a la línea del torso. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del dorsal ancho se aísla y las asimetrías quedan al descubierto.",
-          "executionCues": [
-            "Polea con una mano: cada dorsal trabaja por separado con tensión constante. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-          ],
+          "techniqueSummary": "La mano toma una empuñadura de polea alta con el brazo casi recto; el hombro lleva el brazo en arco hacia la cadera mientras las costillas permanecen estables.",
+          "variantRationale": "El trabajo unilateral reduce la ayuda del lado dominante y permite que cada dorsal complete la extensión de hombro con su propia trayectoria.",
           "setupCues": [
-            "Preparación: Polea con una mano: cada dorsal trabaja por separado con tensión constante."
+            "Preparación: La empuñadura queda en una polea alta y el cuerpo se sitúa un paso detrás de la vertical del cable."
           ],
-          "techniqueSummary": "Polea con una mano: cada dorsal trabaja por separado con tensión constante. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-          "variantRationale": "Polea con una mano: cada dorsal trabaja por separado con tensión constante. Útil para corregir desequilibrios."
-        },
-        "pullover__unilateral__machine": {
-          "benefits": [
-            "El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
-            "El aislador del dorsal que da amplitud sin necesidad de colgarse de nada."
-          ],
-          "description": "Con máquina y a un lado, de pie o frente a la polea, el brazo baja por detrás del cuerpo extendido y regresa a la línea del torso. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
           "executionCues": [
-            "Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-          ],
-          "setupCues": [
-            "Preparación: Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable."
-          ],
-          "techniqueSummary": "Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-          "variantRationale": "Máquina con un brazo: el hombro recorre su arco por separado y el aparato conserva una línea estable. La variante ayuda a encontrar diferencias de movilidad y control entre ambos dorsales."
+            "Brazo casi recto y hombro bajo; la empuñadura recorre un arco continuo hasta la cadera sin girar el pecho hacia el cable."
+          ]
         }
       },
-      "description": "El Pull Over de pie trabaja el dorsal ancho en su función menos entrenada: llevar el brazo desde arriba hacia el cuerpo con el brazo extendido. Se ejecuta frente a la polea alta, bajando los brazos hasta los muslos sin doblar los codos y regresando con control. En la máquina de pull over el recorrido viene guiado. El aislador del dorsal que da amplitud sin necesidad de colgarse de nada."
+      "description": "El Pull Over de Pie en Polea lleva los brazos casi extendidos desde arriba hasta los muslos para aislar la extensión de hombro del dorsal bajo tensión continua."
     },
     "push_up": {
       "configurations": {
@@ -8675,6 +8630,26 @@
         }
       },
       "description": "El Press Z es el press de hombros sentado en el suelo con las piernas extendidas: sin respaldo ni apoyo, el deltoide empuja la barra mientras el core impide que el cuerpo se incline. Se ejecuta con la espalda vertical, empujando hasta el bloqueo completo sin rebote de piernas. La dificultad convierte cargas modestas en pesadas de verdad. La escuela de la fuerza de hombro pura y la postura impecable."
+    },
+    "seated_machine_pullover": {
+      "configurations": {
+        "seated_machine_pullover__machine": {
+          "description": "Sentado contra el respaldo, los apoyos de codo recorren un arco guiado desde arriba hasta los costados de la cintura. La máquina descarga el equilibrio y permite que el dorsal ancho conduzca la extensión de hombro completa.",
+          "benefits": [
+            "El asiento, respaldo y arco guiado reducen la demanda de equilibrio y hacen más fácil concentrar el esfuerzo en el dorsal ancho.",
+            "Los apoyos de codo separan el agarre de la fuerza principal, por lo que la extensión de hombro no depende de apretar las manos."
+          ],
+          "techniqueSummary": "Con el asiento alineado al eje de giro, los codos descansan en las almohadillas y descienden desde arriba hasta la línea de las costillas sin despegar la espalda del respaldo.",
+          "variantRationale": "La máquina dedicada conserva el arco de pullover mientras fija el torso y conduce los codos, una alternativa distinta al cable de pie y a la banca.",
+          "setupCues": [
+            "Preparación: El asiento se ajusta para que el hombro coincida con el eje de giro y los codos lleguen cómodos a sus apoyos."
+          ],
+          "executionCues": [
+            "La espalda permanece apoyada; los codos impulsan las almohadillas hacia abajo y adelante hasta la línea de las costillas, sin tirar solo de las manos."
+          ]
+        }
+      },
+      "description": "El Pull Over Sentado en Máquina fija el torso contra un respaldo y lleva los codos desde arriba hasta la cintura en un arco guiado que concentra la extensión de hombro en el dorsal ancho."
     }
   },
   "schemaVersion": 1,

@@ -91,7 +91,6 @@ AXIS_ORDER_OVERRIDES = {
         "laterality"
     ],
     "pullover": [
-        "implement",
         "laterality"
     ],
     "lying_pullover": [

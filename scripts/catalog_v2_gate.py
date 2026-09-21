@@ -82,7 +82,6 @@ EXPECTED_AXIS_ORDER = {
         "laterality"
     ],
     "pullover": [
-        "implement",
         "laterality"
     ],
     "lying_pullover": [
