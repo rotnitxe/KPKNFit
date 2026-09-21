@@ -117,6 +117,7 @@ import com.example.kpkn.ui.components.rememberKpknOverlayHostController
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
+import com.example.kpkn.data.models.NutritionTrackingChoice
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
@@ -206,7 +207,7 @@ class MainActivity : ComponentActivity() {
                 val nutritionNotifManager = com.example.kpkn.services.nutrition.NutritionNotificationManager(this@MainActivity)
                 nutritionNotifManager.createChannels()
                 val settings = ProgramRepository.getInstance().settings.value
-                if (settings.mealReminderEnabled) {
+                if (settings.nutritionTrackingChoice != com.example.kpkn.data.models.NutritionTrackingChoice.SKIPPED && settings.mealReminderEnabled) {
                     nutritionNotifManager.scheduleMealReminders(
                         breakfastTime = settings.mealReminderBreakfast,
                         lunchTime = settings.mealReminderLunch,
@@ -242,8 +243,6 @@ class MainActivity : ComponentActivity() {
             LocaleManager.recreateEvent.collect { recreate() }
         }
 
-        requestRequiredPermissions()
-
         setContent {
             var themeMode by remember { mutableStateOf(AppThemeMode.HIGH_CONTRAST) }
 
@@ -255,6 +254,7 @@ class MainActivity : ComponentActivity() {
                     onDeepLinkHandled = { pendingDeepLinkRoute.value = null },
                     pendingSharedNutritionText = pendingSharedNutritionText.value,
                     onSharedNutritionHandled = { pendingSharedNutritionText.value = null },
+                    onRequestRequiredPermissions = { requestRequiredPermissions() },
                 )
             }
         }
@@ -273,7 +273,6 @@ class MainActivity : ComponentActivity() {
         val shared = extractSharedNutritionText(intent)
         pendingSharedNutritionText.value = shared
         if (!shared.isNullOrBlank()) {
-            NavigationBus.emitSharedNutritionText(shared)
             telemetryHelper.logFoodItemAdd("shared_text", "Shared nutrition text", null)
         }
     }
@@ -428,6 +427,7 @@ fun KPKNApp(
     onDeepLinkHandled: () -> Unit = {},
     pendingSharedNutritionText: String? = null,
     onSharedNutritionHandled: () -> Unit = {},
+    onRequestRequiredPermissions: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val telemetryHelper = remember { TelemetryHelper(context) }
@@ -445,20 +445,27 @@ fun KPKNApp(
     val lifecycleOwner = LocalLifecycleOwner.current
     var showPermissionAlert by remember { mutableStateOf(false) }
     var missingPermissions by remember { mutableStateOf(emptyList<String>()) }
+    var permissionsRequested by remember { mutableStateOf(false) }
+    val settings by ProgramRepository.getInstance().settings.collectAsState()
 
     DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
                 ProgramRepository.getInstance().reconcileTemporalState()
-                val missing = mutableListOf<String>()
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    val postNotifGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
-                    if (!postNotifGranted) {
-                        missing.add("Notificaciones (Recordatorios y Alertas de Descanso)")
+                if (!ProgramRepository.getInstance().settings.value.onboardingCompleted) {
+                    missingPermissions = emptyList()
+                    showPermissionAlert = false
+                } else {
+                    val missing = mutableListOf<String>()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        val postNotifGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+                        if (!postNotifGranted) {
+                            missing.add("Notificaciones (Recordatorios y Alertas de Descanso)")
+                        }
                     }
+                    missingPermissions = missing
+                    showPermissionAlert = missing.isNotEmpty()
                 }
-                missingPermissions = missing
-                showPermissionAlert = missing.isNotEmpty()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -487,12 +494,21 @@ fun KPKNApp(
             previousRoute.value = currentRoute
         }
     }
+
+    LaunchedEffect(currentRoute, settings.onboardingCompleted) {
+        val onboardingRoute = currentRoute == KpknRoute.SetupEntry.route || currentRoute?.startsWith(KpknRoute.SetupWizard.BASE_ROUTE) == true
+        if (settings.onboardingCompleted && !onboardingRoute && !permissionsRequested) {
+            permissionsRequested = true
+            onRequestRequiredPermissions()
+        }
+    }
     
     val isFullscreenWizard =
         currentRoute?.startsWith("session-editor") == true ||
         currentRoute?.startsWith("workout") == true ||
         currentRoute?.startsWith(KpknRoute.ExerciseCatalog.route) == true ||
         currentRoute?.startsWith(KpknRoute.NutritionWizard.BASE_ROUTE) == true ||
+        currentRoute == KpknRoute.SetupEntry.route ||
         currentRoute?.startsWith(KpknRoute.SetupWizard.BASE_ROUTE) == true ||
         currentRoute == KpknRoute.CompetitionDetail.route ||
         resolvedRoute?.startsWith("competition/") == true
@@ -517,8 +533,9 @@ fun KPKNApp(
 
     val ongoingWorkout by ProgramRepository.getInstance().ongoingWorkout.collectAsState()
 
-    LaunchedEffect(pendingDeepLinkRoute) {
+    LaunchedEffect(pendingDeepLinkRoute, settings.onboardingCompleted, currentRoute) {
         val route = pendingDeepLinkRoute ?: return@LaunchedEffect
+        if (!settings.onboardingCompleted || currentRoute == KpknRoute.SetupEntry.route || currentRoute?.startsWith(KpknRoute.SetupWizard.BASE_ROUTE) == true) return@LaunchedEffect
         if (route != currentRoute) {
             navController.navigate(route) {
                 launchSingleTop = true
@@ -528,8 +545,9 @@ fun KPKNApp(
         onDeepLinkHandled()
     }
 
-    LaunchedEffect(pendingSharedNutritionText) {
+    LaunchedEffect(pendingSharedNutritionText, settings.onboardingCompleted, currentRoute) {
         val shared = pendingSharedNutritionText ?: return@LaunchedEffect
+        if (!settings.onboardingCompleted || currentRoute == KpknRoute.SetupEntry.route || currentRoute?.startsWith(KpknRoute.SetupWizard.BASE_ROUTE) == true) return@LaunchedEffect
         val normalized = shared.trim()
         if (normalized.isBlank()) {
             onSharedNutritionHandled()
@@ -551,7 +569,8 @@ fun KPKNApp(
     }
 
     DisposableEffect(Unit) {
-        val listener: (String) -> Unit = { text ->
+        val listener: (String) -> Unit = nutritionShare@{ text ->
+            if (!ProgramRepository.getInstance().settings.value.onboardingCompleted) return@nutritionShare
             NutritionTelemetry.event(
                 "shared_text_received",
                 mapOf("channel" to "navigation_bus", "descriptionLength" to text.length),
@@ -850,24 +869,26 @@ fun KPKNApp(
                         },
                         colors = navItemColors,
                     )
-                    val nutSel = currentTab == KpknRoute.Nutrition.route
-                    NavigationBarItem(
-                        selected = nutSel,
-                        onClick = {
-                            telemetryHelper.logNutritionOpen()
-                            navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true }
-                        },
-                        icon = { NutritionIcon(tint = navIconTint(nutSel)) },
-                        label = {
-                            Text(
-                                stringResource(R.string.nav_nutrition),
-                                color = if (nutSel) MaterialTheme.colorScheme.primary else Color.White,
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 1,
-                            )
-                        },
-                        colors = navItemColors,
-                    )
+                    if (settings.nutritionTrackingChoice != NutritionTrackingChoice.SKIPPED) {
+                        val nutSel = currentTab == KpknRoute.Nutrition.route
+                        NavigationBarItem(
+                            selected = nutSel,
+                            onClick = {
+                                telemetryHelper.logNutritionOpen()
+                                navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true }
+                            },
+                            icon = { NutritionIcon(tint = navIconTint(nutSel)) },
+                            label = {
+                                Text(
+                                    stringResource(R.string.nav_nutrition),
+                                    color = if (nutSel) MaterialTheme.colorScheme.primary else Color.White,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    maxLines = 1,
+                                )
+                            },
+                            colors = navItemColors,
+                        )
+                    }
                     val bodySel = currentTab == KpknRoute.BodyProgress.route
                     NavigationBarItem(
                         selected = bodySel,
@@ -1045,7 +1066,20 @@ private fun KPKNNavGraph(
     onHomeModalOverlayChange: HomeGlassOverlayChange = { _, _ -> },
     onHomeOnboardingOverlayChange: HomeGlassOverlayChange = { _, _ -> },
 ) {
-    NavHost(navController = navController, startDestination = KpknRoute.Home.route) {
+    NavHost(navController = navController, startDestination = KpknRoute.SetupEntry.route) {
+        composable(KpknRoute.SetupEntry.route) {
+            com.example.kpkn.screens.onboarding.SetupEntryScreen(
+                onStart = { resume ->
+                    navController.navigate(KpknRoute.SetupWizard.create(if (resume) "RESUME" else "FULL"))
+                },
+                onCompleted = {
+                    navController.navigate(KpknRoute.Home.route) {
+                        popUpTo(KpknRoute.SetupEntry.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+            )
+        }
         composable(KpknRoute.Home.route) {
             HomeScreen(
                 themeMode = themeMode,
@@ -1257,7 +1291,12 @@ private fun KPKNNavGraph(
             }.getOrDefault(com.example.kpkn.screens.onboarding.SetupWizardMode.FULL)
             com.example.kpkn.screens.onboarding.SetupWizardScreen(
                 mode = mode,
-                onDone = { navController.popBackStack() },
+                onDone = {
+                    navController.navigate(KpknRoute.Home.route) {
+                        popUpTo(KpknRoute.SetupEntry.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
                 onCancel = { navController.popBackStack() },
             )
         }

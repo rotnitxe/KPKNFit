@@ -27,10 +27,21 @@ interface SetupCommitReceiptDao {
 
 // ─── Programs ─────────────────────────────────────────────────────────────────
 
+data class ProgramHeader(val id: String, val name: String)
+
 @Dao
 interface ProgramDao {
     @Query("SELECT * FROM programs ORDER BY name ASC")
     suspend fun getAll(): List<ProgramEntity>
+
+    /**
+     * Load only scalar metadata before hydrating large JSON blobs in bounded chunks.
+     */
+    @Query("SELECT id, name FROM programs ORDER BY name ASC")
+    suspend fun getAllHeaders(): List<ProgramHeader>
+
+    @Query("SELECT substr(data, :start, :length) FROM programs WHERE id = :id")
+    suspend fun getDataChunk(id: String, start: Int, length: Int): String?
 
     @Query("SELECT * FROM programs WHERE id = :id")
     suspend fun getById(id: String): ProgramEntity?

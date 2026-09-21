@@ -34,12 +34,15 @@ fun HomeCardsSection(
     onAddMeal: () -> Unit = {},
     onOpenNutritionOverlay: () -> Unit = {},
     onNutritionAnchorPositionChanged: (Float) -> Unit = {},
+    showNutrition: Boolean = true,
 ) {
     val cards by viewModel.cardsState.collectAsState()
 
     Column(modifier.fillMaxWidth()) {
-        SectionHeader("Progreso físico y alimentación", Modifier.padding(horizontal = 24.dp))
-        MacroProgressBars(cards, onOpenNutritionOverlay, Modifier.padding(horizontal = 24.dp), onNutritionAnchorPositionChanged)
+        SectionHeader(if (showNutrition) "Progreso físico y alimentación" else "Progreso físico", Modifier.padding(horizontal = 24.dp))
+        if (showNutrition) {
+            MacroProgressBars(cards, onOpenNutritionOverlay, Modifier.padding(horizontal = 24.dp), onNutritionAnchorPositionChanged)
+        }
 
         Spacer(Modifier.height(12.dp))
 

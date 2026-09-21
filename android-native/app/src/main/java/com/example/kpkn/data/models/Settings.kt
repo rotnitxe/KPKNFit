@@ -14,6 +14,8 @@ data class Settings(
     val onboardingNameDone: Boolean = false,
     val onboardingProgramDone: Boolean = false,
     val onboardingNutritionDone: Boolean = false,
+    /** Explicit onboarding choice; independent from AUGE's nutrition algorithm flag. */
+    val nutritionTrackingChoice: NutritionTrackingChoice = NutritionTrackingChoice.NOT_DECIDED,
 
     val username: String = "Usuario",
     val profilePicture: String? = null,
@@ -94,6 +96,8 @@ data class Settings(
     val algorithmSettings: AlgorithmSettings = AlgorithmSettings(),
     val augePredictionBias: PredictionBiasProfile = PredictionBiasProfile(),
     val initialRecoveryEvidence: InitialRecoveryEvidence? = null,
+    /** Global volume reference captured by the setup wizard, even without a program. */
+    val volumeCalibrationProfile: VolumeCalibrationProfile? = null,
 
     val reducedMotionMode: Boolean = false,
     val hapticIntensity: HapticIntensity = HapticIntensity.MEDIUM,
@@ -136,6 +140,9 @@ data class Settings(
 )
 
 enum class CalorieGoalObjective { DEFICIT, MAINTENANCE, SURPLUS }
+
+@Serializable
+enum class NutritionTrackingChoice { NOT_DECIDED, ENABLED, SKIPPED }
 enum class WeightUnit { KG, LBS }
 enum class IntensityMetric { RPE, RIR }
 enum class OneRMFormula { BRZYCKI, EPLEY, LANDER }

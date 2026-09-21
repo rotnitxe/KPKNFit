@@ -4,6 +4,8 @@ import com.example.kpkn.data.models.InitialRecoveryActivityType
 import com.example.kpkn.data.models.InitialRecoveryEvidence
 import com.example.kpkn.data.models.InitialRecoveryEvidenceFactory
 import com.example.kpkn.data.models.InitialRecoveryIntensity
+import com.example.kpkn.data.models.InitialRecoveryMuscleScope
+import com.example.kpkn.data.models.InitialRecoveryResponseState
 import com.example.kpkn.data.models.InitialRecoverySensations
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.WorkoutLog
@@ -134,6 +136,37 @@ class InitialRecoveryEvidencePolicyTest {
         assertTrue(evidence.systemScore in 0..100)
         assertTrue(evidence.structureScore in 0..100)
         assertTrue(evidence.confidence in 0..82)
+    }
+
+    @Test
+    fun muscleScopeAndActivityProvenanceDoNotInventPerMuscleHistory() {
+        val unknown = InitialRecoveryEvidenceFactory.fromInputs(
+            capturedAtMs = now,
+            recencyDays = 0,
+            sessions = 0,
+            type = InitialRecoveryActivityType.MIXED,
+            intensity = InitialRecoveryIntensity.MODERATE,
+            muscleScope = InitialRecoveryMuscleScope.UNKNOWN,
+            activityTypeState = InitialRecoveryResponseState.UNKNOWN,
+        )
+        assertTrue(unknown.perMuscleScores.isEmpty())
+        assertEquals(InitialRecoveryMuscleScope.UNKNOWN, unknown.muscleScope)
+        assertEquals(InitialRecoveryResponseState.UNKNOWN, unknown.activityTypeState)
+        assertEquals(0, unknown.sessions)
+    }
+
+    @Test
+    fun selectedMuscleScopeOnlyContainsTheMusclesTheUserDeclared() {
+        val selected = InitialRecoveryEvidenceFactory.fromInputs(
+            capturedAtMs = now,
+            recencyDays = 1,
+            sessions = 2,
+            type = InitialRecoveryActivityType.STRENGTH,
+            intensity = InitialRecoveryIntensity.HARD,
+            muscleScope = InitialRecoveryMuscleScope.SELECTED,
+            selectedMuscles = listOf("Pectorales", "Pectorales", "Dorsales"),
+        )
+        assertEquals(setOf("Pectorales", "Dorsales"), selected.perMuscleScores.keys)
     }
 
     @Test

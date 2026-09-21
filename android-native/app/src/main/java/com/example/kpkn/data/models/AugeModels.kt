@@ -28,7 +28,12 @@ data class DailyWellbeingLog(
     val manualMuscleOverridesV2: Map<String, ManualMuscleBatteryOverride> = emptyMap(),
     val notes: String? = null,
     val preWorkoutDiscomforts: List<String> = emptyList(),
+    val source: WellbeingSource = WellbeingSource.DAILY_CHECK_IN,
+    val capturedFields: Set<String> = emptySet(),
 )
+
+@Serializable
+enum class WellbeingSource { DAILY_CHECK_IN, ONBOARDING_INITIAL, POST_SESSION, IMPORTED }
 
 @Serializable
 data class SleepLog(

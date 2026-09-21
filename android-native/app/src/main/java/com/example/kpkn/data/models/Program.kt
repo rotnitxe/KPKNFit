@@ -121,6 +121,29 @@ data class AthleteProfileScore(
     val profileLevel: AthleteProfileLevel,
 )
 
+/** Provenance is persisted with onboarding answers so defaults are not treated as declarations. */
+@Serializable
+enum class CalibrationResponseState { UNKNOWN, DECLARED, IMPORTED, DERIVED, SUGGESTED }
+
+@Serializable
+data class VolumeCalibrationResponses(
+    val technique: Int,
+    val consistency: Int,
+    val strength: Int,
+    val mobility: Int,
+    val state: CalibrationResponseState = CalibrationResponseState.DECLARED,
+)
+
+@Serializable
+data class VolumeCalibrationProfile(
+    val trainingStyle: TrainingStyle,
+    val athleteProfileScore: AthleteProfileScore,
+    val responses: VolumeCalibrationResponses,
+    val recommendations: List<VolumeRecommendation>,
+    val calibratedAtMs: Long,
+    val calculatorRevision: String = "volume-calibration-v1",
+)
+
 enum class TrainingStyle { BODYBUILDER, POWERBUILDER, POWERLIFTER }
 enum class AthleteProfileLevel { BEGINNER, ADVANCED }
 

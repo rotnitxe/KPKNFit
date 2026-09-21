@@ -13,6 +13,7 @@ import com.example.kpkn.data.db.SetupDraftEntity
 import com.example.kpkn.data.db.toEntity
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.BodyGoal
+import com.example.kpkn.data.models.DailyWellbeingLog
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Settings
@@ -51,6 +52,8 @@ data class SetupCommitRequest(
     val activateProgram: Boolean,
     val activateNutrition: Boolean,
     val derivedBodyGoals: List<BodyGoal> = emptyList(),
+    /** Optional partial wellbeing payload; absent when there is no explicit adjustment/discomfort. */
+    val initialWellbeing: DailyWellbeingLog? = null,
 )
 
 data class SetupCommitResult(
@@ -146,6 +149,7 @@ class SetupCommitCoordinator(
                     }
                     db.settingsDao().upsert(request.settings.toEntity())
                     request.derivedBodyGoals.forEach { db.bodyProgressDao().upsertGoal(it.toEntity()) }
+                    request.initialWellbeing?.let { db.augeDao().upsertWellbeing(it.toEntity()) }
                     val next = SetupCommitResult(
                         commitId = request.commitId,
                         programId = request.program?.id,

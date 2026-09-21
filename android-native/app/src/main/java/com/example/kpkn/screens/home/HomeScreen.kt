@@ -107,6 +107,8 @@ fun HomeScreen(
     val unusedTheme = themeMode to onThemeChange
 
     val programsVm: ProgramsViewModel = viewModel()
+    val settings by ProgramRepository.getInstance().settings.collectAsState()
+    val showNutrition = settings.nutritionTrackingChoice != com.example.kpkn.data.models.NutritionTrackingChoice.SKIPPED
     val showCreateProgramSheet by viewModel.showCreateProgramSheet.collectAsState()
     val pendingProgramName by viewModel.pendingProgramName.collectAsState()
     val pendingVolumeTemplateId by viewModel.pendingVolumeTemplateId.collectAsState()
@@ -179,6 +181,9 @@ fun HomeScreen(
         latestNutritionOverlayChange(content, previous)
         nutritionRegistration.active = content
     }
+    LaunchedEffect(showNutrition) {
+        if (!showNutrition) showNutritionOverlay = false
+    }
     DisposableEffect(Unit) {
         onDispose {
             val owned = nutritionRegistration.active
@@ -226,7 +231,7 @@ fun HomeScreen(
             greetingProgress = greetingProgress,
             ringsProgress = ringsProgress,
             sessionProgress = sessionProgress,
-            nutritionProgress = nutritionProgress,
+             nutritionProgress = if (showNutrition) nutritionProgress else 0f,
             hasPrograms = uiState.hasActiveProgram,
             muscularProgress = muscularProgress,
             sncProgress = sncProgress,
@@ -234,8 +239,8 @@ fun HomeScreen(
             primarySession = uiState.primarySession,
             homeCompetition = uiState.homeCompetition,
             isRestDay = uiState.primarySession == null && (uiState.isRestDay || uiState.todaySessions.isEmpty()),
-            dailyCalorieGoal = uiState.dailyCalorieGoal,
-            consumedCalories = uiState.todayNutritionTotals.calories.toInt(),
+             dailyCalorieGoal = if (showNutrition) uiState.dailyCalorieGoal else 0,
+             consumedCalories = if (showNutrition) uiState.todayNutritionTotals.calories.toInt() else 0,
             onStartWorkout = onStartWorkout,
             onRegisterCompetition = onRegisterCompetition,
             onCreateProgram = openCreate,
@@ -309,8 +314,9 @@ fun HomeScreen(
                 onModelNoticeShown = augeViewModel::markModelUpdateNoticeShown,
                 autoDeloadMessage = augeSnapshot.autoDeloadMessage,
                 overtrainedMuscles = uiState.overtrainedMuscles,
-                 onAddMeal = { showFoodLogger = true },
-                 onOpenNutritionOverlay = { showNutritionOverlay = true },
+                 onAddMeal = { if (showNutrition) showFoodLogger = true },
+                 onOpenNutritionOverlay = { if (showNutrition) showNutritionOverlay = true },
+                 showNutrition = showNutrition,
                  modifier = Modifier
                      .fillMaxSize()
                      .navigationBarsPadding(),
@@ -538,6 +544,7 @@ private fun HomeWithProgram(
     overtrainedMuscles: List<String> = emptyList(),
     onAddMeal: () -> Unit = {},
     onOpenNutritionOverlay: () -> Unit = {},
+    showNutrition: Boolean = true,
 ) {
     val homeAdapt = LocalViewportAdapt.current
     val isCatalogReady by exerciseCatalogReady.collectAsState()
@@ -620,7 +627,7 @@ private fun HomeWithProgram(
         }
         item(key = "cards") {
             Spacer(Modifier.height(8.dp))
-            HomeCardsSection(viewModel = viewModel, onNavigateToCard = onNavigateToCard, onAddMeal = onAddMeal, onOpenNutritionOverlay = onOpenNutritionOverlay, onNutritionAnchorPositionChanged = onNutritionAnchorPositionChanged)
+            HomeCardsSection(viewModel = viewModel, onNavigateToCard = onNavigateToCard, onAddMeal = onAddMeal, onOpenNutritionOverlay = onOpenNutritionOverlay, onNutritionAnchorPositionChanged = onNutritionAnchorPositionChanged, showNutrition = showNutrition)
         }
         item(key = "programs") {
             Spacer(Modifier.height(8.dp))

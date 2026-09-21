@@ -147,6 +147,7 @@ sealed class KpknRoute(val route: String) {
         /** Stable base used by deep links and current-route checks. */
         const val BASE_ROUTE = "nutrition/wizard"
     }
+    object SetupEntry : KpknRoute("setup/entry")
     object SetupWizard : KpknRoute("setup/wizard?mode={mode}") {
         const val BASE_ROUTE = "setup/wizard"
         const val ARG_MODE = "mode"

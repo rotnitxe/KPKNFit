@@ -11,6 +11,11 @@ import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.AthleteProfileScore
 import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.VolumeRecommendation
+import com.example.kpkn.data.models.CalibrationResponseState
+import com.example.kpkn.data.models.InitialRecoveryAxialExposure
+import com.example.kpkn.data.models.InitialRecoveryMuscleScope
+import com.example.kpkn.data.models.VolumeCalibrationProfile
+import com.example.kpkn.data.models.TrainingStyle
 import com.example.kpkn.domain.training.PersonalizationReport
 import com.example.kpkn.screens.nutrition.NutritionWizardDraft
 import kotlinx.serialization.Serializable
@@ -20,7 +25,26 @@ import java.time.LocalDate
 enum class SetupWizardMode { FULL, TRAINING_ONLY, NUTRITION_ONLY, RINGS_ONLY, RESUME }
 
 @Serializable
-enum class SetupWizardChapter { PROFILE, TRAINING, WEEK, RINGS, NUTRITION, REVIEW }
+enum class SetupWizardChapter { PROFILE, VOLUME, TRAINING, WEEK, NUTRITION, RINGS, REVIEW }
+
+@Serializable
+enum class SetupModuleChoice { TRAINING, TRAINING_AND_NUTRITION }
+
+@Serializable
+enum class SetupProgramRoute { CUSTOMIZABLE, PROTOCOL, LATER }
+
+@Serializable
+enum class SetupRecentTrainingState { NOT_ANSWERED, NO, YES, UNKNOWN }
+
+@Serializable
+data class SetupVolumeAnswers(
+    val style: TrainingStyle? = null,
+    val technique: Int? = null,
+    val consistency: Int? = null,
+    val strength: Int? = null,
+    val mobility: Int? = null,
+    val responseState: CalibrationResponseState = CalibrationResponseState.UNKNOWN,
+)
 
 @Serializable
 enum class SetupExperience(val label: String) { NEW("Estoy empezando"), RETURNING("Estoy volviendo"), INTERMEDIATE("Ya entreno con constancia"), ADVANCED("Tengo experiencia") }
@@ -75,6 +99,14 @@ data class SetupRingsAnswers(
     val energy: Int? = null,
     val structureFeeling: Int? = null,
     val capturedAtMs: Long? = null,
+    val recentTrainingState: SetupRecentTrainingState = SetupRecentTrainingState.NOT_ANSWERED,
+    val lastSessionRecencyDays: Int? = null,
+    val intensityLevel: InitialRecoveryIntensity? = null,
+    val muscleScope: InitialRecoveryMuscleScope = InitialRecoveryMuscleScope.UNKNOWN,
+    val recentMuscles: Set<String> = emptySet(),
+    val axialExposure: InitialRecoveryAxialExposure = InitialRecoveryAxialExposure(),
+    val discomfortIds: List<String> = emptyList(),
+    val activityTypeState: com.example.kpkn.data.models.InitialRecoveryResponseState = com.example.kpkn.data.models.InitialRecoveryResponseState.UNKNOWN,
 )
 
 typealias InitialRingsAnswers = SetupRingsAnswers
@@ -86,16 +118,25 @@ data class SetupWizardDraft(
     val revision: Int = 1,
     val chapter: SetupWizardChapter = SetupWizardChapter.PROFILE,
     val name: String = "",
+    val moduleChoice: SetupModuleChoice = SetupModuleChoice.TRAINING_AND_NUTRITION,
+    val weightKg: Double? = null,
+    val heightCm: Double? = null,
     val ageYears: Int? = null,
     val birthDateIso: String? = null,
     val experience: SetupExperience? = null,
     val trainingPath: SetupTrainingPath? = null,
+    val programRoute: SetupProgramRoute = SetupProgramRoute.CUSTOMIZABLE,
     val goal: SetupGoal? = null,
     val focus: SetupFocus = SetupFocus.FULL_BODY,
     val daysPerWeek: Int? = null,
     val selectedWeekdays: Set<Int> = emptySet(),
     val minutesPerSession: Int? = null,
     val equipment: Set<SetupEquipment> = emptySet(),
+    val priorityMuscles: Set<String> = emptySet(),
+    val lowerEmphasisMuscles: Set<String> = emptySet(),
+    val selectedSplitId: String? = null,
+    val customSplitPattern: List<String> = emptyList(),
+    val customSplitName: String? = null,
     val selectedCatalogId: String? = null,
     val sessions: List<SetupSessionDraft> = emptyList(),
     val includeTraining: Boolean = true,
@@ -113,6 +154,11 @@ data class SetupWizardDraft(
     val volumeRecommendations: List<VolumeRecommendation> = emptyList(),
     val athleteProfileScore: AthleteProfileScore? = null,
     val powerliftingProfile: PowerliftingProfile? = null,
+    val volumeAnswers: SetupVolumeAnswers = SetupVolumeAnswers(),
+    val volumeCalibrationProfile: VolumeCalibrationProfile? = null,
+    val manualMuscleOverrides: Map<String, Int> = emptyMap(),
+    val manualEnergyOverride: Int? = null,
+    val manualStructureOverride: Int? = null,
 )
 
 data class SetupWizardState(
@@ -141,7 +187,6 @@ object SetupWizardValidation {
     fun validate(draft: SetupWizardDraft, chapter: SetupWizardChapter): Map<String, String> = buildMap {
         when (chapter) {
             SetupWizardChapter.PROFILE -> {
-                if (draft.name.isBlank()) put("name", "Escribe tu nombre")
                 if (draft.ageYears == null && draft.birthDateIso == null) put("age", "Añade tu edad o fecha de nacimiento")
                 draft.ageYears?.let { if (it !in 13..100) put("age", "La edad debe estar entre 13 y 100 años") }
                 draft.birthDateIso?.let { value ->
@@ -153,14 +198,24 @@ object SetupWizardValidation {
             }
             SetupWizardChapter.TRAINING -> {
                 if (!draft.includeTraining) return@buildMap
-                if (draft.trainingPath == null) put("path", "Elige cómo quieres empezar")
+                if (draft.programRoute == SetupProgramRoute.LATER) return@buildMap
+                if (draft.trainingPath == null && draft.programRoute == SetupProgramRoute.CUSTOMIZABLE) put("path", "Elige cómo quieres empezar")
                 if (draft.goal == null) put("goal", "Elige un objetivo")
-                if (draft.daysPerWeek == null) put("days", "Elige días por semana")
-                if (draft.minutesPerSession == null) put("minutes", "Indica el tiempo disponible")
-                if (draft.equipment.isEmpty()) put("equipment", "Elige al menos un perfil de equipo")
+            }
+            SetupWizardChapter.VOLUME -> {
+                val answers = draft.volumeAnswers
+                if (answers.style == null) put("volumeStyle", "Elige el estilo de referencia")
+                if (answers.technique == null) put("volumeTechnique", "Indica tu técnica actual")
+                if (answers.consistency == null) put("volumeConsistency", "Indica tu consistencia actual")
+                if (answers.strength == null) put("volumeStrength", "Indica tu fuerza actual")
+                if (answers.mobility == null) put("volumeMobility", "Indica tu movilidad actual")
             }
             SetupWizardChapter.WEEK -> {
                 if (!draft.includeTraining) return@buildMap
+                if (draft.programRoute == SetupProgramRoute.LATER) return@buildMap
+                if (draft.daysPerWeek == null) put("days", "Elige los días que quieres entrenar")
+                if (draft.minutesPerSession == null) put("minutes", "Indica el tiempo disponible")
+                if (draft.equipment.isEmpty()) put("equipment", "Elige al menos un perfil de equipo")
                 if (draft.selectedWeekdays.size != draft.daysPerWeek || draft.selectedWeekdays.any { it !in 1..7 }) put("week", "Selecciona ${draft.daysPerWeek ?: 0} días en tu semana")
                 if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) {
                     val selected = draft.sessions.filter { it.weekday in draft.selectedWeekdays }

@@ -388,6 +388,7 @@ class NutritionAlertReceiver : BroadcastReceiver() {
             // Asegurar que los repos estén inicializados (puede que la app esté cerrada)
             val nutritionRepo = com.example.kpkn.data.repository.NutritionRepository.init(context)
             val programRepo = com.example.kpkn.data.repository.ProgramRepository.init(context)
+            if (programRepo.settings.value.nutritionTrackingChoice == com.example.kpkn.data.models.NutritionTrackingChoice.SKIPPED) return
             val today = java.time.LocalDate.now().toString()
             val todayLogs = nutritionRepo.nutritionLogs.value.filter {
                 it.date.take(10) == today &&

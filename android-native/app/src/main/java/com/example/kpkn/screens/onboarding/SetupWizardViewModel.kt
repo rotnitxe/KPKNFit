@@ -7,12 +7,15 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.models.BodyGoal
 import com.example.kpkn.data.models.CalculationOrigin
+import com.example.kpkn.data.models.CalibrationResponseState
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.InitialRecoveryActivityType
 import com.example.kpkn.data.models.InitialRecoveryEvidenceFactory
 import com.example.kpkn.data.models.InitialRecoveryIntensity
+import com.example.kpkn.data.models.InitialRecoveryMuscleScope
+import com.example.kpkn.data.models.InitialRecoveryResponseState
 import com.example.kpkn.data.models.InitialRecoverySensations
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
@@ -25,6 +28,10 @@ import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.UserVitals
+import com.example.kpkn.data.models.DailyWellbeingLog
+import com.example.kpkn.data.models.VolumeCalibrationProfile
+import com.example.kpkn.data.models.VolumeCalibrationResponses
+import com.example.kpkn.data.models.WellbeingSource
 import com.example.kpkn.data.exercises.catalogv2.ApprovedAssetExerciseCatalogRepositoryV2
 import com.example.kpkn.data.exercises.catalogv2.CatalogCompositionMetadataProvider
 import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
@@ -43,7 +50,9 @@ import com.example.kpkn.domain.nutrition.kilogramsFromInput
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.training.Calibration
 import com.example.kpkn.domain.training.PersonalizerInput
+import com.example.kpkn.domain.training.OnboardingPlanGenerator
 import com.example.kpkn.domain.training.SimpleCyclePersonalizer
+import com.example.kpkn.domain.training.VolumeCalibrationEngine
 import com.example.kpkn.screens.nutrition.NutritionWizardDraft
 import com.example.kpkn.screens.nutrition.NutritionWizardStep
 import com.example.kpkn.screens.nutrition.NutritionWizardViewModel
@@ -144,6 +153,8 @@ class SetupWizardViewModel(
         syncNutritionAge(resolved)
         it.copy(ageYears = resolved, birthDateIso = null)
     }
+    fun setWeightKg(value: Double?) = update { it.copy(weightKg = value?.takeIf { kg -> kg.isFinite() && kg > 0.0 }) }
+    fun setHeightCm(value: Double?) = update { it.copy(heightCm = value?.takeIf { cm -> cm.isFinite() && cm in 100.0..250.0 }) }
     fun setBirthDate(isoDate: String?) = update {
         val birthDate = isoDate?.takeIf(String::isNotBlank)
         val resolved = calculateAge(birthDate)
@@ -151,6 +162,57 @@ class SetupWizardViewModel(
         it.copy(birthDateIso = birthDate, ageYears = null)
     }
     fun setChapter(chapter: SetupWizardChapter) = updateDraft(_state.value.draft.copy(chapter = chapter), dirty = _state.value.dirty)
+
+    fun setProgramRoute(route: SetupProgramRoute) = update {
+        it.copy(
+            programRoute = route,
+            includeTraining = route != SetupProgramRoute.LATER,
+            trainingPath = when (route) {
+                SetupProgramRoute.CUSTOMIZABLE -> SetupTrainingPath.PERSONALIZE
+                SetupProgramRoute.PROTOCOL -> SetupTrainingPath.PERSONALIZE
+                SetupProgramRoute.LATER -> null
+            },
+            selectedCatalogId = if (route == SetupProgramRoute.LATER) null else it.selectedCatalogId,
+        )
+    }
+
+    fun setModuleChoice(choice: SetupModuleChoice) = update {
+        it.copy(
+            moduleChoice = choice,
+            includeNutrition = choice == SetupModuleChoice.TRAINING_AND_NUTRITION,
+            activateNutrition = choice == SetupModuleChoice.TRAINING_AND_NUTRITION,
+        )
+    }
+
+    fun setVolumeAnswer(change: (SetupVolumeAnswers) -> SetupVolumeAnswers) = update { draft ->
+        val answers = change(draft.volumeAnswers)
+        val next = draft.copy(
+            volumeAnswers = answers,
+            volumeCalibrationProfile = null,
+            volumeRecommendations = emptyList(),
+            athleteProfileScore = null,
+        )
+        val profile = buildVolumeProfile(next)
+        next.copy(
+            volumeCalibrationProfile = profile,
+            volumeRecommendations = profile?.recommendations.orEmpty(),
+            athleteProfileScore = profile?.athleteProfileScore,
+        )
+    }
+
+    fun setPriorityMuscles(muscles: Set<String>) = update { draft ->
+        val clean = muscles.map(String::trim).filter(String::isNotEmpty).toSet()
+        draft.copy(priorityMuscles = clean, lowerEmphasisMuscles = draft.lowerEmphasisMuscles - clean)
+    }
+
+    fun setLowerEmphasisMuscles(muscles: Set<String>) = update { draft ->
+        val clean = muscles.map(String::trim).filter(String::isNotEmpty).toSet()
+        draft.copy(lowerEmphasisMuscles = clean, priorityMuscles = draft.priorityMuscles - clean)
+    }
+
+    fun resetManualRecoveryAdjustments() = update {
+        it.copy(manualMuscleOverrides = emptyMap(), manualEnergyOverride = null, manualStructureOverride = null)
+    }
 
     fun next(): Boolean {
         if (_state.value.draft.chapter == SetupWizardChapter.NUTRITION && _state.value.draft.includeNutrition) {
@@ -209,7 +271,9 @@ class SetupWizardViewModel(
         }
         if (draft.chapter == SetupWizardChapter.WEEK) {
             if (SetupWizardValidation.validate(draft, draft.chapter).isNotEmpty()) return false
-            if (draft.includeTraining) return current.programPreview != null && current.previewError == null
+            if (draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER) {
+                return current.programPreview != null && current.previewError == null
+            }
         }
         return SetupWizardValidation.validate(draft, draft.chapter).isEmpty() &&
             (draft.chapter != SetupWizardChapter.REVIEW || reviewErrors().isEmpty())
@@ -241,18 +305,26 @@ class SetupWizardViewModel(
             if (_state.value.errors.containsKey("draft")) return null
             val draft = _state.value.draft
             val preview = _state.value.programPreview
-            val program = if (draft.includeTraining) preview ?: throw IllegalStateException("La vista previa del programa no es ejecutable") else null
+            val program = if (draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER) {
+                preview ?: throw IllegalStateException("La vista previa del programa no es ejecutable")
+            } else null
             val nutritionPlan = if (draft.includeNutrition) prepareNutritionPlan(draft) ?: throw IllegalStateException("Completa el plan de nutrición") else null
             val repository = ProgramRepository.getInstance()
             val base = repository.settings.value
+            val volumeProfile = draft.volumeCalibrationProfile ?: buildVolumeProfile(draft)
+            val nutritionChoice = if (draft.includeNutrition && nutritionPlan != null) {
+                com.example.kpkn.data.models.NutritionTrackingChoice.ENABLED
+            } else if (!draft.includeNutrition) {
+                com.example.kpkn.data.models.NutritionTrackingChoice.SKIPPED
+            } else base.nutritionTrackingChoice
             val settings = base.copy(
                 username = draft.name.trim().ifBlank { base.username },
                 age = draft.ageYears ?: calculateAge(draft.birthDateIso) ?: base.age,
                 userVitals = base.userVitals.copy(
                     age = draft.ageYears ?: calculateAge(draft.birthDateIso) ?: base.userVitals.age,
-                    height = if (draft.includeNutrition) nutritionEditor.uiState.value.draft.heightText
+                    height = draft.heightCm ?: if (draft.includeNutrition) nutritionEditor.uiState.value.draft.heightText
                         .let(::parseLocalizedNumber)?.takeIf { it.isFinite() && it in 100.0..250.0 } ?: base.userVitals.height else base.userVitals.height,
-                    weight = if (draft.includeNutrition) nutritionEditor.uiState.value.draft.weightText
+                    weight = draft.weightKg ?: if (draft.includeNutrition) nutritionEditor.uiState.value.draft.weightText
                         .let(::parseLocalizedNumber)?.let { kilogramsFromInput(it, nutritionEditor.uiState.value.draft.weightUnit) }
                         ?.takeIf { it.isFinite() && it > 0.0 } ?: base.userVitals.weight else base.userVitals.weight,
                 ),
@@ -262,9 +334,11 @@ class SetupWizardViewModel(
                 dailyFatGoal = nutritionPlan?.fatGoal?.takeIf { it > 0 } ?: base.dailyFatGoal,
                 onboardingCompleted = base.onboardingCompleted || _state.value.mode == SetupWizardMode.FULL || _state.value.mode == SetupWizardMode.RESUME,
                 onboardingNameDone = if (draft.name.isNotBlank()) true else base.onboardingNameDone,
-                onboardingProgramDone = if (draft.includeTraining) program != null else base.onboardingProgramDone,
-                onboardingNutritionDone = if (draft.includeNutrition) nutritionPlan != null else base.onboardingNutritionDone,
+                onboardingProgramDone = if (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER) true else program != null,
+                onboardingNutritionDone = if (draft.includeNutrition) nutritionPlan != null else true,
                 initialRecoveryEvidence = recoveryEvidence(draft) ?: base.initialRecoveryEvidence,
+                nutritionTrackingChoice = nutritionChoice,
+                volumeCalibrationProfile = volumeProfile ?: base.volumeCalibrationProfile,
             )
             val result = persistenceFactory(context).commits.commit(
                 SetupCommitRequest(
@@ -273,13 +347,14 @@ class SetupWizardViewModel(
                     settings = settings,
                     program = program,
                     nutritionPlan = nutritionPlan,
-                    activateProgram = draft.includeTraining && draft.activateProgram,
+                    activateProgram = draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER && draft.activateProgram,
                     activateNutrition = draft.includeNutrition && draft.activateNutrition,
                     derivedBodyGoals = nutritionPlan?.typedBodyGoal?.let { typed ->
                         typed.targetValueSi?.let { target ->
                             listOf(BodyGoal("${draft.commitId}-body-goal", typed.metric.toBodyMetric(), target, typed.unitSi, typed.origin, nutritionPlan.id, System.currentTimeMillis(), System.currentTimeMillis()))
                         }
                     } ?: emptyList(),
+                    initialWellbeing = initialWellbeing(draft),
                 ),
             )
             savedStateHandle[savedKey] = null
@@ -343,10 +418,10 @@ class SetupWizardViewModel(
     fun changeReps(weekday: Int, exerciseId: String, reps: String) = updateExercises(weekday, exerciseId) { exercise -> exercise.copy(sets = exercise.sets.map { it.copy(targetReps = reps.toIntOrNull()) }) }
 
     fun chapters(mode: SetupWizardMode): List<SetupWizardChapter> = when (mode) {
-        SetupWizardMode.TRAINING_ONLY -> listOf(SetupWizardChapter.PROFILE, SetupWizardChapter.TRAINING, SetupWizardChapter.WEEK, SetupWizardChapter.RINGS, SetupWizardChapter.REVIEW)
-        SetupWizardMode.NUTRITION_ONLY -> listOf(SetupWizardChapter.PROFILE, SetupWizardChapter.NUTRITION, SetupWizardChapter.REVIEW)
+        SetupWizardMode.TRAINING_ONLY -> listOf(SetupWizardChapter.PROFILE, SetupWizardChapter.VOLUME, SetupWizardChapter.TRAINING, SetupWizardChapter.WEEK, SetupWizardChapter.RINGS, SetupWizardChapter.REVIEW)
+        SetupWizardMode.NUTRITION_ONLY -> listOf(SetupWizardChapter.PROFILE, SetupWizardChapter.VOLUME, SetupWizardChapter.NUTRITION, SetupWizardChapter.RINGS, SetupWizardChapter.REVIEW)
         SetupWizardMode.RINGS_ONLY -> listOf(SetupWizardChapter.PROFILE, SetupWizardChapter.RINGS, SetupWizardChapter.REVIEW)
-        SetupWizardMode.RESUME, SetupWizardMode.FULL -> SetupWizardChapter.entries.toList()
+        SetupWizardMode.RESUME, SetupWizardMode.FULL -> listOf(SetupWizardChapter.PROFILE, SetupWizardChapter.VOLUME, SetupWizardChapter.TRAINING, SetupWizardChapter.WEEK, SetupWizardChapter.NUTRITION, SetupWizardChapter.RINGS, SetupWizardChapter.REVIEW)
     }
 
     private fun updateExercises(weekday: Int, exerciseId: String, change: (Exercise) -> Exercise) = update { draft ->
@@ -414,15 +489,16 @@ class SetupWizardViewModel(
     fun requiresActivationConfirmation(): Boolean = activationConfirmation(_state.value.draft, _state.value.programPreview)
 
     private fun previewInputsIncomplete(draft: SetupWizardDraft): Boolean {
+        if (draft.programRoute == SetupProgramRoute.LATER || !draft.includeTraining) return false
         val days = draft.daysPerWeek
         if (days == null || draft.minutesPerSession == null || draft.selectedWeekdays.size != days || draft.selectedWeekdays.any { it !in 1..7 }) return true
-        return when (draft.trainingPath) {
-            SetupTrainingPath.PERSONALIZE -> draft.selectedCatalogId == null
-            SetupTrainingPath.FROM_SCRATCH -> {
+        return when (draft.programRoute) {
+            SetupProgramRoute.PROTOCOL -> draft.selectedCatalogId == null
+            SetupProgramRoute.CUSTOMIZABLE -> if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) {
                 val selected = draft.sessions.filter { it.weekday in draft.selectedWeekdays }
                 selected.size != draft.selectedWeekdays.size || selected.any { it.exercises.isEmpty() }
-            }
-            null -> true
+            } else draft.selectedCatalogId == null
+            SetupProgramRoute.LATER -> false
         }
     }
 
@@ -443,14 +519,14 @@ class SetupWizardViewModel(
         chapters(current.mode).filter { it != SetupWizardChapter.REVIEW }.forEach { putAll(SetupWizardValidation.validate(draft, it)) }
         val replacesDifferent = activationConfirmation(draft, current.programPreview)
         if (replacesDifferent && !draft.confirmActivation) put("activation", "Confirma la activación del plan")
-        if (draft.includeTraining && (current.programPreview == null || current.previewError != null)) put("program", "Prepara una vista previa ejecutable")
+        if (draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER && (current.programPreview == null || current.previewError != null)) put("program", "Prepara una vista previa ejecutable")
         if (draft.includeNutrition && !nutritionReviewIsValid(nutritionEditor.uiState.value)) put("nutrition", "Completa el plan de nutrición")
     }
 
     private fun prepareNutritionPlan(draft: SetupWizardDraft) = if (draft.includeNutrition) nutritionEditor.preparePlan(draft.nutritionPlanId ?: draft.commitId) else null
 
     private suspend fun materializeProgram(context: Context, draft: SetupWizardDraft): SetupPreview {
-        if (!draft.includeTraining) return SetupPreview(null, null)
+        if (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER) return SetupPreview(null, null)
         val entry = if (draft.trainingPath == SetupTrainingPath.PERSONALIZE) {
             draft.selectedCatalogId?.let(PersonalizedPlanCatalog::find)
         } else null
@@ -462,7 +538,7 @@ class SetupWizardViewModel(
             val frequency = draft.daysPerWeek ?: error("Selecciona los días de entrenamiento")
             val minutes = draft.minutesPerSession ?: error("Indica el tiempo disponible")
             val calibrated = draft.volumeRecommendations.isNotEmpty() && draft.athleteProfileScore != null
-            val result = SimpleCyclePersonalizer(catalogRepository).personalize(
+            val result = OnboardingPlanGenerator(SimpleCyclePersonalizer(catalogRepository)).generate(
                 draft.commitId,
                 PersonalizerInput(
                     catalogEntryId = catalogId,
@@ -474,11 +550,22 @@ class SetupWizardViewModel(
                     availableMinutes = minutes,
                     calibration = if (calibrated) Calibration.CALIBRATED else Calibration.CONSERVATIVE,
                     volumeRecommendations = if (calibrated) draft.volumeRecommendations else emptyList(),
+                    priorityMuscles = draft.priorityMuscles,
+                    lowerEmphasisMuscles = draft.lowerEmphasisMuscles,
+                    splitId = draft.selectedSplitId,
+                    splitPattern = draft.customSplitPattern,
+                    splitName = draft.customSplitName,
                 ),
             )
             val program = result.program ?: error(result.report.limitations.joinToString(" "))
             return SetupPreview(
-                program.copy(volumeRecommendations = if (calibrated) draft.volumeRecommendations else emptyList(), athleteProfileScore = draft.athleteProfileScore),
+                program.copy(
+                    volumeRecommendations = if (calibrated) draft.volumeRecommendations else emptyList(),
+                    athleteProfileScore = draft.athleteProfileScore,
+                    selectedSplitId = draft.selectedSplitId ?: program.selectedSplitId,
+                    customSplitPattern = draft.customSplitPattern,
+                    customSplitName = draft.customSplitName,
+                ),
                 result.report,
             )
         }
@@ -516,12 +603,75 @@ class SetupWizardViewModel(
     private fun recoveryEvidence(draft: SetupWizardDraft) = draft.ringsAnswers?.takeIf { it.capturedAtMs != null }?.let { answers ->
         InitialRecoveryEvidenceFactory.fromInputs(
             capturedAtMs = answers.capturedAtMs ?: return@let null,
-            recencyDays = answers.recencyDays ?: 7,
-            sessions = answers.sessionsLastSevenDays ?: 0,
-            type = answers.activityType ?: InitialRecoveryActivityType.STRENGTH,
-            intensity = when (answers.intensity ?: 2) { 1 -> InitialRecoveryIntensity.EASY; 2 -> InitialRecoveryIntensity.MODERATE; 3 -> InitialRecoveryIntensity.HARD; else -> InitialRecoveryIntensity.VERY_HARD },
+            recencyDays = answers.lastSessionRecencyDays ?: answers.recencyDays ?: 7,
+            sessions = when (answers.recentTrainingState) {
+                SetupRecentTrainingState.NO -> 0
+                SetupRecentTrainingState.YES -> answers.sessionsLastSevenDays ?: 0
+                SetupRecentTrainingState.NOT_ANSWERED, SetupRecentTrainingState.UNKNOWN -> 0
+            },
+            type = if (answers.activityTypeState == InitialRecoveryResponseState.UNKNOWN) {
+                InitialRecoveryActivityType.MIXED
+            } else {
+                answers.activityType ?: InitialRecoveryActivityType.MIXED
+            },
+            intensity = answers.intensityLevel ?: when (answers.intensity ?: 2) { 1 -> InitialRecoveryIntensity.EASY; 2 -> InitialRecoveryIntensity.MODERATE; 3 -> InitialRecoveryIntensity.HARD; else -> InitialRecoveryIntensity.VERY_HARD },
             zones = answers.zones,
             sensations = InitialRecoverySensations(answers.muscleFeeling, answers.energy, answers.structureFeeling),
+            muscleScope = answers.muscleScope,
+            selectedMuscles = answers.recentMuscles.toList(),
+            axialExposure = answers.axialExposure,
+            activityTypeState = answers.activityTypeState,
+        )
+    }
+
+    private fun buildVolumeProfile(draft: SetupWizardDraft): VolumeCalibrationProfile? {
+        val answers = draft.volumeAnswers
+        val style = answers.style ?: return null
+        val technique = answers.technique ?: return null
+        val consistency = answers.consistency ?: return null
+        val strength = answers.strength ?: return null
+        val mobility = answers.mobility ?: return null
+        val output = VolumeCalibrationEngine.calculate(style, technique, consistency, strength, mobility)
+        return VolumeCalibrationProfile(
+            trainingStyle = style,
+            athleteProfileScore = output.score,
+            responses = VolumeCalibrationResponses(
+                technique = technique,
+                consistency = consistency,
+                strength = strength,
+                mobility = mobility,
+                state = answers.responseState.takeIf { it != CalibrationResponseState.UNKNOWN } ?: CalibrationResponseState.DECLARED,
+            ),
+            recommendations = output.recommendations,
+            calibratedAtMs = System.currentTimeMillis(),
+            calculatorRevision = VolumeCalibrationEngine.REVISION,
+        )
+    }
+
+    private fun initialWellbeing(draft: SetupWizardDraft): DailyWellbeingLog? {
+        val answers = draft.ringsAnswers
+        val capturedFields = buildSet {
+            if (draft.manualMuscleOverrides.isNotEmpty()) add("muscle_batteries")
+            if (draft.manualEnergyOverride != null) add("energy")
+            if (draft.manualStructureOverride != null) add("structure")
+            if (!answers?.discomfortIds.isNullOrEmpty()) add("discomforts")
+            if (answers?.muscleFeeling != null) add("muscle_feeling")
+            if (answers?.energy != null) add("energy_rating")
+            if (answers?.structureFeeling != null) add("structure_rating")
+        }
+        if (capturedFields.isEmpty()) return null
+        fun readinessFromFatigueRating(value: Int?): Int? = value?.let {
+            (100 - (it.coerceIn(1, 5) - 1) * 25).coerceIn(0, 100)
+        }
+        return DailyWellbeingLog(
+            id = "${draft.commitId}-onboarding-wellbeing",
+            date = LocalDate.now().toString(),
+            manualMuscleBatteries = draft.manualMuscleOverrides.mapValues { (_, value) -> readinessFromFatigueRating(value) ?: 0 },
+            manualNeuralBattery = readinessFromFatigueRating(draft.manualEnergyOverride),
+            manualSpinalBattery = readinessFromFatigueRating(draft.manualStructureOverride),
+            preWorkoutDiscomforts = answers?.discomfortIds.orEmpty().distinct(),
+            source = WellbeingSource.ONBOARDING_INITIAL,
+            capturedFields = capturedFields,
         )
     }
 
@@ -547,7 +697,20 @@ class SetupWizardViewModel(
         val age = settings.userVitals.age?.takeIf { it in 13..100 }
         val includeTraining = mode != SetupWizardMode.NUTRITION_ONLY && mode != SetupWizardMode.RINGS_ONLY
         val includeNutrition = mode != SetupWizardMode.TRAINING_ONLY && mode != SetupWizardMode.RINGS_ONLY
-        return SetupWizardDraft(storage, payload, name = name, ageYears = age, includeTraining = includeTraining, includeNutrition = includeNutrition, nutritionMode = nutritionMode, nutritionPlanId = nutritionPlanId, catalogRevision = PersonalizedPlanCatalog.REVISION)
+        return SetupWizardDraft(
+            draftId = storage,
+            commitId = payload,
+            name = name,
+            moduleChoice = if (includeNutrition) SetupModuleChoice.TRAINING_AND_NUTRITION else SetupModuleChoice.TRAINING,
+            ageYears = age,
+            programRoute = if (includeTraining) SetupProgramRoute.CUSTOMIZABLE else SetupProgramRoute.LATER,
+            trainingPath = if (includeTraining) SetupTrainingPath.PERSONALIZE else null,
+            includeTraining = includeTraining,
+            includeNutrition = includeNutrition,
+            nutritionMode = nutritionMode,
+            nutritionPlanId = nutritionPlanId,
+            catalogRevision = PersonalizedPlanCatalog.REVISION,
+        )
     }
 
     private fun syncNutritionAge(age: Int?) {

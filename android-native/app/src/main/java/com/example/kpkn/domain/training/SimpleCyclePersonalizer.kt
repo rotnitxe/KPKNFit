@@ -2,6 +2,18 @@ package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.protocols.AutoregulationHook
+import com.example.kpkn.data.protocols.AutoregulationHookKind
+import com.example.kpkn.data.protocols.DayRecipe
+import com.example.kpkn.data.protocols.LoadBasis
+import com.example.kpkn.data.protocols.LiftRef
+import com.example.kpkn.data.protocols.ProgressionRule
+import com.example.kpkn.data.protocols.SetRecipe
+import com.example.kpkn.data.protocols.SlotRecipe
+import com.example.kpkn.data.protocols.SlotRole
+import com.example.kpkn.data.protocols.SlotSource
+import com.example.kpkn.data.protocols.TrainingPlanRecipe
+import com.example.kpkn.data.protocols.WeekRecipe
 import com.example.kpkn.data.programs.*
 import com.example.kpkn.domain.exercises.catalogv2.CatalogReviewStatusV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRepositoryV2
@@ -33,6 +45,11 @@ data class PersonalizerInput(
     val calibration: Calibration = Calibration.UNCALIBRATED,
     val cardio: CardioPreference? = null,
     val volumeRecommendations: List<VolumeRecommendation> = emptyList(),
+    val priorityMuscles: Set<String> = emptySet(),
+    val lowerEmphasisMuscles: Set<String> = emptySet(),
+    val splitId: String? = null,
+    val splitPattern: List<String> = emptyList(),
+    val splitName: String? = null,
 )
 
 data class PersonalizationResult(val program: Program?, val report: PersonalizationReport)
@@ -103,11 +120,22 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
             }
         }.associateBy { it.id }
         if (candidates.isEmpty()) return unavailable("No hay una variante curada compatible con tu equipo y experiencia.")
-        val focused = focusMuscles(input.focus)
+        val priority = input.priorityMuscles.map(::canonicalSelection).filter(String::isNotBlank).toSet()
+        val lowerEmphasis = input.lowerEmphasisMuscles.map(::canonicalSelection).filter(String::isNotBlank).toSet() - priority
+        val focused = (focusMuscles(input.focus) + priority) - lowerEmphasis
         val focusCandidates = candidates.values.filter { candidate -> candidate.primary.any { it in focused } }
         if (focused.isNotEmpty() && focusCandidates.isEmpty()) return unavailable("Tu equipo no permite trabajar ese enfoque con una variante curada. Cambia de enfoque o añade material.")
-        val days = input.weekdays.sorted().ifEmpty { defaultDays.getValue(input.frequency) }
-        val budgets = budgets(input, focused)
+        val selectedDays = input.weekdays.sorted().ifEmpty { defaultDays.getValue(input.frequency) }
+        val customLabelsByDay = if (input.splitId == "custom") {
+            require(input.splitPattern.size == 7) { "Un split personalizado debe tener siete posiciones." }
+            val trainingPositions = input.splitPattern.mapIndexedNotNull { index, label ->
+                index.takeIf { label.isNotBlank() && !label.equals("Descanso", ignoreCase = true) }
+            }
+            require(trainingPositions.size == selectedDays.size) { "El patrón personalizado debe concordar con los días elegidos." }
+            trainingPositions.mapIndexed { index, position -> selectedDays[index] to input.splitPattern[position].trim() }.toMap()
+        } else emptyMap()
+        val days = selectedDays
+        val budgets = budgets(input, focused, lowerEmphasis)
         val slots = List(days.size) { mutableListOf<Slot>() }
         val totals = mutableMapOf<String, Double>()
         val notes = mutableListOf<String>()
@@ -161,7 +189,11 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
                 candidates.values.filter { candidate -> candidate.primary.any { it in permitted } && canAdd(index, candidate) }.map { candidate ->
                     val gain = candidate.volume.entries.sumOf { (muscle, contribution) ->
                         val deficit = (budgets.getValue(muscle).target - (totals[muscle] ?: 0.0)).coerceAtLeast(0.0)
-                        minOf(deficit, contribution.directSets + contribution.indirectSets) * if (muscle in focused) 3.0 else 1.0
+                        minOf(deficit, contribution.directSets + contribution.indirectSets) * when {
+                            muscle in focused -> 3.0
+                            muscle in lowerEmphasis -> 0.35
+                            else -> 1.0
+                        }
                     }
                     val existing = slots[index].any { it.candidate.id == candidate.id }
                     Triple(index, candidate, gain + if (existing && gain > 0.0) 0.05 else 0.0)
@@ -186,7 +218,7 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
                     cardioDetails = CardioDetails(type = it.type, intensity = it.intensity, targetDurationSeconds = it.minutes * 60))
             }
             Session(
-                id = "$programId-session-$index", name = "Día ${index + 1}", dayOfWeek = days[index], assignedDays = listOf(days[index]),
+                id = "$programId-session-$index", name = customLabelsByDay[days[index]] ?: "Día ${index + 1}", dayOfWeek = days[index], assignedDays = listOf(days[index]),
                 exercises = exercises,
                 parts = cardioExercise?.let { listOf(SessionPart("$programId-cardio-$index", "Cardio", exercises = listOf(it), isCardioGroup = true)) }.orEmpty(),
                 focus = input.focus.name, targetDurationMinutes = minutes(daySlots), origin = SessionOrigin.USER_DRAFT,
@@ -204,6 +236,46 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
         }
         if (reports.any { it.directSets + it.indirectSets > minOf(it.mav, it.mrv) + 0.001 }) return unavailable("La combinación excede el volumen permitido. Elige otra distribución.")
         val week = ProgramWeek("$programId-week", "Semana repetible", sessions = sessions)
+        val sourceRecipe = TrainingPlanRecipe(
+            id = "$programId-onboarding-recipe",
+            weeks = listOf(
+                WeekRecipe(
+                    weekNumber = 1,
+                    blockIndex = 0,
+                    blockName = "KPKN personalizado",
+                    weekName = "Semana repetible",
+                    days = sessions.map { session ->
+                        DayRecipe(
+                            label = session.name,
+                            weekday = session.dayOfWeek,
+                            slots = session.exercises.mapIndexed { exerciseIndex, exercise ->
+                                SlotRecipe(
+                                    id = "${session.id}-slot-$exerciseIndex",
+                                    role = SlotRole.T3_ACCESSORY,
+                                    lift = LiftRef(exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: exercise.id),
+                                    sets = exercise.sets.map { set ->
+                                        SetRecipe(
+                                            reps = set.targetReps,
+                                            repsMin = set.targetRepsRange?.min,
+                                            repsMax = set.targetRepsRange?.max,
+                                            rir = set.targetRIR,
+                                            loadBasis = LoadBasis.REP_MAX,
+                                        )
+                                    },
+                                    restSeconds = exercise.restTime ?: 90,
+                                    source = SlotSource.KPKN_DEFAULT,
+                                )
+                            },
+                        )
+                    },
+                ),
+            ),
+            progression = ProgressionRule.None,
+            claimedDaysPerWeek = days.size,
+            claimedLevel = input.level.name.lowercase(),
+            autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.WEEKLY_REVIEW)),
+            repeats = true,
+        )
         val program = Program(
             id = programId, name = entry.title,
             description = "${entry.description}\n${notes.distinct().joinToString("\n")}",
@@ -217,6 +289,10 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
             startDay = days.first(), volumeRecommendations = input.volumeRecommendations,
             autoregulationMode = AutoregulationMode.PROPOSE,
             tags = listOf("KPKN_NATIVE", input.focus.name),
+            selectedSplitId = input.splitId,
+            customSplitPattern = input.splitPattern,
+            customSplitName = input.splitName,
+            sourceRecipe = sourceRecipe,
         )
         ProgramExecutionContract.requireExecutable(program)
         return PersonalizationResult(program, PersonalizationReport(true, CatalogClassification.SIMPLE, notes.distinct(), reports, provenance))
@@ -231,7 +307,7 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
         restTime = 90,
     )
 
-    private fun budgets(input: PersonalizerInput, focused: Set<String>): Map<String, Budget> {
+    private fun budgets(input: PersonalizerInput, focused: Set<String>, lowerEmphasis: Set<String>): Map<String, Budget> {
         val groups = linkedMapOf(
             "Pectorales" to KpknMuscleGroup.CHEST, "Dorsales" to KpknMuscleGroup.BACK_LATS,
             "Trapecio" to KpknMuscleGroup.BACK_UPPER, "Romboides" to KpknMuscleGroup.BACK_UPPER,
@@ -250,8 +326,15 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
             val mrv = minOf(personal?.maxRecoverableVolume ?: global.mrv, global.mrv).coerceAtLeast(1)
             val mev = (personal?.minEffectiveVolume ?: global.mev).coerceIn(0, minOf(mav, mrv))
             val calibrated = input.calibration == Calibration.CALIBRATED && personal != null && input.level != CatalogLevel.BEGINNER && input.catalogEntryId != "native:return-training"
-            val target = if (calibrated) mev + (minOf(mav, mrv) - mev) * if (muscle in focused) 0.875 else 0.4
-                else minOf(mav, mrv) * if (muscle in focused) 0.65 else 0.5
+            val target = if (calibrated) mev + (minOf(mav, mrv) - mev) * when {
+                muscle in focused -> 0.875
+                muscle in lowerEmphasis -> 0.22
+                else -> 0.4
+            } else minOf(mav, mrv) * when {
+                muscle in focused -> 0.65
+                muscle in lowerEmphasis -> 0.25
+                else -> 0.5
+            }
             Budget(mev, mav, mrv, target, personal?.frequencyCap?.coerceIn(1, 6) ?: 3)
         }
     }
@@ -288,6 +371,25 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
         TrainingFocus.CHEST -> setOf("Pectorales")
         TrainingFocus.SHOULDERS -> setOf("Deltoides")
         TrainingFocus.ARMS -> setOf("Bíceps", "Tríceps")
+    }
+
+    private fun canonicalSelection(raw: String): String {
+        val normalized = raw.trim().lowercase()
+        return when (normalized) {
+            "pecho", "pectorales" -> "Pectorales"
+            "espalda", "dorsales", "lats" -> "Dorsales"
+            "hombros", "deltoides" -> "Deltoides"
+            "brazos", "bíceps", "biceps" -> "Bíceps"
+            "tríceps", "triceps" -> "Tríceps"
+            "piernas", "cuádriceps", "cuadriceps" -> "Cuádriceps"
+            "isquios", "isquiosurales", "femorales" -> "Isquiosurales"
+            "glúteos", "gluteos" -> "Glúteos"
+            "pantorrillas", "gemelos" -> "Pantorrillas"
+            "abdomen", "core" -> "Abdomen"
+            "trapecio" -> "Trapecio"
+            "erectores espinales", "columna" -> "Erectores Espinales"
+            else -> VolumeCalculator.normalizeCanonicalMuscleGroup(raw)
+        }
     }
 
     private fun curatedPools(): Map<String, List<String>> = linkedMapOf(

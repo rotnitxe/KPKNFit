@@ -10,6 +10,20 @@ enum class InitialRecoveryActivityType { STRENGTH, CARDIO, MIXED }
 enum class InitialRecoveryIntensity { EASY, MODERATE, HARD, VERY_HARD }
 
 @Serializable
+enum class InitialRecoveryMuscleScope { UNKNOWN, SELECTED, FULL_BODY }
+
+@Serializable
+enum class InitialRecoveryResponseState { UNKNOWN, DECLARED, DERIVED }
+
+@Serializable
+data class InitialRecoveryAxialExposure(
+    val state: InitialRecoveryResponseState = InitialRecoveryResponseState.UNKNOWN,
+    val sessions: Int? = null,
+    val intensity: InitialRecoveryIntensity? = null,
+    val recencyDays: Int? = null,
+)
+
+@Serializable
 data class InitialRecoverySensations(
     val muscular: Int? = null,
     val energy: Int? = null,
@@ -39,6 +53,12 @@ data class InitialRecoveryEvidence(
     val confidence: Int,
     val estimatorVersion: Int = 1,
     val sourceId: String = "initial-recovery",
+    val muscleScope: InitialRecoveryMuscleScope = InitialRecoveryMuscleScope.UNKNOWN,
+    val perMuscleScores: Map<String, Int> = emptyMap(),
+    val axialExposure: InitialRecoveryAxialExposure = InitialRecoveryAxialExposure(),
+    val contractRevision: String = "initial-recovery-v2",
+    val adjustmentSource: String? = null,
+    val activityTypeState: InitialRecoveryResponseState = InitialRecoveryResponseState.DECLARED,
 ) {
     fun normalized(): InitialRecoveryEvidence = copy(
         coveredFromMs = minOf(coveredFromMs, coveredToMs),
@@ -51,6 +71,12 @@ data class InitialRecoveryEvidence(
         systemScore = systemScore.coerceIn(0, 100),
         structureScore = structureScore.coerceIn(0, 100),
         confidence = confidence.coerceIn(0, 100),
+        perMuscleScores = perMuscleScores.mapKeys { it.key.trim() }.filterKeys { it.isNotEmpty() }
+            .mapValues { (_, value) -> value.coerceIn(0, 100) },
+        axialExposure = axialExposure.copy(
+            sessions = axialExposure.sessions?.coerceIn(0, 14),
+            recencyDays = axialExposure.recencyDays?.coerceIn(0, 14),
+        ),
     )
 }
 
@@ -66,6 +92,10 @@ object InitialRecoveryEvidenceFactory {
         zones: List<String> = emptyList(),
         sensations: InitialRecoverySensations = InitialRecoverySensations(),
         sourceId: String = "initial-recovery",
+        muscleScope: InitialRecoveryMuscleScope = InitialRecoveryMuscleScope.UNKNOWN,
+        selectedMuscles: List<String> = emptyList(),
+        axialExposure: InitialRecoveryAxialExposure = InitialRecoveryAxialExposure(),
+        activityTypeState: InitialRecoveryResponseState = InitialRecoveryResponseState.DECLARED,
     ): InitialRecoveryEvidence {
         val cleanSessions = sessions.coerceIn(0, 14)
         val days = recencyDays.coerceIn(0, 14)
@@ -92,7 +122,9 @@ object InitialRecoveryEvidenceFactory {
             InitialRecoveryActivityType.CARDIO -> trainingLoad
             InitialRecoveryActivityType.MIXED -> trainingLoad
         }
-        val axialLoad = zones.any { it.trim().equals("axial", ignoreCase = true) }
+        val axialLoad = zones.any { it.trim().equals("axial", ignoreCase = true) } ||
+            axialExposure.state == InitialRecoveryResponseState.DECLARED &&
+            (axialExposure.sessions ?: 0) > 0
         val structureLoad = if (axialLoad) trainingLoad else 0
         fun sensationPenalty(value: Int?): Int = when (value) {
             null, 1 -> 0
@@ -110,6 +142,12 @@ object InitialRecoveryEvidenceFactory {
                 (if (days <= 3) 12 else 0) +
                 sensationCount * 8
             ).coerceIn(0, 82)
+        val canonicalMuscles = selectedMuscles.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+        val perMuscle = when (muscleScope) {
+            InitialRecoveryMuscleScope.SELECTED -> canonicalMuscles.associateWith { (100 - muscularLoad - sensationPenalty(normalizedSensations.muscular)).coerceIn(0, 100) }
+            InitialRecoveryMuscleScope.FULL_BODY -> INITIAL_RECOVERY_MUSCLE_PILLARS.associateWith { (100 - muscularLoad - sensationPenalty(normalizedSensations.muscular)).coerceIn(0, 100) }
+            InitialRecoveryMuscleScope.UNKNOWN -> emptyMap()
+        }
         return InitialRecoveryEvidence(
             capturedAtMs = capturedAtMs,
             coveredFromMs = capturedAtMs - days * DAY_MS,
@@ -125,6 +163,17 @@ object InitialRecoveryEvidenceFactory {
             structureScore = 100 - structureLoad - sensationPenalty(normalizedSensations.structure),
             confidence = confidence,
             sourceId = sourceId,
+            muscleScope = muscleScope,
+            perMuscleScores = perMuscle,
+            axialExposure = axialExposure,
+            activityTypeState = activityTypeState,
         ).normalized()
     }
+
+    /** Canonical pillars used by AUGE's localized battery map. */
+    val INITIAL_RECOVERY_MUSCLE_PILLARS: List<String> = listOf(
+        "Pectorales", "Dorsales", "Deltoides", "Bíceps", "Tríceps",
+        "Cuádriceps", "Isquiosurales", "Glúteos", "Pantorrillas",
+        "Abdomen", "Trapecio", "Erectores Espinales", "Core",
+    )
 }

@@ -58,6 +58,7 @@ import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.TrainingStyle
 import com.example.kpkn.data.models.VolumeRecommendation
 import com.example.kpkn.domain.training.VolumeCalculator
+import com.example.kpkn.domain.training.VolumeCalibrationEngine
 import com.example.kpkn.ui.components.KpknAlertDialog
 
 data class VolumeCalibrationResult(
@@ -757,55 +758,8 @@ internal fun buildVolumeCalibration(
     strength: Int,
     mobility: Int,
 ): VolumeCalibrationResult {
-    val totalScore = technique + consistency + strength + mobility
-    val profileLevel = if (totalScore >= 8) AthleteProfileLevel.ADVANCED else AthleteProfileLevel.BEGINNER
-    val optimalSets = when (style) {
-        TrainingStyle.BODYBUILDER -> if (profileLevel == AthleteProfileLevel.ADVANCED) 18 else 15
-        TrainingStyle.POWERBUILDER -> if (profileLevel == AthleteProfileLevel.ADVANCED) 16 else 14
-        TrainingStyle.POWERLIFTER -> if (profileLevel == AthleteProfileLevel.ADVANCED) 14 else 12
-    } + when {
-        totalScore >= 11 -> 1
-        totalScore <= 5 -> -1
-        else -> 0
-    }
-
-    val scale = optimalSets.toFloat() / 15f
-    val adjustedRecommendations = israetelBaseRecommendations.map { recommendation ->
-        val canonicalMuscle = VolumeCalculator.normalizeCanonicalMuscleGroup(recommendation.muscleGroup)
-        val floor = volumeTargetFloorFor(canonicalMuscle)
-        val ceiling = volumeTargetCeilingFor(canonicalMuscle)
-        val scaledMin = (recommendation.minEffectiveVolume * scale)
-            .toInt()
-            .coerceAtLeast(floor.minEffective)
-            .coerceAtMost(ceiling.minEffective)
-        val scaledAdaptive = (recommendation.maxAdaptiveVolume * scale)
-            .toInt()
-            .coerceAtLeast(maxOf(scaledMin + 3, floor.maxAdaptive))
-            .coerceAtMost(ceiling.maxAdaptive)
-        val scaledRecoverable = (recommendation.maxRecoverableVolume * scale)
-            .toInt()
-            .coerceAtLeast(maxOf(scaledAdaptive + 3, floor.maxRecoverable))
-            .coerceAtMost(ceiling.maxRecoverable)
-        recommendation.copy(
-            minEffectiveVolume = scaledMin,
-            maxAdaptiveVolume = scaledAdaptive,
-            maxRecoverableVolume = scaledRecoverable,
-        )
-    }
-
-    return VolumeCalibrationResult(
-        mode = style.toProgramMode(),
-        score = AthleteProfileScore(
-            technicalScore = technique,
-            consistencyScore = consistency,
-            strengthScore = strength,
-            mobilityScore = mobility,
-            trainingStyle = style,
-            totalScore = totalScore,
-            profileLevel = profileLevel,
-        ),
-        recommendations = adjustedRecommendations,
-    )
+    val output = VolumeCalibrationEngine.calculate(style, technique, consistency, strength, mobility)
+    return VolumeCalibrationResult(output.mode, output.score, output.recommendations)
 }
 
 private data class VolumeTargetBounds(

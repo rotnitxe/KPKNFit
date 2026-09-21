@@ -7,10 +7,19 @@ import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.toActiveProgramState
 import com.example.kpkn.data.db.toSettings
+import com.example.kpkn.data.db.toWellbeingLog
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Settings
+import com.example.kpkn.data.models.CalibrationResponseState
+import com.example.kpkn.data.models.AthleteProfileLevel
+import com.example.kpkn.data.models.AthleteProfileScore
+import com.example.kpkn.data.models.DailyWellbeingLog
+import com.example.kpkn.data.models.NutritionTrackingChoice
+import com.example.kpkn.data.models.TrainingStyle
+import com.example.kpkn.data.models.VolumeCalibrationProfile
+import com.example.kpkn.data.models.VolumeCalibrationResponses
 import com.example.kpkn.data.db.toEntity
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
@@ -105,6 +114,54 @@ class SetupPersistenceTest {
         assertEquals(first, second)
         assertEquals(1, db.setupCommitReceiptDao().get("commit-1")?.let { 1 })
         assertEquals("Usuario", db.settingsDao().get()?.toSettings()?.username)
+    }
+
+    @Test
+    fun globalVolumeCalibrationAndInitialWellbeingPersistWithoutAProgram() = runBlocking {
+        val profile = VolumeCalibrationProfile(
+            trainingStyle = TrainingStyle.BODYBUILDER,
+            athleteProfileScore = AthleteProfileScore(
+                technicalScore = 2,
+                consistencyScore = 2,
+                strengthScore = 2,
+                mobilityScore = 2,
+                trainingStyle = TrainingStyle.BODYBUILDER,
+                totalScore = 8,
+                profileLevel = AthleteProfileLevel.ADVANCED,
+            ),
+            responses = VolumeCalibrationResponses(2, 2, 2, 2, CalibrationResponseState.DECLARED),
+            recommendations = emptyList(),
+            calibratedAtMs = 1_700_000_000_000L,
+        )
+        val wellbeing = DailyWellbeingLog(
+            id = "onboarding-wellbeing",
+            date = "2026-09-20",
+            manualNeuralBattery = 75,
+            source = com.example.kpkn.data.models.WellbeingSource.ONBOARDING_INITIAL,
+            capturedFields = setOf("energy_rating"),
+        )
+        val settings = Settings(
+            onboardingCompleted = true,
+            nutritionTrackingChoice = NutritionTrackingChoice.SKIPPED,
+            volumeCalibrationProfile = profile,
+        )
+
+        SetupCommitCoordinator(db).commit(
+            SetupCommitRequest(
+                commitId = "global-calibration-only",
+                draftId = null,
+                settings = settings,
+                program = null,
+                nutritionPlan = null,
+                activateProgram = false,
+                activateNutrition = false,
+                initialWellbeing = wellbeing,
+            ),
+        )
+
+        assertEquals(profile, db.settingsDao().get()?.toSettings()?.volumeCalibrationProfile)
+        assertEquals(NutritionTrackingChoice.SKIPPED, db.settingsDao().get()?.toSettings()?.nutritionTrackingChoice)
+        assertEquals(wellbeing, db.augeDao().getWellbeingForDate("2026-09-20")?.toWellbeingLog())
     }
 
     @Test

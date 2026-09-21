@@ -41,6 +41,8 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
+private const val PROGRAM_DATA_CHUNK_CHARS = 128_000
+
 /**
  * ProgramRepository — Single source of truth para programas, historial,
  * estado activo, settings y ongoing workout.
@@ -1161,7 +1163,26 @@ class ProgramRepository private constructor(
     private fun loadFromDb() {
         scope.launch {
             runCatching {
-                val programEntities = db.programDao().getAll()
+                // Program JSON is intentionally denormalized and can exceed CursorWindow's
+                // per-row limit. Read only metadata first, then reconstruct each blob from
+                // bounded SQL substrings so a valid large program remains loadable after restart.
+                val programEntities = db.programDao().getAllHeaders().mapNotNull { header ->
+                    val data = buildString {
+                        var start = 1
+                        while (true) {
+                            val chunk = db.programDao().getDataChunk(
+                                id = header.id,
+                                start = start,
+                                length = PROGRAM_DATA_CHUNK_CHARS,
+                            ).orEmpty()
+                            if (chunk.isEmpty()) break
+                            append(chunk)
+                            if (chunk.length < PROGRAM_DATA_CHUNK_CHARS) break
+                            start += chunk.length
+                        }
+                    }
+                    if (data.isBlank()) null else ProgramEntity(header.id, header.name, data)
+                }
                 val rawPrograms = programEntities.map { entity ->
                     entity.id to runCatching { entity.toProgram() }.getOrNull()
                 }

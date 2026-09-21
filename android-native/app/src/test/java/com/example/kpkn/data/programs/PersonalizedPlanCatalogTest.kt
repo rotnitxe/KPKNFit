@@ -113,4 +113,34 @@ class PersonalizedPlanCatalogTest {
         assertEquals(3, row.frequency)
         assertTrue(row.targetSets >= 6.0 && row.targetSets <= 8.0)
     }
+
+    @Test
+    fun nativePlanKeepsCustomSevenSlotSplitPrioritiesAndRecipeProvenance() {
+        val input = PersonalizerInput(
+            catalogEntryId = "native:machine-muscle",
+            focus = TrainingFocus.FULL_BODY,
+            frequency = 3,
+            weekdays = listOf(1, 3, 5),
+            equipment = setOf("machine"),
+            level = CatalogLevel.INTERMEDIATE,
+            availableMinutes = 100,
+            priorityMuscles = setOf("Pecho"),
+            lowerEmphasisMuscles = setOf("Bíceps"),
+            splitId = "custom",
+            splitPattern = listOf("Pecho", "Descanso", "Espalda", "Descanso", "Piernas", "Descanso", "Descanso"),
+            splitName = "Mi semana",
+        )
+
+        val program = requireNotNull(personalizer().personalize("custom-split", input).program)
+        val sessions = program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.flatMap { it.sessions }
+
+        assertEquals(listOf(1, 3, 5), sessions.mapNotNull { it.dayOfWeek })
+        assertEquals(listOf("Pecho", "Espalda", "Piernas"), sessions.map { it.name })
+        assertEquals("custom", program.selectedSplitId)
+        assertEquals(input.splitPattern, program.customSplitPattern)
+        assertEquals("Mi semana", program.customSplitName)
+        assertNotNull(program.sourceRecipe)
+        assertEquals(3, program.sourceRecipe?.claimedDaysPerWeek)
+        assertTrue(program.sourceRecipe?.autoregulationHooks?.isNotEmpty() == true)
+    }
 }
