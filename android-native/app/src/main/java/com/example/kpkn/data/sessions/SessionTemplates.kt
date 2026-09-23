@@ -113,7 +113,8 @@ private val TEMPLATE_PERFORMANCE_PROFILE_BY_CONFIGURATION = mapOf(
     "pull_up__pronated__medium" to "pull_up__pronated__medium",
     "pull_up__pronated__wide" to "pull_up__pronated__wide",
     "pullover__bilateral__cable" to "pullover__cable__pullover",
-    "pullover__bilateral__machine" to "pullover__machine__pullover",
+    "pullover__bilateral__machine" to "seated_machine_pullover__machine",
+    "seated_machine_pullover__machine" to "seated_machine_pullover__machine",
     "push_up__feet_elevated" to "push_up__bodyweight__flexiones_de_brazos",
     "push_up__flat" to "push_up__bodyweight__flexiones_de_brazos",
     "quads_extension_cuadriceps__machine__bilateral" to "quads_extension_cuadriceps__machine__bilateral",
@@ -4215,7 +4216,7 @@ private fun highFrequencyCommonTemplates(): List<SessionTemplate> {
                     v3Exercise(id, "lateral", "standing_lateral_raise__machine", 1, 12, 7.5, 60),
                     v3Exercise(id, "triceps", "triceps_pushdown__bilateral__cable", 1, 12, 7.5, 60),
                     v3Exercise(id, "cruzado", "crossbody_triceps__cable__bilateral", 1, 12, 7.5, 60),
-                    v3Exercise(id, "traccion", "pullover__bilateral__machine", 2, 10, 7.0, 90),
+                    v3Exercise(id, "traccion", "seated_machine_pullover__machine", 2, 10, 7.0, 90),
                 ),
             )
             SessionTemplateFocusCategory.ESPALDA -> listOf(
@@ -4256,7 +4257,7 @@ private fun highFrequencyCommonTemplates(): List<SessionTemplate> {
             SessionTemplateFocusCategory.HOMBROS -> listOf(
                 listOf(
                     v3Exercise(id, "press", "seated_shoulder_press__machine", 1, 8, 7.0, 120),
-                    v3Exercise(id, "remo", "pullover__bilateral__machine", 1, 10, 7.0, 90),
+                    v3Exercise(id, "remo", "seated_machine_pullover__machine", 1, 10, 7.0, 90),
                     v3Exercise(id, "pecho", "flat_chest_fly__machine", 1, 12, 7.0, 75),
                 ),
                 listOf(
@@ -4278,7 +4279,7 @@ private fun highFrequencyCommonTemplates(): List<SessionTemplate> {
                 listOf(v3Exercise(id, "rodilla", "quads_prensa_piernas__bilateral", 2, 8, 6.5, 120)),
                 listOf(
                     v3Exercise(id, "press", "bench_press__machine", 2, 8, 6.5, 120),
-                    v3Exercise(id, "traccion", "pullover__bilateral__machine", 2, 10, 7.0, 90),
+                    v3Exercise(id, "traccion", "seated_machine_pullover__machine", 2, 10, 7.0, 90),
                     v3Exercise(id, "tibial", "calves_tibial_anterior__default", 1, 15, 7.0, 60),
                     v3Exercise(id, "pantorrilla", "calf_raise__bilateral__machine", 1, 12, 7.0, 60),
                 ),
@@ -4534,4 +4535,3 @@ private fun enforceCompositionRestFloors(template: SessionTemplate): SessionTemp
     )
     return template.copy(session = next)
 }
-
