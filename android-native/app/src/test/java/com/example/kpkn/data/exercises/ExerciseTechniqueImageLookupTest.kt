@@ -641,6 +641,210 @@ class ExerciseTechniqueImageLookupTest {
     }
 
     @Test
+    fun approved_chest_batch_three_images_map_to_catalog_implement() {
+        fun res(
+            definitionId: String,
+            configurationId: String,
+        ) = ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = definitionId,
+            exerciseDbId = configurationId,
+            exerciseId = "ex-$definitionId",
+            catalogConfigurationId = configurationId,
+        )
+
+        assertEquals(R.drawable.exercise_floor_press_dumbbells, res("floor_press", "floor_press__dumbbells"))
+        assertEquals(R.drawable.exercise_lying_pullover_dumbbells, res("lying_pullover", "lying_pullover__dumbbells"))
+        assertEquals(R.drawable.exercise_lying_pullover_barbell, res("lying_pullover", "lying_pullover__barbell"))
+        assertEquals(R.drawable.exercise_lying_pullover_kettlebell, res("lying_pullover", "lying_pullover__kettlebell"))
+        assertEquals(R.drawable.exercise_lying_pullover_cable, res("lying_pullover", "lying_pullover__cable"))
+        assertEquals(R.drawable.exercise_seated_machine_pullover, res("seated_machine_pullover", "seated_machine_pullover__machine"))
+        assertEquals(R.drawable.exercise_push_up_bodyweight, res("push_up", "push_up__flat"))
+        assertEquals(R.drawable.exercise_cable_crossover_mid, res("tren_superior_cruce_poleas", "tren_superior_cruce_poleas__cable__mid"))
+        assertEquals(R.drawable.exercise_parallel_bar_dip_bodyweight, res("tren_superior_fondos", "tren_superior_fondos__default"))
+        assertEquals(R.drawable.exercise_resistance_band_chest_press, res("tren_superior_press_banda_resistencia", "tren_superior_press_banda_resistencia__default"))
+        assertEquals(R.drawable.exercise_flat_converging_chest_press_machine, res("tren_superior_press_pecho_maquina_convergente", "tren_superior_press_pecho_maquina_convergente__default"))
+        assertEquals(R.drawable.exercise_spoto_press_barbell, res("tren_superior_press_spoto_barra", "tren_superior_press_spoto_barra__default"))
+        assertEquals(R.drawable.exercise_unilateral_cable_chest_press, res("tren_superior_press_unilateral_polea", "tren_superior_press_unilateral_polea__default"))
+        assertEquals(R.drawable.exercise_squeeze_press_dumbbells, res("tren_superior_squeeze_press_mancuernas", "tren_superior_squeeze_press_mancuernas__default"))
+        assertEquals(R.drawable.exercise_incline_converging_chest_press_machine, res("tren_superior_press_inclinado_maquina_convergente", "tren_superior_press_inclinado_maquina_convergente__default"))
+    }
+
+    @Test
+    fun approved_back_batch_four_images_map_only_to_the_correct_implement() {
+        fun res(
+            definitionId: String,
+            configurationId: String,
+        ) = ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = definitionId,
+            exerciseDbId = configurationId,
+            exerciseId = "ex-$definitionId",
+            catalogConfigurationId = configurationId,
+        )
+
+        assertEquals(
+            R.drawable.exercise_standing_cable_pullover,
+            res("pullover", "pullover__bilateral__cable"),
+        )
+        assertEquals(
+            R.drawable.exercise_standing_cable_pullover,
+            res("pullover", "pullover__unilateral__cable"),
+        )
+        assertEquals(
+            R.drawable.exercise_t_bar_row_machine,
+            res("t_bar_row", "t_bar_row__machine__medium"),
+        )
+        assertNull(res("t_bar_row", "t_bar_row__t_bar__medium"))
+    }
+
+    @Test
+    fun approved_back_batch_four_remainder_maps_without_substituting_missing_implements() {
+        fun res(
+            definitionId: String,
+            configurationId: String,
+        ) = ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = definitionId,
+            exerciseDbId = configurationId,
+            exerciseId = "ex-$definitionId",
+            catalogConfigurationId = configurationId,
+        )
+
+        assertEquals(R.drawable.exercise_pull_up_pronated_medium, res("pull_up", "pull_up__pronated__medium"))
+        assertNull(res("pull_up", "pull_up__supinated__medium"))
+        assertEquals(R.drawable.exercise_gironda_row_cable, res("gironda_row", "gironda_row__medium"))
+        assertEquals(R.drawable.exercise_band_pull_apart, res("back_band_pull_apart", "back_band_pull_apart__default"))
+        assertEquals(R.drawable.exercise_gorilla_row_dumbbells, res("back_remo_gorilla_mancuernas", "back_remo_gorilla_mancuernas__dumbbells"))
+        assertEquals(R.drawable.exercise_gorilla_row_kettlebell, res("back_remo_gorilla_mancuernas", "back_remo_gorilla_mancuernas__kettlebell"))
+        assertNull(res("back_remo_gorilla_mancuernas", "back_remo_gorilla_mancuernas__cable"))
+        assertEquals(R.drawable.exercise_inverted_row_bodyweight, res("back_remo_invertido", "back_remo_invertido__default"))
+        assertEquals(R.drawable.exercise_renegade_row_dumbbells, res("back_remo_renegado_mancuernas", "back_remo_renegado_mancuernas__dumbbells"))
+        assertEquals(R.drawable.exercise_renegade_row_kettlebell, res("back_remo_renegado_mancuernas", "back_remo_renegado_mancuernas__kettlebell"))
+        assertEquals(R.drawable.exercise_pendlay_row_barbell, res("pendlay_row", "pendlay_row__barbell"))
+        assertEquals(R.drawable.exercise_pendlay_row_smith_machine, res("pendlay_row", "pendlay_row__smith_machine"))
+        assertNull(res("pendlay_row", "pendlay_row__dumbbells"))
+        assertNull(res("pendlay_row", "pendlay_row__machine"))
+        assertNull(res("pendlay_row", "pendlay_row__cable"))
+        assertNull(res("pendlay_row", "pendlay_row__kettlebell"))
+        assertEquals(R.drawable.exercise_band_row, res("back_remo_banda", "back_remo_banda__default"))
+        assertEquals(R.drawable.exercise_face_pull_cable, res("deltoides_face_pull", "deltoides_face_pull__default"))
+        assertEquals(R.drawable.exercise_bench_press_chains, res("tren_superior_press_banca_cadenas", "tren_superior_press_banca_cadenas__default"))
+    }
+
+    @Test
+    fun approved_shoulder_batch_five_images_map_to_their_own_implement() {
+        fun res(
+            definitionId: String,
+            configurationId: String,
+        ) = ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = definitionId,
+            exerciseDbId = configurationId,
+            exerciseId = "ex-$definitionId",
+            catalogConfigurationId = configurationId,
+        )
+
+        assertEquals(R.drawable.exercise_arnold_press_dumbbells, res("arnold_press", "arnold_press__dumbbells"))
+        assertEquals(R.drawable.exercise_arnold_press_kettlebell, res("arnold_press", "arnold_press__kettlebell"))
+        assertEquals(R.drawable.exercise_arnold_press_cable, res("arnold_press", "arnold_press__cable"))
+
+        assertEquals(R.drawable.exercise_military_press_barbell, res("military_press", "military_press__barbell"))
+        assertEquals(R.drawable.exercise_military_press_dumbbells, res("military_press", "military_press__dumbbells"))
+        assertEquals(R.drawable.exercise_military_press_smith_machine, res("military_press", "military_press__smith_machine"))
+        assertEquals(R.drawable.exercise_military_press_machine, res("military_press", "military_press__machine"))
+        assertEquals(R.drawable.exercise_military_press_cable, res("military_press", "military_press__cable"))
+        assertEquals(R.drawable.exercise_military_press_kettlebell, res("military_press", "military_press__kettlebell"))
+
+        assertEquals(R.drawable.exercise_seated_shoulder_press_barbell, res("seated_shoulder_press", "seated_shoulder_press__barbell"))
+        assertEquals(R.drawable.exercise_seated_shoulder_press_dumbbells, res("seated_shoulder_press", "seated_shoulder_press__dumbbells"))
+        assertEquals(R.drawable.exercise_seated_shoulder_press_smith_machine, res("seated_shoulder_press", "seated_shoulder_press__smith_machine"))
+        assertEquals(R.drawable.exercise_seated_shoulder_press_machine, res("seated_shoulder_press", "seated_shoulder_press__machine"))
+        assertEquals(R.drawable.exercise_seated_shoulder_press_cable, res("seated_shoulder_press", "seated_shoulder_press__cable"))
+        assertEquals(R.drawable.exercise_seated_shoulder_press_kettlebell, res("seated_shoulder_press", "seated_shoulder_press__kettlebell"))
+    }
+
+    @Test
+    fun approved_shoulder_batch_six_images_map_to_their_own_implement() {
+        fun res(definitionId: String, implement: String) = ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = definitionId,
+            exerciseDbId = "${definitionId}__${implement}",
+            exerciseId = "ex-$definitionId",
+            catalogConfigurationId = "${definitionId}__${implement}",
+            selectedImplementation = implement,
+        )
+
+        val front = "deltoides_elevaciones_frontales"
+        assertEquals(R.drawable.exercise_front_raise_cable, res(front, "cable"))
+        assertEquals(R.drawable.exercise_front_raise_barbell, res(front, "barbell"))
+        assertEquals(R.drawable.exercise_front_raise_dumbbells, res(front, "dumbbells"))
+        assertEquals(R.drawable.exercise_front_raise_kettlebell, res(front, "kettlebell"))
+
+        val seated = "seated_lateral_raise"
+        assertEquals(R.drawable.exercise_seated_lateral_raise_dumbbells, res(seated, "dumbbells"))
+        assertEquals(R.drawable.exercise_seated_lateral_raise_cable, res(seated, "cable"))
+        assertEquals(R.drawable.exercise_seated_lateral_raise_machine, res(seated, "machine"))
+        assertEquals(R.drawable.exercise_seated_lateral_raise_kettlebell, res(seated, "kettlebell"))
+
+        val standing = "standing_lateral_raise"
+        assertEquals(R.drawable.exercise_standing_lateral_raise_dumbbells, res(standing, "dumbbells"))
+        assertEquals(R.drawable.exercise_standing_lateral_raise_cable, res(standing, "cable"))
+        assertEquals(R.drawable.exercise_standing_lateral_raise_machine, res(standing, "machine"))
+        assertEquals(R.drawable.exercise_standing_lateral_raise_kettlebell, res(standing, "kettlebell"))
+
+        val rear = "rear_delt_raise"
+        assertEquals(R.drawable.exercise_rear_delt_raise_dumbbells, res(rear, "dumbbells"))
+        assertEquals(R.drawable.exercise_rear_delt_raise_cable, res(rear, "cable"))
+        assertEquals(R.drawable.exercise_rear_delt_raise_machine, res(rear, "machine"))
+    }
+
+    @Test
+    fun approved_batch_seven_images_map_to_catalog_definitions_and_implements() {
+        fun res(definitionId: String, configurationId: String, implement: String) =
+            ExerciseTechniqueImageLookup.resolveImageResId(
+                catalogDefinitionId = definitionId,
+                exerciseDbId = configurationId,
+                exerciseId = "ex-$definitionId",
+                catalogConfigurationId = configurationId,
+                selectedImplementation = implement,
+            )
+
+        assertEquals(R.drawable.exercise_z_press_barbell, res("z_press", "z_press__barbell", "barbell"))
+        assertEquals(R.drawable.exercise_z_press_dumbbells, res("z_press", "z_press__dumbbells", "dumbbells"))
+        assertEquals(R.drawable.exercise_z_press_ez_bar, res("z_press", "z_press__ez_bar", "ez_bar"))
+        assertEquals(R.drawable.exercise_z_press_kettlebell, res("z_press", "z_press__kettlebell", "kettlebell"))
+
+        val shrugs = "back_encogimientos"
+        assertEquals(R.drawable.exercise_back_encogimientos_barbell, res(shrugs, "${shrugs}__barbell", "barbell"))
+        assertEquals(R.drawable.exercise_back_encogimientos_dumbbells, res(shrugs, "${shrugs}__dumbbells", "dumbbells"))
+        assertEquals(R.drawable.exercise_back_encogimientos_kettlebell, res(shrugs, "${shrugs}__kettlebell", "kettlebell"))
+        assertEquals(R.drawable.exercise_back_encogimientos_smith_machine, res(shrugs, "${shrugs}__smith_machine", "smith_machine"))
+        assertNull(res(shrugs, "${shrugs}__cable", "cable"))
+
+        assertEquals(R.drawable.exercise_back_y_raises_dumbbells, res("back_y_raises", "back_y_raises__default", "dumbbells"))
+        assertEquals(R.drawable.exercise_deltoides_y_raises_sentado_banco_inclinado_dumbbells, res("deltoides_y_raises_sentado_banco_inclinado", "deltoides_y_raises_sentado_banco_inclinado__default", "dumbbells"))
+        assertEquals(R.drawable.exercise_back_dominadas_escapulares_bodyweight, res("back_dominadas_escapulares", "back_dominadas_escapulares__default", "bodyweight"))
+        assertEquals(R.drawable.exercise_deltoides_push_press_barbell, res("deltoides_push_press", "deltoides_push_press__default", "barbell"))
+        assertEquals(R.drawable.exercise_deltoides_press_landmine_unilateral_barbell, res("deltoides_press_landmine_unilateral", "deltoides_press_landmine_unilateral__default", "barbell"))
+        assertEquals(R.drawable.exercise_deltoides_remo_menton_barbell, res("deltoides_remo_menton", "deltoides_remo_menton__default", "barbell"))
+        assertEquals(R.drawable.exercise_core_plancha_bodyweight, res("core_plancha", "core_plancha__default", "bodyweight"))
+    }
+
+    @Test
+    fun missing_catalog_implements_do_not_inherit_another_implement_image() {
+        fun res(definitionId: String, implement: String) = ExerciseTechniqueImageLookup.resolveImageResId(
+            catalogDefinitionId = definitionId,
+            exerciseDbId = "${definitionId}__${implement}",
+            exerciseId = "ex-$definitionId",
+            catalogConfigurationId = "${definitionId}__${implement}",
+            selectedImplementation = implement,
+        )
+
+        assertNull(res("chest_supported_row", "kettlebell"))
+        assertNull(res("conventional_row", "machine"))
+        assertNull(res("seal_row", "dumbbells"))
+        assertNull(res("lat_pulldown", "band"))
+        assertNull(res("sissy_squat", "barbell"))
+        assertEquals(R.drawable.exercise_conventional_row_barbell, res("conventional_row", "barbell"))
+    }
+
+    @Test
     fun laterality_token_is_not_treated_as_implement() {
         val barbell = ExerciseTechniqueImageLookup.resolveImageResId(
             catalogDefinitionId = "hip_thrust",

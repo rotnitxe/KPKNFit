@@ -83,9 +83,48 @@ object ExerciseTechniqueImageLookup {
     const val INCLINE_CHEST_FLY_DEFINITION_ID = "incline_chest_fly"
     const val DECLINE_CHEST_FLY_DEFINITION_ID = "decline_chest_fly"
     const val FLOOR_PRESS_DEFINITION_ID = "floor_press"
+    const val LYING_PULLOVER_DEFINITION_ID = "lying_pullover"
+    const val SEATED_MACHINE_PULLOVER_DEFINITION_ID = "seated_machine_pullover"
+    const val PUSH_UP_DEFINITION_ID = "push_up"
+    const val CABLE_CROSSOVER_DEFINITION_ID = "tren_superior_cruce_poleas"
+    const val PARALLEL_BAR_DIP_DEFINITION_ID = "tren_superior_fondos"
+    const val RESISTANCE_BAND_CHEST_PRESS_DEFINITION_ID = "tren_superior_press_banda_resistencia"
+    const val FLAT_CONVERGING_CHEST_PRESS_DEFINITION_ID = "tren_superior_press_pecho_maquina_convergente"
+    const val SPOTO_PRESS_DEFINITION_ID = "tren_superior_press_spoto_barra"
+    const val UNILATERAL_CABLE_CHEST_PRESS_DEFINITION_ID = "tren_superior_press_unilateral_polea"
+    const val SQUEEZE_PRESS_DEFINITION_ID = "tren_superior_squeeze_press_mancuernas"
+    const val INCLINE_CONVERGING_CHEST_PRESS_DEFINITION_ID = "tren_superior_press_inclinado_maquina_convergente"
+    const val STANDING_CABLE_PULLOVER_DEFINITION_ID = "pullover"
+    const val PULL_UP_DEFINITION_ID = "pull_up"
+    const val GIRONDA_ROW_DEFINITION_ID = "gironda_row"
+    const val BAND_PULL_APART_DEFINITION_ID = "back_band_pull_apart"
+    const val GORILLA_ROW_DEFINITION_ID = "back_remo_gorilla_mancuernas"
+    const val INVERTED_ROW_DEFINITION_ID = "back_remo_invertido"
+    const val RENEGADE_ROW_DEFINITION_ID = "back_remo_renegado_mancuernas"
+    const val PENDLAY_ROW_DEFINITION_ID = "pendlay_row"
+    const val BAND_ROW_DEFINITION_ID = "back_remo_banda"
+    const val FACE_PULL_DEFINITION_ID = "deltoides_face_pull"
+    const val BENCH_PRESS_CHAINS_DEFINITION_ID = "tren_superior_press_banca_cadenas"
+    const val ARNOLD_PRESS_DEFINITION_ID = "arnold_press"
+    const val MILITARY_PRESS_DEFINITION_ID = "military_press"
+    const val SEATED_SHOULDER_PRESS_DEFINITION_ID = "seated_shoulder_press"
+    const val FRONT_RAISE_DEFINITION_ID = "deltoides_elevaciones_frontales"
+    const val SEATED_LATERAL_RAISE_DEFINITION_ID = "seated_lateral_raise"
+    const val STANDING_LATERAL_RAISE_DEFINITION_ID = "standing_lateral_raise"
+    const val REAR_DELT_RAISE_DEFINITION_ID = "rear_delt_raise"
+    const val Z_PRESS_DEFINITION_ID = "z_press"
+    const val SHRUG_DEFINITION_ID = "back_encogimientos"
+    const val Y_RAISE_DEFINITION_ID = "back_y_raises"
+    const val INCLINE_BENCH_Y_RAISE_DEFINITION_ID = "deltoides_y_raises_sentado_banco_inclinado"
+    const val SCAPULAR_PULL_UP_DEFINITION_ID = "back_dominadas_escapulares"
+    const val PUSH_PRESS_DEFINITION_ID = "deltoides_push_press"
+    const val UNILATERAL_LANDMINE_PRESS_DEFINITION_ID = "deltoides_press_landmine_unilateral"
+    const val UPRIGHT_ROW_DEFINITION_ID = "deltoides_remo_menton"
+    const val FOREARM_PLANK_DEFINITION_ID = "core_plancha"
     const val CONVENTIONAL_ROW_DEFINITION_ID = "conventional_row"
     const val CHEST_SUPPORTED_ROW_DEFINITION_ID = "chest_supported_row"
     const val LAT_PULLDOWN_DEFINITION_ID = "lat_pulldown"
+    const val T_BAR_ROW_DEFINITION_ID = "t_bar_row"
     const val SEAL_ROW_DEFINITION_ID = "seal_row"
     const val WRIST_CURL_DEFINITION_ID = "forearms_curl_muneca_sentado"
     const val WRIST_EXTENSION_DEFINITION_ID = "forearms_curl_muneca_inverso_sentado"
@@ -105,6 +144,12 @@ object ExerciseTechniqueImageLookup {
         "supinated",
         "neutral",
         "pronated",
+    )
+
+    private val KNOWN_EQUIPMENT_TOKENS = setOf(
+        "ab_wheel", "band", "barbell", "bodyweight", "cable", "dumbbells", "ez_bar",
+        "ghd", "h_bar", "hex_bar", "kettlebell", "machine", "plate", "safety_bar",
+        "sliders", "smith_machine", "t_bar", "trx", "wrist_roller",
     )
 
     fun variants(definitionId: String): List<ExerciseTechniqueImageVariant> = when (definitionId) {
@@ -455,6 +500,156 @@ object ExerciseTechniqueImageLookup {
         )
         FLOOR_PRESS_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_floor_press_barbell, "Barra"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_floor_press_dumbbells, "Mancuernas"),
+        )
+        LYING_PULLOVER_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_lying_pullover_dumbbells, "Mancuernas"),
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_lying_pullover_barbell, "Barra"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_lying_pullover_kettlebell, "Kettlebell"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_lying_pullover_cable, "Polea"),
+        )
+        SEATED_MACHINE_PULLOVER_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_seated_machine_pullover, "Máquina"),
+        )
+        PUSH_UP_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_push_up_bodyweight, "Peso corporal"),
+        )
+        CABLE_CROSSOVER_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_cable_crossover_mid, "Polea"),
+        )
+        PARALLEL_BAR_DIP_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_parallel_bar_dip_bodyweight, "Peso corporal"),
+        )
+        RESISTANCE_BAND_CHEST_PRESS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("band", R.drawable.exercise_resistance_band_chest_press, "Banda de resistencia"),
+        )
+        FLAT_CONVERGING_CHEST_PRESS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_flat_converging_chest_press_machine, "Máquina convergente"),
+        )
+        SPOTO_PRESS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_spoto_press_barbell, "Barra"),
+        )
+        UNILATERAL_CABLE_CHEST_PRESS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_unilateral_cable_chest_press, "Polea"),
+        )
+        SQUEEZE_PRESS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_squeeze_press_dumbbells, "Mancuernas"),
+        )
+        INCLINE_CONVERGING_CHEST_PRESS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_incline_converging_chest_press_machine, "Máquina convergente"),
+        )
+        STANDING_CABLE_PULLOVER_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_standing_cable_pullover, "Polea"),
+        )
+        PULL_UP_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_pull_up_pronated_medium, "Agarre prono medio"),
+        )
+        GIRONDA_ROW_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_gironda_row_cable, "Polea"),
+        )
+        BAND_PULL_APART_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_band_pull_apart, "Banda de resistencia"),
+        )
+        GORILLA_ROW_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_gorilla_row_dumbbells, "Mancuernas"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_gorilla_row_kettlebell, "Kettlebell"),
+        )
+        INVERTED_ROW_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_inverted_row_bodyweight, "Peso corporal"),
+        )
+        RENEGADE_ROW_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_renegade_row_dumbbells, "Mancuernas"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_renegade_row_kettlebell, "Kettlebell"),
+        )
+        PENDLAY_ROW_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_pendlay_row_barbell, "Barra"),
+            ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_pendlay_row_smith_machine, "Smith"),
+        )
+        BAND_ROW_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_band_row, "Banda de resistencia"),
+        )
+        FACE_PULL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_face_pull_cable, "Polea"),
+        )
+        BENCH_PRESS_CHAINS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_bench_press_chains, "Barra con cadenas"),
+        )
+        ARNOLD_PRESS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_arnold_press_dumbbells, "Mancuernas"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_arnold_press_kettlebell, "Kettlebell"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_arnold_press_cable, "Polea"),
+        )
+        MILITARY_PRESS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_military_press_barbell, "Barra"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_military_press_dumbbells, "Mancuernas"),
+            ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_military_press_smith_machine, "Smith"),
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_military_press_machine, "Máquina"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_military_press_cable, "Polea"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_military_press_kettlebell, "Kettlebell"),
+        )
+        SEATED_SHOULDER_PRESS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_seated_shoulder_press_barbell, "Barra"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_seated_shoulder_press_dumbbells, "Mancuernas"),
+            ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_seated_shoulder_press_smith_machine, "Smith"),
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_seated_shoulder_press_machine, "Máquina"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_seated_shoulder_press_cable, "Polea"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_seated_shoulder_press_kettlebell, "Kettlebell"),
+        )
+        FRONT_RAISE_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_front_raise_cable, "Polea"),
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_front_raise_barbell, "Barra"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_front_raise_dumbbells, "Mancuernas"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_front_raise_kettlebell, "Kettlebell"),
+        )
+        SEATED_LATERAL_RAISE_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_seated_lateral_raise_dumbbells, "Mancuernas"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_seated_lateral_raise_cable, "Polea"),
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_seated_lateral_raise_machine, "Máquina"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_seated_lateral_raise_kettlebell, "Kettlebell"),
+        )
+        STANDING_LATERAL_RAISE_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_standing_lateral_raise_dumbbells, "Mancuernas"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_standing_lateral_raise_cable, "Polea"),
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_standing_lateral_raise_machine, "Máquina"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_standing_lateral_raise_kettlebell, "Kettlebell"),
+        )
+        REAR_DELT_RAISE_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_rear_delt_raise_dumbbells, "Mancuernas"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_rear_delt_raise_cable, "Polea"),
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_rear_delt_raise_machine, "Máquina"),
+        )
+        Z_PRESS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_z_press_barbell, "Barra"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_z_press_dumbbells, "Mancuernas"),
+            ExerciseTechniqueImageVariant("ez_bar", R.drawable.exercise_z_press_ez_bar, "Barra EZ"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_z_press_kettlebell, "Kettlebell"),
+        )
+        SHRUG_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_back_encogimientos_barbell, "Barra"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_back_encogimientos_dumbbells, "Mancuernas"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_back_encogimientos_kettlebell, "Kettlebell"),
+            ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_back_encogimientos_smith_machine, "Smith"),
+        )
+        Y_RAISE_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_back_y_raises_dumbbells, "Mancuernas"),
+        )
+        INCLINE_BENCH_Y_RAISE_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_deltoides_y_raises_sentado_banco_inclinado_dumbbells, "Mancuernas"),
+        )
+        SCAPULAR_PULL_UP_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_back_dominadas_escapulares_bodyweight, "Peso corporal"),
+        )
+        PUSH_PRESS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_deltoides_push_press_barbell, "Barra"),
+        )
+        UNILATERAL_LANDMINE_PRESS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_deltoides_press_landmine_unilateral_barbell, "Barra"),
+        )
+        UPRIGHT_ROW_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_deltoides_remo_menton_barbell, "Barra"),
+        )
+        FOREARM_PLANK_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_core_plancha_bodyweight, "Peso corporal"),
         )
         CONVENTIONAL_ROW_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_conventional_row_barbell, "Barra"),
@@ -468,6 +663,9 @@ object ExerciseTechniqueImageLookup {
         LAT_PULLDOWN_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("cable", R.drawable.exercise_lat_pulldown_cable, "Polea"),
             ExerciseTechniqueImageVariant("machine", R.drawable.exercise_lat_pulldown_machine, "Máquina"),
+        )
+        T_BAR_ROW_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_t_bar_row_machine, "Máquina"),
         )
         SEAL_ROW_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_seal_row_barbell, "Barra"),
@@ -513,6 +711,61 @@ object ExerciseTechniqueImageLookup {
         ) ?: return null
         val list = variants(definitionId)
         if (list.isEmpty()) return null
+        if (definitionId == PULL_UP_DEFINITION_ID && !isApprovedPullUpConfiguration(
+                catalogConfigurationId = catalogConfigurationId,
+                exerciseDbId = exerciseDbId,
+            )
+        ) {
+            // Only the reviewed pronated-medium pull-up is available so far.
+            return null
+        }
+        if (definitionId == T_BAR_ROW_DEFINITION_ID && requestsTBarImplement(
+                selectedImplementation = selectedImplementation,
+                catalogConfigurationId = catalogConfigurationId,
+                exerciseDbId = exerciseDbId,
+            )
+        ) {
+            // The approved image is the dedicated machine only; never show it for the landmine/T-bar implement.
+            return null
+        }
+        if (definitionId == GORILLA_ROW_DEFINITION_ID && requestsOneOfImplement(
+                selectedImplementation = selectedImplementation,
+                catalogConfigurationId = catalogConfigurationId,
+                exerciseDbId = exerciseDbId,
+                tokens = setOf("cable"),
+            )
+        ) {
+            // Cable is catalogued, but has no approved gorilla-row image yet.
+            return null
+        }
+        if (definitionId == PENDLAY_ROW_DEFINITION_ID && requestsOneOfImplement(
+                selectedImplementation = selectedImplementation,
+                catalogConfigurationId = catalogConfigurationId,
+                exerciseDbId = exerciseDbId,
+                tokens = setOf("dumbbells", "machine", "cable", "kettlebell"),
+            )
+        ) {
+            // Do not substitute the approved barbell/Smith art for a different Pendlay implement.
+            return null
+        }
+        val requestedEquipment = sequenceOf(
+            selectedImplementation,
+            catalogConfigurationId?.substringAfter("__", ""),
+            exerciseDbId?.substringAfter("__", ""),
+        )
+            .filterNotNull()
+            .flatMap { it.split("__").asSequence() }
+            .map { it.trim().lowercase() }
+            .firstOrNull { it in KNOWN_EQUIPMENT_TOKENS }
+        if (requestedEquipment != null && list.none { variant ->
+                variant.implementation == "default" ||
+                    variant.implementation == requestedEquipment ||
+                    variant.implementation.startsWith("${requestedEquipment}__")
+            }
+        ) {
+            // A missing implement must not silently inherit the first image of another implement.
+            return null
+        }
         val impl = implementToken(
             selectedImplementation = selectedImplementation,
             catalogConfigurationId = catalogConfigurationId,
@@ -521,6 +774,36 @@ object ExerciseTechniqueImageLookup {
         )
         return list.firstOrNull { it.implementation == impl }?.imageResId ?: list.first().imageResId
     }
+
+    private fun requestsTBarImplement(
+        selectedImplementation: String?,
+        catalogConfigurationId: String?,
+        exerciseDbId: String?,
+    ): Boolean = requestsOneOfImplement(
+        selectedImplementation = selectedImplementation,
+        catalogConfigurationId = catalogConfigurationId,
+        exerciseDbId = exerciseDbId,
+        tokens = setOf("t_bar"),
+    )
+
+    private fun requestsOneOfImplement(
+        selectedImplementation: String?,
+        catalogConfigurationId: String?,
+        exerciseDbId: String?,
+        tokens: Set<String>,
+    ): Boolean = sequenceOf(selectedImplementation, catalogConfigurationId, exerciseDbId)
+        .filterNotNull()
+        .flatMap { value -> value.split("__").asSequence() }
+        .map { token -> token.trim().lowercase() }
+        .any { token -> token in tokens }
+
+    private fun isApprovedPullUpConfiguration(
+        catalogConfigurationId: String?,
+        exerciseDbId: String?,
+    ): Boolean = sequenceOf(catalogConfigurationId, exerciseDbId)
+        .filterNotNull()
+        .map { value -> value.split("__").map { it.trim().lowercase() }.toSet() }
+        .any { tokens -> "pronated" in tokens && "medium" in tokens }
 
     private fun implementToken(
         selectedImplementation: String?,
