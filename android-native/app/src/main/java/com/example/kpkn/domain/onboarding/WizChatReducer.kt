@@ -15,11 +15,13 @@ object WizChatReducer {
         answer: WizChatAnswerRecord,
         nextQuestionId: WizChatQuestionId,
     ): WizChatReducerResult? {
-        if (progress.terminal || progress.currentQuestionId != questionId) return null
+        if (progress.terminal || progress.currentQuestionId != questionId ||
+            answer.expectedRevision != null && answer.expectedRevision != progress.revision) return null
         val revision = progress.revision + 1
         val accepted = answer.copy(
             questionId = questionId,
             revision = revision,
+            expectedRevision = null,
             variantId = answer.variantId ?: stableVariantId(progress.draftScope, questionId, revision, progress.scriptVersion),
         )
         val answers = progress.acceptedAnswers.filterNot { it.questionId == questionId } + accepted
@@ -36,14 +38,21 @@ object WizChatReducer {
 
     fun invalidatedAnswersFor(questionId: WizChatQuestionId): Set<WizChatQuestionId> = when (questionId) {
         WizChatQuestionId.P_NAME -> emptySet()
+        WizChatQuestionId.P_GENDER -> emptySet()
         WizChatQuestionId.P_AGE -> setOf(WizChatQuestionId.N_SEX, WizChatQuestionId.N_ELIGIBILITY, WizChatQuestionId.N_DIRECTION, WizChatQuestionId.N_ACTIVITY, WizChatQuestionId.N_RESULT)
         WizChatQuestionId.P_HEIGHT, WizChatQuestionId.P_WEIGHT -> setOf(WizChatQuestionId.N_RESULT)
         WizChatQuestionId.P_EXPERIENCE -> setOf(WizChatQuestionId.T_PLAN, WizChatQuestionId.T_REVIEW)
-        WizChatQuestionId.T_ROUTE, WizChatQuestionId.T_GOAL, WizChatQuestionId.T_STYLE,
+        WizChatQuestionId.T_GOAL -> setOf(WizChatQuestionId.T_STYLE, WizChatQuestionId.T_CARDIO_TYPE, WizChatQuestionId.T_CARDIO_TIME, WizChatQuestionId.T_PLAN, WizChatQuestionId.T_REVIEW)
+        WizChatQuestionId.T_TIME -> setOf(WizChatQuestionId.T_CARDIO_TIME, WizChatQuestionId.T_PLAN, WizChatQuestionId.T_REVIEW)
+        WizChatQuestionId.T_ROUTE, WizChatQuestionId.T_STYLE,
         WizChatQuestionId.T_VOLUME_TECHNIQUE, WizChatQuestionId.T_VOLUME_CONSISTENCY,
         WizChatQuestionId.T_VOLUME_STRENGTH, WizChatQuestionId.T_VOLUME_MOBILITY,
-        WizChatQuestionId.T_EQUIPMENT, WizChatQuestionId.T_DAYS, WizChatQuestionId.T_WEEKDAYS, WizChatQuestionId.T_TIME,
-        WizChatQuestionId.T_TRAINING_MAX -> setOf(WizChatQuestionId.T_PLAN, WizChatQuestionId.T_REVIEW)
+        WizChatQuestionId.T_EQUIPMENT -> setOf(WizChatQuestionId.T_HOME_EQUIPMENT, WizChatQuestionId.T_PLAN, WizChatQuestionId.T_REVIEW)
+        WizChatQuestionId.T_DAYS -> setOf(WizChatQuestionId.T_WEEKDAYS, WizChatQuestionId.T_PLAN, WizChatQuestionId.T_REVIEW)
+        WizChatQuestionId.T_HOME_EQUIPMENT, WizChatQuestionId.T_WEEKDAYS,
+        WizChatQuestionId.T_CARDIO_TYPE, WizChatQuestionId.T_CARDIO_TIME,
+        WizChatQuestionId.T_TRAINING_MAX -> setOf(WizChatQuestionId.T_MARKS, WizChatQuestionId.T_PLAN, WizChatQuestionId.T_REVIEW)
+        WizChatQuestionId.T_MARKS -> setOf(WizChatQuestionId.T_PLAN, WizChatQuestionId.T_REVIEW)
         WizChatQuestionId.T_PLAN -> setOf(WizChatQuestionId.T_REVIEW)
         WizChatQuestionId.N_START, WizChatQuestionId.N_SEX, WizChatQuestionId.N_ELIGIBILITY,
         WizChatQuestionId.N_DIRECTION, WizChatQuestionId.N_ACTIVITY -> setOf(WizChatQuestionId.N_RESULT, WizChatQuestionId.R_RESULT, WizChatQuestionId.REVIEW)

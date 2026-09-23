@@ -6,25 +6,28 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.onboarding.WizChatStage
 
 object WizChatTokens {
-    val background = Color(0xFF0F0F0F)
-    val text = Color(0xFFF6F2EE)
-    val muted = Color(0xFFB9B0A9)
-    val orange = Color(0xFFFFAB66)
+    val background = Color.Black
+    val text = Color(0xFFF4F6F8)
+    val muted = Color(0xFFAEB7C4)
+    val botBubble = Color(0xFF191D23)
+    val userBubble = Color(0xFF14334F)
+    val replyZone = Color(0xFF151A21)
+    val option = Color(0xFF282F39)
+    val optionSelected = Color(0xFF203E5D)
     val blue = Color(0xFF74B5FF)
-    val green = Color(0xFF6CDBA4)
-    val yellow = Color(0xFFF4D35E)
+    val orange = Color(0xFFFFA15C)
+    val green = Color(0xFF6EDB9A)
+    val yellow = Color(0xFFF0D36A)
     val danger = Color(0xFFFF9B92)
-    val bubbleShape = RoundedCornerShape(20.dp)
-    val dockShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
     val optionShape = RoundedCornerShape(18.dp)
-    const val bubbleAlpha = 0.16f
-    const val selectedAlpha = 0.26f
-}
+    val replyShape = RoundedCornerShape(20.dp)
 
-fun WizChatStage.accent(): Color = when (this) {
-    WizChatStage.PROFILE -> WizChatTokens.orange
-    WizChatStage.TRAINING -> WizChatTokens.blue
-    WizChatStage.NUTRITION -> WizChatTokens.green
-    WizChatStage.RINGS -> WizChatTokens.yellow
-    WizChatStage.REVIEW -> WizChatTokens.orange
+    /** Stage accent: orange profile, blue training, green nutrition, yellow rings, blue review. */
+    fun stageAccent(stage: WizChatStage): Color = when (stage) {
+        WizChatStage.PROFILE -> orange
+        WizChatStage.TRAINING -> blue
+        WizChatStage.NUTRITION -> green
+        WizChatStage.RINGS -> yellow
+        WizChatStage.REVIEW -> blue
+    }
 }

@@ -78,6 +78,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.semantics
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.R
@@ -326,12 +332,21 @@ private fun SexPillCompact(selected: EerSex?, onSelect: (EerSex) -> Unit) {
 }
 
 @Composable
-private fun VerticalPhysiqueSlider(pos: Float, onPosChange: (Float) -> Unit) {
+internal fun VerticalPhysiqueSlider(pos: Float, onPosChange: (Float) -> Unit,
+    height: Dp = 360.dp, hitWidth: Dp = 22.dp, tint: Color = Color.White, withBorder: Boolean = true) {
     var hPx by remember { mutableStateOf(1f) }
     val frac = ((pos - 1f) / 6f).coerceIn(0f, 1f)
     Box(
-        Modifier.width(22.dp).height(360.dp).clip(RoundedCornerShape(999.dp)).background(Color.White.copy(alpha = 0.08f))
-            .border(1.dp, GlassBorder, RoundedCornerShape(999.dp)).onSizeChanged { hPx = it.height.toFloat().coerceAtLeast(1f) }
+        Modifier.width(hitWidth).height(height).clip(RoundedCornerShape(999.dp)).background(Color.White.copy(alpha = 0.08f))
+            .then(if (withBorder) Modifier.border(1.dp, GlassBorder, RoundedCornerShape(999.dp)) else Modifier)
+            .semantics {
+                progressBarRangeInfo = ProgressBarRangeInfo(pos.coerceIn(1f, 7f), 1f..7f)
+                customActions = listOf(
+                    CustomAccessibilityAction("Disminuir porcentaje") { onPosChange((pos - .1f).coerceAtLeast(1f)); true },
+                    CustomAccessibilityAction("Aumentar porcentaje") { onPosChange((pos + .1f).coerceAtMost(7f)); true },
+                )
+            }
+            .onSizeChanged { hPx = it.height.toFloat().coerceAtLeast(1f) }
             .pointerInput(Unit) {
                 detectVerticalDragGestures { change, _ ->
                     val y = change.position.y.coerceIn(0f, hPx)
@@ -355,7 +370,8 @@ private fun VerticalPhysiqueSlider(pos: Float, onPosChange: (Float) -> Unit) {
     ) {
         Box(Modifier.fillMaxSize().padding(vertical = 8.dp).width(2.dp).clip(RoundedCornerShape(999.dp)).background(Color.White.copy(alpha = 0.14f)))
         val thumbPad = with(LocalDensity.current) { (frac * (hPx - 18.dp.toPx())).coerceAtLeast(0f).toDp() }
-        Box(Modifier.padding(top = thumbPad).size(18.dp).clip(CircleShape).background(Color.White).border(1.dp, Color.Black.copy(alpha = 0.10f), CircleShape))
+        Box(Modifier.padding(top = thumbPad).size(18.dp).clip(CircleShape).background(tint)
+            .then(if (withBorder) Modifier.border(1.dp, Color.Black.copy(alpha = 0.10f), CircleShape) else Modifier))
     }
 }
 
@@ -392,10 +408,10 @@ private fun GoalsStep(state: NutritionWizardUiState, vm: NutritionWizardViewMode
             }
         }
         Text("Tu meta", color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
-        CompactField(state.draft.targetWeightText, vm::updateTargetWeight, "Peso meta (${state.draft.weightUnit})", state.draft.weightText.ifBlank { "70" }, KeyboardType.Decimal, Modifier.fillMaxWidth())
+        CompactField(state.draft.targetWeightText, vm::updateTargetWeight, "Peso meta (${state.draft.weightUnit})", state.draft.weightText.ifBlank { "Opcional" }, KeyboardType.Decimal, Modifier.fillMaxWidth())
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            CompactField(state.draft.targetBodyFatText, vm::updateTargetBodyFat, "% grasa objetivo (opcional)", "15", KeyboardType.Decimal, Modifier.weight(1f))
-            CompactField(state.draft.targetMuscleText, vm::updateTargetMuscle, "% músculo objetivo (opcional)", "42", KeyboardType.Decimal, Modifier.weight(1f))
+            CompactField(state.draft.targetBodyFatText, vm::updateTargetBodyFat, "% grasa objetivo (opcional)", "Opcional", KeyboardType.Decimal, Modifier.weight(1f))
+            CompactField(state.draft.targetMuscleText, vm::updateTargetMuscle, "% músculo objetivo (opcional)", "Opcional", KeyboardType.Decimal, Modifier.weight(1f))
         }
         Text("Opcional — si lo completas afinamos la fecha estimada.", color = Color.White.copy(alpha = 0.45f), style = MaterialTheme.typography.labelSmall)
     }
@@ -409,9 +425,13 @@ private fun ReviewStep(state: NutritionWizardUiState, vm: NutritionWizardViewMod
     val kcal = state.effectiveKcal
     val macros = state.effectiveMacros
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Box(Modifier.size(148.dp)) { AnimatedMacroRing(kcal, macros, state) } }
-        if (rec != null) Text("EER ${rec.eerKcal?.toInt() ?: "—"} kcal · Objetivo $kcal kcal" + (bounds?.let { "  ·  ${it.first}–${it.last}" } ?: ""), color = Color.White.copy(alpha = 0.75f), style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
-        GlassSlider(label = "Calorías", value = kcal.toFloat(), range = (bounds?.first?.toFloat() ?: 1200f)..(bounds?.last?.toFloat() ?: 3500f), display = "$kcal kcal", onValueChange = { vm.updateCaloriesSlider(it.roundToInt()) }, color = CalColor, height = 14.dp)
+        if (kcal > 0 && macros != null) Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Box(Modifier.size(148.dp)) { AnimatedMacroRing(kcal, macros, state) } }
+        if (rec != null && kcal > 0) Text(if (state.draft.direction == PlanDirection.PROFESSIONAL) "Referencias indicadas: $kcal kcal" else "EER ${rec.eerKcal?.toInt() ?: "—"} kcal · Objetivo $kcal kcal" + (bounds?.let { "  ·  ${it.first}–${it.last}" } ?: ""), color = Color.White.copy(alpha = 0.75f), style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+        if (state.draft.direction == PlanDirection.PROFESSIONAL) {
+            CompactField(state.draft.manualCalorieTargetText, vm::updateManualCalories, "Calorías indicadas", "Escribe el valor", KeyboardType.Decimal, Modifier.fillMaxWidth())
+        } else if (kcal > 0) {
+            GlassSlider(label = "Calorías", value = kcal.toFloat(), range = (bounds?.first?.toFloat() ?: 1200f)..(bounds?.last?.toFloat() ?: 3500f), display = "$kcal kcal", onValueChange = { vm.updateCaloriesSlider(it.roundToInt()) }, color = CalColor, height = 14.dp)
+        } else Text("Sin referencia energética todavía. Completa tus datos o elige la ruta profesional.", color = Color.White.copy(alpha = 0.65f))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("Macros", color = Color.White.copy(alpha = 0.85f), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodySmall)
             TextButton(onClick = vm::toggleAdvancedMacros) {
@@ -419,7 +439,7 @@ private fun ReviewStep(state: NutritionWizardUiState, vm: NutritionWizardViewMod
                 Icon(if (state.draft.showAdvancedMacros) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null, tint = Color.White)
             }
         }
-        AnimatedVisibility(visible = state.draft.showAdvancedMacros, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+        AnimatedVisibility(visible = state.draft.showAdvancedMacros && macros != null, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 GlassSlider(label = "Proteína", value = (macros?.proteinG ?: 0.0).toFloat(), range = 0f..400f, display = "${macros?.proteinG?.roundToInt() ?: 0} g", onValueChange = { vm.updateMacroSlider(protein = it.toDouble(), carbs = null, fat = null) }, color = ProColor)
                 GlassSlider(label = "Carbohidratos", value = (macros?.carbsG ?: 0.0).toFloat(), range = 0f..600f, display = "${macros?.carbsG?.roundToInt() ?: 0} g", onValueChange = { vm.updateMacroSlider(protein = null, carbs = it.toDouble(), fat = null) }, color = CarbColor)
@@ -435,7 +455,7 @@ private fun ReviewStep(state: NutritionWizardUiState, vm: NutritionWizardViewMod
         Text("¿A qué ritmo?", color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
         Text(wizardPaceDesc(state.draft.pacePreset, state.draft.direction), color = Color.White.copy(alpha = 0.65f), style = MaterialTheme.typography.bodySmall)
         KpknGlassPill(haze, listOf("Lento" to WizardPacePreset.SLOW, "Medio" to WizardPacePreset.MEDIUM, "Rápido" to WizardPacePreset.FAST), state.draft.pacePreset, vm::updatePacePreset)
-        RoadmapTimeline(startDate = LocalDate.now(), endDateStr = state.estimatedEndDate)
+        if (state.draft.direction != PlanDirection.PROFESSIONAL) RoadmapTimeline(startDate = LocalDate.now(), endDateStr = state.estimatedEndDate)
     }
 }
 
@@ -596,7 +616,7 @@ private fun AnimatedMacroRing(kcal: Int, macros: com.example.kpkn.domain.nutriti
 /** Personajes y slider de % grasa solo tras elegir sexo. No anidar el visor en el if (null). */
 internal fun shouldShowWizardPhysiqueExamples(equationSex: EerSex?): Boolean = equationSex != null
 
-private val WizardMaleFrames = intArrayOf(
+internal val WizardMaleFrames = intArrayOf(
     R.drawable.wizard_h_00, R.drawable.wizard_h_01, R.drawable.wizard_h_02, R.drawable.wizard_h_03, R.drawable.wizard_h_04,
     R.drawable.wizard_h_05, R.drawable.wizard_h_06, R.drawable.wizard_h_07, R.drawable.wizard_h_08, R.drawable.wizard_h_09,
     R.drawable.wizard_h_10, R.drawable.wizard_h_11, R.drawable.wizard_h_12, R.drawable.wizard_h_13, R.drawable.wizard_h_14,
@@ -612,7 +632,7 @@ private val WizardMaleFrames = intArrayOf(
     R.drawable.wizard_h_60,
 )
 
-private val WizardFemaleFrames = intArrayOf(
+internal val WizardFemaleFrames = intArrayOf(
     R.drawable.wizard_m_00, R.drawable.wizard_m_01, R.drawable.wizard_m_02, R.drawable.wizard_m_03, R.drawable.wizard_m_04,
     R.drawable.wizard_m_05, R.drawable.wizard_m_06, R.drawable.wizard_m_07, R.drawable.wizard_m_08, R.drawable.wizard_m_09,
     R.drawable.wizard_m_10, R.drawable.wizard_m_11, R.drawable.wizard_m_12, R.drawable.wizard_m_13, R.drawable.wizard_m_14,

@@ -6,6 +6,9 @@ import com.example.kpkn.data.models.InitialRecoveryActivityType
 import com.example.kpkn.data.models.InitialRecoveryIntensity
 import com.example.kpkn.data.models.InitialRecoverySensations
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.CardioType
+import com.example.kpkn.data.models.Gender
+import com.example.kpkn.data.models.GlobalBatteries
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.AthleteProfileScore
@@ -16,6 +19,7 @@ import com.example.kpkn.data.models.InitialRecoveryAxialExposure
 import com.example.kpkn.data.models.InitialRecoveryMuscleScope
 import com.example.kpkn.data.models.VolumeCalibrationProfile
 import com.example.kpkn.data.models.TrainingStyle
+import com.example.kpkn.data.programs.toTrainingReference
 import com.example.kpkn.domain.training.PersonalizationReport
 import com.example.kpkn.domain.onboarding.WizChatMachineState
 import com.example.kpkn.domain.onboarding.WizChatProgress
@@ -39,6 +43,9 @@ enum class SetupProgramRoute { CUSTOMIZABLE, PROTOCOL, LATER }
 enum class SetupRecentTrainingState { NOT_ANSWERED, NO, YES, UNKNOWN }
 
 @Serializable
+enum class SetupDiscomfortState { NOT_ANSWERED, NONE, DECLARED, OMITTED }
+
+@Serializable
 data class SetupVolumeAnswers(
     val style: TrainingStyle? = null,
     val technique: Int? = null,
@@ -55,13 +62,34 @@ enum class SetupExperience(val label: String) { NEW("Estoy empezando"), RETURNIN
 enum class SetupTrainingPath(val label: String) { PERSONALIZE("Personaliza un plan"), FROM_SCRATCH("Crea desde cero") }
 
 @Serializable
-enum class SetupGoal(val label: String) { STRENGTH("Fuerza"), MUSCLE("Músculo"), HEALTH("Salud y condición"), MIXED("Fuerza + cardio") }
+enum class SetupGoal(val label: String) {
+    STRENGTH("Fuerza"),
+    MUSCLE("Músculo"),
+    STRENGTH_MUSCLE("Fuerza y músculo"),
+    HEALTH("Salud y condición"),
+    MIXED("Fuerza + cardio"),
+}
+
+/** Fuerza → powerlifting, Músculo → hipertrofia, Fuerza y músculo → powerbuilding. */
+val SetupGoal.inferredTrainingStyle: com.example.kpkn.data.models.TrainingStyle?
+    get() = when (this) {
+        SetupGoal.STRENGTH -> com.example.kpkn.data.models.TrainingStyle.POWERLIFTER
+        SetupGoal.MUSCLE -> com.example.kpkn.data.models.TrainingStyle.BODYBUILDER
+        SetupGoal.STRENGTH_MUSCLE -> com.example.kpkn.data.models.TrainingStyle.POWERBUILDER
+        SetupGoal.HEALTH, SetupGoal.MIXED -> null
+    }
+
+/** Reference used to pick candidates: inferred from the goal or asked in the brief focus question. */
+fun SetupWizardDraft.trainingReference(): com.example.kpkn.data.programs.TrainingReference? {
+    val style = goal?.inferredTrainingStyle ?: volumeAnswers.style
+    return style?.toTrainingReference()
+}
 
 @Serializable
 enum class SetupFocus(val label: String) { FULL_BODY("Todo el cuerpo"), GLUTES("Glúteos"), LEGS("Piernas"), BACK("Espalda"), CHEST("Pecho"), SHOULDERS("Hombros"), ARMS("Brazos") }
 
 @Serializable
-enum class SetupEquipment(val label: String) { NONE("Sin material"), BANDS("Bandas"), DUMBBELLS("Mancuernas"), MACHINE("Máquinas"), CABLE("Polea"), BARBELL("Barra"), PULL_UP("Barra de dominadas"), GYM("Gimnasio completo"), SUPPORT("Apoyo estable"), BALL("Balón"), SMITH("Máquina Smith") }
+enum class SetupEquipment(val label: String) { NONE("Sin material"), BODYWEIGHT("Peso corporal"), BANDS("Bandas"), DUMBBELLS("Mancuernas"), MACHINE("Máquinas"), CABLE("Polea"), BARBELL("Barra"), PULL_UP("Barra de dominadas"), GYM("Gimnasio completo"), SUPPORT("Apoyo estable"), BALL("Balón"), SMITH("Máquina Smith") }
 
 @Serializable
 data class SetupExerciseDraft(
@@ -109,6 +137,7 @@ data class SetupRingsAnswers(
     val recentMuscles: Set<String> = emptySet(),
     val axialExposure: InitialRecoveryAxialExposure = InitialRecoveryAxialExposure(),
     val discomfortIds: List<String> = emptyList(),
+    val discomfortState: SetupDiscomfortState = SetupDiscomfortState.NOT_ANSWERED,
     val activityTypeState: com.example.kpkn.data.models.InitialRecoveryResponseState = com.example.kpkn.data.models.InitialRecoveryResponseState.UNKNOWN,
 )
 
@@ -123,8 +152,12 @@ data class SetupWizardDraft(
     val revision: Int = 1,
     val chapter: SetupWizardChapter = SetupWizardChapter.PROFILE,
     val name: String = "",
+    val profileGender: Gender? = null,
     val moduleChoice: SetupModuleChoice = SetupModuleChoice.TRAINING_AND_NUTRITION,
     val weightKg: Double? = null,
+    val importedWeightKg: Double? = null,
+    val weightUnit: String = "kg",
+    val weightUnitChanged: Boolean = false,
     val heightCm: Double? = null,
     val ageYears: Int? = null,
     val birthDateIso: String? = null,
@@ -136,7 +169,10 @@ data class SetupWizardDraft(
     val daysPerWeek: Int? = null,
     val selectedWeekdays: Set<Int> = emptySet(),
     val minutesPerSession: Int? = null,
+    val cardioType: CardioType? = null,
+    val cardioMinutes: Int? = null,
     val equipment: Set<SetupEquipment> = emptySet(),
+    val trainingEnvironment: String? = null,
     val priorityMuscles: Set<String> = emptySet(),
     val lowerEmphasisMuscles: Set<String> = emptySet(),
     val selectedSplitId: String? = null,
@@ -149,6 +185,7 @@ data class SetupWizardDraft(
     val activateProgram: Boolean = true,
     val activateNutrition: Boolean = true,
     val confirmActivation: Boolean = false,
+    val acceptFixedRecipeDifference: Boolean = false,
     val ringsAnswers: SetupRingsAnswers? = null,
     val nutritionMode: String = "create",
     val nutritionPlanId: String? = null,
@@ -159,6 +196,7 @@ data class SetupWizardDraft(
     val volumeRecommendations: List<VolumeRecommendation> = emptyList(),
     val athleteProfileScore: AthleteProfileScore? = null,
     val powerliftingProfile: PowerliftingProfile? = null,
+    val knowsTrainingMarks: Boolean = false,
     val volumeAnswers: SetupVolumeAnswers = SetupVolumeAnswers(),
     val volumeCalibrationProfile: VolumeCalibrationProfile? = null,
     val manualMuscleOverrides: Map<String, Int> = emptyMap(),
@@ -179,12 +217,24 @@ data class SetupWizardState(
     val previewReport: PersonalizationReport? = null,
     val isPreviewLoading: Boolean = false,
     val previewError: String? = null,
+    val fixedSessionEstimateMinutes: Int? = null,
+    val fixedTrainingDays: Set<Int>? = null,
     val requiresActivationConfirmation: Boolean = false,
     val machineState: WizChatMachineState = WizChatMachineState.Loading,
+    val isSubmittingAnswer: Boolean = false,
     val messages: List<com.example.kpkn.domain.onboarding.WizChatMessage> = emptyList(),
     val planCandidates: List<SetupPlanCandidate> = emptyList(),
+    val availablePlanCandidates: List<SetupPlanCandidate> = emptyList(),
+    val exerciseSuggestions: List<ExerciseMuscleInfo> = emptyList(),
+    val isExerciseSearching: Boolean = false,
+    val exerciseSearchError: String? = null,
+    val isCandidateLoading: Boolean = false,
     val nutritionPlanPreview: NutritionPlan? = null,
     val nutritionErrors: Map<String, String> = emptyMap(),
+    val nutritionPacePercentPerWeek: Double? = null,
+    val ringsBatteriesPreview: GlobalBatteries? = null,
+    val ringsPreviewLoading: Boolean = false,
+    val ringsPreviewError: String? = null,
 ) {
     val showNutritionPreview: Boolean get() = nutritionDraft != null
     val nutritionDraft: NutritionWizardDraft? get() = draft.nutritionDraft
@@ -196,6 +246,8 @@ data class SetupPlanCandidate(
     val subtitle: String,
     val description: String,
     val source: String,
+    val reasons: List<String> = emptyList(),
+    val details: String? = null,
 )
 
 typealias SetupWizardUiState = SetupWizardState

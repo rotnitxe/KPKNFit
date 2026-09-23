@@ -287,11 +287,15 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
                 ), sourceDefinitionId = entry.id, sourceRevision = PersonalizedPlanCatalog.REVISION, prescriptionOrigin = "KPKN_NATIVE_CURATED"),
             ))),
             startDay = days.first(), volumeRecommendations = input.volumeRecommendations,
+            schedulePlan = ProgramSchedulePlan(
+                weekStartDay = days.first(),
+                trainingDays = days.toSet(),
+            ),
             autoregulationMode = AutoregulationMode.PROPOSE,
             tags = listOf("KPKN_NATIVE", input.focus.name),
-            selectedSplitId = input.splitId,
-            customSplitPattern = input.splitPattern,
-            customSplitName = input.splitName,
+            selectedSplitId = input.splitId?.takeIf { it == "custom" },
+            customSplitPattern = if (input.splitId == "custom") input.splitPattern else emptyList(),
+            customSplitName = if (input.splitId == "custom") input.splitName else null,
             sourceRecipe = sourceRecipe,
         )
         ProgramExecutionContract.requireExecutable(program)

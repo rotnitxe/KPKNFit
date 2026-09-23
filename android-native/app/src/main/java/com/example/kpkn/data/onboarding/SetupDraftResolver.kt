@@ -36,7 +36,16 @@ class SetupDraftResolver(private val db: KpknDatabase) {
 
     suspend fun resolve(draftId: String?): SetupDraftCandidate? = listRecoverable().firstOrNull { it.draftId == draftId }
 
+    suspend fun findPendingNutritionDraftId(): String? =
+        listRecoverable().firstOrNull { isPendingNutritionDraft(it.draftId) }?.draftId
+
     companion object {
+        const val PENDING_NUTRITION_PREFIX = "setup-wizard:pending_nutrition:"
+
+        fun isPendingNutritionDraft(draftId: String): Boolean = draftId.startsWith(PENDING_NUTRITION_PREFIX)
+
+        fun pendingNutritionDraftId(commitId: String): String = "$PENDING_NUTRITION_PREFIX$commitId"
+
         fun scopeOf(value: String): SetupDraftScope = when (value.trim().lowercase()) {
             "full", "setup-wizard:full" -> SetupDraftScope.FULL
             "training_only", "training-only", "setup-wizard:training_only" -> SetupDraftScope.TRAINING_ONLY

@@ -3,6 +3,7 @@ package com.example.kpkn.data.programs
 import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.VolumeRecommendation
+import com.example.kpkn.data.models.resolvedSchedulePlan
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.protocols.isVisibleForApplication
 import com.example.kpkn.domain.exercises.catalogv2.InMemoryExerciseCatalogRepositoryV2
@@ -142,5 +143,41 @@ class PersonalizedPlanCatalogTest {
         assertNotNull(program.sourceRecipe)
         assertEquals(3, program.sourceRecipe?.claimedDaysPerWeek)
         assertTrue(program.sourceRecipe?.autoregulationHooks?.isNotEmpty() == true)
+        assertEquals(setOf(1, 3, 5), program.schedulePlan?.trainingDays)
+        assertEquals(1, program.schedulePlan?.weekStartDay)
+    }
+
+    @Test
+    fun nativeSchedulePlanMirrorsSelectedWeekdays() {
+        val input = PersonalizerInput(
+            catalogEntryId = "native:machine-muscle",
+            focus = TrainingFocus.FULL_BODY,
+            frequency = 3,
+            weekdays = listOf(2, 4, 6),
+            equipment = setOf("machine"),
+            level = CatalogLevel.INTERMEDIATE,
+            availableMinutes = 60,
+        )
+        val program = requireNotNull(personalizer().personalize("schedule", input).program)
+        assertEquals(setOf(2, 4, 6), program.schedulePlan?.trainingDays)
+        assertEquals(2, program.schedulePlan?.weekStartDay)
+        assertEquals(2, program.startDay)
+        assertEquals(setOf(2, 4, 6), program.resolvedSchedulePlan().trainingDays)
+    }
+
+    @Test
+    fun namedSplitIdFromWizardIsNotPersistedByNativeGenerator() {
+        val input = PersonalizerInput(
+            catalogEntryId = "native:machine-muscle",
+            focus = TrainingFocus.FULL_BODY,
+            frequency = 3,
+            weekdays = listOf(1, 3, 5),
+            equipment = setOf("machine"),
+            level = CatalogLevel.INTERMEDIATE,
+            availableMinutes = 60,
+            splitId = "ul_x4",
+        )
+        val program = requireNotNull(personalizer().personalize("ignored-split", input).program)
+        assertNull("Named split is ignored by the native generator and must not be stored", program.selectedSplitId)
     }
 }

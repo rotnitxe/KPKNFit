@@ -121,6 +121,15 @@ object ExerciseTechniqueImageLookup {
     const val UNILATERAL_LANDMINE_PRESS_DEFINITION_ID = "deltoides_press_landmine_unilateral"
     const val UPRIGHT_ROW_DEFINITION_ID = "deltoides_remo_menton"
     const val FOREARM_PLANK_DEFINITION_ID = "core_plancha"
+    const val FLOOR_CRUNCH_DEFINITION_ID = "core_crunch_suelo_peso_corporal"
+    const val LEG_RAISE_DEFINITION_ID = "core_elevacion_piernas"
+    const val SIDE_BEND_DEFINITION_ID = "core_inclinacion_lateral"
+    const val AB_WHEEL_DEFINITION_ID = "core_rueda_abdominal"
+    const val CLAMSHELL_DEFINITION_ID = "glutes_clamshells_banda"
+    const val MONSTER_WALK_DEFINITION_ID = "glutes_monster_walk_banda"
+    const val GLUTE_STEP_UP_DEFINITION_ID = "glutes_step_up_gluteo"
+    const val COSSACK_SQUAT_DEFINITION_ID = "quads_sentadilla_cosaca"
+    const val PISTOL_SQUAT_DEFINITION_ID = "quads_sentadilla_pistola"
     const val CONVENTIONAL_ROW_DEFINITION_ID = "conventional_row"
     const val CHEST_SUPPORTED_ROW_DEFINITION_ID = "chest_supported_row"
     const val LAT_PULLDOWN_DEFINITION_ID = "lat_pulldown"
@@ -170,7 +179,7 @@ object ExerciseTechniqueImageLookup {
             ExerciseTechniqueImageVariant("cable", R.drawable.exercise_sentadilla_frontal_polea, "Polea"),
         )
         GOBLET_SQUAT_DEFINITION_ID -> listOf(
-            ExerciseTechniqueImageVariant("default", R.drawable.exercise_sentadilla_copa, "Mancuerna"),
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_quads_sentadilla_copa_batch8, "Mancuerna"),
         )
         SUMO_SQUAT_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_sentadilla_sumo, "Barra"),
@@ -299,10 +308,10 @@ object ExerciseTechniqueImageLookup {
             ExerciseTechniqueImageVariant("default", R.drawable.exercise_peso_muerto_rumano_sumo_deficit, "Déficit"),
         )
         KETTLEBELL_SWING_TWO_HANDS_DEFINITION_ID -> listOf(
-            ExerciseTechniqueImageVariant("default", R.drawable.exercise_swing_kettlebell_dos_manos, "Kettlebell"),
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_hams_swing_kettlebell_dos_manos_batch8, "Kettlebell"),
         )
         KETTLEBELL_SWING_ONE_HAND_DEFINITION_ID -> listOf(
-            ExerciseTechniqueImageVariant("default", R.drawable.exercise_swing_kettlebell_unilateral, "Kettlebell"),
+            ExerciseTechniqueImageVariant("default", R.drawable.exercise_hams_swing_kettlebell_unilateral_batch8, "Kettlebell"),
         )
         STANDING_BICEPS_CURL_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_curl_biceps_pie_barra, "Barra"),
@@ -650,6 +659,33 @@ object ExerciseTechniqueImageLookup {
         )
         FOREARM_PLANK_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("default", R.drawable.exercise_core_plancha_bodyweight, "Peso corporal"),
+        )
+        FLOOR_CRUNCH_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_core_crunch_suelo_peso_corporal_batch8, "Peso corporal"),
+        )
+        LEG_RAISE_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_core_elevacion_piernas_batch8, "Peso corporal"),
+        )
+        SIDE_BEND_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_core_inclinacion_lateral_batch8, "Mancuernas"),
+        )
+        AB_WHEEL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("ab_wheel", R.drawable.exercise_core_rueda_abdominal_batch8, "Rueda abdominal"),
+        )
+        CLAMSHELL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("band", R.drawable.exercise_glutes_clamshells_banda_batch8, "Banda"),
+        )
+        MONSTER_WALK_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("band", R.drawable.exercise_glutes_monster_walk_banda_batch8, "Banda"),
+        )
+        GLUTE_STEP_UP_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_glutes_step_up_gluteo_batch8, "Mancuernas"),
+        )
+        COSSACK_SQUAT_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_quads_sentadilla_cosaca_batch8, "Peso corporal"),
+        )
+        PISTOL_SQUAT_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_quads_sentadilla_pistola_batch8, "Peso corporal"),
         )
         CONVENTIONAL_ROW_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_conventional_row_barbell, "Barra"),

@@ -4,6 +4,8 @@ import com.example.kpkn.data.models.InitialRecoveryEvidence
 import com.example.kpkn.data.models.NutritionTrackingChoice
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.UserVitals
+import com.example.kpkn.data.models.Gender
+import com.example.kpkn.data.models.WeightUnit
 import com.example.kpkn.data.models.VolumeCalibrationProfile
 
 /** Explicit three-state field patch used by setup commits. */
@@ -13,10 +15,27 @@ sealed interface SetupPatchField<out T> {
     data object Clear : SetupPatchField<Nothing>
 }
 
+/** Apply only the vitals that were actually confirmed, to the newest Settings row. */
+data class SetupUserVitalsPatch(
+    val age: SetupPatchField<Int?> = SetupPatchField.Unchanged,
+    val height: SetupPatchField<Double?> = SetupPatchField.Unchanged,
+    val weight: SetupPatchField<Double?> = SetupPatchField.Unchanged,
+    val gender: SetupPatchField<Gender?> = SetupPatchField.Unchanged,
+) {
+    fun applyTo(base: UserVitals): UserVitals = base.copy(
+        age = if (age is SetupPatchField.Set) age.value else base.age,
+        height = if (height is SetupPatchField.Set) height.value else base.height,
+        weight = if (weight is SetupPatchField.Set) weight.value else base.weight,
+        gender = if (gender is SetupPatchField.Set) gender.value else base.gender,
+    )
+}
+
 data class SetupSettingsPatch(
     val username: SetupPatchField<String> = SetupPatchField.Unchanged,
     val age: SetupPatchField<Int?> = SetupPatchField.Unchanged,
     val userVitals: SetupPatchField<UserVitals> = SetupPatchField.Unchanged,
+    val weightUnit: SetupPatchField<WeightUnit> = SetupPatchField.Unchanged,
+    val vitalsPatch: SetupUserVitalsPatch? = null,
     val dailyCalorieGoal: SetupPatchField<Int?> = SetupPatchField.Unchanged,
     val dailyProteinGoal: SetupPatchField<Int?> = SetupPatchField.Unchanged,
     val dailyCarbGoal: SetupPatchField<Int?> = SetupPatchField.Unchanged,
@@ -32,7 +51,8 @@ data class SetupSettingsPatch(
     fun applyTo(base: Settings): Settings = base.copy(
         username = username.resolve(base.username),
         age = age.resolve(base.age),
-        userVitals = userVitals.resolve(base.userVitals),
+        userVitals = vitalsPatch?.applyTo(base.userVitals) ?: userVitals.resolve(base.userVitals),
+        weightUnit = weightUnit.resolve(base.weightUnit),
         dailyCalorieGoal = dailyCalorieGoal.resolve(base.dailyCalorieGoal),
         dailyProteinGoal = dailyProteinGoal.resolve(base.dailyProteinGoal),
         dailyCarbGoal = dailyCarbGoal.resolve(base.dailyCarbGoal),

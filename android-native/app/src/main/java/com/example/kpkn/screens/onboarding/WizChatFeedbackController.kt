@@ -11,13 +11,26 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.kpkn.services.workout.SystemAudioHelper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 class WizChatFeedbackController(private val context: android.content.Context, @RawRes soundRes: Int = 0) {
     private val soundPool = SoundPool.Builder().setMaxStreams(1).setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()).build()
-    /** Bundled deterministic mono pluck; it is written to cache only because the source tree has no raw assets. */
-    private val soundId = runCatching {
-        if (soundRes != 0) soundPool.load(context, soundRes, 1) else soundPool.load(createPluckWav(context), 1)
-    }.getOrDefault(0)
+    private val loadingScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    @Volatile private var soundId = 0
+    init {
+        // Synthesizing the short sound and writing its cache file must not block composition.
+        loadingScope.launch {
+            val path = if (soundRes == 0) runCatching { createPluckWav(context) }.getOrNull() else null
+            if (!isActive) return@launch
+            soundId = runCatching { if (soundRes != 0) soundPool.load(context, soundRes, 1)
+                else if (path != null) soundPool.load(path, 1) else 0 }.getOrDefault(0)
+        }
+    }
     private val played = mutableSetOf<String>()
     private var appForeground = false
     fun setAppForeground(value: Boolean) { appForeground = value }
@@ -25,10 +38,16 @@ class WizChatFeedbackController(private val context: android.content.Context, @R
         if (!enabled || messageId in played || soundId == 0) return
         if (!appForeground) return
         if (!SystemAudioHelper.shouldPlaySound(context, soundsEnabled = true)) return
+        val notificationManager = context.getSystemService(android.content.Context.NOTIFICATION_SERVICE) as? android.app.NotificationManager
+        if (notificationManager?.currentInterruptionFilter in setOf(
+                android.app.NotificationManager.INTERRUPTION_FILTER_NONE,
+                android.app.NotificationManager.INTERRUPTION_FILTER_PRIORITY,
+                android.app.NotificationManager.INTERRUPTION_FILTER_ALARMS,
+            )) return
         played += messageId
         soundPool.play(soundId, .28f, .28f, 1, 0, 1f)
     }
-    fun release() { soundPool.release() }
+    fun release() { loadingScope.cancel(); soundPool.release() }
 
     private fun createPluckWav(context: android.content.Context): String {
         val file = java.io.File(context.cacheDir, "wizchat-response.wav")

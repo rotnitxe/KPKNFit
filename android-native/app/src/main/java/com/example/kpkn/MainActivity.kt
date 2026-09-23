@@ -1226,6 +1226,11 @@ private fun KPKNNavGraph(
                 onNavigateToWizard = { mode, planId ->
                     navController.navigate(KpknRoute.NutritionWizard.create(mode, planId))
                 },
+                onNavigateToPendingSetup = { draftId ->
+                    navController.navigate(KpknRoute.SetupWizard.create("NUTRITION_ONLY", draftId)) {
+                        launchSingleTop = true
+                    }
+                },
             )
         }
 

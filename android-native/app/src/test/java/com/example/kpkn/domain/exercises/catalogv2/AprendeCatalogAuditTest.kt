@@ -61,11 +61,11 @@ class AprendeCatalogAuditTest {
         assertEquals("v2-approved-2026-08-12-a", report.catalogRevision)
         assertEquals("wikilab-v3-2026-08-08", report.ontologyRevision)
         assertEquals(96, report.familyCount)
-        assertEquals(196, report.definitionCount)
-        assertEquals(512, report.configurationCount)
-        assertEquals(512, report.richMetadataCount)
-        assertEquals(512, report.editorialCoverageCount)
-        assertEquals(512, report.jointCoverageCount)
+        assertEquals(197, report.definitionCount)
+        assertEquals(510, report.configurationCount)
+        assertEquals(510, report.richMetadataCount)
+        assertEquals(510, report.editorialCoverageCount)
+        assertEquals(510, report.jointCoverageCount)
         assertEquals(0, report.shortDescriptionCount)
         assertEquals(0, report.shortBenefitCount)
         assertEquals(0, report.shortTechniqueCount)
@@ -75,7 +75,7 @@ class AprendeCatalogAuditTest {
         assertEquals(0, report.duplicateVariantRationaleCount)
         assertEquals(0, report.desynchronizedMetadataCount)
         assertEquals(0, report.reverseLinkConsistencyIssueCount)
-        assertEquals("871390f3aa412bdf21bded7b869bb34ffe4efb85485e62d0e46a550251d0c6a0", report.sourceSha256)
+        assertEquals("76966a5369cef9efc8d094f35efb13ca9bb7f82987ec87d20bf4971384ddf1cc", report.sourceSha256)
         assertTrue("músculos sin puente: ${report.unmappedMuscleIds}", report.unmappedMuscleIds.isEmpty())
         assertTrue("patrones sin puente: ${report.unmappedPatternIds}", report.unmappedPatternIds.isEmpty())
         assertTrue(report.unknownJointIds.isEmpty())
@@ -121,7 +121,7 @@ class AprendeCatalogAuditTest {
             .map { it.id }
             .toSet()
 
-        assertEquals(512, runtime.size)
+        assertEquals(510, runtime.size)
         assertEquals(sourceConfigurationIds, runtime.keys)
         assertTrue(runtime.values.all {
             val configurationId = it.catalogConfigurationId
@@ -135,7 +135,7 @@ class AprendeCatalogAuditTest {
         val reverse = buildAprendeCatalogReverseIndex(catalog)
         // A configuration contributes to exactly one movement-pattern bucket;
         // this also guards against parent-name deduplication.
-        assertEquals(512, reverse.exerciseIdsByPattern.values.sumOf { it.size })
+        assertEquals(510, reverse.exerciseIdsByPattern.values.sumOf { it.size })
         catalog.families.flatMap { it.definitions }.flatMap { it.configurations }.forEach { configuration ->
             val profile = configuration.profile
             assertTrue(configuration.id in reverse.exerciseIdsByPattern[profile.movementPatternId].orEmpty())
@@ -211,7 +211,7 @@ class AprendeCatalogAuditTest {
         assertTrue(prepopulate.contains("APRENDE_CONTENT_REVISION = \"conceptos-clave-v2-2026-08-23\""))
         assertTrue(prepopulate.contains("currentRevision != APRENDE_CONTENT_REVISION"))
         assertTrue(prepopulate.contains("putString(APRENDE_CONTENT_PREF_KEY, APRENDE_CONTENT_REVISION)"))
-        assertTrue(database.contains("version = 26"))
+        assertTrue(database.contains("version = 27"))
     }
 
     private fun collectExerciseRefs(element: JsonElement): List<String> = when (element) {

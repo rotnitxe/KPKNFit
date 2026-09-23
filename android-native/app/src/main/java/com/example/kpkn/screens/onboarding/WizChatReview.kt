@@ -20,17 +20,27 @@ fun WizChatReview(state: SetupWizardState, rings: SetupRingsMapping? = null) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
         ReviewLine("Nombre", draft.name.ifBlank { "No indicado" })
         ReviewLine("Perfil", listOfNotNull(draft.ageYears?.let { "$it años" }, draft.heightCm?.let { "${it} cm" }, draft.weightKg?.let { "${it} kg" }).joinToString(" · ").ifBlank { "Datos pendientes" })
-        ReviewLine("Entrenamiento", if (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER) "Lo harás después" else state.programPreview?.name ?: "Vista previa pendiente")
-        ReviewLine("Nutrición", if (!draft.includeNutrition) "Pospuesta" else state.nutritionPlanPreview?.let { "${it.calorieTarget} kcal · ${it.proteinGoal} g proteína" } ?: "Pendiente")
+        ReviewLine("Entrenamiento", when {
+            state.mode in setOf(SetupWizardMode.RINGS_ONLY, SetupWizardMode.NUTRITION_ONLY) -> "Sin cambios"
+            !draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER -> "Crearás el programa después"
+            else -> state.programPreview?.name ?: "Vista previa pendiente"
+        })
+        ReviewLine("Nutrición", when {
+            state.mode in setOf(SetupWizardMode.TRAINING_ONLY, SetupWizardMode.RINGS_ONLY) -> "Sin cambios"
+            !draft.includeNutrition -> "Pospuesta"
+            else -> state.nutritionPlanPreview?.let { "${it.calorieTarget} kcal · ${it.proteinGoal} g proteína" } ?: "Pendiente"
+        })
         ReviewLine("RINGS", when {
             rings?.completion == RingsCompletion.UNKNOWN || draft.ringsAnswers?.recentTrainingState == SetupRecentTrainingState.UNKNOWN -> "Sin calibrar"
-            rings?.completion == RingsCompletion.PRESERVE -> "Conservar estimación actual"
+            rings?.completion == RingsCompletion.PRESERVE -> if (draft.ringsAnswers?.startAction?.contains("dejar", true) == true) "Sin calibrar" else "Conservar estimación actual"
             rings?.completion == RingsCompletion.OMITTED -> "Quitar estimación inicial"
-            rings?.completion == RingsCompletion.VALID -> rings.evidence?.let { "${it.muscularScore}/${it.systemScore}/${it.structureScore} · estimación aproximada" } ?: "Estimación inicial explícita"
+            rings?.completion == RingsCompletion.VALID -> state.ringsBatteriesPreview?.let {
+                "Músculos ${it.muscular} · Energía ${it.cnc} · Columna ${it.spinal} · aproximado"
+            } ?: "Calculando el punto de partida"
             draft.ringsAnswers == null -> "Sin calibrar"
             else -> "Pendiente de revisar"
         })
-        if (state.isPreviewLoading) CircularProgressIndicator(color = WizChatTokens.orange)
+        if (state.isPreviewLoading) CircularProgressIndicator(color = WizChatTokens.stageAccent(com.example.kpkn.domain.onboarding.WizChatStage.TRAINING))
         state.previewReport?.limitations?.takeIf { it.isNotEmpty() }?.forEach { Text(it, color = WizChatTokens.muted) }
         state.nutritionErrors.values.forEach { Text(it, color = WizChatTokens.danger) }
         state.errors.values.forEach { Text(it, color = WizChatTokens.danger, fontWeight = FontWeight.SemiBold) }

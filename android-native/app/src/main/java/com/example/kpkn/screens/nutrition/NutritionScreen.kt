@@ -76,6 +76,7 @@ fun NutritionScreen(
     onNavigateToBodyProgress: (() -> Unit)? = null,
     onNavigateToMealHistory: (() -> Unit)? = null,
     onNavigateToWizard: (mode: String, planId: String?) -> Unit = { _, _ -> },
+    onNavigateToPendingSetup: (draftId: String) -> Unit = {},
 ) {
     val dailyTotals by viewModel.dailyTotals.collectAsState()
     val goals by viewModel.goals.collectAsState()
@@ -104,6 +105,26 @@ fun NutritionScreen(
     var selectedMealForLogger by remember { mutableStateOf(MealType.LUNCH) }
     var foodLoggerInitialDescription by remember { mutableStateOf<String?>(sharedDescription) }
     var foodLoggerInitialTab by remember { mutableIntStateOf(sharedTab.coerceIn(0, 1)) }
+    var pendingNutritionSetupDraftId by remember { mutableStateOf<String?>(null) }
+    var pendingSetupRefresh by remember { mutableIntStateOf(0) }
+    val nutritionContext = androidx.compose.ui.platform.LocalContext.current
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) pendingSetupRefresh++
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    LaunchedEffect(pendingSetupRefresh) {
+        pendingNutritionSetupDraftId = runCatching {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                com.example.kpkn.data.onboarding.SetupDraftResolver(
+                    com.example.kpkn.data.onboarding.persistenceFactory(nutritionContext).database,
+                ).findPendingNutritionDraftId()
+            }
+        }.getOrNull()
+    }
     
     val nutritionHazeState = remember { HazeState() }
 
@@ -153,6 +174,35 @@ fun NutritionScreen(
                         onCreatePlan = { onNavigateToWizard("create", null) },
                         hasActivePlan = activePlan != null,
                     )
+                }
+
+                pendingNutritionSetupDraftId?.let { pendingDraftId ->
+                    item {
+                        androidx.compose.material3.Surface(
+                            color = CALORIES_COLOR.copy(alpha = 0.16f),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .clickable { onNavigateToPendingSetup(pendingDraftId) },
+                        ) {
+                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(
+                                    "Tienes indicaciones de un profesional a medias",
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                                Text(
+                                    "Completa macros y calorías cuando quieras; no se borraron.",
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                                TextButton(onClick = { onNavigateToPendingSetup(pendingDraftId) }) {
+                                    Text("Completar ahora", color = CALORIES_COLOR)
+                                }
+                            }
+                        }
+                    }
                 }
 
                 item {

@@ -16,6 +16,10 @@ import com.example.kpkn.data.models.CalibrationResponseState
 import com.example.kpkn.data.models.AthleteProfileLevel
 import com.example.kpkn.data.models.AthleteProfileScore
 import com.example.kpkn.data.models.DailyWellbeingLog
+import com.example.kpkn.data.models.ManualMuscleBatteryOverride
+import com.example.kpkn.data.models.BodyGoal
+import com.example.kpkn.data.models.BodyMetric
+import com.example.kpkn.data.models.CalculationOrigin
 import com.example.kpkn.data.models.NutritionTrackingChoice
 import com.example.kpkn.data.models.TrainingStyle
 import com.example.kpkn.data.models.VolumeCalibrationProfile
@@ -218,6 +222,58 @@ class SetupPersistenceTest {
     }
 
     @Test
+    fun editedNutritionPlanReplacesOnlyItsDerivedGoal() = runBlocking {
+        val coordinator = SetupCommitCoordinator(db)
+        val goal = BodyGoal("plan:existing:WEIGHT", BodyMetric.WEIGHT, 75.0, "kg",
+            CalculationOrigin.PLAN, "existing", 1L, 1L)
+        coordinator.commit(SetupCommitRequest("first-goal", null, Settings(), null,
+            NutritionPlan(id = "existing", name = "Existing"), false, false, derivedBodyGoals = listOf(goal)))
+        coordinator.commit(SetupCommitRequest("second-goal", null, Settings(), null,
+            NutritionPlan(id = "existing", name = "Existing"), false, false,
+            derivedBodyGoals = listOf(goal.copy(targetValueSi = 72.0, updatedAtEpochMs = 2L))))
+        val saved = db.bodyProgressDao().getAllGoals()
+        assertEquals(1, saved.size)
+        assertEquals("plan:existing:WEIGHT", saved.single().id)
+    }
+
+    @Test
+    fun savingAPlanInactiveLeavesThePreviousActivePlanAndGoalsIntact() = runBlocking {
+        db.settingsDao().upsert(Settings(dailyCalorieGoal = 2050).toEntity())
+        db.nutritionDao().upsertPlan(NutritionPlan("previous", "Previous", isActive = true).toEntity())
+        db.nutritionDao().upsertActiveState(com.example.kpkn.data.db.NutritionActiveStateEntity(activePlanId = "previous"))
+        SetupCommitCoordinator(db).commit(SetupCommitRequest("inactive-plan", null,
+            Settings(), null, NutritionPlan("new", "New"), false, false,
+            settingsPatch = SetupSettingsPatch()))
+        assertEquals("previous", db.nutritionDao().getActiveState()?.activePlanId)
+        assertEquals(2050, db.settingsDao().get()?.toSettings()?.dailyCalorieGoal)
+        val plans = db.nutritionDao().getAllPlans().associateBy { it.id }
+        assertEquals(true, plans.getValue("previous").isActive)
+        assertEquals(false, plans.getValue("new").isActive)
+    }
+
+    @Test
+    fun sameDayCheckInKeepsSleepAndReceivesTheManualV2Anchor() = runBlocking {
+        val existing = DailyWellbeingLog("daily-check-in", "2026-09-23", sleepHours = 8.0,
+            stressLevel = 2)
+        db.augeDao().upsertWellbeing(existing.toEntity())
+        val override = ManualMuscleBatteryOverride(75, 1_800_000L, null, 88)
+        val incoming = DailyWellbeingLog("onboarding-override", "2026-09-23",
+            manualMuscleBatteries = mapOf("chest" to 75),
+            manualMuscleOverridesV2 = mapOf("chest" to override),
+            manualBatteryAnchorMs = 1_800_000L,
+            source = com.example.kpkn.data.models.WellbeingSource.ONBOARDING_INITIAL,
+            capturedFields = setOf("muscle_batteries"))
+        SetupCommitCoordinator(db).commit(SetupCommitRequest("wellbeing-merge", null,
+            Settings(), null, null, false, false, initialWellbeing = incoming))
+        val saved = db.augeDao().getWellbeingForDate("2026-09-23")?.toWellbeingLog()
+        assertEquals("daily-check-in", saved?.id)
+        assertEquals(8.0, saved?.sleepHours)
+        assertEquals(2, saved?.stressLevel)
+        assertEquals(1_800_000L, saved?.manualBatteryAnchorMs)
+        assertEquals(override, saved?.manualMuscleOverridesV2?.get("chest"))
+    }
+
+    @Test
     fun roomTransactionRollsBackAndDoesNotLeavePartialDraft() = runBlocking {
         assertThrows<IllegalStateException> {
             runBlocking {
@@ -245,6 +301,95 @@ class SetupPersistenceTest {
         assertNull(db.nutritionDao().getActiveState())
         assertNull(db.settingsDao().get())
         assertNull(db.setupCommitReceiptDao().get("failed"))
+    }
+
+    @Test
+    fun pendingProfessionalNutritionDraftIsPreservedWithMainDraftDelete() = runBlocking {
+        drafts.save("main-draft", "{\"step\":1}", 3, "catalog-7")
+        val pending = PendingNutritionDraft(
+            draftId = "setup-wizard:pending_nutrition:commit-1",
+            payloadJson = "{\"draftScope\":\"nutrition_only\"}",
+            revision = 1,
+            catalogRevision = "catalog-7",
+        )
+
+        SetupCommitCoordinator(db).commit(
+            SetupCommitRequest(
+                commitId = "commit-1",
+                draftId = "main-draft",
+                settings = Settings(),
+                program = null,
+                nutritionPlan = null,
+                activateProgram = false,
+                activateNutrition = false,
+                pendingNutritionDraft = pending,
+            ),
+        )
+
+        assertNull(db.setupDraftDao().getDraft("main-draft"))
+        val restored = db.setupDraftDao().getDraft(pending.draftId)
+        assertNotNull(restored)
+        assertEquals("{\"draftScope\":\"nutrition_only\"}", restored?.payloadJson)
+        assertEquals(1L, restored?.revision)
+        assertEquals("catalog-7", restored?.catalogRevision)
+    }
+
+    @Test
+    fun pendingNutritionDraftRollsBackWithFailedSettingsWrite() = runBlocking {
+        drafts.save("main-draft-fail", "{\"step\":1}", 2)
+        val pending = PendingNutritionDraft(
+            draftId = "setup-wizard:pending_nutrition:fail-commit",
+            payloadJson = "{\"draftScope\":\"nutrition_only\"}",
+            revision = 1,
+        )
+        db.openHelper.writableDatabase.execSQL("CREATE TRIGGER reject_pending_settings BEFORE INSERT ON settings BEGIN SELECT RAISE(ABORT, 'test rollback'); END")
+
+        val result = runCatching {
+            SetupCommitCoordinator(db).commit(
+                SetupCommitRequest(
+                    commitId = "fail-commit",
+                    draftId = "main-draft-fail",
+                    settings = Settings(),
+                    program = null,
+                    nutritionPlan = null,
+                    activateProgram = false,
+                    activateNutrition = false,
+                    pendingNutritionDraft = pending,
+                ),
+            )
+        }
+
+        assertTrue(result.isFailure)
+        assertNull(db.setupDraftDao().getDraft(pending.draftId))
+        assertNotNull(db.setupDraftDao().getDraft("main-draft-fail"))
+        assertNull(db.setupCommitReceiptDao().get("fail-commit"))
+    }
+
+    @Test
+    fun idempotentCommitKeepsPendingNutritionDraft() = runBlocking {
+        val coordinator = SetupCommitCoordinator(db)
+        val pending = PendingNutritionDraft(
+            draftId = "setup-wizard:pending_nutrition:commit-idem",
+            payloadJson = "{\"draftScope\":\"nutrition_only\"}",
+            revision = 1,
+        )
+        val request = SetupCommitRequest(
+            commitId = "commit-idem",
+            draftId = "draft-idem",
+            settings = Settings(),
+            program = null,
+            nutritionPlan = null,
+            activateProgram = false,
+            activateNutrition = false,
+            pendingNutritionDraft = pending,
+        )
+
+        coordinator.commit(request)
+        coordinator.commit(request.copy(settings = Settings().copy(username = "otro")))
+
+        assertNotNull(db.setupDraftDao().getDraft(pending.draftId))
+        assertNull(db.setupDraftDao().getDraft("draft-idem"))
+        assertEquals("Usuario", db.settingsDao().get()?.toSettings()?.username)
     }
 
     private fun executableProgram(id: String): Program {

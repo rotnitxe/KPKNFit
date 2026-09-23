@@ -102,7 +102,7 @@ class ExerciseTechniqueImageLookupTest {
             exerciseDbId = "quads_sentadilla_copa__default",
             exerciseId = "ex-gs-1",
         )
-        assertEquals(R.drawable.exercise_sentadilla_copa, res)
+        assertEquals(R.drawable.exercise_quads_sentadilla_copa_batch8, res)
     }
 
     @Test
@@ -451,8 +451,8 @@ class ExerciseTechniqueImageLookupTest {
         assertEquals(R.drawable.exercise_peso_muerto_rumano_deficit, res("hams_peso_muerto_rumano_deficit", "hams_peso_muerto_rumano_deficit__default"))
         assertEquals(R.drawable.exercise_peso_muerto_rumano_sumo_deficit, res("hams_peso_muerto_rumano_sumo_deficit", "hams_peso_muerto_rumano_sumo_deficit__default"))
 
-        assertEquals(R.drawable.exercise_swing_kettlebell_dos_manos, res("hams_swing_kettlebell_dos_manos", "hams_swing_kettlebell_dos_manos__default"))
-        assertEquals(R.drawable.exercise_swing_kettlebell_unilateral, res("hams_swing_kettlebell_unilateral", "hams_swing_kettlebell_unilateral__default"))
+        assertEquals(R.drawable.exercise_hams_swing_kettlebell_dos_manos_batch8, res("hams_swing_kettlebell_dos_manos", "hams_swing_kettlebell_dos_manos__default"))
+        assertEquals(R.drawable.exercise_hams_swing_kettlebell_unilateral_batch8, res("hams_swing_kettlebell_unilateral", "hams_swing_kettlebell_unilateral__default"))
     }
 
     @Test
@@ -842,6 +842,40 @@ class ExerciseTechniqueImageLookupTest {
         assertNull(res("lat_pulldown", "band"))
         assertNull(res("sissy_squat", "barbell"))
         assertEquals(R.drawable.exercise_conventional_row_barbell, res("conventional_row", "barbell"))
+    }
+
+    @Test
+    fun batch8_approved_images_resolve_only_for_their_catalog_implement() {
+        val approved = listOf(
+            Triple("core_crunch_suelo_peso_corporal", "bodyweight", R.drawable.exercise_core_crunch_suelo_peso_corporal_batch8),
+            Triple("core_elevacion_piernas", "bodyweight", R.drawable.exercise_core_elevacion_piernas_batch8),
+            Triple("core_inclinacion_lateral", "dumbbells", R.drawable.exercise_core_inclinacion_lateral_batch8),
+            Triple("core_rueda_abdominal", "ab_wheel", R.drawable.exercise_core_rueda_abdominal_batch8),
+            Triple("glutes_clamshells_banda", "band", R.drawable.exercise_glutes_clamshells_banda_batch8),
+            Triple("glutes_monster_walk_banda", "band", R.drawable.exercise_glutes_monster_walk_banda_batch8),
+            Triple("glutes_step_up_gluteo", "dumbbells", R.drawable.exercise_glutes_step_up_gluteo_batch8),
+            Triple("quads_sentadilla_cosaca", "bodyweight", R.drawable.exercise_quads_sentadilla_cosaca_batch8),
+            Triple("quads_sentadilla_pistola", "bodyweight", R.drawable.exercise_quads_sentadilla_pistola_batch8),
+        )
+        for ((definitionId, equipmentId, imageResId) in approved) {
+            assertEquals(
+                imageResId,
+                ExerciseTechniqueImageLookup.resolveImageResId(
+                    catalogDefinitionId = definitionId,
+                    exerciseDbId = "${definitionId}__default",
+                    exerciseId = "ex-$definitionId",
+                    selectedImplementation = equipmentId,
+                ),
+            )
+        }
+        assertNull(
+            ExerciseTechniqueImageLookup.resolveImageResId(
+                catalogDefinitionId = "core_inclinacion_lateral",
+                exerciseDbId = "core_inclinacion_lateral__default",
+                exerciseId = "ex-core-inclinacion-lateral",
+                selectedImplementation = "cable",
+            ),
+        )
     }
 
     @Test

@@ -32,6 +32,7 @@ data class NutritionPlanPreparationInput(
     val higherProteinInDeficit: Boolean = true,
     val currentBodyFatPercent: Double? = null,
     val currentMusclePercent: Double? = null,
+    val explicitRatePercentBodyWeightPerWeek: Double? = null,
     val now: Instant = Instant.now(),
 )
 
@@ -56,6 +57,10 @@ object NutritionPlanPreparation {
         if (direction != PlanDirection.PROFESSIONAL && input.eligibilityUnknown) baseErrors["eligibility"] = "No se puede recomendar automáticamente sin confirmar la elegibilidad"
         val inputForEngine = EerInput(age ?: 0, height ?: 0.0, weight ?: 0.0, input.equationSex, input.activity, input.pregnant, input.lactating, input.medicalRestriction)
         val target = validateTarget(input.goalMetric, input.targetValueSi, direction, baseErrors)
+        if (input.goalMetric == GoalMetric.WEIGHT && target != null && weight != null) {
+            if (direction == PlanDirection.DEFICIT && target >= weight) baseErrors["target"] = "Para definir, el peso objetivo debe ser menor que el actual"
+            if (direction == PlanDirection.SURPLUS && target <= weight) baseErrors["target"] = "Para volumen, el peso objetivo debe ser mayor que el actual"
+        }
         val manualKcal = input.manualCalories?.takeIf { it > 0 }
         val recommendation = NutritionEnergyEngine.recommendPlan(
             input = inputForEngine,
@@ -63,6 +68,7 @@ object NutritionPlanPreparation {
             targetValueSi = target,
             manualCalorieTargetKcal = manualKcal,
             higherProteinInDeficit = input.higherProteinInDeficit,
+            explicitRatePercentBodyWeightPerWeek = input.explicitRatePercentBodyWeightPerWeek,
             now = input.now,
         )
         if (direction != PlanDirection.PROFESSIONAL && recommendation.ineligibility != null) {
@@ -79,11 +85,19 @@ object NutritionPlanPreparation {
             if (manualKcal == null) baseErrors["calories"] = "Ingresa las calorías definidas profesionalmente"
             if (input.manualProteinG == null || input.manualCarbsG == null || input.manualFatG == null) baseErrors["macros"] = "Para activar un plan profesional completo faltan macros explícitos"
         }
+        if (listOf(input.manualProteinG, input.manualCarbsG, input.manualFatG).any { it != null && (!it.isFinite() || it < 0.0) }) {
+            baseErrors["macros"] = "Los macronutrientes indicados deben ser números no negativos"
+        }
         val manualMacroCount = listOf(input.manualProteinG, input.manualCarbsG, input.manualFatG).count { it != null }
         if (manualMacroCount in 1..2) baseErrors["macros"] = "Completa proteína, carbohidratos y grasas; no se mezclan macros parciales con una recomendación"
+        if (direction == PlanDirection.PROFESSIONAL && manualMacroCount == 3 &&
+            listOf(input.manualProteinG, input.manualCarbsG, input.manualFatG).all { it == 0.0 }) {
+            baseErrors["macros"] = "Indica los macros de tu pauta; tres ceros no representan un plan completo"
+        }
         if (direction == PlanDirection.DEFICIT && recommendation.eerKcal != null && manualKcal != null && manualKcal > recommendation.eerKcal) {
             baseErrors["calories"] = "Un déficit no puede superar el mantenimiento calculado"
         }
+        if (baseErrors.isNotEmpty()) return NutritionPlanPreparationResult(recommendation, baseErrors)
         val macros = when {
             input.manualProteinG != null && input.manualCarbsG != null && input.manualFatG != null -> NutritionMacroTargets(
                 caloriesKcal = atwaterKcal(input.manualProteinG, input.manualCarbsG, input.manualFatG).toDouble(),
@@ -96,10 +110,9 @@ object NutritionPlanPreparation {
             )
             else -> recommendation.macros
         }
-        if (baseErrors.isNotEmpty()) return NutritionPlanPreparationResult(recommendation, baseErrors)
         val effectiveKcal = manualKcal ?: recommendation.calorieTargetKcal
         if (effectiveKcal == null || macros == null) return NutritionPlanPreparationResult(recommendation, mapOf("calories" to "No hay una recomendación completa para activar"))
-        val targetValue = target ?: if (direction == PlanDirection.MAINTENANCE || direction == PlanDirection.PROFESSIONAL) null else return NutritionPlanPreparationResult(recommendation, mapOf("target" to "Indica un objetivo válido"))
+        val targetValue = target
         val origin = if (direction == PlanDirection.PROFESSIONAL) CalculationOrigin.PROFESSIONAL else CalculationOrigin.PLAN
         val plan = NutritionPlan(
             id = input.planId,
@@ -140,8 +153,8 @@ object NutritionPlanPreparation {
     }
 
     private fun validateTarget(metric: GoalMetric, target: Double?, direction: PlanDirection, errors: MutableMap<String, String>): Double? {
-        if (direction == PlanDirection.MAINTENANCE || direction == PlanDirection.PROFESSIONAL) return target
-        if (target == null || !target.isFinite() || when (metric) {
+        if (target == null) return null // A body goal is optional; energy and macros are still useful.
+        if (!target.isFinite() || when (metric) {
                 GoalMetric.WEIGHT -> target !in 20.0..500.0
                 GoalMetric.BODY_FAT, GoalMetric.MUSCLE_MASS -> target !in 0.0..100.0
             }

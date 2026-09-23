@@ -4,12 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.models.BodyMetric
-import com.example.kpkn.data.models.CalculationOrigin
 import com.example.kpkn.data.models.GoalMetric
-import com.example.kpkn.data.models.NutritionGoal
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.PlanDirection
-import com.example.kpkn.data.models.TypedBodyGoal
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.body.latestValidByMetric
@@ -20,21 +17,20 @@ import com.example.kpkn.domain.nutrition.NutritionEnergyEngine
 import com.example.kpkn.domain.nutrition.NutritionIneligibility
 import com.example.kpkn.domain.nutrition.NutritionMacroTargets
 import com.example.kpkn.domain.nutrition.NutritionPlanRecommendation
+import com.example.kpkn.domain.nutrition.NutritionPlanPreparation
+import com.example.kpkn.domain.nutrition.NutritionPlanPreparationInput
 import com.example.kpkn.domain.nutrition.WizardPacePreset
 import com.example.kpkn.domain.nutrition.atwaterKcal
 import com.example.kpkn.domain.nutrition.calorieBoundsFor
 import com.example.kpkn.domain.nutrition.closestPacePreset
-import com.example.kpkn.domain.nutrition.defaultBodyFatForGroup
 import com.example.kpkn.domain.nutrition.editSingleMacro
 import com.example.kpkn.domain.nutrition.estimateMetricEndDate
 import com.example.kpkn.domain.nutrition.kilogramsFromInput
 import com.example.kpkn.domain.nutrition.paceRateFor
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
-import com.example.kpkn.domain.nutrition.physiqueGroupFor
 import com.example.kpkn.domain.nutrition.resolveEffectiveMacros
 import com.example.kpkn.domain.nutrition.scaleMacrosToCalories
 import com.example.kpkn.domain.nutrition.weeklyChangeFor
-import java.time.Instant
 import java.util.UUID
 import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -118,7 +114,7 @@ data class NutritionWizardUiState(
             return when {
                 macros != null && draft.hasAnyManualMacro -> atwaterKcal(macros.proteinG, macros.carbsG, macros.fatG)
                 manualKcal != null -> manualKcal
-                else -> recommendation?.calorieTargetKcal ?: 2000
+                else -> recommendation?.calorieTargetKcal ?: 0
             }
         }
     /** true si el plan es déficit y las calorías actuales están por encima del EER. */
@@ -137,10 +133,8 @@ data class NutritionWizardUiState(
             val metric = draft.goalMetric
             val current = when (metric) {
                 GoalMetric.WEIGHT -> weightKg
-                GoalMetric.BODY_FAT -> parseLocalizedNumber(draft.bodyFatText)?.takeIf { it > 0 }
-                    ?: defaultBodyFatForGroup(draft.visualPhysiqueGroup)
-                GoalMetric.MUSCLE_MASS -> parseLocalizedNumber(draft.muscleText)?.takeIf { it > 0 }
-                    ?: physiqueGroupFor(draft.visualPhysiqueGroup).defaultMuscle
+                GoalMetric.BODY_FAT -> parseLocalizedNumber(draft.bodyFatText)?.takeIf { it > 0 } ?: return null
+                GoalMetric.MUSCLE_MASS -> parseLocalizedNumber(draft.muscleText)?.takeIf { it > 0 } ?: return null
             }
             val target = when (metric) {
                 GoalMetric.WEIGHT -> parseLocalizedNumber(draft.targetWeightText.ifBlank { draft.targetValueText })
@@ -396,88 +390,61 @@ class NutritionWizardViewModel(
             return null
         }
         val draft = state.draft
-        val recommendation = state.recommendation ?: return null
-        val metric = draft.goalMetric
-        val target = resolveTargetSi(draft)
         val planId = planIdOverride ?: draft.planId ?: UUID.randomUUID().toString()
         val existing = nutritionRepository.nutritionPlans.value.firstOrNull { it.id == planId }
-        val vitals = programRepository.settings.value.userVitals
         val latest = latestValidByMetric(nutritionRepository.bodyProgressRepository.observations.value)
-        val startValue = when (metric) {
-            GoalMetric.WEIGHT -> latest[BodyMetric.WEIGHT]?.valueSi
-                ?: kilogramsFromInput(parseLocalizedNumber(draft.weightText) ?: 0.0, draft.weightUnit)
-            GoalMetric.BODY_FAT -> latest[BodyMetric.BODY_FAT_PERCENT]?.valueSi
-                ?: parseLocalizedNumber(draft.bodyFatText)?.takeIf { it.isFinite() }
-                ?: defaultBodyFatForGroup(draft.visualPhysiqueGroup)
-            GoalMetric.MUSCLE_MASS -> latest[BodyMetric.MUSCLE_MASS_PERCENT]?.valueSi
-                ?: parseLocalizedNumber(draft.muscleText)?.takeIf { it.isFinite() }
-                ?: physiqueGroupFor(draft.visualPhysiqueGroup).defaultMuscle
-        }
-        val effectiveMacros = state.effectiveMacros
-        val effectiveKcal = state.effectiveKcal
-        val manualProtein = parseLocalizedNumber(draft.manualProteinText)?.takeIf { it.isFinite() && it >= 0.0 }
-        val manualCarbs = parseLocalizedNumber(draft.manualCarbsText)?.takeIf { it.isFinite() && it >= 0.0 }
-        val manualFat = parseLocalizedNumber(draft.manualFatText)?.takeIf { it.isFinite() && it >= 0.0 }
-        val macros = effectiveMacros
-        val manualModifications = buildMap {
-            manualProtein?.let { put("proteinG", it.toString()) }
-            manualCarbs?.let { put("carbsG", it.toString()) }
-            manualFat?.let { put("fatG", it.toString()) }
-        }
-        val planWeightKg = latest[BodyMetric.WEIGHT]?.valueSi
-            ?: kilogramsFromInput(parseLocalizedNumber(draft.weightText) ?: 0.0, draft.weightUnit)
-            ?: 70.0
-        val weeklyRate = if (draft.direction != null && draft.direction != PlanDirection.MAINTENANCE && draft.direction != PlanDirection.PROFESSIONAL) {
-            recommendation.eerKcal?.let { eer ->
-                if (planWeightKg > 0) weeklyChangeFor(metric, effectiveKcal, eer, planWeightKg) else null
-            } ?: recommendation.suggestedRatePercentBodyWeightPerWeek?.let { rate ->
-                if (metric == GoalMetric.WEIGHT) rate * (startValue ?: 0.0) else null
-            } ?: paceRateFor(draft.direction, draft.pacePreset)?.let { rate ->
-                if (metric == GoalMetric.WEIGHT) rate * (startValue ?: 0.0) else null
-            }
-        } else {
-            recommendation.suggestedRatePercentBodyWeightPerWeek?.let { rate ->
-                if (metric == GoalMetric.WEIGHT) rate * (startValue ?: 0.0) else null
-            } ?: paceRateFor(draft.direction ?: PlanDirection.MAINTENANCE, draft.pacePreset)?.let { rate ->
-                if (metric == GoalMetric.WEIGHT) rate * (startValue ?: 0.0) else null
-            }
-        } ?: 0.0
-        val finalKcal = effectiveKcal.coerceAtLeast(1200)
-        val plan = NutritionPlan(
-            id = planId,
-            name = existing?.name ?: "Plan ${draft.direction?.name?.lowercase() ?: "nutricional"}",
-            goalType = metric,
-            goalValue = target ?: 0.0,
-            calorieTarget = finalKcal,
-            proteinGoal = macros?.proteinG?.roundToInt() ?: 0,
-            carbGoal = macros?.carbsG?.roundToInt() ?: 0,
-            fatGoal = macros?.fatG?.roundToInt() ?: 0,
-            isActive = true,
-            createdAt = existing?.createdAt ?: Instant.now().toString(),
-            primaryGoal = target?.let { NutritionGoal(metric = metric, value = it, unit = if (metric == GoalMetric.WEIGHT) "kg" else "%") },
-            estimatedEndDate = _uiState.value.estimatedEndDate,
-            weeklyChangeKg = weeklyRate,
-            weeklyChangeUnit = if (metric == GoalMetric.WEIGHT) "kg/week" else "percentage-points/week",
-            startValue = startValue,
-            targetBodyFat = parseLocalizedNumber(draft.targetBodyFatText)?.takeIf { it.isFinite() },
-            targetMuscle = parseLocalizedNumber(draft.targetMuscleText)?.takeIf { it.isFinite() },
+        val weight = parseLocalizedNumber(draft.weightText)?.let { kilogramsFromInput(it, draft.weightUnit) }
+        val prepared = NutritionPlanPreparation.prepare(NutritionPlanPreparationInput(
+            planId = planId,
+            existingPlan = existing,
+            ageYears = parseLocalizedNumber(draft.ageText)?.toInt(),
+            heightCm = parseLocalizedNumber(draft.heightText),
+            weightKg = weight,
+            equationSex = draft.equationSex,
+            activity = draft.activity,
+            eligibilityUnknown = draft.eligibilityUnknown,
+            pregnant = draft.pregnant,
+            lactating = draft.lactating,
+            medicalRestriction = draft.medicalRestriction,
             direction = draft.direction,
-            typedBodyGoal = target?.let { TypedBodyGoal(metric, it, if (metric == GoalMetric.WEIGHT) "kg" else "%", CalculationOrigin.PLAN, planId) },
-            calculationOrigin = CalculationOrigin.PLAN,
-            engineVersion = recommendation.snapshot.engineVersion,
-            calculationSnapshot = recommendation.snapshot.copy(
-                manualModifications = manualModifications,
-                inputs = recommendation.snapshot.inputs + mapOf(
-                    "visualPhysiqueGroup" to draft.visualPhysiqueGroup.toString(),
-                    "bodyFatPercent" to (parseLocalizedNumber(draft.bodyFatText)?.toString() ?: defaultBodyFatForGroup(draft.visualPhysiqueGroup).toString()),
+            goalMetric = draft.goalMetric,
+            targetValueSi = resolveTargetSi(draft),
+            manualCalories = parseLocalizedNumber(draft.manualCalorieTargetText)?.toInt(),
+            manualProteinG = parseLocalizedNumber(draft.manualProteinText),
+            manualCarbsG = parseLocalizedNumber(draft.manualCarbsText),
+            manualFatG = parseLocalizedNumber(draft.manualFatText),
+            higherProteinInDeficit = draft.higherProteinInDeficit,
+            currentBodyFatPercent = latest[BodyMetric.BODY_FAT_PERCENT]?.valueSi ?: parseLocalizedNumber(draft.bodyFatText),
+            currentMusclePercent = latest[BodyMetric.MUSCLE_MASS_PERCENT]?.valueSi ?: parseLocalizedNumber(draft.muscleText),
+            explicitRatePercentBodyWeightPerWeek = draft.direction?.let { paceRateFor(it, draft.pacePreset) },
+        ))
+        if (prepared.errors.isNotEmpty()) {
+            _uiState.update { it.copy(errors = prepared.errors) }
+            return null
+        }
+        val core = prepared.plan ?: return null
+        val startValue = when (draft.goalMetric) {
+            GoalMetric.WEIGHT -> latest[BodyMetric.WEIGHT]?.valueSi ?: weight
+            GoalMetric.BODY_FAT -> latest[BodyMetric.BODY_FAT_PERCENT]?.valueSi ?: core.startValue
+            GoalMetric.MUSCLE_MASS -> latest[BodyMetric.MUSCLE_MASS_PERCENT]?.valueSi ?: core.startValue
+        }
+        val weeklyRate = if (draft.goalMetric == GoalMetric.WEIGHT && weight != null &&
+            draft.direction != PlanDirection.MAINTENANCE && draft.direction != PlanDirection.PROFESSIONAL)
+            prepared.recommendation?.eerKcal?.let { weeklyChangeFor(draft.goalMetric, core.calorieTarget, it, weight) }
+        else null
+        return core.copy(
+            name = existing?.name ?: core.name,
+            startValue = startValue,
+            estimatedEndDate = if (draft.goalMetric == GoalMetric.WEIGHT && core.primaryGoal != null) state.estimatedEndDate else null,
+            weeklyChangeKg = weeklyRate ?: 0.0,
+            weeklyChangeUnit = if (draft.goalMetric == GoalMetric.WEIGHT) "kg/week" else "percentage-points/week",
+            calculationSnapshot = core.calculationSnapshot?.let { snapshot -> snapshot.copy(
+                inputs = snapshot.inputs + mapOf(
                     "pacePreset" to draft.pacePreset.name,
-                    "targetWeightSi" to (parseLocalizedNumber(draft.targetWeightText)?.let { kilogramsFromInput(it, draft.weightUnit)?.toString() } ?: ""),
-                    "targetBodyFat" to draft.targetBodyFatText,
-                    "targetMuscle" to draft.targetMuscleText,
+                    "visualPhysiqueGroup" to draft.visualPhysiqueGroup.toString(),
                 ),
-            ),
+            ) },
         )
-        return plan
     }
 
     fun save(): NutritionPlan? {

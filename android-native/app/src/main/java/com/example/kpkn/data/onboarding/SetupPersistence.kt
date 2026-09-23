@@ -49,6 +49,13 @@ data class SetupDraft(
     val updatedAtEpochMs: Long,
 )
 
+data class PendingNutritionDraft(
+    val draftId: String,
+    val payloadJson: String,
+    val revision: Long,
+    val catalogRevision: String? = null,
+)
+
 data class SetupCommitRequest(
     val commitId: String,
     val draftId: String?,
@@ -64,6 +71,8 @@ data class SetupCommitRequest(
     val settingsPatch: SetupSettingsPatch? = null,
     /** Historical daily target captured atomically when nutrition is activated. */
     val dailyGoalSnapshot: DailyGoalSnapshot? = null,
+    /** Deferred professional nutrition draft written in the same transaction that deletes the main draft. */
+    val pendingNutritionDraft: PendingNutritionDraft? = null,
 )
 
 data class SetupCommitResult(
@@ -144,6 +153,7 @@ class SetupCommitCoordinator(
                     }
                     committedProgramIsActive = prior.programId != null && db.stateDao().getActiveProgram()?.toActiveProgramState()?.programId == prior.programId
                     committedNutritionIsActive = prior.nutritionPlanId != null && db.nutritionDao().getActiveState()?.activePlanId == prior.nutritionPlanId
+                    request.pendingNutritionDraft?.let { upsertPendingNutritionDraft(it) }
                     request.draftId?.let { db.setupDraftDao().deleteDraft(it) }
                     shouldPublish = true
                 } else {
@@ -167,13 +177,15 @@ class SetupCommitCoordinator(
                         }
                     }
                     request.nutritionPlan?.let { plan ->
+                        val wasActive = !request.activateNutrition && db.nutritionDao().getActiveState()?.activePlanId == plan.id
                         if (request.activateNutrition) db.nutritionDao().deactivateAllPlans()
-                        db.nutritionDao().upsertPlan(plan.copy(isActive = request.activateNutrition).toEntity())
+                        db.nutritionDao().upsertPlan(plan.copy(isActive = request.activateNutrition || wasActive).toEntity())
                         if (request.activateNutrition) {
                             db.nutritionDao().upsertActiveState(NutritionActiveStateEntity(activePlanId = plan.id))
                         }
                     }
                     db.settingsDao().upsert(settingsToPersist.toEntity())
+                    request.nutritionPlan?.let { plan -> db.bodyProgressDao().deleteDerivedSetupGoals(plan.id) }
                     request.derivedBodyGoals.forEach { db.bodyProgressDao().upsertGoal(it.toEntity()) }
                     request.initialWellbeing?.let { incoming ->
                         val existing = db.augeDao().getWellbeingForDate(incoming.date)?.toWellbeingLog()
@@ -187,6 +199,7 @@ class SetupCommitCoordinator(
                         bodyGoalIds = request.derivedBodyGoals.map { it.id },
                     )
                     db.setupCommitReceiptDao().insert(next.toEntity(request.draftId))
+                    request.pendingNutritionDraft?.let { upsertPendingNutritionDraft(it) }
                     request.draftId?.let { db.setupDraftDao().deleteDraft(it) }
                     result = next
                     committedSettings = settingsToPersist
@@ -204,6 +217,18 @@ class SetupCommitCoordinator(
             committed
             }
         }
+    }
+
+    private suspend fun upsertPendingNutritionDraft(pending: PendingNutritionDraft) {
+        db.setupDraftDao().upsertDraft(
+            SetupDraftEntity(
+                draftId = pending.draftId,
+                payloadJson = pending.payloadJson,
+                revision = pending.revision,
+                catalogRevision = pending.catalogRevision,
+                updatedAtEpochMs = System.currentTimeMillis(),
+            ),
+        )
     }
 
     private fun SetupCommitReceiptEntity.toResult() = SetupCommitResult(
@@ -229,6 +254,8 @@ class SetupCommitCoordinator(
         return existing.copy(
             id = existing.id,
             manualMuscleBatteries = if (incomingHas("muscle_batteries")) existing.manualMuscleBatteries + incoming.manualMuscleBatteries else existing.manualMuscleBatteries,
+            manualMuscleOverridesV2 = if (incomingHas("muscle_batteries")) existing.manualMuscleOverridesV2 + incoming.manualMuscleOverridesV2 else existing.manualMuscleOverridesV2,
+            manualBatteryAnchorMs = if (incomingHas("muscle_batteries")) incoming.manualBatteryAnchorMs else existing.manualBatteryAnchorMs,
             manualNeuralBattery = if (incomingHas("energy")) incoming.manualNeuralBattery else existing.manualNeuralBattery,
             manualSpinalBattery = if (incomingHas("structure")) incoming.manualSpinalBattery else existing.manualSpinalBattery,
             preWorkoutDiscomforts = if (incomingHas("discomforts")) incoming.preWorkoutDiscomforts else existing.preWorkoutDiscomforts,

@@ -1,6 +1,7 @@
 package com.example.kpkn.data.programs
 
 import com.example.kpkn.data.models.ProgramStructure
+import com.example.kpkn.data.protocols.LiftSlot
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.isVisibleForApplication
@@ -20,6 +21,16 @@ enum class CatalogClassification { SIMPLE, ADVANCED }
 enum class TrainingFocus { FULL_BODY, GLUTES, LEGS, BACK, CHEST, SHOULDERS, ARMS }
 @Serializable
 enum class AdaptationPolicy { FIXED_PRESCRIPTION, CURATED_WEEKLY, NONE }
+
+/** Shared training references; goals map to one of these and candidates carry their real discipline. */
+@Serializable
+enum class TrainingReference { POWERLIFTING, HYPERTROPHY, POWERBUILDING }
+
+fun com.example.kpkn.data.models.TrainingStyle.toTrainingReference(): TrainingReference = when (this) {
+    com.example.kpkn.data.models.TrainingStyle.POWERLIFTER -> TrainingReference.POWERLIFTING
+    com.example.kpkn.data.models.TrainingStyle.POWERBUILDER -> TrainingReference.POWERBUILDING
+    com.example.kpkn.data.models.TrainingStyle.BODYBUILDER -> TrainingReference.HYPERTROPHY
+}
 
 data class CatalogEntry(
     val id: String,
@@ -41,9 +52,14 @@ data class CatalogEntry(
     val disclaimer: String? = null,
     val recipe: TrainingPlanRecipe? = null,
     val template: ProgramTemplateOption? = null,
+    val references: Set<TrainingReference> = emptySet(),
 ) {
     val classification: CatalogClassification
         get() = if (template?.type == ProgramStructure.COMPLEX || (recipe?.distinctBlockCount ?: 1) > 1) CatalogClassification.ADVANCED else CatalogClassification.SIMPLE
+
+    /** Only the plans that really schedule cardio qualify for a strength + cardio goal. */
+    val schedulesCardio: Boolean
+        get() = source == CatalogSource.NATIVE && sourceId == "strength-cardio"
 }
 
 object PersonalizedPlanCatalog {
@@ -69,7 +85,39 @@ object PersonalizedPlanCatalog {
         supportedFrequencies = spec.frequencies, level = spec.level, duration = CatalogDuration.REPEATING_WEEK,
         supportedFocuses = TrainingFocus.entries.toSet(), adaptation = AdaptationPolicy.CURATED_WEEKLY,
         publication = PublicationState.PUBLISHED, sourceAuthor = "KPKN", sourceRevision = REVISION,
+        // SimpleCyclePersonalizer generates hypertrophy cycles; they are never
+        // relabelled as another discipline.
+        references = setOf(TrainingReference.HYPERTROPHY),
     )
+
+    private fun recipeReferences(recipe: TrainingPlanRecipe?): Set<TrainingReference> {
+        val lifts = recipe?.liftSlots?.keys.orEmpty()
+        return if (lifts.containsAll(setOf(LiftSlot.SQUAT, LiftSlot.BENCH, LiftSlot.DEADLIFT))) {
+            setOf(TrainingReference.POWERLIFTING)
+        } else {
+            emptySet()
+        }
+    }
+
+    private fun templateReferences(template: ProgramTemplateOption): Set<TrainingReference> {
+        val fromLabel = when (template.trackLabel?.trim()?.lowercase()) {
+            "powerlifting" -> setOf(TrainingReference.POWERLIFTING)
+            "powerbuilding" -> setOf(TrainingReference.POWERBUILDING)
+            "culturismo", "hipertrofia" -> setOf(TrainingReference.HYPERTROPHY)
+            else -> emptySet()
+        }
+        return fromLabel.ifEmpty { recipeReferences(template.recipe) }
+    }
+
+    private fun protocolReferences(protocol: com.example.kpkn.data.protocols.Protocol): Set<TrainingReference> {
+        val tags = protocol.tags.map { it.trim().lowercase() }
+        val fromTags = buildSet {
+            if (tags.any { it.contains("powerlifting") || it == "sbd" }) add(TrainingReference.POWERLIFTING)
+            if (tags.any { it.contains("powerbuilding") }) add(TrainingReference.POWERBUILDING)
+            if (tags.any { it.contains("hipertrofia") || it.contains("culturismo") }) add(TrainingReference.HYPERTROPHY)
+        }
+        return fromTags.ifEmpty { recipeReferences(protocol.recipe) }
+    }
 
     private val friendlyMethods = mapOf(
         "gzclp" to "Gana fuerza paso a paso",
@@ -99,6 +147,7 @@ object PersonalizedPlanCatalog {
                 duration = if (template.weeks == 1) CatalogDuration.REPEATING_WEEK else CatalogDuration.FINITE_CYCLE,
                 supportedFocuses = setOf(TrainingFocus.FULL_BODY), adaptation = AdaptationPolicy.FIXED_PRESCRIPTION,
                 publication = PublicationState.PUBLISHED, template = template, sourceAuthor = "KPKN",
+                references = templateReferences(template),
             )
         }
         val protocols = PROTOCOL_LIBRARY.filter { it.isVisibleForApplication }.map { protocol ->
@@ -120,6 +169,7 @@ object PersonalizedPlanCatalog {
                 publication = PublicationState.PUBLISHED, sourceAuthor = protocol.author,
                 sourceUrl = protocol.source.primaryUrl, sourceRevision = protocol.source.revision ?: protocol.source.catalogRevision,
                 disclaimer = protocol.source.disclaimer, recipe = protocol.recipe,
+                references = protocolReferences(protocol),
             )
         }
         return nativeSpecs.map(::nativeEntry) + templates + protocols

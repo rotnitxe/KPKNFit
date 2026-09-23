@@ -8,6 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,6 +34,7 @@ import com.example.kpkn.data.onboarding.persistenceFactory
 import com.example.kpkn.data.repository.ProgramRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.UUID
 
 @Composable
 fun SetupEntryScreen(
@@ -41,45 +45,76 @@ fun SetupEntryScreen(
     val settings by ProgramRepository.getInstance().settings.collectAsStateWithLifecycle()
     var candidates by remember { mutableStateOf<List<SetupDraftCandidate>>(emptyList()) }
     var selectedId by remember { mutableStateOf<String?>(null) }
+    var showSavedList by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(true) }
-    LaunchedEffect(settings.onboardingCompleted) {
+    var loadError by remember { mutableStateOf(false) }
+    var retry by remember { mutableStateOf(0) }
+    LaunchedEffect(settings.onboardingCompleted, retry) {
         if (settings.onboardingCompleted) { onCompleted(); return@LaunchedEffect }
         loading = true
-        candidates = runCatching { withContext(Dispatchers.IO) { SetupDraftResolver(persistenceFactory(context).database).listRecoverable() } }.getOrDefault(emptyList())
+        val recovered = runCatching { withContext(Dispatchers.IO) { SetupDraftResolver(persistenceFactory(context).database).listRecoverable() } }
+        loadError = recovered.isFailure
+        candidates = recovered.getOrDefault(emptyList())
         selectedId = candidates.firstOrNull()?.draftId
         loading = false
     }
     if (settings.onboardingCompleted) return
+    if (loading) {
+        androidx.compose.material3.Surface(Modifier.fillMaxSize(), color = Color.Black) { androidx.compose.foundation.layout.Box(Modifier.windowInsetsPadding(WindowInsets.safeDrawing), contentAlignment = androidx.compose.ui.Alignment.Center) { CircularProgressIndicator(color = WizChatTokens.blue) } }
+        return
+    }
+    if (loadError) {
+        androidx.compose.material3.Surface(Modifier.fillMaxSize(), color = Color.Black) {
+            Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).padding(24.dp), verticalArrangement = Arrangement.Center) {
+                Text("No pude cargar tu configuración", color = WizChatTokens.text)
+                TextButton(onClick = { retry++ }) { Text("Reintentar", color = WizChatTokens.blue) }
+            }
+        }
+        return
+    }
+    if (candidates.isEmpty()) {
+        SetupWelcomeScreen(onStart = { onStart("FULL", "setup-wizard:full:${UUID.randomUUID()}") })
+        return
+    }
+    if (!showSavedList) {
+        SetupWelcomeScreen(
+            actionLabel = "Continuar configuración",
+            onStart = { onStart("RESUME", candidates.first().draftId) },
+            secondaryLabel = "Comenzar una configuración nueva",
+            onSecondary = { onStart("FULL", "setup-wizard:full:${UUID.randomUUID()}") },
+            onDetails = if (candidates.size > 1) ({ showSavedList = true }) else null,
+        )
+        return
+    }
     androidx.compose.material3.Surface(Modifier.fillMaxSize(), color = WizChatTokens.background) {
-        LazyColumn(Modifier.fillMaxSize().padding(horizontal = 18.dp, vertical = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        LazyColumn(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).padding(horizontal = 18.dp, vertical = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            item { TextButton(onClick = { showSavedList = false }) { Text("Volver a bienvenida", color = WizChatTokens.blue) } }
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("KPKN", color = WizChatTokens.text, fontWeight = FontWeight.Black)
                     Text("Un solo punto de partida para tu perfil, tu entrenamiento, tu alimentación y tus RINGS.", color = WizChatTokens.muted)
                 }
             }
-            if (loading) item { CircularProgressIndicator(color = WizChatTokens.orange) }
+            if (loading) item { CircularProgressIndicator(color = WizChatTokens.blue) }
             if (candidates.isNotEmpty()) {
-                item { Text("Configuraciones guardadas", color = WizChatTokens.orange, fontWeight = FontWeight.Bold) }
+                item { Text("Configuraciones guardadas", color = WizChatTokens.blue, fontWeight = FontWeight.Bold) }
                 items(candidates, key = { it.draftId }) { candidate ->
                     DraftCandidateCard(candidate, candidate.draftId == selectedId) { selectedId = candidate.draftId }
                 }
             }
             item {
                 androidx.compose.material3.Surface(
-                    color = WizChatTokens.yellow.copy(alpha = .18f),
+                    color = WizChatTokens.blue,
                     shape = WizChatTokens.optionShape,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 58.dp).clickable {
                         val selected = candidates.firstOrNull { it.draftId == selectedId }
-                        if (selected?.scope == SetupDraftScope.UNKNOWN) onStart("FULL", null) else onStart(if (selectedId == null) "FULL" else "RESUME", selectedId)
+                        if (selectedId == null) onStart("FULL", "setup-wizard:full:${UUID.randomUUID()}")
+                        else if (selected != null) onStart("RESUME", selected.draftId)
                     },
-                ) { Text(if (selectedId == null || candidates.firstOrNull { it.draftId == selectedId }?.scope == SetupDraftScope.UNKNOWN) "Comenzar configuración" else "Continuar configuración", color = WizChatTokens.text, fontWeight = FontWeight.Bold, modifier = Modifier.padding(18.dp)) }
+                ) { Text(if (selectedId == null) "Comenzar de nuevo" else "Continuar configuración", color = Color(0xFF061725), fontWeight = FontWeight.Bold, modifier = Modifier.padding(18.dp)) }
             }
             if (selectedId != null) item {
                 TextButton(onClick = { selectedId = null }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("Comenzar una configuración nueva", color = WizChatTokens.muted) }
-            }
-            item {
-                Text("También puedes abrir un alcance específico desde Inicio. Los borradores se mantienen separados por alcance y nunca se mezclan.", color = WizChatTokens.muted, style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
             }
         }
     }
@@ -87,7 +122,7 @@ fun SetupEntryScreen(
 
 @Composable
 private fun DraftCandidateCard(candidate: SetupDraftCandidate, selected: Boolean, onClick: () -> Unit) {
-    val accent = when (candidate.scope) { SetupDraftScope.FULL, SetupDraftScope.LEGACY_RESUME, SetupDraftScope.UNKNOWN -> WizChatTokens.orange; SetupDraftScope.TRAINING_ONLY -> WizChatTokens.blue; SetupDraftScope.NUTRITION_ONLY -> WizChatTokens.green; SetupDraftScope.RINGS_ONLY -> WizChatTokens.yellow }
+    val accent = WizChatTokens.blue
     androidx.compose.material3.Surface(color = if (selected) accent.copy(alpha = .22f) else Color.White.copy(alpha = .08f), shape = WizChatTokens.optionShape, modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
             Column(Modifier.weight(1f)) {

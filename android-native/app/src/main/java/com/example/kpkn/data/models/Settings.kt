@@ -208,6 +208,7 @@ data class CreatineTrackingState(
     val onboardingSeen: Boolean = false,
 )
 
+@Serializable
 enum class Gender { MALE, FEMALE, OTHER }
 
 /**

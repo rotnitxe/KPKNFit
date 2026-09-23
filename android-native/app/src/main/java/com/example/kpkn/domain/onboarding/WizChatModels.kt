@@ -15,6 +15,7 @@ enum class WizChatStage {
 @Serializable
 enum class WizChatQuestionId {
     P_NAME,
+    P_GENDER,
     P_AGE,
     P_HEIGHT,
     P_WEIGHT,
@@ -27,10 +28,14 @@ enum class WizChatQuestionId {
     T_VOLUME_STRENGTH,
     T_VOLUME_MOBILITY,
     T_EQUIPMENT,
+    T_HOME_EQUIPMENT,
     T_DAYS,
     T_WEEKDAYS,
     T_TIME,
+    T_CARDIO_TYPE,
+    T_CARDIO_TIME,
     T_TRAINING_MAX,
+    T_MARKS,
     T_PLAN,
     T_REVIEW,
     N_START,
@@ -89,11 +94,13 @@ data class WizChatAnswerRecord(
     val revision: Int = 1,
     val acceptedAtMs: Long? = null,
     val variantId: String? = null,
+    /** Revision observed by the UI when this event was created, not a persisted answer revision. */
+    val expectedRevision: Int? = null,
 )
 
 @Serializable
 data class WizChatProgress(
-    val schemaVersion: Int = 1,
+    val schemaVersion: Int = 2,
     val scriptVersion: Int = 1,
     val draftScope: String = "",
     val stage: WizChatStage = WizChatStage.PROFILE,

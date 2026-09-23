@@ -66,6 +66,19 @@ class NutritionViewModelTest {
         Dispatchers.resetMain()
     }
 
+    /** deleteLog/duplicateLog finish on Dispatchers.IO; wait until StateFlow reflects them. */
+    private fun awaitTodayLogs(timeoutMs: Long = 5_000, condition: (List<NutritionLog>) -> Boolean) {
+        val deadline = System.currentTimeMillis() + timeoutMs
+        while (System.currentTimeMillis() < deadline) {
+            if (condition(vm.todayLogs.value)) return
+            Thread.sleep(10)
+        }
+        assertTrue(
+            "todayLogs did not satisfy condition within ${timeoutMs}ms; size=${vm.todayLogs.value.size}",
+            condition(vm.todayLogs.value),
+        )
+    }
+
     // ─── Log Management ────────────────────────────────────────────────────
 
     @Test
@@ -74,7 +87,7 @@ class NutritionViewModelTest {
             id = UUID.randomUUID().toString(),
             date = java.time.LocalDate.now().toString() + "T12:00:00.000Z",
             mealType = MealType.LUNCH,
-            foods = listOf(LoggedFood(id = "f1", foodName = "Arroz", calories = 200.0, protein = 5.0, carbs = 40.0, fats = 1.0)),
+            foods = listOf(LoggedFood(id = "f1", foodName = "Arroz", amount = 100.0, calories = 200.0, protein = 5.0, carbs = 40.0, fats = 1.0)),
         )
         vm.addLog(log)
 
@@ -90,13 +103,13 @@ class NutritionViewModelTest {
             id = id,
             date = java.time.LocalDate.now().toString() + "T12:00:00.000Z",
             mealType = MealType.LUNCH,
-            foods = listOf(LoggedFood(id = "f1", foodName = "Arroz", calories = 200.0)),
+            foods = listOf(LoggedFood(id = "f1", foodName = "Arroz", amount = 100.0, calories = 200.0)),
         )
         vm.addLog(log)
         assertEquals(1, vm.todayLogs.value.size)
 
         vm.deleteLog(id)
-        assertEquals(0, vm.todayLogs.value.size)
+        awaitTodayLogs { it.isEmpty() }
     }
 
     @Test
@@ -105,15 +118,13 @@ class NutritionViewModelTest {
             id = "original",
             date = java.time.LocalDate.now().toString() + "T12:00:00.000Z",
             mealType = MealType.BREAKFAST,
-            foods = listOf(LoggedFood(id = "f1", foodName = "Avena", calories = 300.0)),
+            foods = listOf(LoggedFood(id = "f1", foodName = "Avena", amount = 100.0, calories = 300.0)),
             notes = "Nota",
         )
         vm.addLog(original)
 
         vm.duplicateLog(original)
-        val logs = vm.todayLogs.value
-        assertTrue(logs.size >= 2)
-        assertTrue(logs.any { it.notes?.contains("duplicado") == true })
+        awaitTodayLogs { logs -> logs.size >= 2 && logs.any { it.notes?.contains("duplicado") == true } }
     }
 
     // ─── Daily Totals ──────────────────────────────────────────────────────
@@ -125,7 +136,7 @@ class NutritionViewModelTest {
             date = java.time.LocalDate.now().toString() + "T08:00:00.000Z",
             mealType = MealType.BREAKFAST,
             foods = listOf(
-                LoggedFood(id = "f1", foodName = "Avena", calories = 300.0, protein = 10.0, carbs = 50.0, fats = 5.0),
+                LoggedFood(id = "f1", foodName = "Avena", amount = 100.0, calories = 300.0, protein = 10.0, carbs = 50.0, fats = 5.0),
             ),
         )
         val log2 = NutritionLog(
@@ -133,7 +144,7 @@ class NutritionViewModelTest {
             date = java.time.LocalDate.now().toString() + "T12:00:00.000Z",
             mealType = MealType.LUNCH,
             foods = listOf(
-                LoggedFood(id = "f2", foodName = "Pollo", calories = 400.0, protein = 40.0, carbs = 0.0, fats = 10.0),
+                LoggedFood(id = "f2", foodName = "Pollo", amount = 100.0, calories = 400.0, protein = 40.0, carbs = 0.0, fats = 10.0),
             ),
         )
         vm.addLog(log1)
@@ -152,13 +163,13 @@ class NutritionViewModelTest {
             id = "b1",
             date = java.time.LocalDate.now().toString() + "T08:00:00.000Z",
             mealType = MealType.BREAKFAST,
-            foods = listOf(LoggedFood(id = "f1", foodName = "Avena", calories = 300.0)),
+            foods = listOf(LoggedFood(id = "f1", foodName = "Avena", amount = 100.0, calories = 300.0)),
         )
         val lunch = NutritionLog(
             id = "l1",
             date = java.time.LocalDate.now().toString() + "T12:00:00.000Z",
             mealType = MealType.LUNCH,
-            foods = listOf(LoggedFood(id = "f2", foodName = "Pollo", calories = 400.0)),
+            foods = listOf(LoggedFood(id = "f2", foodName = "Pollo", amount = 100.0, calories = 400.0)),
         )
         vm.addLog(breakfast)
         vm.addLog(lunch)

@@ -491,6 +491,9 @@ interface BodyProgressDao {
     @Query("DELETE FROM body_goals WHERE linkedPlanId = :planId AND origin = 'PLAN'")
     suspend fun deletePlanGoals(planId: String)
 
+    @Query("DELETE FROM body_goals WHERE linkedPlanId = :planId AND origin IN ('PLAN', 'PROFESSIONAL')")
+    suspend fun deleteDerivedSetupGoals(planId: String)
+
     @Query("DELETE FROM body_goals")
     suspend fun clearGoals()
 }
