@@ -1,11 +1,13 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.domain.exercises.ExerciseCatalogSort
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -117,6 +119,17 @@ class ExercisePickerCatalogLogicTest {
             ),
         )
     }
+
+    @Test
+    fun unavailable_illustration_never_selects_a_different_implement() {
+        val variants = ExerciseTechniqueImageLookup.variants(
+            ExerciseTechniqueImageLookup.T_BAR_ROW_DEFINITION_ID,
+        )
+
+        assertNull(selectedCatalogImageVariantIndex(variants, "t_bar"))
+        assertEquals(0, selectedCatalogImageVariantIndex(variants, "machine"))
+    }
+
     @Test
     fun canonical_grouping_uses_one_row_and_max_activation_for_deltoid_heads() {
         val exercise = ExerciseMuscleInfo(

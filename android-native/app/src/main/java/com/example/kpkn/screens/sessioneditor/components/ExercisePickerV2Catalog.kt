@@ -219,24 +219,53 @@ internal fun shouldShowCatalogCreateSuggestion(
     globalCatalogResultCount == 0 &&
     customResultCount == 0
 
-private fun exerciseCatalogImageVariants(definitionId: String): List<CatalogExerciseImageVariant> =
-    ExerciseTechniqueImageLookup.variants(definitionId)
+private fun exerciseCatalogImageVariants(
+    definitionId: String,
+    catalogConfigurationId: String? = null,
+    selectedImplementation: String? = null,
+): List<CatalogExerciseImageVariant> {
+    val variants = ExerciseTechniqueImageLookup.variants(definitionId)
+    if (variants.isEmpty() || catalogConfigurationId == null) return variants
+
+    val selectedImage = ExerciseTechniqueImageLookup.resolveImageResId(
+        catalogDefinitionId = definitionId,
+        exerciseDbId = null,
+        exerciseId = definitionId,
+        catalogConfigurationId = catalogConfigurationId,
+        selectedImplementation = selectedImplementation,
+    )
+    return variants.takeIf { selectedImage != null }.orEmpty()
+}
+
+/**
+ * An illustration must follow the catalog's current implement, never replace it.
+ *
+ * Returning null hides the carousel when that implement has no approved image yet.
+ * In particular, this prevents the approved machine T-bar illustration from being
+ * shown for, or silently switching, the separate landmine/T-bar configuration.
+ */
+internal fun selectedCatalogImageVariantIndex(
+    variants: List<ExerciseTechniqueImageVariant>,
+    selectedImplementation: String?,
+): Int? {
+    if (variants.isEmpty()) return null
+    if (selectedImplementation == null) return 0
+    return variants.indexOfFirst { it.implementation == selectedImplementation }
+        .takeIf { it >= 0 }
+}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun CatalogExerciseImageCarousel(
-    definitionId: String,
+    variants: List<CatalogExerciseImageVariant>,
     selectedImplementation: String?,
     expanded: Boolean,
     modifier: Modifier = Modifier,
     onImplementationSettled: (String) -> Unit,
 ) {
-    val variants = remember(definitionId) { exerciseCatalogImageVariants(definitionId) }
     if (variants.isEmpty()) return
 
-    val selectedIndex = variants.indexOfFirst { it.implementation == selectedImplementation }
-        .takeIf { it >= 0 }
-        ?: 0
+    val selectedIndex = selectedCatalogImageVariantIndex(variants, selectedImplementation) ?: return
     val pagerState = rememberPagerState(initialPage = selectedIndex) { variants.size }
     val currentSelectedImplementation by rememberUpdatedState(selectedImplementation)
     val currentOnImplementationSettled by rememberUpdatedState(onImplementationSettled)
@@ -1112,8 +1141,14 @@ private fun ColumnScope.CatalogReadyContent(
                 }
             }
             val defaultMuscles = remember(default) { default?.profile?.primaryMuscles.orEmpty() }
-            val imageVariants = remember(definition) { exerciseCatalogImageVariants(definition.id) }
             val selectedImplementation = effectiveSelectedOptions["implement"]
+            val imageVariants = remember(definition.id, resolvedConfigurationId, selectedImplementation) {
+                exerciseCatalogImageVariants(
+                    definitionId = definition.id,
+                    catalogConfigurationId = resolvedConfigurationId,
+                    selectedImplementation = selectedImplementation,
+                )
+            }
             val firstAxis = definition.optionAxes.firstOrNull()
             val variantValues = remember(definition, firstAxis) {
                 if (firstAxis == null) emptyList()
@@ -1297,7 +1332,7 @@ private fun ColumnScope.CatalogReadyContent(
                                 verticalAlignment = Alignment.Top,
                             ) {
                                 CatalogExerciseImageCarousel(
-                                    definitionId = definition.id,
+                                    variants = imageVariants,
                                     selectedImplementation = selectedImplementation,
                                     expanded = false,
                                     modifier = Modifier.size(132.dp),
@@ -1341,7 +1376,7 @@ private fun ColumnScope.CatalogReadyContent(
                     if (isExpanded) {
                         if (imageVariants.isNotEmpty()) {
                             CatalogExerciseImageCarousel(
-                                definitionId = definition.id,
+                                variants = imageVariants,
                                 selectedImplementation = selectedImplementation,
                                 expanded = true,
                                 modifier = Modifier
