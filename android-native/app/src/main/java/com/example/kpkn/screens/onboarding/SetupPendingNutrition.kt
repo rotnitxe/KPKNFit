@@ -3,6 +3,8 @@ package com.example.kpkn.screens.onboarding
 import com.example.kpkn.data.models.PlanDirection
 import com.example.kpkn.data.onboarding.PendingNutritionDraft
 import com.example.kpkn.data.onboarding.SetupDraftResolver
+import com.example.kpkn.domain.onboarding.SetupStepContext
+import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.WizChatProgress
 import com.example.kpkn.domain.onboarding.WizChatQuestionId
 import com.example.kpkn.domain.onboarding.WizChatStage
@@ -66,6 +68,17 @@ object SetupPendingNutrition {
             manualMuscleOverrides = emptyMap(),
             manualEnergyOverride = null,
             manualStructureOverride = null,
+            // El borrador diferido arranca en el paso de resultado de nutrición,
+            // nunca hereda el paso del borrador principal.
+            stepProgress = SetupStepGraph.migrateFromLegacy(
+                WizChatQuestionId.N_RESULT,
+                SetupStepContext(
+                    includeTraining = false,
+                    includeNutrition = true,
+                    includeRings = false,
+                    nutritionProfessional = true,
+                ),
+            ),
             wizChat = WizChatProgress(
                 schemaVersion = 2,
                 scriptVersion = source.wizChat.scriptVersion,

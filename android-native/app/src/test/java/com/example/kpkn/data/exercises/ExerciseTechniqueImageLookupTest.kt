@@ -815,7 +815,7 @@ class ExerciseTechniqueImageLookupTest {
         assertEquals(R.drawable.exercise_back_encogimientos_dumbbells, res(shrugs, "${shrugs}__dumbbells", "dumbbells"))
         assertEquals(R.drawable.exercise_back_encogimientos_kettlebell, res(shrugs, "${shrugs}__kettlebell", "kettlebell"))
         assertEquals(R.drawable.exercise_back_encogimientos_smith_machine, res(shrugs, "${shrugs}__smith_machine", "smith_machine"))
-        assertNull(res(shrugs, "${shrugs}__cable", "cable"))
+        assertEquals(R.drawable.exercise_back_encogimientos_cable_batch8, res(shrugs, "${shrugs}__cable", "cable"))
 
         assertEquals(R.drawable.exercise_back_y_raises_dumbbells, res("back_y_raises", "back_y_raises__default", "dumbbells"))
         assertEquals(R.drawable.exercise_deltoides_y_raises_sentado_banco_inclinado_dumbbells, res("deltoides_y_raises_sentado_banco_inclinado", "deltoides_y_raises_sentado_banco_inclinado__default", "dumbbells"))
@@ -847,11 +847,13 @@ class ExerciseTechniqueImageLookupTest {
     @Test
     fun batch8_approved_images_resolve_only_for_their_catalog_implement() {
         val approved = listOf(
+            Triple("core_dragon_flag_banco_plano", "bodyweight", R.drawable.exercise_core_dragon_flag_banco_plano_batch8),
             Triple("core_crunch_suelo_peso_corporal", "bodyweight", R.drawable.exercise_core_crunch_suelo_peso_corporal_batch8),
             Triple("core_elevacion_piernas", "bodyweight", R.drawable.exercise_core_elevacion_piernas_batch8),
             Triple("core_inclinacion_lateral", "dumbbells", R.drawable.exercise_core_inclinacion_lateral_batch8),
             Triple("core_rueda_abdominal", "ab_wheel", R.drawable.exercise_core_rueda_abdominal_batch8),
             Triple("glutes_clamshells_banda", "band", R.drawable.exercise_glutes_clamshells_banda_batch8),
+            Triple("glutes_frog_pumps", "bodyweight", R.drawable.exercise_glutes_frog_pumps_batch8),
             Triple("glutes_monster_walk_banda", "band", R.drawable.exercise_glutes_monster_walk_banda_batch8),
             Triple("glutes_step_up_gluteo", "dumbbells", R.drawable.exercise_glutes_step_up_gluteo_batch8),
             Triple("quads_sentadilla_cosaca", "bodyweight", R.drawable.exercise_quads_sentadilla_cosaca_batch8),
@@ -888,5 +890,39 @@ class ExerciseTechniqueImageLookupTest {
             selectedImplementation = "bilateral",
         )
         assertEquals(R.drawable.exercise_hip_thrust, barbell)
+    }
+
+    @Test
+    fun batch9_approved_images_resolve_only_for_their_equipment() {
+        fun res(definitionId: String, equipment: String, configurationId: String = "${definitionId}__${equipment}") =
+            ExerciseTechniqueImageLookup.resolveImageResId(
+                catalogDefinitionId = definitionId,
+                exerciseDbId = configurationId,
+                exerciseId = "ex-$definitionId",
+                catalogConfigurationId = configurationId,
+                selectedImplementation = equipment,
+            )
+
+        assertEquals(R.drawable.exercise_reverse_lunge_barbell_batch9, res("reverse_lunge", "barbell"))
+        assertEquals(R.drawable.exercise_reverse_lunge_cable_batch9, res("reverse_lunge", "cable"))
+        assertEquals(R.drawable.exercise_reverse_lunge_dumbbells_batch9, res("reverse_lunge", "dumbbells"))
+        assertEquals(R.drawable.exercise_reverse_lunge_kettlebell_batch9, res("reverse_lunge", "kettlebell"))
+        assertEquals(R.drawable.exercise_reverse_lunge_smith_machine_batch9, res("reverse_lunge", "smith_machine"))
+
+        val fly = "reverse_pec_fly"
+        assertEquals(R.drawable.exercise_reverse_pec_fly_cable_batch9, res(fly, "cable", "${fly}__bilateral__cable"))
+        assertEquals(R.drawable.exercise_reverse_pec_fly_dumbbells_batch9, res(fly, "dumbbells", "${fly}__unilateral__dumbbells"))
+        assertEquals(R.drawable.exercise_reverse_pec_fly_machine_batch9, res(fly, "machine", "${fly}__bilateral__machine"))
+
+        val calf = "calf_raise"
+        assertEquals(R.drawable.exercise_calf_raise_barbell_batch9, res(calf, "barbell", "${calf}__bilateral__barbell"))
+        assertEquals(R.drawable.exercise_calf_raise_cable_batch9, res(calf, "cable", "${calf}__bilateral__cable"))
+        assertEquals(R.drawable.exercise_calf_raise_machine_batch9, res(calf, "machine", "${calf}__unilateral__machine"))
+        assertEquals(R.drawable.exercise_calf_raise_smith_machine_batch9, res(calf, "smith_machine", "${calf}__bilateral__smith_machine"))
+
+        val curl = "lying_leg_curl"
+        assertEquals(R.drawable.exercise_lying_leg_curl_cable_batch9, res(curl, "cable", "${curl}__unilateral__cable"))
+        assertEquals(R.drawable.exercise_lying_leg_curl_dumbbells_batch9, res(curl, "dumbbells", "${curl}__bilateral__dumbbells"))
+        assertEquals(R.drawable.exercise_lying_leg_curl_machine_batch9, res(curl, "machine", "${curl}__bilateral__machine"))
     }
 }

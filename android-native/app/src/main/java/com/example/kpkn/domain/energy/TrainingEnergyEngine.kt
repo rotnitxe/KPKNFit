@@ -656,14 +656,22 @@ object TrainingEnergyEngine {
         )
     }
 
+    /**
+     * Planned strength energy for a session.
+     *
+     * Exercises carrying `cardioDetails` are excluded even when they also hold
+     * `sets` (the model allows both at once): their work is composed through the
+     * cardio estimator (`CardioCalorieEngine`), so scoring their sets here too
+     * would double count the same block.
+     */
     fun estimatePlannedSession(
         session: Session,
         settings: Settings = Settings(),
     ): SessionEnergySummary {
         val exercises = session.exercises + session.parts.flatMap { it.exercises }
-        val plannedSets = exercises.flatMap { ex ->
-            ex.sets.map { set -> Triple(ex.name, ex, set) }
-        }
+        val plannedSets = exercises
+            .filter { ex -> ex.cardioDetails == null }
+            .flatMap { ex -> ex.sets.map { set -> Triple(ex.name, ex, set) } }
         val bodyWeight = settings.userVitals.weight
 
         return computeSessionEnergyInternally(

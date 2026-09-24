@@ -1,5 +1,13 @@
 package com.example.kpkn.screens.onboarding
 
+import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
+import com.example.kpkn.domain.onboarding.SetupPreviewKind
+import com.example.kpkn.domain.onboarding.SetupProgressOrigin
+import com.example.kpkn.domain.onboarding.SetupStepContext
+import com.example.kpkn.domain.onboarding.SetupStepGraph
+import com.example.kpkn.domain.onboarding.SetupStepId
+import com.example.kpkn.domain.onboarding.SetupStepProgress
+import com.example.kpkn.domain.onboarding.SetupWizardBlock
 import com.example.kpkn.domain.onboarding.WizChatAnswerKind
 import com.example.kpkn.domain.onboarding.WizChatAnswerRecord
 import com.example.kpkn.domain.onboarding.WizChatAnswerSource
@@ -8,6 +16,7 @@ import com.example.kpkn.domain.onboarding.WizChatQuestionId
 import com.example.kpkn.domain.onboarding.WizChatStage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -107,7 +116,13 @@ class SetupDraftCompatibilityTest {
             weight = null,
         )
         assertEquals(emptyList<WizChatQuestionId>(), SetupDraftCompatibility.pendingMandatoryVitals(rings))
-        assertEquals(rings, SetupDraftCompatibility.repair(rings))
+        val repaired = SetupDraftCompatibility.repair(rings)
+        // La reparación solo migra el progreso de pasos: el payload legacy se
+        // conserva completo y no se piden vitales.
+        assertEquals(rings.wizChat, repaired.wizChat)
+        assertNull(repaired.ageYears)
+        assertNull(repaired.heightCm)
+        assertNull(repaired.weightKg)
     }
 
     @Test
@@ -165,5 +180,116 @@ class SetupDraftCompatibilityTest {
         )
         val repaired = SetupDraftCompatibility.repair(old)
         assertEquals(com.example.kpkn.data.models.TrainingStyle.POWERBUILDER, repaired.volumeAnswers.style)
+    }
+
+    @Test
+    fun legacyWizChatDraftMigratesToTheMatchingStepAndKeepsEveryAnswer() {
+        val old = draft(
+            current = WizChatQuestionId.T_DAYS,
+            answers = listOf(
+                answer(WizChatQuestionId.P_AGE, 30.0),
+                answer(WizChatQuestionId.P_HEIGHT, 175.0),
+                answer(WizChatQuestionId.P_WEIGHT, 72.0),
+                WizChatAnswerRecord(WizChatQuestionId.P_EXPERIENCE, WizChatAnswerKind.CHOICE,
+                    textValue = "Tengo experiencia", revision = 4),
+            ),
+        )
+        val repaired = SetupDraftCompatibility.repair(old)
+
+        assertEquals(SetupStepId.DAYS, repaired.stepProgress.currentStepId)
+        assertEquals(SetupWizardBlock.TRAINING, repaired.stepProgress.block)
+        assertEquals(setOf(SetupWizardBlock.BASICS), repaired.stepProgress.completedBlocks)
+        assertEquals(SetupProgressOrigin.MIGRATED_FROM_WIZCHAT, repaired.stepProgress.origin)
+        // La migración conserva todas las respuestas del flujo antiguo.
+        assertEquals(old.wizChat.acceptedAnswers, repaired.wizChat.acceptedAnswers)
+        assertEquals(old.ageYears, repaired.ageYears)
+        assertEquals(old.weightKg, repaired.weightKg)
+        assertEquals(SetupAnswerProvenance.USER_DECLARED, repaired.stepProgress.answers[SetupStepId.AGE])
+    }
+
+    @Test
+    fun nonConvertibleDraftsArePreservedUntilTheUserDiscardsThem() {
+        val broken = draft(
+            scope = "nutrition_only",
+            current = WizChatQuestionId.T_DAYS,
+            answers = listOf(answer(WizChatQuestionId.P_WEIGHT, 72.0)),
+            age = null,
+            height = null,
+        ).copy(includeTraining = false, selectedCatalogId = "plan-legacy")
+        val repaired = SetupDraftCompatibility.repair(broken)
+
+        assertEquals(SetupProgressOrigin.NOT_CONVERTIBLE, repaired.stepProgress.origin)
+        // Ningún dato se borra: el borrador se conserva tal cual.
+        assertEquals(broken.wizChat, repaired.wizChat)
+        assertEquals(broken.weightKg, repaired.weightKg)
+        assertEquals("plan-legacy", repaired.selectedCatalogId)
+        assertEquals(SetupStepId.DAYS, repaired.stepProgress.currentStepId)
+    }
+
+    @Test
+    fun stepMigrationIsIdempotentAndNativeProgressIsLeftUntouched() {
+        val old = draft(
+            current = WizChatQuestionId.T_DAYS,
+            answers = listOf(
+                answer(WizChatQuestionId.P_AGE, 30.0),
+                answer(WizChatQuestionId.P_HEIGHT, 175.0),
+                answer(WizChatQuestionId.P_WEIGHT, 72.0),
+            ),
+        )
+        val migrated = SetupDraftCompatibility.repair(old)
+        assertEquals(migrated.stepProgress, SetupDraftCompatibility.repair(migrated).stepProgress)
+
+        val rings = draft(
+            scope = "rings_only",
+            current = WizChatQuestionId.R_RECENT,
+            answers = emptyList(),
+            age = null,
+            height = null,
+            weight = null,
+        )
+        val native = rings.copy(
+            stepProgress = SetupStepProgress.initial(rings.stepContext())
+                .at(SetupStepId.RINGS_MUSCLE_FEELING, rings.stepContext()),
+        )
+        assertEquals(native, SetupDraftCompatibility.repair(native))
+    }
+
+    @Test
+    fun catalogRevisionChangeKeepsEveryAnswerAndOnlyFlagsTheSelectionForReview() {
+        val base = draft(
+            answers = listOf(
+                answer(WizChatQuestionId.P_AGE, 30.0),
+                answer(WizChatQuestionId.P_HEIGHT, 175.0),
+                answer(WizChatQuestionId.P_WEIGHT, 72.0),
+            ),
+        ).copy(
+            selectedCatalogId = "plan-v1",
+            stepProgress = SetupStepProgress.initial(SetupStepContext(nutritionStarted = true))
+                .at(SetupStepId.PLAN, SetupStepContext(nutritionStarted = true)),
+        )
+
+        // Sin cambio de catálogo no se toca nada.
+        assertEquals(base, SetupDraftCompatibility.applyCatalogRevision(base, "rev-1", "rev-1") { true })
+
+        // El plan desapareció del catálogo nuevo: se conserva todo el borrador
+        // y solo se marca la selección como pendiente de revisión.
+        val missing = SetupDraftCompatibility.applyCatalogRevision(base, "rev-1", "rev-2") { false }
+        assertEquals("rev-2", missing.catalogRevision)
+        assertNull(missing.selectedCatalogId)
+        assertEquals(base.wizChat.acceptedAnswers, missing.wizChat.acceptedAnswers)
+        assertEquals(base.ageYears, missing.ageYears)
+        assertEquals(base.weightKg, missing.weightKg)
+        assertEquals(base.stepProgress.answers, missing.stepProgress.answers)
+        assertEquals(SetupStepId.PLAN, missing.stepProgress.currentStepId)
+        assertTrue(SetupStepId.PLAN in missing.stepProgress.pendingReview)
+        assertTrue(SetupPreviewKind.PLAN_CANDIDATES in missing.stepProgress.stalePreviews)
+        assertTrue(SetupPreviewKind.EXERCISES in missing.stepProgress.stalePreviews)
+        assertFalse(missing.wizChat.terminal)
+
+        // El plan sigue existiendo: se conserva la selección y se pide revisar.
+        val kept = SetupDraftCompatibility.applyCatalogRevision(base, "rev-1", "rev-2") { it == "plan-v1" }
+        assertEquals("plan-v1", kept.selectedCatalogId)
+        assertTrue(SetupStepId.PLAN in kept.stepProgress.pendingReview)
+        assertEquals(base.wizChat.acceptedAnswers, kept.wizChat.acceptedAnswers)
     }
 }

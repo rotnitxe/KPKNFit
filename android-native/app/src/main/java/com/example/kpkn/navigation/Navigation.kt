@@ -133,6 +133,29 @@ sealed class KpknRoute(val route: String) {
     }
 
     // ─── Nutrition Sub-screens ────────────────────────────────────────
+
+    /**
+     * Editor nutricional DIRECTO: única puerta de creación/edición del plan
+     * tras el onboarding, con secciones editables y sin wizard.
+     */
+    object NutritionPlanEditor : KpknRoute("nutrition/plan-editor?planId={planId}&draftId={draftId}") {
+        const val BASE_ROUTE = "nutrition/plan-editor"
+        const val ARG_PLAN_ID = "planId"
+        const val ARG_DRAFT_ID = "draftId"
+
+        fun create(planId: String? = null, pendingDraftId: String? = null): String = buildString {
+            append("$BASE_ROUTE?planId=")
+            append(Uri.encode(planId.orEmpty()))
+            append("&draftId=")
+            append(Uri.encode(pendingDraftId.orEmpty()))
+        }
+    }
+
+    /**
+     * LEGACY: el wizard nutricional ya no se abre. La ruta se conserva solo
+     * como compatibilidad y redirige siempre al editor directo
+     * ([NutritionPlanEditor]); pendiente de retirada física en Fase 7.
+     */
     object NutritionWizard : KpknRoute("nutrition/wizard?mode={mode}&planId={planId}") {
         const val ARG_MODE = "mode"
         const val ARG_PLAN_ID = "planId"
@@ -148,6 +171,12 @@ sealed class KpknRoute(val route: String) {
         const val BASE_ROUTE = "nutrition/wizard"
     }
     object SetupEntry : KpknRoute("setup/entry")
+
+    /**
+     * Puerta de aprobación visual de la Fase 1: prototipo navegable de las cinco
+     * pantallas representativas. No persiste nada y su entrada es temporal.
+     */
+    object SetupVisualGate : KpknRoute("setup/visual-gate")
     object SetupWizard : KpknRoute("setup/wizard?mode={mode}&draftId={draftId}") {
         const val BASE_ROUTE = "setup/wizard"
         const val ARG_MODE = "mode"

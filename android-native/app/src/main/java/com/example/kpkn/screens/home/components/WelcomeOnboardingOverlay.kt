@@ -46,7 +46,8 @@ fun WelcomeOnboardingOverlay(
     onDismiss: () -> Unit,
     onSaveName: (String) -> Unit,
     onCreateProgram: (String) -> Unit,
-    onNavigateToNutritionWizard: () -> Unit,
+    /** Editor directo del plan nutricional; nunca un wizard. */
+    onNavigateToNutritionEditor: () -> Unit,
     onAllTasksDone: () -> Unit,
 ) {
     var nameExpanded by rememberSaveable { mutableStateOf(false) }
@@ -300,7 +301,7 @@ fun WelcomeOnboardingOverlay(
                         title = if (nutritionDone) "Plan de nutrición" else "Crea tu plan de nutrición",
                         subtitle = nutritionSubtitle,
                         expanded = false,
-                        onToggle = { if (!nutritionDone) onNavigateToNutritionWizard() },
+                        onToggle = { if (!nutritionDone) onNavigateToNutritionEditor() },
                         showChevron = !nutritionDone,
                     ) {
                         // No hay contenido expandido; la acción es navegar al wizard

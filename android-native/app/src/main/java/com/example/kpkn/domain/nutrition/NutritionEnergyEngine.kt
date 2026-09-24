@@ -253,29 +253,79 @@ fun atwaterKcal(proteinG: Double, carbsG: Double, fatG: Double): Int =
  * La proteína escala con su aporte por gramo (4 kcal/g), igual que el resto.
  * Los floors de sanidad evitan gramos negativos y los carbs absorben el
  * residuo para que la suma Atwater cuadre exactamente con [newKcal].
+ *
+ * Un macro que llega con 0.0 exacto es un cero manual válido y permanece en
+ * 0 g: el suelo de sanidad (10 g) solo aplica a macros con aporte real. Si el
+ * cero manual es el de carbohidratos, el residuo NO se vierte en carbs (eso
+ * destruiría el cero): se ajusta en gramos de grasa y proteína, dejando un
+ * error Atwater residual típico de ±2 kcal. El redondeo a gramos admite esa
+ * tolerancia; no se promete igualdad Atwater exacta universal.
+ *
+ * Con [preserveZeros] = false se conserva el comportamiento heredado: suelos
+ * de 10 g en proteína y grasa y residuo siempre en carbohidratos.
  */
 fun scaleMacrosToCalories(
     proteinG: Double,
     carbsG: Double,
     fatG: Double,
     newKcal: Int,
+    preserveZeros: Boolean = true,
 ): Triple<Int, Int, Int> {
     val oldKcal = atwaterKcal(proteinG, carbsG, fatG)
     if (oldKcal <= 0) return Triple(0, 0, 0)
+    val pFloor = if (preserveZeros && proteinG == 0.0) 0 else 10
+    val fFloor = if (preserveZeros && fatG == 0.0) 0 else 10
     val ratio = newKcal.toDouble() / oldKcal.toDouble()
-    val p = (proteinG * ratio).roundToInt().coerceAtLeast(10)
-    val f = (fatG * ratio).roundToInt().coerceAtLeast(10)
+    val p = (proteinG * ratio).roundToInt().coerceAtLeast(pFloor)
+    val f = (fatG * ratio).roundToInt().coerceAtLeast(fFloor)
+    if (preserveZeros && carbsG == 0.0) {
+        return fitWithoutCarbs(p, f, proteinG, fatG, pFloor, fFloor, newKcal)
+    }
     var c = ((newKcal - p * 4 - f * 9) / 4.0).roundToInt()
     if (c < 0) {
         c = 0
         if (newKcal < p * 4 + f * 9) {
             val excess = p * 4 + f * 9 - newKcal
-            if (p > 10) return Triple((p - kotlin.math.ceil(excess / 4.0).toInt()).coerceAtLeast(10), 0, f)
-            return Triple(p, 0, (f - kotlin.math.ceil(excess / 9.0).toInt()).coerceAtLeast(10))
+            if (p > pFloor) return Triple((p - kotlin.math.ceil(excess / 4.0).toInt()).coerceAtLeast(pFloor), 0, f)
+            return Triple(p, 0, (f - kotlin.math.ceil(excess / 9.0).toInt()).coerceAtLeast(fFloor))
         }
         c = ((newKcal - p * 4 - f * 9) / 4.0).roundToInt()
     }
     return Triple(p, c, f)
+}
+
+/**
+ * Cuadra el total Atwater sin tocar el cero manual de carbohidratos: el
+ * residuo de redondeo se absorbe con ±1 g de grasa y ±2 g de proteína (nunca
+ * por debajo de su cero/suelo), dejando el error residual típico en ±2 kcal.
+ */
+private fun fitWithoutCarbs(
+    proteinIn: Int,
+    fatIn: Int,
+    proteinG: Double,
+    fatG: Double,
+    pFloor: Int,
+    fFloor: Int,
+    newKcal: Int,
+): Triple<Int, Int, Int> {
+    var p = proteinIn
+    var f = fatIn
+    var residual = newKcal - (p * 4 + f * 9)
+    if (fatG != 0.0 && residual != 0) {
+        val deltaFat = (residual / 9.0).roundToInt().coerceIn(-1, 1)
+        if (deltaFat != 0 && f + deltaFat >= fFloor) {
+            f += deltaFat
+            residual -= deltaFat * 9
+        }
+    }
+    if (proteinG != 0.0 && residual != 0) {
+        val deltaProtein = (residual / 4.0).roundToInt().coerceIn(-2, 2)
+        if (deltaProtein != 0 && p + deltaProtein >= pFloor) {
+            p += deltaProtein
+            residual -= deltaProtein * 4
+        }
+    }
+    return Triple(p, 0, f)
 }
 
 /**

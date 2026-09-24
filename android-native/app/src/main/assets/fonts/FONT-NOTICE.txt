@@ -1,0 +1,17 @@
+Fuentes empaquetadas para el wizard de configuracion de KPKN Fit
+================================================================
+
+ARCHIVO (Omnibus Type) - SIL Open Font License 1.1
+  Ver LICENSE-Archivo-OFL.txt
+  Pesos utilizados: Regular (400), SemiBold (600), Bold (700)
+  Origen: google-webfonts-helper, instancias estaticas, subset latin + latin-ext
+
+INTER (Rasmus Andersson) - SIL Open Font License 1.1
+  Ver LICENSE-Inter-OFL.txt
+  Pesos utilizados: Regular (400), Medium (500), SemiBold (600)
+  Origen: google-webfonts-helper, instancias estaticas, subset latin + latin-ext
+
+Estado: CANDIDATAS. La familia definitiva se decide en la puerta de aprobacion
+visual del wizard. Solo se empaquetan los pesos efectivamente declarados en
+WizardDesignTokens.kt. Ambas familias se cargan localmente; no se descarga
+ninguna fuente en tiempo de ejecucion.

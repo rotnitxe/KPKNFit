@@ -21,9 +21,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.NutritionRepository
-import com.example.kpkn.domain.nutrition.MacroGoals
+import com.example.kpkn.domain.nutrition.DayGoalsResult
 import com.example.kpkn.domain.nutrition.computeDailyTotals
-import com.example.kpkn.domain.nutrition.deriveMacroGoals
+import com.example.kpkn.domain.nutrition.resolveDayGoalsByDate
 
 // ═══════════════════════════════════════════════════════════════════════
 // COLORS
@@ -72,10 +72,10 @@ fun MealHistoryScreen(
     val settings by com.example.kpkn.data.repository.ProgramRepository.getInstance().settings.collectAsState()
     val plans by NutritionRepository.getInstance().nutritionPlans.collectAsState()
     val activePlanId by NutritionRepository.getInstance().activeNutritionPlanId.collectAsState()
+    val goalSnapshots by NutritionRepository.getInstance().dailyGoalSnapshots.collectAsState()
     val activePlan = remember(plans, activePlanId) {
         activePlanId?.let { id -> plans.find { it.id == id } }
     }
-    val goals = deriveMacroGoals(settings, activePlan)
 
     // Group by day, sorted descending
     val daySummaries = remember(allLogs) {
@@ -96,6 +96,23 @@ fun MealHistoryScreen(
                 )
             }
             .sortedByDescending { it.date }
+    }
+
+    // Metas por fecha con el resolvedor canónico: el snapshot histórico del
+    // día manda sobre el plan actual; sin evidencia, ausencia explícita
+    // (TrackingOnly/NoGoal) y nunca un default de 2500 kcal.
+    val today = remember { java.time.LocalDate.now() }
+    val goalsKey = listOf(daySummaries, settings, activePlan, goalSnapshots, today)
+    val goalsByDate = remember(goalsKey) {
+        runCatching {
+            resolveDayGoalsByDate(
+                dates = daySummaries.mapNotNull { day -> runCatching { java.time.LocalDate.parse(day.date) }.getOrNull() },
+                settings = settings,
+                activePlan = activePlan,
+                snapshots = goalSnapshots,
+                today = today,
+            )
+        }.getOrDefault(emptyMap())
     }
 
     Scaffold(
@@ -140,19 +157,29 @@ fun MealHistoryScreen(
             ) {
                 // Stats summary
                 item {
+                    val dayGoalKcals = goalsByDate.values.mapNotNull { dayGoals ->
+                        (dayGoals as? DayGoalsResult.Present)?.goals?.calorieGoal
+                    }
                     HistoryStatsHeader(
                         totalDays = daySummaries.size,
                         totalLogs = allLogs.count { it.status != NutritionStatus.PLANNED },
                         avgCalories = if (daySummaries.isNotEmpty())
                             daySummaries.map { it.totals.calories }.average() else 0.0,
-                        goals = goals,
+                        avgGoalKcal = dayGoalKcals.takeIf { it.isNotEmpty() }
+                            ?.average()
+                            ?.let { kotlin.math.round(it).toInt() },
                     )
                 }
 
                 // Day groups
                 daySummaries.forEach { day ->
                     item(key = "header_${day.date}") {
-                        DayHeader(day = day, goals = goals)
+                        DayHeader(
+                            day = day,
+                            goals = goalsByDate.entries
+                                .firstOrNull { (date, _) -> date.toString() == day.date }?.value
+                                ?: DayGoalsResult.Absent(com.example.kpkn.domain.nutrition.GoalsAbsence.NO_GOAL),
+                        )
                     }
                     items(day.logs, key = { it.id }) { log ->
                         HistoryLogEntry(log = log)
@@ -175,7 +202,7 @@ private fun HistoryStatsHeader(
     totalDays: Int,
     totalLogs: Int,
     avgCalories: Double,
-    goals: MacroGoals,
+    avgGoalKcal: Int?,
 ) {
     Box(
         modifier = Modifier
@@ -193,8 +220,16 @@ private fun HistoryStatsHeader(
         ) {
             StatBubble("Días", "$totalDays", Color(0xFF42A5F5))
             StatBubble("Registros", "$totalLogs", TEAL)
-            StatBubble("Prom. kcal", "${kotlin.math.round(avgCalories).toInt()}",
-                if (avgCalories > goals.calorieGoal * 1.1) Color(0xFFE53935) else Color(0xFF66BB6A))
+            // Sin meta no se juzga el promedio frente a ningún default.
+            StatBubble(
+                "Prom. kcal",
+                "${kotlin.math.round(avgCalories).toInt()}",
+                when {
+                    avgGoalKcal == null -> Color(0xFF78909C)
+                    avgCalories > avgGoalKcal * 1.1 -> Color(0xFFE53935)
+                    else -> Color(0xFF66BB6A)
+                },
+            )
         }
     }
 }
@@ -220,9 +255,12 @@ private fun StatBubble(label: String, value: String, color: Color) {
 // ═══════════════════════════════════════════════════════════════════════
 
 @Composable
-private fun DayHeader(day: DaySummary, goals: MacroGoals) {
-    val calPct = if (goals.calorieGoal > 0) day.totals.calories / goals.calorieGoal else 0.0
-    val overGoal = calPct > 1.05
+private fun DayHeader(day: DaySummary, goals: DayGoalsResult) {
+    // Meta del día según el resolvedor por fecha; sin meta no hay porcentaje
+    // inventado y el día se etiqueta «sin objetivos».
+    val goalKcal = (goals as? DayGoalsResult.Present)?.goals?.calorieGoal
+    val calPct = if (goalKcal != null && goalKcal > 0) day.totals.calories / goalKcal else null
+    val overGoal = (calPct ?: 0.0) > 1.05
 
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
@@ -272,7 +310,7 @@ private fun DayHeader(day: DaySummary, goals: MacroGoals) {
                 color = if (overGoal) Color(0xFFE53935).copy(alpha = 0.10f) else TEAL.copy(alpha = 0.10f),
             ) {
                 Text(
-                    "${(calPct * 100).toInt()}%",
+                    calPct?.let { "${(it * 100).toInt()}%" } ?: "sin objetivos",
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Black,

@@ -64,8 +64,9 @@ class DeepLinkRouterTest {
 
     @Test
     fun resolvesNutritionWizardCalibrationAndHealthConnectRoutes() {
+        // LEGACY: el deep link del wizard redirige al editor directo.
         assertEquals(
-            KpknRoute.NutritionWizard.create(),
+            KpknRoute.NutritionPlanEditor.create(),
             DeepLinkRouter.resolve(Uri.parse("kpkn://nutrition/wizard"))?.route,
         )
         assertEquals(
@@ -76,6 +77,13 @@ class DeepLinkRouterTest {
             KpknRoute.HealthConnect.route,
             DeepLinkRouter.resolve(Uri.parse("kpkn://settings/health-connect"))?.route,
         )
+    }
+
+    @Test
+    fun nutritionWizardDeepLinkRedirectsToDirectEditor() {
+        val resolved = DeepLinkRouter.resolve(Uri.parse("kpkn://nutrition/wizard"))
+        assertEquals(KpknRoute.NutritionPlanEditor.create(), resolved?.route)
+        assertEquals(KpknRoute.NutritionPlanEditor.BASE_ROUTE, resolved?.route?.substringBefore('?'))
     }
 
     @Test

@@ -11,6 +11,7 @@ import com.example.kpkn.domain.auge.AugeUtils.safeExp
 import com.example.kpkn.domain.auge.AugeUtils.logDateMs
 import com.example.kpkn.domain.auge.AugeUtils.physiologicalFloor
 import com.example.kpkn.domain.auge.AugeUtils.decelerateBattery
+import com.example.kpkn.domain.nutrition.resolveDayGoalsByDate
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -1518,11 +1519,21 @@ object AugeRecoveryEngine {
         stressLevel: Int = 3,
     ): Double {
         if (!settings.algorithmSettings.augeEnableNutritionTracking) return 1.0
-        val activePlan = runCatching { NutritionRepository.getInstance().activeNutritionPlan }.getOrNull()
+        val repo = runCatching { NutritionRepository.getInstance() }.getOrNull()
+        val today = LocalDate.now()
+        // Objetivos de la ventana de análisis resueltos por fecha con el
+        // resolvedor canónico: el snapshot histórico del día manda sobre el
+        // plan actual. Sin metas, el motor devuelve el multiplicador neutro.
+        val goalsByDate = resolveDayGoalsByDate(
+            dates = (0L until 7L).map { today.minusDays(it) },
+            settings = settings,
+            activePlan = repo?.activeNutritionPlan,
+            snapshots = repo?.dailyGoalSnapshots?.value.orEmpty(),
+            today = today,
+        )
         return NutritionRecoveryEngine.computeNutritionRecoveryMultiplier(
             nutritionLogs = nutritionLogs,
-            settings = settings,
-            activePlan = activePlan,
+            goalsByDate = goalsByDate,
             stressLevel = stressLevel,
         ).recoveryTimeMultiplier
     }

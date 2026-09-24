@@ -15,7 +15,10 @@ import androidx.core.content.ContextCompat
 import com.example.kpkn.R
 import com.example.kpkn.navigation.KpknDeepLinks
 import com.example.kpkn.data.models.DailyMacroTotals
-import com.example.kpkn.domain.nutrition.MacroGoals
+import com.example.kpkn.domain.nutrition.DayGoalsResult
+import com.example.kpkn.domain.nutrition.MacroAlertKind
+import com.example.kpkn.domain.nutrition.macroDeficitAlerts
+import com.example.kpkn.domain.nutrition.resolveDayGoals
 import java.util.Calendar
 
 /**
@@ -192,30 +195,32 @@ class NutritionNotificationManager(private val context: Context) {
     /**
      * Envía alerta de déficit de macros si el usuario no ha cubierto sus objetivos.
      * Llamar desde NutritionViewModel al final del día o manualmente.
+     *
+     * Sin metas ([DayGoalsResult.Absent]) no se envía NINGÚN aviso de «te
+     * faltan calorías/proteína»: no hay meta contra la que medir. Un campo
+     * sin meta tampoco genera su línea de alerta.
      */
-    fun sendMacroDeficitAlert(totals: DailyMacroTotals, goals: MacroGoals) {
+    fun sendMacroDeficitAlert(totals: DailyMacroTotals, goals: DayGoalsResult) {
         if (!hasPermission()) return
 
-        var hasCalorieExcess = false
-        val deficitItems = buildList {
-            val protPct = if (goals.proteinGoal > 0) totals.protein / goals.proteinGoal else 1.0
-            val carbPct = if (goals.carbGoal > 0) totals.carbs / goals.carbGoal else 1.0
-            val fatPct = if (goals.fatGoal > 0) totals.fats / goals.fatGoal else 1.0
-            val calPct = if (goals.calorieGoal > 0) totals.calories / goals.calorieGoal else 1.0
+        val alerts = macroDeficitAlerts(totals, goals)
+        if (alerts.items.isEmpty()) return
 
-            if (protPct < 0.70) add(appCtx.getString(com.example.kpkn.R.string.notif_macro_protein, totals.protein.toInt(), goals.proteinGoal, (protPct * 100).toInt()))
-            if (carbPct < 0.60) add(appCtx.getString(com.example.kpkn.R.string.notif_macro_carbs, totals.carbs.toInt(), goals.carbGoal, (carbPct * 100).toInt()))
-            if (fatPct < 0.60) add(appCtx.getString(com.example.kpkn.R.string.notif_macro_fats, totals.fats.toInt(), goals.fatGoal, (fatPct * 100).toInt()))
-            if (calPct > 1.10) {
-                hasCalorieExcess = true
-                add(appCtx.getString(com.example.kpkn.R.string.notif_macro_calories_exceeded, totals.calories.toInt(), goals.calorieGoal))
+        val deficitItems = alerts.items.map { item ->
+            when (item.kind) {
+                MacroAlertKind.PROTEIN_DEFICIT ->
+                    appCtx.getString(com.example.kpkn.R.string.notif_macro_protein, item.consumed, item.goal, item.percent)
+                MacroAlertKind.CARB_DEFICIT ->
+                    appCtx.getString(com.example.kpkn.R.string.notif_macro_carbs, item.consumed, item.goal, item.percent)
+                MacroAlertKind.FAT_DEFICIT ->
+                    appCtx.getString(com.example.kpkn.R.string.notif_macro_fats, item.consumed, item.goal, item.percent)
+                MacroAlertKind.CALORIE_EXCESS ->
+                    appCtx.getString(com.example.kpkn.R.string.notif_macro_calories_exceeded, item.consumed, item.goal)
             }
         }
 
-        if (deficitItems.isEmpty()) return
-
         val body = deficitItems.joinToString("\n")
-        val title = if (hasCalorieExcess)
+        val title = if (alerts.calorieExcess)
             appCtx.getString(com.example.kpkn.R.string.notif_macro_title_exceeded)
         else
             appCtx.getString(com.example.kpkn.R.string.notif_macro_title_incomplete)
@@ -389,6 +394,10 @@ class NutritionAlertReceiver : BroadcastReceiver() {
             val nutritionRepo = com.example.kpkn.data.repository.NutritionRepository.init(context)
             val programRepo = com.example.kpkn.data.repository.ProgramRepository.init(context)
             if (programRepo.settings.value.nutritionTrackingChoice == com.example.kpkn.data.models.NutritionTrackingChoice.SKIPPED) return
+            // Modo durable de solo registro: no hay metas, luego no se avisa de
+            // «te faltan calorías/proteína». Los recordatorios de registrar
+            // comida siguen activos (se programan por otra vía).
+            if (programRepo.settings.value.nutritionTrackingOnly) return
             val today = java.time.LocalDate.now().toString()
             val todayLogs = nutritionRepo.nutritionLogs.value.filter {
                 it.date.take(10) == today &&
@@ -398,11 +407,15 @@ class NutritionAlertReceiver : BroadcastReceiver() {
 
             val totals = com.example.kpkn.domain.nutrition.computeDailyTotals(todayLogs)
             val settings = programRepo.settings.value
-            val goals = com.example.kpkn.domain.nutrition.MacroGoals(
-                calorieGoal = settings.dailyCalorieGoal ?: 2500,
-                proteinGoal = settings.dailyProteinGoal ?: 150,
-                carbGoal = settings.dailyCarbGoal ?: 250,
-                fatGoal = settings.dailyFatGoal ?: 70,
+            // Metas del día resueltas por fecha: el snapshot del día manda
+            // sobre el plan actual. Sin metas no se envía la alerta de macros.
+            val goals = resolveDayGoals(
+                date = java.time.LocalDate.now(),
+                settings = settings,
+                activePlan = nutritionRepo.activeNutritionPlan,
+                snapshot = nutritionRepo.dailyGoalSnapshots.value
+                    .find { it.date.trim().take(10) == today },
+                today = java.time.LocalDate.now(),
             )
             manager.sendMacroDeficitAlert(totals, goals)
         } catch (e: Exception) {

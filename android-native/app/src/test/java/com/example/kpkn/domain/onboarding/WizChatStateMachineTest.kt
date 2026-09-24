@@ -109,10 +109,17 @@ class WizChatStateMachineTest {
 
     @Test
     fun unknownRecentTrainingDoesNotDemandAHistoryOrInventSessions() {
-        assertEquals(WizChatQuestionId.R_RESULT, WizChatGraph.next(WizChatQuestionId.R_RECENT,
+        // "No lo sé" no exige historial (se saltan sesiones, recencia, tipo, intensidad
+        // y axial) pero TAMPOCO equivale a ausencia: se siguen preguntando las tres
+        // sensaciones y las molestias para permitir una calibración parcial.
+        assertEquals(WizChatQuestionId.R_FEELINGS_MUSCLE, WizChatGraph.next(WizChatQuestionId.R_RECENT,
             WizChatGraphContext(recentTraining = null, recentTrainingUnknown = true)))
         assertEquals(WizChatQuestionId.R_FEELINGS_MUSCLE, WizChatGraph.next(WizChatQuestionId.R_RECENT,
             WizChatGraphContext(recentTraining = false)))
+        val unknown = WizChatGraphContext(recentTraining = null, recentTrainingUnknown = true)
+        assertEquals(WizChatQuestionId.R_FEELINGS_ENERGY, WizChatGraph.next(WizChatQuestionId.R_FEELINGS_MUSCLE, unknown))
+        assertEquals(WizChatQuestionId.R_DISCOMFORT, WizChatGraph.next(WizChatQuestionId.R_FEELINGS_STRUCTURE, unknown))
+        assertEquals(WizChatQuestionId.R_RESULT, WizChatGraph.next(WizChatQuestionId.R_DISCOMFORT, unknown))
     }
 
     @Test

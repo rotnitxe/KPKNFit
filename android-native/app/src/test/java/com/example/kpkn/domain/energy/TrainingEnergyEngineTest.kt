@@ -561,4 +561,48 @@ class TrainingEnergyEngineTest {
         assertEquals(kg.totalKcal.mid, lbs.totalKcal.mid)
         assertEquals(plannedKg.totalKcal.mid, plannedLbs.totalKcal.mid)
     }
+
+    @Test
+    fun `planned session skips cardio exercise sets to avoid double counting`() {
+        val settings = buildSettings(weight = 80.0)
+        val strengthExercise = Exercise(
+            id = "e1",
+            name = "Sentadilla Trasera Barra Alta",
+            exerciseDbId = "quads_sentadilla_trasera_barra_alta",
+            restTime = 180,
+            sets = plannedSets(count = 4, weight = 100.0, reps = 8, rpe = 8.0),
+        )
+        // Un ejercicio puede llevar sets Y cardioDetails a la vez; sus sets no deben
+        // puntuar en el motor de fuerza porque su gasto se compone con el estimador cardio.
+        val cardioExercise = Exercise(
+            id = "cardio-1",
+            name = "Cinta 20 min",
+            exerciseDbId = "treadmill_cardio",
+            sets = plannedSets(count = 3, weight = 60.0, reps = 10, rpe = 8.0),
+            cardioDetails = CardioDetails(
+                type = CardioType.TREADMILL,
+                intensity = CardioIntensity.MEDIA,
+                targetDurationSeconds = 20 * 60,
+            ),
+        )
+        val strengthOnly = TrainingEnergyEngine.estimatePlannedSession(
+            Session(id = "mixed", name = "Mixta", exercises = listOf(strengthExercise)),
+            settings,
+        )
+        val mixed = TrainingEnergyEngine.estimatePlannedSession(
+            Session(id = "mixed", name = "Mixta", exercises = listOf(strengthExercise, cardioExercise)),
+            settings,
+        )
+
+        assertTrue("La sesión de fuerza debe estimar kcal > 0", strengthOnly.totalKcal.mid > 0)
+        assertTrue(
+            "Los sets del ejercicio de cardio no deben aparecer en exerciseContributions: ${mixed.exerciseContributions}",
+            mixed.exerciseContributions.none {
+                it.exerciseId == "cardio-1" || it.exerciseName == "Cinta 20 min"
+            },
+        )
+        assertEquals(1, mixed.exerciseContributions.size)
+        assertEquals(strengthOnly.exerciseContributions, mixed.exerciseContributions)
+        assertEquals(strengthOnly.totalKcal, mixed.totalKcal)
+    }
 }

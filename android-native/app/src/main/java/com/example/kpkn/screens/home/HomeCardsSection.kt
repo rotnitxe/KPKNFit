@@ -62,7 +62,13 @@ private fun MacroProgressBars(
     onAnchorPositionChanged: (Float) -> Unit = {},
 ) {
     val nutrition = state.nutrition
-    val calorieProgress = (nutrition.calories.toFloat() / state.calorieGoal.toFloat().coerceAtLeast(1f)).coerceIn(0f, 1f)
+    // null = sin objetivos: progreso 0 y «sin objetivos», nunca un default.
+    val calorieGoal = state.calorieGoal?.takeIf { it > 0 }
+    val calorieProgress = if (calorieGoal != null) {
+        (nutrition.calories.toFloat() / calorieGoal.toFloat()).coerceIn(0f, 1f)
+    } else {
+        0f
+    }
     val macros = listOf(
         MacroItem("Proteínas", nutrition.protein.toInt(), state.proteinGoal, "g", Color(0xFFE89A8F)),
         MacroItem("Carbohidratos", nutrition.carbs.toInt(), state.carbGoal, "g", Color(0xFFD7AE63)),
@@ -106,7 +112,7 @@ private fun MacroProgressBars(
                     }
                 }
                 Text(
-                    "${state.calorieGoal} kcal meta",
+                    calorieGoal?.let { "$it kcal meta" } ?: "sin objetivos",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF8FB7B8),
@@ -132,14 +138,19 @@ private fun MacroProgressBars(
                             maxLines = 1,
                         )
                         Text(
-                            "${macro.current}/${macro.goal}${macro.unit}",
+                            macro.goal?.let { "${macro.current}/$it${macro.unit}" }
+                                ?: "${macro.current}${macro.unit} · sin meta",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Black,
                             color = macro.color,
                             maxLines = 1,
                         )
                         LinearProgressIndicator(
-                            progress = { (macro.current.toFloat() / macro.goal.toFloat().coerceAtLeast(1f)).coerceIn(0f, 1f) },
+                            progress = {
+                                macro.goal?.takeIf { it > 0 }?.let { goal ->
+                                    (macro.current.toFloat() / goal.toFloat()).coerceIn(0f, 1f)
+                                } ?: 0f
+                            },
                             modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(50)),
                             color = macro.color,
                             trackColor = Color.White.copy(alpha = 0.08f),
@@ -154,7 +165,8 @@ private fun MacroProgressBars(
 private data class MacroItem(
     val label: String,
     val current: Int,
-    val goal: Int,
+    /** null = sin meta; nunca un default inventado. */
+    val goal: Int?,
     val unit: String,
     val color: Color,
 )

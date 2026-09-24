@@ -129,7 +129,10 @@ object WizChatGraph {
         }
         WizChatQuestionId.R_RECENT -> when {
             context.recentTraining == true -> WizChatQuestionId.R_SESSIONS
-            context.recentTrainingUnknown -> WizChatQuestionId.R_RESULT
+            // El desconocimiento NO es una ausencia de entrenamiento: se saltan solo
+            // las preguntas de historial, pero se siguen preguntando las tres
+            // sensaciones y las molestias. Así es posible una calibración parcial con
+            // check-in real sin inventar sesiones ni fabricar evidencia.
             else -> WizChatQuestionId.R_FEELINGS_MUSCLE
         }
         WizChatQuestionId.R_SESSIONS -> WizChatQuestionId.R_RECENCY

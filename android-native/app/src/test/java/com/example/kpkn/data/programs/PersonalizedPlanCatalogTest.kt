@@ -165,19 +165,27 @@ class PersonalizedPlanCatalogTest {
         assertEquals(setOf(2, 4, 6), program.resolvedSchedulePlan().trainingDays)
     }
 
+    /**
+     * Contrato nuevo: el split del asistente es una elección real, no una
+     * etiqueta. Un split visible con receta KPKN se persiste y restringe la
+     * composición de cada día (antes este test exigía que el nombre se
+     * ignorara, la semántica que el usuario decidió cambiar).
+     */
     @Test
-    fun namedSplitIdFromWizardIsNotPersistedByNativeGenerator() {
+    fun namedSplitIdFromWizardIsAppliedAndPersistedAsARealChoice() {
         val input = PersonalizerInput(
             catalogEntryId = "native:machine-muscle",
             focus = TrainingFocus.FULL_BODY,
-            frequency = 3,
-            weekdays = listOf(1, 3, 5),
+            frequency = 4,
+            weekdays = listOf(1, 2, 4, 5),
             equipment = setOf("machine"),
             level = CatalogLevel.INTERMEDIATE,
             availableMinutes = 60,
             splitId = "ul_x4",
         )
-        val program = requireNotNull(personalizer().personalize("ignored-split", input).program)
-        assertNull("Named split is ignored by the native generator and must not be stored", program.selectedSplitId)
+        val program = requireNotNull(personalizer().personalize("named-split", input).program)
+        assertEquals("ul_x4", program.selectedSplitId)
+        val sessions = program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.flatMap { it.sessions }
+        assertEquals(listOf("Torso", "Pierna", "Torso", "Pierna"), sessions.map { it.name })
     }
 }

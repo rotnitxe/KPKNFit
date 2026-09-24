@@ -16,6 +16,15 @@ data class Settings(
     val onboardingNutritionDone: Boolean = false,
     /** Explicit onboarding choice; independent from AUGE's nutrition algorithm flag. */
     val nutritionTrackingChoice: NutritionTrackingChoice = NutritionTrackingChoice.NOT_DECIDED,
+    /**
+     * Modo durable de «solo registro», elegido explícitamente en el editor de
+     * plan nutricional. Es distinto de [NutritionTrackingChoice.SKIPPED], que
+     * oculta y silencia Nutrición por completo: con este modo Nutrición sigue
+     * visible y el registro de alimentos disponible, pero NO existen metas que
+     * mostrar, medir ni alertar. No se deduce de «no hay plan activo»: es una
+     * elección persistida y reversible, y nunca borra los planes anteriores.
+     */
+    val nutritionTrackingOnly: Boolean = false,
 
     val username: String = "Usuario",
     val profilePicture: String? = null,
@@ -26,6 +35,15 @@ data class Settings(
     val intensityMetric: IntensityMetric = IntensityMetric.RIR,
     val barbellWeight: Double = 20.0,
     val availablePlates: List<Double> = listOf(25.0, 20.0, 15.0, 10.0, 5.0, 2.5, 1.25),
+    /**
+     * Inventario principal del gimnasio con cantidades finitas. Un único
+     * inventario (sin sistema multi-gimnasio) en unidades canónicas kg; la
+     * conversión a lb es solo de visualización.
+     *
+     * Null = inventario derivado de [barbellWeight] + [availablePlates] con
+     * cantidades ilimitadas, para no romper backups/JSON antiguos.
+     */
+    val equipmentInventory: EquipmentInventory? = null,
     val restTimerDefaultSeconds: Int = 90,
     val restTimerAutoStart: Boolean = false,
     /** How chatty continuous-voice TTS is during a live session. */
@@ -137,7 +155,23 @@ data class Settings(
      * JSON of [com.example.kpkn.domain.relator.RelatorLongTermMemory]; null = empty.
      */
     val relatorMemoryJson: String? = null,
-)
+) {
+    /**
+     * Inventario efectivo: el explícito manda; si no existe se deriva del
+     * legacy [barbellWeight] + [availablePlates] con cantidades ilimitadas
+     * (compatibilidad con backups antiguos).
+     */
+    fun resolvedEquipmentInventory(): EquipmentInventory {
+        val configured = equipmentInventory
+            ?: return EquipmentInventory(
+                barbellWeightKg = barbellWeight,
+                plates = availablePlates.map { PlateStock(weightKg = it, countPerSide = null) },
+            )
+        return configured.copy(
+            barbellWeightKg = configured.barbellWeightKg?.takeIf { it > 0.0 } ?: barbellWeight,
+        )
+    }
+}
 
 enum class CalorieGoalObjective { DEFICIT, MAINTENANCE, SURPLUS }
 
@@ -248,3 +282,133 @@ data class AlgorithmSettings(
     val augeAutoDeload: Boolean = false,
     val augeShowAlertsInSession: Boolean = true,
 )
+
+/**
+ * Disco del inventario principal. Cantidad total por lado (simétrica: dos
+ * piezas por unidad de [countPerSide]). Null = ilimitado, para conservar la
+ * compatibilidad con `Settings.availablePlates` de backups antiguos.
+ */
+@Serializable
+data class PlateStock(
+    val weightKg: Double,
+    val countPerSide: Int? = null,
+)
+
+/**
+ * Par de mancuernas: [weightPerUnitKg] es la carga por unidad (una mancuerna);
+ * [pairAvailable] indica si existe pareja completa (dos unidades).
+ */
+@Serializable
+data class DumbbellPairStock(
+    val weightPerUnitKg: Double,
+    val pairAvailable: Boolean = true,
+) {
+    /** Carga total del par (dos unidades). */
+    val pairTotalKg: Double get() = weightPerUnitKg * 2.0
+}
+
+/** Kettlebell del inventario principal. */
+@Serializable
+data class KettlebellStock(val weightKg: Double)
+
+/**
+ * Rango de cargas de máquina: la carga real avanza en pasos de [incrementKg]
+ * desde [baseLoadKg] (carro/pin/stack mínimo), dentro de
+ * [minLoadKg]..[maxLoadKg]. Nunca asumir incrementos universales de 0,5 kg.
+ */
+@Serializable
+data class MachineLoadRange(
+    val name: String = "",
+    val minLoadKg: Double = 0.0,
+    val maxLoadKg: Double? = null,
+    val incrementKg: Double = 2.5,
+    val baseLoadKg: Double = 0.0,
+) {
+    /**
+     * Ajusta [targetKg] al paso más cercano real de la máquina (nunca inventa
+     * cargas intermedias). [MachineLoadResult.isExact] es false cuando el paso
+     * más cercano no coincide con el objetivo.
+     */
+    fun snapLoad(targetKg: Double): MachineLoadResult {
+        val upper = maxLoadKg
+        fun clamp(value: Double): Double = value.coerceAtLeast(minLoadKg).let { if (upper != null) minOf(it, upper) else it }
+        if (incrementKg <= 0.0) {
+            val achieved = clamp(targetKg)
+            return MachineLoadResult(targetKg, achieved, kotlin.math.abs(achieved - targetKg) < 0.01)
+        }
+        val firstIndex = if (minLoadKg > baseLoadKg) {
+            kotlin.math.ceil((minLoadKg - baseLoadKg) / incrementKg - 0.001).toInt().coerceAtLeast(0)
+        } else {
+            0
+        }
+        val targetIndex = kotlin.math.round((targetKg - baseLoadKg) / incrementKg).toInt().coerceAtLeast(firstIndex)
+        val achieved = clamp(baseLoadKg + targetIndex * incrementKg)
+        return MachineLoadResult(targetKg, achieved, kotlin.math.abs(achieved - targetKg) < 0.01)
+    }
+}
+
+/** Resultado de ajustar una carga al rango real de una máquina. */
+data class MachineLoadResult(
+    val requestedKg: Double,
+    val achievedKg: Double,
+    val isExact: Boolean,
+)
+
+/**
+ * Resultado de resolver una carga de mancuerna por unidad.
+ * [achievedPerUnitKg] es null cuando la carga es inalcanzable con el
+ * inventario (p. ej. existe el peso pero sin pareja): nunca se sustituye en
+ * silencio por otra carga.
+ */
+data class DumbbellLoadResult(
+    val requestedPerUnitKg: Double,
+    val achievedPerUnitKg: Double?,
+    val pairAvailable: Boolean,
+    val isExact: Boolean,
+)
+
+/**
+ * Inventario principal del gimnasio (un solo inventario, kg canónicos).
+ * Resoluciones honestas con cantidades reales; sin sustituciones silenciosas.
+ */
+@Serializable
+data class EquipmentInventory(
+    val barbellWeightKg: Double? = null,
+    val plates: List<PlateStock> = emptyList(),
+    val dumbbells: List<DumbbellPairStock> = emptyList(),
+    val kettlebells: List<KettlebellStock> = emptyList(),
+    val machines: List<MachineLoadRange> = emptyList(),
+) {
+    fun resolvedBarbellWeightKg(fallback: Double = 20.0): Double =
+        barbellWeightKg?.takeIf { it > 0.0 } ?: fallback
+
+    /**
+     * Resuelve una carga de mancuerna por unidad:
+     * 1. Peso exacto con pareja disponible → exacto.
+     * 2. Peso exacto pero sin pareja → inalcanzable (sin sustitución silenciosa).
+     * 3. Sin peso exacto → el más alto disponible sin superar el objetivo.
+     * 4. Sin candidatos → inalcanzable.
+     */
+    fun resolveDumbbell(perUnitTargetKg: Double): DumbbellLoadResult {
+        val exact = dumbbells.firstOrNull { kotlin.math.abs(it.weightPerUnitKg - perUnitTargetKg) < 0.001 }
+        return when {
+            exact != null && exact.pairAvailable -> DumbbellLoadResult(
+                requestedPerUnitKg = perUnitTargetKg,
+                achievedPerUnitKg = exact.weightPerUnitKg,
+                pairAvailable = true,
+                isExact = true,
+            )
+            exact != null -> DumbbellLoadResult(perUnitTargetKg, null, pairAvailable = false, isExact = false)
+            else -> {
+                val candidate = dumbbells
+                    .filter { it.pairAvailable && it.weightPerUnitKg <= perUnitTargetKg + 0.001 }
+                    .maxByOrNull { it.weightPerUnitKg }
+                if (candidate == null) {
+                    DumbbellLoadResult(perUnitTargetKg, null, pairAvailable = false, isExact = false)
+                } else {
+                    DumbbellLoadResult(perUnitTargetKg, candidate.weightPerUnitKg, pairAvailable = true, isExact = false)
+                }
+            }
+        }
+    }
+}

@@ -184,12 +184,40 @@ class NutritionViewModelTest {
     // ─── Goals ─────────────────────────────────────────────────────────────
 
     @Test
-    fun `goals default values`() {
+    fun `goals without plan or settings are absent instead of default values`() {
         val goals = vm.goals.value
-        assertTrue(goals.calorieGoal > 0)
-        assertTrue(goals.proteinGoal > 0)
-        assertTrue(goals.carbGoal > 0)
-        assertTrue(goals.fatGoal > 0)
+        // Sin plan ni objetivos en ajustes: ausencia explícita y ningún
+        // default fabricado de 2500/150/250/70.
+        assertTrue(goals is DayGoalsResult.Absent)
+    }
+
+    @Test
+    fun `goals show explicit zeros from the plan as zero not as absence`() {
+        programRepo.updateSettings {
+            it.copy(
+                dailyCalorieGoal = null,
+                dailyProteinGoal = null,
+                dailyCarbGoal = null,
+                dailyFatGoal = null,
+            )
+        }
+        vm.createPlan(
+            NutritionPlan(
+                id = "zero-plan",
+                name = "Zero",
+                calorieTarget = 0,
+                proteinGoal = 0,
+                carbGoal = 0,
+                fatGoal = 0,
+                isActive = true,
+                createdAt = java.time.Instant.now().toString(),
+            ),
+        )
+        val goals = vm.goals.value as DayGoalsResult.Present
+        assertEquals(0, goals.goals.calorieGoal)
+        assertEquals(0, goals.goals.proteinGoal)
+        assertEquals(0, goals.goals.carbGoal)
+        assertEquals(0, goals.goals.fatGoal)
     }
 
     // ─── Plan Management ───────────────────────────────────────────────────

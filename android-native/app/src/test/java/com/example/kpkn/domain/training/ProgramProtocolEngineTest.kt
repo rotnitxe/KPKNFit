@@ -212,6 +212,10 @@ class ProgramProtocolEngineTest {
         }
         val squat = firstWeek.sessions.first().allExercises().first()
         assertTrue(squat.isCompetitionLift)
+        // La receta conserva 40/55/65 y el preset del plan añade 80×3 solo donde
+        // no hay equivalente (±5 pp): primer compuesto del patrón SQUAT.
+        // El calentamiento de la receta de autor se conserva íntegro (40/55/65):
+        // el preset 40/60/80 del plan no se suma sobre un protocolo.
         assertEquals(listOf(40.0, 55.0, 65.0), squat.warmupSets.map { it.percentageOfWorkingWeight })
         val phases = applied.macrocycles.first().blocks.map { it.goal }
         assertEquals(

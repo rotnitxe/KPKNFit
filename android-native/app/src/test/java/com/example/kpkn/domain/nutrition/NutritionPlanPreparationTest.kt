@@ -1,9 +1,12 @@
 package com.example.kpkn.domain.nutrition
 
+import com.example.kpkn.data.models.CalculationOrigin
 import com.example.kpkn.data.models.GoalMetric
 import com.example.kpkn.data.models.PlanDirection
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -111,5 +114,57 @@ class NutritionPlanPreparationTest {
         ))
         assertTrue(result.errors.isEmpty())
         assertEquals(1100, result.plan?.calorieTarget)
+    }
+
+    @Test
+    fun selfDefinedGoalsWorkWithoutTheProfessionalShortcut() {
+        val result = NutritionPlanPreparation.prepare(NutritionPlanPreparationInput(
+            planId = "self-defined",
+            ageYears = null, heightCm = null, weightKg = null, equationSex = null,
+            activity = EerActivity.INACTIVE, direction = PlanDirection.DEFICIT,
+            manualCalories = 2200, manualProteinG = 150.0, manualCarbsG = 220.0, manualFatG = 70.0,
+            configurationMode = NutritionConfigurationMode.SELF_DEFINED,
+        ))
+        assertTrue(result.errors.isEmpty())
+        val plan = result.plan!!
+        assertEquals(2200, plan.calorieTarget)
+        assertEquals(PlanDirection.DEFICIT, plan.direction)
+        // Objetivos propios SIN fabricar EER y SIN el atajo PROFESSIONAL
+        // (PROFESSIONAL queda reservado a pauta de tercero).
+        assertNull(result.recommendation?.eerKcal)
+        assertEquals(CalculationOrigin.MANUAL, plan.calculationOrigin)
+        assertNotEquals(CalculationOrigin.PROFESSIONAL, plan.calculationOrigin)
+        assertEquals(NutritionPlanPreparationStatus.READY, result.status)
+    }
+
+    @Test
+    fun trackingOnlyProducesNoPlanAndNoDefaults() {
+        val result = NutritionPlanPreparation.prepare(NutritionPlanPreparationInput(
+            planId = "tracking",
+            ageYears = null, heightCm = null, weightKg = null, equationSex = null,
+            activity = EerActivity.INACTIVE, direction = null,
+            configurationMode = NutritionConfigurationMode.TRACKING_ONLY,
+        ))
+        assertEquals(NutritionPlanPreparationStatus.TRACKING_ONLY, result.status)
+        assertNull(result.plan)
+        assertNull(result.recommendation)
+        assertTrue(result.errors.isEmpty())
+    }
+
+    @Test
+    fun preparationStatusSeparatesEquationBlockingFromUserValueProblems() {
+        val blocked = NutritionPlanPreparation.prepare(NutritionPlanPreparationInput(
+            planId = "blocked", ageYears = null, heightCm = null, weightKg = null, equationSex = null,
+            activity = EerActivity.ACTIVE, direction = PlanDirection.MAINTENANCE,
+        ))
+        assertEquals(NutritionPlanPreparationStatus.BLOCKED_EQUATION, blocked.status)
+
+        val manual = NutritionPlanPreparation.prepare(NutritionPlanPreparationInput(
+            planId = "manual-values", ageYears = null, heightCm = null, weightKg = null, equationSex = null,
+            activity = EerActivity.ACTIVE, direction = PlanDirection.DEFICIT,
+            configurationMode = NutritionConfigurationMode.SELF_DEFINED,
+        ))
+        assertEquals(NutritionPlanPreparationStatus.SELF_DEFINED_MANUAL, manual.status)
+        assertTrue(manual.errors.containsKey("calories"))
     }
 }

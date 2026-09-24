@@ -105,14 +105,27 @@ class NutritionViewModel : ViewModel() {
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val goals: StateFlow<MacroGoals> = combine(
+    /**
+     * Metas del día seleccionado, resueltos por fecha con el resolvedor
+     * canónico: el snapshot histórico del día manda sobre el plan actual.
+     * [DayGoalsResult.Absent] es ausencia explícita (TrackingOnly/NoGoal) y
+     * nunca se rellena con defaults de 2500/150/250/70.
+     */
+    val goals: StateFlow<DayGoalsResult> = combine(
         programRepo.settings,
         activePlan,
-    ) { settings, plan ->
-        deriveMacroGoals(settings, plan)
+        nutritionRepo.dailyGoalSnapshots,
+        _selectedDate,
+    ) { settings, plan, snapshots, date ->
+        resolveDayGoals(
+            date = runCatching { LocalDate.parse(date) }.getOrDefault(LocalDate.now()),
+            settings = settings,
+            activePlan = plan,
+            snapshot = snapshots.find { it.date.trim().take(10) == date.trim().take(10) },
+        )
     }
         .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, MacroGoals())
+        .stateIn(viewModelScope, SharingStarted.Lazily, DayGoalsResult.Absent(GoalsAbsence.TRACKING_ONLY))
 
     // ─── Derived: Today Logs ────────────────────────────────────────────────
 
@@ -141,7 +154,14 @@ class NutritionViewModel : ViewModel() {
     val macroRingPct: StateFlow<MacroRingPct> = combine(
         dailyTotals, goals
     ) { totals, g ->
-        computeMacroRingPct(totals, g.calorieGoal, g.proteinGoal, g.carbGoal, g.fatGoal)
+        val dayGoals = (g as? DayGoalsResult.Present)?.goals
+        computeMacroRingPct(
+            totals,
+            dayGoals?.calorieGoal,
+            dayGoals?.proteinGoal,
+            dayGoals?.carbGoal,
+            dayGoals?.fatGoal,
+        )
     }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, MacroRingPct())
@@ -150,80 +170,12 @@ class NutritionViewModel : ViewModel() {
         dailyTotals,
         goals,
     ) { totals, g ->
-        listOf(
-            NutrientProgress(
-                key = "calories",
-                label = "Calorias",
-                consumed = totals.calories,
-                goal = g.calorieGoal.toDouble(),
-                unit = "kcal",
-                showOverages = g.showOverages,
-            ),
-            NutrientProgress(
-                key = "protein",
-                label = "Proteina",
-                consumed = totals.protein,
-                goal = g.proteinGoal.toDouble(),
-                unit = "g",
-                showOverages = g.showOverages,
-            ),
-            NutrientProgress(
-                key = "carbs",
-                label = "Carbohidratos",
-                consumed = totals.carbs,
-                goal = g.carbGoal.toDouble(),
-                unit = "g",
-                showOverages = g.showOverages,
-            ),
-            NutrientProgress(
-                key = "fats",
-                label = "Grasas",
-                consumed = totals.fats,
-                goal = g.fatGoal.toDouble(),
-                unit = "g",
-                showOverages = g.showOverages,
-            ),
-            NutrientProgress(
-                key = "fiber",
-                label = "Fibra",
-                consumed = totals.fiber,
-                goal = g.fiberGoal.toDouble(),
-                unit = "g",
-                showOverages = true,
-            ),
-            NutrientProgress(
-                key = "sugar",
-                label = "Azucar",
-                consumed = totals.sugar,
-                goal = g.sugarLimit.toDouble(),
-                unit = "g",
-                showOverages = true,
-            ),
-            NutrientProgress(
-                key = "sodium",
-                label = "Sodio",
-                consumed = totals.sodiumMg,
-                goal = g.sodiumLimitMg.toDouble(),
-                unit = "mg",
-                showOverages = true,
-            ),
-            NutrientProgress(
-                key = "potassium",
-                label = "Potasio",
-                consumed = totals.potassiumMg,
-                goal = g.potassiumGoalMg.toDouble(),
-                unit = "mg",
-                showOverages = g.showOverages,
-            ),
-            NutrientProgress(
-                key = "hydration",
-                label = "Agua",
-                consumed = totals.waterMl,
-                goal = g.hydrationGoalMl.toDouble(),
-                unit = "ml",
-                showOverages = g.showOverages,
-            ),
-        )
+        when (g) {
+            // Sin metas no hay filas de progreso: nada que medir y ningún
+            // default que enseñar.
+            is DayGoalsResult.Absent -> emptyList<NutrientProgress>()
+            is DayGoalsResult.Present -> nutrientProgressRows(totals, g.goals)
+        }
     }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
@@ -231,9 +183,22 @@ class NutritionViewModel : ViewModel() {
     // ─── Derived: Trend Data ────────────────────────────────────────────────
 
     val trendData: StateFlow<List<TrendPoint>> = combine(
-        nutritionLogs, goals
-    ) { logs, g ->
-        computeTrendData(logs, g.calorieGoal, 7)
+        nutritionLogs,
+        programRepo.settings,
+        activePlan,
+        nutritionRepo.dailyGoalSnapshots,
+    ) { logs, settings, plan, snapshots ->
+        val end = LocalDate.now()
+        val days = 7
+        val goalKcalByDate = resolveDayGoalsByDate(
+            dates = (0L until days.toLong()).map { end.minusDays(it) },
+            settings = settings,
+            activePlan = plan,
+            snapshots = snapshots,
+            today = end,
+        ).mapKeys { it.key.toString() }
+            .mapValues { (_, dayGoals) -> (dayGoals as? DayGoalsResult.Present)?.goals?.calorieGoal }
+        computeTrendData(logs, goalKcalByDate, days)
     }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
@@ -464,17 +429,26 @@ class NutritionViewModel : ViewModel() {
         .stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
     val dailyEnergyBalance: StateFlow<DailyEnergyBalance> = combine(
-        dailyTotals,
-        programRepo.settings,
-        programRepo.history,
-        _selectedDate,
-        activePlan,
-    ) { totals, settings, history, date, plan ->
+        combine(dailyTotals, programRepo.history, _selectedDate) { totals, history, date ->
+            Triple(totals, history, date)
+        },
+        combine(programRepo.settings, activePlan, nutritionRepo.dailyGoalSnapshots) { settings, plan, snapshots ->
+            Triple(settings, plan, snapshots)
+        },
+    ) { dayTriple, goalsTriple ->
+        val (totals, history, date) = dayTriple
+        val (settings, plan, snapshots) = goalsTriple
         val consumedKcal = totals.calories.toInt()
-        // A daily balance is meaningful only against the active food goal (or
-        // an explicitly migrated settings goal); never invent a 2,000-kcal
-        // target when no plan is active.
-        val targetKcal = plan?.calorieTarget?.takeIf { it > 0 } ?: settings.dailyCalorieGoal ?: 0
+        // A daily balance is meaningful only against the goal resolved for the
+        // selected date (its snapshot first, never the current plan for a past
+        // day); never invent a target when that day has no goals.
+        val dayGoals = resolveDayGoals(
+            date = LocalDate.parse(date),
+            settings = settings,
+            activePlan = plan,
+            snapshot = snapshots.find { it.date.trim().take(10) == date.trim().take(10) },
+        )
+        val targetKcal = (dayGoals as? DayGoalsResult.Present)?.goals?.calorieGoal ?: 0
         val activityDay = LocalDate.parse(date)
         val workoutsToday = history.filter { log ->
             val logDay = log.actualDate?.take(10)?.let(LocalDate::parse)
@@ -507,7 +481,7 @@ class NutritionViewModel : ViewModel() {
     data class NutritionUiState(
         val selectedDate: String,
         val totals: DailyMacroTotals,
-        val goals: MacroGoals,
+        val goals: DayGoalsResult,
         val macroRingPct: MacroRingPct,
         val nutrientProgress: List<NutrientProgress>,
         val mealGroups: List<MealGroup>,
@@ -522,7 +496,7 @@ class NutritionViewModel : ViewModel() {
     private data class UiPrimaryState(
         val selectedDate: String,
         val totals: DailyMacroTotals,
-        val goals: MacroGoals,
+        val goals: DayGoalsResult,
         val macroRingPct: MacroRingPct,
     )
 
@@ -552,7 +526,7 @@ class NutritionViewModel : ViewModel() {
         UiPrimaryState(
             selectedDate = LocalDate.now().toString(),
             totals = DailyMacroTotals(),
-            goals = MacroGoals(),
+            goals = DayGoalsResult.Absent(GoalsAbsence.TRACKING_ONLY),
             macroRingPct = MacroRingPct(),
         )
     )
@@ -604,7 +578,7 @@ class NutritionViewModel : ViewModel() {
         NutritionUiState(
             selectedDate = LocalDate.now().toString(),
             totals = DailyMacroTotals(),
-            goals = MacroGoals(),
+            goals = DayGoalsResult.Absent(GoalsAbsence.TRACKING_ONLY),
             macroRingPct = MacroRingPct(),
             nutrientProgress = emptyList(),
             mealGroups = emptyList(),
@@ -630,6 +604,44 @@ class NutritionViewModel : ViewModel() {
                     dailyCarbGoal = plan.carbGoal.takeIf { it > 0 } ?: current.dailyCarbGoal,
                     dailyFatGoal = plan.fatGoal.takeIf { it > 0 } ?: current.dailyFatGoal,
                     calorieGoalObjective = goalObjective,
+                )
+            }
+        }
+    }
+
+    /**
+     * Filas de progreso solo para metas presentes. Un campo sin meta (null)
+     * no genera fila: nada de defaults inventados; un 0 explícito sí se
+     * muestra como 0.
+     */
+    private fun nutrientProgressRows(totals: DailyMacroTotals, goals: MacroGoals): List<NutrientProgress> {
+        data class Row(
+            val key: String,
+            val label: String,
+            val consumed: Double,
+            val goal: Int?,
+            val unit: String,
+            val showOverages: Boolean,
+        )
+        return listOf(
+            Row("calories", "Calorias", totals.calories, goals.calorieGoal, "kcal", goals.showOverages),
+            Row("protein", "Proteina", totals.protein, goals.proteinGoal, "g", goals.showOverages),
+            Row("carbs", "Carbohidratos", totals.carbs, goals.carbGoal, "g", goals.showOverages),
+            Row("fats", "Grasas", totals.fats, goals.fatGoal, "g", goals.showOverages),
+            Row("fiber", "Fibra", totals.fiber, goals.fiberGoal, "g", true),
+            Row("sugar", "Azucar", totals.sugar, goals.sugarLimit, "g", true),
+            Row("sodium", "Sodio", totals.sodiumMg, goals.sodiumLimitMg, "mg", true),
+            Row("potassium", "Potasio", totals.potassiumMg, goals.potassiumGoalMg, "mg", goals.showOverages),
+            Row("hydration", "Agua", totals.waterMl, goals.hydrationGoalMl, "ml", goals.showOverages),
+        ).mapNotNull { row ->
+            row.goal?.let { goal ->
+                NutrientProgress(
+                    key = row.key,
+                    label = row.label,
+                    consumed = row.consumed,
+                    goal = goal.toDouble(),
+                    unit = row.unit,
+                    showOverages = row.showOverages,
                 )
             }
         }

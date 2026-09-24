@@ -3,10 +3,13 @@ package com.example.kpkn.domain.training
 import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.BlockProgressionScheme
+import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseRelationshipType
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
+import com.example.kpkn.data.models.LoadModeV2
+import com.example.kpkn.data.models.MachineLoadRange
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.MesocycleGoal
@@ -21,6 +24,7 @@ import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.WarmupSetDefinition
 import com.example.kpkn.data.models.WeekExecutionKind
+import com.example.kpkn.data.models.WorkoutContextProfile
 import com.example.kpkn.data.models.alignTemporalMetadata
 import com.example.kpkn.data.models.ProgramGoals
 import com.example.kpkn.data.models.SessionOrigin
@@ -36,7 +40,43 @@ import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.WeekRecipe
 import com.example.kpkn.data.protocols.displayName
 import com.example.kpkn.data.protocols.executionCue
+import com.example.kpkn.data.protocols.firstCompoundWarmupPercentSets
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
+import com.example.kpkn.domain.calculations.PlateCalculator
+import com.example.kpkn.domain.workout.BaseLoadPolicy
+import com.example.kpkn.domain.workout.WarmupCalibrationEngine
+import com.example.kpkn.domain.workout.WarmupEffortReport
+import com.example.kpkn.domain.workout.warmupValidationMessages
+import kotlin.math.abs
+
+enum class WarmupLoadStatus {
+    /** Carga real disponible respetando el inventario. */
+    READY,
+    /** Sin referencia de carga: porcentaje pendiente, nunca kg inventados. */
+    PENDING_PERCENT,
+    /** Peso corporal / asistido: sin % de carga externa ficticia. */
+    NOT_APPLICABLE_LOAD_MODE,
+    /** Aproximación ya reportada al calibrador. */
+    COMPLETED,
+    /** Carga repetida por redondeo/inventario: se evita duplicarla. */
+    DEDUPED,
+}
+
+data class WarmupLoadEntry(
+    val definition: WarmupSetDefinition,
+    val status: WarmupLoadStatus,
+    val requestedKg: Double?,
+    val realizedKg: Double?,
+    val isExact: Boolean,
+)
+
+data class WarmupLoadPlan(
+    val entries: List<WarmupLoadEntry>,
+    /** Avisos de WarmupRules: son umbrales de advertencia, nunca límites duros. */
+    val validationMessages: List<String>,
+    /** Nota de WarmupCalibrationEngine (±2,5 % por reporte, tope 5 %). */
+    val calibrationNote: String?,
+)
 
 object PlanMaterializer {
     fun materialize(
@@ -108,11 +148,9 @@ object PlanMaterializer {
             powerliftingProfile = resolvedProfile ?: program.powerliftingProfile,
             sourceRecipe = recipe,
             sourceProtocolId = sourceProtocolId,
-            autoregulationMode = if (program.autoregulationMode == AutoregulationMode.OFF) {
-                AutoregulationMode.PROPOSE
-            } else {
-                program.autoregulationMode
-            },
+            // El modo elegido por el usuario (OFF/PROPOSE/AUTO) sobrevive a la
+            // materialización: nunca se fuerza PROPOSE aquí.
+            autoregulationMode = program.autoregulationMode,
             runState = null,
             loops = emptyList(),
             loopState = null,
@@ -241,8 +279,9 @@ object PlanMaterializer {
         idProvider: IdProvider,
         profile: PowerliftingProfile?,
     ): Session {
-        val exercises = day.slots.map { slot ->
-            materializeSlot(slot, week, recipe, metadata, idProvider, profile)
+        val assignedWarmups = assignWarmups(day, metadata, idProvider)
+        val exercises = day.slots.mapIndexed { index, slot ->
+            materializeSlot(slot, week, recipe, metadata, idProvider, profile, assignedWarmups[index])
         }
         val parts = groupParts(day, exercises, idProvider)
         return Session(
@@ -286,6 +325,7 @@ object PlanMaterializer {
         metadata: ExerciseCompositionMetadataProvider,
         idProvider: IdProvider,
         profile: PowerliftingProfile?,
+        warmupSets: List<WarmupSetDefinition>,
     ): Exercise {
         val meta = metadata.metadata(slot.lift.configurationId)
             ?: error("Configuración '${slot.lift.configurationId}' sin metadata del catálogo")
@@ -333,24 +373,7 @@ object PlanMaterializer {
             occurrenceId = idProvider.newId(),
             slotRole = slot.role,
             techniqueModifier = slot.technique,
-            warmupSets = if (warmups.isNotEmpty()) {
-                warmups.map { set ->
-                    WarmupSetDefinition(
-                        idProvider.newId(),
-                        set.percent ?: 40.0,
-                        set.reps ?: 5,
-                        restBetween = 60,
-                    )
-                }
-            } else if (slot.role == SlotRole.T1_MAIN && usesPercent) {
-                listOf(
-                    WarmupSetDefinition(idProvider.newId(), 40.0, 5, restBetween = 60),
-                    WarmupSetDefinition(idProvider.newId(), 55.0, 3, restBetween = 90),
-                    WarmupSetDefinition(idProvider.newId(), 65.0, 1, restBetween = 120),
-                )
-            } else {
-                emptyList()
-            },
+            warmupSets = warmupSets,
         )
     }
 
@@ -411,5 +434,162 @@ object PlanMaterializer {
         val safeRecipe = recipeDay.coerceIn(1, 7)
         val safeStart = startDay.coerceIn(1, 7)
         return ((safeStart - 1) + (safeRecipe - 1)).mod(7) + 1
+    }
+
+    private const val WARMUP_EQUIVALENT_POINTS = 5.0
+    private const val UNKNOWN_PATTERN_BUCKET = "__unknown_pattern__"
+
+    /**
+     * Aproximaciones por slot: las que trae la receta (autor, intactas) más el
+     * preset del plan (`firstCompoundWarmupPercentSets`: 40 % × 8, 60 % × 5,
+     * 80 % × 3 sobre la carga de trabajo) solo en el primer compuesto de cada
+     * patrón de movimiento del día. El patrón se identifica con la composición
+     * real del catálogo ([CompositionTaxonomy]), no solo por
+     * [SlotRole.T1_MAIN]: los programas nativos no siempre etiquetan así.
+     *
+     * Anti-redundancia: un paso del preset equivalente (±5 puntos porcentuales)
+     * a una aproximación ya presente no se duplica. El resultado queda ordenado
+     * por porcentaje ascendente; el usuario puede editar reps/% o quitar
+     * cualquier aproximación después.
+     */
+    private fun assignWarmups(
+        day: DayRecipe,
+        metadata: ExerciseCompositionMetadataProvider,
+        idProvider: IdProvider,
+    ): List<List<WarmupSetDefinition>> {
+        val claimedPatterns = mutableSetOf<String>()
+        val out = mutableListOf<List<WarmupSetDefinition>>()
+        day.slots.forEach { slot ->
+            val meta = metadata.metadata(slot.lift.configurationId)
+            val family = CompositionTaxonomy.familyOf(meta?.movementPatternId)
+            val compound = meta != null &&
+                !CompositionTaxonomy.isIsolation(family, meta.articulationType, meta.configurationId)
+            val patternBucket = family?.name ?: UNKNOWN_PATTERN_BUCKET
+            val isFirstCompoundOfPattern = when {
+                family != null && compound -> claimedPatterns.add(patternBucket)
+                // Sin patrón en el catálogo se conserva el fallback legacy por rol.
+                family == null && slot.role == SlotRole.T1_MAIN -> claimedPatterns.add(patternBucket)
+                else -> false
+            }
+            val recipeWarmups = slot.sets.filter { it.isWarmup }.map { set ->
+                WarmupSetDefinition(idProvider.newId(), set.percent ?: 40.0, set.reps ?: 5, restBetween = 60)
+            }
+            val usesPercent = slot.sets.any { it.percent != null }
+            // Los calentamientos específicos de protocolo se conservan íntegros salvo
+            // edición explícita del usuario: el preset del plan NO se suma sobre ellos.
+            // El preset se aplica solo al primer compuesto de cada patrón cuando la
+            // receta no trae aproximaciones propias.
+            val presetWarmups = if (recipeWarmups.isEmpty() && isFirstCompoundOfPattern && usesPercent) {
+                firstCompoundWarmupPercentSets().mapNotNull { step ->
+                    val percent = step.percent ?: return@mapNotNull null
+                    WarmupSetDefinition(
+                        id = idProvider.newId(),
+                        percentageOfWorkingWeight = percent,
+                        targetReps = step.reps ?: 5,
+                        restBetween = when {
+                            percent >= 70.0 -> 120
+                            percent >= 50.0 -> 90
+                            else -> 60
+                        },
+                    )
+                }
+            } else {
+                emptyList()
+            }
+            out.add(
+                (recipeWarmups + presetWarmups)
+                    .sortedBy { WarmupCalibrationEngine.normalizePercentage(it.percentageOfWorkingWeight) },
+            )
+        }
+        return out
+    }
+
+    /**
+     * Realiza las cargas de aproximación contra el inventario real:
+     * - Los porcentajes son sobre la carga de trabajo ([workingLoadKg]), nunca
+     *   sobre el 1RM; con calibración de WarmupCalibrationEngine (±2,5 %, tope 5 %).
+     * - Sin referencia de carga → porcentajes pendientes
+     *   ([WarmupLoadStatus.PENDING_PERCENT]), nunca kilogramos inventados.
+     * - Peso corporal / asistido → sin % de carga externa ficticia
+     *   ([WarmupLoadStatus.NOT_APPLICABLE_LOAD_MODE]).
+     * - La carga se ajusta con [PlateCalculator] (discos con cantidades) o al
+     *   rango real de la máquina; no se asumen incrementos universales de 0,5 kg.
+     * - [BaseLoadPolicy] impone el piso de carga base por etiqueta activa.
+     * - Las cargas repetidas por redondeo se colapsan ([WarmupLoadStatus.DEDUPED]).
+     */
+    fun realizeWarmupLoads(
+        warmups: List<WarmupSetDefinition>,
+        workingLoadKg: Double?,
+        inventory: EquipmentInventory,
+        loadMode: LoadModeV2 = LoadModeV2.LOAD,
+        taggedProfile: WorkoutContextProfile? = null,
+        activeTagId: String? = null,
+        machine: MachineLoadRange? = null,
+        effortReports: List<WarmupEffortReport> = emptyList(),
+        effectiveSetCount: Int = 3,
+    ): WarmupLoadPlan {
+        val validationMessages = warmupValidationMessages(warmups, effectiveSetCount)
+        if (loadMode == LoadModeV2.BODYWEIGHT || loadMode == LoadModeV2.ASSISTED) {
+            return WarmupLoadPlan(
+                entries = warmups.map {
+                    WarmupLoadEntry(it, WarmupLoadStatus.NOT_APPLICABLE_LOAD_MODE, null, null, isExact = false)
+                },
+                validationMessages = validationMessages,
+                calibrationNote = null,
+            )
+        }
+        val calibration = WarmupCalibrationEngine.calibrateWorkingLoad(
+            programmedPercentages = warmups.map { it.percentageOfWorkingWeight },
+            workingLoadKg = workingLoadKg,
+            reports = effortReports,
+        )
+        val lastReportedIndex = effortReports.maxOfOrNull { it.warmupIndex } ?: -1
+        val resolved = warmups.mapIndexed { index, definition ->
+            when {
+                index <= lastReportedIndex ->
+                    WarmupLoadEntry(definition, WarmupLoadStatus.COMPLETED, null, null, isExact = false)
+                else -> {
+                    val requested = calibration.remainingWarmupLoadsKg.getOrNull(index)
+                    if (requested == null || requested <= 0.0) {
+                        WarmupLoadEntry(definition, WarmupLoadStatus.PENDING_PERCENT, null, null, isExact = false)
+                    } else {
+                        val achieved = machine?.snapLoad(requested)?.achievedKg
+                            ?: PlateCalculator.calculatePlates(requested, inventory).achievedWeight
+                        val floor = BaseLoadPolicy.floorForLoadSuggestion(
+                            loadMode = loadMode,
+                            activeTagId = activeTagId,
+                            engineSuggestedKg = achieved,
+                            taggedProfileBaseLoadKg = BaseLoadPolicy.resolvedFromProfile(taggedProfile),
+                        )
+                        val realized = floor?.suggestedWeight ?: achieved
+                        WarmupLoadEntry(
+                            definition = definition,
+                            status = WarmupLoadStatus.READY,
+                            requestedKg = requested,
+                            realizedKg = realized,
+                            isExact = abs(realized - requested) < 0.01,
+                        )
+                    }
+                }
+            }
+        }
+        // Evitar cargas repetidas por redondeo: gana la aproximación más liviana.
+        val seen = mutableListOf<Double>()
+        val entries = resolved.map { entry ->
+            val realized = entry.realizedKg
+            if (entry.status != WarmupLoadStatus.READY || realized == null) {
+                entry
+            } else if (seen.any { abs(it - realized) < 0.001 }) {
+                entry.copy(status = WarmupLoadStatus.DEDUPED, realizedKg = null, isExact = false)
+            } else {
+                seen += realized
+                entry
+            }
+        }
+        return WarmupLoadPlan(
+            entries = entries,
+            validationMessages = validationMessages,
+            calibrationNote = calibration.note,
+        )
     }
 }

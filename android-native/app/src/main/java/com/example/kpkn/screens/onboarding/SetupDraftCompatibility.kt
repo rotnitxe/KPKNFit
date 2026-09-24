@@ -2,6 +2,11 @@ package com.example.kpkn.screens.onboarding
 
 import com.example.kpkn.data.onboarding.SetupDraftResolver
 import com.example.kpkn.data.onboarding.SetupDraftScope
+import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
+import com.example.kpkn.domain.onboarding.SetupPreviewKind
+import com.example.kpkn.domain.onboarding.SetupProgressOrigin
+import com.example.kpkn.domain.onboarding.SetupStepGraph
+import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.WizChatAnswerSource
 import com.example.kpkn.domain.onboarding.WizChatGraph
 import com.example.kpkn.domain.onboarding.WizChatQuestionId
@@ -26,7 +31,56 @@ object SetupDraftCompatibility {
         else mandatoryOrder.filterNot { it in declaredVitals(draft) }
 
     fun repair(draft: SetupWizardDraft): SetupWizardDraft =
-        repairGoalStyleConflict(restoreMandatoryVitals(draft))
+        repairStepProgress(repairGoalStyleConflict(restoreMandatoryVitals(draft)))
+
+    /**
+     * Maps the legacy `currentQuestionId` onto the stable wizard step so old
+     * WizChat drafts resume exactly where they stopped. Drafts that cannot be
+     * placed inside the step route keep every legacy payload untouched and are
+     * marked NOT_CONVERTIBLE: they survive until the user explicitly discards
+     * them.
+     */
+    fun repairStepProgress(draft: SetupWizardDraft): SetupWizardDraft {
+        if (draft.stepProgress.origin != SetupProgressOrigin.NOT_CONVERTIBLE) return draft
+        val provenance = draft.wizChat.acceptedAnswers.mapNotNull { record ->
+            SetupStepGraph.stepForQuestion(record.questionId)?.let { step ->
+                step to SetupAnswerProvenance.fromLegacy(record.source)
+            }
+        }.toMap()
+        val migrated = SetupStepGraph.migrateFromLegacy(
+            draft.wizChat.currentQuestionId, draft.stepContext(), provenance)
+        return if (migrated == draft.stepProgress) draft
+        else draft.copy(stepProgress = migrated.copy(revision = draft.stepProgress.revision + 1))
+    }
+
+    /**
+     * Resume rule when the plan catalog changed while the draft was stored:
+     * every answer is kept, the selection that may no longer exist is cleared
+     * only when its plan is really gone, and the step is marked for review with
+     * the dependent previews stale. Returns the draft untouched when the
+     * catalog did not change or the draft never selected a plan.
+     */
+    fun applyCatalogRevision(
+        draft: SetupWizardDraft,
+        persistedRevision: String?,
+        currentRevision: String,
+        planExists: (String) -> Boolean,
+    ): SetupWizardDraft {
+        if (persistedRevision == null || persistedRevision == currentRevision) return draft
+        val selected = draft.selectedCatalogId ?: return draft
+        return draft.copy(
+            catalogRevision = currentRevision,
+            selectedCatalogId = selected.takeIf(planExists),
+            stepProgress = draft.stepProgress
+                .withPendingReview(setOf(SetupStepId.PLAN))
+                .withStalePreviews(setOf(
+                    SetupPreviewKind.PLAN_CANDIDATES, SetupPreviewKind.EXERCISES,
+                    SetupPreviewKind.LOADS, SetupPreviewKind.WARMUPS, SetupPreviewKind.SPLIT,
+                    SetupPreviewKind.RECIPE, SetupPreviewKind.MARKS,
+                )),
+            wizChat = draft.wizChat.copy(terminal = false, revision = draft.wizChat.revision + 1),
+        )
+    }
 
     private fun repairGoalStyleConflict(draft: SetupWizardDraft): SetupWizardDraft {
         val goal = draft.goal ?: return draft

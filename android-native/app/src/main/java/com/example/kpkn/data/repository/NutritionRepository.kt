@@ -12,11 +12,14 @@ import com.example.kpkn.domain.nutrition.FoodIndex
 import com.example.kpkn.domain.nutrition.FoodState
 import com.example.kpkn.domain.nutrition.FoodIdentity
 import com.example.kpkn.domain.nutrition.FoodTemplateMatcher
+import com.example.kpkn.domain.nutrition.NutritionGoalResolver
+import com.example.kpkn.domain.nutrition.NutritionGoalSource
 import com.example.kpkn.domain.nutrition.SemanticPortionRetriever
 import com.example.kpkn.domain.nutrition.SmartFoodResolver
 import com.example.kpkn.domain.nutrition.SubjectivePortionEngine
 import com.example.kpkn.domain.nutrition.FoodLearningConfirmation
 import com.example.kpkn.domain.nutrition.NutritionCalibrationWizardEngine
+import com.example.kpkn.domain.nutrition.planDayTargetOf
 import androidx.room.withTransaction
 import com.example.kpkn.services.nutrition.NutritionNotificationManager
 import kotlinx.coroutines.CancellationException
@@ -137,23 +140,18 @@ class NutritionRepository private constructor(
         }) { "Invalid food amount or nutrients" }
         withContext(Dispatchers.IO) {
             val alreadyStored = db.nutritionDao().getLogsForDate(log.date).any { it.id == log.id }
-            val plan = activeNutritionPlan
-            val snapshot = DailyGoalSnapshot(
-                date = log.date.take(10), planId = plan?.id,
-                calorieTargetKcal = plan?.calorieTarget?.takeIf { it > 0 },
-                proteinGoalG = plan?.proteinGoal?.takeIf { it > 0 },
-                carbGoalG = plan?.carbGoal?.takeIf { it > 0 },
-                fatGoalG = plan?.fatGoal?.takeIf { it > 0 }, direction = plan?.direction,
-                calculationOrigin = plan?.calculationOrigin ?: CalculationOrigin.MANUAL,
-                capturedAtEpochMs = System.currentTimeMillis(),
-            )
+            // El objetivo histórico pasa por el resolvedor canónico: un registro
+            // retroactivo (o su edición/borrado) jamás captura el plan activo
+            // actual; sin evidencia del objetivo que estuvo vigente se conserva
+            // la ausencia histórica. Los ceros explícitos persisten como ceros.
+            val snapshot = resolvedDailyGoalSnapshot(log.date.take(10), activeNutritionPlan)
             val snapshotInserted = db.withTransaction {
                 db.nutritionDao().upsertLog(log.toEntity())
-                db.nutritionDao().insertDailyGoalSnapshot(snapshot.toEntity()) != -1L
+                if (snapshot != null) db.nutritionDao().insertDailyGoalSnapshot(snapshot.toEntity()) != -1L else false
             }
             // Publish only committed rows, with no background writes left behind.
             _nutritionLogs.update { current -> current.filterNot { it.id == log.id } + log }
-            if (snapshotInserted) _dailyGoalSnapshots.update { current -> current.filterNot { it.date == snapshot.date } + snapshot }
+            if (snapshotInserted && snapshot != null) _dailyGoalSnapshots.update { current -> current.filterNot { it.date == snapshot.date } + snapshot }
             // A failed optional habit write must not report that the durable meal failed.
             try {
                 for (confirmation in confirmations.takeUnless { alreadyStored }.orEmpty()) {
@@ -429,6 +427,28 @@ class NutritionRepository private constructor(
         }
     }
 
+    /**
+     * Publica en las cachés el resultado de un commit transaccional del editor
+     * nutricional directo (plan, plan activo y snapshots históricos). Sirve
+     * también para el modo de solo registro, en el que no hay plan que publicar.
+     */
+    suspend fun publishNutritionPlanCommit() {
+        val committedPlans = withContext(Dispatchers.IO) {
+            db.nutritionDao().getAllPlans().map { it.toNutritionPlan() }
+        }
+        val committedActiveId = withContext(Dispatchers.IO) {
+            db.nutritionDao().getActiveState()?.activePlanId
+        }
+        val committedSnapshots = withContext(Dispatchers.IO) {
+            db.nutritionDao().getAllDailyGoalSnapshots().mapNotNull { it.toDailyGoalSnapshot() }
+        }
+        withContext(Dispatchers.Main.immediate) {
+            _nutritionPlans.value = committedPlans
+            _activeNutritionPlanId.value = committedActiveId
+            _dailyGoalSnapshots.value = committedSnapshots
+        }
+    }
+
     fun addNutritionPlan(plan: NutritionPlan) {
         _nutritionPlans.update { plans ->
             val existingIndex = plans.indexOfFirst { it.id == plan.id }
@@ -511,26 +531,40 @@ class NutritionRepository private constructor(
     }
 
     /**
+     * Resuelve con el resolvedor canónico el objetivo que debe quedar fijado
+     * para una fecha, o null cuando no hay evidencia del objetivo que estuvo
+     * vigente (la ausencia histórica se conserva y no se escribe nada). Los
+     * ceros explícitos del plan persisten como ceros; null es ausencia.
+     */
+    private suspend fun resolvedDailyGoalSnapshot(date: String, plan: NutritionPlan?): DailyGoalSnapshot? {
+        val normalizedDate = date.trim().take(10)
+        if (normalizedDate.isBlank()) return null
+        val parsedDate = runCatching { LocalDate.parse(normalizedDate) }.getOrNull() ?: return null
+        val existing = db.nutritionDao().getDailyGoalSnapshot(normalizedDate)?.toDailyGoalSnapshot()
+        val forecast = plan?.let { planDayTargetOf(it, NutritionGoalSource.PLAN_FORECAST) }
+        return NutritionGoalResolver.resolve(
+            date = parsedDate,
+            today = LocalDate.now(),
+            snapshot = existing,
+            todayForecast = forecast,
+            planForecast = forecast,
+            capturedAtEpochMs = System.currentTimeMillis(),
+        ).fixSnapshot
+    }
+
+    /**
      * Captures the goal in force for a date exactly once. This deliberately
      * uses an INSERT-IGNORE DAO operation: changing/deleting a plan must not
-     * rewrite the target used to explain an historical intake day.
+     * rewrite the target used to explain an historical intake day. The goal is
+     * resolved through [NutritionGoalResolver]: retroactive records, edits and
+     * deletions never capture the current active plan.
      */
     fun captureDailyGoalSnapshot(date: String) {
         val normalizedDate = date.trim().take(10)
         if (normalizedDate.isBlank()) return
         val plan = activeNutritionPlan
         scope.launch {
-            val snapshot = DailyGoalSnapshot(
-                    date = normalizedDate,
-                    planId = plan?.id,
-                    calorieTargetKcal = plan?.calorieTarget?.takeIf { it > 0 },
-                    proteinGoalG = plan?.proteinGoal?.takeIf { it > 0 },
-                    carbGoalG = plan?.carbGoal?.takeIf { it > 0 },
-                    fatGoalG = plan?.fatGoal?.takeIf { it > 0 },
-                    direction = plan?.direction,
-                    calculationOrigin = plan?.calculationOrigin ?: CalculationOrigin.MANUAL,
-                    capturedAtEpochMs = System.currentTimeMillis(),
-                )
+            val snapshot = resolvedDailyGoalSnapshot(normalizedDate, plan) ?: return@launch
             val inserted = db.nutritionDao().insertDailyGoalSnapshot(snapshot.toEntity())
             if (inserted != -1L) {
                 _dailyGoalSnapshots.update { current ->

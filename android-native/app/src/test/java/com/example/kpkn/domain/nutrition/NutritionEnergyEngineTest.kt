@@ -225,4 +225,24 @@ class NutritionEnergyEngineTest {
         assertTrue(sum <= 1_200 + 4)
         assertTrue(p >= 10 && f >= 10 && c >= 0)
     }
+
+    @Test
+    fun `scaling preserves a manual zero and still scales all three macros`() {
+        // Grasa 0 manual: sigue en 0 g y los otros dos escalan proporcionalmente.
+        val fatBase = atwaterKcal(150.0, 250.0, 0.0)
+        val (p1, c1, f1) = scaleMacrosToCalories(150.0, 250.0, 0.0, 2_000)
+        assertEquals(0, f1)
+        assertEquals((150.0 * 2_000.0 / fatBase).roundToInt().toDouble(), p1.toDouble(), 1.0)
+        assertEquals(2_000, atwaterKcal(p1.toDouble(), c1.toDouble(), f1.toDouble()))
+
+        // Carbohidratos 0 manual: permanece en 0 g, sin residuo inventado.
+        val (p2, c2, f2) = scaleMacrosToCalories(150.0, 0.0, 55.0, 2_400)
+        assertEquals(0, c2)
+        assertTrue(kotlin.math.abs(atwaterKcal(p2.toDouble(), c2.toDouble(), f2.toDouble()) - 2_400) <= 2)
+
+        // Proteína 0 manual: permanece en 0 g y el resto sigue escalando.
+        val (p3, c3, f3) = scaleMacrosToCalories(0.0, 250.0, 55.0, 1_800)
+        assertEquals(0, p3)
+        assertTrue(c3 > 0 && f3 > 0)
+    }
 }

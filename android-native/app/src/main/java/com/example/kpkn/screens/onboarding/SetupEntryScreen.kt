@@ -40,6 +40,7 @@ import java.util.UUID
 fun SetupEntryScreen(
     onStart: (mode: String, draftId: String?) -> Unit,
     onCompleted: () -> Unit,
+    onOpenVisualGate: (() -> Unit)? = null,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val settings by ProgramRepository.getInstance().settings.collectAsStateWithLifecycle()
@@ -73,7 +74,10 @@ fun SetupEntryScreen(
         return
     }
     if (candidates.isEmpty()) {
-        SetupWelcomeScreen(onStart = { onStart("FULL", "setup-wizard:full:${UUID.randomUUID()}") })
+        SetupWelcomeScreen(
+            onStart = { onStart("FULL", "setup-wizard:full:${UUID.randomUUID()}") },
+            onOpenVisualGate = onOpenVisualGate,
+        )
         return
     }
     if (!showSavedList) {
@@ -83,6 +87,7 @@ fun SetupEntryScreen(
             secondaryLabel = "Comenzar una configuración nueva",
             onSecondary = { onStart("FULL", "setup-wizard:full:${UUID.randomUUID()}") },
             onDetails = if (candidates.size > 1) ({ showSavedList = true }) else null,
+            onOpenVisualGate = onOpenVisualGate,
         )
         return
     }

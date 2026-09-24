@@ -74,6 +74,8 @@ class PlanMaterializerTest {
         assertTrue(t1.sets.last().isAmrap)
         assertEquals(180.0, t1.reference1RM ?: -1.0, 0.001)
         assertEquals(180.0 * 0.80, t1.sets.first().weight ?: -1.0, 0.001)
+        // La receta trae sus propios calentamientos (40/55/65) y el plan manda
+        // conservarlos íntegros salvo edición explícita: el preset no se suma.
         assertEquals(listOf(40.0, 55.0, 65.0), t1.warmupSets.map { it.percentageOfWorkingWeight })
     }
 

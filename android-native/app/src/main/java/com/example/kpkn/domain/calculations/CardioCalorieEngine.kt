@@ -14,13 +14,22 @@ data class CardioCalorieInput(
     val maximumHeartRate: Int? = null,
 )
 
-/** Pure MET/heart-rate estimate used by editor preview, live workout and history. */
+/**
+ * Pure MET/heart-rate estimate used by editor preview, live workout and history.
+ *
+ * Canonical MET formula: `kcal = MET * 3.5 * kg / 200 * minutes`, where
+ * `MET * 3.5 * kg / 200` is kcal/min. Durations must be converted to minutes
+ * (`seconds / 60.0`); multiplying kcal/min by hours left the result 60x too low.
+ *
+ * Parity: there is no homologous engine in `ios-native/` nor `backend/`; this
+ * formula is the authoritative reference and any future port must match it.
+ */
 object CardioCalorieEngine {
     fun estimate(input: CardioCalorieInput): Double {
         if (input.details.hasIntervals()) return estimateIntervals(input)
         val weight = input.weightKg.takeIf { it > 0.0 } ?: return 0.0
-        val durationHours = input.durationSeconds.coerceAtLeast(0) / 3600.0
-        if (durationHours == 0.0) return 0.0
+        val durationMinutes = input.durationSeconds.coerceAtLeast(0) / 60.0
+        if (durationMinutes == 0.0) return 0.0
 
         val baseMet = input.details.metBase.takeIf { it > 0.0 }
             ?: defaultMet(input.details.type, input.details.intensity)
@@ -29,9 +38,16 @@ object CardioCalorieEngine {
             resting = input.restingHeartRate,
             maximum = input.maximumHeartRate,
         )
-        return baseMet * 3.5 * weight / 200.0 * durationHours * heartRateFactor
+        return baseMet * 3.5 * weight / 200.0 * durationMinutes * heartRateFactor
     }
 
+    /**
+     * Sums per-block MET work across rounds with `MET * 3.5 * kg / 200 * minutes`.
+     *
+     * Note: blocks with `durationSeconds <= 0` are skipped, so their programmed
+     * time silently drops out and the total underestimates without any warning to
+     * the caller. Kept as-is to preserve historical behaviour.
+     */
     fun estimateIntervals(input: CardioCalorieInput): Double {
         val details = input.details
         if (!details.hasIntervals()) return estimate(input.copy(durationSeconds = details.effectiveDurationSeconds()))
@@ -43,8 +59,8 @@ object CardioCalorieEngine {
             details.intervalBlocks.forEach { block ->
                 if (block.durationSeconds <= 0) return@forEach
                 val effectiveMet = metForIntervalBlock(block, details) ?: defaultMet(details.type, details.intensity)
-                val hours = block.durationSeconds / 3600.0
-                total += effectiveMet * 3.5 * weight / 200.0 * hours * heartRateFactor
+                val minutes = block.durationSeconds / 60.0
+                total += effectiveMet * 3.5 * weight / 200.0 * minutes * heartRateFactor
             }
         }
         return total

@@ -96,7 +96,7 @@ fun HomeScreen(
     onHeaderOverlayChange: HomeGlassOverlayChange = { _, _ -> },
     onNutritionOverlayChange: HomeGlassOverlayChange = { _, _ -> },
     onOnboardingOverlayChange: HomeGlassOverlayChange = { _, _ -> },
-    onNavigateToNutritionWizard: () -> Unit = {},
+    onNavigateToNutritionEditor: () -> Unit = {},
     onOpenSetupWizard: () -> Unit = {},
     viewModel: HomeViewModel = rememberHomeViewModel(),
     @Suppress("UNUSED_PARAMETER") nutritionViewModel: NutritionViewModel? = null,
@@ -238,7 +238,7 @@ fun HomeScreen(
             primarySession = uiState.primarySession,
             homeCompetition = uiState.homeCompetition,
             isRestDay = uiState.primarySession == null && (uiState.isRestDay || uiState.todaySessions.isEmpty()),
-             dailyCalorieGoal = if (showNutrition) uiState.dailyCalorieGoal else 0,
+             dailyCalorieGoal = if (showNutrition) uiState.dailyCalorieGoal else null,
              consumedCalories = if (showNutrition) uiState.todayNutritionTotals.calories.toInt() else 0,
             onStartWorkout = onStartWorkout,
             onRegisterCompetition = onRegisterCompetition,
@@ -708,7 +708,7 @@ private fun HomeTopBar(
     primarySession: TodaySessionItem?,
     homeCompetition: com.example.kpkn.domain.training.HomeCompetitionState?,
     isRestDay: Boolean,
-    dailyCalorieGoal: Int,
+    dailyCalorieGoal: Int?,
     consumedCalories: Int,
     onStartWorkout: (Session, Program) -> Unit,
     onRegisterCompetition: (String) -> Unit,
@@ -957,12 +957,13 @@ private fun MiniSessionCard(
 
 @Composable
 private fun MiniNutritionCard(
-    dailyCalorieGoal: Int,
+    dailyCalorieGoal: Int?,
     consumedCalories: Int,
     onAddMeal: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val pct = if (dailyCalorieGoal > 0) {
+    // null = sin objetivos: progreso 0 y sin denominador inventado.
+    val pct = if (dailyCalorieGoal != null && dailyCalorieGoal > 0) {
         (consumedCalories.toFloat() / dailyCalorieGoal.toFloat()).coerceIn(0f, 1.5f)
     } else {
         0f
@@ -989,7 +990,7 @@ private fun MiniNutritionCard(
                 Text(consumedCalories.toString(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, fontSize = 15.sp)
                 Spacer(Modifier.width(2.dp))
                 Text(
-                    "/ $dailyCalorieGoal",
+                    dailyCalorieGoal?.let { "/ $it" } ?: "sin objetivos",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     fontSize = 11.sp,

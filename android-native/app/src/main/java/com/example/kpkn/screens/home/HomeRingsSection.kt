@@ -41,6 +41,8 @@ import com.example.kpkn.data.models.AugeSnapshot
 import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.RecoveryDashboard
 import com.example.kpkn.domain.auge.RecoveryBands
+import com.example.kpkn.domain.onboarding.RingsCoverage
+import com.example.kpkn.domain.onboarding.RingsCoverageSource
 
 // ─── Ring Constants ──────────────────────────────────────────────────────────
 
@@ -62,6 +64,8 @@ fun HomeRingsSection(
     dashboard: RecoveryDashboard? = null,
     dataLabel: String? = null,
     snapshot: AugeSnapshot? = null,
+    /** Cobertura por canal; sin ella se deriva de la procedencia que publican los motores. */
+    coverage: RingsCoverage? = null,
     showModelUpdateNotice: Boolean = false,
     onDismissAdvisory: (String) -> Unit = {},
     onModelNoticeShown: () -> Unit = {},
@@ -71,6 +75,17 @@ fun HomeRingsSection(
         if (isLoading) listOf(0f, 0f, 0f)
         else listOf(muscularProgress, sncProgress, columnaProgress)
     }
+
+    // «Sin calibrar» (sin historial, sin check-in y sin evidencia) no se renderiza
+    // como un 100 % afirmativo: se marca «sin datos» en valor y accesibilidad.
+    val derivedCoverage = remember(snapshot, dataLabel, dashboard) {
+        RingsCoverage.fromBatteries(
+            batteries = snapshot?.batteries,
+            dataLabel = dataLabel ?: dashboard?.dataLabel,
+            channelConfidence = dashboard?.channels?.associate { it.id to it.confidence }.orEmpty(),
+        )
+    }
+    val ringsCoverage = coverage ?: derivedCoverage
 
     val ringColors = remember(hasActiveProgram, isLoading) {
         when {
@@ -136,6 +151,7 @@ fun HomeRingsSection(
             ringColors = ringColors,
             hasActiveProgram = hasActiveProgram,
             isLoading = isLoading,
+            coverage = ringsCoverage,
             onChannelClick = { selectedChannel = it },
         )
         Spacer(Modifier.height(4.dp))
@@ -163,6 +179,7 @@ private fun CombinedRingsView(
     ringColors: List<Color>,
     hasActiveProgram: Boolean = true,
     isLoading: Boolean = false,
+    coverage: RingsCoverage? = null,
     onChannelClick: (RecoveryChannelId) -> Unit = {},
 ) {
     val density = LocalDensity.current
@@ -172,6 +189,10 @@ private fun CombinedRingsView(
         RecoveryChannelId.SYSTEM,
         RecoveryChannelId.STRUCTURE,
     )
+    // Un canal sin datos no dibuja anillo lleno: solo la pista, sin afirmar un 100 %.
+    val drawValues = progressValues.mapIndexed { i, value ->
+        if (coverage?.channel(channelIds[i])?.hasData == false) 0f else value.coerceIn(0f, 1f)
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -190,15 +211,22 @@ private fun CombinedRingsView(
                             val desc = if (isLoading) {
                                 "Calculando recuperación"
                             } else {
-                                "Rings: Músculos ${(progressValues[0] * 100).toInt()}%, " +
-                                    "Energía ${(progressValues[1] * 100).toInt()}%, " +
-                                    "Columna ${(progressValues[2] * 100).toInt()}%"
+                                "Rings: " + channelIds.mapIndexed { i, id ->
+                                    val channel = coverage?.channel(id)
+                                    val label = RingLabels[i]
+                                    val scoreText = "${(progressValues[i] * 100).toInt()}%"
+                                    when {
+                                        channel != null && !channel.hasData -> "$label sin datos"
+                                        channel != null && channel.isEstimated -> "$label $scoreText (${channel.label.lowercase()})"
+                                        else -> "$label $scoreText"
+                                    }
+                                }.joinToString(", ")
                             }
                             contentDescription = desc
                             stateDescription = desc
                         },
                 ) {
-                    AugeRingsCanvas(progressValues[0], progressValues[1], progressValues[2], ringColors)
+                    AugeRingsCanvas(drawValues[0], drawValues[1], drawValues[2], ringColors)
                     if (isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.align(Alignment.Center).size(28.dp),
@@ -240,7 +268,14 @@ private fun CombinedRingsView(
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 progressValues.forEachIndexed { i, progress ->
+                    val channel = coverage?.channel(channelIds[i])
+                    val noData = !isLoading && channel != null && !channel.hasData
                     val score = (progress * 100).toInt()
+                    val sourceChip = when (channel?.source) {
+                        RingsCoverageSource.SUBJECTIVE_SENSATION -> "Estimación subjetiva"
+                        RingsCoverageSource.INITIAL_ESTIMATE -> "Estimación inicial"
+                        else -> null
+                    }
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.clickable { onChannelClick(channelIds[i]) },
@@ -254,23 +289,34 @@ private fun CombinedRingsView(
                             maxLines = 1,
                         )
                         Text(
-                            if (isLoading) "…" else "$score%",
+                            // Sin datos no se afirma un porcentaje (ni 100 ni 0).
+                            if (isLoading) "…" else if (noData) "Sin datos" else "$score%",
                             style = MaterialTheme.typography.labelMedium,
                             color = Color.White.copy(alpha = 0.85f),
                             fontWeight = FontWeight.Bold,
                         )
                         if (!isLoading) {
-                            Surface(
-                                shape = RoundedCornerShape(50),
-                                color = Color(RecoveryBands.colorArgb(score).toInt()).copy(alpha = 0.18f),
-                            ) {
+                            if (noData) {
                                 Text(
-                                    RecoveryBands.labelForScore(score),
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                    "Sin calibrar",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = Color(RecoveryBands.colorArgb(score).toInt()),
+                                    color = Color.White.copy(alpha = 0.55f),
                                     fontWeight = FontWeight.SemiBold,
                                 )
+                            } else {
+                                val chipColor = if (sourceChip != null) ringColors[i] else Color(RecoveryBands.colorArgb(score).toInt())
+                                Surface(
+                                    shape = RoundedCornerShape(50),
+                                    color = chipColor.copy(alpha = 0.18f),
+                                ) {
+                                    Text(
+                                        sourceChip ?: RecoveryBands.labelForScore(score),
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = chipColor,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                }
                             }
                         }
                     }

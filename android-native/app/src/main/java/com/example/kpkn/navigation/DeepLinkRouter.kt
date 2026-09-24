@@ -80,7 +80,9 @@ object DeepLinkRouter {
     }
 
     private fun resolveNutrition(second: String, third: String?): ResolvedRoute = when (second) {
-        "wizard" -> ResolvedRoute(KpknRoute.NutritionWizard.create())
+        // LEGACY: el wizard nutricional redirige siempre al editor directo,
+        // nunca al chat ni al wizard.
+        "wizard" -> ResolvedRoute(KpknRoute.NutritionPlanEditor.create())
         "calibration" -> ResolvedRoute(KpknRoute.NutritionCalibration.route)
         "body-progress", "bodyprogress", "progress" -> ResolvedRoute(KpknRoute.BodyProgress.route)
         "meal-history", "history", "historial" -> ResolvedRoute(KpknRoute.MealHistory.route)

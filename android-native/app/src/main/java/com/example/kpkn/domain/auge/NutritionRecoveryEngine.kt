@@ -2,9 +2,10 @@ package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.LoggedFood
 import com.example.kpkn.data.models.NutritionLog
-import com.example.kpkn.data.models.NutritionPlan
-import com.example.kpkn.data.models.Settings
-import com.example.kpkn.domain.nutrition.deriveMacroGoals
+import com.example.kpkn.domain.nutrition.DayGoalsResult
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 
 enum class NutritionRecoveryStatus { DEFICIT, MAINTENANCE, SURPLUS }
 
@@ -16,10 +17,15 @@ data class NutritionRecoveryResult(
 
 object NutritionRecoveryEngine {
 
+    /**
+     * @param goalsByDate objetivos ya resueltos por fecha para la ventana de
+     * análisis (ver [com.example.kpkn.domain.nutrition.resolveDayGoalsByDate]).
+     * Sin metas en la ventana no se infiere déficit ni insuficiencia de
+     * proteína: se devuelve el multiplicador neutro y se explica «sin metas».
+     */
     fun computeNutritionRecoveryMultiplier(
         nutritionLogs: List<NutritionLog>,
-        settings: Settings,
-        activePlan: NutritionPlan? = null,
+        goalsByDate: Map<LocalDate, DayGoalsResult> = emptyMap(),
         stressLevel: Int = 3,
         hoursWindow: Int = 48,
     ): NutritionRecoveryResult {
@@ -38,15 +44,34 @@ object NutritionRecoveryEngine {
             } catch (_: Exception) { false }
         }
 
-        val goals = deriveMacroGoals(settings, activePlan)
-        val calorieGoal = goals.calorieGoal
-        val proteinGoal = goals.proteinGoal
-
         if (recentLogs.isEmpty()) {
             return NutritionRecoveryResult(
                 1.0,
                 NutritionRecoveryStatus.MAINTENANCE,
                 listOf("Sin comidas en la ventana; no se asume déficit ni superávit."),
+            )
+        }
+
+        // Objetivos de la ventana de análisis. Un campo sin meta es ausencia;
+        // nunca se sustituye por un default ni por el plan actual de otro día.
+        val zone: ZoneId = ZoneId.systemDefault()
+        val windowStart: LocalDate = Instant.ofEpochMilli(windowStartMs).atZone(zone).toLocalDate()
+        val windowEnd: LocalDate = Instant.ofEpochMilli(nowMs).atZone(zone).toLocalDate()
+        val windowGoals = goalsByDate
+            .filterKeys { !it.isBefore(windowStart) && !it.isAfter(windowEnd) }
+            .values
+            .filterIsInstance<DayGoalsResult.Present>()
+            .map { it.goals }
+        val calorieGoal = windowGoals.mapNotNull { it.calorieGoal }.takeIf { it.isNotEmpty() }?.average()
+        val proteinGoal = windowGoals.mapNotNull { it.proteinGoal }.takeIf { it.isNotEmpty() }?.average()
+
+        if ((calorieGoal == null || calorieGoal <= 0.0) && (proteinGoal == null || proteinGoal <= 0.0)) {
+            // Sin metas no hay contra qué medir: mismo criterio neutro que
+            // «sin comidas en la ventana».
+            return NutritionRecoveryResult(
+                1.0,
+                NutritionRecoveryStatus.MAINTENANCE,
+                listOf("Sin metas en la ventana de análisis; no se asume déficit, superávit ni insuficiencia de proteína."),
             )
         }
 
@@ -62,8 +87,8 @@ object NutritionRecoveryEngine {
         val avgCalories = totalCal / daysInWindow
         val avgProtein = totalProtein / daysInWindow
 
-        val calRatio = if (calorieGoal > 0) avgCalories / calorieGoal else 1.0
-        val proteinRatio = if (proteinGoal > 0) avgProtein / proteinGoal else 1.0
+        val calRatio = if (calorieGoal != null && calorieGoal > 0.0) avgCalories / calorieGoal else 1.0
+        val proteinRatio = if (proteinGoal != null && proteinGoal > 0.0) avgProtein / proteinGoal else 1.0
 
         val status: NutritionRecoveryStatus
 

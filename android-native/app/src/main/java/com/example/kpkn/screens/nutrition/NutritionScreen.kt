@@ -75,8 +75,10 @@ fun NutritionScreen(
     viewModel: NutritionViewModel = viewModel { NutritionViewModel() },
     onNavigateToBodyProgress: (() -> Unit)? = null,
     onNavigateToMealHistory: (() -> Unit)? = null,
-    onNavigateToWizard: (mode: String, planId: String?) -> Unit = { _, _ -> },
-    onNavigateToPendingSetup: (draftId: String) -> Unit = {},
+    /** Editor directo del plan: creación y edición, nunca un wizard. */
+    onNavigateToPlanEditor: (planId: String?) -> Unit = { _ -> },
+    /** Borrador pendiente (pauta profesional a medias) → editor directo. */
+    onOpenPendingDraft: (draftId: String) -> Unit = {},
 ) {
     val dailyTotals by viewModel.dailyTotals.collectAsState()
     val goals by viewModel.goals.collectAsState()
@@ -170,8 +172,8 @@ fun NutritionScreen(
                         dailyTotals = dailyTotals,
                         goals = goals,
                         selectedDate = selectedDate,
-                        onEditPlan = { onNavigateToWizard("edit", activePlan?.id) },
-                        onCreatePlan = { onNavigateToWizard("create", null) },
+                        onEditPlan = { onNavigateToPlanEditor(activePlan?.id) },
+                        onCreatePlan = { onNavigateToPlanEditor(null) },
                         hasActivePlan = activePlan != null,
                     )
                 }
@@ -184,7 +186,7 @@ fun NutritionScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
-                                .clickable { onNavigateToPendingSetup(pendingDraftId) },
+                                .clickable { onOpenPendingDraft(pendingDraftId) },
                         ) {
                             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Text(
@@ -197,7 +199,7 @@ fun NutritionScreen(
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
                                     style = MaterialTheme.typography.bodyMedium,
                                 )
-                                TextButton(onClick = { onNavigateToPendingSetup(pendingDraftId) }) {
+                                TextButton(onClick = { onOpenPendingDraft(pendingDraftId) }) {
                                     Text("Completar ahora", color = CALORIES_COLOR)
                                 }
                             }
@@ -206,7 +208,10 @@ fun NutritionScreen(
                 }
 
                 item {
-                    DailyEnergyBalanceCard(balance = dailyEnergyBalance)
+                    DailyEnergyBalanceCard(
+                        balance = dailyEnergyBalance,
+                        hasGoal = (goals as? DayGoalsResult.Present)?.goals?.hasGoals == true,
+                    )
                 }
 
                 if (dailyTotals.calories > 0) {
@@ -277,7 +282,6 @@ fun NutritionScreen(
                     item {
                         CalorieTrendChart(
                             trendData = trendData,
-                            calorieGoal = goals.calorieGoal,
                         )
                     }
                 }
@@ -295,7 +299,9 @@ fun NutritionScreen(
                 .padding(end = 16.dp, bottom = 106.dp)
                 .kpknGlass(hazeState = nutritionHazeState, shape = pillShape)
                 .clickable {
-                    if (activePlan == null) {
+                    // En modo «solo registro» el registro de alimentos sigue
+                    // disponible aunque no haya plan activo.
+                    if (!isFoodLoggingAvailable(settings, activePlan != null)) {
                         showPlanRequiredDialog = true
                     } else {
                         selectedMealForLogger = MealType.LUNCH
@@ -372,7 +378,7 @@ fun NutritionScreen(
                 TextButton(
                     onClick = {
                         showPlanRequiredDialog = false
-                        onNavigateToWizard("create", null)
+                        onNavigateToPlanEditor(null)
                     },
                 ) { Text("Crear plan") }
             },
@@ -391,7 +397,7 @@ fun NutritionScreen(
 private fun NutritionHeroHeader(
     macroRingPct: MacroRingPct,
     dailyTotals: DailyMacroTotals,
-    goals: MacroGoals,
+    goals: DayGoalsResult,
     selectedDate: String,
     onEditPlan: () -> Unit,
     onCreatePlan: () -> Unit,
@@ -403,7 +409,11 @@ private fun NutritionHeroHeader(
             .replaceFirstChar { it.uppercase() }
     } catch (_: Exception) { selectedDate }
 
-    val calRemaining = goals.calorieGoal - dailyTotals.calories.toInt()
+    // Ausencia explícita de metas: sin anillos de objetivos y sin números
+    // inventados. Un 0 explícito se muestra como 0.
+    val dayGoals = (goals as? DayGoalsResult.Present)?.goals
+    val hasGoals = dayGoals?.hasGoals == true
+    val calRemaining = dayGoals?.calorieGoal?.let { it - dailyTotals.calories.toInt() }
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
 
     Box(
@@ -456,27 +466,29 @@ private fun NutritionHeroHeader(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .then(if (!hasActivePlan) Modifier.blur(10.dp) else Modifier),
+                        .then(if (!hasGoals) Modifier.blur(10.dp) else Modifier),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Box(modifier = Modifier.size(130.dp)) {
+                            // Sin metas no hay anillo de objetivos: 0.0 y
+                            // nunca un porcentaje fabricado.
                             AnimatedMacroRing(
-                                caloriesPct = if (hasActivePlan) macroRingPct.calories else 0.72,
-                                proteinPct = if (hasActivePlan) macroRingPct.protein else 0.64,
-                                carbsPct = if (hasActivePlan) macroRingPct.carbs else 0.58,
-                                fatsPct = if (hasActivePlan) macroRingPct.fats else 0.48,
+                                caloriesPct = macroRingPct.calories,
+                                proteinPct = macroRingPct.protein,
+                                carbsPct = macroRingPct.carbs,
+                                fatsPct = macroRingPct.fats,
                             )
                         }
                         Spacer(Modifier.height(6.dp))
                         Text(
-                            if (hasActivePlan) "${dailyTotals.calories.toInt()}" else "Plan",
+                            "${dailyTotals.calories.toInt()}",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Black,
-                            color = if (hasActivePlan) CALORIES_COLOR else MaterialTheme.colorScheme.onSurface,
+                            color = CALORIES_COLOR,
                         )
                         Text(
-                            if (hasActivePlan) "/ ${goals.calorieGoal} kcal" else "Personalizado",
+                            dayGoals?.calorieGoal?.let { "/ $it kcal" } ?: "sin objetivos",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -490,36 +502,36 @@ private fun NutritionHeroHeader(
                     ) {
                         MacroDetailRow(
                             label = "Proteína",
-                            current = if (hasActivePlan) dailyTotals.protein else 126.0,
-                            goal = if (hasActivePlan) goals.proteinGoal else 160,
+                            current = dailyTotals.protein,
+                            goal = dayGoals?.proteinGoal,
                             unit = "g",
-                            color = if (hasActivePlan) PROTEIN_COLOR else MaterialTheme.colorScheme.onSurface,
+                            color = PROTEIN_COLOR,
                         )
                         MacroDetailRow(
                             label = "Carbohidratos",
-                            current = if (hasActivePlan) dailyTotals.carbs else 180.0,
-                            goal = if (hasActivePlan) goals.carbGoal else 230,
+                            current = dailyTotals.carbs,
+                            goal = dayGoals?.carbGoal,
                             unit = "g",
-                            color = if (hasActivePlan) CARBS_COLOR else MaterialTheme.colorScheme.onSurface,
+                            color = CARBS_COLOR,
                         )
                         MacroDetailRow(
                             label = "Grasas",
-                            current = if (hasActivePlan) dailyTotals.fats else 52.0,
-                            goal = if (hasActivePlan) goals.fatGoal else 70,
+                            current = dailyTotals.fats,
+                            goal = dayGoals?.fatGoal,
                             unit = "g",
-                            color = if (hasActivePlan) FATS_COLOR else MaterialTheme.colorScheme.onSurface,
+                            color = FATS_COLOR,
                         )
 
                         Spacer(Modifier.height(4.dp))
 
                         val remainColor = when {
-                            !hasActivePlan -> MaterialTheme.colorScheme.onSurface
+                            calRemaining == null -> MaterialTheme.colorScheme.onSurface
                             calRemaining >= 0 -> TEAL
                             else -> Color(0xFFE53935)
                         }
                         Surface(
                             shape = RoundedCornerShape(10.dp),
-                            color = remainColor.copy(alpha = if (hasActivePlan) 0.10f else 0.08f),
+                            color = remainColor.copy(alpha = if (calRemaining != null) 0.10f else 0.08f),
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
@@ -527,7 +539,7 @@ private fun NutritionHeroHeader(
                             ) {
                                 Icon(
                                     when {
-                                        !hasActivePlan -> Icons.Default.AutoAwesome
+                                        calRemaining == null -> Icons.Default.AutoAwesome
                                         calRemaining >= 0 -> Icons.Default.CheckCircle
                                         else -> Icons.Default.Warning
                                     },
@@ -537,11 +549,10 @@ private fun NutritionHeroHeader(
                                 )
                                 Spacer(Modifier.width(6.dp))
                                 Text(
-                                    if (hasActivePlan) {
-                                        if (calRemaining >= 0) "$calRemaining kcal restantes"
-                                        else "${-calRemaining} kcal de más"
-                                    } else {
-                                        "Define objetivos, macros y ritmo"
+                                    when {
+                                        calRemaining == null -> "Sin objetivos para este día"
+                                        calRemaining >= 0 -> "$calRemaining kcal restantes"
+                                        else -> "${-calRemaining} kcal de más"
                                     },
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
@@ -552,7 +563,8 @@ private fun NutritionHeroHeader(
                     }
                 }
 
-                if (!hasActivePlan) {
+                if (!hasGoals) {
+                    val absence = (goals as? DayGoalsResult.Absent)?.reason
                     Column(
                         modifier = Modifier
                             .align(Alignment.Center)
@@ -561,26 +573,33 @@ private fun NutritionHeroHeader(
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
-                            "Sin plan activo",
+                            "Sin objetivos",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Black,
                             textAlign = TextAlign.Center,
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            "Crea un plan simple y ajustable sin salir de nutrición.",
+                            when (absence) {
+                                GoalsAbsence.TRACKING_ONLY ->
+                                    "Solo seguimiento: este día no tiene metas definidas y no se inventa ninguna."
+                                GoalsAbsence.NO_GOAL, null ->
+                                    "No hay metas registradas para este día; se muestran los registros sin objetivo."
+                            },
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
                         )
-                        Spacer(Modifier.height(14.dp))
-                        Button(
-                            onClick = onCreatePlan,
-                            shape = RoundedCornerShape(14.dp),
-                        ) {
-                            Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text("Crear plan de alimentación")
+                        if (!hasActivePlan) {
+                            Spacer(Modifier.height(14.dp))
+                            Button(
+                                onClick = onCreatePlan,
+                                shape = RoundedCornerShape(14.dp),
+                            ) {
+                                Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text("Crear plan de alimentación")
+                            }
                         }
                     }
                 }
@@ -597,12 +616,14 @@ private fun NutritionHeroHeader(
 private fun MacroDetailRow(
     label: String,
     current: Double,
-    goal: Int,
+    goal: Int?,
     unit: String,
     color: Color,
     margin: Double? = null,
 ) {
-    val pct = if (goal > 0) (current / goal).coerceIn(0.0, 1.2) else 0.0
+    // Sin meta (null) o meta 0 no hay barra de objetivo; el 0 explícito sí se
+    // muestra como 0 en el valor.
+    val pct = if (goal != null && goal > 0) (current / goal).coerceIn(0.0, 1.2) else 0.0
     val trackColor = if (color == MaterialTheme.colorScheme.onSurface) {
         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.16f)
     } else {
@@ -619,7 +640,7 @@ private fun MacroDetailRow(
                 Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
             }
             Text(
-                "${current.toInt()} / $goal $unit",
+                goal?.let { "${current.toInt()} / $it $unit" } ?: "${current.toInt()} $unit · sin meta",
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
                 color = if (pct > 1.0 && color != MaterialTheme.colorScheme.onSurface) Color(0xFFE53935) else MaterialTheme.colorScheme.onSurface,
@@ -878,16 +899,18 @@ private fun MacroBarsSection(dailyTotals: DailyMacroTotals) {
 }
 
 @Composable
-private fun DailyEnergyBalanceCard(balance: DailyEnergyBalance) {
-    val statusColor = when (balance.status) {
-        DailyEnergyStatus.DEFICIT -> Color(0xFFEF5350)
-        DailyEnergyStatus.MAINTENANCE -> Color(0xFF22C55E)
-        DailyEnergyStatus.SURPLUS -> Color(0xFF7E57C2)
+private fun DailyEnergyBalanceCard(balance: DailyEnergyBalance, hasGoal: Boolean) {
+    val statusColor = when {
+        !hasGoal -> Color(0xFF78909C)
+        balance.status == DailyEnergyStatus.DEFICIT -> Color(0xFFEF5350)
+        balance.status == DailyEnergyStatus.MAINTENANCE -> Color(0xFF22C55E)
+        else -> Color(0xFF7E57C2)
     }
-    val statusLabel = when (balance.status) {
-        DailyEnergyStatus.DEFICIT -> "Déficit"
-        DailyEnergyStatus.MAINTENANCE -> "Mantención"
-        DailyEnergyStatus.SURPLUS -> "Superávit"
+    val statusLabel = when {
+        !hasGoal -> "Sin objetivos"
+        balance.status == DailyEnergyStatus.DEFICIT -> "Déficit"
+        balance.status == DailyEnergyStatus.MAINTENANCE -> "Mantención"
+        else -> "Superávit"
     }
 
     Card(
@@ -930,9 +953,13 @@ private fun DailyEnergyBalanceCard(balance: DailyEnergyBalance) {
                     drawRoundRect(statusColor.copy(alpha = 0.7f), topLeft = Offset.Zero, size = Size(netW, size.height), cornerRadius = CornerRadius(5.dp.toPx()))
                 }
 
-                val targetX = (size.width * targetFraction).coerceIn(2.dp.toPx(), size.width - 2.dp.toPx())
-                drawLine(Color.White, Offset(targetX, 0f), Offset(targetX, size.height), strokeWidth = 3.dp.toPx())
-                drawLine(Color(0xFF333333), Offset(targetX, 0f), Offset(targetX, size.height), strokeWidth = 1.5.dp.toPx())
+                // Marcador de meta solo con meta real; sin objetivos no se
+                // dibuja ningún marcador inventado.
+                if (hasGoal && balance.targetKcal > 0) {
+                    val targetX = (size.width * targetFraction).coerceIn(2.dp.toPx(), size.width - 2.dp.toPx())
+                    drawLine(Color.White, Offset(targetX, 0f), Offset(targetX, size.height), strokeWidth = 3.dp.toPx())
+                    drawLine(Color(0xFF333333), Offset(targetX, 0f), Offset(targetX, size.height), strokeWidth = 1.5.dp.toPx())
+                }
             }
 
             Row(
@@ -941,7 +968,7 @@ private fun DailyEnergyBalanceCard(balance: DailyEnergyBalance) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    "Meta: ${balance.targetKcal} kcal",
+                    if (hasGoal && balance.targetKcal > 0) "Meta: ${balance.targetKcal} kcal" else "Sin objetivos para este día",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 )
@@ -952,12 +979,14 @@ private fun DailyEnergyBalanceCard(balance: DailyEnergyBalance) {
                         fontWeight = FontWeight.Black,
                         color = statusColor,
                     )
-                    Text(
-                        " · ${if (balance.deltaFromTarget >= 0) "+" else ""}${balance.deltaFromTarget} kcal",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = statusColor.copy(alpha = 0.8f),
-                    )
+                    if (hasGoal && balance.targetKcal > 0) {
+                        Text(
+                            " · ${if (balance.deltaFromTarget >= 0) "+" else ""}${balance.deltaFromTarget} kcal",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = statusColor.copy(alpha = 0.8f),
+                        )
+                    }
                 }
             }
         }
@@ -1156,7 +1185,6 @@ private fun LogEntry(log: NutritionLog, onDelete: (String) -> Unit) {
 @Composable
 private fun CalorieTrendChart(
     trendData: List<TrendPoint>,
-    calorieGoal: Int,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
@@ -1180,9 +1208,11 @@ private fun CalorieTrendChart(
 
             Spacer(Modifier.height(12.dp))
 
+            // Cada punto lleva su propia meta por fecha; un día sin meta no
+            // arrastra ningún default.
             val maxCal = maxOf(
                 trendData.filter { it.hasData }.maxOfOrNull { it.calories } ?: 0.0,
-                calorieGoal.toDouble(),
+                trendData.mapNotNull { it.goal }.maxOrNull() ?: 0.0,
             ) * 1.15
 
             val surfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
@@ -1200,17 +1230,21 @@ private fun CalorieTrendChart(
                 val barPadding = slotWidth * 0.15f
                 val barWidth = slotWidth - barPadding * 2
 
-                // Goal line
-                val goalY = h - (calorieGoal / maxCal * h).toFloat()
-                drawLine(
-                    color = surfaceVariant.copy(alpha = 0.3f),
-                    start = Offset(0f, goalY),
-                    end = Offset(w, goalY),
-                    strokeWidth = 1.5.dp.toPx(),
-                    pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(
-                        floatArrayOf(8f, 6f)
-                    ),
-                )
+                // Línea de objetivo por fecha: solo para los días con meta.
+                trendData.forEachIndexed { i, point ->
+                    val goalKcal = point.goal ?: return@forEachIndexed
+                    val slotX = i * slotWidth
+                    val goalY = h - (goalKcal / maxCal * h).toFloat()
+                    drawLine(
+                        color = surfaceVariant.copy(alpha = 0.3f),
+                        start = Offset(slotX, goalY),
+                        end = Offset(slotX + slotWidth, goalY),
+                        strokeWidth = 1.5.dp.toPx(),
+                        pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(
+                            floatArrayOf(8f, 6f)
+                        ),
+                    )
+                }
 
                 trendData.forEachIndexed { i, point ->
                     val slotX = i * slotWidth
@@ -1227,7 +1261,7 @@ private fun CalorieTrendChart(
                     }
                     val barH = (point.calories / maxCal * h).toFloat().coerceAtLeast(4f)
                     val y = h - barH
-                    val overGoal = point.calories > calorieGoal
+                    val overGoal = point.goal?.let { point.calories > it } ?: false
                     val barColor = if (overGoal) Color(0xFFE53935).copy(alpha = 0.7f) else TEAL.copy(alpha = 0.7f)
 
                     drawRoundRect(

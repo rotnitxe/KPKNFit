@@ -57,6 +57,7 @@ internal fun SetupWelcomeScreen(
     secondaryLabel: String? = null,
     onSecondary: (() -> Unit)? = null,
     onDetails: (() -> Unit)? = null,
+    onOpenVisualGate: (() -> Unit)? = null,
 ) {
     val pager = rememberPagerState(initialPage = 1, pageCount = { 3 })
     val scope = rememberCoroutineScope()
@@ -119,6 +120,12 @@ internal fun SetupWelcomeScreen(
             }
             if (onDetails != null) {
                 TextButton(onClick = onDetails) { Text("Elegir otra configuración", color = WizChatTokens.blue) }
+            }
+            // ENTRADA TEMPORAL (Fase 1): permite revisar el prototipo de la puerta
+            // de aprobación visual. Se retira en la Fase 2, cuando el wizard real
+            // ocupe su sitio. No cambia la composición ni el carrusel de bienvenida.
+            if (onOpenVisualGate != null) {
+                TextButton(onClick = onOpenVisualGate) { Text("Prototipo visual · revisión de diseño", color = WizChatTokens.muted) }
             }
             Spacer(Modifier.height(8.dp))
         }

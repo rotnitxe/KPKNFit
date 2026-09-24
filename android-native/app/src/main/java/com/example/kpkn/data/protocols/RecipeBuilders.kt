@@ -12,6 +12,20 @@ fun warmupPercentSets(
     SetRecipe(reps = 1, percent = 65.0, isWarmup = true, loadBasis = basis),
 )
 
+/**
+ * Política de aproximación separada de [warmupPercentSets] (que conservan
+ * intactas los protocolos de autor): preset del plan para el primer compuesto
+ * de cada patrón de movimiento — 40 % × 8, 60 % × 5, 80 % × 3 — aplicado sobre
+ * la carga de trabajo, nunca sobre el 1RM.
+ */
+fun firstCompoundWarmupPercentSets(
+    basis: LoadBasis = LoadBasis.PERCENT_TM,
+): List<SetRecipe> = listOf(
+    SetRecipe(reps = 8, percent = 40.0, isWarmup = true, loadBasis = basis),
+    SetRecipe(reps = 5, percent = 60.0, isWarmup = true, loadBasis = basis),
+    SetRecipe(reps = 3, percent = 80.0, isWarmup = true, loadBasis = basis),
+)
+
 fun copies(count: Int, reps: Int, percent: Double, basis: LoadBasis = LoadBasis.PERCENT_TM): List<SetRecipe> =
     List(count) { SetRecipe(reps = reps, percent = percent, loadBasis = basis) }
 

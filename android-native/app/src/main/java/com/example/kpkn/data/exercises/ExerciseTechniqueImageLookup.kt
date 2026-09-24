@@ -121,6 +121,8 @@ object ExerciseTechniqueImageLookup {
     const val UNILATERAL_LANDMINE_PRESS_DEFINITION_ID = "deltoides_press_landmine_unilateral"
     const val UPRIGHT_ROW_DEFINITION_ID = "deltoides_remo_menton"
     const val FOREARM_PLANK_DEFINITION_ID = "core_plancha"
+    const val DRAGON_FLAG_DEFINITION_ID = "core_dragon_flag_banco_plano"
+    const val FROG_PUMPS_DEFINITION_ID = "glutes_frog_pumps"
     const val FLOOR_CRUNCH_DEFINITION_ID = "core_crunch_suelo_peso_corporal"
     const val LEG_RAISE_DEFINITION_ID = "core_elevacion_piernas"
     const val SIDE_BEND_DEFINITION_ID = "core_inclinacion_lateral"
@@ -130,6 +132,10 @@ object ExerciseTechniqueImageLookup {
     const val GLUTE_STEP_UP_DEFINITION_ID = "glutes_step_up_gluteo"
     const val COSSACK_SQUAT_DEFINITION_ID = "quads_sentadilla_cosaca"
     const val PISTOL_SQUAT_DEFINITION_ID = "quads_sentadilla_pistola"
+    const val REVERSE_LUNGE_DEFINITION_ID = "reverse_lunge"
+    const val REVERSE_PEC_FLY_DEFINITION_ID = "reverse_pec_fly"
+    const val CALF_RAISE_DEFINITION_ID = "calf_raise"
+    const val LYING_LEG_CURL_DEFINITION_ID = "lying_leg_curl"
     const val CONVENTIONAL_ROW_DEFINITION_ID = "conventional_row"
     const val CHEST_SUPPORTED_ROW_DEFINITION_ID = "chest_supported_row"
     const val LAT_PULLDOWN_DEFINITION_ID = "lat_pulldown"
@@ -635,6 +641,7 @@ object ExerciseTechniqueImageLookup {
         )
         SHRUG_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_back_encogimientos_barbell, "Barra"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_back_encogimientos_cable_batch8, "Polea"),
             ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_back_encogimientos_dumbbells, "Mancuernas"),
             ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_back_encogimientos_kettlebell, "Kettlebell"),
             ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_back_encogimientos_smith_machine, "Smith"),
@@ -659,6 +666,12 @@ object ExerciseTechniqueImageLookup {
         )
         FOREARM_PLANK_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("default", R.drawable.exercise_core_plancha_bodyweight, "Peso corporal"),
+        )
+        DRAGON_FLAG_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_core_dragon_flag_banco_plano_batch8, "Peso corporal"),
+        )
+        FROG_PUMPS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_glutes_frog_pumps_batch8, "Peso corporal"),
         )
         FLOOR_CRUNCH_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_core_crunch_suelo_peso_corporal_batch8, "Peso corporal"),
@@ -686,6 +699,29 @@ object ExerciseTechniqueImageLookup {
         )
         PISTOL_SQUAT_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_quads_sentadilla_pistola_batch8, "Peso corporal"),
+        )
+        REVERSE_LUNGE_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_reverse_lunge_barbell_batch9, "Barra"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_reverse_lunge_cable_batch9, "Polea"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_reverse_lunge_dumbbells_batch9, "Mancuernas"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_reverse_lunge_kettlebell_batch9, "Kettlebell"),
+            ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_reverse_lunge_smith_machine_batch9, "Smith"),
+        )
+        REVERSE_PEC_FLY_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_reverse_pec_fly_cable_batch9, "Polea"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_reverse_pec_fly_dumbbells_batch9, "Mancuernas"),
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_reverse_pec_fly_machine_batch9, "Máquina"),
+        )
+        CALF_RAISE_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_calf_raise_barbell_batch9, "Barra"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_calf_raise_cable_batch9, "Polea"),
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_calf_raise_machine_batch9, "Máquina"),
+            ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_calf_raise_smith_machine_batch9, "Smith"),
+        )
+        LYING_LEG_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_lying_leg_curl_cable_batch9, "Polea"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_lying_leg_curl_dumbbells_batch9, "Mancuernas"),
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_lying_leg_curl_machine_batch9, "Máquina"),
         )
         CONVENTIONAL_ROW_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_conventional_row_barbell, "Barra"),

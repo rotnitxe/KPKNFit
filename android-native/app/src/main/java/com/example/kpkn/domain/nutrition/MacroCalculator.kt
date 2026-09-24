@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.models.*
+import java.time.LocalDate
 
 /**
  * MacroCalculator — Pure Kotlin utility for macro scaling, daily stats, and food resolution.
@@ -301,9 +302,14 @@ fun computeMealGroups(logs: List<NutritionLog>): List<MealGroup> {
     }
 }
 
+/**
+ * Serie de calorías con la meta de CADA día resuelta por fecha: un día sin
+ * meta queda con `goal = null` y no se le inventa ninguno. La fecha se indexa
+ * como `LocalDate.toString()` (ISO).
+ */
 fun computeTrendData(
     logs: List<NutritionLog>,
-    calorieGoal: Int,
+    goalKcalByDate: Map<String, Int?>,
     days: Int = 7,
 ): List<TrendPoint> {
     val now = java.time.LocalDate.now()
@@ -327,7 +333,7 @@ fun computeTrendData(
             TrendPoint(
                 date = dateKey,
                 calories = kotlin.math.round(calories ?: 0.0).toDouble(),
-                goal = calorieGoal.toDouble(),
+                goal = goalKcalByDate[dateKey]?.toDouble(),
                 hasData = calories != null,
             )
         }
@@ -335,16 +341,17 @@ fun computeTrendData(
 
 fun computeMacroRingPct(
     totals: DailyMacroTotals,
-    calorieGoal: Int,
-    proteinGoal: Int,
-    carbGoal: Int,
-    fatGoal: Int,
+    calorieGoal: Int?,
+    proteinGoal: Int?,
+    carbGoal: Int?,
+    fatGoal: Int?,
 ): MacroRingPct {
+    // Un campo sin meta (null) o un 0 explícito no produce anillo: 0.0.
     return MacroRingPct(
-        calories = if (calorieGoal > 0) totals.calories / calorieGoal else 0.0,
-        protein = if (proteinGoal > 0) totals.protein / proteinGoal else 0.0,
-        carbs = if (carbGoal > 0) totals.carbs / carbGoal else 0.0,
-        fats = if (fatGoal > 0) totals.fats / fatGoal else 0.0,
+        calories = if (calorieGoal != null && calorieGoal > 0) totals.calories / calorieGoal else 0.0,
+        protein = if (proteinGoal != null && proteinGoal > 0) totals.protein / proteinGoal else 0.0,
+        carbs = if (carbGoal != null && carbGoal > 0) totals.carbs / carbGoal else 0.0,
+        fats = if (fatGoal != null && fatGoal > 0) totals.fats / fatGoal else 0.0,
     )
 }
 
@@ -355,56 +362,222 @@ data class MacroRingPct(
     val fats: Double = 0.0,
 )
 
-// ─── Default Goals ───────────────────────────────────────────────────────────
+// ─── Metas del día ───────────────────────────────────────────────────────────
 
+/**
+ * Metas de un día con ausencia explícita por campo: un campo nulo es ausencia
+ * y un 0 explícito viaja como 0. Los defaults 2500/150/250/70 ya no existen:
+ * cuando no hay metas, el resultado es [DayGoalsResult.Absent] y ningún
+ * consumidor debe mostrar, alertar o medir contra valores fabricados.
+ */
 data class MacroGoals(
-    val calorieGoal: Int = 2500,
-    val proteinGoal: Int = 150,
-    val carbGoal: Int = 250,
-    val fatGoal: Int = 70,
-    val fiberGoal: Int = 25,
-    val sugarLimit: Int = 50,
-    val sodiumLimitMg: Int = 2300,
-    val potassiumGoalMg: Int = 3500,
-    val hydrationGoalMl: Int = 2000,
+    val calorieGoal: Int? = null,
+    val proteinGoal: Int? = null,
+    val carbGoal: Int? = null,
+    val fatGoal: Int? = null,
+    val fiberGoal: Int? = null,
+    val sugarLimit: Int? = null,
+    val sodiumLimitMg: Int? = null,
+    val potassiumGoalMg: Int? = null,
+    val hydrationGoalMl: Int? = null,
     val showOverages: Boolean = true,
-)
+) {
+    /** true si queda alguna meta numérica de calorías/macros (los ceros cuentan). */
+    val hasGoals: Boolean
+        get() = calorieGoal != null || proteinGoal != null || carbGoal != null || fatGoal != null
+}
 
-fun deriveMacroGoals(settings: Settings, activePlan: NutritionPlan? = null): MacroGoals {
-    val plan = activePlan
-    if (plan != null) {
-        val planCalories = plan.calorieTarget.takeIf { it > 0 }
-        val planProtein = plan.proteinGoal.takeIf { it > 0 }
-        val planCarbs = plan.carbGoal.takeIf { it > 0 }
-        val planFats = plan.fatGoal.takeIf { it > 0 }
-        if (planCalories != null || planProtein != null || planCarbs != null || planFats != null) {
-            return MacroGoals(
-                calorieGoal = planCalories ?: settings.dailyCalorieGoal ?: 2500,
-                proteinGoal = planProtein ?: settings.dailyProteinGoal ?: 150,
-                carbGoal = planCarbs ?: settings.dailyCarbGoal ?: 250,
-                fatGoal = planFats ?: settings.dailyFatGoal ?: 70,
-                fiberGoal = settings.dailyFiberGoal ?: 25,
-                sugarLimit = settings.dailySugarLimit ?: 50,
-                sodiumLimitMg = settings.dailySodiumLimitMg ?: 2300,
-                potassiumGoalMg = settings.dailyPotassiumGoalMg ?: 3500,
-                hydrationGoalMl = settings.dailyHydrationGoalMl ?: 2000,
-                showOverages = settings.nutritionShowOverages,
-            )
-        }
-    }
+/** Motivo explícito de ausencia de metas. Nunca un default. */
+enum class GoalsAbsence {
+    /** Solo seguimiento: el día no tiene metas numéricas. */
+    TRACKING_ONLY,
 
-    return MacroGoals(
-        calorieGoal = settings.dailyCalorieGoal ?: 2500,
-        proteinGoal = settings.dailyProteinGoal ?: 150,
-        carbGoal = settings.dailyCarbGoal ?: 250,
-        fatGoal = settings.dailyFatGoal ?: 70,
-        fiberGoal = settings.dailyFiberGoal ?: 25,
-        sugarLimit = settings.dailySugarLimit ?: 50,
-        sodiumLimitMg = settings.dailySodiumLimitMg ?: 2300,
-        potassiumGoalMg = settings.dailyPotassiumGoalMg ?: 3500,
-        hydrationGoalMl = settings.dailyHydrationGoalMl ?: 2000,
+    /** Ausencia explícita de objetivo (p. ej. día pasado sin evidencia). */
+    NO_GOAL,
+}
+
+/**
+ * Resultado sellado de derivar las metas de un día. La ausencia se modela de
+ * forma explícita ([Absent]) y cada consumidor la maneja a la vista: ocultar
+ * anillos de objetivos, mostrar «sin objetivos», no enviar la alerta y no
+ * calcular déficit. No basta con guardar ceros.
+ */
+sealed interface DayGoalsResult {
+    data class Present(val goals: MacroGoals) : DayGoalsResult
+    data class Absent(val reason: GoalsAbsence) : DayGoalsResult
+}
+
+/**
+ * Previsión de las metas vigentes a partir del plan activo y los ajustes, sin
+ * fabricar valores: null es ausencia real. Con plan, sus campos mandan (un 0
+ * del plan es un 0 legítimo, no ausencia); sin plan, los objetivos explícitos
+ * de los ajustes. Devuelve null cuando no hay ninguna evidencia de metas.
+ */
+fun dayGoalForecastOf(settings: Settings, activePlan: NutritionPlan?): NutritionDayGoal.PlanDayTarget? {
+    // Modo durable de solo registro: no existe ninguna previsión de metas.
+    // Ni del plan activo (que no lo hay) ni de los objetivos de ajustes: un
+    // valor residual en ajustes no es una meta vigente.
+    if (settings.nutritionTrackingOnly) return null
+    return activePlan?.let { planDayTargetOf(it, NutritionGoalSource.PLAN_FORECAST) }
+        ?: settingsDayTargetOf(settings, NutritionGoalSource.PLAN_FORECAST)
+}
+
+/** Previsión desde los objetivos explícitos de ajustes; null sin evidencia. */
+fun settingsDayTargetOf(settings: Settings, source: NutritionGoalSource): NutritionDayGoal.PlanDayTarget? {
+    val target = NutritionDayGoal.PlanDayTarget(
+        calorieTargetKcal = settings.dailyCalorieGoal,
+        proteinGoalG = settings.dailyProteinGoal,
+        carbGoalG = settings.dailyCarbGoal,
+        fatGoalG = settings.dailyFatGoal,
+        direction = null,
+        calculationOrigin = CalculationOrigin.SETTINGS_MIGRATION,
+        planId = null,
+        source = source,
+    )
+    return target.takeIf { it.hasGoalValues() }
+}
+
+/**
+ * Proyección de un objetivo ya resuelto por fecha. Los campos sin meta quedan
+ * null (nunca un default inventado); un 0 explícito se conserva como 0. Los
+ * límites/guías de micronutrientes solo salen de los ajustes del usuario, sin
+ * literales por defecto.
+ */
+fun dayGoalsOf(goal: NutritionDayGoal, settings: Settings): DayGoalsResult = when (goal) {
+    is NutritionDayGoal.PlanDayTarget ->
+        if (goal.hasGoalValues()) DayGoalsResult.Present(macroGoalsOf(goal, settings))
+        else DayGoalsResult.Absent(GoalsAbsence.TRACKING_ONLY)
+    NutritionDayGoal.TrackingOnly -> DayGoalsResult.Absent(GoalsAbsence.TRACKING_ONLY)
+    NutritionDayGoal.NoGoal -> DayGoalsResult.Absent(GoalsAbsence.NO_GOAL)
+}
+
+private fun macroGoalsOf(target: NutritionDayGoal.PlanDayTarget, settings: Settings): MacroGoals =
+    MacroGoals(
+        // Sin fallback a los ajustes: la evidencia resuelta (snapshot o
+        // previsión) es la única fuente; un null es ausencia real del día.
+        calorieGoal = target.calorieTargetKcal,
+        proteinGoal = target.proteinGoalG,
+        carbGoal = target.carbGoalG,
+        fatGoal = target.fatGoalG,
+        fiberGoal = settings.dailyFiberGoal,
+        sugarLimit = settings.dailySugarLimit,
+        sodiumLimitMg = settings.dailySodiumLimitMg,
+        potassiumGoalMg = settings.dailyPotassiumGoalMg,
+        hydrationGoalMl = settings.dailyHydrationGoalMl,
         showOverages = settings.nutritionShowOverages,
     )
+
+/**
+ * Resolución por fecha para los consumidores. Orden exacto del resolvedor:
+ * para cada fecha manda su [DailyGoalSnapshot] histórico (inmutable); sin
+ * snapshot, la previsión vigente solo se usa para hoy y el futuro (el pasado
+ * queda [NutritionDayGoal.NoGoal]); sin ninguna evidencia, solo seguimiento.
+ * Nunca fabrica metas ni aplica el plan actual a días pasados.
+ */
+fun resolveDayGoals(
+    date: LocalDate,
+    settings: Settings,
+    activePlan: NutritionPlan?,
+    snapshot: DailyGoalSnapshot? = null,
+    today: LocalDate = LocalDate.now(),
+): DayGoalsResult {
+    // Modo durable de solo registro: mientras esté elegido, HOY y el futuro no
+    // tienen metas (ni siquiera un snapshot del mismo día: el modo está activo
+    // ahora). Los snapshots históricos de días PASADOS siguen explicando la
+    // ingesta de esas fechas con el objetivo que estuvo vigente.
+    if (settings.nutritionTrackingOnly && !date.isBefore(today)) {
+        return DayGoalsResult.Absent(GoalsAbsence.TRACKING_ONLY)
+    }
+    val forecast = dayGoalForecastOf(settings, activePlan)
+    val resolution = NutritionGoalResolver.resolve(
+        date = date,
+        today = today,
+        snapshot = snapshot,
+        todayForecast = forecast,
+        planForecast = forecast,
+        trackingOnly = forecast == null,
+    )
+    return dayGoalsOf(resolution.goal, settings)
+}
+
+/** [resolveDayGoals] para un conjunto de fechas, con snapshots por fecha. */
+fun resolveDayGoalsByDate(
+    dates: Collection<LocalDate>,
+    settings: Settings,
+    activePlan: NutritionPlan?,
+    snapshots: List<DailyGoalSnapshot> = emptyList(),
+    today: LocalDate = LocalDate.now(),
+): Map<LocalDate, DayGoalsResult> {
+    val snapshotsByDate = snapshots.associateBy { it.date.trim().take(10) }
+    return dates.distinct().associateWith { date ->
+        resolveDayGoals(
+            date = date,
+            settings = settings,
+            activePlan = activePlan,
+            snapshot = snapshotsByDate[date.toString()],
+            today = today,
+        )
+    }
+}
+
+/**
+ * Metas vigentes (plan + ajustes) sin fabricar defaults: un campo sin
+ * evidencia queda null. No distingue [GoalsAbsence]; para metas por fecha usa
+ * [resolveDayGoals], que es lo que deben consumir las pantallas.
+ */
+fun deriveMacroGoals(settings: Settings, activePlan: NutritionPlan? = null): MacroGoals =
+    dayGoalForecastOf(settings, activePlan)?.let { macroGoalsOf(it, settings) } ?: MacroGoals()
+
+// ─── Alertas de macros ───────────────────────────────────────────────────────
+
+enum class MacroAlertKind { PROTEIN_DEFICIT, CARB_DEFICIT, FAT_DEFICIT, CALORIE_EXCESS }
+
+data class MacroAlertItem(
+    val kind: MacroAlertKind,
+    val consumed: Int,
+    val goal: Int,
+    val percent: Int,
+)
+
+data class MacroDeficitAlerts(
+    val calorieExcess: Boolean,
+    val items: List<MacroAlertItem>,
+) {
+    val isEmpty: Boolean get() = items.isEmpty()
+}
+
+/**
+ * Alertas justificadas solo por metas reales. Sin metas ([DayGoalsResult.Absent])
+ * no se avisa de «te faltan calorías/proteína»: no hay meta contra la que
+ * medir. Un campo sin meta no genera su alerta (los ceros explícitos tampoco,
+ * porque no son metas > 0 contra las que medir). Mismos umbrales de siempre:
+ * proteína < 70%, carbohidratos < 60%, grasas < 60%, calorías > 110%.
+ */
+fun macroDeficitAlerts(totals: DailyMacroTotals, goals: DayGoalsResult): MacroDeficitAlerts {
+    val present = (goals as? DayGoalsResult.Present)?.goals ?: return MacroDeficitAlerts(false, emptyList())
+    var calorieExcess = false
+    val items = buildList {
+        present.proteinGoal?.takeIf { it > 0 }?.let { goal ->
+            val pct = totals.protein / goal
+            if (pct < 0.70) add(MacroAlertItem(MacroAlertKind.PROTEIN_DEFICIT, totals.protein.toInt(), goal, (pct * 100).toInt()))
+        }
+        present.carbGoal?.takeIf { it > 0 }?.let { goal ->
+            val pct = totals.carbs / goal
+            if (pct < 0.60) add(MacroAlertItem(MacroAlertKind.CARB_DEFICIT, totals.carbs.toInt(), goal, (pct * 100).toInt()))
+        }
+        present.fatGoal?.takeIf { it > 0 }?.let { goal ->
+            val pct = totals.fats / goal
+            if (pct < 0.60) add(MacroAlertItem(MacroAlertKind.FAT_DEFICIT, totals.fats.toInt(), goal, (pct * 100).toInt()))
+        }
+        present.calorieGoal?.takeIf { it > 0 }?.let { goal ->
+            val pct = totals.calories / goal
+            if (pct > 1.10) {
+                calorieExcess = true
+                add(MacroAlertItem(MacroAlertKind.CALORIE_EXCESS, totals.calories.toInt(), goal, (pct * 100).toInt()))
+            }
+        }
+    }
+    return MacroDeficitAlerts(calorieExcess = calorieExcess, items = items)
 }
 
 // ─── Duplicate Nutrition Log ─────────────────────────────────────────────────

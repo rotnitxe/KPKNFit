@@ -31,7 +31,9 @@ import com.example.kpkn.domain.calculations.IpfEquipment
 import com.example.kpkn.domain.calculations.calculateBrzycki1RM
 import com.example.kpkn.domain.calculations.calculateFFMI
 import com.example.kpkn.domain.calculations.calculateIPFGLPoints
-import com.example.kpkn.domain.nutrition.deriveMacroGoals
+import com.example.kpkn.domain.nutrition.DayGoalsResult
+import com.example.kpkn.domain.nutrition.GoalsAbsence
+import com.example.kpkn.domain.nutrition.resolveDayGoals
 import com.example.kpkn.domain.training.HomeCompetitionResolver
 import com.example.kpkn.domain.training.HomeCompetitionState
 import com.example.kpkn.domain.training.HomeSessionResolver
@@ -301,40 +303,53 @@ import java.util.UUID
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
+    /**
+     * Metas de HOY resueltas por fecha: el snapshot del día manda sobre el
+     * plan actual. [DayGoalsResult.Absent] es ausencia explícita y nunca se
+     * rellena con defaults de 2500/150/250/70.
+     */
     private val macroGoals = combine(
         repository.settings,
         nutritionRepository.nutritionPlans,
         nutritionRepository.activeNutritionPlanId,
-    ) { settings, plans, activeId ->
+        nutritionRepository.dailyGoalSnapshots,
+    ) { settings, plans, activeId, snapshots ->
+        val today = LocalDate.now()
         val activePlan = plans.find { it.id == activeId } ?: plans.find { it.isActive }
-        deriveMacroGoals(settings, activePlan)
+        resolveDayGoals(
+            date = today,
+            settings = settings,
+            activePlan = activePlan,
+            snapshot = snapshots.find { it.date.trim().take(10) == today.toString() },
+            today = today,
+        )
     }
         .distinctUntilChanged()
         .stateIn(
             viewModelScope,
             SharingStarted.Lazily,
-            deriveMacroGoals(repository.settings.value, nutritionRepository.activeNutritionPlan),
+            DayGoalsResult.Absent(GoalsAbsence.TRACKING_ONLY),
         )
 
-    val dailyCalorieGoal: StateFlow<Int> = macroGoals
-        .map { it.calorieGoal }
+    val dailyCalorieGoal: StateFlow<Int?> = macroGoals
+        .map { (it as? DayGoalsResult.Present)?.goals?.calorieGoal }
         .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, 2500)
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val dailyProteinGoal: StateFlow<Int> = macroGoals
-        .map { it.proteinGoal }
+    val dailyProteinGoal: StateFlow<Int?> = macroGoals
+        .map { (it as? DayGoalsResult.Present)?.goals?.proteinGoal }
         .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, 150)
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val dailyCarbGoal: StateFlow<Int> = macroGoals
-        .map { it.carbGoal }
+    val dailyCarbGoal: StateFlow<Int?> = macroGoals
+        .map { (it as? DayGoalsResult.Present)?.goals?.carbGoal }
         .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, 250)
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val dailyFatGoal: StateFlow<Int> = macroGoals
-        .map { it.fatGoal }
+    val dailyFatGoal: StateFlow<Int?> = macroGoals
+        .map { (it as? DayGoalsResult.Present)?.goals?.fatGoal }
         .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, 70)
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val todayNutritionTotals: StateFlow<HomeNutritionSnapshot> = nutritionRepository.nutritionLogs
         .map { logs ->
@@ -512,10 +527,10 @@ import java.util.UUID
         .stateIn(viewModelScope, SharingStarted.Lazily, 0.0)
 
     private data class CardsNutrition(
-        val calorieGoal: Int,
-        val proteinGoal: Int,
-        val carbGoal: Int,
-        val fatGoal: Int,
+        val calorieGoal: Int?,
+        val proteinGoal: Int?,
+        val carbGoal: Int?,
+        val fatGoal: Int?,
         val nutrition: HomeNutritionSnapshot,
     )
 
@@ -539,11 +554,12 @@ import java.util.UUID
     /** Consolidated snapshot for HomeCardsSection to avoid many local collectors. */
     val cardsState: StateFlow<HomeCardsState> = combine(
         combine(macroGoals, todayNutritionTotals) { goals, nutrition ->
+            val dayGoals = (goals as? DayGoalsResult.Present)?.goals
             CardsNutrition(
-                calorieGoal = goals.calorieGoal,
-                proteinGoal = goals.proteinGoal,
-                carbGoal = goals.carbGoal,
-                fatGoal = goals.fatGoal,
+                calorieGoal = dayGoals?.calorieGoal,
+                proteinGoal = dayGoals?.proteinGoal,
+                carbGoal = dayGoals?.carbGoal,
+                fatGoal = dayGoals?.fatGoal,
                 nutrition = nutrition,
             )
         },
@@ -597,7 +613,7 @@ import java.util.UUID
     private data class HomeUiExtras(
         val isRestDay: Boolean,
         val homeCompetition: HomeCompetitionState?,
-        val dailyCalorieGoal: Int,
+        val dailyCalorieGoal: Int?,
         val todayNutritionTotals: HomeNutritionSnapshot,
         val overtrainedMuscles: List<String>,
         val programs: List<Program>,
@@ -744,17 +760,19 @@ data class HomeUiState(
     val primarySession: TodaySessionItem? = null,
     val isRestDay: Boolean = false,
     val homeCompetition: HomeCompetitionState? = null,
-    val dailyCalorieGoal: Int = 2500,
+    /** null = sin objetivos (ausencia explícita); nunca un default de 2500. */
+    val dailyCalorieGoal: Int? = null,
     val todayNutritionTotals: HomeNutritionSnapshot = HomeNutritionSnapshot(),
     val overtrainedMuscles: List<String> = emptyList(),
     val programs: List<Program> = emptyList(),
 )
 
 data class HomeCardsState(
-    val calorieGoal: Int = 2500,
-    val proteinGoal: Int = 150,
-    val carbGoal: Int = 250,
-    val fatGoal: Int = 70,
+    /** null = sin objetivos (ausencia explícita); nunca defaults inventados. */
+    val calorieGoal: Int? = null,
+    val proteinGoal: Int? = null,
+    val carbGoal: Int? = null,
+    val fatGoal: Int? = null,
     val nutrition: HomeNutritionSnapshot = HomeNutritionSnapshot(),
     val weight: Double? = null,
     val bodyFat: Double? = null,

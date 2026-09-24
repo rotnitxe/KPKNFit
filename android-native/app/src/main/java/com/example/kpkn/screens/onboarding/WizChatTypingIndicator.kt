@@ -40,7 +40,7 @@ fun WizChatTypingIndicator(accent: Color, reducedMotion: Boolean = false) {
         Box(Modifier.widthIn(max = 620.dp).fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
             contentAlignment = Alignment.CenterStart) {
             Surface(
-                color = WizChatTokens.botBubble,
+                color = accent,
                 shape = RoundedCornerShape(20.dp, 20.dp, 20.dp, 6.dp),
                 modifier = Modifier.semantics { contentDescription = "El asistente está escribiendo" },
             ) {
@@ -59,12 +59,12 @@ fun WizChatTypingIndicator(accent: Color, reducedMotion: Boolean = false) {
                             Modifier
                                 .size(7.dp)
                                 .graphicsLayer { alpha = 0.35f + 0.65f * offset; translationY = -4f * offset }
-                                .background(accent.copy(alpha = 0.85f), CircleShape),
+                                .background(Color(0xFF061725).copy(alpha = 0.85f), CircleShape),
                         )
                     }
                     Text(
                         "escribiendo…",
-                        color = WizChatTokens.muted,
+                        color = Color(0xFF061725).copy(alpha = 0.72f),
                         style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
                         fontSize = 11.sp,
                         modifier = Modifier.padding(start = 4.dp),

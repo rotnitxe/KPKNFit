@@ -88,7 +88,7 @@ import com.example.kpkn.screens.nutrition.BodyProgressScreen
 import com.example.kpkn.screens.nutrition.MealHistoryScreen
 import com.example.kpkn.screens.nutrition.NutritionScreen
 import com.example.kpkn.screens.nutrition.NutritionCalibrationScreen
-import com.example.kpkn.screens.nutrition.NutritionWizardScreen
+import com.example.kpkn.screens.nutrition.NutritionPlanEditorScreen
 import com.example.kpkn.screens.nutrition.NutritionViewModel
 import com.example.kpkn.screens.profile.ProfileScreen
 import com.example.kpkn.screens.albums.WorkoutAlbumDetailScreen
@@ -207,7 +207,9 @@ class MainActivity : ComponentActivity() {
                 val nutritionNotifManager = com.example.kpkn.services.nutrition.NutritionNotificationManager(this@MainActivity)
                 nutritionNotifManager.createChannels()
                 val settings = ProgramRepository.getInstance().settings.value
-                if (settings.nutritionTrackingChoice != com.example.kpkn.data.models.NutritionTrackingChoice.SKIPPED && settings.mealReminderEnabled) {
+                // Los recordatorios de registrar comida siguen activos también
+                // en modo «solo registro»; solo SKIPPED los silencia.
+                if (com.example.kpkn.domain.nutrition.areMealRemindersAvailable(settings)) {
                     nutritionNotifManager.scheduleMealReminders(
                         breakfastTime = settings.mealReminderBreakfast,
                         lunchTime = settings.mealReminderLunch,
@@ -508,6 +510,7 @@ fun KPKNApp(
         currentRoute?.startsWith("workout") == true ||
         currentRoute?.startsWith(KpknRoute.ExerciseCatalog.route) == true ||
         currentRoute?.startsWith(KpknRoute.NutritionWizard.BASE_ROUTE) == true ||
+        currentRoute?.startsWith(KpknRoute.NutritionPlanEditor.BASE_ROUTE) == true ||
         currentRoute == KpknRoute.SetupEntry.route ||
         currentRoute?.startsWith(KpknRoute.SetupWizard.BASE_ROUTE) == true ||
         currentRoute == KpknRoute.CompetitionDetail.route ||
@@ -869,7 +872,9 @@ fun KPKNApp(
                         },
                         colors = navItemColors,
                     )
-                    if (settings.nutritionTrackingChoice != NutritionTrackingChoice.SKIPPED) {
+                    // SKIPPED oculta Nutrición (semántica intacta); el modo de
+                    // solo registro nunca la oculta.
+                    if (com.example.kpkn.domain.nutrition.isNutritionVisible(settings)) {
                         val nutSel = currentTab == KpknRoute.Nutrition.route
                         NavigationBarItem(
                             selected = nutSel,
@@ -1067,6 +1072,12 @@ private fun KPKNNavGraph(
     onHomeOnboardingOverlayChange: HomeGlassOverlayChange = { _, _ -> },
 ) {
     NavHost(navController = navController, startDestination = KpknRoute.SetupEntry.route) {
+        // Puerta de aprobación visual (Fase 1). Prototipo sin persistencia.
+        composable(KpknRoute.SetupVisualGate.route) {
+            com.example.kpkn.screens.onboarding.design.WizardVisualGateScreen(
+                onBack = { navController.popBackStack() },
+            )
+        }
         composable(KpknRoute.SetupEntry.route) {
             com.example.kpkn.screens.onboarding.SetupEntryScreen(
                 onStart = { mode, draftId ->
@@ -1077,6 +1088,9 @@ private fun KPKNNavGraph(
                         popUpTo(KpknRoute.SetupEntry.route) { inclusive = true }
                         launchSingleTop = true
                     }
+                },
+                onOpenVisualGate = {
+                    navController.navigate(KpknRoute.SetupVisualGate.route)
                 },
             )
         }
@@ -1130,8 +1144,9 @@ private fun KPKNNavGraph(
                 onHeaderOverlayChange = onHomeGlassOverlayChange,
                 onNutritionOverlayChange = onHomeModalOverlayChange,
                 onOnboardingOverlayChange = onHomeOnboardingOverlayChange,
-                onNavigateToNutritionWizard = {
-                    navController.navigate(KpknRoute.NutritionWizard.create("create")) { launchSingleTop = true }
+                onNavigateToNutritionEditor = {
+                    // Post-onboarding: solo editor directo, nunca el wizard.
+                    navController.navigate(KpknRoute.NutritionPlanEditor.create()) { launchSingleTop = true }
                 },
                 onOpenSetupWizard = {
                     navController.navigate(KpknRoute.SetupWizard.create()) { launchSingleTop = true }
@@ -1223,11 +1238,13 @@ private fun KPKNNavGraph(
                 onNavigateToMealHistory = {
                     navController.navigate(KpknRoute.MealHistory.route)
                 },
-                onNavigateToWizard = { mode, planId ->
-                    navController.navigate(KpknRoute.NutritionWizard.create(mode, planId))
+                onNavigateToPlanEditor = { editPlanId ->
+                    navController.navigate(KpknRoute.NutritionPlanEditor.create(editPlanId))
                 },
-                onNavigateToPendingSetup = { draftId ->
-                    navController.navigate(KpknRoute.SetupWizard.create("NUTRITION_ONLY", draftId)) {
+                onOpenPendingDraft = { draftId ->
+                    // Los pendientes también van al editor directo: nunca se
+                    // reabre el wizard de módulo.
+                    navController.navigate(KpknRoute.NutritionPlanEditor.create(pendingDraftId = draftId)) {
                         launchSingleTop = true
                     }
                 },
@@ -1275,11 +1292,42 @@ private fun KPKNNavGraph(
                 },
             ),
         ) { backStackEntry ->
-            NutritionWizardScreen(
-                mode = backStackEntry.arguments?.getString(KpknRoute.NutritionWizard.ARG_MODE) ?: "create",
-                planId = backStackEntry.arguments?.getString(KpknRoute.NutritionWizard.ARG_PLAN_ID)?.takeIf { it.isNotBlank() },
+            // LEGACY: la ruta del wizard solo redirige al editor directo. Ni
+            // chat ni wizard nutricional; retirada física en Fase 7.
+            val wizardPlanId = backStackEntry.arguments
+                ?.getString(KpknRoute.NutritionWizard.ARG_PLAN_ID)
+                ?.takeIf { it.isNotBlank() }
+            LaunchedEffect(wizardPlanId) {
+                navController.navigate(KpknRoute.NutritionPlanEditor.create(planId = wizardPlanId)) {
+                    popUpTo(KpknRoute.NutritionWizard.route) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+        }
+        composable(
+            route = KpknRoute.NutritionPlanEditor.route,
+            arguments = listOf(
+                navArgument(KpknRoute.NutritionPlanEditor.ARG_PLAN_ID) {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument(KpknRoute.NutritionPlanEditor.ARG_DRAFT_ID) {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+            ),
+        ) { backStackEntry ->
+            NutritionPlanEditorScreen(
+                planId = backStackEntry.arguments
+                    ?.getString(KpknRoute.NutritionPlanEditor.ARG_PLAN_ID)
+                    ?.takeIf { it.isNotBlank() },
+                pendingDraftId = backStackEntry.arguments
+                    ?.getString(KpknRoute.NutritionPlanEditor.ARG_DRAFT_ID)
+                    ?.takeIf { it.isNotBlank() },
                 onDone = { navController.popBackStack() },
-                onCancel = { navController.popBackStack() },
+                onBack = { navController.popBackStack() },
             )
         }
         composable(
@@ -1312,7 +1360,7 @@ private fun KPKNNavGraph(
         }
         composable(KpknRoute.BodyProgress.route) {
             BodyProgressScreen(
-                onCreatePlan = { navController.navigate(KpknRoute.NutritionWizard.create("create", null)) },
+                onCreatePlan = { navController.navigate(KpknRoute.NutritionPlanEditor.create()) },
             )
         }
         composable(KpknRoute.MealHistory.route) {
