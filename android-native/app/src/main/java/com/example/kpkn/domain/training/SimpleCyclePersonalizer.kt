@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.training
 
+import com.example.kpkn.data.exercises.catalogv2.CatalogCompositionMetadataProvider
 import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.AutoregulationHook
@@ -111,7 +112,11 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
     private data class Budget(val mev: Int, val mav: Int, val mrv: Int, val target: Double, val frequencyCap: Int)
     private data class Slot(val candidate: Candidate, var sets: Int)
 
-    fun personalize(programId: String, input: PersonalizerInput): PersonalizationResult {
+    fun personalize(
+        programId: String,
+        input: PersonalizerInput,
+        options: TrainingOptions = TrainingOptions(),
+    ): PersonalizationResult {
         val entry = PersonalizedPlanCatalog.find(input.catalogEntryId)
         val provenance = CatalogProvenance(input.catalogEntryId, PersonalizedPlanCatalog.REVISION, entry?.source ?: CatalogSource.NATIVE, entry?.sourceId ?: input.catalogEntryId)
         fun unavailable(message: String) = PersonalizationResult(null, PersonalizationReport(false, CatalogClassification.SIMPLE, listOf(message), emptyList(), provenance))
@@ -120,18 +125,30 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
         if (input.frequency !in entry.supportedFrequencies) return unavailable("Este plan no está curado para esa frecuencia.")
         if (input.availableMinutes !in 20..100) return unavailable("Elige entre 20 y 100 minutos por sesión.")
         if (input.weekdays.isNotEmpty() && (input.weekdays.size != input.frequency || input.weekdays.distinct().size != input.frequency || input.weekdays.any { it !in 1..7 })) return unavailable("Selecciona exactamente los días que quieres entrenar.")
+        // Las opciones que intervienen en la selección/personalización deben
+        // cumplir su contrato antes de tocar el motor.
+        when (val config = options.validateForSelection()) {
+            is TrainingValidation.Invalid -> return unavailable(config.reasons.joinToString("\n"))
+            TrainingValidation.Valid -> Unit
+        }
         val ready = catalog?.state?.value as? ExerciseCatalogStateV2.Ready ?: return unavailable("El catálogo todavía no está disponible. Vuelve a intentarlo.")
-        val equipment = normalizeEquipment(input.equipment)
+        // Equipo efectivo con el contrato COMPARTIDO (TrainingOptions.effectiveEquipment):
+        // availability explícita manda sobre chips e inventario; en su ausencia
+        // se conserva el comportamiento de inventario/legacy. El mismo resultado
+        // es el que el wizard usa para readiness y candidatos.
+        val equipment = options.effectiveEquipment(input.equipment)
         val cardio = input.cardio ?: if (entry.sourceId == "strength-cardio") CardioPreference(CardioType.WALK, 15) else null
         if (cardio != null && (cardio.minutes !in 5..60 || cardio.minutes >= input.availableMinutes)) return unavailable("Reserva tiempo tanto para fuerza como para cardio.")
         if (cardio != null && cardio.type !in setOf(CardioType.WALK, CardioType.RUN_OUTDOOR, CardioType.BIKE_OUTDOOR) && "general_gym" !in equipment && "cardio" !in equipment) return unavailable("El cardio seleccionado necesita un aparato que no has indicado.")
         val lookup = ready.catalog.toLegacyConfigurationLookup()
+        val compositionMetadata = CatalogCompositionMetadataProvider.fromCatalog(ready.catalog)
         val pools = curatedPools()
         val allowedIds = pools.values.flatten().toSet()
+        val requireExactMachineConfiguration = options.availability == null && options.inventory != null
         val candidates = ready.catalog.families.flatMap { it.definitions }.flatMap { definition ->
             definition.configurations.mapNotNull { configuration ->
                 if (configuration.id !in allowedIds || configuration.evidence.reviewStatus != CatalogReviewStatusV2.APPROVED) return@mapNotNull null
-                if (!equipmentAllows(configuration, equipment, entry.sourceId)) return@mapNotNull null
+                if (!equipmentAllows(configuration, equipment, entry.sourceId, requireExactMachineConfiguration)) return@mapNotNull null
                 if (input.level == CatalogLevel.BEGINNER && (configuration.profile.technicalDifficulty > 5.2 || configuration.id in hardBodyweight)) return@mapNotNull null
                 val info = lookup[configuration.id.lowercase()] ?: return@mapNotNull null
                 val exercise = exercise(info, "probe", 1, input.level)
@@ -142,7 +159,9 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
         if (candidates.isEmpty()) return unavailable("No hay una variante curada compatible con tu equipo y experiencia.")
         // Las prioridades (nuevas o heredadas) son SOLO orden: una bolsa de
         // puntos que nunca toca volumen, series, repeticiones ni frecuencia.
-        val exerciseOrderPoints = orderPoints(input) ?: return unavailable(
+        // La bolsa de [TrainingOptions] gana sobre la heredada del input
+        // cuando viene con puntos; si está vacía se conserva el input intacto.
+        val exerciseOrderPoints = orderPoints(options.applyTo(input)) ?: return unavailable(
             "La bolsa de prioridades de orden no es válida: máximo 2 puntos por músculo, 5 puntos en total y ningún punto negativo. Ajusta tus prioridades."
         )
         val focused = focusMuscles(input.focus)
@@ -192,7 +211,7 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
             candidate.volume.forEach { (muscle, value) -> totals[muscle] = (totals[muscle] ?: 0.0) + value.directSets + value.indirectSets }
             return true
         }
-        fun options(muscle: String, dayIndex: Int): List<Candidate> {
+        fun muscleCandidates(muscle: String, dayIndex: Int): List<Candidate> {
             val curated = pools[muscle].orEmpty().mapNotNull(candidates::get)
             val rotated = if (curated.isEmpty()) curated else curated.drop(dayIndex % curated.size) + curated.take(dayIndex % curated.size)
             return rotated.filter { muscle in it.primary }.sortedBy { candidate ->
@@ -212,7 +231,7 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
                 ((if (index in priorityDays) focused.filter { it in allowedMuscles } else emptyList()) + allowedMuscles).distinct()
             }
             ordered.forEach { muscle ->
-                options(muscle, index).firstOrNull { canAdd(index, it) }?.let { add(index, it) }
+                muscleCandidates(muscle, index).firstOrNull { canAdd(index, it) }?.let { add(index, it) }
             }
         }
         repeat(180) {
@@ -257,7 +276,25 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
             val baseOrder = daySlots.sortedWith(compareBy<Slot> { slot -> if (slot.candidate.primary.any { it in focused }) 0 else 1 }
                 .thenBy { if (it.candidate.configuration.profile.articulationType?.name == "MULTIARTICULAR") 0 else 1 })
             val ordered = prioritizeExerciseOrder(baseOrder, exerciseOrderPoints)
-            val exercises = ordered.mapIndexed { exerciseIndex, slot -> exercise(slot.candidate.info, "$programId-s$index-e$exerciseIndex", slot.sets, input.level) }
+            // Preset del plan (40 % × 8, 60 % × 5, 80 % × 3 sobre la carga de
+            // trabajo) en el primer compuesto de cada patrón, tal y como queda
+            // ordenado: la misma política de PlanMaterializer para la ruta nativa
+            // RIR. Vacío = sin aproximaciones automáticas y sin mezclarse con
+            // calentamientos que traiga la receta de autor (aquí no llegan).
+            val warmupSteps = options.resolvedWarmupSteps()
+            val firstCompounds = if (warmupSteps.isEmpty()) {
+                emptySet()
+            } else {
+                firstCompoundConfigurationIds(ordered, compositionMetadata)
+            }
+            val exercises = ordered.mapIndexed { exerciseIndex, slot ->
+                val base = exercise(slot.candidate.info, "$programId-s$index-e$exerciseIndex", slot.sets, input.level)
+                if (slot.candidate.configuration.id in firstCompounds) {
+                    base.copy(warmupSets = presetWarmupDefinitions(warmupSteps, base.id))
+                } else {
+                    base
+                }
+            }
             val cardioExercise = cardio?.let {
                 Exercise(id = "$programId-s$index-cardio", name = it.type.name.lowercase().replace('_', ' '),
                     cardioDetails = CardioDetails(type = it.type, intensity = it.intensity, targetDurationSeconds = it.minutes * 60))
@@ -336,9 +373,18 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
                 weekStartDay = days.first(),
                 trainingDays = days.toSet(),
             ),
-            // Sin forzar PROPOSE: el modo de autorregulación lo elige el usuario
-            // (OFF por defecto) y debe sobrevivir a la materialización.
-            autoregulationMode = AutoregulationMode.OFF,
+            // El modo de autorregulación lo trae la configuración real
+            // (PROPOSE por defecto; AUTO solo tras confirmación explícita) y debe
+            // sobrevivir a la materialización.
+            autoregulationMode = options.autoregulationMode,
+            // La elección de calentamientos del usuario se persiste en el JSON del
+            // programa (null = preset; vacío = sin aproximaciones; lista = pasos
+            // propios) para que la rematerialización no dependa del onboarding.
+            planWarmupConfig = options.warmup,
+            // La bolsa de orden realmente aplicada se persiste igual: es el dato
+            // con el que OrderPrioritiesContract puede responder con un hecho
+            // («aplicada») en vez de suposiciones. Solo ordena ejercicios.
+            planOrderPriorities = exerciseOrderPoints.takeIf { it.isNotEmpty() },
             tags = listOf("KPKN_NATIVE", input.focus.name),
             selectedSplitId = splitPlan?.splitId,
             customSplitPattern = if (splitPlan?.splitId == "custom") input.splitPattern else emptyList(),
@@ -357,6 +403,55 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
         sets = List(sets) { index -> ExerciseSet("$id-set-$index", targetReps = 10, targetRepsRange = RepRange(8, 12), targetRIR = if (level == CatalogLevel.BEGINNER) 3 else 2, intensityMode = IntensityMode.RIR) },
         restTime = 90,
     )
+
+    /**
+     * Primer compuesto de cada patrón de movimiento de la sesión, identificado
+     * con la composición real del catálogo (igual que en [PlanMaterializer]):
+     * gana el primer compuesto del orden ya priorizado, tal y como el usuario
+     * lo ve. Los ejercicios sin patrón conocido simplemente no reciben preset.
+     */
+    private fun firstCompoundConfigurationIds(
+        slots: List<Slot>,
+        metadata: ExerciseCompositionMetadataProvider,
+    ): Set<String> {
+        val claimed = mutableSetOf<String>()
+        val first = mutableSetOf<String>()
+        slots.forEach { slot ->
+            val id = slot.candidate.configuration.id
+            val meta = metadata.metadata(id)
+            val family = CompositionTaxonomy.familyOf(meta?.movementPatternId)
+            val compound = meta != null &&
+                !CompositionTaxonomy.isIsolation(family, meta.articulationType, meta.configurationId)
+            if (compound) {
+                val bucket = family?.name ?: "_compound_$id"
+                if (claimed.add(bucket)) first += id
+            }
+        }
+        return first
+    }
+
+    /**
+     * Pasos declarados o preset (40 % × 8, 60 % × 5, 80 % × 3 sobre la carga
+     * de trabajo) convertidos en aproximaciones nativas editables, con descanso
+     * según la cercanía a la serie de trabajo (misma decisión que
+     * [PlanMaterializer.assignWarmups]).
+     */
+    private fun presetWarmupDefinitions(
+        steps: List<SetRecipe>,
+        exerciseId: String,
+    ): List<WarmupSetDefinition> = steps.mapIndexedNotNull { index, step ->
+        val percent = step.percent ?: return@mapIndexedNotNull null
+        WarmupSetDefinition(
+            id = "$exerciseId-warmup-$index",
+            percentageOfWorkingWeight = percent,
+            targetReps = step.reps ?: 5,
+            restBetween = when {
+                percent >= 70.0 -> 120
+                percent >= 50.0 -> 90
+                else -> 60
+            },
+        )
+    }
 
     /** El presupuesto depende del enfoque del plan; las prioridades de orden no lo alteran. */
     private fun budgets(input: PersonalizerInput, focused: Set<String>): Map<String, Budget> {
@@ -384,22 +479,33 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
         }
     }
 
-    private fun normalizeEquipment(source: Set<String>): Set<String> = source.map {
-        when (it) { "bands" -> "band"; "smith" -> "smith_machine"; else -> it }
-    }.toSet()
-
-    private fun equipmentAllows(configuration: ExerciseConfigurationV2, equipment: Set<String>, family: String): Boolean {
+    /**
+     * Filtro real de material por configuración:
+     * - En **modo inventario legacy**, una máquina concreta solo se admite si su
+     *   token `machine_config:<id>` está en el set (leg curl ≠ chest press ≠
+     *   prensa); la presencia genérica `machine` no basta. `cable` y
+     *   `smith_machine` sí valen como estación multi-ejercicio declarada.
+     * - La disponibilidad categórica `machine` habilita variantes nativas
+     *   aprobadas sin afirmar una configuración concreta.
+     * - Con **inventario null** (perfil legacy) se conserva el comportamiento
+     *   anterior: `machine`/`general_gym` del perfil siguen valiendo.
+     * - Las dependencias de soporte usan la MISMA API que la guardia de recetas
+     *   fijas ([supportDependencyFor]): un único punto, sin duplicado divergente.
+     */
+    private fun equipmentAllows(
+        configuration: ExerciseConfigurationV2,
+        equipment: Set<String>,
+        family: String,
+        requireExactMachineConfiguration: Boolean,
+    ): Boolean {
         val actual = configuration.profile.equipmentId
         if (family == "machine-muscle" && actual != "machine") return false
         if (family == "bodyweight" && actual != "bodyweight") return false
         if (family == "home-training" && actual !in setOf("bodyweight", "band", "dumbbells")) return false
-        if ("general_gym" !in equipment && actual !in equipment) return false
-        val extra = when (configuration.id) {
-            "pull_up__pronated__medium", "pull_up__supinated__medium" -> "pull_up_bar"
-            "back_remo_invertido__default", "hams_curl_nordic_peso_corporal__default" -> "support"
-            "curl_isquios_con_balon__default" -> "ball"
-            else -> null
-        }
+        val machineConfigDeclared = machineConfigToken(configuration.id) in equipment
+        if (requireExactMachineConfiguration && actual == "machine" && !machineConfigDeclared) return false
+        if (!machineConfigDeclared && "general_gym" !in equipment && actual !in equipment) return false
+        val extra = supportDependencyFor(configuration.id)
         return extra == null || "general_gym" in equipment || extra in equipment
     }
 
@@ -433,19 +539,7 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
         } else {
             input.priorityMuscles.associate { canonicalSelection(it) to 1 }
         }
-        val totals = linkedMapOf<String, Int>()
-        source.forEach { (raw, points) ->
-            if (points < 0) return null
-            if (points == 0) return@forEach
-            if (points > MAX_ORDER_POINTS_PER_MUSCLE) return null
-            val muscle = canonicalSelection(raw)
-            if (muscle.isBlank()) return@forEach
-            val merged = (totals[muscle] ?: 0) + points
-            if (merged > MAX_ORDER_POINTS_PER_MUSCLE) return null
-            totals[muscle] = merged
-        }
-        if (totals.values.sum() > MAX_ORDER_POINTS_TOTAL) return null
-        return totals
+        return orderPointsFromBag(source)
     }
 
     /**
@@ -582,25 +676,6 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
         return groups.takeIf { it.isNotEmpty() }
     }
 
-    private fun canonicalSelection(raw: String): String {
-        val normalized = raw.trim().lowercase()
-        return when (normalized) {
-            "pecho", "pectorales" -> "Pectorales"
-            "espalda", "dorsales", "lats" -> "Dorsales"
-            "hombros", "deltoides" -> "Deltoides"
-            "brazos", "bíceps", "biceps" -> "Bíceps"
-            "tríceps", "triceps" -> "Tríceps"
-            "piernas", "cuádriceps", "cuadriceps" -> "Cuádriceps"
-            "isquios", "isquiosurales", "femorales" -> "Isquiosurales"
-            "glúteos", "gluteos" -> "Glúteos"
-            "pantorrillas", "gemelos" -> "Pantorrillas"
-            "abdomen", "core" -> "Abdomen"
-            "trapecio" -> "Trapecio"
-            "erectores espinales", "columna" -> "Erectores Espinales"
-            else -> VolumeCalculator.normalizeCanonicalMuscleGroup(raw)
-        }
-    }
-
     private fun curatedPools(): Map<String, List<String>> = linkedMapOf(
         "Pectorales" to listOf("tren_superior_press_pecho_maquina_convergente__default", "bench_press__dumbbells", "bench_press__barbell", "flat_chest_fly__machine", "push_up__flat", "tren_superior_press_banda_resistencia__default"),
         "Dorsales" to listOf("chest_supported_row__machine__medium", "lat_pulldown__bilateral__machine", "back_remo_banda__default", "conventional_row__dumbbells", "lat_pulldown__bilateral__cable", "pull_up__pronated__medium", "back_remo_invertido__default"),
@@ -620,5 +695,53 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
         internal const val MAX_ORDER_POINTS_TOTAL = 5
         private val hardBodyweight = setOf("pull_up__pronated__medium", "back_remo_invertido__default", "hams_curl_nordic_peso_corporal__default", "quads_sentadilla_cosaca__default")
         private val defaultDays = mapOf(1 to listOf(1), 2 to listOf(1, 4), 3 to listOf(1, 3, 5), 4 to listOf(1, 2, 4, 5), 5 to listOf(1, 2, 3, 5, 6), 6 to listOf(1, 2, 3, 4, 5, 6))
+    }
+}
+
+/**
+ * Contrato único de la bolsa de puntos de orden, compartido entre el motor
+ * ([SimpleCyclePersonalizer.orderPoints], usado en la ruta nativa) y
+ * [TrainingOptions.validate] (la configuración que el draft aplica).
+ * Máximo 2 puntos por músculo, 5 en total y ningún punto negativo; no es
+ * obligatorio gastarlos todos. Devuelve la bolsa con los músculos normalizados
+ * o null cuando no cumple el contrato.
+ */
+internal fun orderPointsFromBag(source: Map<String, Int>): Map<String, Int>? {
+    val totals = linkedMapOf<String, Int>()
+    source.forEach { (raw, points) ->
+        if (points < 0) return null
+        if (points == 0) return@forEach
+        if (points > SimpleCyclePersonalizer.MAX_ORDER_POINTS_PER_MUSCLE) return null
+        val muscle = canonicalSelection(raw)
+        if (muscle.isBlank()) return@forEach
+        val merged = (totals[muscle] ?: 0) + points
+        if (merged > SimpleCyclePersonalizer.MAX_ORDER_POINTS_PER_MUSCLE) return null
+        totals[muscle] = merged
+    }
+    if (totals.values.sum() > SimpleCyclePersonalizer.MAX_ORDER_POINTS_TOTAL) return null
+    return totals
+}
+
+/**
+ * Normalización canónica de nombres de músculo usada por la bolsa de orden del
+ * motor y de [TrainingOptions]; sinónimos y plurales coloquiales remiten
+ * al mismo grupo curado que entiende el presupuesto de volumen.
+ */
+internal fun canonicalSelection(raw: String): String {
+    val normalized = raw.trim().lowercase()
+    return when (normalized) {
+        "pecho", "pectorales" -> "Pectorales"
+        "espalda", "dorsales", "lats" -> "Dorsales"
+        "hombros", "deltoides" -> "Deltoides"
+        "brazos", "bíceps", "biceps" -> "Bíceps"
+        "tríceps", "triceps" -> "Tríceps"
+        "piernas", "cuádriceps", "cuadriceps" -> "Cuádriceps"
+        "isquios", "isquiosurales", "femorales" -> "Isquiosurales"
+        "glúteos", "gluteos" -> "Glúteos"
+        "pantorrillas", "gemelos" -> "Pantorrillas"
+        "abdomen", "core" -> "Abdomen"
+        "trapecio" -> "Trapecio"
+        "erectores espinales", "columna" -> "Erectores Espinales"
+        else -> VolumeCalculator.normalizeCanonicalMuscleGroup(raw)
     }
 }

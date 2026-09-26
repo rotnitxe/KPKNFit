@@ -65,6 +65,7 @@ import androidx.compose.ui.zIndex
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.SessionRequirement
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ScheduleIssue
 import com.example.kpkn.domain.training.StartDaySessionMode
@@ -138,6 +139,11 @@ fun DayView(
     onUpdateStartDay: (Int, StartDayTemporalScope, StartDaySessionMode) -> Unit,
     onUpdateWeekMetadata: (String, String, String?) -> Unit,
     onUpdateTrainingDayDate: (weekId: String, dayOfWeek: Int, isoDate: String?) -> Unit = { _, _, _ -> },
+    /**
+     * Confirma/desconfirma UNA sesión opcional en UNA fecha (sólo fechas
+     * futuras; el estado sale de `program.optionalSessionConfirmations`).
+     */
+    onToggleOptionalConfirmation: (dayIso: String, sessionId: String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
 ) {
     val startDay = program.startDay ?: 1
@@ -162,6 +168,21 @@ fun DayView(
     val outsideProgramDays = selectedWeek?.outsideProgramDays.orEmpty()
     val trainingDayDates = selectedWeek?.trainingDayDates.orEmpty()
     val selectedWeekId = selectedWeek?.id
+    // Fallback a la MISMA proyección del motor del calendario: si el meta de la
+    // semana no trae la fecha (p. ej. mapa vacío), se resuelve con
+    // `ProgramCalendarEngine` — nunca un weekday aislado inventado.
+    val calendarProjection = remember(program) { ProgramCalendarEngine.project(program) }
+    val projectedWeekDates = remember(calendarProjection, selectedWeekId) {
+        selectedWeekId
+            ?.let { id -> calendarProjection.weeks.firstOrNull { it.weekId == id }?.trainingDayDates }
+            .orEmpty()
+    }
+    // Estado checked: sólo (día ISO, sesión) confirmados EXPLÍCITAMENTE.
+    val confirmedOptionalKeys = remember(program) {
+        program.optionalSessionConfirmations
+            .map { it.dayIso to it.sessionId }
+            .toSet()
+    }
 
     val initialExpandedDay = remember(startDay, trainingDayDates) {
         val todayStr = java.time.LocalDate.now().toString()
@@ -218,7 +239,7 @@ fun DayView(
                 val isExpanded = day.id in expandedDays
                 val isDropTarget = dragState.draggedSessionId != null && dragState.targetDayId == day.id
                 val isOutsideProgram = day.id in outsideProgramDays
-                val scheduledDate = trainingDayDates[day.id]
+                val scheduledDate: String? = trainingDayDates[day.id] ?: projectedWeekDates[day.id]?.toString()
 
                 DayColumn(
                     day = day,
@@ -230,6 +251,10 @@ fun DayView(
                     isStartDay = day.id == startDay,
                     isOutsideProgram = isOutsideProgram,
                     scheduledDate = scheduledDate,
+                    isOptionalConfirmed = { dateIso, sessionId ->
+                        (dateIso to sessionId) in confirmedOptionalKeys
+                    },
+                    onToggleOptionalConfirmation = onToggleOptionalConfirmation,
                     onToggleExpand = {
                         expandedDays = if (isExpanded) expandedDays - day.id else expandedDays + day.id
                     },
@@ -621,6 +646,10 @@ private fun DayColumn(
     isStartDay: Boolean,
     isOutsideProgram: Boolean,
     scheduledDate: String?,
+    /** Estado checked de la confirmación opcional de (día ISO, sesión). */
+    isOptionalConfirmed: (dayIso: String, sessionId: String) -> Boolean = { _, _ -> false },
+    /** Alterna la confirmación de UNA sesión opcional en su día. */
+    onToggleOptionalConfirmation: (dayIso: String, sessionId: String) -> Unit = { _, _ -> },
     onToggleExpand: () -> Unit,
     onEditSession: (String) -> Unit,
     onDeleteSession: (String) -> Unit,
@@ -637,6 +666,8 @@ private fun DayColumn(
 ) {
     var dayMenuExpanded by remember { mutableStateOf(false) }
     val scheduledDateLabel = scheduledDate?.let(::formatDayDateLabel)
+    // Sólo fechas FUTURAS son confirmables: hoy y pasado son inmutables.
+    val todayIso = remember { java.time.LocalDate.now().toString() }
 
     Card(
         modifier = Modifier
@@ -772,6 +803,13 @@ private fun DayColumn(
                             }
                             val session = entry.session
                             val isDragging = dragState.draggedSessionId == session.id
+                            // Acción contextual sólo para OPCIONAL con fecha real
+                            // y futura; clave exacta día+sesión (no «todas»).
+                            val futureOptionalDateIso = if (session.requirement == SessionRequirement.OPTIONAL) {
+                                scheduledDate?.takeIf { it > todayIso }
+                            } else {
+                                null
+                            }
 
                             DraggableSessionCard(
                                 session = session,
@@ -781,6 +819,15 @@ private fun DayColumn(
                                 onStart = { onStartWorkout(session) },
                                 onEdit = { onEditSession(session.id) },
                                 onDelete = { onDeleteSession(session.id) },
+                                optionalConfirmationChecked = futureOptionalDateIso
+                                    ?.let { isOptionalConfirmed(it, session.id) },
+                                onToggleOptionalConfirmation = if (futureOptionalDateIso != null) {
+                                    { _: Boolean ->
+                                        onToggleOptionalConfirmation(futureOptionalDateIso, session.id)
+                                    }
+                                } else {
+                                    null
+                                },
                                 onBoundsChange = { rect -> onCardBoundsChange(session.id, rect) },
                                 onDragStart = { onDragStart(session.id) },
                                 onDrag = { delta -> onDrag(session.id, delta) },
@@ -812,6 +859,8 @@ private fun DraggableSessionCard(
     onDrag: (Offset) -> Unit,
     onDragEnd: () -> Unit,
     onDragCancel: () -> Unit,
+    optionalConfirmationChecked: Boolean? = null,
+    onToggleOptionalConfirmation: ((Boolean) -> Unit)? = null,
 ) {
     SessionCard(
         session = session,
@@ -821,6 +870,8 @@ private fun DraggableSessionCard(
         onDelete = { onDelete() },
         showDragHandle = true,
         isDragging = isDragging,
+        optionalConfirmationChecked = optionalConfirmationChecked,
+        onToggleOptionalConfirmation = onToggleOptionalConfirmation,
         modifier = Modifier
             .onGloballyPositioned { onBoundsChange(it.boundsInWindow()) }
             .graphicsLayer {

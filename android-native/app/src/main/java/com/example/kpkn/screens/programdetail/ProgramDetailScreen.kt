@@ -755,6 +755,9 @@ private fun TrainingPanel(
                     onUpdateTrainingDayDate = { weekId, dayOfWeek, isoDate ->
                         viewModel.updateWeekTrainingDayDate(weekId, dayOfWeek, isoDate)
                     },
+                    onToggleOptionalConfirmation = { dayIso, sessionId ->
+                        viewModel.toggleOptionalSessionConfirmation(dayIso, sessionId)
+                    },
                 )
             }
             StructureSubTab.MACROCICLO -> MacrocycleEditor(

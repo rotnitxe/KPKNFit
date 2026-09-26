@@ -84,6 +84,9 @@ class WorkoutVoiceCommandHandler(
             warmupIndex: Int,
             activeTag: String? = null,
         ): Double?
+        fun getWarmupWorkingWeightAnchor(exercise: Exercise, activeTag: String? = null): Double?
+        fun speakWarmupAutoRegulation(feedback: String)
+        fun speakWarmupCompletedTransition(exerciseName: String, firstEffectiveKg: Double?, targetReps: Int)
         fun restSecondsRemaining(): Int?
         fun canonicalExerciseKey(exercise: Exercise): String
         fun inferUnitMode(exercise: Exercise, setIdx: Int): UnitModeV2
@@ -1079,7 +1082,7 @@ class WorkoutVoiceCommandHandler(
 
         val warmupIndex = currentExercise.warmupSets.indexOf(targetWarmup).coerceAtLeast(0)
         val suggested = ports.getWarmupSuggestedWeight(currentExercise, warmupIndex, state.exerciseTags[currentExercise.id])
-        val finalWeight = command.weightKg ?: suggested ?: 0.0
+        val finalWeight = command.weightKg ?: suggested
         val finalReps = command.reps ?: targetWarmup.targetReps
 
         // 1. Report weight & mark complete
@@ -1118,7 +1121,10 @@ class WorkoutVoiceCommandHandler(
         }
 
         val baseWorkingLoad = currentExercise.sets.firstOrNull()?.weight
-            ?: (suggested?.let { if (targetWarmup.percentageOfWorkingWeight > 0) it / (targetWarmup.percentageOfWorkingWeight / 100.0) else null })
+            ?.takeIf { it.isFinite() && it > 0.0 }
+            ?: currentExercise.consolidatedWeight?.weightKg?.takeIf { it.isFinite() && it > 0.0 }
+            ?: ports.getWarmupWorkingWeightAnchor(currentExercise, state.exerciseTags[currentExercise.id])
+                ?.takeIf { it.isFinite() && it > 0.0 }
 
         val calibration = WarmupCalibrationEngine.calibrateWorkingLoad(
             programmedPercentages = currentExercise.warmupSets.map { it.percentageOfWorkingWeight },
@@ -1132,19 +1138,35 @@ class WorkoutVoiceCommandHandler(
         if (isLastWarmup) {
             val effectiveKg = calibration.firstEffectiveLoadKg ?: baseWorkingLoad
             val plannedReps = currentExercise.sets.firstOrNull()?.plannedRepAnchor() ?: 8
-            voiceController.speakWarmupCompletedTransition(
+            ports.speakWarmupCompletedTransition(
                 exerciseName = spokenWorkoutExerciseName(currentExercise),
                 firstEffectiveKg = effectiveKg,
                 targetReps = plannedReps,
             )
         } else {
+            // Consult the same reachable-load source used by the card only after
+            // the new effort report has been persisted through the ports.
+            val nextSuggestedLoad = ports.getWarmupSuggestedWeight(
+                currentExercise,
+                nextWarmupIndex,
+                state.exerciseTags[currentExercise.id],
+            )?.takeIf { it.isFinite() && it > 0.0 }
+            val reachableLoads = calibration.remainingWarmupLoadsKg.toMutableList()
+            if (nextWarmupIndex in reachableLoads.indices) {
+                reachableLoads[nextWarmupIndex] = nextSuggestedLoad
+            }
             val feedback = WarmupCalibrationEngine.generateVoiceFeedback(
                 weightKg = finalWeight,
                 effort = command.effort,
-                result = calibration,
+                // If the next load is pending/unreachable, don't fall back to
+                // a theoretical percentage or announce zero kilos.
+                result = calibration.copy(
+                    remainingWarmupLoadsKg = reachableLoads,
+                    firstEffectiveLoadKg = null,
+                ),
                 nextWarmupIndex = nextWarmupIndex,
             )
-            voiceController.speakWarmupAutoRegulation(feedback)
+            ports.speakWarmupAutoRegulation(feedback)
         }
     }
 

@@ -22,10 +22,13 @@ import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.training.BlockTransitionEngine
 import com.example.kpkn.domain.training.WeeklyAutoregulationSignals
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -72,7 +75,62 @@ class ProgramRepository private constructor(
     private val programWriteMutex = Mutex()
     private val programWriteSequence = AtomicLong(0L)
     private val newestProgramWrite = ConcurrentHashMap<String, Long>()
+
+    /**
+     * Monitor ÚNICO de reserva + publicación en memoria del caché de programas.
+     *
+     * Toda escritura que reserve una versión y publique en [_programs] debe
+     * hacer ambas cosas dentro de este monitor, sin Room ni suspend adentro
+     * (sección corta: CAS sobre el StateFlow y un incremento atómico). En una
+     * mutación durable también puede repararse aquí el cursor activo; esa
+     * operación solo cambia su StateFlow y agenda su persistencia, sin esperar
+     * otro lock. Así el orden de reservas es SIEMPRE el orden de publicaciones
+     * y una versión más nueva no puede quedar cubierta por una publicación
+     * vieja posterior.
+     *
+     * Orden de locks: `[PersistenceWriteCoordinator] -> [programWriteMutex] ->
+     * programMutationLock`. El monitor es hoja: quien lo sostiene no espera a
+     * ningún otro lock; la reparación opcional del cursor solo actualiza su
+     * StateFlow y agenda persistencia.
+     */
     private val programMutationLock = Any()
+
+    /**
+     * Test-only seam del camino durable: se invoca DESPUÉS del upsert de Room y
+     * ANTES del chequeo+publicación, para reproducir de forma determinista una
+     * reserva concurrente que llega justo en ese hueco. Nulo en producción.
+     *
+     * El hook corre sosteniendo los locks de storage, así que solo debe usar
+     * escrituras no bloqueantes (`addProgram`/`updateProgram`/`deleteProgram`,
+     * que reservan y publican en memoria y delegan Room en un `launch`); nunca
+     * una que espere `programWriteMutex` de forma síncrona.
+     */
+    @Volatile
+    internal var durableCommitInterleaverForTests: (suspend () -> Unit)? = null
+
+    /**
+     * Lane de read-modify-write de [mutateProgramNow]: serializa
+     * LECTURA del último snapshot → transform → commit Room → publicación.
+     * Así dos mutaciones rápidas no pueden leer ambas antes de ningún commit
+     * (la segunda ve el resultado ya publicado de la primera) y la caché solo
+     * se publica tras confirmarse Room.
+     *
+     * La lectura/reserva inicial toma [programMutationLock] y lo suelta antes
+     * de entrar en los lanes de storage. Después, el commit sigue el orden
+     * `[PersistenceWriteCoordinator]` → [programWriteMutex] →
+     * [programMutationLock] (hoja). Ningún otro camino toma `programRmwMutex`,
+     * por lo que no hay ciclo de espera con los lanes de Room.
+     */
+    private val programRmwMutex = Mutex()
+
+    /**
+     * Test-only: se invoca dentro del commit durable, bajo los locks de
+     * storage, ANTES del chequeo previo y del upsert. Permite a un test (a)
+     * lanzar un fallo de storage —nada escrito, nada publicado— o (b) reservar
+     * una versión más nueva para forzar el salto obsoleto. Nulo en producción.
+     */
+    @Volatile
+    internal var durableCommitBeforeWriteForTests: (() -> Unit)? = null
 
     private val _programQueue = MutableStateFlow<List<String>>(emptyList())
     val programQueue: StateFlow<List<String>> = _programQueue.asStateFlow()
@@ -82,46 +140,188 @@ class ProgramRepository private constructor(
 
     fun addProgram(program: Program) {
         val normalized = normalizeProgramWithCompetitions(program)
-        val version = reserveProgramWrite(normalized.id)
-        _programs.update { it + normalized }
+        // Reserva + publicación optimista atómicas entre sí (ver [programMutationLock]).
+        val version = synchronized(programMutationLock) {
+            val reserved = reserveProgramWrite(normalized.id)
+            _programs.update { list -> list + normalized }
+            reserved
+        }
         scope.launch { persistProgramIfNewest(normalized, version) }
     }
 
     fun updateProgram(program: Program) {
         val normalized = normalizeProgramWithCompetitions(program)
-        val version = reserveProgramWrite(normalized.id)
-        _programs.update { list -> list.map { if (it.id == normalized.id) normalized else it } }
+        val version = synchronized(programMutationLock) {
+            val reserved = reserveProgramWrite(normalized.id)
+            _programs.update { list -> list.map { if (it.id == normalized.id) normalized else it } }
+            reserved
+        }
         repairActiveStateIfNeeded(normalized)
         scope.launch { persistProgramIfNewest(normalized, version) }
     }
 
     suspend fun updateProgramNow(program: Program) {
         val normalized = normalizeProgramWithCompetitions(program)
-        val version = reserveProgramWrite(normalized.id)
-        _programs.update { list -> list.map { if (it.id == normalized.id) normalized else it } }
+        val version = synchronized(programMutationLock) {
+            val reserved = reserveProgramWrite(normalized.id)
+            _programs.update { list -> list.map { if (it.id == normalized.id) normalized else it } }
+            reserved
+        }
         repairActiveStateIfNeeded(normalized)
         withContext(Dispatchers.IO) { persistProgramIfNewest(normalized, version) }
     }
 
     /**
-     * Read-modify-write of a program against the latest in-memory snapshot.
-     * Returns false if the program is missing or [transform] returns null (abort).
+     * Guardado DURABLE de un programa (nuevo o reemplazo con el mismo id):
+     * suspende hasta que Room confirma el write y SOLO entonces publica la
+     * caché en memoria. A diferencia de [addProgram]/[updateProgram]
+     * (fire-and-forget), el éxito aquí garantiza fila persistida Y caché
+     * publicada con esa misma versión: quien llama puede reportar éxito sin
+     * peligro de éxito falso. Errores vía [Result]; [CancellationException] se
+     * propaga.
+     *
+     * Garantías del camino durable (y quién las hace):
+     * - **Escritura protegida**: Room solo se escribe si, bajo los locks de
+     *   storage (`PersistenceWriteCoordinator` → `programWriteMutex`), esta
+     *   versión sigue siendo la más reciente; si no, ni Room ni la caché se
+     *   tocan y llega [ProgramWriteConflictException].
+     * - **Chequeo + publicación atómicos**: el re-chequeo post-Room y la
+     *   publicación en [_programs] corren juntos dentro de
+     *   [programMutationLock], el MISMO monitor con el que todo otro escritor
+     *   hace `reserva + publicación`. Por eso una reserva más nueva no puede
+     *   colarse entre chequeo y publicación (orden de reservas == orden de
+     *   publicaciones) y esta versión no puede pisar una caché más nueva.
+     * - **Estado devuelto = estado publicado**: si la versión se perdió DESPUÉS
+     *   del upsert, no se publica y se devuelve `false` (conflicto), nunca un
+     *   éxito que describa una caché que no se escribió.
+     * - **Publicación fiable**: commit + chequeo + publicación corren en
+     *   `NonCancellable` sobre IO; nunca se espera al dispatcher Main dentro de
+     *   los locks (sin deadlocks contra hilos que se bloquean en Main).
      */
-    suspend fun mutateProgramNow(programId: String, transform: (Program) -> Program?): Boolean {
-        val prepared = synchronized(programMutationLock) {
-            val current = getProgramById(programId) ?: return false
-            val next = transform(current) ?: return false
-            val normalized = normalizeProgramWithCompetitions(next)
-            val version = reserveProgramWrite(normalized.id)
-            _programs.update { list -> list.map { if (it.id == normalized.id) normalized else it } }
-            repairActiveStateIfNeeded(normalized)
-            normalized to version
+    suspend fun addProgramNow(program: Program): Result<Unit> {
+        val normalized = normalizeProgramWithCompetitions(program)
+        val version = synchronized(programMutationLock) { reserveProgramWrite(normalized.id) }
+        return try {
+            val published = commitProgramDurableForCaller(normalized, version)
+            if (published) Result.success(Unit)
+            else Result.failure(ProgramWriteConflictException(normalized.id))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            Result.failure(e)
         }
-        withContext(NonCancellable + Dispatchers.IO) {
-            persistProgramIfNewest(prepared.first, prepared.second)
-        }
-        return true
     }
+
+    /**
+     * Camino explícito del guardado durable, en tres pasos:
+     * 1. chequeo previo bajo [programMutationLock] (Room intacto si está
+     *    obsoleto);
+     * 2. upsert de Room bajo los locks de storage, SIN monitor encima
+     *    (Room es suspend y no puede correr dentro de `synchronized`);
+     * 3. re-chequeo + publicación atómicos bajo [programMutationLock].
+     *
+     * Entre (2) y (3) puede entrar una reserva más nueva (p. ej. un
+     * `updateProgram` concurrente): en ese caso no se publica nada y el
+     * resultado es `false`, de modo que la caché nunca queda con la versión
+     * vieja mientras Room termina con la nueva.
+     *
+     * @param repairActiveState si se debe reparar el cursor activo después de
+     *   publicar una mutación del programa; se ejecuta dentro de la publicación
+     *   para que no pueda aplicarse desde una versión ya obsoleta.
+     * @return `true` solo si se escribió Room Y se publicó la caché con esta
+     * versión todavía vigente.
+     */
+    private suspend fun commitProgramDurable(
+        program: Program,
+        version: Long,
+        repairActiveState: Boolean = false,
+    ): Boolean =
+        PersistenceWriteCoordinator.mutex.withLock {
+            programWriteMutex.withLock {
+                // Test-only (null en producción): fallo de storage o reserva
+                // concurrente ANTES del chequeo previo; nada se tocó todavía.
+                durableCommitBeforeWriteForTests?.invoke()
+                val canWrite = synchronized(programMutationLock) {
+                    newestProgramWrite[program.id] == version
+                }
+                if (!canWrite) {
+                    false
+                } else {
+                    db.programDao().upsert(program.toEntity())
+                    // Hueco de test: reserva concurrente ENTRE el upsert y el
+                    // chequeo+publicación (sección que ahora es indivisible).
+                    durableCommitInterleaverForTests?.invoke()
+                    synchronized(programMutationLock) {
+                        val isStillNewest = newestProgramWrite[program.id] == version
+                        if (isStillNewest) {
+                            _programs.update { list ->
+                                if (list.any { it.id == program.id }) {
+                                    list.map { if (it.id == program.id) program else it }
+                                } else {
+                                    list + program
+                                }
+                            }
+                            if (repairActiveState) repairActiveStateIfNeeded(program)
+                        }
+                        isStillNewest
+                    }
+                }
+            }
+        }
+
+    /**
+     * Room's coroutine bridge may surface a storage/closed-database failure as
+     * [CancellationException] even while the caller is still active. Convert
+     * only that storage-side cancellation to a persistence error; preserve
+     * cancellation of the original caller. Once inside the storage lane, the
+     * commit remains non-cancellable and still publishes any confirmed write.
+     */
+    private suspend fun commitProgramDurableForCaller(
+        program: Program,
+        version: Long,
+        repairActiveState: Boolean = false,
+    ): Boolean {
+        val callerJob = currentCoroutineContext()[Job]
+        return withContext(NonCancellable + Dispatchers.IO) {
+            try {
+                commitProgramDurable(program, version, repairActiveState)
+            } catch (cancelled: CancellationException) {
+                if (callerJob?.isActive == false) throw cancelled
+                throw IllegalStateException("No se pudo guardar el programa en Room.", cancelled)
+            }
+        }
+    }
+
+    /**
+     * Durable read-modify-write of a program against the latest in-memory
+     * snapshot. Mutations through this API are serialized from snapshot read
+     * through Room commit and post-commit publication, so a later transform
+     * observes the earlier committed result instead of reusing a stale copy.
+     *
+     * Room is written before [_programs] changes. A storage exception
+     * propagates without publishing the candidate; `false` means the program
+     * disappeared, [transform] aborted with `null` or changed the program ID,
+     * or a newer writer superseded this version. Callers must treat every
+     * `false` as non-success.
+     */
+    suspend fun mutateProgramNow(programId: String, transform: (Program) -> Program?): Boolean =
+        withContext(Dispatchers.IO) {
+            programRmwMutex.withLock {
+                val prepared = synchronized(programMutationLock) {
+                    val current = getProgramById(programId) ?: return@withLock false
+                    val next = transform(current) ?: return@withLock false
+                    if (next.id != programId) return@withLock false
+                    val normalized = normalizeProgramWithCompetitions(next)
+                    val version = reserveProgramWrite(programId)
+                    normalized to version
+                }
+                commitProgramDurableForCaller(
+                    program = prepared.first,
+                    version = prepared.second,
+                    repairActiveState = true,
+                )
+            }
+        }
 
     private fun normalizeProgramWithCompetitions(program: Program): Program {
         val existingRecords = runCatching { CompetitionRepository.getInstance().records.value }
@@ -243,8 +443,13 @@ class ProgramRepository private constructor(
     }
 
     fun deleteProgram(programId: String) {
-        val version = reserveProgramWrite(programId)
-        _programs.update { list -> list.filter { it.id != programId } }
+        // Reserva + retirada de la caché atómicas: un commit durable en vuelo
+        // no puede re-publicar la fila entre ambas (re-animación en memoria).
+        val version = synchronized(programMutationLock) {
+            val reserved = reserveProgramWrite(programId)
+            _programs.update { list -> list.filter { it.id != programId } }
+            reserved
+        }
         val nextQueue = _programQueue.value.filterNot { it == programId }
         _programQueue.value = nextQueue
         if (_activeProgramState.value?.programId == programId) {
@@ -608,8 +813,14 @@ class ProgramRepository private constructor(
                     _ongoingWorkout.value = null
                     _ongoingWorkoutCorrupt.value = false
                 }
-                if (nextProgram != null && nextProgramVersion != null && newestProgramWrite[nextProgram.id] == nextProgramVersion) {
-                    _programs.update { list -> list.map { if (it.id == nextProgram.id) nextProgram else it } }
+                if (nextProgram != null && nextProgramVersion != null) {
+                    // Chequeo + publicación atómicos: una reserva más nueva no
+                    // puede colarse entre ambos (ver [programMutationLock]).
+                    synchronized(programMutationLock) {
+                        if (newestProgramWrite[nextProgram.id] == nextProgramVersion) {
+                            _programs.update { list -> list.map { if (it.id == nextProgram.id) nextProgram else it } }
+                        }
+                    }
                 }
                 if (repairedActive != null && repairedActiveVersion != null && newestActiveStateWrite == repairedActiveVersion) {
                     _activeProgramState.value = repairedActive
@@ -962,21 +1173,40 @@ class ProgramRepository private constructor(
         }
     }
 
+    /**
+     * Publica en las cachés el resultado de un commit de setup (M12), igual que
+     * `NutritionRepository.publishSetupCommit` publica el suyo.
+     *
+     * El estado activo se re-sincroniza **siempre desde la fila commiteada en
+     * Room**: aunque [program] sea null y [activateProgram] sea false. Un replay
+     * de un commit viejo (o un flag heredado) no puede dejar la caché obsoleta
+     * cuando la DB ya contiene una activación más nueva. Solo se refleja lo que
+     * ya está commiteado en Room —no se activa nada nuevo ni se escribe la DB.
+     *
+     * [activateProgram] se conserva en la firma por compatibilidad con M12;
+     * el committedDB ya es el resultado de ese flag.
+     */
     suspend fun publishSetupCommit(settings: Settings, program: Program?, activateProgram: Boolean) {
-        if (program != null) reserveProgramWrite(program.id)
-        val committedActive = if (activateProgram) {
-            withContext(Dispatchers.IO) { db.stateDao().getActiveProgram()?.toActiveProgramState() }
-        } else null
+        val committedActive = withContext(Dispatchers.IO) {
+            db.stateDao().getActiveProgram()?.toActiveProgramState()
+        }
         withContext(Dispatchers.Main.immediate) {
             _settings.value = settings
             ExerciseNicknameResolver.nicknames = settings.exerciseNicknames
             if (program != null) {
-                _programs.update { current ->
-                    val index = current.indexOfFirst { it.id == program.id }
-                    if (index < 0) current + program else current.toMutableList().also { it[index] = program }
+                // Reserva + publicación del programa atómicas entre sí, con el
+                // mismo monitor que el resto de escritores de esta caché.
+                synchronized(programMutationLock) {
+                    reserveProgramWrite(program.id)
+                    _programs.update { current ->
+                        val index = current.indexOfFirst { it.id == program.id }
+                        if (index < 0) current + program else current.toMutableList().also { it[index] = program }
+                    }
                 }
-                if (activateProgram) _activeProgramState.value = committedActive
             }
+            // Commiteado en DB => publicado en memoria, con o sin programa y
+            // con cualquier valor del flag de activación.
+            _activeProgramState.value = committedActive
         }
     }
 
@@ -1035,10 +1265,19 @@ class ProgramRepository private constructor(
                             }
                         }
 
-                        _programs.update { programs ->
-                            val index = programs.indexOfFirst { it.id == replacementToStore.id }
-                            if (index < 0) programs + replacementToStore
-                            else programs.toMutableList().also { it[index] = replacementToStore }
+                        // Chequeo + publicación atómicos con la reserva de
+                        // arriba (ver [programMutationLock]): si otra escritura
+                        // reservó más tarde, esta caché no se pisa y Room
+                        // converge a la más nueva. Mismo patrón que el guard
+                        // del estado activo justo debajo.
+                        synchronized(programMutationLock) {
+                            if (newestProgramWrite[replacementToStore.id] == programVersion) {
+                                _programs.update { programs ->
+                                    val index = programs.indexOfFirst { it.id == replacementToStore.id }
+                                    if (index < 0) programs + replacementToStore
+                                    else programs.toMutableList().also { it[index] = replacementToStore }
+                                }
+                            }
                         }
                         if (replacementActive != null && newestActiveStateWrite == activeVersion) {
                             _activeProgramState.value = replacementActive
@@ -1578,3 +1817,13 @@ sealed class StartWorkoutResult {
     data class Conflict(val existing: OngoingWorkoutState) : StartWorkoutResult()
     data object Corrupt : StartWorkoutResult()
 }
+
+/**
+ * Un commit durable ([ProgramRepository.addProgramNow]) fue reemplazado por una
+ * escritura más reciente del mismo programa antes de llegar a Room: NO se
+ * escribió la fila ni se publicó la caché. El llamador debe informar conflicto
+ * (y reintentar si quiere), nunca un éxito con estado obsoleto.
+ */
+class ProgramWriteConflictException(val programId: String) : IllegalStateException(
+    "El programa cambió mientras se guardaba. Revisa los cambios y vuelve a guardar.",
+)

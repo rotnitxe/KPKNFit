@@ -29,6 +29,9 @@ import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.exercises.ExerciseNicknameResolver
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.training.ProgramCalendarEngine
+import com.example.kpkn.domain.training.PlanMaterializer
+import com.example.kpkn.domain.training.canonicalEquipmentKind
+import com.example.kpkn.domain.training.machineRangeForExercise
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
 import com.example.kpkn.domain.workout.TagProgressionAnalyzer
 import com.example.kpkn.domain.workout.WarmupCalibrationEngine
@@ -545,6 +548,12 @@ class WorkoutViewModel(
                     loadSuggestionController.getWeightSuggestionWithAutoRegulation(exercise, setIdx, activeTag, side)
                 override fun getWarmupSuggestedWeight(exercise: Exercise, warmupIndex: Int, activeTag: String?) =
                     this@WorkoutViewModel.getWarmupSuggestedWeight(exercise, warmupIndex, activeTag)
+                override fun getWarmupWorkingWeightAnchor(exercise: Exercise, activeTag: String?) =
+                    this@WorkoutViewModel.getWarmupWorkingWeightAnchor(exercise, activeTag)
+                override fun speakWarmupAutoRegulation(feedback: String) =
+                    voiceController.speakWarmupAutoRegulation(feedback)
+                override fun speakWarmupCompletedTransition(exerciseName: String, firstEffectiveKg: Double?, targetReps: Int) =
+                    voiceController.speakWarmupCompletedTransition(exerciseName, firstEffectiveKg, targetReps)
                 override fun restSecondsRemaining() = restTimer.remaining.value.takeIf { it > 0 }
                 override fun canonicalExerciseKey(exercise: Exercise) = this@WorkoutViewModel.canonicalExerciseKey(exercise)
                 override fun inferUnitMode(exercise: Exercise, setIdx: Int): UnitModeV2 =
@@ -3863,6 +3872,9 @@ class WorkoutViewModel(
             recentWorkoutLogs = { recentWorkoutLogs(it) },
             visibleExercises = { visibleExercises(it) },
             workoutStepPositions = { workoutStepPositions(it) },
+            warmupSuggestedWeight = { ex, idx, tag, anchor ->
+                getWarmupSuggestedWeight(ex, idx, tag, anchor)
+            },
         )
         viewModelScope.launch {
             val uiSlice = _uiState.map { RelatorUiSlice.from(it) }.distinctUntilChanged()
@@ -6572,10 +6584,17 @@ class WorkoutViewModel(
     ): Double? = loadSuggestionController.getWarmupWorkingWeightAnchor(exercise, activeTag)
 
     /**
-     * Returns the live suggestion for one approximation card after applying
-     * the conservative reports captured by the rest overlay. Before a report
-     * exists this is the same working-load percentage the card used before
-     * calibration was introduced.
+     * FUENTE ÚNICA de cargas de aproximación (40/60/80 % de la carga de
+     * trabajo) para la tarjeta, el relator, la página V2 y la voz: un solo
+     * Realizer con el inventario real de `Settings` (discos con cantidades,
+     * mancuerna por pareja, kettlebell, máquina por configuración exacta o
+     * estación cable/Smith declarada), la calibración AUTO de esfuerzos y el
+     * piso por etiqueta.
+     *
+     * Devuelve la carga ALCANZABLE o null = porcentaje pendiente (nunca 0 ni
+     * kilogramos inventados). Solo sugiere: la edición manual/autor manda, así
+     * que el peso registrado en la tarjeta no se toca. El parser de voz no
+     * cambia: recibe este mismo valor (null → anuncia sin kg).
      */
     fun getWarmupSuggestedWeight(
         exercise: Exercise,
@@ -6583,18 +6602,30 @@ class WorkoutViewModel(
         activeTag: String? = null,
         workingWeightAnchor: Double? = null,
     ): Double? {
-        val warmup = exercise.warmupSets.getOrNull(warmupIndex) ?: return null
-        val workingWeight = workingWeightAnchor
-            ?: getWarmupWorkingWeightAnchor(exercise, activeTag)
-        val calibration = warmupCalibration(exercise, workingWeight)
-        val programmedPercentage = WarmupCalibrationEngine.normalizePercentage(
-            warmup.percentageOfWorkingWeight,
+        exercise.warmupSets.getOrNull(warmupIndex) ?: return null
+        val workingWeight = workingWeightAnchor ?: getWarmupWorkingWeightAnchor(exercise, activeTag)
+        val inventory = repository.settings.value.resolvedEquipmentInventory()
+        val equipmentKind = canonicalEquipmentKind(catalogInfoForExercise(exercise)?.equipment)
+        // Piso por etiqueta: mismo perfil y misma clave de tag que ya usa el
+        // motor de sugerencias (WorkoutLoadSuggestionController.applyTaggedBaseLoadFloor).
+        val contextProfile = activeContextProfile(exercise.id)
+        val activeTagKey = activeTag?.takeIf { it.isNotBlank() } ?: contextProfile?.tagId
+        val plan = PlanMaterializer.realizeWarmupLoads(
+            warmups = exercise.warmupSets,
+            workingLoadKg = workingWeight,
+            inventory = inventory,
+            loadMode = effectiveLoadModeForExercise(exercise, 0),
+            taggedProfile = contextProfile,
+            activeTagId = activeTagKey,
+            machine = inventory.machineRangeForExercise(exercise.catalogConfigurationId, equipmentKind),
+            configurationId = exercise.catalogConfigurationId,
+            equipmentKind = equipmentKind,
+            effortReports = warmupEffortReports(exercise),
+            // La tarjeta muestra cada paso con su kg alcanzable aunque se
+            // repita: el colapso de duplicados es de prescripción, no de vista.
+            deduplicate = false,
         )
-        val suggested = calibration.remainingWarmupLoadsKg.getOrNull(warmupIndex)
-            ?: workingWeight?.times(programmedPercentage)?.times(calibration.adjustmentFactor)
-        return suggested
-            ?.takeIf { it > 0.0 }
-            ?.let(LoadSuggestionEngine::roundLoad)
+        return plan.entries.getOrNull(warmupIndex)?.realizedKg?.takeIf { it > 0.0 }
     }
 
     /** First effective-load anchor after approximation feedback is recorded. */

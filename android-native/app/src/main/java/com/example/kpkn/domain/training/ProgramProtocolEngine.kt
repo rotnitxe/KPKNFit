@@ -23,6 +23,9 @@ object ProgramProtocolEngine {
         @Suppress("UNUSED_PARAMETER") enhancedDayDifferentiation: Boolean = false,
         metadata: ExerciseCompositionMetadataProvider? = null,
         exerciseList: List<com.example.kpkn.data.models.ExerciseMuscleInfo>? = null,
+        // Opciones del usuario (autoreg/calentamientos) para la PRIMERA
+        // materialización; los callers legados quedan intactos con el default.
+        defaultOptions: TrainingOptions = TrainingOptions(),
     ): Program {
         require(protocol.isVisibleForApplication) {
             "El protocolo '${protocol.id}' no está publicado: falta una receta verificable día por día."
@@ -47,6 +50,7 @@ object ProgramProtocolEngine {
             idProvider = idProvider,
             extraExemptions = protocol.exemptions,
             sourceProtocolId = protocol.id,
+            options = defaultOptions,
         )
         val hydrated = hydrateProgramGoals(applied)
         val scaled = scaleToCalibratedVolume(hydrated, exerciseList, idProvider)

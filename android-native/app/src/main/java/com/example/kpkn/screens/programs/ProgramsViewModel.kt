@@ -3,11 +3,15 @@ package com.example.kpkn.screens.programs
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.kpkn.data.models.Block
+import com.example.kpkn.data.models.Macrocycle
+import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.ProgramStructure
+import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.programs.resolveProgramTemplate
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.repository.ProgramRepository
@@ -165,35 +169,9 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         val programId = UUID.randomUUID().toString()
         val nextNumber = repository.programs.value.count { it.name.startsWith("Nuevo programa") } + 1
         repository.addProgram(
-            Program(
+            buildNewProgram(
                 id = programId,
                 name = "Nuevo programa $nextNumber",
-                coverImage = "gradient://ember",
-                structure = ProgramStructure.SIMPLE,
-                macrocycles = listOf(
-                    com.example.kpkn.data.models.Macrocycle(
-                        id = UUID.randomUUID().toString(),
-                        name = "Macrociclo 1",
-                        blocks = listOf(
-                            com.example.kpkn.data.models.Block(
-                                id = UUID.randomUUID().toString(),
-                                name = "Bloque 1",
-                                mesocycles = listOf(
-                                    com.example.kpkn.data.models.Mesocycle(
-                                        id = UUID.randomUUID().toString(),
-                                        name = "Mesociclo 1",
-                                        weeks = listOf(
-                                            com.example.kpkn.data.models.ProgramWeek(
-                                                id = UUID.randomUUID().toString(),
-                                                name = "Semana 1",
-                                            ),
-                                        ),
-                                    ),
-                                ),
-                            ),
-                        ),
-                    ),
-                ),
             ),
         )
         return programId
@@ -381,6 +359,51 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
 }
 
 // ─── Data Classes ──────────────────────────────────────────────────────────
+
+/**
+ * Construye un programa base NUEVO con estructura Simple mínima (un
+ * macrociclo, un bloque, un mesociclo y una semana). Función pura: no
+ * persiste ni activa nada. Compartida entre [ProgramsViewModel.createBlankProgram]
+ * y el editor directo post-alta ([ProgramEditorViewModel]).
+ */
+fun buildNewProgram(
+    id: String,
+    name: String,
+    description: String? = null,
+    coverImage: String = "gradient://ember",
+    mode: ProgramMode = ProgramMode.HYPERTROPHY,
+): Program = Program(
+    id = id,
+    name = name,
+    description = description,
+    coverImage = coverImage,
+    structure = ProgramStructure.SIMPLE,
+    mode = mode,
+    macrocycles = listOf(
+        Macrocycle(
+            id = UUID.randomUUID().toString(),
+            name = "Macrociclo 1",
+            blocks = listOf(
+                Block(
+                    id = UUID.randomUUID().toString(),
+                    name = "Bloque 1",
+                    mesocycles = listOf(
+                        Mesocycle(
+                            id = UUID.randomUUID().toString(),
+                            name = "Mesociclo 1",
+                            weeks = listOf(
+                                ProgramWeek(
+                                    id = UUID.randomUUID().toString(),
+                                    name = "Semana 1",
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    ),
+)
 
 /**
  * Statistics computed for a program.

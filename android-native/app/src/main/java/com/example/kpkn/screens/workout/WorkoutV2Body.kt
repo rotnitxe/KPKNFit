@@ -1650,17 +1650,18 @@ internal fun WorkoutV2Body(
                                             ?: uiState.completedSets["${member.id}_0_L"]?.weight
                                             ?: uiState.completedSets["${member.id}_0_R"]?.weight
                                             ?: warmupWorkingWeight
-                                        member.warmupSets.forEach { warmup ->
+                                        member.warmupSets.forEachIndexed { warmupIndex, warmup ->
                                             val key = WorkoutStepRules.warmupStepKey(member.id, warmup.id)
                                             val completedSet = uiState.completedSets[key]
-                                            val pctFraction = if (warmup.percentageOfWorkingWeight > 1.0) {
-                                                warmup.percentageOfWorkingWeight / 100.0
-                                            } else {
-                                                warmup.percentageOfWorkingWeight
-                                            }
-                                            val suggestedKg = memberWorkingWeight?.let { base ->
-                                                kotlin.math.round(base * pctFraction / 2.5) * 2.5
-                                            }
+                                            // Fuente única (mismo hook que tarjeta y voz):
+                                            // kg alcanzables con el inventario real o
+                                            // null = porcentaje pendiente, nunca 0.
+                                            val suggestedKg = viewModel.getWarmupSuggestedWeight(
+                                                exercise = member,
+                                                warmupIndex = warmupIndex,
+                                                activeTag = uiState.exerciseTags[member.id],
+                                                workingWeightAnchor = memberWorkingWeight,
+                                            )
                                             val isCompleted = member.id in uiState.warmupCompletedExerciseIds ||
                                                 key in uiState.warmupCompletedExerciseIds
                                             add(

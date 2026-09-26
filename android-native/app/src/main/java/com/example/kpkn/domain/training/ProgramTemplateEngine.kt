@@ -53,6 +53,9 @@ object ProgramTemplateEngine {
         applySplitPrefill: Boolean = true,
         generationTemplates: List<SessionTemplate>? = null,
         exerciseList: List<com.example.kpkn.data.models.ExerciseMuscleInfo>? = null,
+        // Opciones del usuario (autoreg/calentamientos) para la PRIMERA
+        // materialización; los callers legados quedan intactos con el default.
+        defaultOptions: TrainingOptions = TrainingOptions(),
     ): ApplyResult {
         val strategy = resolveApplyStrategy(current, forceCopy, forceReplace)
         val trackKey = template.trackLabel?.trim()?.lowercase()
@@ -117,6 +120,7 @@ object ProgramTemplateEngine {
                 idProvider = idProvider,
                 profile = materializerProfile,
                 sourceProtocolId = template.id,
+                options = defaultOptions,
             ).copy(
                 selectedSplitId = selectedSplitId,
                 structureTemplateId = template.id,

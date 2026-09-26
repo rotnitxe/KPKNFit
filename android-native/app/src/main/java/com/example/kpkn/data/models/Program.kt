@@ -2,6 +2,7 @@ package com.example.kpkn.data.models
 
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
+import com.example.kpkn.data.protocols.SetRecipe
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.AppClock
 import com.example.kpkn.domain.training.IdProvider
@@ -58,6 +59,49 @@ data class Program(
     val sourceRecipe: com.example.kpkn.data.protocols.TrainingPlanRecipe? = null,
     val sourceProtocolId: String? = null,
     val autoregulationMode: AutoregulationMode = AutoregulationMode.OFF,
+    /**
+     * Calentamientos del plan persistidos en el JSON del programa (elección real
+     * del usuario, no estado efímero del onboarding): null = política por defecto
+     * (preset 40 % × 8 / 60 % × 5 / 80 % × 3 sobre la carga de trabajo); lista
+     * vacía = sin aproximaciones automáticas; lista = pasos personalizados. La
+     * rematerialización usa este campo cuando no hay override. Como el programa
+     * se persiste como JSON (`ProgramEntity.data` con `ignoreUnknownKeys`), un
+     * campo defaulted no requiere migración de esquema Room.
+     */
+    val planWarmupConfig: List<SetRecipe>? = null,
+    /**
+     * Bolsa de prioridades de orden (músculo → puntos) realmente aplicada al
+     * generar este programa con el motor nativo. null = ninguna bolsa aplicada
+     * (plan legacy, de autor o manual). Se persiste en el JSON del programa
+     * para que el contrato de orden pueda responder con hechos (¿la bolsa
+     * pedida es la que se aplicó?) en vez de suposiciones; solo ordena
+     * ejercicios: nunca cambia series, repeticiones, intensidades ni
+     * frecuencia. Campo defaulted en JSON `ignoreUnknownKeys`: sin migración
+     * de esquema Room.
+     */
+    val planOrderPriorities: Map<String, Int>? = null,
+    /**
+     * Confirmaciones EXPLÍCITAS de sesiones opcionales, una por (día ISO,
+     * sesión) con variante opcional. Sólo la UI del calendario escribe aquí
+     * (nunca WorkoutLog ni sesiones inventadas) y sólo para fechas futuras.
+     * Campo con default en JSON `ignoreUnknownKeys`: sin migración de esquema
+     * Room y compatible con programas ya guardados.
+     */
+    val optionalSessionConfirmations: List<OptionalSessionConfirmation> = emptyList(),
+)
+
+/**
+ * Confirmación de UNA sesión opcional en UNA fecha: clave exacta
+ * (día ISO + sesión), nunca «todas las del día» ni un bloque entero.
+ *
+ * @param variantKey variante elegida (`A`/`B`/`C`/`D`); null = A por defecto.
+ *   Una sola variante por clave: no puede convivir B y C para la misma sesión.
+ */
+@Serializable
+data class OptionalSessionConfirmation(
+    val dayIso: String,
+    val sessionId: String,
+    val variantKey: String? = null,
 )
 
 @Serializable

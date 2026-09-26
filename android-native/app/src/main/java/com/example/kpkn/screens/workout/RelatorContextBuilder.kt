@@ -39,6 +39,8 @@ internal data class RelatorBuilderQueries(
     val recentWorkoutLogs: (Int) -> List<WorkoutLog>,
     val visibleExercises: (WorkoutUiState) -> List<Exercise>,
     val workoutStepPositions: (WorkoutUiState) -> List<WorkoutStep>,
+    /** Fuente única de cargas de aproximación (mismo hook que tarjeta/voz). */
+    val warmupSuggestedWeight: (Exercise, Int, String?, Double?) -> Double?,
 )
 
 internal data class RelatorUiSlice(
@@ -247,7 +249,7 @@ internal object RelatorContextBuilder {
         } else {
             listOfNotNull(currentExercise?.takeIf { it.mobilitySeries.isNotEmpty() })
         }
-        val warmupRows = buildRelatorWarmupRows(warmupMembers, state)
+        val warmupRows = buildRelatorWarmupRows(warmupMembers, state, queries.warmupSuggestedWeight)
         val firstIncompleteWarmup = warmupRows.firstOrNull { !it.isCompleted }
         val warmupIsLast = firstIncompleteWarmup != null && firstIncompleteWarmup.index == warmupRows.lastIndex
         val warmupKey = firstIncompleteWarmup?.let { "${it.exerciseId}_${it.warmup.id}" }
@@ -757,20 +759,19 @@ internal fun buildRelatorTissueHintFromLogs(
 internal fun buildRelatorWarmupRows(
     members: List<Exercise>,
     uiState: WorkoutUiState,
+    suggestedWeight: (Exercise, Int, String?, Double?) -> Double?,
 ): List<WarmupPhaseRow> {
     val rows = mutableListOf<WarmupPhaseRow>()
     var index = 0
     members.forEach { member ->
         val working = member.sets.firstOrNull()?.weight
             ?: uiState.completedSets["${member.id}_0"]?.weight
-        member.warmupSets.forEach { warmup ->
+        val activeTag = uiState.exerciseTags[member.id]
+        member.warmupSets.forEachIndexed { warmupIndex, warmup ->
             val key = WorkoutStepRules.warmupStepKey(member.id, warmup.id)
-            val pct = if (warmup.percentageOfWorkingWeight > 1.0) {
-                warmup.percentageOfWorkingWeight / 100.0
-            } else {
-                warmup.percentageOfWorkingWeight
-            }
-            val suggested = working?.let { base -> kotlin.math.round(base * pct / 2.5) * 2.5 }
+            // Misma fuente común que la tarjeta y la voz: kg alcanzables contra
+            // el inventario real o null = porcentaje pendiente (nunca kg inventados).
+            val suggested = suggestedWeight(member, warmupIndex, activeTag, working)
             rows += WarmupPhaseRow(
                 exerciseId = member.id,
                 exerciseBadge = null,

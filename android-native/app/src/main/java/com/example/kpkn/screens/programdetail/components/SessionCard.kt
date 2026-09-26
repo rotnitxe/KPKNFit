@@ -8,6 +8,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.Edit
@@ -36,6 +38,13 @@ fun SessionCard(
     onDelete: (() -> Unit)? = null,
     showDragHandle: Boolean = false,
     isDragging: Boolean = false,
+    /**
+     * Confirmación de UNA sesión opcional en su día (checked UI contextual).
+     * null = no aplica ⇒ no se dibuja nada (sólo opcionales fechadas futuras
+     * llegan con un callback desde el calendario).
+     */
+    optionalConfirmationChecked: Boolean? = null,
+    onToggleOptionalConfirmation: ((Boolean) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
@@ -122,6 +131,33 @@ fun SessionCard(
 
             // Actions
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+                val toggleConfirmation = onToggleOptionalConfirmation
+                if (toggleConfirmation != null) {
+                    // Checked contextual (IconToggleButton con estado `checked`):
+                    // confirma/desconfirma ESTA sesión en ESTE día y el
+                    // contentDescription distingue la acción actual.
+                    val confirmed = optionalConfirmationChecked == true
+                    val description = if (confirmed) {
+                        "Retirar confirmación de sesión opcional"
+                    } else {
+                        "Confirmar sesión opcional"
+                    }
+                    IconToggleButton(
+                        checked = confirmed,
+                        onCheckedChange = { toggleConfirmation(it) },
+                    ) {
+                        Icon(
+                            if (confirmed) Icons.Default.CheckCircle else Icons.Default.Check,
+                            description,
+                            tint = if (confirmed) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
                 if (onDelete != null) {
                     IconButton(onClick = onDelete) {
                         Icon(Icons.Default.Delete, stringResource(R.string.common_delete), tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))

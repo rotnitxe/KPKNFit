@@ -50,6 +50,7 @@ object ProgramCreationRequests {
 fun ProgramsScreen(
     onNavigateToProgram: (String) -> Unit,
     onCreateProgram: () -> Unit,
+    onEditProgram: (String) -> Unit,
     viewModel: ProgramsViewModel = viewModel(),
     openCreateSheetOnStart: Boolean = false,
     onCreateSheetOpened: () -> Unit = {},
@@ -197,7 +198,20 @@ fun ProgramsScreen(
         KpknAlertDialog(
             onDismissRequest = { menuProgram = null },
             title = { Text(program.name, fontWeight = FontWeight.Black) },
-            text = { Text("Gestiona este programa.") },
+            text = {
+                // Entrada REAL de edición: el editor directo admite programaId
+                // y hasta ahora ningún sitio lo construía con un id existente.
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Gestiona este programa.")
+                    TextButton(
+                        onClick = {
+                            val programId = program.id
+                            menuProgram = null
+                            onEditProgram(programId)
+                        },
+                    ) { Text("Editar") }
+                }
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -575,7 +589,7 @@ private fun ProgramQueueSection(
     }
 }
 
-private fun programCoverBrush(coverImage: String?): Brush {
+internal fun programCoverBrush(coverImage: String?): Brush {
     val colors = when (coverImage) {
         "gradient://lagoon" -> listOf(Color(0xFF0D1B2A), Color(0xFF1B4965), Color(0xFF5FA8D3))
         "gradient://velvet" -> listOf(Color(0xFF1C1024), Color(0xFF5B2A86), Color(0xFFE26D5A))

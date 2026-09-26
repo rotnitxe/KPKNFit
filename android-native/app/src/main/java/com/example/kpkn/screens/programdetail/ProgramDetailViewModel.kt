@@ -15,6 +15,7 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.HYPERTROPHY_ROLE_MULTIPLIERS
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.MesocycleGoal
+import com.example.kpkn.data.models.OptionalSessionConfirmation
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramCalendarizationMode
 import com.example.kpkn.data.models.ProgramStructure
@@ -37,6 +38,7 @@ import com.example.kpkn.data.models.suggestCalendarTrainingDays
 import com.example.kpkn.data.models.toSimpleProgramSnapshot
 import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.nutrition.NutritionTrainingCalendarAdapter
 import com.example.kpkn.domain.training.BlockProgressionEngine
 import com.example.kpkn.domain.training.BlockTransitionEngine
 import com.example.kpkn.domain.training.ProgramAutoregulationEngine
@@ -63,6 +65,7 @@ import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.VolumeRecommendation
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -582,6 +585,74 @@ class ProgramDetailViewModel(
 
     fun updateProgram(updated: Program) {
         repository.updateProgram(updated)
+    }
+
+    /**
+     * Confirma/desconfirma UNA sesión opcional en UNA fecha (clave exacta
+     * día+sesión; nunca «todas las del día» ni un bloque, y variante A si no se
+     * eligió). Sólo la UI del calendario llama aquí: NO escribe WorkoutLog ni
+     * crea sesiones/fake logs.
+     *
+     * Contrato durable: se lanza en `viewModelScope` y la transformación se
+     * aplica SOBRE EL ÚLTIMO programa dentro de
+     * [ProgramRepository.mutateProgramNow] (así dos toggles rápidos de
+     * instancias distintas no se pisan), validando fecha futura y que la
+     * sesión OPCIONAL ocurra realmente esa fecha (misma proyección del
+     * calendario que el gasto previsto). El mensaje de éxito sólo se anuncia
+     * tras `true` (Room ya persistió); si algo falla, el estado se conserva y se
+     * comunica el error. Al desconfirmar se retira ÚNICAMENTE esa entrada.
+     */
+    fun toggleOptionalSessionConfirmation(dateIso: String, sessionId: String) {
+        val day = runCatching { LocalDate.parse(dateIso) }.getOrNull()
+        if (day == null || !day.isAfter(LocalDate.now())) {
+            _uiState.update { it.copy(snackbarMessage = "Sólo se confirman sesiones de fechas futuras.") }
+            return
+        }
+        viewModelScope.launch {
+            var toggledToConfirmed: Boolean? = null
+            val outcome = runCatching {
+                repository.mutateProgramNow(programId) { current ->
+                    // Ocurrencia REAL: misma proyección/regla de fecha que el
+                    // gasto previsto; si no coincide, se aborta sin escribir.
+                    if (!NutritionTrainingCalendarAdapter.optionalOccurrenceOf(current, day, sessionId)) {
+                        return@mutateProgramNow null
+                    }
+                    val confirmed = current.optionalSessionConfirmations.any {
+                        it.dayIso == dateIso && it.sessionId == sessionId
+                    }
+                    toggledToConfirmed = !confirmed
+                    // Sólo ESA entrada cambia; el resto de confirmaciones y
+                    // campos del programa se conservan intactos.
+                    val others = current.optionalSessionConfirmations.filterNot {
+                        it.dayIso == dateIso && it.sessionId == sessionId
+                    }
+                    current.copy(
+                        optionalSessionConfirmations = if (confirmed) {
+                            others
+                        } else {
+                            others + OptionalSessionConfirmation(dayIso = dateIso, sessionId = sessionId)
+                        },
+                    )
+                }
+            }
+            val error = outcome.exceptionOrNull()
+            if (error is CancellationException) throw error
+            // Éxito anunciado SÓLO tras el `true` del repositorio; nunca un
+            // mensaje optimista y nunca sobre una copia rezagada.
+            val message = when {
+                error != null -> "No se pudo actualizar la sesión opcional."
+                outcome.getOrDefault(false) && toggledToConfirmed == true ->
+                    "Sesión opcional confirmada · $dateIso"
+                outcome.getOrDefault(false) && toggledToConfirmed == false ->
+                    "Confirmación retirada · $dateIso"
+                toggledToConfirmed != null ->
+                    "El programa cambió mientras se actualizaba. Revisa e inténtalo de nuevo."
+                repository.getProgramById(programId) == null ->
+                    "No se pudo actualizar: el programa ya no existe."
+                else -> "No se pudo actualizar: esa sesión no es opcional en esa fecha."
+            }
+            _uiState.update { it.copy(snackbarMessage = message) }
+        }
     }
 
     fun applyProgramTemplate(
