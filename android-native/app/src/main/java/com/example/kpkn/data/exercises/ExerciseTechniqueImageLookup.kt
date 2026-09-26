@@ -136,6 +136,24 @@ object ExerciseTechniqueImageLookup {
     const val REVERSE_PEC_FLY_DEFINITION_ID = "reverse_pec_fly"
     const val CALF_RAISE_DEFINITION_ID = "calf_raise"
     const val LYING_LEG_CURL_DEFINITION_ID = "lying_leg_curl"
+    const val STEP_UP_DEFINITION_ID = "step_up"
+    const val GLUTE_BRIDGE_DEFINITION_ID = "glutes_puente_gluteos"
+    const val HIP_ABDUCTION_DEFINITION_ID = "hip_abduction"
+    const val HIP_ADDUCTION_DEFINITION_ID = "hip_adduction"
+    const val SEATED_LEG_CURL_DEFINITION_ID = "seated_leg_curl"
+    const val STANDING_LEG_CURL_DEFINITION_ID = "standing_leg_curl"
+    const val SLIDER_LEG_CURL_DEFINITION_ID = "curl_isquios_con_sliders"
+    const val BALL_LEG_CURL_DEFINITION_ID = "curl_isquios_con_balon"
+    const val NORDIC_CURL_DEFINITION_ID = "hams_curl_nordic_peso_corporal"
+    const val REVERSE_NORDIC_CURL_DEFINITION_ID = "quads_reverse_nordic_peso_corporal"
+    const val COPENHAGEN_PLANK_DEFINITION_ID = "copenhagen_plank"
+    const val DYNAMIC_COPENHAGEN_PLANK_DEFINITION_ID = "copenhagen_plank_dynamic"
+    const val MACHINE_CRUNCH_DEFINITION_ID = "core_crunch_maquina"
+    const val DECLINE_PLATE_CRUNCH_DEFINITION_ID = "core_crunch_banco_declinado_lastrado_disco"
+    const val HIGH_CABLE_CRUNCH_DEFINITION_ID = "core_crunch_en_polea_alta"
+    const val CABLE_WOODCHOPPER_DEFINITION_ID = "core_lenador_polea"
+    const val PALLOF_PRESS_DEFINITION_ID = "core_press_pallof"
+    const val FLOOR_SUPERMAN_DEFINITION_ID = "back_superman_suelo"
     const val CONVENTIONAL_ROW_DEFINITION_ID = "conventional_row"
     const val CHEST_SUPPORTED_ROW_DEFINITION_ID = "chest_supported_row"
     const val LAT_PULLDOWN_DEFINITION_ID = "lat_pulldown"
@@ -723,6 +741,72 @@ object ExerciseTechniqueImageLookup {
             ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_lying_leg_curl_dumbbells_batch9, "Mancuernas"),
             ExerciseTechniqueImageVariant("machine", R.drawable.exercise_lying_leg_curl_machine_batch9, "Máquina"),
         )
+        STEP_UP_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_step_up_barbell_batch10, "Barra"),
+            ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_step_up_smith_machine_batch10, "Smith"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_step_up_dumbbells_batch10, "Mancuernas"),
+            ExerciseTechniqueImageVariant("kettlebell", R.drawable.exercise_step_up_kettlebell_batch10, "Kettlebell"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_step_up_cable_batch10, "Polea"),
+        )
+        GLUTE_BRIDGE_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_glutes_puente_gluteos_barbell_batch10, "Barra"),
+            ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_glutes_puente_gluteos_dumbbells_batch10, "Mancuernas"),
+            ExerciseTechniqueImageVariant("smith_machine", R.drawable.exercise_glutes_puente_gluteos_smith_machine_batch10, "Smith"),
+        )
+        HIP_ABDUCTION_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_hip_abduction_machine_batch10, "Máquina sentada"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_hip_abduction_cable_batch10, "Polea"),
+            ExerciseTechniqueImageVariant("band", R.drawable.exercise_hip_abduction_band_batch10, "Banda"),
+        )
+        HIP_ADDUCTION_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_hip_adduction_machine_batch10, "Máquina sentada"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_hip_adduction_cable_batch10, "Polea"),
+            ExerciseTechniqueImageVariant("band", R.drawable.exercise_hip_adduction_band_batch10, "Banda"),
+        )
+        SEATED_LEG_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_seated_leg_curl_machine_batch10, "Máquina"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_seated_leg_curl_cable_batch10, "Polea"),
+        )
+        STANDING_LEG_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_standing_leg_curl_machine_batch10, "Máquina"),
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_standing_leg_curl_cable_batch10, "Polea"),
+        )
+        SLIDER_LEG_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("sliders", R.drawable.exercise_curl_isquios_con_sliders_sliders_batch10, "Sliders"),
+        )
+        BALL_LEG_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_curl_isquios_con_balon_bodyweight_batch10, "Balón"),
+        )
+        NORDIC_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_hams_curl_nordic_peso_corporal_bodyweight_batch10, "Peso corporal"),
+        )
+        REVERSE_NORDIC_CURL_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_quads_reverse_nordic_peso_corporal_bodyweight_batch10, "Peso corporal"),
+        )
+        COPENHAGEN_PLANK_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_copenhagen_plank_bodyweight_batch10, "Peso corporal"),
+        )
+        DYNAMIC_COPENHAGEN_PLANK_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_copenhagen_plank_dynamic_bodyweight_batch10, "Peso corporal"),
+        )
+        MACHINE_CRUNCH_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("machine", R.drawable.exercise_core_crunch_maquina_machine_batch10, "Máquina"),
+        )
+        DECLINE_PLATE_CRUNCH_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("plate", R.drawable.exercise_core_crunch_banco_declinado_lastrado_disco_plate_batch10, "Disco"),
+        )
+        HIGH_CABLE_CRUNCH_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_core_crunch_en_polea_alta_cable_batch10, "Polea"),
+        )
+        CABLE_WOODCHOPPER_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_core_lenador_polea_cable_batch10, "Polea"),
+        )
+        PALLOF_PRESS_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("cable", R.drawable.exercise_core_press_pallof_cable_batch10, "Polea"),
+        )
+        FLOOR_SUPERMAN_DEFINITION_ID -> listOf(
+            ExerciseTechniqueImageVariant("bodyweight", R.drawable.exercise_back_superman_suelo_bodyweight_batch10, "Peso corporal"),
+        )
         CONVENTIONAL_ROW_DEFINITION_ID -> listOf(
             ExerciseTechniqueImageVariant("barbell", R.drawable.exercise_conventional_row_barbell, "Barra"),
             ExerciseTechniqueImageVariant("dumbbells", R.drawable.exercise_conventional_row_dumbbells, "Mancuernas"),
@@ -820,6 +904,18 @@ object ExerciseTechniqueImageLookup {
             // Do not substitute the approved barbell/Smith art for a different Pendlay implement.
             return null
         }
+        if (definitionId in setOf(HIP_ABDUCTION_DEFINITION_ID, HIP_ADDUCTION_DEFINITION_ID) &&
+            requestsOneOfImplement(
+                selectedImplementation = selectedImplementation,
+                catalogConfigurationId = catalogConfigurationId,
+                exerciseDbId = exerciseDbId,
+                tokens = setOf("machine"),
+            ) &&
+            !isSeatedStation(catalogConfigurationId, exerciseDbId)
+        ) {
+            // These reviewed machine photos show a seated station, not the separate standing station.
+            return null
+        }
         val requestedEquipment = sequenceOf(
             selectedImplementation,
             catalogConfigurationId?.substringAfter("__", ""),
@@ -857,6 +953,12 @@ object ExerciseTechniqueImageLookup {
         exerciseDbId = exerciseDbId,
         tokens = setOf("t_bar"),
     )
+
+    private fun isSeatedStation(catalogConfigurationId: String?, exerciseDbId: String?): Boolean =
+        sequenceOf(catalogConfigurationId, exerciseDbId)
+            .filterNotNull()
+            .flatMap { it.split("__").asSequence() }
+            .any { it.equals("seated", ignoreCase = true) }
 
     private fun requestsOneOfImplement(
         selectedImplementation: String?,
